@@ -85,7 +85,5 @@ function server.register_handler(name)
 	skynet.call(loginservice, "lua", "register_gate", servername, skynet.self())
 end
 
-function server.call()
-end
 msgserver.start(server)
 

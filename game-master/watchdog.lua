@@ -51,12 +51,6 @@ end
 skynet.start(function()
 	skynet.dispatch("lua", function(session, source, cmd, subcmd, ...)
 		if cmd == "socket" then
-			--if #agent % 2 == 0 then
-			--	skynet.send("SLAVEWATCHDOG", "lua", cmd, subcmd, ...)
-			--else
-			--	local f = SOCKET[subcmd]
-			--	f(...)
-			--end
 			local f = SOCKET[subcmd]
 			f(...)
 			-- socket api don't need return
@@ -66,5 +60,5 @@ skynet.start(function()
 		end
 	end)
 
-	gate = skynet.newservice("gate")
+	gate = skynet.newservice("gated")
 end)

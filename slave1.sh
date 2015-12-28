@@ -3,4 +3,4 @@
 #echo $1
 #echo $2
 cd skynet
-./skynet ./../game-slave1/config
+./skynet ./../game-slave1/config.sl
