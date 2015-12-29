@@ -2,6 +2,8 @@ local skynet = require "skynet"
 
 skynet.start(function()
 	local loginserver = skynet.newservice("logind")
+	skynet.name("LOGIND", loginserver)
+
 	--local gate = skynet.newservice("gated", loginserver)
 
 	--skynet.call(gate, "lua", "open" , {
