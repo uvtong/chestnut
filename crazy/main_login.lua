@@ -12,4 +12,6 @@ skynet.start(function()
 	--	maxclient = 64,
 	--	servername = "sample",
 	--})
+	
+	skynet.exit()
 end)

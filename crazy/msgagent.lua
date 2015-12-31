@@ -12,9 +12,18 @@ local REQUEST = {}
 local client_fd
 
 function REQUEST:get()
+	print("get", self.what)
+	local r = skynet.call("SIMPLEDB", "lua", "get", self.what)
+	return { result = r }
 end
 
 function REQUEST:set()
+	print("set", self.what, self.value)
+	local r = skynet.call("SIMPLEDB", "lua", "set", self.what, self.value)
+end
+
+function REQUEST:handshake()
+	return { msg = "Welcome to skynet, I will send heartbeat every 5 sec." }
 end
 
 function REQUEST:quit()
@@ -39,7 +48,13 @@ skynet.register_protocol {
 	id = skynet.PTYPE_CLIENT,
 	--unpack = skynet.tostring,
 	unpack = function (msg, sz)
-		return host:dispatch(msg, sz)
+		if sz > 0 then 		
+			return host:dispatch(msg, sz)
+		elseif sz == 0 then
+			return "HELLO"
+		else
+			assert(false)
+		end
 	end,
 	dispatch = function (_,_, type, ...)
 		if type == "REQUEST" then
@@ -51,6 +66,8 @@ skynet.register_protocol {
 			else
 				skynet.error(result)
 			end
+		elseif type == "HELLO" then
+			skynet.error "hello sz == 0"
 		else	
 			assert(type == "RESPONSE")
 			error "this example doesn't support request client"
@@ -91,10 +108,12 @@ function CMD.afk(source)
 	skynet.error(string.format("AFK"))
 end
 
-function CMD.start(conf)
+function CMD.start(source, conf)
+	print "msgagent cmd start"
 	local fd = conf.client
 	local gate = conf.gate
 	WATCHDOG = conf.watchdog
+	-- slot 1,2 set at main.lua
 	host = sprotoloader.load(1):host "package"  -- tag 1
 	send_request = host:attach(sprotoloader.load(2)) -- tag 2
 	skynet.fork(function ()
@@ -118,9 +137,9 @@ skynet.start(function()
 		skynet.ret(skynet.pack(f(source, ...)))
 	end)
 
-	skynet.dispatch("client", function(_,_, msg)
+	--skynet.dispatch("client", function(_,_, msg)
 		-- the simple echo service
-		skynet.sleep(10)	-- sleep a while
-		skynet.ret(msg)
-	end)
+	--	skynet.sleep(10)	-- sleep a while
+	--	skynet.ret(msg)
+	--end)
 end)

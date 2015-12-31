@@ -2,20 +2,23 @@ local skynet = require "skynet"
 local sprotoloader = require "sprotoloader"
 
 local max_client = 64
+local server_name = "sample"
 
 skynet.start(function()
-	print("Server start")
 	skynet.uniqueservice("protoloader")
 	local console = skynet.newservice("console")
 	skynet.newservice("debug_console",8000)
 	skynet.newservice("simpledb")
+	--skynet.uniqueservice("mysql")
+	--skynet.uniqueservice("redis")
+	--server_name = skynet.getenv("servername")
 	local watchdog = skynet.newservice("watchdog")
 	skynet.call(watchdog, "lua", "start", {
 		port = 8888,
 		maxclient = max_client,
-		nodelay = true,
+		servername = server_name,
+		--nodelay = true,
 	})
-	print("Watchdog listen on ", 8888)
-
+	print (" watchdog listen on ", 8888)
 	skynet.exit()
 end)
