@@ -4,7 +4,6 @@ local skynet = require "skynet"
 
 --local loginservice = tonumber(...)
 local loginservice = tostring(...)
-print("Watchdog listen on hee")
 
 local server = {}
 local users = {}
@@ -24,13 +23,6 @@ function server.login_handler(uid, secret)
 
 	-- you can use a pool to alloc new agent
 	local agent = skynet.newservice "msgagent"
-
-	local conf = {
-		client = fd,
-		gate = skynet.self(),
-		watchdog = 0,
-	}
-	--skynet.call(agent, "lua", "start", conf)
 
 	local u = {
 		username = username,
@@ -74,6 +66,20 @@ function server.kick_handler(uid, subid)
 	end
 end
 
+function server.connect_handler( username, fd )
+	-- body
+	local u = 
+	local conf = {
+		client = 0,
+		gate = skynet.self(),
+		watchdog = 0,
+	}
+	local u = username_map[username]
+	if u then
+		skynet.call(u.agent, "lua", "afk")
+	end
+end
+
 -- call by self (when socket disconnect)
 function server.disconnect_handler(username)
 	local u = username_map[username]
@@ -91,7 +97,6 @@ end
 -- call by self (when gate open)
 function server.register_handler(name)
 	servername = name
-	skynet.error( servername .. loginservice )
 	skynet.call(loginservice, "lua", "register_gate", servername, skynet.self())
 end
 
