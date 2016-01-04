@@ -2,7 +2,8 @@ local msgserver = require "snax.msgserver"
 local crypt = require "crypt"
 local skynet = require "skynet"
 
-local loginservice = tonumber(...)
+--local loginservice = tonumber(...)
+local loginservice = tostring(...)
 
 local server = {}
 local users = {}
@@ -22,13 +23,13 @@ function server.login_handler(uid, secret)
 
 	-- you can use a pool to alloc new agent
 	local agent = skynet.newservice "msgagent"
+
 	local u = {
 		username = username,
 		agent = agent,
 		uid = uid,
 		subid = id,
 	}
-
 	-- trash subid (no used)
 	skynet.call(agent, "lua", "login", uid, id, secret)
 
@@ -65,6 +66,20 @@ function server.kick_handler(uid, subid)
 	end
 end
 
+function server.connect_handler( username, fd )
+	-- body
+	local u = 
+	local conf = {
+		client = 0,
+		gate = skynet.self(),
+		watchdog = 0,
+	}
+	local u = username_map[username]
+	if u then
+		skynet.call(u.agent, "lua", "afk")
+	end
+end
+
 -- call by self (when socket disconnect)
 function server.disconnect_handler(username)
 	local u = username_map[username]
@@ -83,9 +98,6 @@ end
 function server.register_handler(name)
 	servername = name
 	skynet.call(loginservice, "lua", "register_gate", servername, skynet.self())
-end
-
-function server.call()
 end
 
 msgserver.start(server)

@@ -24,6 +24,7 @@ function server.auth_handler(token)
 end
 
 function server.login_handler(server, uid, secret)
+	skynet.error(string.format("server_list %d", #server_list))
 	print(string.format("%s@%s is login, secret is %s", uid, server, crypt.hexencode(secret)))
 	local gameserver = assert(server_list[server], "Unknown server")
 	-- only one can login, because disallow multilogin
@@ -43,6 +44,7 @@ end
 local CMD = {}
 
 function CMD.register_gate(server, address)
+	print ( "logind register gate")
 	server_list[server] = address
 end
 
@@ -52,6 +54,16 @@ function CMD.logout(uid, subid)
 		print(string.format("%s@%s is logout", uid, u.server))
 		user_online[uid] = nil
 	end
+end
+
+function CMD.ok()
+	print ( "cmd ok")
+	return true
+end
+
+function CMD.no()
+	print ( "cmd no ")
+	return false
 end
 
 function server.command_handler(command, ...)

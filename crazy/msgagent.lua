@@ -3,6 +3,7 @@ local netpack = require "netpack"
 local socket = require "socket"
 local sproto = require "sproto"
 local sprotoloader = require "sprotoloader"
+local crypt = require "crypt"
 
 local WATCHDOG
 local host
@@ -12,9 +13,19 @@ local REQUEST = {}
 local client_fd
 
 function REQUEST:get()
+	print("get", self.what)
+	local r = skynet.call("SIMPLEDB", "lua", "get", self.what)
+	return { result = r }
 end
 
 function REQUEST:set()
+	print("set", self.what, self.value)
+	local r = skynet.call("SIMPLEDB", "lua", "set", self.what, self.value)
+end
+
+function REQUEST:handshake()
+	skynet.error "handshake"
+	return { msg = "Welcome to skynet, I will send heartbeat every 5 sec." }
 end
 
 function REQUEST:quit()
@@ -37,20 +48,42 @@ end
 skynet.register_protocol {
 	name = "client",
 	id = skynet.PTYPE_CLIENT,
-	--unpack = skynet.tostring,
+	
+	-- pack return lua string or userdata and size.
+	-- unpack = skynet.tostring, skynet.tostring covert msg and sz to lua string
+	-- local ok, f = skynet.response(skynet.pack( ... ))
+	-- f()
+	-- skynet.ret(skynet.pack( ... ))
+	pack = function ( msg )
+		-- body
+		local str = crypt.desencode(secret, msg)
+		return crypt.base64decode(str)
+	end,
 	unpack = function (msg, sz)
-		return host:dispatch(msg, sz)
+		if sz > 0 then 		
+			return host:dispatch(msg, sz)
+		elseif sz == 0 then
+			return "HELLO"
+		else
+			assert(false)
+		end
 	end,
 	dispatch = function (_,_, type, ...)
 		if type == "REQUEST" then
 			local ok, result = pcall(request, ...)
 			if ok then
 				if result then
-					send_package(result)
+					--send_package(result)
+					skynet.ret(skynet.pack(result))
+					--skynet.ret(result)
 				end
 			else
-				skynet.error(result)
+				assert(false)
+				skynet.error("result")
+				skynet.ret(skynet.pack("error"))
 			end
+		elseif type == "HELLO" then
+			skynet.error "hello sz == 0"
 		else	
 			assert(type == "RESPONSE")
 			error "this example doesn't support request client"
@@ -60,6 +93,7 @@ skynet.register_protocol {
 
 local gate
 local userid, subid
+local secret
 
 local CMD = {}
 
@@ -69,6 +103,7 @@ function CMD.login(source, uid, sid, secret)
 	gate = source
 	userid = uid
 	subid = sid
+	secret = secret
 	-- you may load user data from database
 	
 end
@@ -91,20 +126,22 @@ function CMD.afk(source)
 	skynet.error(string.format("AFK"))
 end
 
-function CMD.start(conf)
+function CMD.start(source, conf)
+	print "msgagent cmd start"
 	local fd = conf.client
 	local gate = conf.gate
-	WATCHDOG = conf.watchdog
+	--WATCHDOG = conf.watchdog
+	-- slot 1,2 set at main.lua
 	host = sprotoloader.load(1):host "package"  -- tag 1
 	send_request = host:attach(sprotoloader.load(2)) -- tag 2
-	skynet.fork(function ()
-		while true do
-			send_package(send_request "heartbeat")
-			skynet.sleep(500)
-		end
-	end)
-	client_fd = fd
-	skynet.call(gate, "lua", "forward", fd)
+	-- skynet.fork(function ()
+	-- 	while true do
+	-- 		send_package(send_request "heartbeat")
+	-- 		skynet.sleep(500)
+	-- 	end
+	-- end)
+	-- client_fd = fd
+	-- skynet.call(gate, "lua", "forward", fd)
 end
 
 function CMD.disconnect()
@@ -118,9 +155,9 @@ skynet.start(function()
 		skynet.ret(skynet.pack(f(source, ...)))
 	end)
 
-	skynet.dispatch("client", function(_,_, msg)
+	--skynet.dispatch("client", function(_,_, msg)
 		-- the simple echo service
-		skynet.sleep(10)	-- sleep a while
-		skynet.ret(msg)
-	end)
+	--	skynet.sleep(10)	-- sleep a while
+	--	skynet.ret(msg)
+	--end)
 end)
