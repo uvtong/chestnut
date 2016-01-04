@@ -3,4 +3,4 @@
 #echo $1
 #echo $2
 cd skynet
-./skynet ./../aa/config
+./skynet ./../cat/config

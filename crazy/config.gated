@@ -10,8 +10,13 @@ bootstrap = "snlua bootstrap"	-- The service for bootstrap
 --standalone = "0.0.0.0:2013"
 luaservice = root.."service/?.lua;"..root.."examples/?.lua;"..root.."../crazy/?.lua"
 lualoader = "lualib/loader.lua"
+<<<<<<< Updated upstream
 -- preload = "./examples/preload.lua"	-- run preload.lua before every lua service run
 snax = root.."../crazy/?.lua"
+=======
+-- preload = "./game-slave1/preload.lua"	-- run preload.lua before every lua service run
+snax = root.."../game-slave1/?.lua;"..root.."test/?.lua"
+>>>>>>> Stashed changes
 -- snax_interface_g = "snax_g"
 cpath = root.."cservice/?.so"
 -- daemon = "./skynet.pid"
