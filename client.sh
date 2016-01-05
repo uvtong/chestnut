@@ -3,4 +3,4 @@
 #echo $1
 #echo $2
 cd skynet
-./skynet ./../game-slave1/config
+./3rd/lua/lua ./../crazy/client.lua

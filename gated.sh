@@ -3,5 +3,4 @@
 #echo $1
 #echo $2
 cd skynet
-./skynet ./../crazy/config.login
 ./skynet ./../crazy/config.gated

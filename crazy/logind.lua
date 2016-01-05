@@ -12,6 +12,7 @@ local server = {
 local server_list = {}
 local user_online = {}
 local user_login = {}
+local db = tonumber(...)
 
 function server.auth_handler(token)
 	-- the token is base64(user)@base64(server):base64(password)

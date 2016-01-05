@@ -2,7 +2,8 @@ local skynet = require "skynet"
 require "skynet.manager"
 
 skynet.start(function()
-	local loginserver = skynet.newservice("logind")
+	local db = skynet.newservice('db')
+	local loginserver = skynet.newservice("logind", db)
 	skynet.name("LOGIND", loginserver)
 
 	--local gate = skynet.newservice("gated", loginserver)
