@@ -70,8 +70,7 @@ function function_name( ... )
 	end
 end
 
-skynet.yield() 
-
+-- lose cpu exe
 skynet.yield()
 
 skynet.sleep(ti) -- 100 ti == 1s
