@@ -24,11 +24,11 @@ end
 
 local function verification( user, password )
 	-- body
-
 end
 
 function server.auth_handler(token)
 	-- the token is base64(user)@base64(server):base64(password)
+	skynet.error "auth handler"
 	local user, server, password = token:match("([^@]+)@([^:]+):(.+)")
 	user = crypt.base64decode(user)
 	server = crypt.base64decode(server)

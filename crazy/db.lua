@@ -63,12 +63,12 @@ local function set(db, cache, table, column, pk, value )
 	assert(type(value) ~= "userdata")
 	local key = string.format("%s_%s_%s", table, pk, column)
 	cache:set(key, value)
-	local function co( ... )
-		-- body, default 'id' is primary key.
-		local sql = string.format('update %s set %s = "%s" where id = "%s"', table, column, value, pk)	
-		local res = db:query(sql)
-	end
-	skynet.fork(co)
+	-- local function co( ... )
+	-- 	-- body, default 'id' is primary key.
+	-- 	local sql = string.format('update %s set %s = "%s" where id = "%s"', table, column, value, pk)	
+	-- 	local res = db:query(sql)
+	-- end
+	-- skynet.fork(co)
 end
 
 local function get(db, cache, table, column, pk )
@@ -89,6 +89,10 @@ local function load(db, cache, table )
 end
 
 local CMD = {}
+
+function CMD:m( ... )
+	-- body
+end
 
 function CMD:command( ... )
 	-- body
@@ -115,5 +119,9 @@ skynet.start(function ()
 	end)
 	db = connect_mysql()
 	cache = connect_redis()
+	local function co( ... )
+		-- body
+	end
+	skynet.fork(co)
 	skynet.register "DATABASE"
 end)

@@ -75,6 +75,8 @@ local hmac = crypt.hmac64(challenge, secret)
 writeline(fd, crypt.base64encode(hmac))
 
 -- 6. (optionl) readline server
+-- 
+local servers = crypt.base64decode(crypt.desdecode(secret, readline()))
 
 local token = {
 	server = "sample",
