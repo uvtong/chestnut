@@ -1,4 +1,5 @@
 local skynet = require "skynet"
+require "skynet.manager"
 local mysql = require "mysql"
 local redis = require "redis"
 
@@ -30,9 +31,9 @@ local function disconnect_mysql( db )
 end
 
 local conf = {
-	host = "127.0.0.",
-	prot = 6379,
-	db = 0,
+	host = "127.0.0.1" ,
+	port = 6379 ,
+	db = 0
 }
 
 local function watching()
@@ -55,11 +56,11 @@ end
 local function diconnect_redis( cache )
 	-- body
 	cache:disconnect()
-end = 1
+end
 
 local function set(db, cache, table, column, pk, value )
 	-- body
-	assert(type(value) != "userdata")
+	assert(type(value) ~= "userdata")
 	local key = string.format("%s_%s_%s", table, pk, column)
 	cache:set(key, value)
 	local function co( ... )
@@ -114,4 +115,5 @@ skynet.start(function ()
 	end)
 	db = connect_mysql()
 	cache = connect_redis()
+	skynet.register "DATABASE"
 end)

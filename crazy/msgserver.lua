@@ -165,6 +165,7 @@ function server.start(conf)
 
 	-- atomic , no yield
 	local function do_auth(fd, message, addr)
+		print "this do auth."
 		local username, index, hmac = string.match(message, "([^:]*):([^:]*):([^:]*)")
 		local u = user_online[username]
 		if u == nil then
