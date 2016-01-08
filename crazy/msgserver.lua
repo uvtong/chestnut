@@ -145,6 +145,7 @@ function server.start(conf)
 	end
 
 	function handler.connect(fd, addr)
+		-- 
 		handshake[fd] = addr
 		gateserver.openclient(fd)
 	end

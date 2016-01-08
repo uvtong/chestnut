@@ -6,6 +6,19 @@ local table = table
 local string = string
 local assert = assert
 
+local sproto = require "sproto"
+local sprotoloader = require "sprotoloader"
+
+local proto = [[
+	.server {
+		.node {
+			name 0 : string
+			address 1 : string
+		}
+		nodes 0 : *node
+	}
+]]
+
 --[[
 
 Protocol:
@@ -52,10 +65,14 @@ local function launch_slave(auth_handler)
 		-- set socket buffer limit (8K)
 		-- If the attacker send large package, close the socket
 		socket.limit(fd, 8192)
+		print ("launch slave")
+		print ("1. server--> client.")
 
 		local challenge = crypt.randomkey()
+		write("auth", fd, "400 Bad Request\n")
+		--write("auth", fd, crypt.base64encode(challenge).."\n")
 		write("auth", fd, crypt.base64encode(challenge).."\n")
-
+		print ( "2. client--> server.") 
 		local handshake = assert_socket("auth", socket.readline(fd), fd)
 		local clientkey = crypt.base64decode(handshake)
 		if #clientkey ~= 8 then
@@ -73,6 +90,27 @@ local function launch_slave(auth_handler)
 			write("auth", fd, "400 Bad Request\n")
 			error "challenge failed"
 		end
+		--skynet.error "abckaljdlajdf"
+		--write("auth", fd, crypt.base64encode(crypt.dhexchange(serverkey)).."\n")
+
+		--local svs = conf.get_servers()
+		-- local text = {
+		-- nodes = {
+		-- 	{
+		-- 		name = "sample",
+		-- 		address = "127.0.0.1"
+		-- 	},
+		-- 	{
+		-- 		name = "test",
+		-- 		address = "127.0.0.1"
+		-- 	}
+		-- }}
+		-- local sp = sproto.parse(proto)
+		-- local bin = sp:abcencode("server", text)
+		-- print(type(bin))
+		-- local bin = "servers"
+		--write("auth", fd, bin .. "\n")
+		--write("auth", fd, "abcdefg\n")
 
 		local etoken = assert_socket("auth", socket.readline(fd),fd)
 
@@ -104,6 +142,7 @@ local function launch_slave(auth_handler)
 	end
 
 	skynet.dispatch("lua", function(_,_,...)
+		-- slave only can solve handshak.
 		local ok, msg, len = pcall(auth_fd, ...)
 		if ok then
 			skynet.ret(msg,len)
@@ -117,7 +156,7 @@ local user_login = {}
 
 local function accept(conf, s, fd, addr)
 	-- call slave auth
-	local ok, server, uid, secret = skynet.call(s, "lua",  fd, addr)
+	local ok, server, uid, secret = skynet.call(s, "lua", fd, addr)
 	-- slave will accept(start) fd, so we can write to fd later
 
 	if not ok then

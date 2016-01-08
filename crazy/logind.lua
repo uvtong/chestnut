@@ -1,6 +1,9 @@
-local login = require "snax.loginserver"
+package.path = "./../crazy/?.lua;" .. package.path
+local login = require "loginserver"
 local crypt = require "crypt"
 local skynet = require "skynet"
+local sproto = require "sproto"
+local sprotoloader = require "sprotoloader"
 
 local server = {
 	host = "0.0.0.0",
@@ -8,6 +11,16 @@ local server = {
 	multilogin = false,	-- disallow multilogin
 	name = "login_master",
 }
+
+local proto = [[
+	.server {
+		.node {
+			name 0 : string
+			address 1 : string
+		}
+		nodes 0 : *node
+	}
+]]
 
 local server_list = {}
 local user_online = {}
@@ -20,7 +33,6 @@ local function user( ... )
 	-- body
 	skynet.call(db, "lua", "get", table, "")
 end
-
 
 local function verification( user, password )
 	-- body
@@ -60,6 +72,10 @@ function server.logout_handler( ... )
 end
 
 function server.kick_handler( ... )
+	-- body
+end
+
+function server.get_servers( ... )
 	-- body
 end
 

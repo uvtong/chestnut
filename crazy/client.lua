@@ -56,6 +56,10 @@ local function unpack_f(f)
 end
 
 local readline = unpack_f(unpack_line)
+-- 0
+--local cha = crypt.base64decode(readline())
+print(readline())
+
 -- 1. get challenge
 local challenge = crypt.base64decode(readline())
 
@@ -66,6 +70,7 @@ local clientkey = crypt.randomkey()
 writeline(fd, crypt.base64encode(crypt.dhexchange(clientkey)))
 
 -- 4. achieve secret.
+
 local secret = crypt.dhsecret(crypt.base64decode(readline()), clientkey)
 
 print("sceret is ", crypt.hexencode(secret))
@@ -76,7 +81,22 @@ writeline(fd, crypt.base64encode(hmac))
 
 -- 6. (optionl) readline server
 -- 
-local servers = crypt.base64decode(crypt.desdecode(secret, readline()))
+-- writeline(fd, "get_servers")
+-- local proto = [[
+-- 	.server {
+-- 		.node {
+-- 			name 0 : string
+-- 			address 1 : string
+-- 		}
+-- 		nodes 0 : *node
+-- 	}
+-- ]]
+-- local sp = sproto.parse(proto)
+-- local servers = sp:decode("server", readline())
+-- for k,v in pairs(servers) do
+-- 	print(k,v)
+-- end
+--print(readline())
 
 local token = {
 	server = "sample",

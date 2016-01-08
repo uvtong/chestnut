@@ -70,6 +70,7 @@ function function_name( ... )
 	end
 end
 
+-- don't you not catch a 
 -- lose cpu exe
 skynet.yield()
 
