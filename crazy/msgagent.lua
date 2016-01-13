@@ -11,6 +11,7 @@ local send_request
 
 local REQUEST = {}
 local client_fd
+local db = "DATABASE"
 
 function REQUEST:get()
 	print("get", self.what)
@@ -60,7 +61,10 @@ skynet.register_protocol {
 		return crypt.base64decode(str)
 	end,
 	unpack = function (msg, sz)
-		if sz > 0 then 		
+		if sz > 0 then 	
+			-- local str = netpack.tostring(msg, sz)	
+			-- str = crypt.base64encode(str)
+			-- str = crypt.desencode(secret, str)
 			return host:dispatch(msg, sz)
 		elseif sz == 0 then
 			return "HELLO"
@@ -148,13 +152,20 @@ function CMD.disconnect()
 	skynet.exit()
 end
 
+local function update_redis( ... )
+	-- body
+	while true do
+		skynet.send(db, "lua", "")	
+	end
+end
+
 skynet.start(function()
 	-- If you want to fork a work thread , you MUST do it in CMD.login
 	skynet.dispatch("lua", function(session, source, command, ...)
 		local f = assert(CMD[command])
 		skynet.ret(skynet.pack(f(source, ...)))
 	end)
-
+	skynet.fork(update_redis)
 	--skynet.dispatch("client", function(_,_, msg)
 		-- the simple echo service
 	--	skynet.sleep(10)	-- sleep a while

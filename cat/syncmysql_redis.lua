@@ -8,18 +8,18 @@ local db
 
 local
 function tinsert( tvals ) --{ tname = "" , cont = { {colname = val} ,  ... } }
-	if nil == tvals then 
+	if nil == sqltable then 
 		print( "empty argtable\n" )
 		return nil
 	end
 
-	local tname = tvals["tname"]
+	local tname = sqltable["tname"]
 	if nil == tname then
 		print( "No tname\n" )
 		return nil
 	end
 
-	local cont = tvals["content"]
+	local cont = sqltable["cont"]
 	if nil == cont then
 		print( "No Cont\n" )
 		return nil
@@ -27,7 +27,7 @@ function tinsert( tvals ) --{ tname = "" , cont = { {colname = val} ,  ... } }
 
 	local ret = { key = "" , val = "" }
 
-	ret["key"] = string.format( "insert into %s (" , tname ) 
+	sqlstr = ret["key"] = string.format( "insert into '%s' (" , tname ) 
 	for k , v in ipairs( cont ) do
 		for subk , subv in pairs( v ) do
 			ret["key"] = ret["key"] .. subk .. ','
@@ -38,9 +38,9 @@ function tinsert( tvals ) --{ tname = "" , cont = { {colname = val} ,  ... } }
 			end
 		end
 	end
-				
+
 	--去掉 ret["key"] 的最后一个 ','
-	ret["key"] = string.sub( ret["key"] , 1 , -2)
+	ret["key"] = string.sub( ret["key"] , 1 , -1 )
 	ret["val"] = string.sub( ret["val"] , 2 )
 	ret["key"] = ret["key"] .. ") values ("
 	ret["val"] = ret["val"] .. ")"
@@ -80,7 +80,7 @@ function tselect( tvals )
 		table.insert( ret , string.format( " from %s " , tname ) )
 	end
 
-	return condition and table.concat( ret ) or table.concat( ret ) .. "where" .. condition
+	return condition and table.concat( ret ) or table.concat( ret ) .. where .. condition
 end 
 	
 local
@@ -195,31 +195,31 @@ function connect_mysql( ... )
 	end
 	
 	local db = mysql.connect( { 
-		host = "192.168.1.116",
-		port = 3306,
-		database = "test",
-		user = "root",
-		password = "yulei",
+		host = 192.168.1.116
+		port = 3306
+		database = "test"
+		user = "root"
+		password = "yulei"
 
-		max_packet_size = 1024 * 1024,
-		on_connect = on_connect,
+		max_packet_size = 1024 * 1024
+		on_connect = on_connect
 	} )
-	print( "mysql server is connected\n" )
+
 	return db
 end
 
 
 
 local
-function disconnect_mysql( db )	local redis_row_set_key
+function disconnect_mysql( db )
 	db:disconnect()
 end
 
 local
-conf = 
+function conf = 
 {
-	host = "127.0.0.1",
-	port = 6379,
+	host = 192.168.1.116
+	port = 6379
 	db = 0
 }
 
@@ -236,9 +236,9 @@ end
 
 local
 function connect_redis( ... )
-	--skynet.fork( watching )
+	skynet.fork( watching )
 	local db = redis.connect( conf )
-	print( "redis is connect\n" )
+	
 	return db
 end
 
@@ -246,6 +246,8 @@ local
 function disconnect_redis( cache )
 	cache:disconnect()
 end
+
+
 
 local CMD = {}
 
@@ -255,74 +257,27 @@ end
 
 function CMD:command( ... )
 	local key = tostring( ... )
-	
-	local result = cache:hmget( key )
-	if type( result ) == "table" then
-		for k , v in pairs( result ) do
-				
-		end	
-	end
-	print( "unknown type\n" )
-	return
+	return cache:get( key )
 end
 
 function CMD:disconnect_mysql( ... )
 	disconnect_mysql( db )
 end
 
-local 
-function fetchvalues()
-	local id = cache:hget( "skills" , "abc" )
-	print( type(id) )
-	
-	local result = cache:hmget( string.format( "abc:%s" , id ) , "id" , "sklname" , "skldsb" , "sklactive" , "playtime")
-	if type( result ) == "table" then
-		for k , v in pairs( result ) do
-			print( string.format("%s , %s " , k , v) , type( v ) )			
-		end	
-	end
-	--print( "unknown type\n" )
-	print( type( "2.345" + 0 ) )
-	return	
-end		
+
 skynet.start( function () 
 	skynet.dispatch( "lua" , function( _, _, cmd, ... )
 		local f = assert( CMD[ cmd ] )
 		skynet.ret( skynet.pack( f( ... ) ) )
-	end	
+	end
 		)
-		
+
 		db = connect_mysql()
-		
-		tvals = nil
-		tvals = { tname = "skill" , condition = "id = 1" }
-		sql = tselect( tvals )
+		local tvals = { "tname" = "skill" , "content" = { { "id" = 1 } , { "sklname" = "abc"} , { "skldsb" = "fsdfsdfsd"} , { "sklactive" = 1 } , { "playtime" = 2.345 } } , }
+		sql = tinsert( tvals )
 		print( sql )
-		if nil == sql then
-			print( "select failed\n" )
-			return		
-		end
-		sqlresult = db:query( sql )
-		local redisval = {}
-		if sqlresult ~= nil then
-			for k, v in pairs( sqlresult ) do
-				print( k , v )
-				index = 1
-				for sk , sv in pairs( v ) do
-					
-					redisval[2 * index - 1] = tostring(sk)
-					redisval[ 2 * index ] = tostring(sv)
-					index = index + 1
-				end
-			end
-		end
-		
+		local sqlresult = db:query( sql )
+
 		cache = connect_redis()
-		str = string.format( "%s:%s" , sqlresult[1]["sklname"] , sqlresult[1]["id"] )
-			
-		cache:hmset( str , table.unpack( redisval ) )
-		cache:hset( "skills",  sqlresult[1]["sklname"], sqlresult[1]["id"] )
-		--fetchvalues()
-		print("stored in hash successfully\n")
-	end	
-	)	
+	end
+	)

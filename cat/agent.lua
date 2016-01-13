@@ -9,6 +9,8 @@ local socket = require "socket"
 local sproto = require "sproto"
 local sprotoloader = require "sprotoloader"
 local csvReader = require "csvReader"
+local db = require "db"
+
       	
 local WATCHDOG
 local host
@@ -44,164 +46,9 @@ function REQUEST:foobar()
 	local tmp = csvReader.getline( csvcont , "Rolo" )
 
 	return {
-    	ok = true,
-    
-    
+	ok = true,
       rolelist = {
          {
-   --[[ isBoss = true,
-    endWinCount = 1,
-	
-    health_Max = 1,
-    defense_Min = 1,
-
-
-    redMakeStartTimeMin = 1,
-    redMakeStartTimeMax = 1,
-	
-    bombMakePre = 1,
-    fastMakePre = 1,
-    groundMakePre = 1,
-    comboMakePre = 1,
-	
-    attack1_Min = 1,rolelist 1 : *role 
-    attack1_Max = 1,
-    attack1_TimeMin = "TimeMin",
-    attack1_TimeMax = "TimeMin",
-    attack1_CountMax = 1,
-    attack2_Min  = 1,
-    attack2_Max = 1,
-    attack2_TimeMin = "TimeMin",
-    attack2_TimeMax = "TimeMin",
-    attack2_CountMax = 1,
-    attackBoxMax = 1,
-    attack3_Max = 1,
- 
-    batter_Min = 1,
-    batter_Max = 1,
- 
-    batter_ShowMin = 1,
-    batter_ShowMax = 1,
-    batter_TimeMin = "TimeMin",
-    batter_TimeMax = "TimeMin",
-    batter_CountMax = 1,
- 
-    combo_Min = 1,
-    combo_Max = 1,
-    combo_ShowMax = 1,
-    combo_CountMax = 1, 
-	
-    ground_Min = 1,
-    ground_Max = 1,
-    ground_TimeMin = "TimeMin",
-    ground_TimeMax = "TimeMin",
-    ground_CountMax = 1,
-    ground_SpeedMin = 1,
-    ground_CountClick = 1,
- 
-    fast_Min = 1,
-    fast_Max = 1,
-    fast_TimeMin = "TimeMin",
-    fast_TimeMax = "TimeMin",
-    fast_CountMax = 1,
-    fast_SpeedMin = 1,
-    fast_SpeedMax = 1,
-	
-    bomb_Min = 1,
-    bomb_Max = 1,
-    bomb_TimeMin = "TimeMin",
-    bomb_TimeMax = "TimeMin",
-    bomb_CountMax = 1,
-    bomb_SpeedMin = 1,
-    
-    red_Min = 1,
-    red_Max = 1,
-    red_TimeMin = "TimeMin",
-    red_TimeMax = "TimeMax",
-    red_CountMax = 1,
-    red_SpeedMin = 1,
-    
-    comboBoxShowMin = 1,
-    
-    defense_Max = 1,--]]
-
-    --[[
-    ["isBoss"] = true,
-    ["endWinCount"] = 1,
-	
-    ["health_Max"] = 1,
-    ["defense_Min"] = 1,
-
-
-    ["redMakeStartTimeMin"] = 1,
-    ["redMakeStartTimeMax"] = 1,
-	
-    ["bombMakePre"] = 1,
-    ["fastMakePre"] = 1,
-    ["groundMakePre"] = 1,
-    ["comboMakePre"] = 1,
-	
-    ["attack1_Min"] = 1,
-    ["attack1_Max"] = 1,
-    ["attack1_TimeMin"] = "TimeMin",
-    ["attack1_TimeMax"] = "TimeMin",
-    ["attack1_CountMax"] = 1,
-    ["attack2_Min"]  = 1,
-    ["attack2_Max"] = 1,
-    ["attack2_TimeMin"] = "TimeMin",
-    ["attack2_TimeMax"] = "TimeMin",
-    ["attack2_CountMax"] = 1,
-    ["attackBoxMax"] = 1,
-    ["attack3_Max"] = 1,
- 
-    ["batter_Min"] = 1,
-    ["batter_Max"] = 1,
- 
-    ["batter_ShowMin"] = 1,
-    ["batter_ShowMax"] = 1,
-    ["batter_TimeMin"] = "TimeMin",
-    ["batter_TimeMax"] = "TimeMin",
-    ["batter_CountMax"] = 1,
- 
-    ["combo_Min"] = 1,
-    ["combo_Max"] = 1,
-    ["combo_ShowMax"] = 1,
-    ["combo_CountMax"] = 1, 
-	
-    ["ground_Min"] = 1,
-    ["ground_Max"] = 1,
-    ["ground_TimeMin"] = "TimeMin",
-    ["ground_TimeMax"] = "TimeMin",
-    ["ground_CountMax"] = 1,
-    ["ground_SpeedMin"] = 1,
-    ["ground_CountClick"] = 1,
- 
-    ["fast_Min"] = 1,
-    ["fast_Max"] = 1,
-    ["fast_TimeMin"] = "TimeMin",
-    ["fast_TimeMax"] = "TimeMinrolelist 1 : *role ",
-    ["fast_CountMax"] = 1,
-    ["fast_SpeedMin"] = 1,
-    ["fast_SpeedMax"] = 1,
-	
-    ["bomb_Min"] = 1,
-    ["bomb_Max"] = 1,
-    ["bomb_TimeMin"] = "TimeMin",
-    ["bomb_TimeMax"] = "TimeMin",
-    ["bomb_CountMax"] = 1,
-    ["bomb_SpeedMin"] = 1,
-    
-    ["red_Min"] = 1,
-    ["red_Max"] = 1,
-    ["red_TimeMin"] = "TimeMin",
-    ["red_TimeMax"] = "TimeMax",
-    ["red_CountMax"] = 1,
-    ["red_SpeedMin"] = 1,
-    
-    ["comboBoxShowMin"] = 1,
-    
-    ["defense_Max"] = 1 --]]
-    
     ["isBoss"] = tonumber(tmp["isBoss"]),
     ["endWinCount"] = tonumber(tmp["endWinCount"]),
 	
@@ -325,7 +172,7 @@ skynet.register_protocol {
 		end
 	end
 }	
-	
+
 function CMD.start(conf)
 	local fd = conf.client
 	local gate = conf.gate
@@ -348,7 +195,7 @@ function CMD.disconnect()
 	-- todo: do something before exit
 	skynet.exit()
 end	
-	
+
 function printcont( cont )
 	if cont ~= nil then
 		for i, v in ipair(cont) do
@@ -364,7 +211,7 @@ skynet.start(function()
 		skynet.ret(skynet.pack(f(...)))
 	end)
 
-	--csvcont = csvReader.getcont( "./cat/data.csv" )
-	--print(package.path)
+	csvcont = csvReader.getcont( "./cat/data.csv" )
+	print(package.path)
 end)
 

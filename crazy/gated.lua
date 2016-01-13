@@ -1,4 +1,5 @@
-local msgserver = require "snax.msgserver"
+--local msgserver = require "snax.msgserver"
+local msgserver = require "msgserver"
 local crypt = require "crypt"
 local skynet = require "skynet"
 
@@ -9,6 +10,7 @@ local server = {}
 local users = {}
 local username_map = {}
 local internal_id = 0
+
 
 -- login server disallow multi login, so login_handler never be reentry
 -- call by login server
@@ -66,18 +68,10 @@ function server.kick_handler(uid, subid)
 	end
 end
 
-function server.connect_handler( username, fd )
+-- call by self (when socket connet)
+function server.connect_handler(fd)
 	-- body
-	local u = 
-	local conf = {
-		client = 0,
-		gate = skynet.self(),
-		watchdog = 0,
-	}
-	local u = username_map[username]
-	if u then
-		skynet.call(u.agent, "lua", "afk")
-	end
+	-- nothing.
 end
 
 -- call by self (when socket disconnect)

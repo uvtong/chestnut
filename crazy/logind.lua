@@ -12,20 +12,33 @@ local server = {
 local server_list = {}
 local user_online = {}
 local user_login = {}
-local db = tonumber(...)
+local db = "DATABASE"
+local table = ""
+
+
+local function user( ... )
+	-- body
+	skynet.call(db, "lua", "get", table, "")
+end
+
+
+local function verification( user, password )
+	-- body
+end
 
 function server.auth_handler(token)
 	-- the token is base64(user)@base64(server):base64(password)
+	skynet.error "auth handler"
 	local user, server, password = token:match("([^@]+)@([^:]+):(.+)")
 	user = crypt.base64decode(user)
 	server = crypt.base64decode(server)
 	password = crypt.base64decode(password)
 	assert(password == "password", "Invalid password")
+	verification(user, password)
 	return server, user
 end
 
 function server.login_handler(server, uid, secret)
-	skynet.error(string.format("server_list %d", #server_list))
 	print(string.format("%s@%s is login, secret is %s", uid, server, crypt.hexencode(secret)))
 	local gameserver = assert(server_list[server], "Unknown server")
 	-- only one can login, because disallow multilogin
@@ -40,6 +53,14 @@ function server.login_handler(server, uid, secret)
 	local subid = tostring(skynet.call(gameserver, "lua", "login", uid, secret))
 	user_online[uid] = { address = gameserver, subid = subid , server = server}
 	return subid
+end
+
+function server.logout_handler( ... )
+	-- body
+end
+
+function server.kick_handler( ... )
+	-- body
 end
 
 local CMD = {}

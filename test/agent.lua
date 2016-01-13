@@ -348,7 +348,7 @@ function CMD.disconnect()
 	-- todo: do something before exit
 	skynet.exit()
 end	
-	
+
 function printcont( cont )
 	if cont ~= nil then
 		for i, v in ipair(cont) do
@@ -364,7 +364,7 @@ skynet.start(function()
 		skynet.ret(skynet.pack(f(...)))
 	end)
 
-	--csvcont = csvReader.getcont( "./cat/data.csv" )
-	--print(package.path)
+	csvcont = csvReader.getcont( "./cat/data.csv" )
+	print(package.path)
 end)
 

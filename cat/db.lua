@@ -1,5 +1,4 @@
 local skynet = require "skynet"
-require "skynet.manager"
 local mysql = require "mysql"
 local redis = require "redis"
 
@@ -15,26 +14,26 @@ local function connect_mysql( ... )
 	local db=mysql.connect({
 		host="127.0.0.1",
 		port=3306,
-		database="crazy",
+		database="mysql",
 		user="root",
-		password="123456",
+		password="yulei",
 		max_packet_size = 1024 * 1024,
 		on_connect = on_connect
 	})
 	return db
-end 	
-	
+end
+
 local function disconnect_mysql( db )
 	-- body
 	db:disconnect()
-end	
-	
+end
+
 local conf = {
-	host = "127.0.0.1" ,
-	port = 6379 ,
-	db = 0
-}	
-	
+	host = "127.0.0.1",
+	prot = 6379,
+	db = 0,
+}
+
 local function watching()
 	-- body
 	local w = redis.watch(conf)
@@ -52,7 +51,7 @@ local function connect_redis( ... )
 	return db
 end
 
-local function diconnect_redis( cache )
+local function disconnect_redis( cache )
 	-- body
 	cache:disconnect()
 end
@@ -62,12 +61,12 @@ local function set(db, cache, table, column, pk, value )
 	assert(type(value) ~= "userdata")
 	local key = string.format("%s_%s_%s", table, pk, column)
 	cache:set(key, value)
-	-- local function co( ... )
-	-- 	-- body, default 'id' is primary key.
-	-- 	local sql = string.format('update %s set %s = "%s" where id = "%s"', table, column, value, pk)	
-	-- 	local res = db:query(sql)
-	-- end
-	-- skynet.fork(co)
+	local function co( ... )
+		-- body, default 'id' is primary key.
+		local sql = string.format('update %s set %s = "%s" where id = "%s"', table, column, value, pk)	
+		local res = db:query(sql)
+	end
+	skynet.fork(co)
 end
 
 local function get(db, cache, table, column, pk )
@@ -84,18 +83,13 @@ local function load(db, cache, table )
 	-- body
 	local sql = string.format('')
 	res = db:query(sql)
-
 end
 
 local function delete(db, cache, table)
-
+	--TODO
 end
 
 local CMD = {}
-
-function CMD:m( ... )
-	-- body
-end
 
 function CMD:command( ... )
 	-- body
@@ -103,9 +97,9 @@ function CMD:command( ... )
 	return cache:get(key)
 end
 
-function CMD:diconnect_redis( ... )
+function CMD:disconnect_redis( ... )
 	-- body
-	diconnect_redis(cache)
+	disconnect_redis(cache)
 end
 
 function CMD:disconnect_mysql( ... )
@@ -122,10 +116,4 @@ skynet.start(function ()
 	end)
 	db = connect_mysql()
 	cache = connect_redis()
-end)
-	local function co( ... )
-		-- body
-	end
-	skynet.fork(co)
-	skynet.register "DATABASE"
 end)

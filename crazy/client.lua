@@ -56,17 +56,27 @@ local function unpack_f(f)
 end
 
 local readline = unpack_f(unpack_line)
-
+-- 1. get challenge
 local challenge = crypt.base64decode(readline())
 
+-- 2. generate clientkey
 local clientkey = crypt.randomkey()
+
+-- 3. send clientkey to server
 writeline(fd, crypt.base64encode(crypt.dhexchange(clientkey)))
+
+-- 4. achieve secret.
 local secret = crypt.dhsecret(crypt.base64decode(readline()), clientkey)
 
 print("sceret is ", crypt.hexencode(secret))
 
+-- 5. check secret.
 local hmac = crypt.hmac64(challenge, secret)
 writeline(fd, crypt.base64encode(hmac))
+
+-- 6. (optionl) readline server
+-- 
+local servers = crypt.base64decode(crypt.desdecode(secret, readline()))
 
 local token = {
 	server = "sample",
@@ -83,6 +93,8 @@ end
 
 local etoken = crypt.desencode(secret, encode_token(token))
 local b = crypt.base64encode(etoken)
+
+-- 7. auth
 writeline(fd, crypt.base64encode(etoken))
 
 local result = readline()
@@ -91,6 +103,7 @@ local code = tonumber(string.sub(result, 1, 3))
 assert(code == 200)
 socket.close(fd)
 
+-- 8. subid
 local subid = crypt.base64decode(string.sub(result, 5))
 
 print("login ok, subid=", subid)
@@ -143,8 +156,8 @@ local session = 0
 local function send_request(name, args)
 	session = session + 1
 	local str = request(name, args, session)
-	str = crypt.desencode(secret, str)
-	str = crypt.base64encode(str)
+	-- str = crypt.desencode(secret, str)
+	-- str = crypt.base64encode(str)
 	--send_package(fd, str)
 	send_request_b(str, session)
 	print("Request:", session)

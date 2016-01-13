@@ -18,6 +18,62 @@ local function response(id, ...)
 	end
 end
 
+local VIEW = {}
+
+function VIEW:_(id, code, url, method, ... )
+	-- body
+	local path, query = urllib.parse(url)
+	local arg = { ... }
+	header = arg[1]
+	body = arg[2]
+	print(self.data)
+	if method == "GET" then
+		return response(id, code, "GET index page.")	
+	elseif method == "POST" then
+		return response(id, code, "POST index page.")
+	else
+		return response(id, code, "ERROR index page.")
+	end
+end
+
+function VIEW:_admin(id, code, url, method, header, body )
+	-- body
+	assert(type(header) == "table")
+	local tmp = {}
+	if header.host then
+	table.insert(tmp, string.format("host: %s", header.host))
+	end
+	local path, query = urllib.parse(url)
+	table.insert(tmp, string.format("path: %s", path))
+	if query then
+		local q = urllib.parse_query(query)
+		for k, v in pairs(q) do
+			table.insert(tmp, string.format("query: %s= %s", k,v))
+		end
+	end
+	table.insert(tmp, "-----header----")
+	for k,v in pairs(header) do
+		table.insert(tmp, string.format("%s = %s",k,v))
+	end
+	table.insert(tmp, "-----body----\n" .. body)
+	return response(id, code, table.concat(tmp,"\n"))
+end
+
+local function route( id, code, url, method, header, body )
+	-- body
+	print("id:", type(id), id)
+	print("code:", type(code), code)
+	print("url:", type(url), url)
+	print("method:", type(method), method)
+	print("header:", type(header), header)
+	print("body:", type(body), body)
+	if string.match(url, "^/") then
+		return VIEW:_(id, code, url, method, header, body)
+	elseif string.match(url, "^/admin$") then
+		return VIEW:_admin(id, code, url, method, header, body)
+	end
+end 
+
 skynet.start(function()
 	skynet.dispatch("lua", function (_,_,id)
 		socket.start(id)
@@ -27,24 +83,7 @@ skynet.start(function()
 			if code ~= 200 then
 				response(id, code)
 			else
-				local tmp = {}
-				if header.host then
-					table.insert(tmp, string.format("host: %s", header.host))
-				end
-				local path, query = urllib.parse(url)
-				table.insert(tmp, string.format("path: %s", path))
-				if query then
-					local q = urllib.parse_query(query)
-					for k, v in pairs(q) do
-						table.insert(tmp, string.format("query: %s= %s", k,v))
-					end
-				end
-				table.insert(tmp, "-----header----")
-				for k,v in pairs(header) do
-					table.insert(tmp, string.format("%s = %s",k,v))
-				end
-				table.insert(tmp, "-----body----\n" .. body)
-				response(id, code, table.concat(tmp,"\n"))
+				return route(id, code, url, method, header, body)				
 			end
 		else
 			if url == sockethelper.socket_error then
