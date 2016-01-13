@@ -1,4 +1,5 @@
 --local msgserver = require "snax.msgserver"
+package.path = package.path .. ";./../crazy/?.lua"
 local msgserver = require "msgserver"
 local crypt = require "crypt"
 local skynet = require "skynet"
