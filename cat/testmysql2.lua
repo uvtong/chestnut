@@ -7,7 +7,7 @@ local x = 1
 local db
 
 local
-function tinsert( tvals ) --{ tname = "" , cont = { {colname = val} ,  ... } }
+function tinsert( tvals ) --{ tname = "" , content = { {colname = val} ,  ... } , condition = "tiao jian" }
 	if nil == tvals then 
 		print( "empty argtable\n" )
 		return nil

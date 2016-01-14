@@ -55,10 +55,6 @@ function splitstr( s )
 	return t
 end 
 
-function a()
-if 
-end
-
 local 
 function init_title( title )
 		if nil == title then
