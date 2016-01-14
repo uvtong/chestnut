@@ -1,4 +1,4 @@
-dbop = require "dbop"
+--dbop = require "dbop"
 
 usermgr = {}
 
@@ -19,9 +19,10 @@ function usermgr:find( id )
 	return self._data[id]
 end
 
-local user = {}
+local user = { _nickname , _id }
 
-user._nickname = "aa"
+--user._nickname = nil
+--user._id = nil
 
 function user.new( ... )
  	-- body
@@ -39,14 +40,35 @@ function user:nickname( ... )
 	return self._nickname
 end
 
-function user:selectdb( tvals )
-	
-	return dbop.tselect( tvals )
-	
+function user:id( ... )
+	return self._id
 end
 
-function user:insert
+
+function user:setnickname( name )
+	self._nickname = name
+end
+
+function user:setid( id )
+	self._id = id
+end
+function user:selectdb( tvals )
+	
+	--return dbop.tselect( tvals )
+	
+end
 	
 local n = { nickname = "aaa"}
-local u = user.new(n)
-print(u:nickname())
+local u = user.new()
+local t = user.new()
+
+print( u:nickname())
+print( t:nickname() )
+print( u:id() )
+print( t:id() )
+u:setnickname( "bb")
+t:setid( 4 )
+print( u:nickname())
+print( t:nickname() )
+print( u:id() )
+print( t:id() )
