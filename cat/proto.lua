@@ -19,7 +19,7 @@ handshake 1 {
 
 role 2 {
     response {
-        id 0 : integer
+        role_id 0 : integer
         wake_level 1 : integer
         level 2 : integer
         combat 3 : integer
@@ -36,7 +36,7 @@ mail 3 {
     request {
         from 0 : integer
         to 1 : integer
-        head 2 : string
+        title 2 : string
         msg 3 : string
     }
     response {
@@ -46,6 +46,64 @@ mail 3 {
     }
 }
 
+signup 4 {
+	request {
+		account 0 : string
+		password 1 : string
+	}
+	response {
+
+	}
+}
+
+login 5 {
+	request {
+		account 0 : string
+		password 1 : string
+	}
+	response {
+		user_id 0 : integer
+        wake_level 1 : integer
+        level 2 : integer
+        combat 3 : integer
+        defense 4 : integer
+        critical_hit 5 : integer
+        skill 6 : integer
+        c_equipment 7 : integer
+        c_dress 8 : integer
+        c_kungfu 9 : integer	
+	}
+}
+
+upgrade 6 {
+	response {
+		role_id 0 : integer
+        wake_level 1 : integer
+        level 2 : integer
+        combat 3 : integer
+        defense 4 : integer
+        critical_hit 5 : integer
+        skill 6 : integer
+        c_equipment 7 : integer
+        c_dress 8 : integer
+        c_kungfu 9 : integer
+	}
+}
+
+wake 7 {
+	response {
+		role_id 0 : integer
+        wake_level 1 : integer
+        level 2 : integer
+        combat 3 : integer
+        defense 4 : integer
+        critical_hit 5 : integer
+        skill 6 : integer
+        c_equipment 7 : integer
+        c_dress 8 : integer
+        c_kungfu 9 : integer
+	}
+}
 
 ]]
 

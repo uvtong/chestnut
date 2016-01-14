@@ -290,10 +290,8 @@ skynet.start( function ()
 	skynet.dispatch( "lua" , function( _, _, cmd, ... )
 		local f = assert( CMD[ cmd ] )
 		skynet.ret( skynet.pack( f( ... ) ) )
-	end	
-		)
-		
-		db = connect_mysql()
+	end)
+	db = connect_mysql()
 		
 		tvals = nil
 		tvals = { tname = "skill" , condition = "id = 1" }

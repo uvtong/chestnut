@@ -1,8 +1,5 @@
---package.path = "../csvfiles/?.csv"
-
 local csvreader = {} --store function 
 csvcont = {}  --store csvcont
---local csvpath = "../csvfiles/" 
 
 local 
 function splitstr( s )
@@ -72,7 +69,6 @@ function init_title( title )
 				csvcont[val] = {}
 			end
 		end
-
 		return temp	
 end	
 
