@@ -1,8 +1,5 @@
-package.cpath = "skynet/luaclib/?.so"
-package.path = "crazy/?.lua;skynet/lualib/?.lua"
-
---package.cpath = "luaclib/?.so"
---package.path = "lualib/?.lua;examples/?.lua;./../crazy/?.lua"
+package.cpath = "luaclib/?.so"
+package.path = "lualib/?.lua;../cat/?.lua"
 
 if _VERSION ~= "Lua 5.3" then
 	error "Use lua 5.3"
@@ -101,8 +98,8 @@ local function dispatch_package()
 	end
 end
 
---send_request("handshake")
-send_request("foobar", {what="nihao",})
+send_request("handshake")
+send_request("role")
 while true do
 	dispatch_package()
 	local cmd = socket.readstdin()
@@ -110,7 +107,7 @@ while true do
 		if cmd == "quit" then
 			send_request("quit")
 		else
-			send_request("foobar", { what = cmd })
+			-- send_request("foobar", { what = cmd })
 		end
 	else
 		socket.usleep(100)

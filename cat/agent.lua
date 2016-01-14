@@ -1,7 +1,4 @@
---package.path = "lualib/?.lua;./cat/?.lua;./cat/loadcsv/?.lua"
---package.path = "lualib/?.lua;../cat/loadcsv/?.lua"
---package.path = "?.lua" 
-package.path = package.path .. ";./cat/?.lua"  
+package.path = "./../cat/?.lua;" .. package.path
 
 local skynet = require "skynet"
 local netpack = require "netpack"
@@ -18,6 +15,12 @@ local CMD = {}
 local REQUEST = {}
 local client_fd
 local csvcont = {}
+
+function REQUEST:role()
+	-- body
+	local r = {}
+	return r
+end
 
 function REQUEST:get()
 	print("get", self.what)
@@ -37,18 +40,6 @@ end
 
 function REQUEST:quit()
 	skynet.call(WATCHDOG, "lua", "close", client_fd)
-end
-
-function REQUEST:foobar()
-	print("foobar is called")
-	
-	local tmp = csvReader.getline( csvcont , "Rolo" )
-
-	return {
-    ok = true,  
-    rolelist = { 
-    }
-}
 end
 
 local function request(name, args, response)

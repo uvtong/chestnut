@@ -208,8 +208,6 @@ function connect_mysql( ... )
 	return db
 end
 
-
-
 local
 function disconnect_mysql( db )
 	db:disconnect()
@@ -269,15 +267,16 @@ skynet.start( function ()
 	skynet.dispatch( "lua" , function( _, _, cmd, ... )
 		local f = assert( CMD[ cmd ] )
 		skynet.ret( skynet.pack( f( ... ) ) )
-	end
-		)
+	end)
 
-		db = connect_mysql()
-		local tvals = { "tname" = "skill" , "content" = { { "id" = 1 } , { "sklname" = "abc"} , { "skldsb" = "fsdfsdfsd"} , { "sklactive" = 1 } , { "playtime" = 2.345 } } , }
-		sql = tinsert( tvals )
-		print( sql )
-		local sqlresult = db:query( sql )
+	db = connect_mysql()
+	local tvals = { "tname" = "skill" , "content" = { { "id" = 1 } , { "sklname" = "abc"} , { "skldsb" = "fsdfsdfsd"} , { "sklactive" = 1 } , { "playtime" = 2.345 } } , }
+	sql = tinsert( tvals )
+	print( sql )
+	local sqlresult = db:query( sql )
+	cache = connect_redis()
+end)
 
-		cache = connect_redis()
-	end
-	)
+function function_name( ... )
+	-- body
+end
