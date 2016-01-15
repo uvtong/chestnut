@@ -19,7 +19,7 @@ handshake 1 {
 
 role 2 {
     response {
-        role_id 0 : integer
+        id 0 : integer
         wake_level 1 : integer
         level 2 : integer
         combat 3 : integer
@@ -63,15 +63,28 @@ login 5 {
 	}
 	response {
 		user_id 0 : integer
-        wake_level 1 : integer
-        level 2 : integer
-        combat 3 : integer
-        defense 4 : integer
-        critical_hit 5 : integer
-        skill 6 : integer
-        c_equipment 7 : integer
-        c_dress 8 : integer
-        c_kungfu 9 : integer	
+		uname 1 : string
+        uaccount : string
+        upassword : string
+        uviplevel : integer
+        uexp : integer
+        config_sound : boolean
+        config_music : boolean
+        avatar : integer
+        sign : string
+        .role {
+            id 0 : integer
+            wake_level 1 : integer
+            level 2 : integer
+            combat 3 : integer
+            defense 4 : integer
+            critical_hit 5 : integer
+            skill 6 : integer
+            c_equipment 7 : integer
+            c_dress 8 : integer
+            c_kungfu 9 : integer
+        }
+        rolelist : *role
 	}
 }
 

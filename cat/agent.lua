@@ -1,11 +1,14 @@
 package.path = "./../cat/?.lua;" .. package.path
 
 local skynet = require "skynet"
+require "skynet.manager"
 local netpack = require "netpack"
 local socket = require "socket"
 local sproto = require "sproto"
 local sprotoloader = require "sprotoloader"
 local csvReader = require "csvReader"
+local role = require "role"
+local usermgr = require "usermgr"
       	
 local WATCHDOG
 local host
@@ -15,18 +18,70 @@ local CMD = {}
 local REQUEST = {}
 local client_fd
 local csvcont = {}
-
+	 
+local role_id 
+local uid
+	 
 function REQUEST:role()
+	local r = math.random() % 5 + 1
+	local addr = skynet.query( string.format(".db%d", r) ) 
 	-- body
-	local r = {}
-	return r
+	local tvals = { tname = "role" , condition = string.format( "id = %s" , uid) }
+	local r = skynet.call( addr, "command", "select" , tvals )
+     
+	return 
+end	
+					
+function REQUEST:mail()
+     
+end	
+	
+function REQUEST:signup()
+end	
+	
+function REQUEST:login()
+	local r = math.random() % 5 + 1
+	local addr = skynet.query( string.format(".db%d", r) ) 
+    
+	local tvals = { tname = "users" , condition = string.format( "uaccount = %s , upassword = %s" , self.account , self.password ) }
+	local r = skynet.call( addr, "command", "select" , tvals )
+	local u = usermgr.create( r )
+	uid = u.id
+	    
+	tvals = nil
+	tvals = { tname = "role" , condition = string.format( "uid = %s" , uid ) }
+	r = skynet.call( addr , "command" , "select" , tvals )
+	
+
+	local ret = {}
+	ret.id = u.id;
+	ret.uname = u.uname
+	ret.uaccount = u.uaccount
+	ret.upassword = u.password
+	ret.uviplevel = u.uviplevel
+	ret.uexp = u.uexp
+	ret.config_sound = u.config_sound
+	ret.config_music = u.config_music
+	ret.avatar = u.avatar
+	ret.sign = u.sign
+    
+	return ret
+end	
+	
+	
+function REQUEST:upgrade()
+
+end	
+
+function REQUEST:wake()
+
 end
 
 function REQUEST:get()
 	print("get", self.what)
 	local r = skynet.call("SIMPLEDB", "lua", "get", self.what)
 	return { result = r }
-end
+end	
 
 function REQUEST:set()
 	print("set", self.what, self.value)

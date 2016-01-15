@@ -1,4 +1,5 @@
 local skynet = require "skynet"
+require "skynet.manager"
 local sprotoloader = require "sprotoloader"
 
 local max_client = 64
@@ -9,8 +10,11 @@ skynet.start(function()
 	local console = skynet.newservice("console")
 	skynet.newservice("debug_console",8000)
 	skynet.newservice("simpledb")
+	for i=1,5 do
+		local db = skynet.newservice("db")
+		skynet.register(db, string.format(".db%d", i))
+	end
 	-- skynet.newservice("testmysql2")
-
 	local watchdog = skynet.newservice("watchdog")
 	skynet.call(watchdog, "lua", "start", {
 		port = 8888,
