@@ -1,5 +1,5 @@
 package.cpath = "luaclib/?.so"
-package.path = "lualib/?.lua;examples/?.lua"
+package.path = "lualib/?.lua;../cat/?.lua"
 
 if _VERSION ~= "Lua 5.3" then
 	error "Use lua 5.3"
@@ -99,7 +99,7 @@ local function dispatch_package()
 end
 
 send_request("role")
--- send_request("blackhole", {account = "abc" , password = "abc"})
+send_request("login", { account = "abc" , password = "abc" })
 while true do
 	dispatch_package()
 	local cmd = socket.readstdin()

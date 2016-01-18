@@ -59,7 +59,9 @@ function REQUEST:login()
 	local r = math.random(1, 5)
 	local addr = skynet.localname(string.format(".db%d", math.floor(r))) 
 	local tvals = { tname = "users" , condition = string.format( " uaccount = %s and upassword = %s" , "abc" , "abc") }
-	local r = skynet.call( addr, "command", "select_users" , tvals )
+	local r = skynet.call(addr, "lua", "command", "abc", "aaa");
+	print (r)
+	-- local r = skynet.call(addr, "lua", "command", "select_users", tvals )
 	if r == nil or r[1] == nil then
 		skynet.error( "no such user!" )
 		err = 1

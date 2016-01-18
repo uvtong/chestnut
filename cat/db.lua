@@ -224,7 +224,12 @@ end
 function QUERY:select_equipment()
 	
 end	
-	
+
+function QUERY:abc( ... )
+	-- body
+	print(tostring(...))
+	return "hello"
+end
 		
 local CMD = {}
 	
@@ -237,19 +242,20 @@ function CMD:disconnect_mysql( ... )
 end	
 	
 function CMD:command( subcmd, ... )
+	print(subcmd, type(subcmd))
 	local f = assert(QUERY[subcmd])
-	return f( ... )
+	return f(QUERY, ... )
 end
 
 
 skynet.start( function () 
-	skynet.dispatch( "lua" , function( _, _, cmd, ... )
+	skynet.dispatch( "lua" , function( _, _, cmd, subcmd, ... )
 		if cmd == "command" then
 			local f = assert( CMD[ cmd ] )
-			skynet.ret( skynet.pack( f( ... ) ) )
+			skynet.ret( skynet.pack( f(CMD, subcmd, ... ) ) )
 		else
 			local f = assert( CMD[ cmd ] )
-			skynet.ret( skynet.pack( f( ... ) ) )
+			skynet.ret( skynet.pack( f( subcmd, ... ) ) )
 		end
 	end)
 

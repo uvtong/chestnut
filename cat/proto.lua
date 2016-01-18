@@ -93,7 +93,7 @@ upgrade 6 {
         combat 5 : integer
         defense 6 : integer
         critical_hit 7 : integer
-        skill 8 : integaborer
+        skill 8 : integer
         c_equipment 9 : integer
         c_dress 10 : integer
         c_kungfu 11 : integer
