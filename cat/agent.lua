@@ -42,23 +42,32 @@ function REQUEST:signup()
 end	
 	
 function REQUEST:login()
-	local r = math.random() % 5 + 1
-	local addr = skynet.query( string.format(".db%d", r) ) 
-    
+	local t = math.random() % 5 + 1
+	local addr = skynet.localname( string.format(".db%d", 1) ) 
+    local err 
+    print("add is " .. type(addr), addr)
+
 	local tvals = { tname = "users" , condition = string.format( "uaccount = %s , upassword = %s" , self.account , self.password ) }
 	local r = skynet.call( addr, "command", "select_users" , tvals )
-	local u = usermgr.create( r )
+	if r == nil or r[1] == nil then
+		skynet.error( "no such user!" )
+		err = 1
+	end
+
+	local u = usermgr.create( r[1] )
 	uid = u.id
 
+	print "****************************************"
 	tvals = nil
 	tvals = { tname = "role" , condition = string.format( "uid = %s" , uid ) }
-	r = skynet.call( addr , "command" , "selectrole_by_uid" , tvals )
+	r = skynet.call( addr , "command" , "select_rolebyuid" , tvals )
 
+	print("load data succ\n")
 	local ret = {}
+	local rolelist = {}
 	for k , v in ipairs( r ) do
 		tmp = rolemgr.create( r )
 		local rl = {}
-		rl.rolelist = {}
 
 		rl.id = tmp.id
 		rl.wake_level = tmp.wake_level
@@ -71,8 +80,9 @@ function REQUEST:login()
 		rl.dress = tmp.c_equipment
 		rl.kungfu = tmp.kungfu
 
-		table.insert( rl.rolelist , rl )
+		table.insert( rolelist , rl )
 	end
+	ret.rolelist = rolelist
 	
 	ret.id = u.id;
 	ret.uname = u.uname
@@ -85,16 +95,6 @@ function REQUEST:login()
 	ret.avatar = u.avatar
 	ret.sign = u.sign
     
-    --[[local ret = {}
-	ret.id = 1;
-	ret.user_name = "dfjsdkf"
-	ret.uviplevel = 1
-	ret.uexp = 1000
-	ret.config_sound = 1
-	ret.config_music = 1
-	ret.avatar = 1
-	ret.sign = "sdfsdgsdfsdgfdsfsdfsd"
---]]
 	return ret
 end	
 	
@@ -184,12 +184,62 @@ function REQUEST:quit()
 end
 
 function REQUEST:blackhole()
-	usermgr:add( {} )
-	--[[print( type(usermgr:create ) )
-	local u = usermgr:create( {} )
-	uid = u.id
-	print( uid )
-	return { }--]]
+	local t = math.random() % 5 + 1
+	local addr = skynet.localname( string.format(".db%d", 1) ) 
+    local err 
+    print("add is " .. type(addr), addr)
+
+	local tvals = { tname = "users" , condition = string.format( "uaccount = %s , upassword = %s" , "abc" , "abc" ) }
+	local r = skynet.pcall( addr, "command", "select_users" , tvals )
+	print( "called succe" )
+	print( self.account , self.password)
+	 if r == nil or r[1] == nil then
+	 	skynet.error( "no such user!" )
+	 	err = 1
+	 end
+
+	 local u = usermgr.create( r[1] )
+	 uid = u.id
+
+	 print "****************************************"
+	tvals = nil
+	 tvals = { tname = "role" , condition = string.format( "uid = %s" , uid ) }
+	 r = skynet.call( addr , "command" , "select_rolebyuid" , tvals )
+
+	print("load data succ\n")
+	local ret = {}
+	local rolelist = {}
+	for k , v in ipairs( r ) do
+		tmp = rolemgr.create( r )
+		local rl = {}
+
+		rl.id = tmp.id
+		rl.wake_level = tmp.wake_level
+		rl.level = tmp.level
+		rl.combat = tmp.combat
+		rl.defense = tmp.defense
+		rl.critical = tmp.critical
+		rl.skill = tmp.skill
+		rl.c_equipment = tmp.c_equipment
+		rl.dress = tmp.c_equipment
+		rl.kungfu = tmp.kungfu
+
+		table.insert( rolelist , rl )
+	end
+	ret.rolelist = rolelist
+	
+	ret.id = u.id;
+	ret.uname = u.uname
+	ret.uaccount = u.uaccount
+	ret.upassword = u.password
+	ret.uviplevel = u.uviplevel
+	ret.uexp = u.uexp
+	ret.config_sound = u.config_sound
+	ret.config_music = u.config_music
+	ret.avatar = u.avatar
+	ret.sign = u.sign
+    
+	return ret
 end
 
 local function request(name, args, response)

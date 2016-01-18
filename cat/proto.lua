@@ -125,7 +125,8 @@ chooserole 8 {
 
 blackhole 9 {
   request {
-	
+	account 0 : string
+	password 1 : string
 	}
 }
 

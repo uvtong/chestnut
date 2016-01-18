@@ -21,16 +21,25 @@ function usermgr:add( u )
 end
 
 function usermgr:create( tvals )
+	if nil == tvals then
+		print( "empty values\n" )
+		return nil
+	end
 
+	local u = user:new()
+	u._id = tvals["id"]
+	u._uviplevel = tvals["uviplevel"]
+	u._uexp = tvals["uexp"]
+	u._config_sound = tvals["config_sound"]
+	u._config_music = tvals["config_music"]
+	u._avatar = tvals["avatar"]
+	u._sign = tvals["sign"]
+	u._c_role_id = 1
+	( self._data )[1] = u-- tmpt
 
-
-	local u = user.new()
-	u._id = 1
-	( self._data )[ tostring( u._id ) ]
-	print( "add user successfully!" )
 	return u
-end
-
+end	
+	
 function usermgr:delete( id )
 	if nil ~= self._data[id] then
 		table.remove(self._data, id)
@@ -51,22 +60,5 @@ function user.new( ... )
  	setmetatable( t, { __index = user } )
  	return t
 end 
-
---[[function user:nickname( ... )
-	-- body
-	return self._nickname
-end 
-	
-function user:selectdb( tvals )
-	
-	--return dbop.tselect( tvals )
-	
-end
-
-function user:insert
-	
-local n = { nickname = "aaa"}
-local u = user.new(n)
-print(u:nickname())--]]
 
 return usermgr
