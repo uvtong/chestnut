@@ -39,13 +39,6 @@ function REQUEST:role()
 		c_kungfu = 1
 	}
 	return r
-	-- local r = math.random() % 5 + 1
-	-- local addr = skynet.query( string.format(".db%d", r) ) 
-	-- -- body
-	-- local tvals = { tname = "role" , condition = string.format( "id = %s" , uid) }
-	-- local r = skynet.call( addr, "command", "select" , tvals )
-     
-	-- return 
 end	
 					
 function REQUEST:login()
@@ -61,33 +54,38 @@ function REQUEST:login()
 		ret.msg = "no"
 		return ret
 	else
-		user = usermgr.create(r[0])
+		user = usermgr.create(r[1])
+		r = skynet.call(addr, "lua", "command", "select_roles_by_userid", user.id)
+		for k,v in pairs(r) do
+			local role = rolemgr.create(v)
+			rolemgr.add(role)
+		end
 		ret.errorcode = 0
 		ret.msg = "yes"
-		ret.user_id = r[0].id
-		ret.uname = r[0].uname
-		ret.uviplevel = r[0].uviplevel
-		ret.uexp = r[0].uexp
-		ret.config_sound = r[0].config_sound
-		ret.config_music = r[0].config_music
-		ret.avatar = r[0].avatar
-		ret.sign = r[0].sign
+		ret.user_id = r[1].id
+		ret.uname = r[1].uname
+		ret.uviplevel = r[1].uviplevel
+		ret.uexp = r[1].uexp
+		ret.config_sound = r[1].config_sound
+		ret.config_music = r[1].config_music
+		ret.avatar = r[1].avatar
+		ret.sign = r[1].sign
 		ret.c_role_id = 0
 	end
 
 	t = { id = 1, nickname = "hh" , user_id = 1, wake_level = 1, level = 1, combat = 1, defense = 1, critical_hit = 1, skill = 1, c_equipment = 1, c_dress = 1, c_kungfu = 1}
 	local r = rolemgr.create( t )
 	local ret_r = { 
-		role_id = r.id
-		wake_level = r.wake_level
-		level = r.wake_level
-		combat = r.combat
-		defense = r.defense
-		critical_hit = r.critical_hit
-		skill = r.skill
-		c_equipment = r.c_equipment
-		c_dress = r.c_dress
-		c_kungfu = r.kungfu
+		role_id = r.id,
+		wake_level = r.wake_level,
+		level = r.wake_level,
+		combat = r.combat,
+		defense = r.defense,
+		critical_hit = r.critical_hit,
+		skill = r.skill,
+		c_equipment = r.c_equipment,
+		c_dress = r.c_dress,
+		c_kungfu = r.kungfu,
 	}
 	local l = { ret_r }
 	ret.rolelist = l
@@ -103,7 +101,7 @@ function REQUEST:choose_role()
 end	
 	
 function REQUEST:upgrade()
-	local = ret = {}
+	local ret = {}
 	local role = rolemgr.find(user.c_role_id)
 	local err
 	local nowid = role.id * 1000 + role.wake_level

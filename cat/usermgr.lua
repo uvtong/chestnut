@@ -1,7 +1,7 @@
 local usermgr = {}
 usermgr._data = {}
 
-local user = { id , uviplevel , uexp , config_sound, config_music, avatar, sign, c_role_id }
+local user = { id , uviplevel , uexp , config_sound, config_music, avatar, sign, c_role_id, role_list }
 
 function user.new( ... )
  	-- body
@@ -11,22 +11,17 @@ function user.new( ... )
 end 
 
 function usermgr:create( tvals )
-	if nil == tvals then
-		print( "empty values\n" )
-		return nil
-	end
-
+	assert(tvals)
+	
 	local u = user:new()
-	u._id = tvals["id"]
-	u._uviplevel = tvals["uviplevel"]
-	u._uexp = tvals["uexp"]
-	u._config_sound = tvals["config_sound"]
-	u._config_music = tvals["config_music"]
-	u._avatar = tvals["avatar"]
-	u._sign = tvals["sign"]
-	u._c_role_id = 1
-	( self._data )[1] = u-- tmpt
-
+	u.id = tvals["id"]
+	u.uviplevel = tvals["uviplevel"]
+	u.uexp = tvals["uexp"]
+	u.config_sound = tvals["config_sound"]
+	u.config_music = tvals["config_music"]
+	u.avatar = tvals["avatar"]
+	u.sign = tvals["sign"]
+	u.c_role_id = 1
 	return u
 end	
 	
@@ -41,7 +36,6 @@ function usermgr:find( id )
 	local uid = tostring( id )
 	return self._data[uid]
 end
-
 
 function usermgr:add( u )
 	

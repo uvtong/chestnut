@@ -215,7 +215,14 @@ function QUERY:update_roleby_roleid( tvals )
 
 	return true
 end	
-			
+
+function QUERY:select_roles_by_userid( user_id )
+	-- body
+	local sql = string.format("select * from role where user_id = %d", user_id)
+	local r = db:query(sql)
+	return r
+end
+		
 local CMD = {}
 	
 function CMD:disconnect_redis( ... )
