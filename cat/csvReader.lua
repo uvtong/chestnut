@@ -1,5 +1,5 @@
 local csvreader = {} --store function 
-csvcont = {}  --store csvcont
+--local csvcont = {}  --store csvcont
 
 local 
 function splitstr( s )
@@ -54,6 +54,7 @@ end
 
 local 
 function init_title( title )
+		local titlecont = {}
 		if nil == title then
 			print("empty title")
 			return nil 
@@ -66,10 +67,10 @@ function init_title( title )
 		if temp ~= nil then
 			for i , val in pairs( temp ) do
 				--print( val )
-				csvcont[val] = {}
+				titlecont[val] = {}
 			end
 		end
-		return temp	
+		return temp , titlecont
 end	
 
 local	
@@ -96,11 +97,12 @@ function getindex( content , idval )
 end	
 								
 function csvreader.getcont( filename )	
+	local csvcont = {}
 	local file = assert( io.open( filename , "r" ) )
 	local title = file:read()
 	local titlename = {}
 
-	titlename = init_title( title )
+	titlename , csvcont = init_title( title )
 
 	if titlename == nil then
 		return nil

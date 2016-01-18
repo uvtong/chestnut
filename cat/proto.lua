@@ -63,15 +63,14 @@ login 5 {
 	}
 	response {
 		user_id 0 : integer
-		uname 1 : string
-        uaccount : string
-        upassword : string
-        uviplevel : integer
-        uexp : integer
-        config_sound : boolean
-        config_music : boolean
-        avatar : integer
-        sign : string
+        uname 7 : string
+        uviplevel 1 : integer
+        uexp 2 : integer
+        config_sound 3 : boolean
+        config_music 4 : boolean
+        avatar 5 : integer
+        sign 6 : string
+
         .role {
             id 0 : integer
             wake_level 1 : integer
@@ -84,13 +83,13 @@ login 5 {
             c_dress 8 : integer
             c_kungfu 9 : integer
         }
-        rolelist : *role
+        rolelist 7 : *role
 	}
 }
 
 upgrade 6 {
 	response {
-		role_id 0 : integer
+	role_id 0 : integer
         wake_level 1 : integer
         level 2 : integer
         combat 3 : integer
@@ -115,6 +114,18 @@ wake 7 {
         c_equipment 7 : integer
         c_dress 8 : integer
         c_kungfu 9 : integer
+	}
+}
+
+chooserole 8 {
+    request{
+        role_id 0 : integer
+    }
+}
+
+blackhole 9 {
+  request {
+	
 	}
 }
 

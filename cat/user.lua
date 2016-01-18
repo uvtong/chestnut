@@ -1,74 +1,69 @@
 --dbop = require "dbop"
+--skynet = require "skynet"
 
 usermgr = {}
 
 usermgr._data = {}
 
 function usermgr:add( u )
-	-- body
-	table.insert( _data, u.id, u )
+	
+	if nil == u then
+		--skynet.error( string.format("new user is nil in user:add\n" ) )
+		print("try to add a nil value"\n)
+	end
+	if nil ~= self._data[tostring(u._id)] then
+		--skynet.error( string.format( "user already exists : id '%s'" , u.id ) )
+		print( "add successfully\n")
+	end
+
+	--table.insert( self._data, u.id, u )
+	--TODO     user;s roleid should be dealed with here
+end
+
+function usermgr:create( tvals )
+	local u = user.new()
+	u._id = 1
+	( self._data )[ tostring( u._id ) ]
+	print( "add user successfully!" )
+	return u
 end
 
 function usermgr:delete( id )
-	-- body
-	table.remove(_data, id)
+	if nil ~= self._data[id] then
+		table.remove(self._data, id)
+		-- TODO   delete user data and relative roles data in database
+	end
 end
 
 function usermgr:find( id )
-	-- body
-	return self._data[id]
+	local uid = tostring( id )
+	return self._data[uid]
 end
 
-local user = { _nickname , _id }
-
---user._nickname = nil
---user._id = nil
+local user = { _id }
 
 function user.new( ... )
  	-- body
- 	local d = { ... }
- 	for k,v in pairs(d) do
- 		print(k,v)
- 	end
  	local t = {}
  	setmetatable( t, { __index = user } )
  	return t
- end 
+end 
 
-function user:nickname( ... )
+--[[function user:nickname( ... )
 	-- body
 	return self._nickname
-end
-
-function user:id( ... )
-	return self._id
-end
-
-
-function user:setnickname( name )
-	self._nickname = name
-end
-
-function user:setid( id )
-	self._id = id
-end
+end 
+	
 function user:selectdb( tvals )
 	
 	--return dbop.tselect( tvals )
 	
 end
+
+function user:insert
 	
 local n = { nickname = "aaa"}
-local u = user.new()
-local t = user.new()
+local u = user.new(n)
+print(u:nickname())--]]
 
-print( u:nickname())
-print( t:nickname() )
-print( u:id() )
-print( t:id() )
-u:setnickname( "bb")
-t:setid( 4 )
-print( u:nickname())
-print( t:nickname() )
-print( u:id() )
-print( t:id() )
+return usermgr

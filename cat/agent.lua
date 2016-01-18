@@ -7,9 +7,11 @@ local socket = require "socket"
 local sproto = require "sproto"
 local sprotoloader = require "sprotoloader"
 local csvReader = require "csvReader"
-local role = require "role"
-local usermgr = require "usermgr"
-      	
+local datamgr = require "datamgr"
+local usermgr = require "usermgr" 
+require "role"
+     	
+
 local WATCHDOG
 local host
 local send_request
@@ -19,7 +21,7 @@ local REQUEST = {}
 local client_fd
 local csvcont = {}
 	 
-local role_id 
+local role 
 local uid
 	 
 function REQUEST:role()
@@ -34,26 +36,44 @@ end
 					
 function REQUEST:mail()
      
-end	
-	
+end	 
+	 
 function REQUEST:signup()
 end	
 	
 function REQUEST:login()
-	local r = math.random() % 5 + 1
+	--[[local r = math.random() % 5 + 1
 	local addr = skynet.query( string.format(".db%d", r) ) 
     
 	local tvals = { tname = "users" , condition = string.format( "uaccount = %s , upassword = %s" , self.account , self.password ) }
-	local r = skynet.call( addr, "command", "select" , tvals )
+	local r = skynet.call( addr, "command", "select_users" , tvals )
 	local u = usermgr.create( r )
 	uid = u.id
-	    
+
 	tvals = nil
 	tvals = { tname = "role" , condition = string.format( "uid = %s" , uid ) }
-	r = skynet.call( addr , "command" , "select" , tvals )
-	
+	r = skynet.call( addr , "command" , "selectrole_by_uid" , tvals )
 
 	local ret = {}
+	for k , v in ipairs( r ) do
+		tmp = rolemgr.create( r )
+		local rl = {}
+		rl.rolelist = {}
+
+		rl.id = tmp.id
+		rl.wake_level = tmp.wake_level
+		rl.level = tmp.level
+		rl.combat = tmp.combat
+		rl.defense = tmp.defense
+		rl.critical = tmp.critical
+		rl.skill = tmp.skill
+		rl.c_equipment = tmp.c_equipment
+		rl.dress = tmp.c_equipment
+		rl.kungfu = tmp.kungfu
+
+		table.insert( rl.rolelist , rl )
+	end
+	
 	ret.id = u.id;
 	ret.uname = u.uname
 	ret.uaccount = u.uaccount
@@ -64,37 +84,112 @@ function REQUEST:login()
 	ret.config_music = u.config_music
 	ret.avatar = u.avatar
 	ret.sign = u.sign
-    
+    --]]
+    local ret = {}
+	ret.id = 1;
+	ret.user_name = "dfjsdkf"
+	ret.uviplevel = 1
+	ret.uexp = 1000
+	ret.config_sound = 1
+	ret.config_music = 1
+	ret.avatar = 1
+	ret.sign = "sdfsdgsdfsdgfdsfsdfsd"
+
 	return ret
 end	
 	
+function REQUEST:chooserole()
+	local r = rolemgr:find( self.role_id )
+	if nil ~= r then
+		role = r
+	end
+end	
 	
 function REQUEST:upgrade()
+	local err
+	nowid = role._id * 1000 + role._wake_level
 
-end	
+	wakecost = datamgr:findwakeattrItem( tostring( nowid ) )
+	local afterid = wakecost["afrerwakeid"]
 
+	wakeattr = datamgr:findwakecostItem( tostring( afterid ) ) 
+
+	if role:getlevel() < tonumber(wakecost["needlevel"]) then
+		err = 1
+	elseif role:getgold() < tonumber(wakecost["costgold"]) then
+		err = 2
+	end	
+	
+	local ret = {}
+
+	if nil == self.error then
+		ret.error = 0
+		ret.wake_level = role.wake_level 
+
+		role._wake_level = role._wake_level + 1
+		role._gold = role.gold - tonumber(wakecost["costgold"])
+
+
+	end	
+end		
+		
 function REQUEST:wake()
+	local err
+	local nowid = role._id * 1000 + role._wake_level
 
-end
+	wakecost = datamgr:findwakeattrItem( nowid )
+	local afterid = wakecost["afrerwakeid"]
 
+	--wakeattr = datamgr:findwakecostItem( afterid ) 
+
+	if role:getlevel() < tonumber(wakecost["needlevel"]) then
+		err = 1
+	elseif role:getgold() < tonumber(wakecost["costgold"]) then
+		err = 2
+	end	
+	
+	local ret = {}
+
+	if nil == self.error then
+		ret.error = 0
+		ret.wake_level = role.wake_level 
+
+		role._wake_level = role._wake_level + 1
+		role._gold = role.gold - tonumber(wakecost["costgold"])
+	else
+		ret.error = err
+	end	
+
+	return ret
+end		
+		
 function REQUEST:get()
 	print("get", self.what)
 	local r = skynet.call("SIMPLEDB", "lua", "get", self.what)
 	return { result = r }
-end	
-
+end		
+		
 function REQUEST:set()
 	print("set", self.what, self.value)
 	local r = skynet.call("SIMPLEDB", "lua", "set", self.what, self.value)
-end
-
+end		
+		
 function REQUEST:handshake()
 	print("Welcome to skynet, I will send heartbeat every 5 sec." )
 	return { msg = "Welcome to skynet, I will send heartbeat every 5 sec." }
-end
-
+end		
+		
 function REQUEST:quit()
 	skynet.call(WATCHDOG, "lua", "close", client_fd)
+end
+
+function REQUEST:blackhole()
+	usermgr:add( {} )
+	--[[print( type(usermgr:create ) )
+	local u = usermgr:create( {} )
+	uid = u.id
+	print( uid )
+	return { }--]]
 end
 
 local function request(name, args, response)
@@ -140,7 +235,7 @@ skynet.register_protocol {
 		end
 	end
 }	
-	
+
 function CMD.start(conf)
 	local fd = conf.client
 	local gate = conf.gate
@@ -178,7 +273,9 @@ skynet.start(function()
 		local f = CMD[command]
 		skynet.ret(skynet.pack(f(...)))
 	end)
-
+	print( "agent start is called\n" )
+	
+	datamgr:startload()
 	--csvcont = csvReader.getcont( "./cat/data.csv" )
 	--print(package.path)
 end)

@@ -5,49 +5,145 @@ local redis = require "redis"
 local db
 local cache 
 
-local function dump(obj)
-    local getIndent, quoteStr, wrapKey, wrapVal, dumpObj
-    getIndent = function(level)
-        return string.rep("\t", level)
-    end
-    quoteStr = function(str)
-        return '"' .. string.gsub(str, '"', '\\"') .. '"'
-    end
-    wrapKey = function(val)
-        if type(val) == "number" then
-            return "[" .. val .. "]"
-        elseif type(val) == "string" then
-            return "[" .. quoteStr(val) .. "]"
-        else
-            return "[" .. tostring(val) .. "]"
-        end
-    end
-    wrapVal = function(val, level)
-        if type(val) == "table" then
-            return dumpObj(val, level)
-        elseif type(val) == "number" then
-            return val
-        elseif type(val) == "string" then
-            return quoteStr(val)
-        else
-            return tostring(val)
-        end
-    end
-    dumpObj = function(obj, level)
-        if type(obj) ~= "table" then
-            return wrapVal(obj)
-        end
-        level = level + 1
-        local tokens = {}
-        tokens[#tokens + 1] = "{"
-        for k, v in pairs(obj) do
-            tokens[#tokens + 1] = getIndent(level) .. wrapKey(k) .. " = " .. wrapVal(v, level) .. ","
-        end
-        tokens[#tokens + 1] = getIndent(level - 1) .. "}"
-        return table.concat(tokens, "\n")
-    end
-    return dumpObj(obj, 0)
+local
+function tinsert( tvals ) --{ tname = "" , cont = { {colname = val} ,  ... } }
+	if nil == sqltable then 
+		print( "empty argtable\n" )
+		return nil
+	end
+
+	local tname = sqltable["tname"]
+	if nil == tname then
+		print( "No tname\n" )
+		return nil
+	end
+
+	local cont = sqltable["cont"]
+	if nil == cont then
+		print( "No Cont\n" )
+		return nil
+	end
+
+	local ret = { key = "" , val = "" }
+
+	ret["key"] = string.format( "insert into '%s' (" , tname ) 
+	for k , v in ipairs( cont ) do
+		for subk , subv in pairs( v ) do
+			ret["key"] = ret["key"] .. subk .. ','
+			if type (subv ) == "string" then
+				ret["val"] = ret["val"] .. ',' .. string.format( "'%s'" , subv )
+			else
+				ret["val"] = ret["val"] .. ',' .. subv
+			end
+		end
+	end
+
+	--去掉 ret["key"] 的最后一个 ','
+	ret["key"] = string.sub( ret["key"] , 1 , -1 )
+	ret["val"] = string.sub( ret["val"] , 2 )
+	ret["key"] = ret["key"] .. ") values ("
+	ret["val"] = ret["val"] .. ")"
+
+	return ret["key"] .. ret["val"]
 end
+	
+local 
+function tselect( tvals )
+	if nil == tvals then
+		print( "tvals is empty" )
+		return
+	end
+	
+	local tname = tvals["tname"]
+	if nil == tname then
+		print("tname is empty\n")
+		return nil
+	end
+	
+	local content = tvals["content"]
+	
+	local condition = tvals["condition"]
+	
+	local ret = {}
+	if nil == content then
+		table.insert( ret , string.format( "select * from %s " , tname ) )
+	else
+		table.insert( ret , string.format( "select " ))
+		for k , v in ipairs( content ) do
+			if k > 1 then
+				table.insert( ret , "," )
+			end
+			
+			table.insert( ret , string.format( "%s" , v ) )
+		end
+		table.insert( ret , string.format( " from %s " , tname ) )
+	end
+
+	return condition and table.concat( ret ) or table.concat( ret ) .. where .. condition
+end 
+	
+local
+function tupdate( tvals )
+	if nil == tvals then
+		print( "No vals in tvals \n" )
+		return nil
+	end
+
+	local tname = tvals["tname"]
+	if nil == tname then
+		print("No tname\n")
+		return nil
+	end
+	
+	local content = tvals["content"]
+	if nil == content then
+		print("No content\n")
+		return nil
+	end
+
+	local condition = tvals["condition"]
+
+	local ret = {}
+	
+	table.insert( ret , string.format("update %s SET " , tname ) )
+	for k , v in ipairs( content ) do
+		if k > 1 then
+			table.insert( ret , ',' )
+		end
+
+		for subk , subv in pairs( v ) do
+			if type( subv ) == "string" then
+				table.insert( ret , string.format( "%s = '%s'" , subk , subv ) )
+			else
+				table.insert( ret , string.format( "%s = %s" , subk , subv ) )
+			end	
+		end
+	end
+	
+	return ( condition and table.concat( ret ) or table.concat( ret ) .. " where " .. condition )
+end
+
+local 
+function tdelete( tvals )
+	if nil == tvals then 
+		print( "tvals is empty\n" )
+		return nil
+	end 
+	
+	local tname = tvals["tname"]
+	if nil == tname then
+		print( "No tname\n" )
+	skynet.fork( watching )	return nil
+	end
+	
+	local condition = tvals["condition"]
+	if nil == condition then
+		print( "No condition\n" )
+		return nil
+	end
+	
+	return string.format( "delete from %s where " , tname ) .. conditon 
+end	
 	
 local
 function connect_mysql( ... )
@@ -55,21 +151,21 @@ function connect_mysql( ... )
 		db:query( "set charset utf8" )
 	end
 	
-	local db = mysql.connect({ 
-		host="192.168.1.116",
-		port=3306,
-		database="project",
-		user="root",
-		password="yulei",
+	local db = mysql.connect( { 
+		host = "192.168.1.116",
+		port = 3306,
+		database = "project",
+		user = "root",
+		password = "yulei",
 		max_packet_size = 1024 * 1024,
-		on_connect = on_connect
-	})
+		on_connect = on_connect,
+	} )
 
 	return db
 end
 
-local
-function watching( conf )
+--[[local
+function watching()
 	local w = redis.watch( conf )
 	w:subscribe "foo"
 	w:psubscribe "hello.*"
@@ -78,10 +174,10 @@ function watching( conf )
 		print( "watch" , w:message() )
 	end
 end	
-	
+	--]]
 local
 function connect_redis( conf )
-	-- skynet.fork( watching )
+	--skynet.fork( watching )
 	local cache = redis.connect( conf )	
 	return cache
 end	
@@ -95,45 +191,46 @@ function QUERY:insert_skill( ... )
 	db:query( sql )
 end	
 	
-function QUERY:select_users( account, password )
+function QUERY:select_users( tvals )
 	-- body
-	local sql = string.format("select * from users where uaccount = %s, upassword = %s", account, password)
+	local sql = tselect( tvals ) --string.format("select * from users where uaccount = %s and upassword = %s", account, password)
 	local r = db:query(sql)
 	--cache:get()
 	return r
-end 
+end 	
+	
+function QUERY:select_rolebyroleid( )
+end	
+	
+function QUERY:select_rolebyuid( tvals )
+	local sql = tselect( tvals ) --string.format( "select * from role where uid = %s" , uid )
+	local r = db:query( sql )
 
-function QUERY:create_user( t )
-	-- body
-	local sql = string.format("insert into users (uname, uaccount, upassword, uviplevel, uexp, config_music, config_sound, avatar, sign) values (\"%s\", \"%s\", \"%s\", %d, %d, %d, %d, %d, \"%s\")", u.uname, u.uaccount, u.upassword, u.uviplevel, u.uexp, u.config_music, u.config_sound, u.avatar, v.sign);
-	local r = db:query(sql)
-	dump(r)
-	--cache:get()
 	return r
-end
+end	
+	
+function QUERY:update_roleby_roleid( tvals )
+	local sql = tupdate( tvals )
+	local r = db:query( sql )
 
-function QUERY:select( tvals )
+	return true
 end	
 	
-function QUERY:insert( tvals )
+function QUERY:select_equipment()
+	
 end	
 	
-function QUERY:update( tvals )
-end	
-	
-function QUERY:delete( tvals )
-end	
-	
+		
 local CMD = {}
 	
 function CMD:disconnect_redis( ... )
 	cache:disconnect()
-end
-
+end	
+	
 function CMD:disconnect_mysql( ... )
 	db:disconnect()
-end
-
+end	
+	
 function CMD:command( subcmd, ... )
 	local f = assert(QUERY[subcmd])
 	return f( ... )
@@ -153,8 +250,8 @@ skynet.start( function ()
 
 	db = connect_mysql()
 	local conf = {
-		host = "192.168.1.116" ,
-		port = 6379 ,
+		host = "192.168.1.116",
+		port = 6379,
 		db = 0
 	}
 	cache = connect_redis( conf )
