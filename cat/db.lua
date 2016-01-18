@@ -217,14 +217,12 @@ function QUERY:select_rolebyuid( tvals )
 	local sql = tselect( tvals ) --string.format( "select * from role where uid = %s" , uid )
 	print( sql )
 	local r = db:query( sql )
-
 	return r
 end	
 	
 function QUERY:update_roleby_roleid( tvals )
 	local sql = tupdate( tvals )
 	local r = db:query( sql )
-
 	return true
 end	
 
