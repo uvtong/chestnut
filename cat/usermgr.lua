@@ -1,24 +1,14 @@
---dbop = require "dbop"
---skynet = require "skynet"
-
-usermgr = {}
-
+local usermgr = {}
 usermgr._data = {}
 
-function usermgr:add( u )
-	
-	if nil == u then
-		--skynet.error( string.format("new user is nil in user:add\n" ) )
-		print("try to add a nil value\n")
-	end
-	if nil ~= self._data[tostring(u._id)] then
-		--skynet.error( string.format( "user already exists : id '%s'" , u.id ) )
-		print( "add successfully\n")
-	end
+local user = { id , uviplevel , uexp , config_sound, config_music, avatar, sign, c_role_id }
 
-	--table.insert( self._data, u.id, u )
-	--TODO     user;s roleid should be dealed with here
-end
+function user.new( ... )
+ 	-- body
+ 	local t = {}
+ 	setmetatable( t, { __index = user } )
+ 	return t
+end 
 
 function usermgr:create( tvals )
 	if nil == tvals then
@@ -52,13 +42,20 @@ function usermgr:find( id )
 	return self._data[uid]
 end
 
-local user = { _id , _uviplevel , _uexp , _config_sound , _config_music , _avatar , _sign , _c_role_id }
 
-function user.new( ... )
- 	-- body
- 	local t = {}
- 	setmetatable( t, { __index = user } )
- 	return t
-end 
+function usermgr:add( u )
+	
+	if nil == u then
+		--skynet.error( string.format("new user is nil in user:add\n" ) )
+		print("try to add a nil value\n")
+	end
+	if nil ~= self._data[tostring(u._id)] then
+		--skynet.error( string.format( "user already exists : id '%s'" , u.id ) )
+		print( "add successfully\n")
+	end
+
+	--table.insert( self._data, u.id, u )
+	--TODO     user;s roleid should be dealed with here
+end
 
 return usermgr

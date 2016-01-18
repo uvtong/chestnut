@@ -9,9 +9,7 @@ local sprotoloader = require "sprotoloader"
 local csvReader = require "csvReader"
 local datamgr = require "datamgr"
 local usermgr = require "usermgr" 
-require "role"
-require "db"
-     	
+local rolemgr = require "rolemgr"
 
 local WATCHDOG
 local host
@@ -24,7 +22,9 @@ local csvcont = {}
 	 
 local role 
 local uid
-	 
+
+local user
+
 function REQUEST:role()
 	local r = {
 		id = 0,
@@ -48,146 +48,109 @@ function REQUEST:role()
 	-- return 
 end	
 					
-function REQUEST:mail()
-     
-end	 
-	 
-function REQUEST:signup()
-end	
-	
 function REQUEST:login()
+	local ret = {}
 	local r = math.random(1, 5)
 	local addr = skynet.localname(string.format(".db%d", math.floor(r))) 
-	local tvals = { tname = "users" , condition = string.format( " uaccount = %s and upassword = %s" , "abc" , "abc") }
-	local r = skynet.call(addr, "lua", "command", "abc", "aaa");
-	print (r)
-	-- local r = skynet.call(addr, "lua", "command", "select_users", tvals )
+	assert(self.account and	self.password)
+	assert(#self.password > 1)
+	local t = { uaccount = self.account, upassword = self.password }
+	local r = skynet.call(addr, "lua", "command", "select_users", t )
 	if r == nil or r[1] == nil then
-		skynet.error( "no such user!" )
-		err = 1
+		ret.errorcode = 1 -- 1 user hasn't register.
+		ret.msg = "no"
+		return ret
+	else
+		user = usermgr.create(r[0])
+		ret.errorcode = 0
+		ret.msg = "yes"
+		ret.user_id = r[0].id
+		ret.uname = r[0].uname
+		ret.uviplevel = r[0].uviplevel
+		ret.uexp = r[0].uexp
+		ret.config_sound = r[0].config_sound
+		ret.config_music = r[0].config_music
+		ret.avatar = r[0].avatar
+		ret.sign = r[0].sign
+		ret.c_role_id = 0
 	end
 
-	local u = usermgr.create( r[1] )
-	uid = u.id
-
-	print "****************************************"
-	tvals = nil
-	tvals = { tname = "role" , condition = string.format( "uid = %s" , uid ) }
-	r = skynet.call( addr , "command" , "select_rolebyuid" , tvals )
-
-	print("load data succ\n")
-
-	local ret = {}
-	local rolelist = {}
-	for k , v in ipairs( r ) do
-		tmp = rolemgr.create( r )
-		local rl = {}
-
-		rl.id = tmp.id
-		rl.wake_level = tmp.wake_level
-		rl.level = tmp.level
-		rl.combat = tmp.combat
-		rl.defense = tmp.defense
-		rl.critical = tmp.critical
-		rl.skill = tmp.skill
-		rl.c_equipment = tmp.c_equipment
-		rl.dress = tmp.c_equipment
-		rl.kungfu = tmp.kungfu
-
-		table.insert( rolelist , rl )
-	end
-	ret.rolelist = rolelist
-	
-	ret.id = u.id;
-	ret.uname = u.uname
-	ret.uaccount = u.uaccount
-	ret.upassword = u.password
-	ret.uviplevel = u.uviplevel
-	ret.uexp = u.uexp
-	ret.config_sound = u.config_sound
-	ret.config_music = u.config_music
-	ret.avatar = u.avatar
-	ret.sign = u.sign
-    
+	t = { id = 1, nickname = "hh" , user_id = 1, wake_level = 1, level = 1, combat = 1, defense = 1, critical_hit = 1, skill = 1, c_equipment = 1, c_dress = 1, c_kungfu = 1}
+	local r = rolemgr.create( t )
+	local ret_r = { 
+		role_id = r.id
+		wake_level = r.wake_level
+		level = r.wake_level
+		combat = r.combat
+		defense = r.defense
+		critical_hit = r.critical_hit
+		skill = r.skill
+		c_equipment = r.c_equipment
+		c_dress = r.c_dress
+		c_kungfu = r.kungfu
+	}
+	local l = { ret_r }
+	ret.rolelist = l
 	return ret
 end	
 	
-function REQUEST:chooserole()
-	local r = rolemgr:find( self.role_id )
-	if nil ~= r then
-		role = r
-	end
+function REQUEST:choose_role()
+	user.c_role_id = self.role_id
+	local ret = {}
+	ret.errorcode = 0
+	ret.msg	= "yes"
+	return ret
 end	
 	
 function REQUEST:upgrade()
+	local = ret = {}
+	local role = rolemgr.find(user.c_role_id)
 	local err
-	nowid = role._id * 1000 + role._wake_level
-
-	wakecost = datamgr:findwakeattrItem( tostring( nowid ) )
+	local nowid = role.id * 1000 + role.wake_level
+	local wakecost = datamgr:findwakeattrItem( tostring( nowid ) )
 	local afterid = wakecost["afrerwakeid"]
-
-	wakeattr = datamgr:findwakecostItem( tostring( afterid ) ) 
-
-	if role:getlevel() < tonumber(wakecost["needlevel"]) then
-		err = 1
+	local wakeattr = datamgr:findwakecostItem( tostring( afterid ) ) 
+	if role.level < tonumber(wakecost["needlevel"]) then
+		ret.errorcode = 1
+		ret.msg = ""
+		return ret
 	elseif role:getgold() < tonumber(wakecost["costgold"]) then
-		err = 2
-	end	
-	
-	local ret = {}
-
-	if nil == self.error then
-		ret.error = 0
-		ret.wake_level = role.wake_level 
-
-		role._wake_level = role._wake_level + 1
-		role._gold = role.gold - tonumber(wakecost["costgold"])
-
-
+		ret.errorcode = 2
+		ret.msg = ""
+		return ret
+	else
+		ret.errorcode = 0
+		ret.msg = ""
+		ret.role_id = role.id
+		role.level = role.level + 1
+		ret.level = role.level
 	end	
 end		
 		
 function REQUEST:wake()
-	local err
-	local nowid = role._id * 1000 + role._wake_level
+	local ret = {}
+	local role = {}
+	local nowid = role.id * 1000 + role.wake_level
 
-	wakecost = datamgr:findwakeattrItem( nowid )
+	local wakecost = datamgr:findwakeattrItem( nowid )
 	local afterid = wakecost["afrerwakeid"]
 
-	--wakeattr = datamgr:findwakecostItem( afterid ) 
-
 	if role:getlevel() < tonumber(wakecost["needlevel"]) then
-		err = 1
+		ret.err = 1
+		ret.msg = ""
+		return ret
+		
 	elseif role:getgold() < tonumber(wakecost["costgold"]) then
-		err = 2
-	end	
-	
-	local ret = {}
-
-	if nil == self.error then
-		ret.error = 0
-		ret.wake_level = role.wake_level 
-
-		role._wake_level = role._wake_level + 1
-		role._gold = role.gold - tonumber(wakecost["costgold"])
+		ret.errorcode = 2
+		ret.msg	= ""
+		return ret
 	else
-		ret.error = err
+		ret.errorcode = 0
+		ret.msg	 = ""
+		return ret
 	end	
-
-	return ret
 end		
-		
-function REQUEST:get()
-	print("get", self.what)
-	local r = skynet.call("SIMPLEDB", "lua", "get", self.what)
-	return { result = r }
-end		
-		
-function REQUEST:set()
-	print("set", self.what, self.value)
-	local r = skynet.call("SIMPLEDB", "lua", "set", self.what, self.value)
-end		
-		
+				
 function REQUEST:handshake()
 	print("Welcome to skynet, I will send heartbeat every 5 sec." )
 	return { msg = "Welcome to skynet, I will send heartbeat every 5 sec." }
@@ -195,66 +158,6 @@ end
 		
 function REQUEST:quit()
 	skynet.call(WATCHDOG, "lua", "close", client_fd)
-end
-
-function REQUEST:blackhole()
-	local t = math.random() % 5 + 1
-	print(t)
-	local addr = skynet.localname( string.format(".db%d", t ) )
-    local err 
-    print("add is " .. type(addr), addr)
-
-	local tvals = { tname = "users" , condition = string.format( "uaccount = %s and upassword = %s" , "abc" , "abc" ) }
-	local r = skynet.pcall( addr, "command", "select_users" , tvals )
-	print( "called succe" )
-	print( self.account , self.password)
-	 if r == nil then --or r[1] == nil then
-	 	skynet.error( "no such user!" )
-	 	err = 1
-	 end
-
-	 local u = usermgr.create( r[1] )
-	 uid = u.id
-
-	 print "****************************************"
-	tvals = nil
-	 tvals = { tname = "role" , condition = string.format( "uid = %s" , uid ) }
-	 r = skynet.call( addr , "command" , "select_rolebyuid" , tvals )
-
-	print("load data succ\n")
-	local ret = {}
-	local rolelist = {}
-	for k , v in ipairs( r ) do
-		tmp = rolemgr.create( r )
-		local rl = {}
-
-		rl.id = tmp.id
-		rl.wake_level = tmp.wake_level
-		rl.level = tmp.level
-		rl.combat = tmp.combat
-		rl.defense = tmp.defense
-		rl.critical = tmp.critical
-		rl.skill = tmp.skill
-		rl.c_equipment = tmp.c_equipment
-		rl.dress = tmp.c_equipment
-		rl.kungfu = tmp.kungfu
-
-		table.insert( rolelist , rl )
-	end
-	ret.rolelist = rolelist
-	
-	ret.id = u.id;
-	ret.uname = u.uname
-	ret.uaccount = u.uaccount
-	ret.upassword = u.password
-	ret.uviplevel = u.uviplevel
-	ret.uexp = u.uexp
-	ret.config_sound = u.config_sound
-	ret.config_music = u.config_music
-	ret.avatar = u.avatar
-	ret.sign = u.sign
-    
-	return ret
 end
 
 local function request(name, args, response)

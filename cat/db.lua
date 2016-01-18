@@ -192,15 +192,10 @@ function QUERY:insert_skill( ... )
 	db:query( sql )
 end	
 	
-function QUERY:select_users( tvals )
+function QUERY:select_users( t )
 	-- body
-	print("calling select _ users\n")
-	local sql = tselect( tvals ) --string.format("select * from users where uaccount = %s and upassword = %s", account, password)
-	print( sql )
+	local sql = string.format("select * from users where uaccount = %s and upassword = %s", t.uaccount, t.upassword)
 	local r = db:query(sql)
-	--cache:get()
-	print("select_users is called\n")
-	print( r )
 	return r
 end 	
 	
@@ -220,17 +215,7 @@ function QUERY:update_roleby_roleid( tvals )
 
 	return true
 end	
-	
-function QUERY:select_equipment()
-	
-end	
-
-function QUERY:abc( ... )
-	-- body
-	print(tostring(...))
-	return "hello"
-end
-		
+			
 local CMD = {}
 	
 function CMD:disconnect_redis( ... )
@@ -246,7 +231,6 @@ function CMD:command( subcmd, ... )
 	local f = assert(QUERY[subcmd])
 	return f(QUERY, ... )
 end
-
 
 skynet.start( function () 
 	skynet.dispatch( "lua" , function( _, _, cmd, subcmd, ... )
