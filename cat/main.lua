@@ -12,7 +12,7 @@ skynet.start(function()
 	skynet.newservice("simpledb")
 	for i=1,5 do
 		local db = skynet.newservice("db")
-		skynet.register(db, string.format(".db%d", i))
+		skynet.name(string.format(".db%d", i), db)
 	end
 	-- skynet.newservice("testmysql2")
 	local watchdog = skynet.newservice("watchdog")

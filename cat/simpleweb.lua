@@ -45,7 +45,7 @@ local function route( id, code, url, method, header, body )
 		-- local path, query = urllib.parse(url)
 		for k,v in pairs(urls) do
 			if string.match(url, k) then
-				return response(id, code, view[v](code, method, header, body))
+				return response(id, view[v](code, method, header, body))
 			end
 		end
 		return response(id, code, "don't have mathcing url.")
