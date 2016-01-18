@@ -26,13 +26,26 @@ local role
 local uid
 	 
 function REQUEST:role()
-	local r = math.random() % 5 + 1
-	local addr = skynet.query( string.format(".db%d", r) ) 
-	-- body
-	local tvals = { tname = "role" , condition = string.format( "id = %s" , uid) }
-	local r = skynet.call( addr, "command", "select" , tvals )
+	local r = {
+		id = 0,
+		wake_level = 1,
+		level = 2,
+		combat = 3,
+		defense = 4,
+		critical_hit = 6,
+		skill = 7,
+		c_equipment = 1,
+		c_dress = 1,
+		c_kungfu = 1
+	}
+	return r
+	-- local r = math.random() % 5 + 1
+	-- local addr = skynet.query( string.format(".db%d", r) ) 
+	-- -- body
+	-- local tvals = { tname = "role" , condition = string.format( "id = %s" , uid) }
+	-- local r = skynet.call( addr, "command", "select" , tvals )
      
-	return 
+	-- return 
 end	
 					
 function REQUEST:mail()
@@ -43,11 +56,8 @@ function REQUEST:signup()
 end	
 	
 function REQUEST:login()
-	local t = math.random() % 5 + 1
-	local addr = skynet.localname( string.format(".db%d", tostring(t)) ) 
-    local err 
-    print("add is " .. type(addr), addr)
-
+	local r = math.random(1, 5)
+	local addr = skynet.localname(string.format(".db%d", math.floor(r))) 
 	local tvals = { tname = "users" , condition = string.format( " uaccount = %s and upassword = %s" , "abc" , "abc") }
 	local r = skynet.call( addr, "command", "select_users" , tvals )
 	if r == nil or r[1] == nil then
@@ -290,18 +300,19 @@ skynet.register_protocol {
 }	
 
 function CMD.start(conf)
+	print "cmd .start."
 	local fd = conf.client
 	local gate = conf.gate
 	WATCHDOG = conf.watchdog
 	-- slot 1,2 set at main.lua
 	host = sprotoloader.load(1):host "package"
 	send_request = host:attach(sprotoloader.load(2))
-	skynet.fork(function()
-		while true do
-			send_package(send_request "heartbeat")
-			skynet.sleep(500)
-		end
-	end)
+	-- skynet.fork(function()
+	-- 	while true do
+	-- 		send_package(send_request "heartbeat")
+	-- 		skynet.sleep(500)
+	-- 	end
+	-- end)
 	
 	client_fd = fd
 	skynet.call(gate, "lua", "forward", fd)
@@ -326,7 +337,7 @@ skynet.start(function()
 		local f = CMD[command]
 		skynet.ret(skynet.pack(f(...)))
 	end)
-	print( "agent start is called\n" )
+	-- print( "agent start is called\n" )
 	
 	datamgr:startload()
 	--csvcont = csvReader.getcont( "./cat/data.csv" )

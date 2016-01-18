@@ -1,4 +1,3 @@
--- local T = require "web.template"
 package.path = "../cat/?.lua;../cat/lualib/?.lua;" .. package.path
 local skynet = require "skynet"
 require "skynet.manager"
@@ -35,6 +34,7 @@ end
 
 local function parse_file( boundary, body )
 	-- body
+	print("parse_file")
 	local last = body
 	function getline( s )
 		-- body
@@ -43,17 +43,48 @@ local function parse_file( boundary, body )
 		last = string.sub(s, p + 1)
 		return r
 	end
-	
+	local r = ""
+	local l = getline(last)
+	print(l)
+	if l == boundary then
+		local Disposition = getline(last)
+		local Type = getline(last)
+		print(Type)
+		local Space = getline(last)
+		print(Space)
+		l = getline(last)
+		print(l)
+		while l ~= boundary do
+			r = r .. l
+		end	
+		return r
+	end
 end
 
 -- analysis header, judge post or file.
 local function parse_header( header, body )
 	-- body
-	if string.match(header["content-type"], "^multipart/form-data") ~= nil then
-		local p = string.find(header["content-type"], ";")
-		local s = string.sub(header["content-type"], p + 2)
-		p = string.find(s, "=")
-		local boundary = string.sub(s, p + 1)
+	print "parse header"
+	for k,v in pairs(header) do
+		print(k,v)
+	end
+	local function fun( header )
+		-- body
+		if header["content-type"] == nil then 
+			return false
+		else
+			local s = header["content-type"]
+			local idx = string.find(s, ";")
+			assert(string.sub(s, 1, idx - 1) == "multipart/form-data")
+			s = string.sub(s, idx + 2)
+			idx = string.find(s, "=")
+			boundary = string.sub(s, idx+1)
+			return true, boundary
+		end
+	end
+	local flag, boundary = fun (header)
+	print(boundary)
+	if flag then
 		return "file", parse_file(boundary, body)
 	else
 		return "post", parse(body)

@@ -98,8 +98,8 @@ local function dispatch_package()
 	end
 end
 
---send_request("handshake")
-send_request("blackhole", {account = "abc" , password = "abc"})
+send_request("role")
+-- send_request("blackhole", {account = "abc" , password = "abc"})
 while true do
 	dispatch_package()
 	local cmd = socket.readstdin()

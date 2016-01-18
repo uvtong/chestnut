@@ -93,38 +93,11 @@ upgrade 6 {
         combat 5 : integer
         defense 6 : integer
         critical_hit 7 : integer
-        skill 8 : integer
+        skill 8 : integaborer
         c_equipment 9 : integer
         c_dress 10 : integer
         c_kungfu 11 : integer
 	}
-}
-
-wake 7 {
-	response {
-		errorcode 0 : integer
-		msg 1 : string
-		role_id 2 : integer
-        wake_level 3 : integer
-        level 4 : integer
-        combat 5 : integer
-        defense 6 : integer
-        critical_hit 7 : integer
-        skill 8 : integer
-        c_equipment 9 : integer
-        c_dress 10 : integer
-        c_kungfu 11 : integer
-	}
-}
-
-chooserole 8{
-    request{
-        role_id 0 : integer
-    }
-}
-
-balckhole 9{
-	request{}
 }
 
 ]]
