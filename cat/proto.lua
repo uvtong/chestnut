@@ -51,9 +51,6 @@ signup 4 {
 		account 0 : string
 		password 1 : string
 	}
-	response {
-        
-	}
 }
 
 login 5 {
@@ -63,14 +60,13 @@ login 5 {
 	}
 	response {
 		user_id 0 : integer
-        uname 7 : string
-        uviplevel 1 : integer
-        uexp 2 : integer
-        config_sound 3 : boolean
-        config_music 4 : boolean
-        avatar 5 : integer
-        sign 6 : string
-
+		uname 1 : string 
+        uviplevel 2 : integer
+        uexp 3 : integer
+        config_sound 4 : boolean
+        config_music 5 : boolean
+        avatar 6 : integer
+        sign 7 : string
         .role {
             id 0 : integer
             wake_level 1 : integer
@@ -83,51 +79,52 @@ login 5 {
             c_dress 8 : integer
             c_kungfu 9 : integer
         }
-        rolelist 7 : *role
+        rolelist 8 : *role
 	}
 }
 
 upgrade 6 {
 	response {
-	role_id 0 : integer
-        wake_level 1 : integer
-        level 2 : integer
-        combat 3 : integer
-        defense 4 : integer
-        critical_hit 5 : integer
-        skill 6 : integer
-        c_equipment 7 : integer
-        c_dress 8 : integer
-        c_kungfu 9 : integer
+		errorcode 0 :integer
+		msg 1 : string
+		role_id 2 : integer
+        wake_level 3 : integer
+        level 4 : integer
+        combat 5 : integer
+        defense 6 : integer
+        critical_hit 7 : integer
+        skill 8 : integer
+        c_equipment 9 : integer
+        c_dress 10 : integer
+        c_kungfu 11 : integer
 	}
 }
 
 wake 7 {
 	response {
-		role_id 0 : integer
-        wake_level 1 : integer
-        level 2 : integer
-        combat 3 : integer
-        defense 4 : integer
-        critical_hit 5 : integer
-        skill 6 : integer
-        c_equipment 7 : integer
-        c_dress 8 : integer
-        c_kungfu 9 : integer
+		errorcode 0 : integer
+		msg 1 : string
+		role_id 2 : integer
+        wake_level 3 : integer
+        level 4 : integer
+        combat 5 : integer
+        defense 6 : integer
+        critical_hit 7 : integer
+        skill 8 : integer
+        c_equipment 9 : integer
+        c_dress 10 : integer
+        c_kungfu 11 : integer
 	}
 }
 
-chooserole 8 {
+chooserole 8{
     request{
         role_id 0 : integer
     }
 }
 
-blackhole 9 {
-  request {
-	account 0 : string
-	password 1 : string
-	}
+balckhole 9{
+	request{}
 }
 
 ]]

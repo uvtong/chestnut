@@ -1,6 +1,7 @@
 local skynet = require "skynet"
 local mysql = require "mysql"
 local redis = require "redis"
+ 
 
 local db
 local cache 
@@ -193,9 +194,13 @@ end
 	
 function QUERY:select_users( tvals )
 	-- body
+	print("calling select _ users\n")
 	local sql = tselect( tvals ) --string.format("select * from users where uaccount = %s and upassword = %s", account, password)
+	print( sql )
 	local r = db:query(sql)
 	--cache:get()
+	print("select_users is called\n")
+	print( r )
 	return r
 end 	
 	

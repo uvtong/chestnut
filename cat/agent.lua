@@ -10,6 +10,7 @@ local csvReader = require "csvReader"
 local datamgr = require "datamgr"
 local usermgr = require "usermgr" 
 require "role"
+require "db"
      	
 
 local WATCHDOG
@@ -43,11 +44,11 @@ end
 	
 function REQUEST:login()
 	local t = math.random() % 5 + 1
-	local addr = skynet.localname( string.format(".db%d", 1) ) 
+	local addr = skynet.localname( string.format(".db%d", tostring(t)) ) 
     local err 
     print("add is " .. type(addr), addr)
 
-	local tvals = { tname = "users" , condition = string.format( "uaccount = %s , upassword = %s" , self.account , self.password ) }
+	local tvals = { tname = "users" , condition = string.format( " uaccount = %s and upassword = %s" , "abc" , "abc") }
 	local r = skynet.call( addr, "command", "select_users" , tvals )
 	if r == nil or r[1] == nil then
 		skynet.error( "no such user!" )
@@ -63,6 +64,7 @@ function REQUEST:login()
 	r = skynet.call( addr , "command" , "select_rolebyuid" , tvals )
 
 	print("load data succ\n")
+
 	local ret = {}
 	local rolelist = {}
 	for k , v in ipairs( r ) do
@@ -185,15 +187,16 @@ end
 
 function REQUEST:blackhole()
 	local t = math.random() % 5 + 1
-	local addr = skynet.localname( string.format(".db%d", 1) ) 
+	print(t)
+	local addr = skynet.localname( string.format(".db%d", t ) )
     local err 
     print("add is " .. type(addr), addr)
 
-	local tvals = { tname = "users" , condition = string.format( "uaccount = %s , upassword = %s" , "abc" , "abc" ) }
+	local tvals = { tname = "users" , condition = string.format( "uaccount = %s and upassword = %s" , "abc" , "abc" ) }
 	local r = skynet.pcall( addr, "command", "select_users" , tvals )
 	print( "called succe" )
 	print( self.account , self.password)
-	 if r == nil or r[1] == nil then
+	 if r == nil then --or r[1] == nil then
 	 	skynet.error( "no such user!" )
 	 	err = 1
 	 end
