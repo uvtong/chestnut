@@ -1,50 +1,72 @@
-local user = {}
+--dbop = require "dbop"
+--skynet = require "skynet"
 
-user._nickname = "aa"
-
-function user.new( ... )
- 	-- body
- 	local d = { ... }
- 	for k,v in pairs(d) do
- 		print(k,v)
- 	end
- 	local t = {}
- 	setmetatable(t, { __index = user })
- 	return t
- end 
-
-function user:nickname( ... )
-	-- body
-	return self._nickname
-end
-
-function user:a( ... )
-	-- body
-end
-
-local n = { nickname = "aaa"}
-local u = user.new(n)
-print(u:nickname())
-
-local usermgr = {}
+usermgr = {}
 
 usermgr._data = {}
 
-function usermgr.create_user( ... )
-	-- body
-	local t = { ... }
+function usermgr:add( u )
+	
+	if nil == u then
+		--skynet.error( string.format("new user is nil in user:add\n" ) )
+		print("try to add a nil value\n")
+	end
+	if nil ~= self._data[tostring(u._id)] then
+		--skynet.error( string.format( "user already exists : id '%s'" , u.id ) )
+		print( "add successfully\n")
+	end
 
-	return t
+	--table.insert( self._data, u.id, u )
+	--TODO     user;s roleid should be dealed with here
 end
 
-function usermgr:add( u )
-	-- body
-	table.insert(_data, u.id, u)
+function usermgr:create( tvals )
+
+
+
+	local u = user.new()
+	u._id = 1
+	( self._data )[ tostring( u._id ) ]
+	print( "add user successfully!" )
+	return u
 end
 
 function usermgr:delete( id )
-	-- body
-	table.remove(_data, id)
+	if nil ~= self._data[id] then
+		table.remove(self._data, id)
+		-- TODO   delete user data and relative roles data in database
+	end
 end
+
+function usermgr:find( id )
+	local uid = tostring( id )
+	return self._data[uid]
+end
+
+local user = { _id , _uviplevel , _uexp , _config_sound , _config_music , _avatar , _sign , _c_role_id }
+
+function user.new( ... )
+ 	-- body
+ 	local t = {}
+ 	setmetatable( t, { __index = user } )
+ 	return t
+end 
+
+--[[function user:nickname( ... )
+	-- body
+	return self._nickname
+end 
+	
+function user:selectdb( tvals )
+	
+	--return dbop.tselect( tvals )
+	
+end
+
+function user:insert
+	
+local n = { nickname = "aaa"}
+local u = user.new(n)
+print(u:nickname())--]]
 
 return usermgr

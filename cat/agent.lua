@@ -42,7 +42,7 @@ function REQUEST:signup()
 end	
 	
 function REQUEST:login()
-	--[[local r = math.random() % 5 + 1
+	local r = math.random() % 5 + 1
 	local addr = skynet.query( string.format(".db%d", r) ) 
     
 	local tvals = { tname = "users" , condition = string.format( "uaccount = %s , upassword = %s" , self.account , self.password ) }
@@ -84,8 +84,8 @@ function REQUEST:login()
 	ret.config_music = u.config_music
 	ret.avatar = u.avatar
 	ret.sign = u.sign
-    --]]
-    local ret = {}
+    
+    --[[local ret = {}
 	ret.id = 1;
 	ret.user_name = "dfjsdkf"
 	ret.uviplevel = 1
@@ -94,7 +94,7 @@ function REQUEST:login()
 	ret.config_music = 1
 	ret.avatar = 1
 	ret.sign = "sdfsdgsdfsdgfdsfsdfsd"
-
+--]]
 	return ret
 end	
 	
