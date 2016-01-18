@@ -20,25 +20,27 @@ local REQUEST = {}
 local client_fd
 local csvcont = {}
 	 
-local role 
-local uid
-
 local user
 
 function REQUEST:role()
-	local r = {
-		id = 0,
-		wake_level = 1,
-		level = 2,
-		combat = 3,
-		defense = 4,
-		critical_hit = 6,
-		skill = 7,
-		c_equipment = 1,
-		c_dress = 1,
-		c_kungfu = 1
+	print "************************role"
+	print(user.c_role_id)
+	local role = rolemgr:find(user.c_role_id)
+	local ret = {
+		errorcode = 0,
+		msg = "",
+		id = role.id,
+		wake_level = role.wake_level,
+		level = role.level,
+		combat = role.combat,
+		defense = role.defense,
+		critical_hit = role.critical_hit,
+		skill = role.skill,
+		c_equipment = role.c_equipment,
+		c_dress = role.c_dress,
+		c_kungfu = role.c_kungfu
 	}
-	return r
+	return ret
 end	
 					
 function REQUEST:login()
@@ -55,41 +57,64 @@ function REQUEST:login()
 		ret.msg = "no"
 		return ret
 	else
-		user = usermgr.create(r[1])
-		r = skynet.call(addr, "lua", "command", "select_roles_by_userid", user.id)
-		for k,v in pairs(r) do
-			local role = rolemgr.create(v)
-			rolemgr.add(role)
-		end
+		user = usermgr:create(r[1])
+		print(user, type(user))
+		-- r = skynet.call(addr, "lua", "command", "select_roles_by_userid", user.id)
+		-- for k,v in pairs(r) do
+		-- 	local role = rolemgr.create(v)
+		-- 	rolemgr.add(role)
+		-- end
 		ret.errorcode = 0
 		ret.msg = "yes"
 		ret.user_id = r[1].id
 		ret.uname = r[1].uname
 		ret.uviplevel = r[1].uviplevel
 		ret.uexp = r[1].uexp
-		ret.config_sound = r[1].config_sound
-		ret.config_music = r[1].config_music
+		ret.config_sound = r[1].config_sound and true or false
+		ret.config_music = r[1].config_music and true or false
 		ret.avatar = r[1].avatar
 		ret.sign = r[1].sign
 		ret.c_role_id = 0
-	end
 
-	t = { id = 1, nickname = "hh" , user_id = 1, wake_level = 1, level = 1, combat = 1, defense = 1, critical_hit = 1, skill = 1, c_equipment = 1, c_dress = 1, c_kungfu = 1}
-	local r = rolemgr.create( t )
-	local ret_r = { 
-		role_id = r.id,
-		wake_level = r.wake_level,
-		level = r.wake_level,
-		combat = r.combat,
-		defense = r.defense,
-		critical_hit = r.critical_hit,
-		skill = r.skill,
-		c_equipment = r.c_equipment,
-		c_dress = r.c_dress,
-		c_kungfu = r.kungfu,
-	}
-	local l = { ret_r }
-	ret.rolelist = l
+		for i=1,5 do
+			local r = {
+				id = i,
+				wake_level = 1,
+				level = 1,
+				combat = 3,
+				defense = 4,
+				critical_hit = 6,
+				skill = 7,
+				c_equipment = 1,
+				c_dress = 1,
+				c_kungfu = 1
+			}
+			local role = rolemgr:create(r)
+			for k,v in pairs(role) do
+				print(k,v)
+			end
+			rolemgr:add(role)
+		end
+		user.c_role_id = 1
+		local l = {}
+		local idx = 1
+		for k,v in pairs(rolemgr._data) do
+			local r = {
+				role_id = v.id,
+				wake_level = v.wake_level,
+				level = v.level,
+				combat = v.combat,
+				defense = v.defense,
+				critical_hit = v.critical_hit,
+				skill = v.skill,
+				c_equipment = v.c_equipment,
+				c_dress = v.c_dress,
+				c_kungfu = v.c_kungfu
+			}
+			l[idx] = r
+		end
+		ret.rolelist = l
+	end
 	return ret
 end	
 	
@@ -102,52 +127,65 @@ function REQUEST:choose_role()
 end	
 	
 function REQUEST:upgrade()
+	print"*********************************upgrade"
 	local ret = {}
-	local role = rolemgr.find(user.c_role_id)
+	local role = rolemgr:find(user.c_role_id)
 	local err
 	local nowid = role.id * 1000 + role.wake_level
-	local wakecost = datamgr:findwakeattrItem( tostring( nowid ) )
-	local afterid = wakecost["afrerwakeid"]
-	local wakeattr = datamgr:findwakecostItem( tostring( afterid ) ) 
-	if role.level < tonumber(wakecost["needlevel"]) then
-		ret.errorcode = 1
-		ret.msg = ""
-		return ret
-	elseif role:getgold() < tonumber(wakecost["costgold"]) then
-		ret.errorcode = 2
-		ret.msg = ""
-		return ret
-	else
+	local t = datamgr:findLevelItem(nowid)
+	t = {exp = 100 }
+	if user.uexp > t.exp then
+		user.uexp = user.uexp - t.exp
+		role.level = role + 1
 		ret.errorcode = 0
 		ret.msg = ""
 		ret.role_id = role.id
 		role.level = role.level + 1
 		ret.level = role.level
-	end	
+		return ret
+	else
+		ret.errorcode = 1
+		ret.msg = ""
+		return ret
+	end
 end		
 		
 function REQUEST:wake()
+	print"*********************************wake"
 	local ret = {}
-	local role = {}
+	local role = rolemgr:find(user.c_role_id)
 	local nowid = role.id * 1000 + role.wake_level
-
-	local wakecost = datamgr:findwakeattrItem( nowid )
-	local afterid = wakecost["afrerwakeid"]
-
-	if role:getlevel() < tonumber(wakecost["needlevel"]) then
-		ret.err = 1
-		ret.msg = ""
-		return ret
+	print (nowid)
+	-- local wakecost = datamgr:findwakecostItem( nowid )
+	-- local afterid = wakecost["afrerwakeid"]
+	-- if role:getlevel() < tonumber(wakecost["needlevel"]) then
+	-- 	ret.err = 1
+	-- 	ret.msg = ""
+	-- 	return ret
 		
-	elseif role:getgold() < tonumber(wakecost["costgold"]) then
-		ret.errorcode = 2
-		ret.msg	= ""
-		return ret
-	else
-		ret.errorcode = 0
-		ret.msg	 = ""
-		return ret
-	end	
+	-- elseif role:getgold() < tonumber(wakecost["costgold"]) then
+	-- 	ret.errorcode = 2
+	-- 	ret.msg	= ""
+	-- 	return ret
+	-- else
+	-- 	ret.errorcode = 0
+	-- 	ret.msg	 = ""
+	-- 	return ret
+	-- end	
+
+	ret.errorcode = 0
+	ret.msg = ""
+	ret.role_id = role.id
+	ret.wake_level = role.wake_level
+	ret.level = role.level
+	ret.combat = role.combat
+	ret.defense = role.defense
+	ret.critical_hit = role.critical_hit
+	ret.skill = role.skill
+	ret.c_equipment = role.c_equipment
+	ret.c_dress = role.c_dress
+	ret.c_kungfu = role.c_kungfu
+	return ret
 end		
 				
 function REQUEST:handshake()

@@ -154,7 +154,7 @@ function csvreader.getline( content , idval)
 	if index then
 		for i , v in pairs( content ) do
 			print( i, v[index])
-			if i ~= "ID" then
+			if i ~= "id" then
 				val[i] = v[index]
 			end
 		end

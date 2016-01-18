@@ -98,7 +98,6 @@ local function dispatch_package()
 	end
 end
 
---send_request("role")
 send_request("login", { account = "abc" , password = "abc" })
 while true do
 	dispatch_package()
@@ -106,6 +105,12 @@ while true do
 	if cmd then
 		if cmd == "quit" then
 			send_request("quit")
+		elseif cmd == "role" then
+			send_request("role")
+		elseif cmd == "upgrade" then
+			send_request("upgrade")
+		elseif cmd == "wake" then
+			send_request("wake")			
 		else
 			send_request("get", { what = cmd })
 		end

@@ -24,19 +24,25 @@ function rolemgr:create( tvals )
 	r.c_equipment = tvals.c_equipment
 	r.c_dress = tvals.c_dress
 	r.c_kungfu = tvals.c_kungfu
+	return r
 end
 
 function rolemgr:find( roleid )
-	return rolemgr._data[ roleid ]
+	for k,v in pairs(self._data) do
+		print(k,v)
+	end
+	return rolemgr._data[tostring(roleid)]
 end	
 
 function rolemgr:add( role )
-		-- body
-	self._data.role.id = role
+	-- body
+	print(tostring(role.id))
+
+	self._data[tostring(role.id)] = role
 end	
 
 function rolemgr:remove( roleid )
 	rolemgr._data[ roleid ] = nil
 end	
 	
-
+return rolemgr

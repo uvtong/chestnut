@@ -194,7 +194,7 @@ end
 	
 function QUERY:select_users( t )
 	-- body
-	local sql = string.format("select * from users where uaccount = %s and upassword = %s", t.uaccount, t.upassword)
+	local sql = string.format("select * from users where uaccount = '%s' and upassword = '%s'", t.uaccount, t.upassword)
 	local r = db:query(sql)
 	--cache:get()
 	print("select_users is called\n")
@@ -213,9 +213,7 @@ function QUERY:select_rolebyroleid( )
 end	
 	
 function QUERY:select_rolebyuid( tvals )
-
 	local sql = tselect( tvals ) --string.format( "select * from role where uid = %s" , uid )
-	print( sql )
 	local r = db:query( sql )
 	return r
 end	

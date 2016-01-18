@@ -11,11 +11,7 @@ function user.new( ... )
 end 
 
 function usermgr:create( tvals )
-	if nil == tvals then
-		print( "empty values\n" )
-		return nil
-	end
-
+	assert(tvals)
 	local u = user:new()
 	u.id = tvals["id"]
 	u.uviplevel = tvals["uviplevel"]
@@ -29,7 +25,7 @@ function usermgr:create( tvals )
 end	
 	
 function usermgr:delete( id )
-	if nil ~= self._data[id] then
+	if nil ~= self._data[tostring(id)] then
 		table.remove(self._data, id)
 		-- TODO   delete user data and relative roles data in database
 	end
