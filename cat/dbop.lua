@@ -118,7 +118,7 @@ function dbop.tupdate( tvals )
 		end
 	end
 	
-	return ( condition and table.concat( ret ) or table.concat( ret ) .. " where " .. condition )
+	return ( condition and table.concat( ret ) .. " where " .. condition or table.concat( ret ))
 end
 
 local 

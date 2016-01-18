@@ -80,7 +80,7 @@ function tselect( tvals )
 		table.insert( ret , string.format( " from %s " , tname ) )
 	end
 
-	return condition and table.concat( ret ) or table.concat( ret ) .. where .. condition
+	return condition and table.concat( ret ) .. "where" .. condition or table.concat( ret ) 
 end 
 	
 local
@@ -121,11 +121,11 @@ function tupdate( tvals )
 		end
 	end
 	
-	return ( condition and table.concat( ret ) or table.concat( ret ) .. " where " .. condition )
+	return ( condition and table.concat( ret ) .. " where " .. condition or table.concat( ret ))
 end
 
 local 
-function tdelete( tvals )
+function delete( tvals )
 	if nil == tvals then 
 		print( "tvals is empty\n" )
 		return nil
@@ -134,7 +134,7 @@ function tdelete( tvals )
 	local tname = tvals["tname"]
 	if nil == tname then
 		print( "No tname\n" )
-	skynet.fork( watching )	return nil
+		return nil
 	end
 	
 	local condition = tvals["condition"]
@@ -196,6 +196,16 @@ function QUERY:select_users( t )
 	-- body
 	local sql = string.format("select * from users where uaccount = %s and upassword = %s", t.uaccount, t.upassword)
 	local r = db:query(sql)
+	--cache:get()
+	print("select_users is called\n")
+	for k , v in pairs( r ) do
+		print( k , v )
+		if type( v ) == "table" then
+			for sk , sv in pairs( v ) do
+				print( sk , sv )
+			end
+		end
+	end
 	return r
 end 	
 	
@@ -203,7 +213,9 @@ function QUERY:select_rolebyroleid( )
 end	
 	
 function QUERY:select_rolebyuid( tvals )
+
 	local sql = tselect( tvals ) --string.format( "select * from role where uid = %s" , uid )
+	print( sql )
 	local r = db:query( sql )
 
 	return r

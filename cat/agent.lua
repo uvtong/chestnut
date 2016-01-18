@@ -49,6 +49,7 @@ function REQUEST:login()
 	assert(#self.password > 1)
 	local t = { uaccount = self.account, upassword = self.password }
 	local r = skynet.call(addr, "lua", "command", "select_users", t )
+
 	if r == nil or r[1] == nil then
 		ret.errorcode = 1 -- 1 user hasn't register.
 		ret.msg = "no"

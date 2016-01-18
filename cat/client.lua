@@ -98,7 +98,7 @@ local function dispatch_package()
 	end
 end
 
-send_request("role")
+--send_request("role")
 send_request("login", { account = "abc" , password = "abc" })
 while true do
 	dispatch_package()
