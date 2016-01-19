@@ -31,8 +31,13 @@ local function convert_level( t )
 	return r
 end
 
-local function convert_wake( ... )
+local function convert_wakecost( t )
 	-- body
+	local r = {}
+	for i,v in ipairs(t) do
+		r[tostring(v[id])] = v
+	end
+	return r
 end
 
 local function id( __level, __wake )
@@ -65,6 +70,7 @@ function REQUEST:login()
 	level = csvReader.getcont("level")
 	level = convert_level(level)
 	wakecost = csvReader.getcont("wake_cost")
+	wakecost = convert_wakecost(wakecost)
 
 	local ret = {}
 	local r = math.random(1, 5)
@@ -79,55 +85,52 @@ function REQUEST:login()
 		ret.msg = "no"
 		return ret
 	else
-		
 		user = usermgr:create(r[1])
-
-		usermgr:add( puser )
-		local nr = skynet.call(addr, "lua", "command", "select_roles_by_userid", puser.id)
-		if nr == nil then
-			print("r is nil")
-		end
-		print("*****************************************")
-		for k,v in pairs(nr) do
-			local role = rolemgr:create( v )
-			print( "new role id is " .. role.id )
-			rolemgr:add(role)
-		end
-		ret.errorcode = 0
-		ret.msg = "yes"
-		ret.user_id = r[1].id
-		ret.uname = r[1].uname
-		ret.uviplevel = r[1].uviplevel
-		ret.uexp = r[1].uexp
-
-		ret.config_sound = r[1].config_sound and true or false
-		ret.config_music = r[1].config_music and true or false
-		ret.avatar = r[1].avatar
-		ret.sign = r[1].sign
-		ret.c_role_id = 0
-
+		usermgr:add( user )
+		local nr = skynet.call(addr, "lua", "command", "select_roles_by_userid", user.id)
+		assert(nr)
 		local rolemgr = require "rolemgr"
-		for i=1,5 do
-			local r = {
-				id = i,
-				wake_level = 1,
-				level = 1,
-				combat = 3,
-				defense = 4,
-				critical_hit = 6,
-				skill = 7,
-				c_equipment = 1,
-				c_dress = 1,
-				c_kungfu = 1
-			}
-			local role = rolemgr:create(r)
-			for k,v in pairs(role) do
-				print(k,v)
+		if true then
+			for k,v in pairs(nr) do
+				local role = rolemgr:create( v )
+				print( "new role id is " .. role.id )
+				rolemgr:add(role)
 			end
-			rolemgr:add(role)
+		else
+			for i=1,5 do
+				local r = {
+					id = i,
+					wake_level = 1,
+					level = 1,
+					combat = 3,
+					defense = 4,
+					critical_hit = 6,
+					skill = 7,
+					c_equipment = 1,
+					c_dress = 1,
+					c_kungfu = 1
+				}
+				local role = rolemgr:create(r)
+				for k,v in pairs(role) do
+					print(k,v)
+				end
+				rolemgr:add(role)
+			end
 		end
 		user.c_role_id = 1
 		user.rolemgr = rolemgr
+
+		ret.errorcode = 0
+		ret.msg = "yes"
+		ret.user_id = user.id
+		ret.uname = user.uname
+		ret.uviplevel = user.uviplevel
+		ret.uexp = user.uexp
+		ret.config_sound = user.config_sound and true or false
+		ret.config_music = user.config_music and true or false
+		ret.avatar = user.avatar
+		ret.sign = user.sign
+		ret.c_role_id = 0
 
 		local l = {}
 		local idx = 1
