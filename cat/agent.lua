@@ -17,7 +17,6 @@ local CMD = {}
 local REQUEST = {}
 local client_fd
 	 
-
 local user
 local level
 local wakeattr
@@ -82,6 +81,7 @@ function REQUEST:login()
 	else
 		
 		user = usermgr:create(r[1])
+
 		usermgr:add( puser )
 		local nr = skynet.call(addr, "lua", "command", "select_roles_by_userid", puser.id)
 		if nr == nil then
@@ -102,7 +102,6 @@ function REQUEST:login()
 
 		ret.config_sound = r[1].config_sound and true or false
 		ret.config_music = r[1].config_music and true or false
-
 		ret.avatar = r[1].avatar
 		ret.sign = r[1].sign
 		ret.c_role_id = 0
@@ -149,6 +148,7 @@ function REQUEST:login()
 		end
 		ret.rolelist = l
 	end
+
 	return ret
 end	
 	
@@ -191,6 +191,7 @@ function REQUEST:upgrade()
 end		
 		
 function REQUEST:wake()
+	print("wakd is called\n")
 	local ret = {}
 	local role = rolemgr:find(user.c_role_id)
 	local nowid = id(role.wake_level, role.level)

@@ -3,7 +3,7 @@ csvreader = require "csvReader"
 	
 datamgr = {}
 datamgr._data = {}
-local csvname = { --[[attribute = "Attribute" , level = "Level" ,--]] wakecost = "Wakecost" --[[, wakeattr = "Wakeattr"--]] } 
+local csvname = { --[[attribute = "Attribute" , level = "Level" ,--]] wakecost = "Wake_cost" --[[, wakeattr = "Wakeattr"--]] } 
 local path = "./../cat/csv/" --should be set in a conf file
 	
 function datamgr:add( name , content )
@@ -27,6 +27,7 @@ function datamgr:find( name )
 	
 end 
     
+
 function datamgr:findattributeItem( col , colval ) -- columnname and colvalue you want to search
 	local tmp = datamgr:find("attribute")
 	if tmp ~= nil then
@@ -34,6 +35,7 @@ function datamgr:findattributeItem( col , colval ) -- columnname and colvalue yo
 	end
 end
 	
+
 function datamgr:findLevelItem( col , colval  )
 	local tmp = datamgr:find("level")
 	if tmp ~= nil then
@@ -41,12 +43,14 @@ function datamgr:findLevelItem( col , colval  )
 	end
 end
 
+
 function datamgr:findwakecostItem( col , colval)
 	local tmp = datamgr:find("wakecost")
 	if tmp ~= nil then
 		return csvreader.getline( tmp , col , tostring( colval ) )
 	end
 end
+
 
 function datamgr:findwakeattrItem(col , colval)
 	local tmp = datamgr:find("wakeattr")

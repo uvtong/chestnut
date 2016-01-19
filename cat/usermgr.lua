@@ -11,6 +11,7 @@ function user.new( ... )
 end 
 
 function usermgr:create( tvals )
+
 	assert(tvals)
 	local u = user.new()
 	u.id = tvals["id"]
