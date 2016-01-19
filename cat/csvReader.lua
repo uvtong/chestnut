@@ -121,9 +121,14 @@ end
   
   
 --解析csv文件  
-function csvreader.getcont( fileName )  
-  
-    local file = io.open(fileName, "r")  
+function csvreader.getcont( fileName )
+	assert(type(fileName) == "string")
+	fileName = fileName .. ".csv"
+	local path = "./../cat/csv/" .. fileName
+    local file = io.open(path, "r")  
+    if file == nil then
+    	file = io.open(path, "r")  
+    end
     assert(file)  
     local title = parseline( getRowContent(file))
     for k ,v in pairs( title ) do

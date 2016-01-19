@@ -32,27 +32,14 @@ function rolemgr:create( tvals )
 	return r
 end
 
-function rolemgr:find( roleid )
+function rolemgr:find(roleid)
 	id = tostring(roleid)
 	return (rolemgr._data)[ id ]
 end	
 
 function rolemgr:add( role )
-<<<<<<< HEAD
 		-- body
 	(rolemgr._data)[tostring(role.id)] = role
-=======
-	-- body
-	print "rolemgr add"
-	for k,v in pairs(role) do
-		print(k,v)
-	end
-	print(tostring(role.id))
-
-	(self._data)[tostring(role.id)] = role
-	id = tostring(role.id)
-	return (rolemgr._data)[ id ]
->>>>>>> fb3c9d5851526fe3e7854af64aabe40c809c7246
 end	
 
 function rolemgr:remove( roleid )
