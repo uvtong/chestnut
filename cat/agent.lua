@@ -7,9 +7,7 @@ local socket = require "socket"
 local sproto = require "sproto"
 local sprotoloader = require "sprotoloader"
 local csvReader = require "csvReader"
-local datamgr = require "datamgr"
 local usermgr = require "usermgr" 
-local rolemgr = require "rolemgr"
 
 local WATCHDOG
 local host
@@ -18,10 +16,30 @@ local send_request
 local CMD = {}
 local REQUEST = {}
 local client_fd
-local csvcont = {}
 	 
 
 local user
+local level
+local wakeattr
+local wakecost
+
+local function convert_level( t )
+	-- body
+	local r = {}
+	for i,v in ipairs(t) do
+		r[tostring(v[id])] = v[exp]
+	end
+	return r
+end
+
+local function convert_wake( ... )
+	-- body
+end
+
+local function id( __level, __wake )
+	-- body
+	return __wake * 1000 + __level
+end
 
 function REQUEST:role()
 	print "************************role"
@@ -45,6 +63,10 @@ function REQUEST:role()
 end	
 					
 function REQUEST:login()
+	level = csvReader.getcont("level")
+	level = convert_level(level)
+	wakecost = csvReader.getcont("wake_cost")
+
 	local ret = {}
 	local r = math.random(1, 5)
 	local addr = skynet.localname(string.format(".db%d", math.floor(r))) 
@@ -58,6 +80,7 @@ function REQUEST:login()
 		ret.msg = "no"
 		return ret
 	else
+		
 		user = usermgr:create(r[1])
 		usermgr:add( puser )
 		local nr = skynet.call(addr, "lua", "command", "select_roles_by_userid", puser.id)
@@ -84,6 +107,7 @@ function REQUEST:login()
 		ret.sign = r[1].sign
 		ret.c_role_id = 0
 
+		local rolemgr = require "rolemgr"
 		for i=1,5 do
 			local r = {
 				id = i,
@@ -104,6 +128,8 @@ function REQUEST:login()
 			rolemgr:add(role)
 		end
 		user.c_role_id = 1
+		user.rolemgr = rolemgr
+
 		local l = {}
 		local idx = 1
 		for k,v in pairs(rolemgr._data) do
@@ -135,58 +161,62 @@ function REQUEST:choose_role()
 end	
 	
 function REQUEST:upgrade()
-	print"*********************************upgrade"
 	local ret = {}
 	local role = rolemgr:find(user.c_role_id)
 	local err
-	local nowid = role.id * 1000 + role.wake_level
-	local t = datamgr:findLevelItem(nowid)
-	t = {exp = 100 }
-	if user.uexp > t.exp then
-		user.uexp = user.uexp - t.exp
-		role.level = role + 1
+	local nowid = id(role.wake_level, role.level)
+	local exp = level[tostring(nowid)]
+	if user.uexp > exp then
+		user.uexp = user.uexp - exp
+		role.level = role.level + 1
+		-- return
 		ret.errorcode = 0
 		ret.msg = ""
 		ret.role_id = role.id
-		role.level = role.level + 1
+		ret.wake_level = role.wake_level
 		ret.level = role.level
+		ret.combat = role.combat
+		ret.defense = role.defense
+		ret.critical_hit = role.critical_hit
+		ret.skill = role.skill
+		ret.c_equipment = role.c_equipment
+		ret.c_dress = role.c_dress
+		ret.c_kungfu = role.c_kungfu
 		return ret
 	else
 		ret.errorcode = 1
-		ret.msg = ""
+		ret.msg = "no"
 		return ret
 	end
 end		
 		
 function REQUEST:wake()
-	print("wakd is called\n")
 	local ret = {}
-	print("puserid is " .. puser.c_role_id)
-	local role = rolemgr:find(puser.c_role_id)
-	print("find success\n")
-	local nowid = role.id * 1000 + role.wake_level
-	print( "now id is " .. nowid )
-	local wakecost = datamgr:findwakeattrItem( nowid )
-	local afterid = wakecost["afrerwakeid"]
-
-	if role:getlevel() < tonumber(wakecost["needlevel"]) then
-		print("not level")
-		ret.err = 1
-		ret.msg = "not level"
-		return ret
-		
-	elseif role:getgold() < tonumber(wakecost["costgold"]) then
-		print("no enofy money")
-		ret.errorcode = 2
-		ret.msg	= "no cost"
+	local role = rolemgr:find(user.c_role_id)
+	local nowid = id(role.wake_level, role.level)
+	local cost = wakecost[tostring(role.wake_level)]
+	if role.level > cost.level and user.gold > cost.gold then
+		role.wake_level = role.wake_level + 1
+		role.level = role.level - 1
+		user.gold = user.gold - cost.gold
+		ret.errorcode = 0
+		ret.msg = "yes"
+		ret.role_id = role.id
+		ret.wake_level = role.wake_level
+		ret.level = role.level
+		ret.combat = role.combat
+		ret.defense = role.defense
+		ret.critical_hit = role.critical_hit
+		ret.skill = role.skill
+		ret.c_equipment = role.c_equipment
+		ret.c_dress = role.c_dress
+		ret.c_kungfu = role.c_kungfu
 		return ret
 	else
-		print("normal")
-		ret.errorcode = 0
-		ret.msg	 = "ok"
+		ret.errorcode = 1
+		ret.msg	= ""
 		return ret
-	end	
-
+	end
 end		
 				
 function REQUEST:handshake()
@@ -243,7 +273,6 @@ skynet.register_protocol {
 }	
 
 function CMD.start(conf)
-	print "cmd .start."
 	local fd = conf.client
 	local gate = conf.gate
 	WATCHDOG = conf.watchdog
@@ -280,27 +309,5 @@ skynet.start(function()
 		local f = CMD[command]
 		skynet.ret(skynet.pack(f(...)))
 	end)
-	-- print( "agent start is called\n" )
-	print ("...................................................")
-	datamgr:startload()
-	local wakeattr = datamgr:find( "wakecost" )--datamgr:findwakecostItem( "nowid" , 1001 )
-	print("wakeattr is ok\n")
-	for k , v  in ipairs( wakeattr ) do
-		print( k , v )
-
-		 if type( v ) == "table" then
-		 	for sk , sv in pairs( v ) do
-		 		print( sk , sv )
-		 		print()
-		 	end
-		 end
-	end
-	--local tmp = wakeattr["name"]
-	--print("........................" .. type(tmp) .. "..................wakecost" .. type(wakeattr))
-	--for k , v  in pairs( tmp ) do
-	--	print( k , v )
-	--end
-	--csvcont = csvReader.getcont( "./cat/data.csv" )
-	--print(package.path)
 end)
 
