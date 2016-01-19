@@ -226,8 +226,19 @@ end
 
 function QUERY:select_roles_by_userid( user_id )
 	-- body
+	print("select role called")
 	local sql = string.format("select * from role where user_id = %d", user_id)
+
 	local r = db:query(sql)
+
+	for k , v in pairs( r ) do
+		
+		if type( v ) == "table" then
+			for sk , sv in pairs( v ) do
+				print( sk , sv )
+			end
+		end
+	end
 	return r
 end
 		

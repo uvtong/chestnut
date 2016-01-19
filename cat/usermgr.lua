@@ -11,8 +11,10 @@ function user.new( ... )
 end 
 
 function usermgr:create( tvals )
+
 	assert(tvals)
-	local u = user:new()
+	local u = user.new()
+	
 	u.id = tvals["id"]
 	u.uviplevel = tvals["uviplevel"]
 	u.uexp = tvals["uexp"]
@@ -20,7 +22,7 @@ function usermgr:create( tvals )
 	u.config_music = tvals["config_music"]
 	u.avatar = tvals["avatar"]
 	u.sign = tvals["sign"]
-	u.c_role_id = 1
+	u.c_role_id = 2 --waiting for updating
 	return u
 end	
 	

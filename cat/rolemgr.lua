@@ -10,7 +10,11 @@ function role.new( ... )
 end	
 
 function rolemgr:create( tvals )	
-	assert(tvals)
+	--assert(tvals)
+	if tvals == nil then
+		print("tvals is nil")
+		return nil
+	end
 	local r = role.new()
 	r.id = tvals.id
 	r.nickname = tvals.nickname
@@ -38,7 +42,9 @@ function rolemgr:add( role )
 	-- body
 	print(tostring(role.id))
 
-	self._data[tostring(role.id)] = role
+	(self._data)[tostring(role.id)] = role
+	id = tostring(role.id)
+	return (rolemgr._data)[ id ]
 end	
 
 function rolemgr:remove( roleid )

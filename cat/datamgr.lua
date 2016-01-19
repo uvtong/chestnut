@@ -3,7 +3,7 @@ csvreader = require "csvReader"
 	
 datamgr = {}
 datamgr._data = {}
-local csvname = { attribute = "Attribute" , level = "Level" , wakecost = "Wakecost" , wakeattr = "Wakeattr" } 
+local csvname = { --[[attribute = "Attribute" , level = "Level" ,--]] wakecost = "Wakecost" --[[, wakeattr = "Wakeattr"--]] } 
 local path = "./../cat/csv/" --should be set in a conf file
 	
 function datamgr:add( name , content )
@@ -24,34 +24,34 @@ function datamgr:find( name )
 		print( string.format("no data in %s" , name ) )
 		return nil
 	end 	
-		
-end	
+	
+end 
     
-function datamgr:findattributeItem( id )
-	local tmp = datamgr["attribute"]
+function datamgr:findattributeItem( col , colval ) -- columnname and colvalue you want to search
+	local tmp = datamgr:find("attribute")
 	if tmp ~= nil then
-		return csvreader.getline( tmp , tostring( id ))
+		return csvreader.getline( tmp , col , tostring( colval ))
 	end
 end
 	
-function datamgr:findLevelItem( id )
-	local tmp = datamgr["level"]
+function datamgr:findLevelItem( col , colval  )
+	local tmp = datamgr:find("level")
 	if tmp ~= nil then
-		return csvreader.getline( tmp , tostring(id) )
+		return csvreader.getline( tmp , col , tostring( colval ))
 	end
 end
 
-function datamgr:findwakecostItem( id )
-	local tmp = datamgr["wakecost"]
+function datamgr:findwakecostItem( col , colval)
+	local tmp = datamgr:find("wakecost")
 	if tmp ~= nil then
-		return csvreader.getline( tmp , tostring(id) )
+		return csvreader.getline( tmp , col , tostring( colval ) )
 	end
 end
 
-function datamgr:findwakeattrItem( id )
-	local tmp = datamgr["wakeattr"]
+function datamgr:findwakeattrItem(col , colval)
+	local tmp = datamgr:find("wakeattr")
 	if tmp ~= nil then
-		return csvreader.getline( tmp , tostring(id) )
+		return csvreader.getline( tmp , col , tostring( colval ) )
 	end
 end
 
@@ -66,7 +66,7 @@ function datamgr:startload()
 		else
 			--skynet.error( string.format( "load '%s' failed!\n"  , k ) )
 			print( string.format( "load '%s' failed!\n"  , k ) )			
-		return nil
+			return nil
 		end 
 	end
 	return datamgr._data
