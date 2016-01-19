@@ -118,18 +118,22 @@ local function getRowContent(file)
     return content  
 end  
   
-  
-  
 --解析csv文件  
-function csvreader.getcont( fileName )  
-  
-    local file = io.open(fileName, "r")  
+function csvreader.getcont( fileName )
+	assert(type(fileName) == "string")
+	fileName = fileName .. ".csv"
+	-- csv folder.
+	local path = "./../cat/csv/" .. fileName
+    local file = io.open(path, "r") 
+    if file == nil then	
+    	file = io.open(fileName, "r") 
+    end
     assert(file)  
     local title = parseline( getRowContent(file))
-    for k ,v in pairs( title ) do
-    	print("...............................................")
-    	print( k , v , string.len( v ) )
-    end
+    -- for k ,v in pairs( title ) do
+    -- 	print("...............................................")
+    -- 	print( k , v , string.len( v ) )
+    -- end
 
     local content = {}  
     while true do
@@ -137,20 +141,17 @@ function csvreader.getcont( fileName )
         local line = getRowContent( file )   
         if not line then break end 
         local parasedline = parseline( line )
-
         local newline = {}
 
-        for i = 1 , #title do
-        	newline[title[i]] = parasedline[i]
-        	print("****************************")
-        	print(title[i] , parasedline[i])
-        end
+        -- for i = 1 , #title do
+        -- 	newline[title[i]] = parasedline[i]
+        -- 	print("****************************")
+        -- 	print(title[i] , parasedline[i])
+        -- end
          
         table.insert(content, newline)  
     end  
-  
     file:close()  
-  
     return content 
 end  
 

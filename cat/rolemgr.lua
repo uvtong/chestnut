@@ -40,6 +40,10 @@ end
 
 function rolemgr:add( role )
 	-- body
+	print "rolemgr add"
+	for k,v in pairs(role) do
+		print(k,v)
+	end
 	print(tostring(role.id))
 
 	(self._data)[tostring(role.id)] = role
