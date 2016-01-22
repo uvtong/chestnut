@@ -1,7 +1,7 @@
 local usermgr = {}
 usermgr._data = {}
 
-local user = { id , uviplevel , uexp, config_sound, config_music, avatar, sign, c_role_id, rolemgr }
+local user = { id , uviplevel , uexp, config_sound, config_music, avatar, sign, c_role_id, rolemgr, achievementmgr, propmgr, emailbox }
 
 function user.new( ... )
  	-- body
@@ -10,7 +10,7 @@ function user.new( ... )
  	return t
 end 
 
-function usermgr:create( tvals )
+function usermgr.create( tvals )
 
 	assert(tvals)
 	local u = user.new()
@@ -21,7 +21,7 @@ function usermgr:create( tvals )
 	u.config_music = tvals["config_music"]
 	u.avatar = tvals["avatar"]
 	u.sign = tvals["sign"]
-	u.c_role_id = 2 --waiting for updating
+	u.c_role_id = tvals["c_role_id"]
 	return u
 end	
 	

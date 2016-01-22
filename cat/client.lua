@@ -86,6 +86,46 @@ local function print_package(t, ...)
 	end
 end
 
+local REQUEST = {}
+
+function REQUEST:finish_achi( ... )
+	-- body
+	local ret = {}
+	ret.errorcode = 0
+	ret.msg = "yes"
+	return ret
+end
+
+local function request(name, args, response)
+	print( "request name :" .. name)
+    local f = assert(REQUEST[name])
+    local r = f(args)
+
+    if response then
+    	print "hakldjfalfj"
+    	return response(r)
+    end               
+end      
+
+local function dispatch( type, ... )
+	-- body
+	if type == "REQUEST" then
+		local ok, result  = pcall(request, ...)
+		if ok then
+			print "kaljlfajflajlf"
+			if result then
+				print "kajflajfldajf"
+				send_package(result)
+			end
+		else
+			error(result)
+		end
+	else
+		assert(type == "RESPONSE")
+		print_package(type, ...)
+	end
+end
+
 local function dispatch_package()
 	while true do
 		local v
@@ -93,26 +133,33 @@ local function dispatch_package()
 		if not v then
 			break
 		end
-
-		print_package(host:dispatch(v))
+		local type, name, args, response = host:dispatch(v)
+		print(type, name, args, response)
+		dispatch(type, name, args, response)
 	end
 end
 
-send_request("login", { account = "abc" , password = "abc" })
+send_request("login", { account = "hello" , password = "world" })
 while true do
 	dispatch_package()
 	local cmd = socket.readstdin()
 	if cmd then
-		if cmd == "quit" then
-			send_request("quit")
+		if cmd == "handshake" then
+			send_request(cmd)
 		elseif cmd == "role" then
-			send_request("role")
+			send_request(cmd)
 		elseif cmd == "upgrade" then
-			send_request("upgrade")
+			send_request(cmd, { role_id = 2 })
+		elseif cmd == "choose_role" then
+			send_request(cmd, { role_id = 2 })
 		elseif cmd == "wake" then
-			send_request("wake")			
-		else
-			send_request("get", { what = cmd })
+			send_request(cmd, { role_id = 2 })
+		elseif cmd == "props" then
+			send_request(cmd)
+		elseif cmd == "use_prop" then
+			send_request(cmd, { p = { csv_id = 1, num = 1}, role_id = 2})
+		elseif cmd == "achievement" then
+			send_request(cmd)
 		end
 	else
 		socket.usleep(100)

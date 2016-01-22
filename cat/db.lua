@@ -1,7 +1,9 @@
+package.path = "./../cat/?.lua;" .. package.path
 local skynet = require "skynet"
 local mysql = require "mysql"
 local redis = require "redis"
- 
+local csvreader = require "csvReader"
+local edb = require("edb", mysql, redis)
 
 local db
 local cache 
@@ -184,7 +186,39 @@ function connect_redis( conf )
 end	
 	
 local QUERY = {}
-	
+
+function QUERY:signup( t )
+	-- body
+	local sql
+	sql = string.format("select * from users where uaccount = '%s' and upassword = '%s'", t.uaccount, t.upassword)
+	local r = db:query(sql)
+	if #r > 0 then
+		return false
+	else
+		-- insert user
+		sql = string.format("insert into users (uname, uaccount, upassword, uviplevel, uexp, config_music, confg_sound, avatar, sign, c_role_id) values (\"\", \"%s\", \"%s\", 0, 0, 0, 0, 0, \"\", 0)", t.account, t.password)
+		r = db:query(sql)
+		-- insert role
+		local role = csvreader.getcont("role")
+		for i=1,2 do
+			sql = string.format("insert into role (nickname, user_id, wake_level, level, combat, defense, critical_hit, skill, c_equipment, c_dress, c_kungfu) values (\"\", %d, %d, %d, %d, %d, %d, %d, %d, %d, %d)", r[0].id, 0, level[0].level, level[0].combat, level[0].defense, level[0].critical_hit, level[0].skill, 0, 0, 0)
+			db:query(sql)
+		end
+		-- insert props. all table
+		sql = stirng.format("select name from prop")
+		r = db:query(sql)
+		for k,v in pairs(r) do
+			sql = string.format("insert into props (user_id, name, num) values (user_id, \"%s\", 0)", v.name)
+			db:query(sql)
+		end
+		
+		-- inset equipment
+		-- insert dress
+		-- inset kungfu
+		return true
+	end
+end
+
 function QUERY:insert_skill( ... )
 	-- body
 	local t = { ... }
@@ -226,22 +260,54 @@ end
 
 function QUERY:select_roles_by_userid( user_id )
 	-- body
-	print("select role called")
 	local sql = string.format("select * from role where user_id = %d", user_id)
-
 	local r = db:query(sql)
-
-	for k , v in pairs( r ) do
-		
-		if type( v ) == "table" then
-			for sk , sv in pairs( v ) do
-				print( sk , sv )
-			end
-		end
-	end
 	return r
 end
-		
+
+function QUERY:select_prop( user_id, type)
+	-- body
+	if type == nil then
+		local sql = string.format("select * from props where user_id = %d", user_id)
+		local r = db:query(sql)
+		return r
+	else
+		local sql = string.format("select * from props where user_id = %d, name = \"%s\"", name)
+		local r = db:query(sql)
+		return r
+	end
+end
+
+-- 
+function QUERY:update_prop( user_id, type, num )
+	-- body
+	-- local sql = string.format("update props set num = %d where user_id = %d and type = %d", num, user_id, type)
+	-- local r = db:query(sql)
+	-- return r
+end
+
+function QUERY:select_all_achi( type, min, max )
+	-- body
+	local sql = string.format("select * from achievement where type = \"%s\" level > %d and level < %d", type, min, max)
+	local r = db:query(sql)
+	return r
+end
+
+function QUERY:select_achi( user_id )
+	-- body
+	local sql = string.format("select * from achievements where user_id = %d", user_id)
+	local r = db:query(sql)
+	return r
+end
+
+function QUERY:update_achi( user_id, csv_id, finished )
+	assert(finished <= 100)
+	local sql = string.format("update achievements set finished = %d where csv_id = %d", csv_id)
+	local r = db:query(sql)
+	return r
+end
+
+
 local CMD = {}
 	
 function CMD:disconnect_redis( ... )
@@ -255,7 +321,12 @@ end
 function CMD:command( subcmd, ... )
 	print(subcmd, type(subcmd))
 	local f = assert(QUERY[subcmd])
-	return f(QUERY, ... )
+	if f then
+		return f(QUERY, ... )
+	else
+		local f = assert(edb[subcmd])
+		return f(edb, ... )
+	end
 end
 
 skynet.start( function () 
