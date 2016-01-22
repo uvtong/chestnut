@@ -98,6 +98,10 @@ end
 
 local function request(name, args, response)
 	print( "request name :" .. name)
+	for k,v in pairs(args) do
+		print(k,v)
+	end
+	print(response)
     local f = assert(REQUEST[name])
     local r = f(args)
 
@@ -133,9 +137,7 @@ local function dispatch_package()
 		if not v then
 			break
 		end
-		local type, name, args, response = host:dispatch(v)
-		print(type, name, args, response)
-		dispatch(type, name, args, response)
+		dispatch(host:dispatch(v))
 	end
 end
 
@@ -157,7 +159,7 @@ while true do
 		elseif cmd == "props" then
 			send_request(cmd)
 		elseif cmd == "use_prop" then
-			send_request(cmd, { p = { csv_id = 1, num = 1}, role_id = 2})
+			send_request(cmd, { props = {{ csv_id = 1, num = 1}}, role_id = 2})
 		elseif cmd == "achievement" then
 			send_request(cmd)
 		end

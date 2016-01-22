@@ -3,189 +3,31 @@ local skynet = require "skynet"
 local mysql = require "mysql"
 local redis = require "redis"
 local csvreader = require "csvReader"
-local edb = require("edb", mysql, redis)
+local dbop = require "dbop"
 
 local db
 local cache 
-
-local
-function tinsert( tvals ) --{ tname = "" , cont = { {colname = val} ,  ... } }
-	if nil == sqltable then 
-		print( "empty argtable\n" )
-		return nil
-	end
-
-	local tname = sqltable["tname"]
-	if nil == tname then
-		print( "No tname\n" )
-		return nil
-	end
-
-	local cont = sqltable["cont"]
-	if nil == cont then
-		print( "No Cont\n" )
-		return nil
-	end
-
-	local ret = { key = "" , val = "" }
-
-	ret["key"] = string.format( "insert into '%s' (" , tname ) 
-	for k , v in ipairs( cont ) do
-		for subk , subv in pairs( v ) do
-			ret["key"] = ret["key"] .. subk .. ','
-			if type (subv ) == "string" then
-				ret["val"] = ret["val"] .. ',' .. string.format( "'%s'" , subv )
-			else
-				ret["val"] = ret["val"] .. ',' .. subv
-			end
-		end
-	end
-
-	--去掉 ret["key"] 的最后一个 ','
-	ret["key"] = string.sub( ret["key"] , 1 , -1 )
-	ret["val"] = string.sub( ret["val"] , 2 )
-	ret["key"] = ret["key"] .. ") values ("
-	ret["val"] = ret["val"] .. ")"
-
-	return ret["key"] .. ret["val"]
-end
-	
-local 
-function tselect( tvals )
-	if nil == tvals then
-		print( "tvals is empty" )
-		return
-	end
-	
-	local tname = tvals["tname"]
-	if nil == tname then
-		print("tname is empty\n")
-		return nil
-	end
-	
-	local content = tvals["content"]
-	
-	local condition = tvals["condition"]
-	
-	local ret = {}
-	if nil == content then
-		table.insert( ret , string.format( "select * from %s " , tname ) )
-	else
-		table.insert( ret , string.format( "select " ))
-		for k , v in ipairs( content ) do
-			if k > 1 then
-				table.insert( ret , "," )
-			end
-			
-			table.insert( ret , string.format( "%s" , v ) )
-		end
-		table.insert( ret , string.format( " from %s " , tname ) )
-	end
-
-	return condition and table.concat( ret ) .. "where" .. condition or table.concat( ret ) 
-end 
-	
-local
-function tupdate( tvals )
-	if nil == tvals then
-		print( "No vals in tvals \n" )
-		return nil
-	end
-
-	local tname = tvals["tname"]
-	if nil == tname then
-		print("No tname\n")
-		return nil
-	end
-	
-	local content = tvals["content"]
-	if nil == content then
-		print("No content\n")
-		return nil
-	end
-
-	local condition = tvals["condition"]
-
-	local ret = {}
-	
-	table.insert( ret , string.format("update %s SET " , tname ) )
-	for k , v in ipairs( content ) do
-		if k > 1 then
-			table.insert( ret , ',' )
-		end
-
-		for subk , subv in pairs( v ) do
-			if type( subv ) == "string" then
-				table.insert( ret , string.format( "%s = '%s'" , subk , subv ) )
-			else
-				table.insert( ret , string.format( "%s = %s" , subk , subv ) )
-			end	
-		end
-	end
-	
-	return ( condition and table.concat( ret ) .. " where " .. condition or table.concat( ret ))
-end
-
-local 
-function delete( tvals )
-	if nil == tvals then 
-		print( "tvals is empty\n" )
-		return nil
-	end 
-	
-	local tname = tvals["tname"]
-	if nil == tname then
-		print( "No tname\n" )
-		return nil
-	end
-	
-	local condition = tvals["condition"]
-	if nil == condition then
-		print( "No condition\n" )
-		return nil
-	end
-	
-	return string.format( "delete from %s where " , tname ) .. conditon 
-end	
-	
-local
-function connect_mysql( ... )
-	local function on_connect( db )
-		db:query( "set charset utf8" )
-	end
-	
-	local db = mysql.connect( { 
-		host = "192.168.1.116",
-		port = 3306,
-		database = "project",
-		user = "root",
-		password = "yulei",
-		max_packet_size = 1024 * 1024,
-		on_connect = on_connect,
-	} )
-
-	return db
-end
-
---[[local
-function watching()
-	local w = redis.watch( conf )
-	w:subscribe "foo"
-	w:psubscribe "hello.*"
-	
-	while true do
-		print( "watch" , w:message() )
-	end
-end	
-	--]]
-local
-function connect_redis( conf )
-	--skynet.fork( watching )
-	local cache = redis.connect( conf )	
-	return cache
-end	
-	
+		
 local QUERY = {}
+
+function QUERY:select( table, column, value )
+	-- body
+	local sql = tselect(table, column, value)
+	local r = db:query(sql)
+	return r
+end
+
+function QUERY:update( table, column, value )
+	-- body
+	local sql = tupdate(table, column, value)
+	db:query(sql)
+end
+
+function QUERY:insert( table, column, value )
+	-- body
+	local sql = tinsert(table, column, value)
+	db:query(sql)
+end
 
 function QUERY:signup( t )
 	-- body
@@ -226,21 +68,17 @@ function QUERY:insert_skill( ... )
 	db:query( sql )
 end	
 	
-function QUERY:select_users( t )
+function QUERY:select_user( t )
 	-- body
-	local sql = string.format("select * from users where uaccount = '%s' and upassword = '%s'", t.uaccount, t.upassword)
+	-- local sql = tselect("users", {uaccount = t.uaccount, upassword = t.upassword})
+	sql = string.format("select * from users where uaccount = \"%s\" and upassword = \"%s\"", t.uaccount, t.upassword)
+	print(sql)
 	local r = db:query(sql)
-	--cache:get()
-	print("select_users is called\n")
-	for k , v in pairs( r ) do
-		print( k , v )
-		if type( v ) == "table" then
-			for sk , sv in pairs( v ) do
-				print( sk , sv )
-			end
-		end
+	for i,v in ipairs(r) do
+		print(i,v)
 	end
-	return r
+	--cache:get()
+	return r[1]
 end 	
 	
 function QUERY:select_rolebyroleid( )
@@ -278,12 +116,11 @@ function QUERY:select_prop( user_id, type)
 	end
 end
 
--- 
-function QUERY:update_prop( user_id, type, num )
+function QUERY:update_prop( user_id, csv_id, num )
 	-- body
-	-- local sql = string.format("update props set num = %d where user_id = %d and type = %d", num, user_id, type)
+	-- assert(num >= 0)
+	-- local sql = string.format("update props set num = %d where user_id = %d and csv_id = %d", num, user_id, csv_id)
 	-- local r = db:query(sql)
-	-- return r
 end
 
 function QUERY:select_all_achi( type, min, max )
@@ -307,7 +144,6 @@ function QUERY:update_achi( user_id, csv_id, finished )
 	return r
 end
 
-
 local CMD = {}
 	
 function CMD:disconnect_redis( ... )
@@ -322,18 +158,61 @@ function CMD:command( subcmd, ... )
 	print(subcmd, type(subcmd))
 	local f = assert(QUERY[subcmd])
 	if f then
-		return f(QUERY, ... )
+		local result = f(QUERY, ... )
+		if result then
+			return result
+		end
 	else
-		local f = assert(edb[subcmd])
-		return f(edb, ... )
+		-- local f = assert(edb[subcmd])
+		-- return f(edb, ... )
 	end
 end
+
+local
+function connect_mysql( ... )
+	local function on_connect( db )
+		db:query( "set charset utf8" )
+	end
+	
+	local db = mysql.connect( { 
+		host = "192.168.1.116",
+		port = 3306,
+		database = "project",
+		user = "root",
+		password = "yulei",
+		max_packet_size = 1024 * 1024,
+		on_connect = on_connect,
+	} )
+
+	return db
+end
+
+local
+function watching(conf)
+	local w = redis.watch( conf )
+	w:subscribe "foo"
+	w:psubscribe "hello.*"
+	
+	while true do
+		print( "watch" , w:message() )
+	end
+end	
+
+local
+function connect_redis( conf )
+	--skynet.fork( watching, conf )
+	local cache = redis.connect( conf )	
+	return cache
+end	
 
 skynet.start( function () 
 	skynet.dispatch( "lua" , function( _, _, cmd, subcmd, ... )
 		if cmd == "command" then
 			local f = assert( CMD[ cmd ] )
-			skynet.ret( skynet.pack( f(CMD, subcmd, ... ) ) )
+			local result = f(CMD, subcmd, ... )
+			if result then
+				skynet.ret( skynet.pack( result ) )
+			end
 		else
 			local f = assert( CMD[ cmd ] )
 			skynet.ret( skynet.pack( f( subcmd, ... ) ) )
@@ -348,4 +227,3 @@ skynet.start( function ()
 	}
 	cache = connect_redis( conf )
 end)
-

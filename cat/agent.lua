@@ -9,25 +9,33 @@ local sprotoloader = require "sprotoloader"
 local csvReader = require "csvReader"
 local usermgr = require "usermgr" 
 
-local propmgr = require "propmgr"
-
 local WATCHDOG
 local host
 local send_request
       
 local CMD = {}
 local REQUEST = {}
+local RESPONSE = {}
 local client_fd
 	 
 local user
 local level
 local wakeattr
 local wakecost
-local prop
 
 local function send_package(pack)
 	local package = string.pack(">s2", pack)
 	socket.write(client_fd, package)
+end
+
+local function send_achievement( achievement )
+	-- body
+	ret = {}
+	ret.which = {
+		csv_id = achievement.csv_id,
+		finished = achievement.finished
+	}
+	send_package(send_request("finish_achi", ret))
 end
 
 local function convert_level( t )
@@ -48,51 +56,54 @@ local function convert_wakecost( t )
 	return r
 end
 
-local function convert_prop( t )
-	-- body
-end
-
 local function id(__wake, __level)
 	-- body
 	return __wake * 1000 + __level
 end
 
-local function send_achi( csv_id,  finished)
-	-- body
-	ret = {}
-	ret.which = {
-		csv_id = csv_id,
-		finished = finished
-	}
-	send_package(send_request("finish_achi", ret))
-end
-
-local function achi( type )
+local function achi( type, ... )
 	-- body
 	if type == "combat" then
+		local n = tonumber(...)
+		local l = user.achievementmgr:get(type)
+		for i,v in ipairs(l) do
+			local z = n / v.combat
+			if z > 1 then
+				send_achi(v.csv_id, z)
+			end
+			v.finished = z
+			local addr = random_db()
+			skynet.send(addr, "lua", "command", "update", "achievements", {user_id = user.id, type = "combat", combat= v.combat}, {finished = v.finished})	
+		end
+		for k,v in pairs(l) do
+			print(k,v)
+		end
 		if num > 1000 then
 			send_achi()
 		end
 	elseif type == "gold" then
-		local gold = user.propmgr:get_by_type(type)
-		local r = user.achievementmgr:get_by_type(type)
-		for i,v in ipairs(r) do
-			if gold > v.num then
-				local x = 90 
-				send_achi(csv_id, x)
+		local prop = user.propmgr:get_by_type(type) -- abain prop by type (type -- csv_id -- prop.id)
+		local l = user.achievementmgr:get_by_type(type)
+		-- sort
+		for i,v in ipairs(l) do
+			if prop.num > v.gold then
+				v.finished = math.floor(prop.num / v.gold * 100)
+				skynet.fork(function ()
+					-- body
+					send_achi(v.csv_id, v.finished)
+				end)
+				local addr = random_db()
+				skynet.call(addr, "lua", "command", "achievements", {user_id = user.id, csv_id = v.csv_id, type = "gold"}, { finished = v.finished })
 			end	
 		end
-		-- user.gold 
-		-- if num > 100 then
-		-- 	local achi_id = 1
 	elseif type == "kungfu" then
 	elseif type == "raffle" then
 	elseif type == "exp" then
 	elseif type == "level" then
-	end	
+	end
 end
 
-local function random_db(  )
+local function random_db()
 	-- body
 	local r = math.random(1, 5)
 	local addr = skynet.localname(string.format(".db%d", math.floor(r))) 
@@ -164,36 +175,8 @@ function REQUEST:signup()
 	end
 end
 
-function REQUEST:role()
-	assert(self.role_id)
-	local role = rolemgr:find(self.role_id)
-	local ret = {
-		errorcode = 0,
-		msg = "",
-		r = {
-			id = role.id,
-			wake_level = role.wake_level,
-			level = role.level,
-			combat = role.combat,
-			defense = role.defense,
-			critical_hit = role.critical_hit,
-			skill = role.skill,
-			c_equipment = role.c_equipment,
-			c_dress = role.c_dress,
-			c_kungfu = role.c_kungfu
-		}
-	}
-	return ret
-end	
-					
 function REQUEST:login()
 	level = csvReader.getcont("level")
-	-- for k,v in pairs(level) do
-	-- 	for kk,vv in pairs(v) do
-	-- 		print(kk,vv)
-	-- 	end
-	-- end
-	--level = convert_level(level)
 	wakecost = csvReader.getcont("wake_cost")
 	print "*****************8"
 	for k,v in pairs(wakecost) do
@@ -211,14 +194,13 @@ function REQUEST:login()
 	assert(self.account and	self.password)
 	assert(#self.password > 1)
 	local t = { uaccount = self.account, upassword = self.password }
-	local r = skynet.call(addr, "lua", "command", "select_users", t )
-
-	if r == nil or r[1] == nil then
+	local r = skynet.call(addr, "lua", "command", "select_user", t )
+	if not r then
 		ret.errorcode = 1 -- 1 user hasn't register.
 		ret.msg = "no"
 		return ret
 	else
-		user = usermgr.create(r[1])
+		user = usermgr.create(r)
 		usermgr:add( user )
 		load_achievements(user)
 		load_props(user)
@@ -257,8 +239,37 @@ function REQUEST:login()
 	end
 	return ret
 end	
-	
+
+function REQUEST:logout()
+	-- body
+	skynet.call(WATCHDOG, "lua", "close", client_fd)
+end
+
+function REQUEST:role()
+	assert(user)
+	assert(self.role_id)
+	local role = rolemgr:find(self.role_id)
+	local ret = {
+		errorcode = 0,
+		msg = "",
+		r = {
+			id = role.id,
+			wake_level = role.wake_level,
+			level = role.level,
+			combat = role.combat,
+			defense = role.defense,
+			critical_hit = role.critical_hit,
+			skill = role.skill,
+			c_equipment = role.c_equipment,
+			c_dress = role.c_dress,
+			c_kungfu = role.c_kungfu
+		}
+	}
+	return ret
+end	
+					
 function REQUEST:choose_role()
+	assert(user)
 	local ret = {}
 	if user.c_role_id == self.role_id then
 		ret.errorcode = 1
@@ -275,6 +286,7 @@ function REQUEST:choose_role()
 end	
 	
 function REQUEST:upgrade()
+	assert(user)
 	print(self.role_id, user.c_role_id)
 	assert(self.role_id == user.c_role_id)
 	local ret = {}
@@ -283,15 +295,18 @@ function REQUEST:upgrade()
 	print(nowid)
 	local exp
 	for k,v in pairs(level) do
-		for kk,vv in pairs(v) do
-			print(#kk, kk, vv)
+		-- for kk,vv in pairs(v) do
+		-- 	print(#kk, kk, vv)
+		-- end
+		if tonumber(v.id) < 3000 then
+			print(v.id, v.exp)
 		end
-		print(v.id, v.exp)
-		if nowid == v.id then
-			exp = v.exp
+		if nowid == tonumber(v.id) then
+			exp = tonumber(v.exp)
+			print(exp)
+			break
 		end
 	end
-	local exp = level[tostring(nowid)]
 	if user.uexp > exp then
 		user.uexp = user.uexp - exp
 		role.level = role.level + 1
@@ -312,13 +327,15 @@ function REQUEST:upgrade()
 		}
 		return ret
 	else
+		print "*********8"
 		ret.errorcode = 1
-		ret.msg = "no"
+		ret.msg = "not enough exp."
 		return ret
 	end
 end		
 		
 function REQUEST:wake()
+	assert(user)
 	assert(self.role_id)
 	local ret = {}
 	local role = user.rolemgr:find(self.role_id)
@@ -342,13 +359,14 @@ function REQUEST:wake()
 		return ret
 	else
 		ret.errorcode = 1
-		ret.msg	= "no"
+		ret.msg	= "level is not enough."
 		return ret
 	end
 end		
 
 function REQUEST:props( ... )
 	-- body
+	assert(user)
 	ret = {}
 	local l = {}
 	for k,v in pairs(user.propmgr) do
@@ -369,38 +387,57 @@ end
 
 function REQUEST:use_prop()
 	-- body
+	assert(user)
 	local ret = {}
-	prop = user.propmgr:get_by_csvid(self.p.csv_id)
-	print(self.p.csv_id, self.p.num)
-	if prop.num > self.p.num then
-		-- update databse
-		prop.num = prop.num + self.p.num
-		assert(prop.num >= 0)
-		print("*******************8")
-		local addr = random_db()
-		skynet.send(addr, "lua", "command", "update_prop", user.id, prop.type, prop.num)
-		if self.p.num > 0 then -- add	
+	if #self.props == 1 then
+		local prop = user.propmgr:get_by_csvid(self.props[1].csv_id)
+		if prop.num > 0 then
+			prop.num = prop.num + self.props[1].num
+			local addr = random_db()
+			skynet.send(addr, "lua", "command", "update_prop", user.id, prop.csv_id, prop.num)
 			ret.errorcode = 0
 			ret.msg	= "yes"
+			if prop.num ~= 0 then
+				ret.props = {{csv_id = prop.csv_id, num = prop.num}}
+			end
 			return ret
 		else
-			-- cusume.
-			assert(self.role_id == user.c_role_id)	
+			assert(prop.num > v.num)
+			prop.num = prop.num - self.props[1].num
+			local addr = random_db()
+			skynet.send(addr, "lua", "command", "update_prop", user.id, prop.csv_id, prop.num)		
+			assert(self.role_id == user.c_role_id)
 			local role = user.rolemgr:find(self.role_id)
-			role.combat = role.combat + r[0].combat
+			role.combat = role.combat + (prop.combat * 1)
+			-- skynet.send(addr, "lua", "command", "update_role")
 			ret.errorcode = 0
 			ret.msg	= "yes"
-			ret.r = role
+			ret.props = {{csv_id = prop.csv_id, num = prop.num}}
+			ret.role = role
+			return ret
 		end
 	else
-		ret.errorcode = 1
-		ret.msg = "no"
+		local props = {}
+		local idx = 1
+		for k,v in pairs(self.props) do
+			-- update databse
+			local prop = user.propmgr:get_by_csvid(v.csv_id)
+			assert(v.num > 0)
+			prop.num = prop.num + v.num
+			local addr = random_db()
+			skynet.send(addr, "lua", "command", "update_prop", user.id, prop.csv_id, prop.num)		
+			props[idx] = {csv_id = prop.csv_id, num = prop.num}
+		end
+		ret.errorcode = 0
+		ret.msg = "yes"
+		ret.props = props
 		return ret
 	end
 end
 
-function REQUEST:achievement( ... )
+function REQUEST:achievement()
 	-- body
+	assert(user)
 	local ret = {}
 	local l = {}
 	local idx = 1
@@ -413,7 +450,7 @@ function REQUEST:achievement( ... )
 		l[idx] = a
 		idx	= idx + 1
 	end
-	send_achi(2, 40)
+	-- send_achi(2, 40)
 	ret.errorcode = 0
     ret.msg = "yes"
     ret.achis = l
@@ -430,13 +467,24 @@ function REQUEST:quit()
 end
 
 local function request(name, args, response)
-	print( "request name :" .. name)
-    	local f = assert(REQUEST[name])
-    	local r = f(args)
-    	if response then
-    		return response(r)
-    	end               
+    local f = assert(REQUEST[name])
+    local r = f(args)
+    if response then
+    	return response(r)
+    end               
 end      
+
+function RESPONSE:finish_achi( ... )
+	-- body
+	assert(self.errorcode == 0)
+	skynet.error(self.msg)
+end
+
+local function response( name, args )
+	-- body
+	local f = assert(RESPONSE[name])
+	f(args)
+end
 
 skynet.register_protocol {
 	name = "client",
@@ -444,9 +492,10 @@ skynet.register_protocol {
 	unpack = function (msg, sz)
 		if sz > 0 then
 			return host:dispatch(msg, sz)
+		elseif sz == 0 then
+			return "heartbeat"
 		else
-			skynet.error " error"
-			return "HELLO"
+			error "error"
 		end
 	end,
 	dispatch = function (_, _, type, ...)
@@ -459,11 +508,12 @@ skynet.register_protocol {
 			else
 				skynet.error(result)
 			end
-		elseif type == "HELLO" then
-			skynet.error "hello"
+		elseif type == "heartbeat" then
+			send_package(send_request "heartbeat")
+			skynet.error "heartbeat"
 		else
 			assert(type == "RESPONSE")
-			error "This example doesn't support request client"
+			pcall(response, ...)
 		end
 	end
 }	
@@ -497,4 +547,3 @@ skynet.start(function()
 		skynet.ret(skynet.pack(f(...)))
 	end)
 end)
-

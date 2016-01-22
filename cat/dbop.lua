@@ -1,31 +1,14 @@
-local mysql = require "mysql"
-local redis = require "redis"
-
 local dbop = {}
 
-local
-function dbop.tinsert( tvals ) --{ tname = "" , content = { {colname = val} ,  ... } , condition = "tiao jian" }
-	if nil == tvals then 
-		print( "empty argtable\n" )
-		return nil
-	end
 
-	local tname = tvals["tname"]
-	if nil == tname then
-		print( "No tname\n" )
-		return nil
-	end
-
-	local cont = tvals["content"]
-	if nil == cont then
-		print( "No Cont\n" )
-		return nil
-	end
+function dbop.tinsert( tname , content ) 
+	
+	assert( tname , content )
 
 	local ret = { key = "" , val = "" }
 
 	ret["key"] = string.format( "insert into %s (" , tname ) 
-	for k , v in ipairs( cont ) do
+	for k , v in ipairs( content ) do
 		for subk , subv in pairs( v ) do
 			ret["key"] = ret["key"] .. subk .. ','
 			if type (subv ) == "string" then
@@ -45,102 +28,105 @@ function dbop.tinsert( tvals ) --{ tname = "" , content = { {colname = val} ,  .
 	return ret["key"] .. ret["val"]
 end
 	
-local 
-function dbop.tselect( tvals )
-	if nil == tvals then
-		print( "tvals is empty" )
-		return
-	end
-	
-	local tname = tvals["tname"]
-	if nil == tname then
-		print("tname is empty\n")
-		return nil
-	end
-	
-	local content = tvals["content"]
-	
-	local condition = tvals["condition"]
-	
+
+function dbop.tselect( tname , condition )
+	assert( tname )
+
 	local ret = {}
-	if nil == content then
-		table.insert( ret , string.format( "select * from %s " , tname ) )
-	else
-		table.insert( ret , string.format( "select " ))
-		for k , v in ipairs( content ) do
-			if k > 1 then
-				table.insert( ret , "," )
+	table.insert( ret , string.format( "select * from %s " , tname ) )
+	
+	if condition then
+		table.insert( ret , "where " )
+		local index = 1
+		for k , v in pairs( condition ) do
+			if index > 1 then
+				table.insert( ret , " and " )
 			end
-			
-			table.insert( ret , string.format( "%s" , v ) )
+			if type( v ) == "string" then
+				table.insert( ret , string.format( "%s = '%s'" , k , v ) )
+			else
+				table.insert( ret , string.format( "%s = %s" , k , v ) )	
+			end
+			index = index + 1   
 		end
-		table.insert( ret , string.format( " from %s " , tname ) )
 	end
 
-	return condition and table.concat( ret ) or table.concat( ret ) .. "where" .. condition
+	return table.concat( ret )
 end 
 	
-local
-function dbop.tupdate( tvals )
-	if nil == tvals then
-		print( "No vals in tvals \n" )
-		return nil
-	end
 
-	local tname = tvals["tname"]
-	if nil == tname then
-		print("No tname\n")
-		return nil
-	end
+function dbop.tupdate( tname , content , condition )
 	
-	local content = tvals["content"]
-	if nil == content then
-		print("No content\n")
-		return nil
-	end
-
-	local condition = tvals["condition"]
-
+	assert( tname , content , condition )
 	local ret = {}
 	
 	table.insert( ret , string.format("update %s SET " , tname ) )
-	for k , v in ipairs( content ) do
-		if k > 1 then
+	local index = 1
+	for k , v in pairs( content ) do
+		if index > 1 then
 			table.insert( ret , ',' )
 		end
 
-		for subk , subv in pairs( v ) do
-			if type( subv ) == "string" then
-				table.insert( ret , string.format( "%s = '%s'" , subk , subv ) )
-			else
-				table.insert( ret , string.format( "%s = %s" , subk , subv ) )
-			end	
-		end
+		if type( v ) == "string" then
+			table.insert( ret , string.format( "%s = '%s' " , k , v ) )
+		else
+			table.insert( ret , string.format( "%s = %s " , k , v ) )
+		end	
+		index = index + 1
 	end
 	
-	return ( condition and table.concat( ret ) .. " where " .. condition or table.concat( ret ))
+	table.insert( ret , " where " )
+	local index = 1
+	for k , v in pairs( condition ) do
+		if index > 1 then
+			table.insert( ret , " and " )
+		end
+		if type( v ) == "string" then
+			table.insert( ret , string.format( "%s = '%s'" , k , v ) )
+		else
+			table.insert( ret , string.format( "%s = %s" , k , v ) )	
+		end   
+		index = index + 1
+	end
+	
+	return table.concat( ret )
 end
 
-local 
-function dbop.tdelete( tvals )
-	if nil == tvals then 
-		print( "tvals is empty\n" )
-		return nil
-	end 
+function dbop.tdelete( tname , conditon  )
+	assert( tname , conditon )
+
+	local ret = {}
+	table.insert( ret , string.format( "delete from %s " , tname ) )
 	
-	local tname = tvals["tname"]
-	if nil == tname then
-		print( "No tname\n" )
-		return nil
+	table.insert( ret , "where " )
+	local index = 1
+	for k , v in pairs( conditon ) do
+		if index > 1 then
+			table.insert( ret , " and " )
+		end
+		if type( v ) == "string" then
+			table.insert( ret , string.format( "%s = '%s'" , k , v ) )
+		else
+			table.insert( ret , string.format( "%s = %s" , k , v ) )	
+		end   
+		index = index + 1
 	end
-	
-	local condition = tvals["condition"]
-	if nil == condition then
-		print( "No condition\n" )
-		return nil
-	end
-	
-	return string.format( "delete from %s where " , tname ) .. conditon 
+
+	return table.concat( ret )
 end	
+
+local content = { { id = 1 } , { content = "sdfsd" } , { title = "sdf"} }
+
+local sql = dbop.tinsert( "email" , content )
+print( sql )
+print( "..................................")
+sql = dbop.tselect( "email" , { id = 4 , uid = 5 } )
+print( sql )
+print( "..................................")
+sql = dbop.tupdate( "email" , { isread = 1 , isdel = 1 } , { uid = 2})
+print( sql )
+print( "..................................")
+print( dbop.tdelete( "email" , { uid = 1 , id = 2 } ) )
+
 
 return dbop

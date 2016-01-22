@@ -140,13 +140,14 @@ props 9 {
 
 use_prop 10 {
     request {
-        p 0 : prop
-        role_id 1 : integer
+        role_id 0 : integer
+        props 1 : *prop
     }
     response {
         errorcode 0 : integer
         msg 1 : string
         r 2 : role
+        props 3 : *prop
     }
 }
 
