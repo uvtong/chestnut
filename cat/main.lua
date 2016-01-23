@@ -10,11 +10,12 @@ skynet.start(function()
 	local console = skynet.newservice("console")
 	skynet.newservice("debug_console",8000)
 	skynet.newservice("simpledb")
-	for i=1,5 do
-		local db = skynet.newservice("db")
-		skynet.name(string.format(".db%d", i), db)
-	end
+	-- for i=1,5 do
+	-- 	local db = skynet.newservice("db")
+	-- 	skynet.name(string.format(".db%d", i), db)
+	-- end
 	-- skynet.newservice("testmysql2")
+	skynet.newservice("channel")
 	local watchdog = skynet.newservice("watchdog")
 	skynet.call(watchdog, "lua", "start", {
 		port = 8888,

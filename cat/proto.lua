@@ -159,6 +159,7 @@ achievement 11 {
     }
 }
 
+channel 12 {}
 ]]
 
 proto.s2c = sprotoparser.parse [[

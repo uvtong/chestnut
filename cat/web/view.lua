@@ -127,6 +127,7 @@ function VIEW._(code, method, ... )
 	-- body
 	local function get( query )
 		-- body
+		skynet.send(".channel", "lua", "hello")
 		local func = template.compile(filename("index.html"))
 		local r = func { message = "hello, world."}
 		return r
@@ -178,6 +179,24 @@ function VIEW.role( code, method, ... )
 		return "hello world."
 	end 
 	return wrap(code, method, { _get = get, _file = file }, ...)
+end
+
+function VIEW.email( code, method, ... )
+	-- body
+	local function get( query )
+		-- body
+		local func = template.compile(filename("email.html"))
+		local r = func()
+		return r	
+	end
+	local function post( header, body )
+		-- body
+		for k,v in pairs(body) do
+			print(k,v)
+		end
+		return "nihao."
+	end
+	return wrap(code, method, { _get = get, _post = post}, ...)
 end
 
 function VIEW._admin(id, code, url, method, header, body )

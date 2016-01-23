@@ -5,6 +5,7 @@ require "skynet.manager"
 local netpack = require "netpack"
 local socket = require "socket"
 local sproto = require "sproto"
+local mc = require "multicast"
 local sprotoloader = require "sprotoloader"
 local csvReader = require "csvReader"
 local usermgr = require "usermgr" 
@@ -518,6 +519,8 @@ skynet.register_protocol {
 	end
 }	
 
+local c2
+
 function CMD.start(conf)
 	local fd = conf.client
 	local gate = conf.gate
@@ -533,6 +536,18 @@ function CMD.start(conf)
 	-- end)
 	client_fd = fd
 	skynet.call(gate, "lua", "forward", fd)
+	assert(skynet.self())
+	print(skynet.self())
+	local c = skynet.call(".channel", "lua", "agent_start", 1, skynet.self())
+	local c2 = mc.new {
+		channel = c,
+		dispatch = function ( channel, source, cmd, ... )
+			-- body
+			print("channel ****************************", cmd)
+			return
+		end
+	}
+	c2:subscribe()
 end	
 	
 function CMD.disconnect()

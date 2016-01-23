@@ -141,7 +141,7 @@ local function dispatch_package()
 	end
 end
 
-send_request("login", { account = "hello" , password = "world" })
+--send_request("login", { account = "hello" , password = "world" })
 while true do
 	dispatch_package()
 	local cmd = socket.readstdin()
@@ -162,6 +162,10 @@ while true do
 			send_request(cmd, { props = {{ csv_id = 1, num = 1}}, role_id = 2})
 		elseif cmd == "achievement" then
 			send_request(cmd)
+		elseif cmd == "channel" then
+			send_request(cmd)
+		elseif cmd == "login" then
+			send_request("login", { account = "hello" , password = "world" })
 		end
 	else
 		socket.usleep(100)
