@@ -1,0 +1,43 @@
+<!DOCTYPE html>
+<html>
+<head>
+	<title></title>
+</head>
+<body>
+
+    <select class="select" onchange="sendData">
+    	<option name='system'>system</option>
+    	<option name='normal'>normal</option>
+    </select>
+    <input class= 'txt1' type="text" />
+    <input class= 'txt2' type="text" />
+    <input type="date" value="2011-01-04" />
+    <input class= 'btn' type="button" value="send" />
+
+    <script src="//code.jquery.com/jquery-1.12.0.min.js"></script>
+    <script type="text/javascript">
+    	$(document).ready(function(){
+    		$('.btn').click(function(){
+    			var selectVal = $(".system").val() || "",
+    				txt1 = $(".txt1").val(),
+    				txt2 = $(".txt2").val(),
+    				data = {};
+    				data.selectVal = selectVal;
+    				data.txt1 = txt1;
+    				data.txt2 = txt2;
+    			$.ajax({
+    				url:"/email"
+    				,type:"POST"
+    				,data:data
+    				,success:function(){
+    					alert('success');
+    				}
+    				,error:function(){
+    					alert('error');
+    				}
+    			})
+    		})
+    	})
+    </script>
+</body>
+</html>
