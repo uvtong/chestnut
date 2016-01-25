@@ -23,15 +23,6 @@ end
 
 local function route( id, code, url, method, header, body )
 	-- body
-	if false then
-		print("id:", type(id), id)
-		print("code:", type(code), code)
-		print("url:", type(url), url)
-		print("method:", type(method), method)
-		print("header:", type(header), header)
-		print("body:", type(body), body)
-	end	
-	
 	if method == "GET" then
 		local path, query = urllib.parse(url)
 		local suffix = string.gsub(path, "(.*)/[^/]*%.(%w+)", "%2")
