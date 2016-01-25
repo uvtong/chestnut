@@ -8,7 +8,6 @@ local table = table
 local string = string
 
 local urls = require "web.urls"
-local view = require "web.view"
 
 local mode = ...
 
@@ -24,7 +23,7 @@ end
 
 local function route( id, code, url, method, header, body )
 	-- body
-	if true then
+	if false then
 		print("id:", type(id), id)
 		print("code:", type(code), code)
 		print("url:", type(url), url)
@@ -35,12 +34,24 @@ local function route( id, code, url, method, header, body )
 	
 	if method == "GET" then
 		local path, query = urllib.parse(url)
-		for k,v in pairs(urls) do
-			if string.match(path, k) then
-				return response(id, view[v](code, method, query))
+		local suffix = string.gsub(path, "(.*)/[^/]*%.(%w+)", "%2")
+		-- print(suffix)
+		if suffix == "js" or suffix == "css" then
+			path = "./../cat/web/statics" .. path
+			print(path)
+			local f = io.open(path, "r")
+			local ret = f:read()
+			f:close()
+			print(ret)
+			return ret
+		else
+			local k = urls[path]
+			if k then
+				return response(id, view[k](code, method, query))
+			else
+				return response(id, code, "don't have mathcing url.")	
 			end
 		end
-		return response(id, code, "don't have mathcing url.")
 	elseif method == "POST" then
 		-- local path, query = urllib.parse(url)
 		for k,v in pairs(urls) do

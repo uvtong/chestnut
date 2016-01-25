@@ -5,7 +5,7 @@ local template = require "resty.template"
 
 local VIEW = {}
 
-local function parse( ... )
+local function parse_post( ... )
 	-- body
 	local str = tostring( ... )
 	local r = {}	
@@ -36,6 +36,8 @@ local function parse_file( boundary, body )
 	-- body
 	print("parse_file")
 	local last = body
+	print(boundary)
+	print(body)
 	function getline( s )
 		-- body
 		local p = string.find(s, "\n")	
@@ -94,7 +96,7 @@ end
 local function wrap( code, method , t, ... )
 	-- body
 	if method == "GET" then
-		local query = {...}
+		local query = parse_get(...)
 		return code, t["_get"](query)
 	elseif method == "POST" then
 		local arg = { ... }
@@ -102,10 +104,10 @@ local function wrap( code, method , t, ... )
 		local body = arg[2]
 		local flag, body = parse_header(header, body)
 		if flag == 'file' then 
-			return code , t["_file"](header, body)
+			return code , t["_file"](body)
 		else
 			-- return code, t["_post"](body), header
-			return code, t["_post"](header, body)
+			return code, t["_post"](body)
 		end
 	end
 end
@@ -123,18 +125,21 @@ local function db()
 	return skynet.localname(name)
 end
 
-function VIEW._(code, method, ... )
+function VIEW._( code, method, ... )
 	-- body
 	local function get( query )
 		-- body
-		skynet.send(".channel", "lua", "hello")
-		local func = template.compile(filename("index.html"))
-		local r = func { message = "hello, world."}
-		return r
+		-- skynet.send(".channel", "lua", "hello")
+		-- local func = template.compile(filename("index.html"))
+		-- local r = func { message = "hello, world."}
+		-- return r
 	end
-	local function post( header, body )
+	local function post( body )
 		-- body
 		return "hello, world"
+	end
+	local function file( file )
+		-- body
 	end
 	return wrap(code, method, { _get = get, _post = post }, ...)
 end

@@ -510,7 +510,7 @@ skynet.register_protocol {
 				skynet.error(result)
 			end
 		elseif type == "heartbeat" then
-			send_package(send_request "heartbeat")
+			send_package(send_request "heartbeat" )
 			skynet.error "heartbeat"
 		else
 			assert(type == "RESPONSE")
@@ -536,8 +536,6 @@ function CMD.start(conf)
 	-- end)
 	client_fd = fd
 	skynet.call(gate, "lua", "forward", fd)
-	assert(skynet.self())
-	print(skynet.self())
 	local c = skynet.call(".channel", "lua", "agent_start", 1, skynet.self())
 	local c2 = mc.new {
 		channel = c,
