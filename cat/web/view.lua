@@ -92,12 +92,19 @@ function VIEW.email()
 		-- body
 		-- local query = self.query
 		local func = template.compile(path("email.html"))
-		local r = func()
-		return r
+		return func { message = "fill in the blank text."}
 	end
 	function R:__post()
 		-- body
 		-- local body = self.body
+		for k,v in pairs(self.body) do
+			print(k,v)
+		end
+		local c = {}
+		c["head"] = self.body["txt1"]
+		c["content"] = self.body["txt2"]
+		-- skynet.send(".channel", "lua", "cmd", c)
+		return "send succss."
 	end
 	function R:__file()
 		-- body

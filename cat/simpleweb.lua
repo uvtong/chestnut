@@ -81,17 +81,26 @@ end
 -- analysis header, judge post or file.
 local function parse_header( header, body )
 	-- body
-	if header["content-type"] == nil then
-		return "post", parse(body)
-	else
-		local s = header["content-type"]
-		local idx = string.find(s, ";")
-		assert(string.sub(s, 1, idx - 1) == "multipart/form-data")
-		s = string.sub(s, idx + 2)
-		idx = string.find(s, "=")
-		boundary = string.sub(s, idx+1)
-		return "file", parse_file(header, boundary, body)
+	local function unpack_seg(text, s)
+		local from = text:find(s, 1, true)
+		if from then
+			return text:sub(1, from-1), text:sub(from+1)
+		end
+		return nil, text
 	end
+	if not header["content-type"] then
+		return "post", parse(body)
+	end
+		local t, c = unpack_seg(header["content-type"], ";")
+		if t == "application/x-www-form-urlencoded" then
+			return "post", parse(body)
+		elseif t == "multipart/form-data" then
+			local idx = string.find(c, "=")
+			local boundary = string.sub(s, idx+1)
+		 	return "file", parse_file(header, boundary, body)
+		else
+		 	assert(false)
+		end
 end
 
 local function route( id, code, url, method, header, body )
