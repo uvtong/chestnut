@@ -1,5 +1,3 @@
-function abc () {
-	// body...
-	alert('welcome!')
+function myFunction() {
+	document.getElementById("demo").innerHTML = "my First JavaScript function";
 }
-

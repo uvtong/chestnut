@@ -4,10 +4,9 @@ local socket = require "socket"
 local httpd = require "http.httpd"
 local sockethelper = require "http.sockethelper"
 local urllib = require "http.url"
+local urls = require "web.urls"
 local table = table
 local string = string
-
-local urls = require "web.urls"
 
 local mode = ...
 
@@ -21,39 +20,132 @@ local function response(id, ...)
 	end
 end
 
+local function parse( ... )
+	-- body
+	local str = tostring( ... )
+	local r = {}	
+	local function split( str )
+		-- body
+		local p = string.find(str, "=")
+		local key = string.sub(str, 1, p - 1)
+		local value = string.sub(str, p + 1)
+		r[key] = value
+ 	end
+	local s = 1
+	repeat
+		local p = string.find(str, "&", s)
+		if p ~= nil then 
+			local frg =	string.sub(str, s, p - 1)
+			s = p + 1
+			split(frg)
+		else
+			local frg =	string.sub(str, s)
+			split(frg)
+			break
+		end
+	until false
+	return r
+end
+
+local function parse_file( header, boundary, body )
+	-- body
+	local line = ""
+	local file = ""
+	local last = body
+	local function unpack_line(text)
+		local from = text:find("\n", 1, true)
+		if from then
+			return text:sub(1, from-1), text:sub(from+1)
+		end
+		return nil, text
+	end
+	local mark = string.gsub(boundary, "^-*(%d+)-*", "%1")
+	line, last = unpack_line(last)
+	assert(string.match(line, string.format("^-*(%s)-*", mark)))
+	line, last = unpack_line(last)
+	line, last = unpack_line(last)
+	line, last = unpack_line(last)
+	line, last = unpack_line(last)
+	while line do
+		if string.match(line, string.format("^-*(%s)-*", mark)) then
+			break
+		else
+			file = file .. line .. "\n" 
+			line, last = unpack_line(last)
+		end
+	end
+	header["content-type"] = nil
+	return file, header
+end
+
+-- analysis header, judge post or file.
+local function parse_header( header, body )
+	-- body
+	if header["content-type"] == nil then
+		return "post", parse(body)
+	else
+		local s = header["content-type"]
+		local idx = string.find(s, ";")
+		assert(string.sub(s, 1, idx - 1) == "multipart/form-data")
+		s = string.sub(s, idx + 2)
+		idx = string.find(s, "=")
+		boundary = string.sub(s, idx+1)
+		return "file", parse_file(header, boundary, body)
+	end
+end
+
 local function route( id, code, url, method, header, body )
 	-- body
+	local statuscode = code
+	local bodyfunc
+	local path, query = urllib.parse(url)
 	if method == "GET" then
-		local path, query = urllib.parse(url)
 		local suffix = string.gsub(path, "(.*)/[^/]*%.(%w+)", "%2")
-		-- print(suffix)
 		if suffix == "js" or suffix == "css" then
-			path = "./../cat/web/statics" .. path
+			path = "../cat/web/statics" .. path
 			print(path)
-			local f = io.open(path, "r")
-			local ret = f:read()
-			f:close()
-			print(ret)
-			return ret
+			local fd = io.open(path, "r")
+			local ret = fd:read("*a")
+			fd:close()
+			bodyfunc = ret
 		else
-			local k = urls[path]
-			if k then
-				return response(id, view[k](code, method, query))
-			else
-				return response(id, code, "don't have mathcing url.")	
+			for k,v in pairs(urls) do
+				if string.match(path, k) then
+					v.query = query
+					bodyfunc = v:__get()
+					break
+				end
+			end
+			if not bodyfunc then
+				bodyfunc = "don't have mathcing url."
 			end
 		end
 	elseif method == "POST" then
-		-- local path, query = urllib.parse(url)
+		local flag
+		flag, body, header = parse_header(header, body)
 		for k,v in pairs(urls) do
-			if string.match(url, k) then
-				return response(id, view[v](code, method, header, body))
+			if string.match(path, k) then
+				if flag == "file" then
+					v.file = body
+					bodyfunc = v:__file()
+				elseif flag == "post" then
+					v.body = body
+					bodyfunc = v:__post()
+				else
+					assert(false)
+				end
+				break
 			end
 		end
-		return response(id, code, "don't have mathcing url.")
+		if not bodyfunc then
+			bodyfunc = "don't have mathcing url."
+		end
 	else
-		return response(id, code, "don't support mathcing method.")
+		bodyfunc = "don't support mathcing method."
 	end
+	header = {}
+	header["connection"] = "close"
+	return response(id, statuscode, bodyfunc, header)
 end 
 
 skynet.start(function()
