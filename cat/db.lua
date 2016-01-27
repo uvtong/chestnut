@@ -4,18 +4,19 @@ local skynet = require "skynet"
 local mysql = require "mysql"
 local redis = require "redis"
 local csvreader = require "csvReader"
-local dbop = require "dbop"
+local emaildb = require "emaildb"
+local util = require "util"
+
 
 local db
 local cache 
 		
 local QUERY = {}
 
-function QUERY:select( table, column, value )
+function QUERY:select( table_name, condition, columns)
 	-- body
-	local sql = tselect(table, column, value)
-	local r = db:query(sql)
-	return r
+	local sql = util.select(table_name, condition, columns)
+	return db:query(sql)
 end
 
 function QUERY:update( table, column, value )
@@ -71,17 +72,20 @@ end
 	
 function QUERY:select_user( t )
 	-- body
-	-- local sql = tselect("users", {uaccount = t.uaccount, upassword = t.upassword})
-	sql = string.format("select * from users where uaccount = \"%s\" and upassword = \"%s\"", t.uaccount, t.upassword)
+	local condition_str = ""
+	for k,v in pairs(t) do
+		local s = string.format("%s = %s", k, v)
+		condition_str = condition_str .. s .. " and "
+	end
+	condition_str = string.gsub(condition_str, "(.*)%s*and%s*")
+	sql = "select * from users where" .. condition_str
 	print(sql)
 	local r = db:query(sql)
-	for i,v in ipairs(r) do
-		print(i,v)
-	end
 	--cache:get()
 	return r[1]
 end 	
-	
+
+
 function QUERY:select_rolebyroleid( )
 end	
 	
@@ -143,6 +147,13 @@ function QUERY:update_achi( user_id, csv_id, finished )
 	local sql = string.format("update achievements set finished = %d where csv_id = %d", csv_id)
 	local r = db:query(sql)
 	return r
+end
+
+function QUERY:insert_prop( user_id, csv_id, num )
+	-- body
+	
+	local sql = string.format("insert into props (user_id, csv_id, num) values (%d, %d, %d)", user_id, csv_id, num)
+	db:query(sql)
 end
 
 local CMD = {}

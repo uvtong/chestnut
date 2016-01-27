@@ -2,6 +2,7 @@ package.path = "../cat/?.lua;../cat/lualib/?.lua;" .. package.path
 local skynet = require "skynet"
 require "skynet.manager"
 local util = require "util"
+local json = require "json"
 local template = require "resty.template"
 template.caching(true)
 template.precompile("index.html")
@@ -109,14 +110,20 @@ function VIEW.email()
 	return R
 end
 
-function VIEW.props( ... )
+function VIEW.props()
 	-- body
 	local R = {}
 	function R:__get()
 		-- body
 		-- local query = self.query
-		local func = template.compile(path("email.html"))
-		return func { message = "fill in the blank text."}
+		local users = skynet.call(util.random_db(), "lua", "command", "select", "users")
+		for i,v in ipairs(users) do
+			for kk,vv in pairs(v) do
+				print(kk,vv)
+			end
+		end
+		local func = template.compile(path("props.html"))
+		return func { message = "fill in the blank text.", users = users }
 	end
 	function R:__post()
 		-- body
@@ -124,12 +131,23 @@ function VIEW.props( ... )
 		for k,v in pairs(self.body) do
 			print(k,v)
 		end
-		local c = {}
-		c["head"] = self.body["txt1"]
-		c["content"] = self.body["txt2"]
-		-- skynet.send(".channel", "lua", "cmd", c)
-
-		return "send succss."
+		local uaccount = self.body["uaccount"]
+		local csv_id = tonumber(self.body["csv_id"])
+		local num = tonumber(self.body["num"])
+		if not csv_id and not num then
+			local ret = {
+				ok = 0,
+				msg = "failture",
+			}
+			return json.encode(ret)
+		end
+		local user = skynet.call(util.random_db(), "lua", "command", "select_user", { uaccount = uaccount})
+		skynet.send(util.random_db(), "lua", "command", "insert_prop", user.id, csv_id, num)
+		local ret = {
+			ok = 1,
+			msg = "send succss."
+		}
+		return json.encode(ret)
 	end
 	function R:__file()
 		-- body
@@ -137,7 +155,6 @@ function VIEW.props( ... )
 		print(self.file)
 	end
 	return R
-	skynet.call(util.random_db(), "lua", "", )
 end
 
 function VIEW._admin(id, code, url, method, header, body )
