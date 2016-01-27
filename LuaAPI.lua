@@ -78,6 +78,7 @@ skynet.sleep(ti) -- 100 ti == 1s
 
 co = skynet.fork(function ( ... )
 	-- body
+	skynet.sleep()
 	skynet.wait()
 end, ...)
 skynet.wakeup(co)

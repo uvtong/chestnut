@@ -1,3 +1,4 @@
+
 package.path = "./../cat/?.lua;" .. package.path
 --local db = require "db"
 require "skynet.manager"
@@ -312,7 +313,4 @@ function emailbox:_sysdelemail()
 
 end	
 	
-function emailbox.getvalue( u )
-	--user = u
-end	
 return emailbox

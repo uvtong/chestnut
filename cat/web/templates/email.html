@@ -1,0 +1,58 @@
+<!DOCTYPE html>
+<html>
+<head>
+	<title></title>
+</head>
+<body>
+    <h1 id="title">{{message}}</h1>
+	<div>
+		<label>type:</label>
+    	<select class="select" onchange="sendData">
+    		<option name='system'>system</option>
+    		<option name='normal'>normal</option>
+    	</select>
+    	<label>head:</label>
+    	<input id="txt1" class= 'txt1' type="text" />
+    	<label>content:</label>
+    	<input id="txt2" class= 'txt2' type="text" />
+    	<label>datetime:</label>
+    	<input id="date1" type="date" value="2011-01-04" />
+    	<input class= 'btn' type="button" value="send" />	
+	</div>
+	
+    <script src="//code.jquery.com/jquery-1.12.0.min.js"></script>
+    <script type="text/javascript">
+    	$(document).ready(function(){
+    		$('.btn').click(function(){
+    			var selectVal = $(".select").val() || "";
+    			var txt1 = $(".txt1").val();
+    			var txt2 = $(".txt2").val();
+                var date1 = $("#date1").val();
+    			data = {
+                    selectVal:selectVal,
+                    txt1:txt1,
+                    txt2:txt2,
+                    date1:date1
+                };
+    			$.ajax({
+    				url:"/email",
+    				type:"POST",
+    				data:data,
+    				success:function(resp){
+                        $(".txt1").val("");
+                        $(".txt2").val("");
+                        $("#title").html(resp);
+    				},
+    				error:function(){
+    					alert('error');
+    				}
+    			});
+    		});
+            $(".select").bind("onchange", function () {
+                // body...
+                alert("change");
+            });
+    	});
+    </script>
+</body>
+</html>

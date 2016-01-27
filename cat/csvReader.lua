@@ -131,10 +131,10 @@ function csvreader.getcont( fileName )
     end
     assert(file)  
     local title = parseline( getRowContent(file))
-    for k ,v in pairs( title ) do
-    	print("...............................................")
-    	print( k , v , string.len( v ) )
-    end
+   --for k ,v in pairs( title ) do
+    --	print("...............................................")
+    --	print( k , v , string.len( v ) )
+    --end
 
     local content = {}  
     while true do
@@ -144,11 +144,12 @@ function csvreader.getcont( fileName )
         local parasedline = parseline( line )
 
         local newline = {}
-
-        for i = 1 , #title do
+        --newline[title[i]] = parasedline[i]
+       for i = 1 , #title do
+        title[i] = string.gsub( title[i] , "^%s*(.-)%s*$" , "%1" )
         	newline[title[i]] = parasedline[i]
-        	print("****************************")
-        	print(title[i] , parasedline[i])
+        --	print("****************************")
+        --	print(title[i] , parasedline[i])
         end
          
         table.insert(content, newline)  

@@ -33,26 +33,7 @@ function CMD:hello( _ , tval )
 	channel:publish( tval )
 	local addr = randomaddr()
 	skynet.send( addr, "lua", "command" , "insert_offlineemail", tval)
-   	-- offline_email( tval )
-end		   	
-    
-function offline_email( tvals )
-	print( emaildb )
-	-- local au = emaildb:select_allusers()
-	
-	-- if au == nil then
-	-- 	print( "get no offline users in offline_email\n" )
-	-- 	return
-	-- else		    
-	-- 	for k , v in pairs( au ) do
-	-- 		tvals.uid = v.id
-	-- 		emaildb:insert_email( tvals )
-	-- 		--db.query( "select id from users where ifonline = 0")
-	-- 		print("insert successfully\n")
-	-- 	end	
-	-- end		
-end  		
-			
+end		   			
 
 skynet.start( function () 
 	skynet.dispatch( "lua" , function( _, _, cmd, ... )
