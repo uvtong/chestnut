@@ -1,17 +1,15 @@
+package.path = "./../cat/?.lua;" .. package.path
+
 local skynet = require "skynet"
 local mysql = require "mysql"
 local redis = require "redis"
- 
 
 local db
 local cache 
+local emaildb = require "emaildb"
+local sign
 
-local
-function tinsert( tvals ) --{ tname = "" , cont = { {colname = val} ,  ... } }
-	if nil == sqltable then 
-		print( "empty argtable\n" )
-		return nil
-	end
+ function tinsert( sqltvals )
 
 	local tname = sqltable["tname"]
 	if nil == tname then
@@ -254,8 +252,34 @@ end
 	
 function CMD:command( subcmd, ... )
 	print(subcmd, type(subcmd))
-	local f = assert(QUERY[subcmd])
-	return f(QUERY, ... )
+	local f = nil
+    	if nil ~= QUERY[subcmd] then
+    		f = assert(QUERY[ subcmd ])
+			return f(QUERY, ... )
+		elseif nil ~= emaildb[ subcmd ] then
+			
+			f = assert( emaildb[ subcmd ] )
+			return f(emaildb, ...)
+		else
+			assert( f )
+
+			--[[if not emaildb then
+				--if f ~= emaildb[ subcmd ] then
+				print( "emaildb is nil")
+				print( type( db ) , type( cache ) )
+				emaildb = require("emaildb", db, cache)
+				emaildb.getvalue( db , cache )
+				f = assert(emaildb[subcmd])
+				return f(emaildb, ...)
+			else 
+				print( "emaildb is not nil")
+				--emaildb = require("emaildb", db, cache)
+				emaildb.getvalue( db , cache )
+				f = assert(emaildb[subcmd])
+				return f(emaildb, ...)
+			end--]]
+    	end
+	--return f(QUERY, ... )
 end
 
 skynet.start( function () 
@@ -276,5 +300,13 @@ skynet.start( function ()
 		db = 0
 	}
 	cache = connect_redis( conf )
+
+	
+	emaildb.getvalue( db , cache )
+	--skynet.call( ".channel" , "lua" , "get_db_cache" , emaildb )
+
+	print("emaildb.getvalue is called\n")
+	
 end)
+
 

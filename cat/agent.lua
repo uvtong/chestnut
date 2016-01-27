@@ -6,8 +6,14 @@ local netpack = require "netpack"
 local socket = require "socket"
 local sproto = require "sproto"
 local sprotoloader = require "sprotoloader"
+local mc = require "multicast"
+local dc = require "datacenter"
+
+local emailrequest = require "emailrequest"
+local emailbox = require "emailbox"
 local csvReader = require "csvReader"
 local usermgr = require "usermgr" 
+local rolemgr = require "rolemgr"
 
 local WATCHDOG
 local host
@@ -21,6 +27,9 @@ local user
 local level
 local wakeattr
 local wakecost
+
+local channel
+
 
 local function convert_level( t )
 	-- body
@@ -65,8 +74,10 @@ function REQUEST:role()
 	}
 	return ret
 end	
-					
+									
 function REQUEST:login()
+	print( "login is called\n" )
+
 	level = csvReader.getcont("level")
 	level = convert_level(level)
 	wakecost = csvReader.getcont("wake_cost")
@@ -119,7 +130,11 @@ function REQUEST:login()
 		end
 		user.c_role_id = 1
 		user.rolemgr = rolemgr
-
+		if user ~= nil then
+		print( "user is not nil and passed to emailrequest:getallemail" )
+		
+		end
+		
 		ret.errorcode = 0
 		ret.msg = "yes"
 		ret.user_id = user.id
@@ -150,11 +165,14 @@ function REQUEST:login()
 			l[idx] = r
 		end
 		ret.rolelist = l
-	end
+	end 
+
+	user.emailbox = emailbox:loademails( user.id )
+	emailrequest.getvalue( user )
 
 	return ret
 end	
-	
+
 function REQUEST:choose_role()
 	puser.c_role_id = self.role_id
 	local ret = {}
@@ -232,18 +250,49 @@ function REQUEST:quit()
 	skynet.call(WATCHDOG, "lua", "close", client_fd)
 end
 
-local function request(name, args, response)
-	print( "request name :" .. name)
-    	local f = assert(REQUEST[name])
+local function request( name, args, response )
+	print( "request name :" .. name )
+    	local f = nil
+    	if nil ~= REQUEST[name] then
+    		f = assert(REQUEST[ name ])
+    	elseif nil ~= emailrequest[ name ] then
+    		f = assert( emailrequest[ name ] )
+    		print("***************************************getmsg*************************************\n")
+    	end
+
     	local r = f(args)
     	if response then
     		return response(r)
     	end               
 end      
-
+	
+local function response( name , args )
+	local f = assert( RESPONSE[ name ] )
+	f( args )
+end
+	
 local function send_package(pack)
 	local package = string.pack(">s2", pack)
 	socket.write(client_fd, package)
+end	
+	
+local RESPONSE = {}
+function RESPONSE:newemail( e )
+	assert( e )
+
+	local ret = {}
+   	ret.emailid = v.id
+   	ret.type = v.type
+  	ret.acctime = os.date("%Y-%m-%d" , v.acctime)
+	ret.isread = ( v.isread == 0 ) 
+   	ret.isreward = ( v.isreward  == 0 ) 
+   	ret.title = v.title
+   	ret.content = v.content
+
+	ret.attachs = v:getallitem()
+	ret.iconid = v.iconid
+			
+	return ret
 end
 
 skynet.register_protocol {
@@ -252,9 +301,8 @@ skynet.register_protocol {
 	unpack = function (msg, sz)
 		if sz > 0 then
 			return host:dispatch(msg, sz)
-		else
-			skynet.error " error"
-			return "HELLO"
+		elseif 0 == sz then
+			return "HEARTBEAT"
 		end
 	end,
 	dispatch = function (_, _, type, ...)
@@ -267,16 +315,40 @@ skynet.register_protocol {
 			else
 				skynet.error(result)
 			end
-		elseif type == "HELLO" then
-			skynet.error "hello"
-		else
-			assert(type == "RESPONSE")
-			error "This example doesn't support request client"
+		elseif type == "HEARTBEAT" then
+			send_package(send_request "heartbeat")
+			--skynet.error "hello"--"heartbeat"
+		elseif type == "RESPONSE" then
+			pcall(response, ...)
 		end
 	end
-}	
-
+	--[[dispatch = function (_, _, type, ...)
+		local ok, result
+		if type == "REQUEST" then
+			ok, result  = pcall(request, ...)
+		elseif type == "HELLO" then
+			skynet.error "hello"
+		else if type == "RESPONSE" then
+			ok , result = pcall( response , ... )
+		else
+		end			
+		if type ~= "HELLO" then
+			if ok then
+				if result then
+					send_package(result)
+				else
+					skynet.error(result)
+				end	
+			end		
+		end			
+			-- error "This example doesn't support request clien
+	end--]]
+}					
+	
+local c2
+	
 function CMD.start(conf)
+	print("start is called")
 	local fd = conf.client
 	local gate = conf.gate
 	WATCHDOG = conf.watchdog
@@ -289,11 +361,59 @@ function CMD.start(conf)
 	-- 		skynet.sleep(500)
 	-- 	end
 	-- end)
-	
 	client_fd = fd
 	skynet.call(gate, "lua", "forward", fd)
+
+	assert(skynet.self())
+	print(skynet.self())
+	local c = skynet.call(".channel", "lua", "agent_start", 2, skynet.self())
+	local c2 = mc.new {
+		channel = c,
+		dispatch = function ( channel, source, tvals , ... )
+			-- body
+			print("channel ****************************" , cmd )
+
+			--print( tvals.type , tvals.iconid )
+
+			print(tvals.emailtype , tvals.iconid )
+			local v = emailbox:recvemail( tvals )
+			local ret = {}
+			ret.mail = {}
+			local tmp = {}
+    		tmp.attachs = {}
+
+    		tmp.emailid = v.id
+    		tmp.type = v.type
+    		tmp.acctime = os.date("%Y-%m-%d" , v.acctime)
+    		tmp.isread = v.isread
+    		tmp.isreward = v.isreward
+    		tmp.title = v.title
+    		tmp.content = v.content
+
+			tmp.attachs = v:getallitem()
+			tmp.iconid = v.iconid
+
+			ret.mail = tmp
+
+			send_package( send_request( "newemail" ,  ret ) )
+		end
+	}
+	c2:subscribe()
 end	
 	
+function CMD.channel( cn )
+	print("channeled is called\n" , cn)
+	local c2 = mc.new {
+		channel = cn,
+		dispatch = function ( channel, source, et )
+			print( et.id , et.uid )
+		end,
+	}
+	print("subscribe already")
+	c2:subscribe()
+	skynet.send(addr, "lua", "publish" )
+end
+   
 function CMD.disconnect()
 	-- todo: do something before exit
 	skynet.exit()
@@ -301,7 +421,7 @@ end
 	
 function printcont( cont )
 	if cont ~= nil then
-		for i, v in ipair(cont) do
+		for i, v in ipairs(cont) do
 			print(i, v)
 		end
 	end
@@ -309,9 +429,18 @@ end
 
 skynet.start(function()
 	skynet.dispatch("lua", function(_,_, command, ...)
-		print("agent is called")
+		print("agent is called" , command)
 		local f = CMD[command]
 		skynet.ret(skynet.pack(f(...)))
 	end)
+--[[print("--------------------------------------------------")
+	local wakecost = csvReader.getcont( "Attribute" )
+	for i , v in pairs( wakecost ) do
+		print( i , v )
+		for k , s in pairs( v ) do
+			print( v.id , v.desp , v.exp  , v.time , v.time_1 )
+
+		end
+	end--]]
 end)
 
