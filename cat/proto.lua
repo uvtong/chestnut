@@ -63,6 +63,7 @@ proto.c2s = sprotoparser.parse [[
 		
 		attachs 9 : *attach
 }
+
 .idlist
 {
     id 0 : integer

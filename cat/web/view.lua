@@ -1,6 +1,7 @@
 package.path = "../cat/?.lua;../cat/lualib/?.lua;" .. package.path
 local skynet = require "skynet"
 require "skynet.manager"
+local util = require "util"
 local template = require "resty.template"
 template.caching(true)
 template.precompile("index.html")
@@ -11,13 +12,6 @@ local function path( filename )
 	-- body
 	assert(type(filename) == "string")
 	return "../cat/web/templates/" .. filename
-end
-
-local function db()
-	-- body
-	local r = math.random(1, 5)
-	local name = string.format("db%d", r)
-	return skynet.localname(name)
 end
 
 function VIEW.index()
@@ -113,6 +107,37 @@ function VIEW.email()
 		print(self.file)
 	end
 	return R
+end
+
+function VIEW.props( ... )
+	-- body
+	local R = {}
+	function R:__get()
+		-- body
+		-- local query = self.query
+		local func = template.compile(path("email.html"))
+		return func { message = "fill in the blank text."}
+	end
+	function R:__post()
+		-- body
+		-- local body = self.body
+		for k,v in pairs(self.body) do
+			print(k,v)
+		end
+		local c = {}
+		c["head"] = self.body["txt1"]
+		c["content"] = self.body["txt2"]
+		-- skynet.send(".channel", "lua", "cmd", c)
+
+		return "send succss."
+	end
+	function R:__file()
+		-- body
+		-- local file = self.file
+		print(self.file)
+	end
+	return R
+	skynet.call(util.random_db(), "lua", "", )
 end
 
 function VIEW._admin(id, code, url, method, header, body )

@@ -211,6 +211,8 @@ function REQUEST:login()
 	wakecost = csvReader.getcont("wake_cost")
 	wakecost = convert_wakecost(wakecost)
 
+	dc.set(user.id, { client_fd=client_fd, addr = skynet.self()})
+
 	local ret = {}
 	assert(self.account and	self.password)
 	assert(#self.password > 1)

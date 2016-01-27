@@ -1,7 +1,7 @@
 local usermgr = {}
 usermgr._data = {}
 
-local user = { id , uviplevel , uexp, config_sound, config_music, avatar, sign, c_role_id, rolemgr, achievementmgr, propmgr, emailbox }
+local user = { id, uname, uviplevel , uexp, config_sound, config_music, avatar, sign, c_role_id, ifonline, level, combat, defense, critical_hit, rolemgr, achievementmgr, propmgr, emailbox }
 
 function user.new( ... )
  	-- body
@@ -11,7 +11,6 @@ function user.new( ... )
 end 
 
 function usermgr.create( tvals )
-
 	assert(tvals)
 	local u = user.new()
 	u.id = tvals["id"]
@@ -22,6 +21,11 @@ function usermgr.create( tvals )
 	u.avatar = tvals["avatar"]
 	u.sign = tvals["sign"]
 	u.c_role_id = tvals["c_role_id"]
+	u.ifonline = false
+	u.level = tvals["level"]
+	u.combat = tvals["combat"]
+	u.defense = tvals["defense"]
+	u.critical_hit = tvals["critical_hit"]
 	return u
 end	
 	
