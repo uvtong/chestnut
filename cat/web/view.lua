@@ -15,7 +15,7 @@ end
 
 local function db()
 	-- body
-	local r = math.random() % 5 + 1
+	local r = math.random(1, 5)
 	local name = string.format("db%d", r)
 	return skynet.localname(name)
 end
@@ -104,6 +104,7 @@ function VIEW.email()
 		c["head"] = self.body["txt1"]
 		c["content"] = self.body["txt2"]
 		-- skynet.send(".channel", "lua", "cmd", c)
+
 		return "send succss."
 	end
 	function R:__file()

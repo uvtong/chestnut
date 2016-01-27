@@ -1,7 +1,6 @@
 local emailrequest = {}
 
 local user
-
 local emailbox 
 
 function emailrequest:mails()

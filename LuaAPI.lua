@@ -61,6 +61,12 @@ skynet.kill(address)
 skynet.newservice(name:string, ...)
 
 skynet.now()  -- 10ms /clock
+skynet.starttime() -- 
+skynet.time() == skynet.now()/100 + skynet.starttime()
+skynet.sleep(ti)
+skynet.yield()
+
+skynet.timeout(ti, func)
 
 function function_name( ... )
 	-- body

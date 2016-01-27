@@ -107,5 +107,4 @@ function emaildb.getvalue( v1 , v2 )
 	cache = v2
 end 
 
-
 return emaildb

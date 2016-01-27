@@ -209,19 +209,9 @@ function REQUEST:login()
 
 	level = csvReader.getcont("level")
 	wakecost = csvReader.getcont("wake_cost")
-	print "*****************8"
-	for k,v in pairs(wakecost) do
-		print ("................")
-		print(k, v)
-		for kk,vv in pairs(v) do
-			print(kk,vv)
-		end
-	end
 	wakecost = convert_wakecost(wakecost)
 
 	local ret = {}
-	local r = math.random(1, 5)
-	local addr = skynet.localname(string.format(".db%d", math.floor(r))) 
 	assert(self.account and	self.password)
 	assert(#self.password > 1)
 	local t = { uaccount = self.account, upassword = self.password }
@@ -236,6 +226,7 @@ function REQUEST:login()
 		load_achievements(user)
 		load_props(user)
 		load_roles(user)
+
 		ret.errorcode = 0
 		ret.msg = "yes"
 		ret.u = {
@@ -527,6 +518,7 @@ local function send_package(pack)
 end	
 	
 local RESPONSE = {}
+
 function RESPONSE:newemail( e )
 	assert( e )
 
@@ -564,7 +556,7 @@ skynet.register_protocol {
 		if sz > 0 then
 			return host:dispatch(msg, sz)
 
-		elseif 0 == sz then
+		elseif sz == 0 then
 			return "HEARTBEAT"
 		else
 			error "error"
@@ -582,15 +574,34 @@ skynet.register_protocol {
 			end
 		elseif type == "HEARTBEAT" then
 			send_package(send_request "heartbeat")
-			--skynet.error "hello"--"heartbeat"
 		elseif type == "RESPONSE" then
 			pcall(response, ...)
 		end
 	end
 }
-	
 
-	
+local SUBSCRIBE = {}
+
+function SUBSCRIBE:email( tvals, ... )
+	-- body
+	local v = emailbox:recvemail( tvals )
+	local ret = {}
+	ret.mail = {}
+	local tmp = {}
+   	tmp.attachs = {}
+    tmp.emailid = v.id
+    tmp.type = v.type
+    tmp.acctime = os.date("%Y-%m-%d" , v.acctime)
+    tmp.isread = v.isread
+    tmp.isreward = v.isreward
+    tmp.title = v.title
+    tmp.content = v.content
+	tmp.attachs = v:getallitem()
+	tmp.iconid = v.iconid
+	ret.mail = tmp
+	send_package( send_request( "newemail" ,  ret ) )
+end
+
 function CMD.start(conf)
 	print("start is called")
 	local fd = conf.client
@@ -608,37 +619,13 @@ function CMD.start(conf)
 	client_fd = fd
 	skynet.call(gate, "lua", "forward", fd)
 
-	assert(skynet.self())
-	print(skynet.self())
-	local c = skynet.call(".channel", "lua", "agent_start", 2, skynet.self())
+	local c = skynet.call(".channel", "lua", "agent_start", user.id, skynet.self())
 	local c2 = mc.new {
 		channel = c,
-		dispatch = function ( channel, source, tvals , ... )
+		dispatch = function ( channel, source, cmd, tvals , ... )
 			-- body
-			print("channel ****************************" , cmd )
-
-			--print( tvals.type , tvals.iconid )
-
-			print(tvals.emailtype , tvals.iconid )
-			local v = emailbox:recvemail( tvals )
-			local ret = {}
-			ret.mail = {}
-			local tmp = {}
-    		tmp.attachs = {}
-
-    		tmp.emailid = v.id
-    		tmp.type = v.type
-    		tmp.acctime = os.date("%Y-%m-%d" , v.acctime)
-    		tmp.isread = v.isread
-    		tmp.isreward = v.isreward
-    		tmp.title = v.title
-    		tmp.content = v.content
-
-			tmp.attachs = v:getallitem()
-			tmp.iconid = v.iconid
-
-			ret.mail = tmp
-			send_package( send_request( "newemail" ,  ret ) )
+			local f = assert(SUBSCRIBE[cmd])
+			f(tvals, ...)
 		end
 	}
 	c2:subscribe()
@@ -668,13 +655,4 @@ skynet.start(function()
 		local f = CMD[command]
 		skynet.ret(skynet.pack(f(...)))
 	end)
---[[print("--------------------------------------------------")
-	local wakecost = csvReader.getcont( "Attribute" )
-	for i , v in pairs( wakecost ) do
-		print( i , v )
-		for k , s in pairs( v ) do
-			print( v.id , v.desp , v.exp  , v.time , v.time_1 )
-
-		end
-	end--]]
 end)
