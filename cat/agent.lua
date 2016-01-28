@@ -132,13 +132,6 @@ local function achi( type, ... )
 	end
 end
 
-local function random_db()
-	-- body
-	local r = math.random(1, 5)
-	local addr = skynet.localname(string.format(".db%d", math.floor(r))) 
-	return addr
-end
-
 local function load_achievements( user )
 	-- body
 	local achievementmgr = require "achievementmgr"

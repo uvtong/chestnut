@@ -1,4 +1,4 @@
-package.path = "../cat/?.lua;../cat/lualib/?.lua;" .. package.path
+package.path = "../cat/?.lua;../cat/lualib/?.lua;../cat/luaclib/?.so;" .. package.path
 local skynet = require "skynet"
 require "skynet.manager"
 local util = require "util"
@@ -116,7 +116,7 @@ function VIEW.props()
 	function R:__get()
 		-- body
 		-- local query = self.query
-		local users = skynet.call(util.random_db(), "lua", "command", "select", "users")
+		local users = skynet.call(util.random_db(), "lua", "command", "select_and", "users")
 		for i,v in ipairs(users) do
 			for kk,vv in pairs(v) do
 				print(kk,vv)
@@ -128,9 +128,6 @@ function VIEW.props()
 	function R:__post()
 		-- body
 		-- local body = self.body
-		for k,v in pairs(self.body) do
-			print(k,v)
-		end
 		local uaccount = self.body["uaccount"]
 		local csv_id = tonumber(self.body["csv_id"])
 		local num = tonumber(self.body["num"])
@@ -142,6 +139,7 @@ function VIEW.props()
 			return json.encode(ret)
 		end
 		local user = skynet.call(util.random_db(), "lua", "command", "select_user", { uaccount = uaccount})
+		print(user.id, csv_id, num)
 		skynet.send(util.random_db(), "lua", "command", "insert_prop", user.id, csv_id, num)
 		local ret = {
 			ok = 1,

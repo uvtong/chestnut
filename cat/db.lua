@@ -13,22 +13,28 @@ local cache
 		
 local QUERY = {}
 
-function QUERY:select( table_name, condition, columns)
+function QUERY:select_and( table_name, condition, columns)
 	-- body
-	local sql = util.select(table_name, condition, columns)
+	local sql = util.select_and(table_name, condition, columns)
+	return db:query(sql, condition)
+end
+
+function QUERY:select_or( table_name, condition, columns)
+	-- body
+	local sql = util.select_or(table_name, condition, columns)
 	return db:query(sql)
 end
 
-function QUERY:update( table, column, value )
+function QUERY:update_and( table_name, condition, columns )
 	-- body
-	local sql = tupdate(table, column, value)
-	db:query(sql)
+	local sql = util.update_and(table_name, condition, columns)
+	return db:query(sql)
 end
 
-function QUERY:insert( table, column, value )
+function QUERY:insert( table_name, columns )
 	-- body
-	local sql = tinsert(table, column, value)
-	db:query(sql)
+	local sql = util.insert(table_name, columns)
+	return db:query(sql)
 end
 
 function QUERY:signup( t )
@@ -70,21 +76,14 @@ function QUERY:insert_skill( ... )
 	db:query( sql )
 end	
 	
-function QUERY:select_user( t )
+function QUERY:select_user( condition, columns )
 	-- body
-	local condition_str = ""
-	for k,v in pairs(t) do
-		local s = string.format("%s = %s", k, v)
-		condition_str = condition_str .. s .. " and "
-	end
-	condition_str = string.gsub(condition_str, "(.*)%s*and%s*")
-	sql = "select * from users where" .. condition_str
-	print(sql)
-	local r = db:query(sql)
+	-- userid, uaccount, upassword
+	local sql = util.select_and("users", condition, columns)
+	local r = db:query(sql, condition)
 	--cache:get()
 	return r[1]
 end 	
-
 
 function QUERY:select_rolebyroleid( )
 end	
@@ -110,15 +109,10 @@ end
 
 function QUERY:select_prop( user_id, type)
 	-- body
-	if type == nil then
-		local sql = string.format("select * from props where user_id = %d", user_id)
-		local r = db:query(sql)
-		return r
-	else
-		local sql = string.format("select * from props where user_id = %d, name = \"%s\"", name)
-		local r = db:query(sql)
-		return r
-	end
+	local condition = { user_id = user_id }
+	local sql = util.select_and("props", condition)
+	local r = db:query(sql)
+	return r
 end
 
 function QUERY:update_prop( user_id, csv_id, num )
@@ -151,8 +145,8 @@ end
 
 function QUERY:insert_prop( user_id, csv_id, num )
 	-- body
-	
-	local sql = string.format("insert into props (user_id, csv_id, num) values (%d, %d, %d)", user_id, csv_id, num)
+	local columns = {user_id = user_id, csv_id = csv_id, num = num}
+	local sql = util.insert("props", columns)
 	db:query(sql)
 end
 

@@ -14,7 +14,7 @@ skynet.start(function()
 		local db = skynet.newservice("db")
 		skynet.name(string.format(".db%d", i), db)
 	end
-	skynet.newservice("channel")
+	skynet.uniqueservice("channel")
 	local watchdog = skynet.newservice("watchdog")
 	skynet.call(watchdog, "lua", "start", {
 		port = 8888,
