@@ -100,19 +100,16 @@ function QUERY:update_roleby_roleid( tvals )
 	return true
 end	
 
-function QUERY:select_roles_by_userid( user_id )
+function QUERY:select_roles( condition )
 	-- body
-	local sql = string.format("select * from role where user_id = %d", user_id)
-	local r = db:query(sql)
-	return r
+	local sql = util.select_and("roles", condition)
+	return db:query(sql)
 end
 
-function QUERY:select_prop( user_id, type)
+function QUERY:select_props( condition )
 	-- body
-	local condition = { user_id = user_id }
 	local sql = util.select_and("props", condition)
-	local r = db:query(sql)
-	return r
+	return db:query(sql)
 end
 
 function QUERY:update_prop( user_id, csv_id, num )
@@ -129,11 +126,10 @@ function QUERY:select_all_achi( type, min, max )
 	return r
 end
 
-function QUERY:select_achi( user_id )
+function QUERY:select_achievements( condition )
 	-- body
-	local sql = string.format("select * from achievements where user_id = %d", user_id)
-	local r = db:query(sql)
-	return r
+	local sql = util.select_and("achievements", condition)
+	return db:query(sql)
 end
 
 function QUERY:update_achi( user_id, csv_id, finished )
@@ -161,19 +157,17 @@ function CMD:disconnect_mysql( ... )
 end	
 	
 function CMD:command( subcmd, ... )
-	print(subcmd, type(subcmd))
-
 	local f = nil
-    	if nil ~= QUERY[subcmd] then
-    		f = assert(QUERY[ subcmd ])
-			return f(QUERY, ... )
-	elseif nil ~= emaildb[ subcmd ] then
-			
+    if nil ~= QUERY[subcmd] then
+    	f = assert(QUERY[ subcmd ])
+		return f(QUERY, ... )
+	elseif nil ~= emaildb[ subcmd ] then	
 		f = assert( emaildb[ subcmd ] )
 		return f(emaildb, ...)
 	else
+		print(subcmd)
 		assert( f )
-    	end
+    end
 end
 
 local
@@ -233,12 +227,6 @@ skynet.start( function ()
 		port = 6379,
 		db = 0
 	}
-	cache = connect_redis( conf )
-
-	
-	emaildb.getvalue( db , cache )
-	--skynet.call( ".channel" , "lua" , "get_db_cache" , emaildb )
-
-	print("emaildb.getvalue is called\n")
-	
+	cache = connect_redis( conf )	
+	emaildb.getvalue( db , cache )	
 end)

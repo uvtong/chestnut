@@ -1,28 +1,17 @@
 package.path = "./../cat/?.lua;" .. package.path
-    
 local skynet = require "skynet"
-    
 require "skynet.manager"
 local mc = require "multicast"
-local u_client_id = {}
-			
+local util = require "util"
+
 local channel
+local u_client_id = {} -- if
+
 local CMD = {}
-
-local function randomaddr()
-	local r = math.random( 1 , 5 )
-	local addr = skynet.localname( string.format( ".db%d", math.floor( r ) ) )
-	print("addr is " .. addr )
-	assert( addr , "randomaddr failed\n" )
-
-	return addr
-end
-
 		
 function CMD:agent_start( user_id, addr )
-	u_client_id.user_id = user_id
+	u_client_id.user_id = addr
 	assert(channel.channel)
-	print( "channel.channel" , channel.channel )
 	return channel.channel
 end			
 			
@@ -31,7 +20,7 @@ function CMD:hello( _ , tval )
 	print("hello is callled\n")
 	print( tval.type , tval.iconid )
 	channel:publish("email", tval )
-	local addr = randomaddr()
+	local addr = util.random_db()
 	skynet.send( addr, "lua", "command" , "insert_offlineemail", tval)
 end		   			
 

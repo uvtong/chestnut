@@ -155,27 +155,45 @@ function VIEW.props()
 	return R
 end
 
-function VIEW._admin(id, code, url, method, header, body )
+function VIEW.equipments()
 	-- body
-	assert(type(header) == "table")
-	local tmp = {}
-	if header.host then
-	table.insert(tmp, string.format("host: %s", header.host))
+	local R = {}
+	function R:__get()
+		-- body
+		-- local query = self.query
+		local users = skynet.call(util.random_db(), "lua", "command", "select_and", "users")
+		local func = template.compile(path("equipments.html"))
+		return func { message = "fill in the blank text.", users = users }
 	end
-	local path, query = urllib.parse(url)
-	table.insert(tmp, string.format("path: %s", path))
-	if query then
-		local q = urllib.parse_query(query)
-		for k, v in pairs(q) do
-			table.insert(tmp, string.format("query: %s= %s", k,v))
+	function R:__post()
+		-- body
+		-- local body = self.body
+		if self.body["cmd"] == "user" then
+			local uaccount = self.body["uaccount"]
+			local user = skynet.call(util.random_db(), "lua", "command", "select_user", { uaccount = uaccount})
+			local achievements = skynet.call(util.random_db(), "lua", "command", "select_and", "equipments", { user_id = user.id })
+			local ret = {
+				errorcode = 0,
+				msg = "succss"
+				achievements = achievements
+			}
+			return json.encode(ret)
+		elseif self.body["cmd"] == "equip" then
+			local user = skynet.call(util.random_db(), "lua", "command", "select_user", { uaccount = uaccount})
+			skynet.send(util.random_db(), "lua", "command", "insert", { user_id = user.id, achievement_id = achievement_id, level = level})
+			local ret = {
+				ok = 1,
+				msg = "send succss."
+			}
+			return json.encode(ret)
 		end
 	end
-	table.insert(tmp, "-----header----")
-	for k,v in pairs(header) do
-		table.insert(tmp, string.format("%s = %s",k,v))
+	function R:__file()
+		-- body
+		-- local file = self.file
+		print(self.file)
 	end
-	table.insert(tmp, "-----body----\n" .. body)
-	return response(id, code, table.concat(tmp,"\n"))
+	return R
 end
 
 return VIEW

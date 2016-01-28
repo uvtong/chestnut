@@ -229,6 +229,29 @@ mail_getreward 14
 		type 1 : integer
 	}
 } 
+
+is_user_fix_name 15 {
+    response {
+        errorcode 0 : integer
+        msg 1 : string
+    }
+}
+
+user_fix_name 16 {
+    request {
+        name 0 : string
+    }   
+    response {
+        errorcode 0 : integer
+        msg 1 : string
+    }
+}
+
+user_upgrade 17 {
+    request {
+    }
+}
+
 ]]
 
 proto.s2c = sprotoparser.parse [[

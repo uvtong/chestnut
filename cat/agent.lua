@@ -9,6 +9,7 @@ local mc = require "multicast"
 local sprotoloader = require "sprotoloader"
 local mc = require "multicast"
 local dc = require "datacenter"
+local util = require "util"
 
 local emailrequest = require "emailrequest"
 local emailbox = require "emailbox"
@@ -67,6 +68,44 @@ end
 local function id(__wake, __level)
 	-- body
 	return __wake * 1000 + __level
+end
+
+local SUBSCRIBE = {}
+
+function SUBSCRIBE:email( tvals, ... )
+	-- body
+	local v = emailbox:recvemail( tvals )
+	local ret = {}
+	ret.mail = {}
+	local tmp = {}
+   	tmp.attachs = {}
+    tmp.emailid = v.id
+    tmp.type = v.type
+    tmp.acctime = os.date("%Y-%m-%d" , v.acctime)
+    tmp.isread = v.isread
+    tmp.isreward = v.isreward
+    tmp.title = v.title
+    tmp.content = v.content
+	tmp.attachs = v:getallitem()
+	tmp.iconid = v.iconid
+	ret.mail = tmp
+	send_package( send_request( "newemail" ,  ret ) )
+end
+
+local function subscribe()
+	-- body
+	dc.set(user.id, { client_fd=client_fd, addr = skynet.self()})
+
+	local c = skynet.call(".channel", "lua", "agent_start", user.id, skynet.self())
+	local c2 = mc.new {
+		channel = c,
+		dispatch = function ( channel, source, cmd, tvals , ... )
+			-- body
+			local f = assert(SUBSCRIBE[cmd])
+			f(tvals, ...)
+		end
+	}
+	c2:subscribe()
 end
 
 function REQUEST:role()
@@ -135,9 +174,9 @@ end
 local function load_achievements( user )
 	-- body
 	local achievementmgr = require "achievementmgr"
-	local addr = random_db()
-	print ("**************load_achievements")
-	local r = skynet.call(addr, "lua", "command", "select_achi", user.id)
+	local addr = util.random_db()
+	print(type(user.id))
+	local r = skynet.call(addr, "lua", "command", "select_achievements", { user_id = user.id})
 	for i,v in ipairs(r) do
 		local a = achievementmgr.create(v)
 		achievementmgr:add(a)
@@ -147,16 +186,12 @@ end
 
 local function load_roles( user )
 	-- body
-	local addr = random_db()
-	local nr = skynet.call(addr, "lua", "command", "select_roles_by_userid", user.id)
-	assert(nr)
 	local rolemgr = require "rolemgr"
-	print("..................im lien of role")
+	local addr = util.random_db()
+	local nr = skynet.call(addr, "lua", "command", "select_roles", { user_id = user_id})
+	assert(nr)
 	for i,v in ipairs(nr) do
 		local role = rolemgr:create( v )
-		for k,v in pairs(role) do
-			print(k,v)
-		end
 		rolemgr:add(role)
 	end
 	user.rolemgr = rolemgr
@@ -164,18 +199,13 @@ end
 
 local function load_props( user )
 	-- body
-	print(".........................im props lien")
-	local addr = random_db()
-	local nr = skynet.call(addr, "lua", "command", "select_prop", user.id)
-	assert(nr)
-	print "******************************load_roles"
 	local propmgr = require "propmgr"
+	local addr = util.random_db()
+	local nr = skynet.call(addr, "lua", "command", "select_props", { user_id = user.id })
+	assert(nr)
 	for i,v in ipairs(nr) do
 		local prop = propmgr.create( v )
 		propmgr:add(prop)
-		for k,v in pairs(prop) do
-			print(k,v)
-		end
 	end
 	user.propmgr = propmgr
 end
@@ -186,7 +216,7 @@ function REQUEST:signup()
 	local r = math.random(1, 5)
 	local addr = skynet.localname(string.format(".db%d", math.floor(r))) 
 	local ok = skynet.call(addr, "lua", "signup", {self.account, self.password})
-	if ok then_
+	if ok then
 		ret.errorcode = 0
 		ret.msg	= "yes"
 		return ret
@@ -198,19 +228,12 @@ function REQUEST:signup()
 end
 
 function REQUEST:login()
-	print( "login is called\n" )
-
-	level = csvReader.getcont("level")
-	wakecost = csvReader.getcont("wake_cost")
-	wakecost = convert_wakecost(wakecost)
-
-	dc.set(user.id, { client_fd=client_fd, addr = skynet.self()})
-
 	local ret = {}
 	assert(self.account and	self.password)
 	assert(#self.password > 1)
-	local t = { uaccount = self.account, upassword = self.password }
-	local r = skynet.call(addr, "lua", "command", "select_user", t )
+	local condition = { uaccount = self.account, upassword = self.password }
+	local addr = util.random_db()
+	local r = skynet.call(addr, "lua", "command", "select_user", condition )
 	if not r then
 		ret.errorcode = 1 -- 1 user hasn't register.
 		ret.msg = "no"
@@ -218,6 +241,7 @@ function REQUEST:login()
 	else
 		user = usermgr.create(r)
 		usermgr:add( user )
+		skynet.fork(subscribe)
 		load_achievements(user)
 		load_props(user)
 		load_roles(user)
@@ -481,7 +505,12 @@ function REQUEST:handshake()
 	print("Welcome to skynet, I will send heartbeat every 5 sec." )
 	return { msg = "Welcome to skynet, I will send heartbeat every 5 sec." }
 end		
-		
+
+function REQUEST:fix( ... )
+	-- body
+	
+end
+	
 function REQUEST:quit()
 	skynet.call(WATCHDOG, "lua", "close", client_fd)
 end
@@ -575,28 +604,6 @@ skynet.register_protocol {
 	end
 }
 
-local SUBSCRIBE = {}
-
-function SUBSCRIBE:email( tvals, ... )
-	-- body
-	local v = emailbox:recvemail( tvals )
-	local ret = {}
-	ret.mail = {}
-	local tmp = {}
-   	tmp.attachs = {}
-    tmp.emailid = v.id
-    tmp.type = v.type
-    tmp.acctime = os.date("%Y-%m-%d" , v.acctime)
-    tmp.isread = v.isread
-    tmp.isreward = v.isreward
-    tmp.title = v.title
-    tmp.content = v.content
-	tmp.attachs = v:getallitem()
-	tmp.iconid = v.iconid
-	ret.mail = tmp
-	send_package( send_request( "newemail" ,  ret ) )
-end
-
 function CMD.start(conf)
 	print("start is called")
 	local fd = conf.client
@@ -613,17 +620,6 @@ function CMD.start(conf)
 	-- end)
 	client_fd = fd
 	skynet.call(gate, "lua", "forward", fd)
-
-	local c = skynet.call(".channel", "lua", "agent_start", user.id, skynet.self())
-	local c2 = mc.new {
-		channel = c,
-		dispatch = function ( channel, source, cmd, tvals , ... )
-			-- body
-			local f = assert(SUBSCRIBE[cmd])
-			f(tvals, ...)
-		end
-	}
-	c2:subscribe()
 end	
 	
 function CMD.channel( cn )

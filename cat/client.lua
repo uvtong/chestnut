@@ -141,7 +141,6 @@ local function dispatch_package()
 	end
 end
 
---send_request("login", { account = "hello" , password = "world" })
 while true do
 	dispatch_package()
 	local cmd = socket.readstdin()
@@ -166,6 +165,8 @@ while true do
 			send_request(cmd)
 		elseif cmd == "login" then
 			send_request("login", { account = "hello" , password = "world" })
+		else
+			assert(false)
 		end
 	else
 		socket.usleep(100)
