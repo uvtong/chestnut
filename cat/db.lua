@@ -1,5 +1,4 @@
 package.path = "./../cat/?.lua;" .. package.path
-
 local skynet = require "skynet"
 local mysql = require "mysql"
 local redis = require "redis"
@@ -7,28 +6,71 @@ local csvreader = require "csvReader"
 local emaildb = require "emaildb"
 local util = require "util"
 
-
 local db
 local cache 
+
+local function dump(obj)
+    local getIndent, quoteStr, wrapKey, wrapVal, dumpObj
+    getIndent = function(level)
+        return string.rep("\t", level)
+    end
+    quoteStr = function(str)
+        return '"' .. string.gsub(str, '"', '\\"') .. '"'
+    end
+    wrapKey = function(val)
+        if type(val) == "number" then
+            return "[" .. val .. "]"
+        elseif type(val) == "string" then
+            return "[" .. quoteStr(val) .. "]"
+        else
+            return "[" .. tostring(val) .. "]"
+        end
+    end
+    wrapVal = function(val, level)
+        if type(val) == "table" then
+            return dumpObj(val, level)
+        elseif type(val) == "number" then
+            return val
+        elseif type(val) == "string" then
+            return quoteStr(val)
+        else
+            return tostring(val)
+        end
+    end
+    dumpObj = function(obj, level)
+        if type(obj) ~= "table" then
+            return wrapVal(obj)
+        end
+        level = level + 1
+        local tokens = {}
+        tokens[#tokens + 1] = "{"
+        for k, v in pairs(obj) do
+            tokens[#tokens + 1] = getIndent(level) .. wrapKey(k) .. " = " .. wrapVal(v, level) .. ","
+        end
+        tokens[#tokens + 1] = getIndent(level - 1) .. "}"
+        return table.concat(tokens, "\n")
+    end
+    return dumpObj(obj, 0)
+end
 		
 local QUERY = {}
 
-function QUERY:select_and( table_name, condition, columns)
+function QUERY:query( sql )
 	-- body
-	local sql = util.select_and(table_name, condition, columns)
-	return db:query(sql, condition)
-end
-
-function QUERY:select_or( table_name, condition, columns)
-	-- body
-	local sql = util.select_or(table_name, condition, columns)
 	return db:query(sql)
 end
 
-function QUERY:update_and( table_name, condition, columns )
+function QUERY:select( table_name, condition, columns)
 	-- body
-	local sql = util.update_and(table_name, condition, columns)
+	local sql = util.select(table_name, condition, columns)
+	-- return db:query(sql, condition)
 	return db:query(sql)
+end
+
+function QUERY:update( table_name, condition, columns )
+	-- body
+	local sql = util.update(table_name, condition, columns)
+	dump(db:query(sql))
 end
 
 function QUERY:insert( table_name, columns )
@@ -79,7 +121,7 @@ end
 function QUERY:select_user( condition, columns )
 	-- body
 	-- userid, uaccount, upassword
-	local sql = util.select_and("users", condition, columns)
+	local sql = util.select("users", condition, columns)
 	local r = db:query(sql, condition)
 	--cache:get()
 	return r[1]
@@ -102,13 +144,13 @@ end
 
 function QUERY:select_roles( condition )
 	-- body
-	local sql = util.select_and("roles", condition)
+	local sql = util.select("roles", condition)
 	return db:query(sql)
 end
 
 function QUERY:select_props( condition )
 	-- body
-	local sql = util.select_and("props", condition)
+	local sql = util.select("props", condition)
 	return db:query(sql)
 end
 
@@ -128,7 +170,7 @@ end
 
 function QUERY:select_achievements( condition )
 	-- body
-	local sql = util.select_and("achievements", condition)
+	local sql = util.select("achievements", condition)
 	return db:query(sql)
 end
 

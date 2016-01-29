@@ -72,7 +72,13 @@ local function print_response(session, args)
 	print("RESPONSE", session)
 	if args then
 		for k,v in pairs(args) do
-			print(k,v)
+			if type(v) == "table" then
+				for kk,vv in pairs(v) do
+					print(kk,vv)
+				end
+			else
+				print(k,v)
+			end
 		end
 	end
 end
@@ -165,6 +171,14 @@ while true do
 			send_request(cmd)
 		elseif cmd == "login" then
 			send_request("login", { account = "hello" , password = "world" })
+		elseif cmd == "user_can_modify_name" then
+			send_request("user_can_modify_name")
+		elseif cmd == "user_modify_name" then
+			send_request("user_modify_name", { name = "wahah"})
+		elseif cmd == "user" then
+			send_request("user")
+		elseif cmd == "user_upgrade" then
+			send_request("user_upgrade")
 		else
 			assert(false)
 		end

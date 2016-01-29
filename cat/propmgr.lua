@@ -39,7 +39,7 @@ end
 function propmgr:get_by_csvid( csv_id )
 	-- body
 	for k,v in pairs(self._data) do
-		if v.csv_id == csv_id then
+		if tonumber(v.csv_id) == csv_id then
 			return v
 		end
 	end
@@ -56,6 +56,10 @@ function propmgr:get_by_type( type )
 		end
 	end
 	return r
+end
+
+function propmgr:get_by_type( ... )
+	-- body
 end
 
 function propmgr:add( u )

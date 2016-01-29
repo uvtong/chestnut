@@ -15,7 +15,6 @@ local emailrequest = require "emailrequest"
 local emailbox = require "emailbox"
 local csvReader = require "csvReader"
 local usermgr = require "usermgr" 
-local rolemgr = require "rolemgr"
 
 local WATCHDOG
 local host
@@ -27,10 +26,9 @@ local RESPONSE = {}
 local client_fd
 	 
 local user
-local level
+local level_limit
 local wakeattr
 local wakecost
-
 
 local function send_package(pack)
 	local package = string.pack(">s2", pack)
@@ -51,7 +49,7 @@ local function convert_level( t )
 	-- body
 	local r = {}
 	for i,v in ipairs(t) do
-		r[tostring(v[id])] = v[exp]
+		r[tostring(v.level)] = v
 	end
 	return r
 end
@@ -175,8 +173,7 @@ local function load_achievements( user )
 	-- body
 	local achievementmgr = require "achievementmgr"
 	local addr = util.random_db()
-	print(type(user.id))
-	local r = skynet.call(addr, "lua", "command", "select_achievements", { user_id = user.id})
+	local r = skynet.call(addr, "lua", "command", "select_achievements", {{ user_id = user.id}})
 	for i,v in ipairs(r) do
 		local a = achievementmgr.create(v)
 		achievementmgr:add(a)
@@ -188,7 +185,7 @@ local function load_roles( user )
 	-- body
 	local rolemgr = require "rolemgr"
 	local addr = util.random_db()
-	local nr = skynet.call(addr, "lua", "command", "select_roles", { user_id = user_id})
+	local nr = skynet.call(addr, "lua", "command", "select_roles", {{ user_id = user.id }})
 	assert(nr)
 	for i,v in ipairs(nr) do
 		local role = rolemgr:create( v )
@@ -201,7 +198,7 @@ local function load_props( user )
 	-- body
 	local propmgr = require "propmgr"
 	local addr = util.random_db()
-	local nr = skynet.call(addr, "lua", "command", "select_props", { user_id = user.id })
+	local nr = skynet.call(addr, "lua", "command", "select_props", {{ user_id = user.id }})
 	assert(nr)
 	for i,v in ipairs(nr) do
 		local prop = propmgr.create( v )
@@ -233,7 +230,7 @@ function REQUEST:login()
 	assert(#self.password > 1)
 	local condition = { uaccount = self.account, upassword = self.password }
 	local addr = util.random_db()
-	local r = skynet.call(addr, "lua", "command", "select_user", condition )
+	local r = skynet.call(addr, "lua", "command", "select_user", { condition } )
 	if not r then
 		ret.errorcode = 1 -- 1 user hasn't register.
 		ret.msg = "no"
@@ -245,6 +242,9 @@ function REQUEST:login()
 		load_achievements(user)
 		load_props(user)
 		load_roles(user)
+
+		local level = csvReader.getcont("level")
+		level_limit = convert_level(level)
 
 		ret.errorcode = 0
 		ret.msg = "yes"
@@ -275,7 +275,6 @@ function REQUEST:login()
 			}
 			l[idx] = r
 		end
-
 		ret.rolelist = l
 	end 
 
@@ -329,31 +328,16 @@ function REQUEST:choose_role()
 	end
 end	
 	
-function REQUEST:upgrade()
+function REQUEST:role_upgrade_star()
 	assert(user)
 	print(self.role_id, user.c_role_id)
 	assert(self.role_id == user.c_role_id)
 	local ret = {}
 	local role = user.rolemgr:find(self.role_id)
-	local nowid = id(role.wake_level, role.level)
-	print(nowid)
-	local exp
-	for k,v in pairs(level) do
-		-- for kk,vv in pairs(v) do
-		-- 	print(#kk, kk, vv)
-		-- end
-		if tonumber(v.id) < 3000 then
-			print(v.id, v.exp)
-		end
-		if nowid == tonumber(v.id) then
-			exp = tonumber(v.exp)
-			print(exp)
-			break
-		end
-	end
-	if user.uexp > exp then
-		user.uexp = user.uexp - exp
-		role.level = role.level + 1
+	local prop = user.propmgr:get_by_csvid(self.role_id)
+	if prop.num > role.star_piece then
+		role.star_level = role.star_level + 1
+		skynet.send(util.random_db(), "lua", "command", "update", "roles", {{ id = role.id }}, { star_level = role.star_level})
 		-- return
 		ret.errorcode = 0
 		ret.msg = "yes"
@@ -368,10 +352,10 @@ function REQUEST:upgrade()
 			c_equipment = role.c_equipment,
 			c_dress = role.c_dress,
 			c_kungfu = role.c_kungfu
+			star_level = role.star_level
 		}
 		return ret
 	else
-		print "*********8"
 		ret.errorcode = 1
 		ret.msg = "not enough exp."
 		return ret
@@ -500,17 +484,151 @@ function REQUEST:achievement()
     ret.achis = l
     return ret
 end
-			
+
+function REQUEST:user()
+	-- body
+	local ret = {}
+	ret.errorcode = 0
+	ret.msg = "yes"
+	ret.user = {
+		uname = user.uname,
+    	uviplevel = user.uviplevel,
+    	uexp = user.uexp,
+    	config_sound = user.config_sound,
+    	config_music = user.config_music,
+    	avatar = user.avatar,
+    	sign = user.sign,
+    	c_role_id = user.c_role_id,
+	}
+	return ret
+end
+
+function REQUEST:user_can_modify_name()
+	-- body
+	local ret = {}
+	if user.modify_uname_count >= 1 then
+		ret.errorcode = 1
+		ret.msg = "no"
+	else
+		ret.errorcode = 0
+		ret.msg = "yes"
+	end
+	return ret
+end
+
+function REQUEST:user_modify_name()
+	-- body
+	user.uname = self.name
+	skynet.send(util.random_db(), "lua", "command", "update", "users", {{ id = user.id }}, { modify_uname_count = user.modify_uname_count, uname = user.uname})
+	local ret = {}
+	ret.errorcode = 0
+	ret.msg = "yes"
+	return ret
+end
+
+function REQUEST:user_upgrade()
+	-- body
+	local ret = {}
+	print(user.level)
+	local L = level_limit[tostring(user.level)]
+	local exp = user.propmgr:get_by_csvid(3).num
+	if exp > tonumber(L.exp) then
+		user.level = user.level + 1
+		local LL = level_limit[tostring(user.level)]
+		user.combat = LL.combat
+		user.critical_hit = LL.critical_hit
+		skynet.send(util.random_db(), "lua", "command", "update_and", "users", { id = user.id }, { combat = user.combat, critical_hit = user.critical_hit})
+		ret.errorcode = 0
+		ret.msg = "yes"
+		return ret
+	else
+		ret.errorcode = 1
+		ret.msg	= "no"
+		return ret
+	end
+end
+
+function REQUEST:shop_all()
+	-- body
+	local ret = {}
+	local goods = skynet.call(util.random_db(), "lua", "command", "select", "goods")
+	local l = {}
+	local idx = 1
+	for i,v in ipairs(goods) do
+		local goods = {}
+		goods.goods_id = v.goods_id
+		goods.currency_type = v.currency_type
+		goods.gold_num = v.gold_num
+		goods.diamond_num = v.diamond_num
+		l[idx] = goods
+		idx = idx + 1
+	end
+	ret.errorcode = 0
+	ret.msg	= "yes"
+	ret.l = l
+end
+
+function REQUEST:shop_purchase()
+	-- body
+	local ret = {}
+	assert(self.goods_num > 0)
+	local goods = skynet.call(util.random_db(), "lua", "command", "select", "goods", {{ goods_id == self.goods_id }})
+	if goods[0].currency_type == 1 then
+		local gold = goods[0].gold_num * self.goods_num
+		local prop = user.propmgr:get_by_csvid(1)
+		if prop.num > gold then
+			prop.num = prop.num - gold
+			skynet.send(util.random_db(), "lua", "command", "update", "props", {{ id = prop.id }}, { num = prop.num })
+			ret.errorcode = 0
+			ret.msg	= "yes"
+			return ret
+		else
+			ret.errorcode = 1
+			ret.msg	= "no"
+			return ret
+		end
+	elseif goods[0].currency_type == 2 then
+		local diamond = goods[0].diamond_num * self.goods_num
+		local prop = user.propmgr:get_by_csvid(2)
+		if prop.num > diamond then
+			prop.num = prop.num - diamond
+			skynet.send(util.random_db(), "lua", "command", "update", "props", {{ id = prop.id }}, { num = prop.num })
+			ret.errorcode = 0
+			ret.msg	= "yes"
+			return ret
+		else
+			ret.errorcode = 1
+			ret.msg	= "no"
+			return ret
+		end
+	else
+		assert(false)
+	end
+end
+
+function REQUEST:checkin_schedule()
+	-- body
+	local ret = {}
+	local c_date = os.date()
+	local sql = "select * from checkin where CDate(Format("
+	local checkins = skynet.call(util.random_db(), "lua", "command", "query", )
+
+end
+
+function REQUEST:checkin()
+	-- body
+	local ret = {}
+	local c_date = os.date()
+	local checkins = skynet.call(util.random_db(), "lua", "command", "select", "checkin", {{ user_id = user.id, s_checkin_date = c_date}})
+	if #checkins > 1 then
+
+end
+
 function REQUEST:handshake()
 	print("Welcome to skynet, I will send heartbeat every 5 sec." )
 	return { msg = "Welcome to skynet, I will send heartbeat every 5 sec." }
 end		
 
-function REQUEST:fix( ... )
-	-- body
-	
-end
-	
 function REQUEST:quit()
 	skynet.call(WATCHDOG, "lua", "close", client_fd)
 end

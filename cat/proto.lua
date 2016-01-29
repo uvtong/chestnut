@@ -19,6 +19,7 @@ proto.c2s = sprotoparser.parse [[
     c_equipment 7 : integer
     c_dress 8 : integer
     c_kungfu 9 : integer
+    star_level 10 : integer
 }
 
 .user {
@@ -97,6 +98,12 @@ proto.c2s = sprotoparser.parse [[
 	heart 1 : integer
 }
 
+.goods {
+    goods_id 0 : integer
+    currency_type 1 : integer
+    gold_num 2 : integer
+    diamond_num 3 : integer
+}
 
 handshake 1 {
     request {
@@ -149,7 +156,7 @@ login 5 {
     }
 }
 
-upgrade 6 {
+role_upgrade_star 6 {
     request {
         role_id 0 : integer
     }
@@ -230,14 +237,14 @@ mail_getreward 14
 	}
 } 
 
-is_user_fix_name 15 {
+user_can_modify_name 15 {
     response {
         errorcode 0 : integer
         msg 1 : string
     }
 }
 
-user_fix_name 16 {
+user_modify_name 16 {
     request {
         name 0 : string
     }   
@@ -248,7 +255,36 @@ user_fix_name 16 {
 }
 
 user_upgrade 17 {
+    response {
+        errorcode 0 : integer
+        msg 1 : string
+    }
+}
+
+user 18 {
+    response {
+        errorcode 0 : integer
+        msg 1 : string
+        user 2 : user
+    }
+}
+
+shop_all 19 {
+    response {
+        errorcode 0 : integer
+        msg 1 : string
+        l 2 : *goods
+    }
+}
+
+shop_purchase 20 {
     request {
+        goods_id 0 : integer
+        goods_num 1 : integer
+    }
+    response {
+        errorcode 0 : integer
+        msg 1 : string
     }
 }
 
