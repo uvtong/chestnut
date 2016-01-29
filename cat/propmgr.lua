@@ -60,6 +60,7 @@ end
 
 function propmgr:get_by_type( ... )
 	-- body
+	
 end
 
 function propmgr:add( u )
