@@ -174,7 +174,7 @@ function VIEW.equipments()
 			local achievements = skynet.call(util.random_db(), "lua", "command", "select_and", "equipments", { user_id = user.id })
 			local ret = {
 				errorcode = 0,
-				msg = "succss"
+				msg = "succss",
 				achievements = achievements
 			}
 			return json.encode(ret)

@@ -1,7 +1,7 @@
 local usermgr = {}
 usermgr._data = {}
 
-local user = { id, uname, uviplevel , uexp, config_sound, config_music, avatar, sign, c_role_id, ifonline, level, combat, defense, critical_hit, modify_uname_count, rolemgr, achievementmgr, propmgr, emailbox }
+local user = { id, uname, uviplevel , uexp, config_sound, config_music, avatar, sign, c_role_id, ifonline, level, combat, defense, critical_hit, modify_uname_count, recharge_total, recharge_vip, rolemgr, achievementmgr, propmgr, emailbox, u_recharge_reward }
 
 function user.new( ... )
  	-- body
@@ -28,6 +28,12 @@ function usermgr.create( tvals )
 	u.defense = tvals["defense"]
 	u.critical_hit = tvals["critical_hit"]
 	u.modify_uname_count = tvals["modify_uname_count"]
+	u.recharge_total = tvals["recharge_total"]
+	u.recharge_vip = tvals["recharge_vip"]
+	u.recharge_progress = tvals["recharge_progress"]
+	u.recharge_diamond = tvals["recharge_diamond"]
+	print(u.recharge_total)
+	print(u.recharge_vip)
 	return u
 end	
 	

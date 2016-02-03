@@ -76,39 +76,16 @@ end
 function QUERY:insert( table_name, columns )
 	-- body
 	local sql = util.insert(table_name, columns)
-	return db:query(sql)
+	db:query(sql)
 end
 
 function QUERY:signup( t )
 	-- body
-	local sql
-	sql = string.format("select * from users where uaccount = '%s' and upassword = '%s'", t.uaccount, t.upassword)
+	local sql = util.insert("users", { uaccount = t.uaccount, upassword = t.upassword, uviplevel = 1, config_music = 0, confg_sound = 0, c_role_id = 1, })
 	local r = db:query(sql)
-	if #r > 0 then
-		return false
-	else
-		-- insert user
-		sql = string.format("insert into users (uname, uaccount, upassword, uviplevel, uexp, config_music, confg_sound, avatar, sign, c_role_id) values (\"\", \"%s\", \"%s\", 0, 0, 0, 0, 0, \"\", 0)", t.account, t.password)
-		r = db:query(sql)
-		-- insert role
-		local role = csvreader.getcont("role")
-		for i=1,2 do
-			sql = string.format("insert into role (nickname, user_id, wake_level, level, combat, defense, critical_hit, skill, c_equipment, c_dress, c_kungfu) values (\"\", %d, %d, %d, %d, %d, %d, %d, %d, %d, %d)", r[0].id, 0, level[0].level, level[0].combat, level[0].defense, level[0].critical_hit, level[0].skill, 0, 0, 0)
-			db:query(sql)
-		end
-		-- insert props. all table
-		sql = stirng.format("select name from prop")
-		r = db:query(sql)
-		for k,v in pairs(r) do
-			sql = string.format("insert into props (user_id, name, num) values (user_id, \"%s\", 0)", v.name)
-			db:query(sql)
-		end
-		
-		-- inset equipment
-		-- insert dress
-		-- inset kungfu
-		return true
-	end
+	dump(r)
+	sql = util.insert("roles", { user_id = 1})
+	return true
 end
 
 function QUERY:insert_skill( ... )
@@ -155,10 +132,8 @@ function QUERY:select_props( condition )
 end
 
 function QUERY:update_prop( user_id, csv_id, num )
-	-- body
-	-- assert(num >= 0)
-	-- local sql = string.format("update props set num = %d where user_id = %d and csv_id = %d", num, user_id, csv_id)
-	-- local r = db:query(sql)
+	local sql = util.update("props", {{ user_id = user_id, csv_id = csv_id}}, { num = num })
+	db:query(sql)
 end
 
 function QUERY:select_all_achi( type, min, max )

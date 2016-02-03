@@ -177,8 +177,22 @@ while true do
 			send_request("user_modify_name", { name = "wahah"})
 		elseif cmd == "user" then
 			send_request("user")
+		elseif cmd == "user" then
+			send_request("user")
 		elseif cmd == "user_upgrade" then
 			send_request("user_upgrade")
+		elseif cmd == "recharge_all" then
+			send_request("recharge_all")
+		elseif cmd == "recharge_purchase" then
+			send_request(cmd, { g = {{ csv_id = 1101, num = 1 }}})
+		elseif cmd == "recharge_collect" then
+			send_request(cmd)
+		elseif cmd == "shop_all" then
+			send_request(cmd)
+		elseif cmd == "shop_refresh" then
+			send_request(cmd)
+		elseif cmd == "shop_purchase" then
+			send_request(cmd, { g = {{ goods_id = 13, goods_num = 1 }}})
 		else
 			assert(false)
 		end

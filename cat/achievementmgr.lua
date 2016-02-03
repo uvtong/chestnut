@@ -1,7 +1,7 @@
 local achievementmgr = {}
 achievementmgr._data = {}
 
-local achievement = { id, type, level, gold, level, combat, gold, exp, raffle, csv_id, kungfu }
+local achievement = { id, type, level, gold, level, combat, gold, exp, raffle, csv_id, kungfu, reward_id, reward_num, collected }
 
 function achievement.new( ... )
  	-- body
@@ -25,6 +25,9 @@ function achievementmgr.create( t )
  	r.combat = t.combat
  	r.gold = t.gold
  	r.r_gold = t.r_gold
+ 	r.reward_id = t.reward_id
+ 	r.reward_num = t.reward_num
+ 	r.collected = t.collected
 	return r
 end
 
@@ -43,6 +46,15 @@ end
 function achievementmgr:get( id )
 	-- body
 	return self._data[tostring(id)]
+end
+
+function achievementmgr:get_by_csv_id(csv_id )
+	-- body
+	for k,v in pairs(self._data) do
+		if v.csv_id == csv_id then
+			return v
+		end
+	end
 end
 
 function achievementmgr:get_by_type( type )

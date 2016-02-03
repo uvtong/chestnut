@@ -1,5 +1,4 @@
 package.path = "./../cat/?.lua;" .. package.path
-
 local skynet = require "skynet"
 require "skynet.manager"
 local netpack = require "netpack"
@@ -24,7 +23,8 @@ local CMD = {}
 local REQUEST = {}
 local RESPONSE = {}
 local client_fd
-	 
+
+local game = {}
 local user
 local level_limit
 local wakeattr
@@ -207,12 +207,86 @@ local function load_props( user )
 	user.propmgr = propmgr
 end
 
+local function load_recharge_reward (user)
+	-- body
+	local u_recharge_reward = require "u_recharge_reward"
+	local r = skynet.call(util.random_db(), "lua", "command", "select", "u_recharge_reward")
+	assert(r)
+	for i,v in ipairs(r) do
+		local reward = u_recharge_reward.create(r[i])
+		u_recharge_reward:add(reward)
+	end
+	user.u_recharge_reward = u_recharge_reward
+end
+
+local function load_u_purchase_goods(user)
+	-- body
+	local u_purchase_goodsmgr = require "u_purchase_goodsmgr"
+	local r = skynet.call(util.random_db(), "lua", "command", "select", "u_purchase_goods")
+	assert(r)
+	for i,v in ipairs(r) do
+		local t = u_purchase_goodsmgr.create(v)
+		u_purchase_goodsmgr:add(t)
+	end
+	user.u_purchase_goodsmgr = u_purchase_goodsmgr
+end
+
+local function load_u_purchase_reward(user)
+	-- body
+	local u_purchase_rewardmgr = require "u_purchase_rewardmgr"
+	local r = skynet.call(util.random_db(), "lua", "command", "select", "u_purchase_reward")
+	assert(r)
+	for i,v in ipairs(r) do
+		local t = u_purchase_rewardmgr.create(v)
+		u_purchase_rewardmgr:add(t)
+	end
+	user.u_purchase_rewardmgr = u_purchase_rewardmgr
+end
+
+local function load_u_recharge_record(user)
+	-- body
+	local u_recharge_recordmgr = require "u_recharge_recordmgr"
+	local r = skynet.call(util.random_db(), "lua", "command", "select", "u_recharge_record")
+	assert(r)
+	for i,v in ipairs(r) do
+		local t = u_recharge_recordmgr.create(v)
+		u_recharge_recordmgr:add(t)
+	end
+	user.u_recharge_recordmgr = u_recharge_recordmgr
+end
+
+local function load_u_recharge_reward()
+	-- body
+	local u_recharge_recordmgr = require "u_recharge_rewardmgr"
+	local r = skynet.call(util.random_db(), "lua", "command", "select", "u_recharge_reward")
+	assert(r)
+	for i,v in ipairs(r) do
+		local t = u_recharge_recordmgr.create(v)
+		u_recharge_recordmgr:add(t)
+	end
+	user.u_recharge_recordmgr = u_recharge_recordmgr
+end
+
+local function load_g_recharge_vip( game )
+	-- body
+	local g_recharge_vipmgr = require "g_recharge_vipmgr"
+	local r = skynet.call(util.random_db(), "lua", "command", "select", "g_recharge_vip")
+	for i,v in ipairs(r) do
+		local t = g_recharge_vipmgr.create(v)
+		g_recharge_vipmgr:add(t)
+	end
+	game.g_recharge_vipmgr = g_recharge_vipmgr
+	for k,v in pairs(g_recharge_vipmgr.__data) do
+		for kk,vv in pairs(v) do
+			print(kk,vv)
+		end
+	end
+end
+
 function REQUEST:signup()
 	-- body
 	local ret = {}
-	local r = math.random(1, 5)
-	local addr = skynet.localname(string.format(".db%d", math.floor(r))) 
-	local ok = skynet.call(addr, "lua", "signup", {self.account, self.password})
+	local ok = skynet.call(util.random_db(), "lua", "command", "signup", {self.account, self.password})
 	if ok then
 		ret.errorcode = 0
 		ret.msg	= "yes"
@@ -239,9 +313,16 @@ function REQUEST:login()
 		user = usermgr.create(r)
 		usermgr:add( user )
 		skynet.fork(subscribe)
+		-- load
 		load_achievements(user)
 		load_props(user)
 		load_roles(user)
+		load_recharge_reward(user)
+		load_u_purchase_goods(user)
+		load_u_purchase_reward(user)
+		load_u_recharge_record(user)
+		load_u_recharge_reward(user)
+		load_g_recharge_vip(game)
 
 		local level = csvReader.getcont("level")
 		level_limit = convert_level(level)
@@ -255,7 +336,10 @@ function REQUEST:login()
 			config_music = user.config_music and true or false,
 			avatar = user.avatar,
 			sign = user.sign,
-			c_role_id = user.c_role_id
+			c_role_id = user.c_role_id,
+			uexp = user.propmgr:get_by_csvid(3).num,
+			gold = user.propmgr:get_by_csvid(2).num,
+			diamond = user.propmgr:get_by_csvid(1).num
 		}
 		-- all roles
 		local l = {}
@@ -337,7 +421,7 @@ function REQUEST:role_upgrade_star()
 	local prop = user.propmgr:get_by_csvid(self.role_id)
 	if prop.num > role.star_piece then
 		role.star_level = role.star_level + 1
-		skynet.send(util.random_db(), "lua", "command", "update", "roles", {{ id = role.id }}, { star_level = role.star_level})
+		skynet.send(util.random_db(), "lua", "command", "update", "roles", {{ id = role.id }}, { star_level = role.star_level })
 		-- return
 		ret.errorcode = 0
 		ret.msg = "yes"
@@ -351,7 +435,7 @@ function REQUEST:role_upgrade_star()
 			skill = role.skill,
 			c_equipment = role.c_equipment,
 			c_dress = role.c_dress,
-			c_kungfu = role.c_kungfu
+			c_kungfu = role.c_kungfu,
 			star_level = role.star_level
 		}
 		return ret
@@ -392,7 +476,7 @@ function REQUEST:wake()
 	end
 end		
 
-function REQUEST:props( ... )
+function REQUEST:props()
 	-- body
 	assert(user)
 	ret = {}
@@ -421,7 +505,7 @@ function REQUEST:use_prop()
 		local prop = user.propmgr:get_by_csvid(self.props[1].csv_id)
 		if prop.num > 0 then
 			prop.num = prop.num + self.props[1].num
-			local addr = random_db()
+			local addr = util.random_db()
 			skynet.send(addr, "lua", "command", "update_prop", user.id, prop.csv_id, prop.num)
 			ret.errorcode = 0
 			ret.msg	= "yes"
@@ -434,6 +518,15 @@ function REQUEST:use_prop()
 			prop.num = prop.num - self.props[1].num
 			local addr = random_db()
 			skynet.send(addr, "lua", "command", "update_prop", user.id, prop.csv_id, prop.num)		
+			if prop.csv_id == 690001 then
+				local p = user.propmgr:get_by_csvid(3)
+				p.num = p.num + prop.prop_pram1
+				skynet.send(util.random_db(), "lua", "command", "update", "props", {{ user_id = user.id, csv_id = p.csv_id}}, { num = p.num })
+			elseif prop.csv_id == 690002 then
+				local p = user.propmgr:get_by_csvid(2)
+				p.num = p.num + prop.prop_pram1
+				skynet.send(util.random_db(), "lua", "command", "update", "props", {{ user_id = user.id, csv_id = p.csv_id}}, { num = p.num })
+			end
 			assert(self.role_id == user.c_role_id)
 			local role = user.rolemgr:find(self.role_id)
 			role.combat = role.combat + (prop.combat * 1)
@@ -485,6 +578,31 @@ function REQUEST:achievement()
     return ret
 end
 
+function REQUEST:achievement_reward_collect()
+	-- body
+	local ret = {}
+	assert(user)
+	local a = user.achievementmgr:get_by_csv_id(self.csv_id)
+	if a and a.finished == 100 and a.collected == 0 then
+		a.collected = 1
+		skynet.send(util.random_db(), "lua", "command", "update", "achievements", {{ user_id = user.id, csv_id = a.csv_id}}, { collected = a.collected})
+		local prop = user.propmgr:get_by_csvid(a.reward_id)
+		if prop then
+			prop.num = prop.num + a.reward_num
+			skynet.send(util.random_db(), "lua", "command", "update", "props", {{ id = prop.id }}, { num = prop.num})
+		else
+			local t = { user_id = user.id, prop_id = a.reward_id, num = a.reward_num}
+			skynet.send(util.random_db(), "lua", "command", "insert", "props", t)
+		end
+		ret.errorcode = 0
+		ret.msg = "yes"
+		return ret
+	end
+	ret.errorcode = 1
+	ret.msg = "no"
+	return ret
+end
+
 function REQUEST:user()
 	-- body
 	local ret = {}
@@ -499,6 +617,10 @@ function REQUEST:user()
     	avatar = user.avatar,
     	sign = user.sign,
     	c_role_id = user.c_role_id,
+    	recharge_total = user.recharge_total,
+    	recharge_diamond = user.recharge_diamond,
+    	recharge_progress = user.recharge_progress,
+    	recharge_vip = user.recharge_vip
 	}
 	return ret
 end
@@ -543,76 +665,98 @@ function REQUEST:user_upgrade()
 		return ret
 	else
 		ret.errorcode = 1
-		ret.msg	= "no"
+		ret.msg	= string.format("no enough exp:%d, need:%d", exp, L.exp)
 		return ret
 	end
 end
 
 function REQUEST:shop_all()
 	-- body
-	local ret = {}
-	local goods = skynet.call(util.random_db(), "lua", "command", "select", "goods")
-	local l = {}
-	local idx = 1
-	for i,v in ipairs(goods) do
-		local goods = {}
-		goods.goods_id = v.goods_id
-		goods.currency_type = v.currency_type
-		goods.gold_num = v.gold_num
-		goods.diamond_num = v.diamond_num
-		l[idx] = goods
-		idx = idx + 1
-	end
-	ret.errorcode = 0
-	ret.msg	= "yes"
-	ret.l = l
+	assert(user)
+	return skynet.call(".shop", "lua", "shop_all")
+end
+
+function REQUEST:shop_refresh()
+	-- body
+	assert(user)
+	return skynet.call(".shop", "lua", "shop_refresh", self.goods_id)
 end
 
 function REQUEST:shop_purchase()
 	-- body
 	local ret = {}
-	assert(self.goods_num > 0)
-	local goods = skynet.call(util.random_db(), "lua", "command", "select", "goods", {{ goods_id == self.goods_id }})
-	if goods[0].currency_type == 1 then
-		local gold = goods[0].gold_num * self.goods_num
-		local prop = user.propmgr:get_by_csvid(1)
-		if prop.num > gold then
-			prop.num = prop.num - gold
-			skynet.send(util.random_db(), "lua", "command", "update", "props", {{ id = prop.id }}, { num = prop.num })
-			ret.errorcode = 0
-			ret.msg	= "yes"
+	local l = skynet.call(".shop", "lua", "shop_purchase", self.g)
+	for k,v in pairs(l) do
+		local goods = v
+		if goods.c_a_num == 0 then
+			ret.errorcode = 1
+			ret.msg = "no enough goods"
 			return ret
 		else
-			ret.errorcode = 1
-			ret.msg	= "no"
-			return ret
+			local c_startingtime = goods.c_startingtime
 		end
-	elseif goods[0].currency_type == 2 then
-		local diamond = goods[0].diamond_num * self.goods_num
-		local prop = user.propmgr:get_by_csvid(2)
-		if prop.num > diamond then
-			prop.num = prop.num - diamond
-			skynet.send(util.random_db(), "lua", "command", "update", "props", {{ id = prop.id }}, { num = prop.num })
-			ret.errorcode = 0
-			ret.msg	= "yes"
-			return ret
+		if goods.currency_type == 2 then
+			local gold = goods.currency_num * goods.p_num
+			-- gold 2
+			local currency = user.propmgr:get_by_csvid(goods.currency_type)
+			if currency.num > gold then
+				currency.num = currency.num - gold
+				skynet.send(util.random_db(), "lua", "command", "update", "props", {{ id = prop.id }}, { num = prop.num })
+				local prop = user.propmgr:get_by_csvid(goods.prop_csv_id)
+				if prop then
+					prop.num = prop.num + goods.prop_num * goods.p_num
+					skynet.send(util.random_db(), "lua", "command", "update", "props", {{ id = prop.id }}, { num = prop.num })
+				else
+					local t = {user_id = user.id, csv_id = prop.csv_id, prop_csv_id = prop.prop_csv_id, num = goods.prop_num * goods.p_num}
+					local prop = user.propmgr.create(t)
+					user.propmgr:addr(prop)
+					skynet.send(util.random_db(), "lua", "command", "insert", "props", t)
+				end
+				ret.errorcode = 0
+				ret.msg	= "yes, take gold"
+				return ret
+			else
+				ret.errorcode = 1
+				ret.msg	= string.format("yes, no enough gold, only %d", goods.gold)
+				return ret
+			end
+		elseif goods.currency_type == 1 then
+			local diamond = goods.currency_num * goods.p_num
+			local currency = user.propmgr:get_by_csvid(goods.currency_type)
+			if currency.num > diamond then
+				currency.num = currency.num - diamond
+				skynet.send(util.random_db(), "lua", "command", "update", "props", {{ id = currency.id }}, { num = currency.num })
+				local prop = user.propmgr:get_by_csvid(goods.prop_csv_id)
+				if prop then
+					prop.num = prop.num + goods.prop_num * goods.p_num
+					skynet.send(util.random_db(), "lua", "command", "update", "props", {{ id = prop.id }}, { num = prop.num, prop_pram1 = prop.pram1 })
+				else
+					local t = {user_id = user.id, csv_id = goods.prop_csv_id, prop_csv_id = goods.prop_csv_id, num = goods.prop_num * goods.p_num, prop_pram1 = prop.pram1}
+					local prop = user.propmgr.create(t)
+					user.propmgr:add(prop)
+					skynet.send(util.random_db(), "lua", "command", "insert", "props", t)
+				end
+				ret.errorcode = 0
+				ret.msg	= "yes, take diamond"
+				return ret
+			else
+				ret.errorcode = 1
+				ret.msg	= "no diamond"
+				return ret
+			end
 		else
-			ret.errorcode = 1
-			ret.msg	= "no"
-			return ret
+			assert(false)
 		end
-	else
-		assert(false)
 	end
 end
 
 function REQUEST:checkin_schedule()
 	-- body
 	local ret = {}
-	local c_date = os.date()
-	local sql = "select * from checkin where CDate(Format("
-	local checkins = skynet.call(util.random_db(), "lua", "command", "query", )
-
+	return ret
+	-- local c_date = os.date()
+	-- local sql = "select * from checkin where CDate(Format("
+	-- local checkins = skynet.call(util.random_db(), "lua", "command", "query", )
 end
 
 function REQUEST:checkin()
@@ -621,7 +765,160 @@ function REQUEST:checkin()
 	local c_date = os.date()
 	local checkins = skynet.call(util.random_db(), "lua", "command", "select", "checkin", {{ user_id = user.id, s_checkin_date = c_date}})
 	if #checkins > 1 then
+	end
+	return ret
+end
 
+function REQUEST:raffle()
+	-- body
+	local ret = {}
+	if self.raffle_type == 1 then
+		local prop = user.propmgr:get_by_csvid(4)
+		if prop.num > 100 then
+			prop.num = prop.num - 100
+			ret.errorcode = 1
+			ret.msg = "yes"
+			return ret
+		else
+			ret.errorcode = 0
+			ret.msg = "no"
+			return ret
+		end
+	elseif self.raffle_type == 2 then
+		local prop = user.propmgr:get_by_csvid(2)
+		if prop.num > 280 then
+			prop.num = prop.num - 280
+			skynet.send(util.random_db(), "lua", "command", "update", "props", {{ user_id = user.id, csv_id = prop.csv_id }}, { num = prop.num})
+			ret.errorcode = 1
+			ret.msg = "yes"
+			return ret
+		else
+			ret.errorcode = 0
+			ret.msg	= "no"
+			return ret
+		end
+	elseif self.raffle_type == 3 then
+		local prop = user.propmgr:get_by_csvid(2)
+		if prop.num > 2580 then
+			prop.num = prop.num - 2580
+			skynet.send(util.random_db(), "lua", "command", "update", "props", {{ user_id = user.id, csv_id = prop.csv_id }}, { num = prop.num})
+			ret.errorcode = 0
+			ret.msg = "yes"
+			return ret
+		else
+			ret.errorcode = 1
+			ret.msg	 = "no"
+			return ret
+		end
+	end	
+end
+
+function REQUEST:recharge_all()
+	-- body
+	return skynet.call(".shop", "lua", "recharge_all")
+end
+
+function REQUEST:recharge_collect()
+	-- body
+	print(os.date())
+	local year = os.date("%Y")
+	local month = os.date("%m")
+	local day = os.date("%d")
+	local hour = os.date("%H")
+	local min = os.date("%M")
+	local sec = os.date("%S")
+	
+	local condition = string.format("distribute_time between \"%d-%d-%d 00:00:00\" and \"%s\"", year, month, day, os.date("%Y-%m-%d %H:%M:%S"))
+	local r = skynet.call(util.random_db(), "lua", "command", "select", "u_recharge_reward", condition)
+	print(#r)
+	for i,v in ipairs(r) do
+		if v.collected == 0 then
+			local prop = user.propmgr:get_by_csvid(v.prop_csv_id)
+			if prop then
+				prop.num = prop.num + v.prop_num
+				skynet.send(util.random_db(), "lua", "command", "update_prop", prop.user_id, prop.csv_id, prop.num)
+				skynet.send(util.random_db(), "lua", "command", "update", "u_purchase_reward", {{ id = v.id }}, { collected = 1})
+			else
+				local t = { user_id = user.id, csv_id = v.prop_csv_id, num = v.prop_num}
+				local prop = user.propmgr.create(t)
+				skynet.send(util.random_db(), "lua", "command", "insert", "props", t)
+			end
+			local ret = {}
+			ret.errorcode = 0
+			ret.msg = "yes"
+			return ret
+		end
+	end
+	local ret = {}
+	ret.errorcode = 1
+	ret.msg = "no exist"
+	return ret
+end
+
+function REQUEST:recharge_purchase()
+	-- body
+	local ret = {}
+	local r = skynet.call(".shop", "lua", "recharge_purchase", self.g)
+	if #r == 0 then
+		ret.errorcode = 1
+		ret.msg = "no exist"
+		return ret
+	end
+	for i,v in ipairs(r) do
+		
+		-- purchase successful 
+		print(user.recharge_total)
+		print(v.rmb)
+		-- this is error .
+		user.recharge_total = user.recharge_total + v.rmb * v.p_num
+		user.recharge_diamond = user.recharge_diamond + v.diamond * v.p_num
+		local vip = user.recharge_vip
+		repeat 
+			print("**************************")
+			local v1 = game.g_recharge_vipmgr:get_by_vip(vip)
+			local v2 = game.g_recharge_vipmgr:get_by_vip(vip + 1)
+			print(user.recharge_diamond, "kjdfa", v1.diamond, "KKK", v2.diamond)
+			if user.recharge_diamond < v2.diamond and user.recharge_diamond > v1.diamond then
+				user.recharge_vip = vip
+				print("vip", vip)
+				user.recharge_progress = math.tointeger((user.recharge_diamond - v1.diamond) / (v2.diamond - v1.diamond) * 100)
+				break
+			end
+			vip = vip + 1
+		until false
+		skynet.send(util.random_db(), "lua", "command", "update", "users", {{ id = user.id }}, { recharge_total = user.recharge_total, recharge_diamond = user.recharge_diamond, recharge_progress = user.recharge_progress, recharge_vip = user.recharge_vip })
+		local prop = user.propmgr:get_by_csvid(1)
+		print(prop.num)
+		prop.num = prop.num + v.diamond * v.p_num
+		skynet.send(util.random_db(), "lua", "command", "update", "props", {{ id = prop.id }}, { num = prop.num })
+		ret.errorcode = 0
+		ret.msg = "yes"
+		ret.p = {
+			csv_id = prop.csv_id,
+    		num = prop.num
+    	}
+    	return ret
+	end
+	ret.errorcode = 2
+	ret.msg = "occour error."
+	return ret
+end
+
+function REQUEST:recharge_reward()
+	local ret = {}
+	ret.errorcode = 0
+	ret.msg	= "yes"
+	local l = {}
+	local idx = 1
+	for k,v in pairs(user.u_recharge_reward.__data) do
+		local reward = {}
+		reward["id"] = v.id
+		reward.distribute_dt = v.distribute_dt
+		reward.icon_id = v.icon_id
+		l[idx] = l
+ 	end
+ 	ret.l = l
+ 	return ret
 end
 
 function REQUEST:handshake()
@@ -640,19 +937,14 @@ local function request( name, args, response )
     		f = assert(REQUEST[ name ])
     	elseif nil ~= emailrequest[ name ] then
     		f = assert( emailrequest[ name ] )
-    		print("***************************************getmsg*************************************\n")
+    	else
+    		assert(false)
     	end
-
     	local r = f(args)
     	if response then
     		return response(r)
     	end               
 end      
-	
-local function response( name , args )
-	local f = assert( RESPONSE[ name ] )
-	f( args )
-end
 	
 local function send_package(pack)
 	local package = string.pack(">s2", pack)
@@ -663,7 +955,6 @@ local RESPONSE = {}
 
 function RESPONSE:newemail( e )
 	assert( e )
-
 	local ret = {}
    	ret.emailid = v.id
    	ret.type = v.type
@@ -672,7 +963,6 @@ function RESPONSE:newemail( e )
    	ret.isreward = ( v.isreward  == 0 ) 
    	ret.title = v.title
    	ret.content = v.content
-
 	ret.attachs = v:getallitem()
 	ret.iconid = v.iconid
 			

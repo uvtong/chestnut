@@ -35,4 +35,8 @@ skynet.start( function ()
 	end)
 	channel = mc.new()
 	skynet.register ".channel"
+	-- skynet.timeout()
+	-- skynet.fork(function ()
+	-- 	-- body
+	-- end)
 end)

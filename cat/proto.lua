@@ -2,8 +2,7 @@ local sprotoparser = require "sprotoparser"
 
 local proto = {}
 
-proto.c2s = sprotoparser.parse [[
-.package {
+proto.c2s = sprotoparser.parse [[.package {
 	type 0 : integer
 	session 1 : integer
 }
@@ -19,7 +18,6 @@ proto.c2s = sprotoparser.parse [[
     c_equipment 7 : integer
     c_dress 8 : integer
     c_kungfu 9 : integer
-    star_level 10 : integer
 }
 
 .user {
@@ -32,6 +30,12 @@ proto.c2s = sprotoparser.parse [[
     sign 6 : string
     c_role_id 7 : integer
     rolelist 8 : *role
+    gold 9 : integer
+    diamond 10 : integer
+    recharge_total 11 : integer
+    recharge_vip 12 : integer
+    recharge_progress 13 : integer
+    recharge_diamond 14 : integer
 }
 
 .prop {
@@ -55,19 +59,24 @@ proto.c2s = sprotoparser.parse [[
 		title 6 : string
 		content 7 : string
 		error 8 : integer
-		
 		.attach
 		{
 			itemsn 0 : integer
 			itemnum 1 : integer
 		}
-		
 		attachs 9 : *attach
 }
 
 .idlist
 {
     id 0 : integer
+}
+
+.friendidlist
+{
+    signtime 0 : integer
+    friendid 1 : integer
+    type 2 : integer
 }
 
 .subuser
@@ -79,31 +88,86 @@ proto.c2s = sprotoparser.parse [[
 	iconid 4 : integer
 	sign 5 : string
 	fightpower 6  : integer
-	qianming 7 : string
-	uid  8 :string
-	online_time 9 : string
-	heart 10 : boolean 
-	apply 11 : boolean 
-	receive 12 : boolean 
+	uid  7 :string
+	online_time 8 : string
+	heart 9 : boolean 
+	apply 10 : boolean 
+	receive 11 : boolean 
+	type 12 : integer
 }
 
-.apply
+.apply 
 {
-	id 0 : integer
+	signtime 0 : integer
+	friendid 1 : integer
+	type 2 : integer
 }
 
-.heart
-{
-	id 0 : integer
-	heart 1 : integer
-}
+.heartlist
+{   
+    signtime 0 : integer
+    amount 1 : integer
+    friendid 2 : integer
+    type 3 : integer    
+    csendtime 4 : string 
+}   
 
 .goods {
-    goods_id 0 : integer
-    currency_type 1 : integer
-    gold_num 2 : integer
-    diamond_num 3 : integer
+    csv_id 0 : integer
+    type 1 : integer
+    currency_type 2 : integer
+    currency_num 3 : integer
+    c_startingtime 4 : string
+    c_countdown 5 : string
+    c_a_num 6 : integer
+    prop_csv_id 7 : integer
+    prop_num 8 : integer
+    icon_id 9 : integer
 }
+ 
+.goodsbuy
+{
+    goods_id 0 : integer
+    goods_num 1 : integer
+}
+
+.recharge_item
+{
+	csv_id 0 : integer
+	icon_id 1 : integer
+	name 2 : string
+	diamond 3 : integer
+	first 4 : integer
+	gift 5 : integer
+	rmb 6 : integer
+}
+
+.recharge_buy
+{
+	csv_id 0 : integer
+	num 1 : integer
+}
+
+.recharge_reward_item
+{
+	id 0 : integer
+	distribute_dt 1 : string
+	icon_id 2 : integer
+}
+
+.drawlist
+{  
+    drawtype 0 : integer
+    lefttime 1 : integer
+    drawnum 2 : integer
+}
+ 
+.drawrewardlist
+{      
+    propid 0 : integer
+    propnum 1 : integer
+}  
+
 
 handshake 1 {
     request {
@@ -237,14 +301,117 @@ mail_getreward 14
 	}
 } 
 
-user_can_modify_name 15 {
+friend_list 15
+{
+	response {
+		ok 0 : boolean
+		error 1 : integer
+		msg 2 : string
+		friendlist  3 : *subuser
+	}
+}
+
+applied_list 16
+{
+	response {
+		ok 0 : boolean
+		error 1 : integer
+		msg 2 : string
+		friendlist  3 : *subuser
+	}
+}
+
+otherfriend_list  17
+{
+	response {
+		ok 0 : boolean
+		error 1 : integer
+		msg 2 : string
+		friendlist  3 : *subuser
+	}
+}
+findfriend 18
+{
+	request {
+		id 0 : integer
+	}
+	response {
+		ok 0 : boolean
+		error 1 : integer
+		msg 2 : string
+		friend 3 : *subuser
+	}
+}
+
+applyfriend 19
+{
+	request {
+		friendlist 0 : *friendidlist
+	}
+}
+ 
+recvfriend 20
+{
+	request {
+		friendlist 0 : *friendidlist
+	}
+}
+
+refusefriend 21
+{
+	request {
+		friendlist 0 : *friendidlist
+	}
+}
+
+deletefriend 22
+{	
+	request {
+        signtime 0 : integer
+        friendid 1 : integer
+        type 2 : integer
+    }
+    response {
+        ok 0 : boolean
+        error 1 : integer
+        msg 2 : string
+    }
+}	 
+	
+recvheart 23
+{   
+	 request {
+        hl 0 : *heartlist
+        totalamount 1 : integer
+    }   
+    response {
+        ok 0 : boolean
+        error 1 : integer
+        msg 2 : string
+    } 
+}		
+		
+sendheart 24
+{
+	request {
+        hl 0 : *heartlist
+	   totalamount 1 : integer
+    }   
+    response {
+       ok 0 : boolean
+       error 1 : integer
+       msg 2 : string
+    }	
+}
+
+user_can_modify_name 25 {
     response {
         errorcode 0 : integer
         msg 1 : string
     }
 }
 
-user_modify_name 16 {
+user_modify_name 26 {
     request {
         name 0 : string
     }   
@@ -254,14 +421,14 @@ user_modify_name 16 {
     }
 }
 
-user_upgrade 17 {
+user_upgrade 27 {
     response {
         errorcode 0 : integer
         msg 1 : string
     }
 }
 
-user 18 {
+user 28 {
     response {
         errorcode 0 : integer
         msg 1 : string
@@ -269,7 +436,7 @@ user 18 {
     }
 }
 
-shop_all 19 {
+shop_all 29 {
     response {
         errorcode 0 : integer
         msg 1 : string
@@ -277,16 +444,117 @@ shop_all 19 {
     }
 }
 
-shop_purchase 20 {
+shop_purchase 30 {
+    request {
+        g 0 : *goodsbuy
+    }
+    response {
+        errorcode 0 : integer
+        msg 1 : string
+        l 2 : *prop
+    }
+}
+
+shop_refresh 31 {
     request {
         goods_id 0 : integer
-        goods_num 1 : integer
+    }
+    response {
+        errorcode 0 : integer
+        msg 1 : string
+        l 2 : *goods
+    }
+}
+
+raffle 32 {
+    request {
+        raffle_type 0 : integer
+    }
+    response {
+        errorcode 0 : integer
+        msg 1 : string
+        l 2 : *prop
+    }
+}
+
+logout 33 {
+    response {
+        errorcode 0 : integer
+        msg 1 : string
+    }
+}
+
+recharge_all 34 {
+    response {
+        errorcode 0 : integer
+        msg 1 : string
+        l 2 : *recharge_item
+    }
+}
+
+recharge_purchase 35 {
+    request {
+        g 0 : *recharge_buy  
+    }
+    response {
+        errorcode 0 : integer
+        msg 1 : string
+        l 2 : *prop
+    }
+}
+
+recharge_collect 36 {
+    request {
+        reward_id 0 : integer
+    }
+    response {
+        errorcode 0 : integer
+        msg 1 : string
+        u 2 : user
+    }
+}
+
+recharge_reward 37 {
+    response {
+        errorcode 0 : integer
+        msg 1 : string
+        l 2 : *recharge_reward_item
+    }
+}
+
+draw 38
+{      
+    response {
+        list 0 : *drawlist
+    }
+}  
+
+applydraw 39
+ {
+    request {
+        drawtype 0 : integer
+        iffree 1 : boolean  
+    }
+    response {
+        ok 0 : boolean
+        error 1 : integer
+        msg 2 : string
+        list 3 : *drawrewardlist
+        lefttime 4 : integer
+    }
+ }
+ 
+ achievement_reward_collect 40 {
+    request {
+        csv_id 0 : integer
     }
     response {
         errorcode 0 : integer
         msg 1 : string
     }
 }
+
+
 
 ]]
 
