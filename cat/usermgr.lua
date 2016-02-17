@@ -1,7 +1,7 @@
 local usermgr = {}
 usermgr._data = {}
 
-local user = { id, uname, uviplevel , uexp, config_sound, config_music, avatar, sign, c_role_id, ifonline, level, combat, defense, critical_hit, modify_uname_count, recharge_total, recharge_vip, rolemgr, achievementmgr, propmgr, emailbox, u_recharge_reward }
+local user = { id, uname, uviplevel , uexp, config_sound, config_music, avatar, sign, c_role_id, ifonline, level, combat, defense, critical_hit, modify_uname_count, recharge_total, recharge_vip, rolemgr, achievementmgr, propmgr, emailbox, u_recharge_reward , onlinetime}
 
 function user.new( ... )
  	-- body
@@ -9,7 +9,7 @@ function user.new( ... )
  	setmetatable( t, { __index = user } )
  	return t
 end 
-
+	
 function usermgr.create( tvals )
 	assert(tvals)
 	local u = user.new()
@@ -22,7 +22,7 @@ function usermgr.create( tvals )
 	u.avatar = tvals["avatar"]
 	u.sign = tvals["sign"]
 	u.c_role_id = tvals["c_role_id"]
-	u.ifonline = false
+	u.ifonline = true
 	u.level = tvals["level"]
 	u.combat = tvals["combat"]
 	u.defense = tvals["defense"]
@@ -32,6 +32,7 @@ function usermgr.create( tvals )
 	u.recharge_vip = tvals["recharge_vip"]
 	u.recharge_progress = tvals["recharge_progress"]
 	u.recharge_diamond = tvals["recharge_diamond"]
+	u.onlinetime = tvals.onlinetime
 	print(u.recharge_total)
 	print(u.recharge_vip)
 	return u
@@ -51,7 +52,8 @@ end
 
 function usermgr:add( u )
 	assert(u)
-	self._data[string.format("%d", u.id)] = u
+	
+	self._data[tostring( u.id )] = u
 end
 
 return usermgr

@@ -25,22 +25,6 @@ function emailrequest:mails()
     		
 			tmp.attachs = v:getallitem()
 			tmp.iconid = v.iconid
-			
-			--[[for i = 1 , 5 do
-				local id = "itemsn" .. i
-				local num = "itemnum" .. i
-				print(v[id])
-				print( string.format( "rid is %d" , v[id]) )
-				if 0 ~= v[id] then
-					local ni = itemtable._new()
-					print("an attach is add in to the ret")
-					ni.itemid = v[id]
-					ni.itemnum = v[num]
-					table.insert( tmp.attachs , ni )	
-					print("insert succe in to a ret email\n")
-				end
-			end--]]
-
 			table.insert( ret.mail_list , tmp )
     	end	
 

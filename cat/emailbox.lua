@@ -10,18 +10,20 @@ local emailbox = {}
 emailbox._data = {}
 
 local userid 
-local MAXEMAILNUM
+local MAXEMAILNUM = 50
+local emailnum = 0
 
 local email = { id , isdel , emailtype , isread , isreward , acctime , iconid , title , content , item = {} }
+--local etype = { DEL_AFTER_READ = 1 , NOTDEL_AFTER_READ = 2 , DEL_AFRER_REWARD = 3 , NOTDEL_AFTER_REWARD = 4 }
 local itemtable = { itemid , itemnum }
-
+	
 function itemtable._new( ... )
 	local t = {}
 
 	setmetatable( t , { __index = itemtable } )
 
 	return t
-end
+end	
 	
 function emailbox:_addemail( e )
 	if e == nil then
@@ -93,12 +95,12 @@ function email:_add( itemid , itemnum )
 
 	table.insert( ( self._data ).item , newitem )
 	return newitem
-end
-
+end	
+	
 function email:getallitem()
 	return self.item
-end	
-
+end		
+	
 local function randomaddr()
 	local r = math.random( 1 , 5 )
 	local addr = skynet.localname( string.format( ".db%d", math.floor( r ) ) )
@@ -106,10 +108,10 @@ local function randomaddr()
 	assert( addr , "randomaddr failed\n" )
 
 	return addr
-end
-
+end	
+	
 --**********emailbox dbop****************
-
+	
 function emailbox:_db_getallemails( uid )
 	local addr = randomaddr()
 	local t = {}
@@ -122,12 +124,12 @@ function emailbox:_db_getallemails( uid )
 
 	return r
 end	
-
+	
 function emailbox:_db_wbreademail( uid , eid )
 	assert( uid and eid )
 	
 	local addr = randomaddr()
-	
+		
 	local t = {}
 	t.uid = uid
 	t.emailid = eid
@@ -186,7 +188,7 @@ function emailbox:loademails( uid )
 	userid = uid
 	local r = emailbox:_db_getallemails( uid )
 	
-	if r then 
+	if r then
 		for i , v in ipairs( r ) do
     		local t = emailbox:_create( v )
     		assert( t )
@@ -196,9 +198,15 @@ function emailbox:loademails( uid )
     	end 
 	end
 
+	if  #r > MAXEMAILNUM then
+		emailbox:_sysdelemail()
+	end	
+
+	emailnum = emailbox:_getemailnum()
+
 	return emailbox
 end	
-   		
+   	
 function emailbox:reademail( uid , id_list )
 	assert( uid and id_list )
 	for k , v in pairs( id_list ) do
@@ -210,14 +218,15 @@ function emailbox:reademail( uid , id_list )
 		assert( e ) 
 		e.isread = true
 		emailbox:_db_wbreademail( uid , v.id )
-	end
+	end 
 end	
-	
+ 	
 function emailbox:deleteemail( uid , id_list )
 	assert( uid and id_list )
 	for k , v in pairs( id_list ) do
 		self._data[ tostring( v.id ) ].isdel = true
 		emailbox:_db_wbdelemail( uid , v.id )
+		emailnum = emailnum - 1
 	end
 end	
 	
@@ -228,10 +237,14 @@ function emailbox:getreward( uid , id_list )
 		emailbox:_db_wbrecvreward( uid , v.id , v.type )
 	end
 end	
-
+	
 function emailbox:recvemail( tvals )
 	assert( tvals )
-	
+	if emailnum >= MAXEMAILNUM then
+		emailbox:_sysdelemail()
+		emailnum = emailbox:_getemailnum()
+	end
+
 	tvals.acctime = os.time() -- an integer
 	local newemail = emailbox:_create( tvals )
 	assert( newemail )
@@ -240,6 +253,7 @@ function emailbox:recvemail( tvals )
 
 	newemail.uid = userid
 	emailbox:_db_wbaddemail( newemail )
+	emailnum = emailnum + 1
 	print("add email succe in recvemail\n")
 
 	return newemail
@@ -254,9 +268,9 @@ function emailbox:_getemailnum()
 	for i , v in pairs( self._data ) do
 		index = index + 1
 	end 
-
+	
 	return index
-end
+end	
 	
 function emailbox:_sysdelemail()
 	local readrewarded = {}
@@ -264,7 +278,7 @@ function emailbox:_sysdelemail()
 	local unread = {}
 	
 	local i = 1
-	for k ,  v in pairs( user.exailbox ) do
+	for k ,  v in pairs( user.exailbox._data ) do
 		if i == 1 then 
 			print( type( k ) , type( v ) )
 			i = 2

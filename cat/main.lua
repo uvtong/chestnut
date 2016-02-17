@@ -1,9 +1,9 @@
 local skynet = require "skynet"
 require "skynet.manager"
 local sprotoloader = require "sprotoloader"
-
+	
 local max_client = 64
-
+	
 skynet.start(function()
 	print("Server start")
 	skynet.uniqueservice("protoloader")
@@ -13,13 +13,18 @@ skynet.start(function()
 		local db = skynet.newservice("db")
 		skynet.name(string.format(".db%d", i), db)
 	end
+
 	skynet.uniqueservice("shop")
-	skynet.uniqueservice("channel")
+   	skynet.newservice("channel")
+	skynet.newservice( "randomdraw" )
+	--skynet.newservice( "simpleweb" ) 
 	local watchdog = skynet.newservice("watchdog")
+	--skynet.newservice("testtimer")
 	skynet.call(watchdog, "lua", "start", {
 		port = 8888,
 		maxclient = max_client,
 		nodelay = true,
+		--emailserver = emailserver
 	})
 	print("Watchdog listen on ", 8888)
 
@@ -27,3 +32,4 @@ skynet.start(function()
 	
 	skynet.exit()
 end)
+

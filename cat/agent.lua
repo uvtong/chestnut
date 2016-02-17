@@ -12,9 +12,15 @@ local util = require "util"
 
 local emailrequest = require "emailrequest"
 local emailbox = require "emailbox"
+local friendrequest = require "friendrequest"
+local friendmgr = require "friendmgr"
+local drawrequest = require "drawrequest"
+local drawmgr = require "drawmgr"
+
 local csvReader = require "csvReader"
 local usermgr = require "usermgr" 
-
+local rolemgr = require "rolemgr"
+	  
 local WATCHDOG
 local host
 local send_request
@@ -23,13 +29,12 @@ local CMD = {}
 local REQUEST = {}
 local RESPONSE = {}
 local client_fd
-
 local game = {}
 local user
 local level_limit
 local wakeattr
 local wakecost
-
+	  
 local function send_package(pack)
 	local package = string.pack(">s2", pack)
 	socket.write(client_fd, package)
@@ -79,7 +84,7 @@ function SUBSCRIBE:email( tvals, ... )
    	tmp.attachs = {}
     tmp.emailid = v.id
     tmp.type = v.type
-    tmp.acctime = os.date("%Y-%m-%d" , v.acctime)
+    tmp.acctime = os.date("%Y-%m-%d-%H-%M-%s" , v.acctime)
     tmp.isread = v.isread
     tmp.isreward = v.isreward
     tmp.title = v.title
@@ -282,11 +287,13 @@ local function load_g_recharge_vip( game )
 		end
 	end
 end
-
+    
 function REQUEST:signup()
 	-- body
 	local ret = {}
-	local ok = skynet.call(util.random_db(), "lua", "command", "signup", {self.account, self.password})
+	local r = math.random(1, 5)
+	local addr = skynet.localname(string.format(".db%d", math.floor(r))) 
+	local ok = skynet.call(addr, "lua", "signup", {self.account, self.password})
 	if ok then
 		ret.errorcode = 0
 		ret.msg	= "yes"
@@ -296,8 +303,8 @@ function REQUEST:signup()
 		ret.msg = "no"
 		return ret
 	end
-end
-
+end 
+    
 function REQUEST:login()
 	local ret = {}
 	assert(self.account and	self.password)
@@ -305,11 +312,29 @@ function REQUEST:login()
 	local condition = { uaccount = self.account, upassword = self.password }
 	local addr = util.random_db()
 	local r = skynet.call(addr, "lua", "command", "select_user", { condition } )
+
+	level = csvReader.getcont("level")
+	wakecost = csvReader.getcont("wake_cost")
+	wakecost = convert_wakecost(wakecost)
+    
 	if not r then
 		ret.errorcode = 1 -- 1 user hasn't register.
 		ret.msg = "no"
 		return ret
 	else
+		local addr = util.random_db()
+		local onlinetime = os.time()
+		assert( addr )
+
+		local t = {}
+		t.tname = "users"
+		t.content = { ifonline = true , onlinetime = onlinetime }
+		t.condition = { id = r.id }	
+
+		skynet.call( addr , "lua" , "command" , "update_onlinestate" , t )
+
+		print( "callend else" )
+		r.onlinetime = onlinetime
 		user = usermgr.create(r)
 		usermgr:add( user )
 		skynet.fork(subscribe)
@@ -337,9 +362,9 @@ function REQUEST:login()
 			avatar = user.avatar,
 			sign = user.sign,
 			c_role_id = user.c_role_id,
-			uexp = user.propmgr:get_by_csvid(3).num,
-			gold = user.propmgr:get_by_csvid(2).num,
-			diamond = user.propmgr:get_by_csvid(1).num
+			--uexp = user.propmgr:get_by_csvid(3).num,
+			--gold = user.propmgr:get_by_csvid(2).num,
+			--diamond = user.propmgr:get_by_csvid(1).num
 		}
 		-- all roles
 		local l = {}
@@ -361,15 +386,38 @@ function REQUEST:login()
 		end
 		ret.rolelist = l
 	end 
-
+	dc.set(user.id, { client_fd=client_fd, addr = skynet.self()})
 	user.emailbox = emailbox:loademails( user.id )
 	emailrequest.getvalue( user )
+	user.friendmgr = friendmgr:loadfriend( user , dc )
+	friendrequest.getvalue( user , send_package , send_request )
+	user.drawmgr = drawmgr
+	drawrequest.getvalue( user )
+	--user.friendmgr:noticeonline( dc )
+
 	return ret
 end	
 
 function REQUEST:logout()
 	-- body
+	print( "logout is" )
+	if user == nil then
+		print( "user is nil" )
+	end
+	--assert( user == nil )
+	local t = {}
+	t.tname = "users"
+	t.content = { ifonline = 0 }
+	t.condition = { id = user.id }
+
+	local addr = util.random_db()
+	assert( addr )
+	skynet.call( addr , "lua" , "command" , "update_onlinestate" , t )
+	dc.set( user.id , nil )
+	print( "dc.set is called" )
 	skynet.call(WATCHDOG, "lua", "close", client_fd)
+
+	return { errorcode = 0 }
 end
 
 function REQUEST:role()
@@ -933,12 +981,19 @@ end
 local function request( name, args, response )
 	print( "request name :" .. name )
     	local f = nil
-    	if nil ~= REQUEST[name] then
+    	if nil ~= REQUEST[ name ] then
     		f = assert(REQUEST[ name ])
     	elseif nil ~= emailrequest[ name ] then
     		f = assert( emailrequest[ name ] )
-    	else
-    		assert(false)
+    		print("***************************************getmsg*************************************\n")
+    	elseif nil ~= friendrequest[ name ] then
+    		f = assert( friendrequest[ name ] )
+    		print("***************************************getmsg*************************************\n")
+    	elseif nil ~= drawrequest[ name ] then
+    		f = assert( drawrequest[ name ] )
+    		print("***************************************getmsg*************************************\n")
+    	else 
+    		assert( f )
     	end
     	local r = f(args)
     	if response then
@@ -1010,8 +1065,30 @@ skynet.register_protocol {
 			pcall(response, ...)
 		end
 	end
-}
-
+}	
+	
+local SUBSCRIBE = {}
+	
+function SUBSCRIBE:email( tvals, ... )
+	-- body
+	local v = emailbox:recvemail( tvals )
+	local ret = {}
+	ret.mail = {}
+	local tmp = {}
+   	tmp.attachs = {}
+    tmp.emailid = v.id
+    tmp.type = v.type
+    tmp.acctime = os.date("%Y-%m-%d" , v.acctime)
+    tmp.isread = v.isread
+    tmp.isreward = v.isreward
+    tmp.title = v.title
+    tmp.content = v.content
+	tmp.attachs = v:getallitem()
+	tmp.iconid = v.iconid
+	ret.mail = tmp
+	send_package( send_request( "newemail" ,  ret ) )
+end	
+	
 function CMD.start(conf)
 	print("start is called")
 	local fd = conf.client
@@ -1028,6 +1105,16 @@ function CMD.start(conf)
 	-- end)
 	client_fd = fd
 	skynet.call(gate, "lua", "forward", fd)
+	local c = skynet.call(".channel", "lua", "agent_start", 2, skynet.self())
+	local c2 = mc.new {
+		channel = c,
+		dispatch = function ( channel, source, cmd, tvals , ... )
+			-- body
+			local f = assert(SUBSCRIBE[cmd])
+			f(tvals, ...)
+		end
+	}
+	c2:subscribe()
 end	
 	
 function CMD.channel( cn )
@@ -1047,7 +1134,13 @@ function CMD.disconnect()
 	-- todo: do something before exit
 	skynet.exit()
 end	
-	
+
+function CMD.friend( subcmd, ... )
+	-- body
+	local f = assert(friendrequest[subcmd])
+	return f(friendrequest, ...)
+end
+
 skynet.start(function()
 	skynet.dispatch("lua", function(_,_, command, ...)
 		print("agent is called" , command)

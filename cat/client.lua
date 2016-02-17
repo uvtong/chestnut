@@ -193,8 +193,32 @@ while true do
 			send_request(cmd)
 		elseif cmd == "shop_purchase" then
 			send_request(cmd, { g = {{ goods_id = 13, goods_num = 1 }}})
-		else
-			assert(false)
+		elseif cmd == "fl" then
+			send_request( "friend_list" )
+		elseif cmd == "applied" then
+			send_request( "applied_list" )
+		elseif cmd == "other" then
+			send_request( "otherfriend_list" )
+		elseif cmd == "apply" then
+			send_request( "applyfriend" , { friendlist = {  {  signtime = 0 , friendid = 5 , type = 1 } }  } )
+		elseif cmd == "find" then
+			send_request( "findfriend" , { friendid = 6 } )
+		elseif cmd == "delete" then
+			send_request( "deletefriend" , { friendid = 1 } ) 
+		elseif cmd == "send" then
+			send_request( "sendheart" , { totalamount = 3 , hl = { { } }} )
+		elseif cmd == "recv" then
+			send_request( "recvheart" , {})
+		elseif cmd == "logout" then
+			send_request( "logout" )
+		elseif cmd == "draw" then
+			send_request( "draw" )
+		elseif cmd == "applydraw1" then
+			send_request( "applydraw" , { drawtype = 1 , iffree = false } )
+		elseif cmd == "applydraw2" then
+			send_request( "applydraw" , { drawtype = 2 , iffree = false } )
+		elseif cmd == "applydraw3" then
+			send_request( "applydraw" , { drawtype = 3 , iffree = false } )
 		end
 	else
 		socket.usleep(100)

@@ -20,12 +20,13 @@ end
 
 function emaildb:select_allemails( tvals )
 	
-	local sql = string.format( "select * from email where uid = %d and isdel = 0" , tvals.uid ) --lack time compare
+	local sql = string.format( "select * from u_email where uid = %d and isdel = 0" , tvals.uid ) --lack time compare
 	local ret = db:query( sql )
 	
 	print("select successfully in emaildb:select\n")
 	return ret
 end	
+	
 	
 function emaildb:insert_newemail( tvals )
 	--local sql = dbop:tinsert( tvals )
@@ -37,11 +38,11 @@ function emaildb:insert_newemail( tvals )
 	for k , v in pairs( tvals.item ) do
 		print( k , v )
 	end
-	 sql = string.format( "insert into email (uid , type , title , content , acctime , isread , isdel , itemsn1 , itemnum1 , itemsn2 , itemnum2 , itemsn3 , itemnum3 , itemsn4 , itemnum4 , itemsn5 , itemnum5 , iconid , isreward ) values ( %s , %s , '%s' , '%s' , %s , %s , %s , %s , %s , %s ,%s  ,%s ,%s ,%s ,%s ,%s ,%s ,%s ,%s , %s , '%s')",  
+	 sql = string.format( "insert into u_email (uid , type , title , content , acctime , isread , isdel , itemsn1 , itemnum1 , itemsn2 , itemnum2 , itemsn3 , itemnum3 , itemsn4 , itemnum4 , itemsn5 , itemnum5 , iconid , isreward ) values ( %s , %s , '%s' , '%s' , %s , %s , %s , %s , %s , %s ,%s  ,%s ,%s ,%s ,%s ,%s ,%s ,%s ,%s , %s , '%s')",  
 								tvals.uid , tvals.emailtype , tvals.title , tvals.content , tvals.content , tvals.acctime , 0 , 0 , tvals.item.itemsn1 or 0, tvals.item.itemnum1 or 0 , tvals.item.itemsn2 or 0, tvals.item.itemnum2 or 0 , tvals.item.itemsn3 or 0, tvals.item.itemnum3 or 0 ,tvals.item.itemsn4 or 0 , tvals.item.itemnum4 or 0,
 								tvals.item.itemsn5 or 0 , tvals.item.itemnum5 or 0 , tvals.iconid , 0 )
 	else
-		sql = string.format( "insert into email ( uid , type , title , content , acctime , isread , isdel , iconid , isreward ) values ( %s , %s , '%s' , '%s' , %s , %s , %s , %s , %s )",  
+		sql = string.format( "insert into u_email ( uid , type , title , content , acctime , isread , isdel , iconid , isreward ) values ( %s , %s , '%s' , '%s' , %s , %s , %s , %s , %s )",  
 								 tvals.uid , tvals.emailtype , tvals.title , tvals.content ,tvals.acctime , 0 , 0 , tvals.iconid , 0 )
 	end
 
@@ -54,7 +55,7 @@ end
 function emaildb:update_reademail( tvals )
 	--local sql = dbop:tupdate( tvals )
 	print( tvals.uid , tvals.emailid )
-	local sql = string.format( "update email set isread = 1 where uid = %d and id = %d " , tvals.uid , tvals.emailid )
+	local sql = string.format( "update u_email set isread = 1 where uid = %d and id = %d " , tvals.uid , tvals.emailid )
 	
 	print( "sql in email:update is " .. sql )
 	local ok = db:query( sql )
@@ -67,7 +68,7 @@ end
 function emaildb:update_delemail( tvals )
 	assert( tvals )
 
-	local sql = string.format( "update email set isdel = 1 where uid = %d and id = %d " , tvals.uid , tvals.emailid )
+	local sql = string.format( "update u_email set isdel = 1 where uid = %d and id = %d " , tvals.uid , tvals.emailid )
 	
 	db:query( sql )
 
@@ -77,7 +78,7 @@ end
 function emaildb:update_getreward( tvals )
 	assert( tvals )
 
-	local sql = string.format( "update email set isreward = 1 where uid = %d and id = %d " , tvals.uid , tvals.emailid )
+	local sql = string.format( "update u_email set isreward = 1 where uid = %d and id = %d " , tvals.uid , tvals.emailid )
 	
 	db:query( sql )
 
@@ -105,6 +106,7 @@ end
 function emaildb.getvalue( v1 , v2 )
 	db = v1
 	cache = v2
+	print("emaildb is called")
 end 
 
 return emaildb
