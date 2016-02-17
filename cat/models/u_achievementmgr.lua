@@ -75,6 +75,18 @@ function _M:delete_by_csv_id(csv_id)
 	self.__data[tostring(csv_id)] = nil
 end
 
+function _M:get_by_type(t)
+	-- body
+	local r = {}
+	local idx = 1
+	for k,v in pairs(self.__data) do
+		if t == v.type then
+			r[idx] = v
+		end
+	end
+	return v
+end
+
 function _M:get_count()
 	-- body
 	return self.__count

@@ -192,7 +192,7 @@ while true do
 		elseif cmd == "shop_all" then
 			send_request(cmd)
 		elseif cmd == "shop_refresh" then
-			send_request(cmd)
+			send_request(cmd, { goods_id=1001})
 		elseif cmd == "shop_purchase" then
 			send_request(cmd, { g = {{ goods_id = 1001, goods_num = 1 }}})
 		elseif cmd == "fl" then
