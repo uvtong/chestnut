@@ -16,9 +16,9 @@ local friendrequest = require "friendrequest"
 local friendmgr = require "friendmgr"
 local drawrequest = require "drawrequest"
 local drawmgr = require "drawmgr"
-
 local csvReader = require "csvReader"
-	  
+local const = require "const"
+
 local WATCHDOG
 local host
 local send_request
@@ -39,8 +39,9 @@ local function send_package(pack)
 	socket.write(client_fd, package)
 end
 
-local function send_achievement( achievement )
+local function raise_achievement(achievement)
 	-- body
+
 	ret = {}
 	ret.which = {
 		csv_id = achievement.csv_id,
@@ -152,9 +153,10 @@ local function achi( type, ... )
 		if num > 1000 then
 			send_achi()
 		end
-	elseif type == "gold" then
-		local prop = user.propmgr:get_by_type(type) -- abain prop by type (type -- csv_id -- prop.id)
-		local l = user.achievementmgr:get_by_type(type)
+	elseif type == "gold" then -- 2
+		local prop = user.u_propmgr:get_by_csv_id(const.GOLD) -- abain prop by type (type -- csv_id -- prop.id)
+		local lg = game.g_achievementmgr:get_by_type(type)
+		local lu = user.u_achievementmgr:get_by_type(type)
 		-- sort
 		for i,v in ipairs(l) do
 			if prop.num > v.gold then
@@ -579,9 +581,20 @@ end
 
 function REQUEST:user_modify_name()
 	-- body
-	user.uname = self.name
-	skynet.send(util.random_db(), "lua", "command", "update", "users", {{ id = user.id }}, { modify_uname_count = user.modify_uname_count, uname = user.uname})
 	local ret = {}
+	if not user then
+		ret.errorcode = 1
+		ret.msg	= "please login."
+		return ret
+	end
+	if user.modify_uname_count >= 1 then
+		ret.errorcode = 2
+		ret.msg = "you only have a time to change your name, or you can take money."
+		return msg
+	end
+	user.uname = self.name
+	user.modify_uname_count = user.modify_uname_count + 1
+	user:__update_db({"modify_uname_count", "uname"})
 	ret.errorcode = 0
 	ret.msg = "yes"
 	return ret
@@ -593,8 +606,7 @@ function REQUEST:user_upgrade()
 	local ret = {}
 	print(user.level)
 	local L = level_limit[tostring(user.level)]
-	local exp = user.u_propmgr:get_by_csv_id(3).num
-	print("888", exp)
+	local exp = user.u_propmgr:get_by_csv_id(const.EXP).num
 	if exp > tonumber(L.exp) then
 		user.level = user.level + 1
 		local LL = level_limit[tostring(user.level)]
@@ -625,6 +637,7 @@ end
 
 function REQUEST:shop_purchase()
 	-- body
+	assert(user)
 	local ret = {}
 	local l = skynet.call(".shop", "lua", "shop_purchase", self.g)
 	for k,v in pairs(l) do
@@ -669,13 +682,13 @@ function REQUEST:shop_purchase()
 				currency:__update_db({"num"})
 				local prop = user.u_propmgr:get_by_csv_id(goods.g_prop_csv_id)
 				if prop then
-					prop.num = prop.num + goods.prop_num * goods.p_num
+					prop.num = prop.num + goods.g_prop_num * goods.p_num
 					prop:__update_db({"num", "pram1"})
-				else
-					local prop = game.g_propmgr:get_by_csv_id(goods.g_prop_csv_id)
+				else	
+					prop = game.g_propmgr:get_by_csv_id(assert(goods.g_prop_csv_id))
 					prop.user_id = user.id
 					prop.num = goods.g_prop_num * goods.p_num
-					local prop = user.propmgr.create(prop)
+					prop = user.propmgr.create(prop)
 					user.propmgr:add(prop)
 					prop:__insert_db()
 				end
@@ -798,7 +811,6 @@ function REQUEST:recharge_collect()
 	return ret
 end
 
-
 function REQUEST:recharge_purchase()
 	-- body
 	local ret = {}
@@ -817,10 +829,13 @@ function REQUEST:recharge_purchase()
 		user.recharge_total = user.recharge_total + v.rmb * v.p_num
 		user.recharge_diamond = user.recharge_diamond + v.diamond * v.p_num
 		local vip = user.recharge_vip
-		repeat 
-			print("**************************")
+		print(vip)
+		repeat
 			local v1 = game.g_recharge_vipmgr:get_by_vip(vip)
 			local v2 = game.g_recharge_vipmgr:get_by_vip(vip + 1)
+			if not v1 or not v2 then
+				break
+			end
 			print(user.recharge_diamond, "kjdfa", v1.diamond, "KKK", v2.diamond)
 			if user.recharge_diamond < v2.diamond and user.recharge_diamond > v1.diamond then
 				user.recharge_vip = vip
@@ -831,7 +846,7 @@ function REQUEST:recharge_purchase()
 			vip = vip + 1
 		until false
 		skynet.send(util.random_db(), "lua", "command", "update", "users", {{ id = user.id }}, { recharge_total = user.recharge_total, recharge_diamond = user.recharge_diamond, recharge_progress = user.recharge_progress, recharge_vip = user.recharge_vip })
-		local prop = user.propmgr:get_by_csvid(1)
+		local prop = user.u_propmgr:get_by_csv_id(1)
 		print(prop.num)
 		prop.num = prop.num + v.diamond * v.p_num
 		skynet.send(util.random_db(), "lua", "command", "update", "props", {{ id = prop.id }}, { num = prop.num })
@@ -916,7 +931,6 @@ function RESPONSE:newemail( e )
    	ret.content = v.content
 	ret.attachs = v:getallitem()
 	ret.iconid = v.iconid
-			
 	return ret
 end
 

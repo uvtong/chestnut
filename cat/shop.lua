@@ -58,16 +58,7 @@ function CMD.shop_refresh( goods_id )
 	local ret = {}
 	local v = game.g_goodsmgr:get_by_csv_id(goods_id)
 	local goods = {}
-	goods.csv_id = v.csv_id
-	goods.type = v.type
-	goods.currency_type = v.currency_type
-	goods.currency_num = v.currency_num
-	goods.c_startingtime = v.c_startingtime
-	goods.c_countdown = v.c_countdown
-	goods.c_a_num = v.c_a_num
-	goods.prop_csv_id = v.prop_csv_id
-	goods.prop_num = v.prop_num
-	goods.icon_id = v.icon_id
+	local goods = v:__serialize()
 	ret.errorcode = 0
 	ret.msg = "yes"
 	ret.l = { goods }
@@ -83,6 +74,9 @@ function CMD.shop_purchase( g )
 		local r = game.g_goodsmgr:get_by_csv_id(v.goods_id)
 		local goods = r:__serialize()
 		goods.p_num = v.goods_num
+		for k,v in pairs(goods) do
+			print(k,v)
+		end
 		l[idx] = goods
 		idx = idx + 1
 	end
@@ -118,16 +112,8 @@ function CMD.recharge_purchase( g )
 	local idx = 1
 	for i,v in ipairs(g) do
 		print(v.csv_id)
-		local r = g_rechargemgr:get_by_csv_id(v.csv_id)
-		print(r)
-		local goods = {}
-		goods.csv_id = r.csv_id
-		goods.icon_id = r.icon
-		goods.name = r.name
-		goods.diamond = r.diamond
-		goods.first = r.first
-		goods.gift = r.gift
-		goods.rmb = r.rmb
+		local r = game.g_rechargemgr:get_by_csv_id(v.csv_id)
+		local goods = r:__serialize()
 		goods.p_num = v.num
 		l[idx] = goods
 		idx = idx + 1

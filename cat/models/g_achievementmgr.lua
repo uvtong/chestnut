@@ -61,20 +61,10 @@ end
 
 function _M:add( u )
 	assert(u)
-	self.__data[tostring(u.id)] = u
+	self.__data[tostring(u.csv_id)] = u
 	self.__count = self.__count + 1
 end
 	
-function _M:delete(id)
-	assert(id)
-	self.__data[tostring(id)] = nil
-end
-
-function _M:get(id)
-	-- body
-	return self.__data[tostring(id)]
-end
-
 function _M:get_by_csv_id(csv_id)
 	-- body
 	for k,v in pairs(self.__data) do
@@ -82,6 +72,32 @@ function _M:get_by_csv_id(csv_id)
 			return v
 		end
 	end
+end
+
+function _M:get_by_type(t)
+	-- body
+	local r = {}
+	local idx = 1
+	for k,v in pairs(self.__data) do
+		if v.type == t then
+			r[idx] = v
+			idx = idx + 1
+		end
+	end
+	return r
+end
+
+function _M:get_by_type_and_level(t, l)
+	-- body
+	local r = {}
+	local idx = 1
+	for k,v in pairs(self.__data) do
+		if v._type == t and v.level == l then
+			r[idx] = v
+			idx = idx + 1
+		end
+	end
+	return r
 end
 
 function _M:get_count()
