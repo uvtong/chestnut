@@ -214,21 +214,21 @@ function REQUEST:login()
 
 		local t = {}
 		t.tname = "users"
-		t.content = { ifonline = true , onlinetime = onlinetime }
+		t.content = { ifonline = true, onlinetime = onlinetime }
 		t.condition = { id = r.id }	
 
-		skynet.call( addr , "lua" , "command" , "update_onlinestate" , t )
+		skynet.send(addr, "lua" , "command" , "update_onlinestate" , t)
 
 		print( "callend else" )
 		r.onlinetime = onlinetime
 		
 		local usersmgr = require "models/usersmgr"
 		user = usersmgr.create(r)
-		usersmgr:add( user )
 
 		skynet.fork(subscribe)
 		-- load
 		loader.load_user(user)
+		
 		print(">>>>>>>>>>>>>>>", type(usersmgr))
 		local level = csvReader.getcont("level")
 		level_limit = convert_level(level)
@@ -305,12 +305,20 @@ end
 function REQUEST:role()
 	assert(user)
 	assert(self.role_id)
-	local role = rolemgr:find(self.role_id)
+	print(self.role_id)
+	print(user.id)
+	for k,v in pairs(user.u_rolemgr.__data) do
+		print(k,v)
+	end
+	local role = user.u_rolemgr:get_by_csv_id(self.role_id)
+	for k,v in pairs(role) do
+		print(k,v)
+	end
 	local ret = {
 		errorcode = 0,
 		msg = "",
 		r = {
-			id = role.id,
+			id = role.csv_id,
 			wake_level = role.wake_level,
 			level = role.level,
 			combat = role.combat,
@@ -336,19 +344,20 @@ function REQUEST:choose_role()
 		user.c_role_id = self.role_id
 		ret.errorcode = 0
 		ret.msg = "yes"
-		local role = assert(user.rolemgr:find(user.c_role_id))
-		ret.r = role
+		local role = assert(user.u_rolemgr:get_by_csv_id(user.c_role_id))
+		ret.r = role:__serialize()
 		return ret
 	end
 end	
 	
 function REQUEST:role_upgrade_star()
 	assert(user)
-	print(self.role_id, user.c_role_id)
-	assert(self.role_id == user.c_role_id)
+	print(self.role_csv_id, user.c_role_id)
+	-- assert(self.role_csv_id == user.c_role_id)
 	local ret = {}
-	local role = user.rolemgr:find(self.role_id)
-	local prop = user.propmgr:get_by_csvid(self.role_id)
+	local role = user.u_rolemgr:get_by_csv_id(self.role_csv_id)
+	local role_pieces_csv_id = 1
+	local prop = user.u_propmgr:get_by_csv_id(self.role_id)
 	if prop.num > role.star_piece then
 		role.star_level = role.star_level + 1
 		skynet.send(util.random_db(), "lua", "command", "update", "roles", {{ id = role.id }}, { star_level = role.star_level })
@@ -380,7 +389,7 @@ function REQUEST:wake()
 	assert(user)
 	assert(self.role_id)
 	local ret = {}
-	local role = user.rolemgr:find(self.role_id)
+	local role = user.u_rolemgr:get_by_csv_id(self.role_id)
 	local nowid = id(role.wake_level, role.level)
 	for k,v in pairs(wakecost) do
 		print(k,v)
@@ -653,19 +662,21 @@ function REQUEST:shop_purchase()
 			end
 		elseif goods.currency_type == 1 then
 			local diamond = goods.currency_num * goods.p_num
-			local currency = user.propmgr:get_by_csvid(goods.currency_type)
+			local currency = user.u_propmgr:get_by_csv_id(goods.currency_type)
 			if currency.num > diamond then
 				currency.num = currency.num - diamond
-				skynet.send(util.random_db(), "lua", "command", "update", "props", {{ id = currency.id }}, { num = currency.num })
-				local prop = user.propmgr:get_by_csvid(goods.prop_csv_id)
+				currency:__update_db({"num"})
+				local prop = user.u_propmgr:get_by_csv_id(goods.g_prop_csv_id)
 				if prop then
 					prop.num = prop.num + goods.prop_num * goods.p_num
-					skynet.send(util.random_db(), "lua", "command", "update", "props", {{ id = prop.id }}, { num = prop.num, prop_pram1 = prop.pram1 })
+					prop:__update_db({"num", "pram1"})
 				else
-					local t = {user_id = user.id, csv_id = goods.prop_csv_id, prop_csv_id = goods.prop_csv_id, num = goods.prop_num * goods.p_num, prop_pram1 = prop.pram1}
-					local prop = user.propmgr.create(t)
+					local prop = game.g_propmgr:get_by_csv_id(goods.g_prop_csv_id)
+					prop.user_id = user.id
+					prop.num = goods.g_prop_num * goods.p_num
+					local prop = user.propmgr.create(prop)
 					user.propmgr:add(prop)
-					skynet.send(util.random_db(), "lua", "command", "insert", "props", t)
+					prop:__insert_db()
 				end
 				ret.errorcode = 0
 				ret.msg	= "yes, take diamond"

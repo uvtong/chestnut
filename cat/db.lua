@@ -73,7 +73,6 @@ end
 function QUERY:update( table_name, condition, columns )
 	-- body
 	local sql = util.update(table_name, condition, columns)
-	dump(db:query(sql))
 end
 
 function QUERY:insert( table_name, columns )
@@ -296,10 +295,9 @@ skynet.start( function ()
 		if cmd == "command" then
 			local f = assert( CMD[ cmd ] )
 			local result = f(CMD, subcmd, ... )
-			print( result )
-			--if result then
+			if result then
 				skynet.ret( skynet.pack( result ) )
-			--end
+			end
 		else
 			local f = assert( CMD[ cmd ] )
 			skynet.ret( skynet.pack( f( subcmd, ... ) ) )

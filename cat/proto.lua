@@ -330,6 +330,7 @@ otherfriend_list  17
 		friendlist  3 : *subuser
 	}
 }
+
 findfriend 18
 {
 	request {

@@ -5,7 +5,7 @@ local _M = {}
 _M.__data = {}
 _M.__count = 0
 
-local _Meta = { csv_id, }
+local _Meta = { nickname=0, level=0, star_level=0, combat=0, defense=0, critical_hit=0, skill=0, role_id=0, user_id=0, csv_id=0}
 
 _Meta.__tname = "u_equipment"
 
@@ -37,6 +37,17 @@ function _Meta:__update_db(t)
 	skynet.send(util.random_db(), "lua", "command", "update", self.__tname, {{ id = self.id }}, columns)
 end
 
+function _Meta:__serialize()
+	-- body
+	local r = {}
+	for k,v in pairs(_Meta) do
+		if not string.match(k, "^__*") then
+			r[k] = self[k]
+		end
+	end
+	return r
+end
+
 function _M.create( P )
 	assert(P)
 	local u = _Meta.__new()
@@ -50,44 +61,23 @@ end
 
 function _M:add( u )
 	assert(u)
-	self.__data[tostring(u.id)] = u
+	self.__data[tostring(u.csv_id)] = u
 	self.__count = self.__count + 1
-end
-	
-function _M:delete(id)
-	assert(id)
-	self.__data[tostring(id)] = nil
-end
-
-function _M:get(id)
-	-- body
-	return self.__data[tostring(id)]
 end
 
 function _M:get_by_csv_id(csv_id)
 	-- body
-	for k,v in pairs(self.__data) do
-		if v.csv_id == csv_id then
-			return v
-		end
-	end
+	return self.__data[tostring(csv_id)]
+end
+
+function _M:delete_by_csv_id(csv_id)
+	-- body
+	self.__data[tostring(csv_id)] = nil
 end
 
 function _M:get_count()
 	-- body
 	return self.__count
-end
-
-function _M:insert_db(r)
-	-- body
-	local t = {}
-	t.csv_id = r.csv_id
-	skynet.send(util.random_db(), "lua", "command", "insert", self.__tname, t)
-end
-
-function _M:update_db(r, t)
-	-- body
-	skynet.send(util.random_db(), "lua", "command", "update", self.__tname, {{ user_id = t.user_id }}, t)
 end
 
 return _M

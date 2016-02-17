@@ -154,13 +154,13 @@ while true do
 		if cmd == "handshake" then
 			send_request(cmd)
 		elseif cmd == "role" then
-			send_request(cmd)
+			send_request(cmd, { role_id = 1})
 		elseif cmd == "upgrade" then
-			send_request(cmd, { role_id = 2 })
+			send_request(cmd, { role_id = 1})
 		elseif cmd == "choose_role" then
-			send_request(cmd, { role_id = 2 })
+			send_request(cmd, { role_id = 1})
 		elseif cmd == "wake" then
-			send_request(cmd, { role_id = 2 })
+			send_request(cmd, { role_id = 1})
 		elseif cmd == "props" then
 			send_request(cmd)
 		elseif cmd == "use_prop" then
@@ -172,7 +172,7 @@ while true do
 		elseif cmd == "login" then
 			send_request("login", { account = "hello" , password = "world" })
 		elseif cmd == "role_upgrade_star" then
-			send_request("role_upgrade_star", { })
+			send_request("role_upgrade_star", { role_csv_id=1})
 		elseif cmd == "user_can_modify_name" then
 			send_request("user_can_modify_name")
 		elseif cmd == "user_modify_name" then
@@ -194,7 +194,7 @@ while true do
 		elseif cmd == "shop_refresh" then
 			send_request(cmd)
 		elseif cmd == "shop_purchase" then
-			send_request(cmd, { g = {{ goods_id = 13, goods_num = 1 }}})
+			send_request(cmd, { g = {{ goods_id = 1001, goods_num = 1 }}})
 		elseif cmd == "fl" then
 			send_request( "friend_list" )
 		elseif cmd == "applied" then

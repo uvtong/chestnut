@@ -6,7 +6,7 @@ _M.__data = {}
 _M.__count = 0
 _M.__tname = "g_checkpoint"
 
-local _Meta = { csv_id, }
+local _Meta = { csv_id=0}
 
 function _Meta.__new()
  	-- body
@@ -34,6 +34,17 @@ function _Meta:__update_db(t)
 		columns[tostring(v)] = self[tostring(v)]
 	end
 	skynet.send(util.random_db(), "lua", "command", "update", self.__tname, {{ id = self.id }}, columns)
+end
+
+function _Meta:__serialize()
+	-- body
+	local r = {}
+	for k,v in pairs(_Meta) do
+		if not string.match(k, "^__*") then
+			r[k] = self[k]
+		end
+	end
+	return r
 end
 
 function _M.create( P )
