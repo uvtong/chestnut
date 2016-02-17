@@ -1,7 +1,3 @@
-local tname = tostring(...)
-local addr = io.open("./models/" .. tname .. "mgr.lua", "w")
-local P = "{ csv_id, }"
-local s = string.format([[
 local skynet = require "skynet"
 local util = require "util"
 
@@ -9,9 +5,9 @@ local _M = {}
 _M.__data = {}
 _M.__count = 0
 
-local _Meta = %s
+local _Meta = { csv_id=0, type=0, currency_type=0, currency_num=0, g_prop_csv_id=0, g_prop_num=0, c_startingtime=0, c_countdown=0, c_a_num=0, c_u_num=0, cd=0, icon_id=0}
 
-_M.__tname = "%s"
+_Meta.__tname = "g_goods"
 
 function _Meta.__new()
  	-- body
@@ -41,31 +37,38 @@ function _Meta:__update_db(t)
 	skynet.send(util.random_db(), "lua", "command", "update", self.__tname, {{ id = self.id }}, columns)
 end
 
-function _M.create( P )
+function _M.create(P)
 	assert(P)
 	local u = _Meta.__new()
 	for k,v in pairs(_Meta) do
-		if not string.match(k, "^__*") then
-			u[k] = P[k]
-		end
+		u[k] = P[k]
 	end
 	return u
 end	
 
 function _M:add( u )
 	assert(u)
-	self.__data[tostring(u.csv_id)] = u
+	self.__data[tostring(u.id)] = u
 	self.__count = self.__count + 1
 end
 	
-function _M:get_by_csv_id(csv_id)
-	-- body
-	return self.__data[tostring(csv_id)]
+function _M:delete(id)
+	assert(id)
+	self.__data[tostring(id)] = nil
 end
 
-function _M:delete_by_csv_id(csv_id)
+function _M:get(id)
 	-- body
-	self.__data[tostring(csv_id)] = nil
+	return self.__data[tostring(id)]
+end
+
+function _M:get_by_csv_id(csv_id)
+	-- body
+	for k,v in pairs(self.__data) do
+		if v.csv_id == csv_id then
+			return v
+		end
+	end
 end
 
 function _M:get_count()
@@ -73,8 +76,16 @@ function _M:get_count()
 	return self.__count
 end
 
-return _M
-]], tname, P)
+function _M:insert_db(r)
+	-- body
+	local t = {}
+	t.csv_id = r.csv_id
+	skynet.send(util.random_db(), "lua", "command", "insert", self.__tname, t)
+end
 
-addr:write(s)
-addr:close()
+function _M:update_db(r, t)
+	-- body
+	skynet.send(util.random_db(), "lua", "command", "update", self.__tname, {{ user_id = t.user_id }}, t)
+end
+
+return _M

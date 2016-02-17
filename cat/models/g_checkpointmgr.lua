@@ -1,17 +1,12 @@
-local tname = tostring(...)
-local addr = io.open("./models/" .. tname .. "mgr.lua", "w")
-local P = "{ csv_id, }"
-local s = string.format([[
 local skynet = require "skynet"
 local util = require "util"
 
 local _M = {}
 _M.__data = {}
 _M.__count = 0
+_M.__tname = "g_checkpoint"
 
-local _Meta = %s
-
-_M.__tname = "%s"
+local _Meta = { csv_id, }
 
 function _Meta.__new()
  	-- body
@@ -54,18 +49,27 @@ end
 
 function _M:add( u )
 	assert(u)
-	self.__data[tostring(u.csv_id)] = u
+	self.__data[tostring(u.id)] = u
 	self.__count = self.__count + 1
 end
 	
-function _M:get_by_csv_id(csv_id)
-	-- body
-	return self.__data[tostring(csv_id)]
+function _M:delete(id)
+	assert(id)
+	self.__data[tostring(id)] = nil
 end
 
-function _M:delete_by_csv_id(csv_id)
+function _M:get(id)
 	-- body
-	self.__data[tostring(csv_id)] = nil
+	return self.__data[tostring(id)]
+end
+
+function _M:get_by_csv_id(csv_id)
+	-- body
+	for k,v in pairs(self.__data) do
+		if v.csv_id == csv_id then
+			return v
+		end
+	end
 end
 
 function _M:get_count()
@@ -74,7 +78,3 @@ function _M:get_count()
 end
 
 return _M
-]], tname, P)
-
-addr:write(s)
-addr:close()
