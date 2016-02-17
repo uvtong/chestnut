@@ -563,7 +563,7 @@ function friendmgr:recvfriend( friendlist )
    		local tmp = {}
 		for sk , sv in pairs( friendmgr._data.appliedlist ) do
 			if sv.fromid ~= v.friendid then
-				table.insert( tmp , { fromid = sv.fromid , srecvtime = sv.srecvtime } )
+				table.insert( tmp , sv )
 			end
 		end
 		friendmgr._data.appliedlist = tmp
@@ -602,9 +602,9 @@ function friendmgr:refusefriend( friendlist )
 
 	for k , v in pairs( friendlist ) do
 		local tmp = {}
-		for k , v in pairs( friendmgr._data.appliedlist ) do
-			if v ~= v.friendid then
-				table.insert( tmp , { fromid = v.friendid })
+		for sk , sv in pairs( friendmgr._data.appliedlist ) do
+			if sv.fromid ~= v.friendid then
+				table.insert( tmp , sv )
 			end
 		end
 		friendmgr._data.appliedlist = tmp
@@ -636,15 +636,13 @@ function friendmgr:refusefriend( friendlist )
 	end				
 end			
 		
-
-		
 function friendmgr:deletefriend( friendid )
 	assert( friendid )
 
 	local tmp = {}
 	for sk , sv in pairs( friendmgr._data.friendlist ) do
 		if sv.friendid ~= friendid then
-			table.insert( tmp , { friendid = sv.friendid } )
+			table.insert( tmp , sv )
 		end
 	end
 
@@ -744,9 +742,12 @@ function friendmgr:recvheart( heartlist , totalamount )
 		return ret
 	end		
 
+	local prop = user.g_propmgr.get_by_csv_id( 3 )
+	
+	--print( "total num is " .. total.num )
 	for k , v in pairs( heartlist ) do
 			recvheartnum = recvheartnum + v.amount
-			total = total + v.amount
+			prop.num = prop.num + v.amount
 
 			local t = v
 			t.toid = v.friendid
@@ -773,12 +774,18 @@ function friendmgr:recvheart( heartlist , totalamount )
 				print( "insert a new msg to db and update a msg" )
 			end	
 	end		
+
+	prop:__update_db( "num" )
+
 end			
 		
 function friendmgr:sendheart( heartlist , totalamount ) 
 	assert( heartlist )
 	print(	"heartamount = " .. totalamount )
-	if total - totalamount < 0 then -- not enough heart then return error
+	local prop = user.g_propmgr.get_by_csv_id( 3 )
+	--assert( total )
+	--print( "total num is " .. total.num )
+	if nil == prop or prop.num - totalamount < 0 then -- not enough heart then return error
 		local ret = {}
 		ret.ok = false
 		ret.msg = "not enough heart"
@@ -787,7 +794,7 @@ function friendmgr:sendheart( heartlist , totalamount )
 	end  
 
 	for k , v in pairs( heartlist ) do
-		total = total - v.amount
+		prop.num = prop.num - v.amount
 
 		local t = v
 		t.toid = v.friendid
@@ -825,6 +832,8 @@ function friendmgr:sendheart( heartlist , totalamount )
 			print( "insert a new msg to db and update a msg" )
 		end	
 	end	
+	prop:__update_db( "num" )
+
 end		
 			
 function friendmgr:agent_request_handle( msg )
@@ -841,8 +850,8 @@ function friendmgr:agent_request_handle( msg )
 
 		local tmp = {}
 		for k , v in pairs( friendmgr._data.friendlist ) do
-			if v ~= v.friendid then
-				table.insert( tmp , { friendid = v.friendid , } )
+			if msg.fromid ~= v.friendid then
+				table.insert( tmp , v )
 			end
 		end
 
@@ -860,7 +869,7 @@ function friendmgr:agent_request_handle( msg )
 		local tmp = {}
 		for k , v in pairs( friendmgr._data.applylist ) do
 			if msg.fromid ~= v then
-				table.insert( tmp , { toid = v } )
+				table.insert( tmp , v )
 			end
 		end
 		friendmgr._data.applylist = tmp
@@ -882,7 +891,7 @@ function friendmgr:agent_request_handle( msg )
 		local tmp = {}
 		for k , v in pairs( friendmgr._data.applylist ) do
 			if msg.fromid ~= v then
-				table.insert( tmp , { toid = v } )
+				table.insert( tmp , v )
 			end
 		end
 		

@@ -217,7 +217,7 @@ function REQUEST:login()
 		t.content = { ifonline = true , onlinetime = onlinetime }
 		t.condition = { id = r.id }	
 
-		skynet.call( addr , "lua" , "command" , "update_onlinestate" , t )
+		skynet.send( addr , "lua" , "command" , "update_onlinestate" , t )
 
 		print( "callend else" )
 		r.onlinetime = onlinetime
