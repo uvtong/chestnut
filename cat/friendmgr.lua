@@ -90,7 +90,7 @@ function friendmgr:_db_insertmsg( msg )
 	local addr = randomaddr()
 	assert( addr )
 
-	skynet.call( addr , "lua" , "command" , "insert_newmsg" , msg )
+	skynet.send( addr , "lua" , "command" , "insert_newmsg" , msg )
 
 	print("insert a msg successfully")	
 end
@@ -175,7 +175,7 @@ function friendmgr:_db_delete_friend( t )
 	local addr = randomaddr()
 	assert( addr )
 
-	skynet.call( addr , "lua" , "command" , "delete_friend" , t ) 
+	skynet.send( addr , "lua" , "command" , "delete_friend" , t ) 
 	print( "delete a friend successfully" )
 end		
 
@@ -185,7 +185,7 @@ function friendmgr:_db_updatefriend( t )
 	local addr = randomaddr()
 	assert( addr )
 
-	skynet.call( addr , "lua" , "command" , "update_friend" , t )
+	skynet.send( addr , "lua" , "command" , "update_friend" , t )
 
 	print( "update friend successfully" )
 end	
@@ -515,7 +515,7 @@ function friendmgr:applyfriend( friendlist )
 			local r = dc.get( v.friendid )
 			--print( "r.addr is " .. r.addr )
 			if r then
-				skynet.call( r.addr , "lua" , "friend", "agent_request_handle" , nm )
+				skynet.send( r.addr , "lua" , "friend", "agent_request_handle" , nm )
 				print( "notify an agent " , v.friendid ) 
 			else
 				friendmgr:_db_insertmsg( nm )
@@ -535,7 +535,7 @@ function friendmgr:_db_insert_newfriend( uid , friendid )
    	local addr = randomaddr()
    	assert( addr )
 
-   	skynet.call( addr , "lua" , "command" , "insert_newfriend" , t )
+   	skynet.send( addr , "lua" , "command" , "insert_newfriend" , t )
 
    	print( "insert a new friend successfully" )
 end		 	
@@ -546,7 +546,7 @@ function friendmgr:_db_updatemsg( t )
 	local addr = randomaddr()
 	assert( addr )
 
-	skynet.call( addr , "lua" , "command" , "update_msg" , t )
+	skynet.send( addr , "lua" , "command" , "update_msg" , t )
 	print( "update a msg successfully" )  
 end		 	
 		
@@ -580,7 +580,7 @@ function friendmgr:recvfriend( friendlist )
 		print( r )
 		if r then
 			print( "friend dc is called" )
-			skynet.call( r.addr , "lua" , "friend", "agent_request_handle" , nm )
+			skynet.send( r.addr , "lua" , "friend", "agent_request_handle" , nm )
 			print( "notify an agent " , v.friendid ) 
 		else
 			print( v.friendid , user.id )
@@ -620,7 +620,7 @@ function friendmgr:refusefriend( friendlist )
 		local r = dc.get( v.friendid )
          
 		if r then
-			skynet.call( r.addr , "lua" , "friend", "agent_request_handle" , nm )
+			skynet.send( r.addr , "lua" , "friend", "agent_request_handle" , nm )
 			print( "notify an agent " , v.friendid ) 
 		else
 			friendmgr:_db_insertmsg( nm )
@@ -666,7 +666,7 @@ function friendmgr:deletefriend( friendid )
 	local r = dc.get( friendid )
     
 	if r then -- if online notice the friend 
-		skynet.call( r.addr , "lua" , "friend", "agent_request_handle" , nm )
+		skynet.send( r.addr , "lua" , "friend", "agent_request_handle" , nm )
 		print( "notify an agent " , friendid ) 
 	else 										
 		friendmgr:_db_insertmsg( nm ) -- insert a msg to friendmsg 
@@ -742,7 +742,7 @@ function friendmgr:recvheart( heartlist , totalamount )
 		return ret
 	end		
 
-	local prop = user.g_propmgr.get_by_csv_id( 3 )
+	local prop = user.u_propmgr:get_by_csv_id( 3 )
 	
 	--print( "total num is " .. total.num )
 	for k , v in pairs( heartlist ) do
@@ -760,7 +760,7 @@ function friendmgr:recvheart( heartlist , totalamount )
 			local r = dc.get( v.friendid )
          	
 			if r then -- if online notice the friend 
-				skynet.call( r.addr , "lua" , "friend", "agent_request_handle" , nm )
+				skynet.send( r.addr , "lua" , "friend", "agent_request_handle" , nm )
 				print( "notify an agent " , v.friendid ) 
 			else 
 				friendmgr:_db_insertmsg( nm ) -- insert a msg to friendmsg 
@@ -769,20 +769,20 @@ function friendmgr:recvheart( heartlist , totalamount )
 				local t = {}
 				t.tname = "u_friendmsg"
 				t.content = { isread = 1 }
-				t.condition = { fromid = v.friendid , toid = user.id , type = msgtype.ACCEPTHEART , signtime = v.signtime }
+				t.condition = { fromid = v.friendid , toid = user.id , type = msgtype.SENDTHEART , srecvtime = v.signtime }
 				friendmgr:_db_updatemsg( t )	
 				print( "insert a new msg to db and update a msg" )
 			end	
 	end		
 
-	prop:__update_db( "num" )
+	prop:__update_db( {"num"} )
 
 end			
 		
 function friendmgr:sendheart( heartlist , totalamount ) 
 	assert( heartlist )
 	print(	"heartamount = " .. totalamount )
-	local prop = user.g_propmgr.get_by_csv_id( 3 )
+	local prop = user.u_propmgr:get_by_csv_id( 3 )
 	--assert( total )
 	--print( "total num is " .. total.num )
 	if nil == prop or prop.num - totalamount < 0 then -- not enough heart then return error
@@ -820,7 +820,7 @@ function friendmgr:sendheart( heartlist , totalamount )
 		friendmgr:_db_updatefriend( t ) 
 		
 		if r then -- if online notice the friend 
-			skynet.call( r.addr , "lua" , "friend", "agent_request_handle" , nm )
+			skynet.send( r.addr , "lua" , "friend", "agent_request_handle" , nm )
 			print( "notify an agent " , v.friendid ) 
 		else 
 			friendmgr:_db_insertmsg( nm ) -- insert a msg to friendmsg 	
@@ -832,7 +832,7 @@ function friendmgr:sendheart( heartlist , totalamount )
 			print( "insert a new msg to db and update a msg" )
 		end	
 	end	
-	prop:__update_db( "num" )
+	prop:__update_db( {"num"} )
 
 end		
 			
@@ -877,7 +877,7 @@ function friendmgr:agent_request_handle( msg )
 		local t = {}
 		t.tname = "u_friendmsg"
 		t.content = { isread = 1 }
-		t.condition = { fromid = user.id , toid = msg.fromid , type = msgtype.APPLY , signtime = msg.signtime }
+		t.condition = { fromid = user.id , toid = msg.fromid , type = msgtype.APPLY , srecvtime = msg.signtime }
 		friendmgr:_db_updatemsg( t )
 		
 		--local ret = {}
@@ -900,7 +900,7 @@ function friendmgr:agent_request_handle( msg )
 		local t = {}
 		t.tname = "u_friendmsg"
 		t.content = { isread = 1 }
-		t.condition = { fromid = user.id , toid = msg.fromid , type = msgtype.APPLY , signtime = msg.signtime }
+		t.condition = { fromid = user.id , toid = msg.fromid , type = msgtype.APPLY , srecvtime = msg.signtime }
 		friendmgr:_db_insertmsg( msg )
 		friendmgr:_db_updatemsg( t )
 		--TODO maybe should send some msg to client for redpoint
@@ -927,7 +927,7 @@ function friendmgr:agent_request_handle( msg )
 		local t = {}
 		t.tname = "u_friendmsg"
 		t.content = { isread = 1 }
-		t.condition = { fromid = user.id , toid = msg.friendid , type = msgtype.SENDHEART , signtime = msg.signtime }
+		t.condition = { fromid = user.id , toid = msg.friendid , type = msgtype.SENDHEART , srecvtime = msg.signtime }
 		friendmgr:_db_insertmsg( msg )
 		friendmgr:_db_updatemsg( t )
 	else

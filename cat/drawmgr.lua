@@ -12,10 +12,6 @@ local MAXDRAWNUM = 5
 local day = 60 * 60 * 24
 
 local drawtype = { FRIEND = 1 , ONETIME = 2 , TENTIME = 3 }
-local bdraw_isfriend = false
-local bdraw_isfree = false
-local bdraw_isonetime = false
-local bdraw_istentime = false
 
 local user
 local recvtime = 0
@@ -73,7 +69,7 @@ function drawmgr:_db_getdioment_or_heart_num( t )
 	return r
 end		
 		
-function drawmgr:_db_update_prop( t )
+--[[function drawmgr:_db_update_prop( t )
 	assert( t )
 	print( "update prop is called" )
 	local addr = randomaddr()
@@ -82,7 +78,7 @@ function drawmgr:_db_update_prop( t )
 	skynet.call( addr , "lua" , "command" , "update_props" , t )
 
 	print( "update prop over" )
-end		
+end	--]]	
 		
 local function getsettime()
 	local year = tonumber( os.date( "%Y" , os.time() ) )
@@ -137,10 +133,10 @@ end
 	
 function drawmgr:_db_insert_drawmsg( t )
 	assert( t )
-
+print("call drawser")
 	local addr = randomaddr()
 	assert( addr )
-	skynet.call( addr , "lua" , "command" , "insert_drawmsg" , t )
+	skynet.send( addr , "lua" , "command" , "insert_drawmsg" , t )
 	print( "insert a drawmsg successfully" )
 end	
 
@@ -321,7 +317,7 @@ function drawmgr:tentimedraw( tv )
 	v.csvid = tonumber( line.cointype )
 
 	--local num = drawmgr:_db_getdioment_or_heart_num( v )
-    local prop = user.g_propmgr.get_by_csv_id( tonumber( line.cointype ) )
+    local prop = user.u_propmgr:get_by_csv_id( tonumber( line.cointype ) )
 
 	if nil == prop or prop.num < tonumber( line.price ) then
 		print( "not enough money in tentime" )
@@ -334,7 +330,7 @@ function drawmgr:tentimedraw( tv )
 		prop.num = prop.num - tonumber( line.price )
 		proplist = getpropidlist( drawtype.TENTIME )
 		
-		prop:__update_db( "num" )
+		prop:__update_db( {"num"} )
 		--[[local t = {}
 		t.tname = "u_prop"
 		t.content = { num = num }
@@ -388,20 +384,22 @@ function drawmgr:onetimedraw( tv )
 		local t = {}
 		t.uid = user.id
 		t.csvid = tonumber( line.cointype )
-
+		print( "t.csvid" )
 		-- num = drawmgr:_db_getdioment_or_heart_num( t )
-    	local prop = user.g_propmgr.get_by_csv_id( tonumber( line.cointype ) )
-
+    	local prop = user.u_propmgr:get_by_csv_id( tonumber( line.cointype ) )
+    	print( "get prop" )
 		if nil == prop or prop.num < tonumber( line.price ) then
+			print( prop , prop.num )
 			local ret = {}
 			ret.ok = false
 			ret.msg = "not enough money"
 			return ret
 		else
+			print( "update prop is called in " )
+
 			prop.num = prop.num - tonumber( line.price )
 			proplist = getpropidlist( drawtype.ONETIME )
-			print( "update prop is called in " )
-			print( "*******************" , os.time() , recvtime , recvtime + day - os.time() )
+						print( "*******************" , os.time() , recvtime , recvtime + day - os.time() )
 			if os.time() > recvtime + day then
 				print( " >>>>>>>>" )
 				proplist.lefttime = 0
@@ -410,7 +408,7 @@ function drawmgr:onetimedraw( tv )
 				proplist.lefttime = recvtime + day - os.time()
 			end 
 			
-			prop:__update_db( "num" )
+			prop:__update_db( {"num"} )
 			--[[local t = {}
 			t.tname = "u_prop"
 			t.content = { num = num }
@@ -450,7 +448,7 @@ function drawmgr:frienddraw( tv )
 	t.uid = user.id
 	t.csvid = tonumber( line.cointype )
 
-	local prop = user.g_propmgr.get_by_csv_id( tonumber( line.cointype ) )
+	local prop = user.u_propmgr:get_by_csv_id( tonumber( line.cointype ) )
 	--assert( prop )
 	--local num = drawmgr:_db_getdioment_or_heart_num( t )
     --print( "money from db  is " .. prop.num )
@@ -468,12 +466,12 @@ function drawmgr:frienddraw( tv )
 		proplist = getpropidlist( drawtype.TENTIME ) 
 		print( "update prop is called in " )
 
-		prop:__update_db( "num" )
+		prop:__update_db( {"num"} )
 
 		--[[local v = {}
 		v.tname = "u_prop"
 		v.content = { num = num }
-		v.condition = { user_id = user.id , csv_id = tonumber( line.cointype ) }
+		v.condition = { user_id = user.id , csv_id = tonumber( abortine.cointype ) }
 
 		drawmgr:_db_update_prop( v )--]]
 		print( "update prop successfully in tentimedraw" )

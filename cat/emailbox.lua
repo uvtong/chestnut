@@ -134,7 +134,7 @@ function emailbox:_db_wbreademail( uid , eid )
 	t.uid = uid
 	t.emailid = eid
 
-	skynet.call( addr , "lua" , "command" , "update_reademail" ,  t )	
+	skynet.send( addr , "lua" , "command" , "update_reademail" ,  t )	
 	print( "update reademail successfully\n" )
 end		
 		
@@ -147,7 +147,7 @@ function emailbox:_db_wbdelemail( uid , eid )
 	t.uid = uid
 	t.emailid = eid
 
-	skynet.call( addr , "lua" , "command" , "update_delemail" ,  t )	
+	skynet.send( addr , "lua" , "command" , "update_delemail" ,  t )	
 	print( "update delemail successfully\n" )
 end		
 		
@@ -160,10 +160,10 @@ function emailbox:_db_wbrecvreward( uid , eid , etype )
 	t.uid = uid
 	t.emailid = eid
 
-	skynet.call( addr , "lua" , "command" , "update_getreward" ,  t )
+	skynet.send( addr , "lua" , "command" , "update_getreward" ,  t )
 
 	if 1 == etype then -- accreward at one time
-		skynet.call( addr , "lua" , "command" , "update_reademail" , t )		
+		skynet.send( addr , "lua" , "command" , "update_reademail" , t )		
 	end		 
 	
 	print( "update rewardemail successfully\n" )
@@ -178,7 +178,7 @@ function emailbox:_db_wbaddemail( tvals )
 		print( k , v )
 	end 
 
-	skynet.call( addr , "lua" , "command" , "insert_newemail" , tvals )
+	skynet.send( addr , "lua" , "command" , "insert_newemail" , tvals )
 end	
 	
 --************************************************	
