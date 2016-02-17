@@ -73,6 +73,7 @@ end
 function QUERY:update( table_name, condition, columns )
 	-- body
 	local sql = util.update(table_name, condition, columns)
+	db:query(sql)
 end
 
 function QUERY:insert( table_name, columns )

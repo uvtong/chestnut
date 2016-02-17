@@ -39,9 +39,8 @@ local function send_package(pack)
 	socket.write(client_fd, package)
 end
 
-local function raise_achievement(achievement)
+local function push_achievement(achievement)
 	-- body
-
 	ret = {}
 	ret.which = {
 		csv_id = achievement.csv_id,
@@ -133,10 +132,10 @@ function REQUEST:role()
 	return ret
 end	
 									
-local function achi( type, ... )
+local function raise_achievement(t)
 	-- body
 	if type == "combat" then
-		local n = tonumber(...)
+		local n = 0
 		local l = user.achievementmgr:get(type)
 		for i,v in ipairs(l) do
 			local z = n / v.combat
@@ -155,10 +154,9 @@ local function achi( type, ... )
 		end
 	elseif type == "gold" then -- 2
 		local prop = user.u_propmgr:get_by_csv_id(const.GOLD) -- abain prop by type (type -- csv_id -- prop.id)
-		local lg = game.g_achievementmgr:get_by_type(type)
 		local lu = user.u_achievementmgr:get_by_type(type)
 		-- sort
-		for i,v in ipairs(l) do
+		for i,v in ipairs(lg) do
 			if prop.num > v.gold then
 				v.finished = math.floor(prop.num / v.gold * 100)
 				skynet.fork(function ()
@@ -599,6 +597,19 @@ function REQUEST:user_modify_name()
 	return ret
 end
 
+local function add_achievement()
+	-- body
+	local t = 2
+	local lg = game.g_achievementmgr:get_by_type_and_level(t, user.level)
+	for k,v in pairs(lg) do
+		v.user_id = user.id
+		v.finished = 10
+		local a = user.u_achievementmgr.create(v)	
+		user.u_achievementmgr:add(a)
+		a:__insert_db()
+	end
+end
+
 function REQUEST:user_upgrade()
 	-- body
 	assert(user)
@@ -607,6 +618,7 @@ function REQUEST:user_upgrade()
 	local L = level_limit[tostring(user.level)]
 	local exp = user.u_propmgr:get_by_csv_id(const.EXP).num
 	if exp > tonumber(L.exp) then
+		add_achievement()
 		user.level = user.level + 1
 		local LL = level_limit[tostring(user.level)]
 		user.combat = LL.combat
