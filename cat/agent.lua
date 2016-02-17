@@ -4,16 +4,15 @@ require "skynet.manager"
 local netpack = require "netpack"
 local socket = require "socket"
 local sproto = require "sproto"
-local mc = require "multicast"
 local sprotoloader = require "sprotoloader"
 local mc = require "multicast"
 local dc = require "datacenter"
 local util = require "util"
+local loader = require "loader"
 
 local emailrequest = require "emailrequest"
 local emailbox = require "emailbox"
 local csvReader = require "csvReader"
-local usermgr = require "usermgr" 
 
 local WATCHDOG
 local host
@@ -24,7 +23,7 @@ local REQUEST = {}
 local RESPONSE = {}
 local client_fd
 
-local game = {}
+local game
 local user
 local level_limit
 local wakeattr
@@ -77,6 +76,7 @@ function SUBSCRIBE:email( tvals, ... )
 	ret.mail = {}
 	local tmp = {}
    	tmp.attachs = {}
+
     tmp.emailid = v.id
     tmp.type = v.type
     tmp.acctime = os.date("%Y-%m-%d" , v.acctime)
@@ -169,120 +169,6 @@ local function achi( type, ... )
 	end
 end
 
-local function load_achievements( user )
-	-- body
-	local achievementmgr = require "achievementmgr"
-	local addr = util.random_db()
-	local r = skynet.call(addr, "lua", "command", "select_achievements", {{ user_id = user.id}})
-	for i,v in ipairs(r) do
-		local a = achievementmgr.create(v)
-		achievementmgr:add(a)
-	end
-	user.achievementmgr = achievementmgr
-end
-
-local function load_roles( user )
-	-- body
-	local rolemgr = require "rolemgr"
-	local addr = util.random_db()
-	local nr = skynet.call(addr, "lua", "command", "select_roles", {{ user_id = user.id }})
-	assert(nr)
-	for i,v in ipairs(nr) do
-		local role = rolemgr:create( v )
-		rolemgr:add(role)
-	end
-	user.rolemgr = rolemgr
-end
-
-local function load_props( user )
-	-- body
-	local propmgr = require "propmgr"
-	local addr = util.random_db()
-	local nr = skynet.call(addr, "lua", "command", "select_props", {{ user_id = user.id }})
-	assert(nr)
-	for i,v in ipairs(nr) do
-		local prop = propmgr.create( v )
-		propmgr:add(prop)
-	end
-	user.propmgr = propmgr
-end
-
-local function load_recharge_reward (user)
-	-- body
-	local u_recharge_reward = require "u_recharge_reward"
-	local r = skynet.call(util.random_db(), "lua", "command", "select", "u_recharge_reward")
-	assert(r)
-	for i,v in ipairs(r) do
-		local reward = u_recharge_reward.create(r[i])
-		u_recharge_reward:add(reward)
-	end
-	user.u_recharge_reward = u_recharge_reward
-end
-
-local function load_u_purchase_goods(user)
-	-- body
-	local u_purchase_goodsmgr = require "u_purchase_goodsmgr"
-	local r = skynet.call(util.random_db(), "lua", "command", "select", "u_purchase_goods")
-	assert(r)
-	for i,v in ipairs(r) do
-		local t = u_purchase_goodsmgr.create(v)
-		u_purchase_goodsmgr:add(t)
-	end
-	user.u_purchase_goodsmgr = u_purchase_goodsmgr
-end
-
-local function load_u_purchase_reward(user)
-	-- body
-	local u_purchase_rewardmgr = require "u_purchase_rewardmgr"
-	local r = skynet.call(util.random_db(), "lua", "command", "select", "u_purchase_reward")
-	assert(r)
-	for i,v in ipairs(r) do
-		local t = u_purchase_rewardmgr.create(v)
-		u_purchase_rewardmgr:add(t)
-	end
-	user.u_purchase_rewardmgr = u_purchase_rewardmgr
-end
-
-local function load_u_recharge_record(user)
-	-- body
-	local u_recharge_recordmgr = require "u_recharge_recordmgr"
-	local r = skynet.call(util.random_db(), "lua", "command", "select", "u_recharge_record")
-	assert(r)
-	for i,v in ipairs(r) do
-		local t = u_recharge_recordmgr.create(v)
-		u_recharge_recordmgr:add(t)
-	end
-	user.u_recharge_recordmgr = u_recharge_recordmgr
-end
-
-local function load_u_recharge_reward()
-	-- body
-	local u_recharge_recordmgr = require "u_recharge_rewardmgr"
-	local r = skynet.call(util.random_db(), "lua", "command", "select", "u_recharge_reward")
-	assert(r)
-	for i,v in ipairs(r) do
-		local t = u_recharge_recordmgr.create(v)
-		u_recharge_recordmgr:add(t)
-	end
-	user.u_recharge_recordmgr = u_recharge_recordmgr
-end
-
-local function load_g_recharge_vip( game )
-	-- body
-	local g_recharge_vipmgr = require "g_recharge_vipmgr"
-	local r = skynet.call(util.random_db(), "lua", "command", "select", "g_recharge_vip")
-	for i,v in ipairs(r) do
-		local t = g_recharge_vipmgr.create(v)
-		g_recharge_vipmgr:add(t)
-	end
-	game.g_recharge_vipmgr = g_recharge_vipmgr
-	for k,v in pairs(g_recharge_vipmgr.__data) do
-		for kk,vv in pairs(v) do
-			print(kk,vv)
-		end
-	end
-end
-
 function REQUEST:signup()
 	-- body
 	local ret = {}
@@ -310,20 +196,13 @@ function REQUEST:login()
 		ret.msg = "no"
 		return ret
 	else
-		user = usermgr.create(r)
-		usermgr:add( user )
+		local usersmgr = require "models/usersmgr"
+		user = usersmgr.create(r)
+		usersmgr:add( user )
 		skynet.fork(subscribe)
 		-- load
-		load_achievements(user)
-		load_props(user)
-		load_roles(user)
-		load_recharge_reward(user)
-		load_u_purchase_goods(user)
-		load_u_purchase_reward(user)
-		load_u_recharge_record(user)
-		load_u_recharge_reward(user)
-		load_g_recharge_vip(game)
-
+		loader.load_user(user)
+		print(">>>>>>>>>>>>>>>", type(usersmgr))
 		local level = csvReader.getcont("level")
 		level_limit = convert_level(level)
 
@@ -337,14 +216,14 @@ function REQUEST:login()
 			avatar = user.avatar,
 			sign = user.sign,
 			c_role_id = user.c_role_id,
-			uexp = user.propmgr:get_by_csvid(3).num,
-			gold = user.propmgr:get_by_csvid(2).num,
-			diamond = user.propmgr:get_by_csvid(1).num
+			uexp = user.u_propmgr:get_by_csv_id(3).num,
+			gold = user.u_propmgr:get_by_csv_id(2).num,
+			diamond = user.u_propmgr:get_by_csv_id(1).num
 		}
 		-- all roles
 		local l = {}
 		local idx = 1
-		for k,v in pairs(user.rolemgr._data) do
+		for k,v in pairs(user.u_rolemgr.__data) do
 			local r = {
 				role_id = v.id,
 				wake_level = v.wake_level,
@@ -481,12 +360,12 @@ function REQUEST:props()
 	assert(user)
 	ret = {}
 	local l = {}
-	for k,v in pairs(user.propmgr) do
+	for k,v in pairs(user.u_propmgr) do
 		print(k,v)
 	end
-	assert(user.propmgr._data)
+	assert(user.u_propmgr.__data)
 	local idx = 1
-	for k,v in pairs(user.propmgr._data) do
+	for k,v in pairs(user.u_propmgr.__data) do
 		local p = {}
 		p.csv_id = v.csv_id
 		p.num = v.num
@@ -502,11 +381,10 @@ function REQUEST:use_prop()
 	assert(user)
 	local ret = {}
 	if #self.props == 1 then
-		local prop = user.propmgr:get_by_csvid(self.props[1].csv_id)
+		local prop = user.u_propmgr:get_by_csv_id(self.props[1].csv_id)
 		if prop.num > 0 then
 			prop.num = prop.num + self.props[1].num
-			local addr = util.random_db()
-			skynet.send(addr, "lua", "command", "update_prop", user.id, prop.csv_id, prop.num)
+			prop:__update_db({"num"})
 			ret.errorcode = 0
 			ret.msg	= "yes"
 			if prop.num ~= 0 then
@@ -519,11 +397,11 @@ function REQUEST:use_prop()
 			local addr = random_db()
 			skynet.send(addr, "lua", "command", "update_prop", user.id, prop.csv_id, prop.num)		
 			if prop.csv_id == 690001 then
-				local p = user.propmgr:get_by_csvid(3)
+				local p = user.u_propmgr:get_by_csv_id(3)
 				p.num = p.num + prop.prop_pram1
 				skynet.send(util.random_db(), "lua", "command", "update", "props", {{ user_id = user.id, csv_id = p.csv_id}}, { num = p.num })
 			elseif prop.csv_id == 690002 then
-				local p = user.propmgr:get_by_csvid(2)
+				local p = user.u_propmgr:get_by_csv_id(2)
 				p.num = p.num + prop.prop_pram1
 				skynet.send(util.random_db(), "lua", "command", "update", "props", {{ user_id = user.id, csv_id = p.csv_id}}, { num = p.num })
 			end
@@ -542,7 +420,7 @@ function REQUEST:use_prop()
 		local idx = 1
 		for k,v in pairs(self.props) do
 			-- update databse
-			local prop = user.propmgr:get_by_csvid(v.csv_id)
+			local prop = user.u_propmgr:get_by_csv_id(v.csv_id)
 			assert(v.num > 0)
 			prop.num = prop.num + v.num
 			local addr = random_db()
@@ -562,7 +440,7 @@ function REQUEST:achievement()
 	local ret = {}
 	local l = {}
 	local idx = 1
-	for k,v in pairs(user.achievementmgr._data) do
+	for k,v in pairs(user.u_achievementmgr.__data) do
 		local a = {
 			csv_id = v.csv_id,
     		finished = v.finished
@@ -612,8 +490,8 @@ function REQUEST:user()
 		uname = user.uname,
     	uviplevel = user.uviplevel,
     	uexp = user.uexp,
-    	config_sound = user.config_sound,
-    	config_music = user.config_music,
+    	config_sound = user.config_sound and true or false,
+    	config_music = user.config_music and true or false,
     	avatar = user.avatar,
     	sign = user.sign,
     	c_role_id = user.c_role_id,
@@ -650,16 +528,18 @@ end
 
 function REQUEST:user_upgrade()
 	-- body
+	assert(user)
 	local ret = {}
 	print(user.level)
 	local L = level_limit[tostring(user.level)]
-	local exp = user.propmgr:get_by_csvid(3).num
+	local exp = user.u_propmgr:get_by_csv_id(3).num
+	print("888", exp)
 	if exp > tonumber(L.exp) then
 		user.level = user.level + 1
 		local LL = level_limit[tostring(user.level)]
 		user.combat = LL.combat
 		user.critical_hit = LL.critical_hit
-		skynet.send(util.random_db(), "lua", "command", "update_and", "users", { id = user.id }, { combat = user.combat, critical_hit = user.critical_hit})
+		user:__update_db({ "combat", "critical_hit"})
 		ret.errorcode = 0
 		ret.msg = "yes"
 		return ret
@@ -855,6 +735,7 @@ function REQUEST:recharge_collect()
 	return ret
 end
 
+
 function REQUEST:recharge_purchase()
 	-- body
 	local ret = {}
@@ -1028,6 +909,7 @@ function CMD.start(conf)
 	-- end)
 	client_fd = fd
 	skynet.call(gate, "lua", "forward", fd)
+	game = loader.load_game()
 end	
 	
 function CMD.channel( cn )

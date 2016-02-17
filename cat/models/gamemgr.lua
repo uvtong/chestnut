@@ -1,8 +1,9 @@
+__count__ = 1
 local _M = {}
 _M.__data = {}
 _M.__count = 0
 
-local _Meta = { csv_id, name, diamond, first, gift, rmb, recharge_before, recharge_after, goods_id, icon_id}
+local _Meta = { g_achievementmgr, g_checkpointmgr, g_goodsmgr, g_rechargemgr, g_refresh_costmgr }
 
 function _Meta.new()
  	-- body
@@ -12,18 +13,9 @@ function _Meta.new()
 end 
 
 function _M.create( P )
-	assert(P)
+	assert(__count__ == 1)
+	__count__ = __count__ + 1
 	local u = _Meta.new()
-	u.csv_id = P["csv_id"]
-	u.name = P.name
-	u.diamond = P.diamond
-	u.first = P.first
-	u.gift = P.gift
-	u.rmb = P.rmb
-	u.recharge_before = P.recharge_before
-	u.recharge_after = P.recharge_after
-	u.goods_id = P.goods_id
-	u.icon_id = P.icon_id
 	return u
 end	
 

@@ -1,7 +1,3 @@
-local tname = tostring(...)
-local addr = io.open("./models/" .. tname .. "mgr.lua", "w")
-local P = "{ csv_id, }"
-local s = string.format([[
 local skynet = require "skynet"
 local util = require "util"
 
@@ -9,9 +5,8 @@ local _M = {}
 _M.__data = {}
 _M.__count = 0
 
-local _Meta = %s
-
-_M.__tname = "%s"
+local _Meta = { g_prop_id=0, user_id=1, csv_id=1, num=1, combat=1, skill=1, critical_hit=1, name=1, sub_type=1, level=1, prop_pic=1, pram1=1}
+_Meta.__tname = "u_prop"
 
 function _Meta.__new()
  	-- body
@@ -38,10 +33,10 @@ function _Meta:__update_db(t)
 	for i,v in ipairs(t) do
 		columns[tostring(v)] = self[tostring(v)]
 	end
-	skynet.send(util.random_db(), "lua", "command", "update", self.__tname, {{ id = self.id }}, columns)
+	skynet.send(util.random_db(), "lua", "command", "update", self.__tname, {{ user_id = self.user_id,  csv_id = self.csv_id}}, columns)
 end
 
-function _M.create( P )
+function _M.create(P)
 	assert(P)
 	local u = _Meta.__new()
 	for k,v in pairs(_Meta) do
@@ -57,7 +52,7 @@ function _M:add( u )
 	self.__data[tostring(u.csv_id)] = u
 	self.__count = self.__count + 1
 end
-	
+
 function _M:get_by_csv_id(csv_id)
 	-- body
 	return self.__data[tostring(csv_id)]
@@ -74,7 +69,3 @@ function _M:get_count()
 end
 
 return _M
-]], tname, P)
-
-addr:write(s)
-addr:close()

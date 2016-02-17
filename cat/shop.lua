@@ -2,70 +2,14 @@ package.path = "./../cat/?.lua;" .. package.path
 local skynet = require "skynet"
 require "skynet.manager"
 local util = require "util"
-local g_goodsmgr = require "g_goodsmgr"
-local g_rechargemgr = require "g_rechargemgr"
-local g_refresh_costmgr = require "g_refresh_costmgr"
-local g_propmgr = require "g_propmgr"
-local g_recharge_vipmgr = require "g_recharge_vipmgr"
-
-local function load_goods()
-	-- body
-	if g_goodsmgr:get_count() <= 0 then
-		local r = skynet.call(util.random_db(), "lua", "command", "select", "g_goods")	
-		for i,v in ipairs(r) do
-			local goods = g_goodsmgr.create(r[i])
-			g_goodsmgr:add(goods)                      
-		end
-	end
-	for i,v in ipairs(g_goodsmgr.__data) do
-		print(i,v)
-	end
-end
-
-local function load_recharge()
-	-- body
-	local r = skynet.call(util.random_db(), "lua", "command", "select", "g_recharge")
-	for i,v in ipairs(r) do
-		local recharge = g_rechargemgr.create(r[i])
-		g_rechargemgr:add(recharge)
-	end
-end
-
-local function load_refresh_cost()
-	-- body
-	local r = skynet.call(util.random_db(), "lua", "command", "select", "g_refresh_cost")
-	for i,v in ipairs(r) do
-		local refresh_cost = g_refresh_costmgr.create(r[i])
-		g_refresh_costmgr:add(refresh_cost)
-	end
-end
-
-local function load_prop()
-	-- body
-	local r = skynet.call(util.random_db(), "lua", "command", "select", "g_prop")
-	for i,v in ipairs(r) do
-		local prop = g_propmgr.create(r[i])
-		g_propmgr:add(prop)
-	end
-end
-
-local function load_g_recharge_vip()
-	-- body
-	local r = skynet.call(util.random_db(), "lua", "command", "select", "g_prop")
-	for i,v in ipairs(r) do
-		local t = g_rechargemgr.create(v)
-		g_rechargemgr:add(t)
-	end
-end
+local loader = require "loader"
+local game
 
 local CMD = {}
  
 function CMD.load_goods()
  	-- body
- 	load_goods()
- 	load_recharge()
- 	load_refresh_cost()
- 	load_prop()
+ 	game = loader.load_game()
  end 
 
 function CMD.disconnect()
@@ -78,7 +22,7 @@ function CMD.shop_all()
 	local ret = {}
 	local l = {}
 	local idx = 1
-	for k,v in pairs(g_goodsmgr.__data) do
+	for k,v in pairs(game.g_goodsmgr.__data) do
 		local goods = {}
 		goods.csv_id = v.csv_id
 		goods.type = v.type
@@ -112,7 +56,7 @@ end
 function CMD.shop_refresh( goods_id )
 	-- body
 	local ret = {}
-	local v = g_goodsmgr:get_by_csv_id(goods_id)
+	local v = game.g_goodsmgr:get_by_csv_id(goods_id)
 	local goods = {}
 	goods.csv_id = v.csv_id
 	goods.type = v.type
@@ -136,7 +80,7 @@ function CMD.shop_purchase( g )
 	local idx = 1
 	for i,v in ipairs(g) do
 		print(v.goods_id)
-		local r = g_goodsmgr:get_by_csv_id(v.goods_id)
+		local r = game.g_goodsmgr:get_by_csv_id(v.goods_id)
 		print(r)
 		local goods = {}
 		goods.csv_id = r.csv_id
@@ -164,7 +108,7 @@ function CMD.recharge_all()
 	ret.msg = "yes"
 	local l = {}
 	local idx = 1
-	for k,v in pairs(g_rechargemgr.__data) do
+	for k,v in pairs(game.g_rechargemgr.__data) do
 		local goods = {}
 		goods.csv_id = v.csv_id
 		goods.icon_id = v.icon

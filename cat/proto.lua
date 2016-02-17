@@ -222,7 +222,7 @@ login 5 {
 
 role_upgrade_star 6 {
     request {
-        role_id 0 : integer
+        role_csv_id 0 : integer
     }
 	response {
 		errorcode 0 :integer
@@ -553,8 +553,6 @@ applydraw 39
         msg 1 : string
     }
 }
-
-
 
 ]]
 
