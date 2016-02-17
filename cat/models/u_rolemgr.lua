@@ -6,7 +6,7 @@ _M.__data = {}
 _M.__count = 0
 
 
-local _Meta = { csv_id, }
+local _Meta = { nickname=0, user_id=0, wake_level=0, level=0, combat=0, defense=0, critical_hit=0, skill=0, c_equipment=0, c_dress=0, c_kungfu=0, wakeid=0, star_level=0, star_piece=0, csv_id=0}
 
 _Meta.__tname = "u_role"
 
@@ -36,6 +36,17 @@ function _Meta:__update_db(t)
 		columns[tostring(v)] = self[tostring(v)]
 	end
 	skynet.send(util.random_db(), "lua", "command", "update", self.__tname, {{ id = self.id }}, columns)
+end
+
+function _Meta:__serialize()
+	-- body
+	local r = {}
+	for k,v in pairs(_Meta) do
+		if not string.match(k, "^__*") then
+			r[k] = self[k]
+		end
+	end
+	return r
 end
 
 function _M.create( P )

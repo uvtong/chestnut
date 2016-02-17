@@ -190,11 +190,17 @@ end
 
 local function load_u_role(user)
 	-- body
+	print("***********************", user.id)
 	local u_rolemgr = require "models/u_rolemgr"
 	local addr = util.random_db()
 	local nr = skynet.call(addr, "lua", "command", "select", "u_role", {{ user_id = user.id }})
 	for i,v in ipairs(nr) do
+		print("*******************", i)
+		
 		local role = u_rolemgr.create( v )
+		for k,v in pairs(role) do
+			print(k,v)
+		end
 		u_rolemgr:add(role)
 	end
 	user.u_rolemgr = u_rolemgr

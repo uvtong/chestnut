@@ -81,21 +81,8 @@ function CMD.shop_purchase( g )
 	for i,v in ipairs(g) do
 		print(v.goods_id)
 		local r = game.g_goodsmgr:get_by_csv_id(v.goods_id)
-		print(r)
-		local goods = {}
-		goods.csv_id = r.csv_id
-		goods.type = r.type
-		goods.currency_type = r.currency_type
-		goods.currency_num = r.currency_num
-		goods.prop_csv_id = r.prop_csv_id
-		goods.prop_num = r.prop_num
-		goods.c_startingtime = r.c_startingtime
-		goods.c_countdown = r.c_countdown
-		goods.c_a_num = r.c_a_num
-		goods.cd = r.cd
-		goods.icon_id = r.icon_id
+		local goods = r:__serialize()
 		goods.p_num = v.goods_num
-		print(v.goods_num)
 		l[idx] = goods
 		idx = idx + 1
 	end
@@ -127,9 +114,6 @@ end
 
 function CMD.recharge_purchase( g )
 	-- body
-	for k,v in pairs(g_rechargemgr.__data) do
-		print(k,v)
-	end
 	local l = {}
 	local idx = 1
 	for i,v in ipairs(g) do

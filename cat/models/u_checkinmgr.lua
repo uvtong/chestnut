@@ -5,7 +5,7 @@ local _M = {}
 _M.__data = {}
 _M.__count = 0
 
-local _Meta = { csv_id, }
+local _Meta = { c_checkin_data=0, s_checkin_data=0, checkin=0, c_checkin_time=0, s_checkin_time=0, user_id=0}
 
 _Meta.__tname = "u_checkin"
 
@@ -35,6 +35,17 @@ function _Meta:__update_db(t)
 		columns[tostring(v)] = self[tostring(v)]
 	end
 	skynet.send(util.random_db(), "lua", "command", "update", self.__tname, {{ id = self.id }}, columns)
+end
+
+function _Meta:__serialize()
+	-- body
+	local r = {}
+	for k,v in pairs(_Meta) do
+		if not string.match(k, "^__*") then
+			r[k] = self[k]
+		end
+	end
+	return r
 end
 
 function _M.create( P )
@@ -76,18 +87,6 @@ end
 function _M:get_count()
 	-- body
 	return self.__count
-end
-
-function _M:insert_db(r)
-	-- body
-	local t = {}
-	t.csv_id = r.csv_id
-	skynet.send(util.random_db(), "lua", "command", "insert", self.__tname, t)
-end
-
-function _M:update_db(r, t)
-	-- body
-	skynet.send(util.random_db(), "lua", "command", "update", self.__tname, {{ user_id = t.user_id }}, t)
 end
 
 return _M
