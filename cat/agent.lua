@@ -928,20 +928,14 @@ end
 
 local function request(name, args, response)
     local f = nil
-    if nil ~= REQUEST[ name ] then
-    	f = assert(REQUEST[ name ])
+    if REQUEST[name] ~= nil then
+    	f = assert(REQUEST[name])
     elseif nil ~= emailrequest[ name ] then
     	f = assert( emailrequest[ name ] )
     elseif nil ~= friendrequest[ name ] then
     	f = assert( friendrequest[ name ] )
     elseif nil ~= drawrequest[ name ] then
     	f = assert( drawrequest[ name ] )
-    else 
-    	assert( f )
-    end
-
-    if REQUEST[name] ~= nil then
-    	f = REQUEST[name]
     else
     	for i,v in ipairs(M) do
     		if v.REQUEST[name] ~= nil then
