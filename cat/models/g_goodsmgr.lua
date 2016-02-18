@@ -5,9 +5,9 @@ local _M = {}
 _M.__data = {}
 _M.__count = 0
 
-local _Meta = { csv_id=0, type=0, currency_type=0, currency_num=0, g_prop_csv_id=0, g_prop_num=0, c_startingtime=0, c_countdown=0, c_a_num=0, c_u_num=0, cd=0, icon_id=0}
+local _Meta = { csv_id=0, currency_type=0, currency_num=0, g_prop_csv_id=0, g_prop_num=0, inventory_init=0, inventory=0, cd=0, icon_id=0, st=0, countdown=0}
 
-_Meta.__tname = "g_goods"
+_M.__tname = "g_goods"
 
 function _Meta.__new()
  	-- body
@@ -37,22 +37,13 @@ function _Meta:__update_db(t)
 	skynet.send(util.random_db(), "lua", "command", "update", self.__tname, {{ id = self.id }}, columns)
 end
 
-function _Meta:__serialize()
-	-- body
-	local r = {}
-	for k,v in pairs(_Meta) do
-		if not string.match(k, "^__*") then
-			r[k] = self[k]
-		end
-	end
-	return r
-end
-
-function _M.create(P)
+function _M.create( P )
 	assert(P)
 	local u = _Meta.__new()
 	for k,v in pairs(_Meta) do
-		u[k] = P[k]
+		if not string.match(k, "^__*") then
+			u[k] = P[k]
+		end
 	end
 	return u
 end	
@@ -79,3 +70,4 @@ function _M:get_count()
 end
 
 return _M
+

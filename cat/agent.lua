@@ -543,6 +543,12 @@ end
 function REQUEST:user()
 	-- body
 	local ret = {}
+	if not user then
+		ret.errorcode = 1
+		ret.msg	= "no online"
+		return ret
+	end
+	assert(user)
 	ret.errorcode = 0
 	ret.msg = "yes"
 	ret.user = {
@@ -559,15 +565,16 @@ function REQUEST:user()
     	recharge_progress = user.recharge_progress,
     	recharge_vip = user.recharge_vip
 	}
-	local exp = user.u_rolemgr:get_by_csv_id(const.EXP)
+	local u_propmgr = user.u_propmgr
+	local exp = u_propmgr:get_by_csv_id(const.EXP)
 	if exp then
 		ret.user.uexp = exp.num
 	end
-	local gold = user.u_rolemgr:get_by_csv_id(const.GOLD)
+	local gold = u_propmgr:get_by_csv_id(const.GOLD)
 	if gold then
 		ret.user.gold = gold.num
 	end
-	local diamond = user.u_rolemgr:get_by_csv_id(const.DIAMOND)
+	local diamond = u_propmgr:get_by_csv_id(const.DIAMOND)
 	if diamond then
 		ret.user.diamond = diamond.num
 	end
@@ -647,65 +654,135 @@ end
 
 function REQUEST:shop_all()
 	-- body
+	local ret = {}
+	if not user then
+		ret.errorcode = 1
+		ret.msg	= "not online."
+		return ret
+	end
 	assert(user)
-	return skynet.call(".shop", "lua", "shop_all")
+	local l = skynet.call(".shop", "lua", "shop_all")
+	local ll = {}
+	local idx = 1
+	for i,v in ipairs(l) do
+		local g = {
+			csv_id = v.csv_id,
+			currency_type = v.currency_type,
+			currency_num = v.currency_num,
+			g_prop_csv_id = v.g_prop_csv_id,
+			g_prop_num = v.g_prop_num,
+			inventory = v.inventory
+		}
+		if v.inventory == 0 then
+			local now = os.time()
+			if os.difftime(now, v.st) > v.cd then
+				v.inventory = v.inventory_init
+				g.inventory = v.inventory
+				v:__update_db({"inventory"})
+			end
+		end
+		g.countdown = v.cd
+		ll[idx] = g
+	end
+	ret.errorcode = 0
+	ret.msg = "yes"
+	ret.l = ll
+	return ret
 end
 
 function REQUEST:shop_refresh()
 	-- body
+	local ret = {}
+	if not user then
+		ret.errorcode = 1
+		ret.msg = "not online."
+		return ret
+	end
 	assert(user)
-	return skynet.call(".shop", "lua", "shop_refresh", self.goods_id)
+	local rc = game.g_goods_refresh_cost:get_by_csv_id(self.goods_id)
+	local p = user.u_propmgr:get_by_csv_id(rc.currency_type)
+	if p.num > rc.currency_num then
+		p.num = p.num - rc.currency_num
+		p:__update_db({"num"})
+		ret.errorcode = 0
+		ret.msg = "yes"
+		local g = {
+			csv_id = v.csv_id,
+			currency_type = v.currency_type,
+			currency_num = v.currency_num,
+			g_prop_csv_id = v.g_prop_csv_id,
+			g_prop_num = v.g_prop_num,
+			inventory = v.inventory_init,
+			countdown = v.cd
+		}
+		local ll = {g}
+		ret.l = ll
+		return ret
+	end
+	ret.errorcode = 2
+	ret.msg = "not enough diamond."
+	return ret
 end
 
 function REQUEST:shop_purchase()
 	-- body
-	assert(user)
+	-- 1 not online
+	-- 2 not goods
+	-- 3 not gold
+	-- 4 not diamond
+	-- 5 other
 	local ret = {}
+	if not user then
+		ret.errorcode = 1
+		ret.msg	= "not online."
+		return ret
+	end
+	assert(user)
 	local l = skynet.call(".shop", "lua", "shop_purchase", self.g)
 	for k,v in pairs(l) do
 		local goods = v
-		if goods.c_a_num == 0 then
-			ret.errorcode = 1
+		if goods.inventory == 0 then
+			ret.errorcode = 2
 			ret.msg = "no enough goods"
 			return ret
-		else
-			local c_startingtime = goods.c_startingtime
 		end
-		if goods.currency_type == 2 then
+		if goods.currency_type == const.GOLD then
 			local gold = goods.currency_num * goods.p_num
 			-- gold 2
-			local currency = user.propmgr:get_by_csvid(goods.currency_type)
+			local currency = user.u_propmgr:get_by_csv_id(const.GOLD)
 			if currency.num > gold then
 				currency.num = currency.num - gold
-				skynet.send(util.random_db(), "lua", "command", "update", "props", {{ id = prop.id }}, { num = prop.num })
-				local prop = user.propmgr:get_by_csvid(goods.prop_csv_id)
+				currency:__update_db({"num"})
+				local prop = user.propmgr:get_by_csvid(goods.g_prop_csv_id)
 				if prop then
-					prop.num = prop.num + goods.prop_num * goods.p_num
-					skynet.send(util.random_db(), "lua", "command", "update", "props", {{ id = prop.id }}, { num = prop.num })
+					prop.num = prop.num + goods.g_prop_num * goods.p_num
+					prop:__update_db({"num"})
 				else
-					local t = {user_id = user.id, csv_id = prop.csv_id, prop_csv_id = prop.prop_csv_id, num = goods.prop_num * goods.p_num}
-					local prop = user.propmgr.create(t)
-					user.propmgr:addr(prop)
-					skynet.send(util.random_db(), "lua", "command", "insert", "props", t)
+					local p = game.g_propmgr:get_by_csv_id(goods.g_prop_csv_id)
+					p.user_id = user.id
+					p.num = goods.g_prop_num * goods.p_num
+					local prop = user.u_propmgr.create(p)
+					user.u_propmgr:add(prop)
+					prop:__insert_db()
 				end
 				ret.errorcode = 0
 				ret.msg	= "yes, take gold"
 				return ret
 			else
-				ret.errorcode = 1
+				ret.errorcode = 3
 				ret.msg	= string.format("yes, no enough gold, only %d", goods.gold)
 				return ret
 			end
-		elseif goods.currency_type == 1 then
+		elseif goods.currency_type == const.DIAMOND then
 			local diamond = goods.currency_num * goods.p_num
-			local currency = user.u_propmgr:get_by_csv_id(goods.currency_type)
+			local currency = user.u_propmgr:get_by_csv_id(const.DIAMOND)
 			if currency.num > diamond then
 				currency.num = currency.num - diamond
 				currency:__update_db({"num"})
 				local prop = user.u_propmgr:get_by_csv_id(goods.g_prop_csv_id)
 				if prop then
 					prop.num = prop.num + goods.g_prop_num * goods.p_num
-					prop:__update_db({"num", "pram1"})
+					prop:__update_db({"num"})
 				else	
 					prop = game.g_propmgr:get_by_csv_id(assert(goods.g_prop_csv_id))
 					prop.user_id = user.id
@@ -718,12 +795,14 @@ function REQUEST:shop_purchase()
 				ret.msg	= "yes, take diamond"
 				return ret
 			else
-				ret.errorcode = 1
+				ret.errorcode = 4
 				ret.msg	= "no diamond"
 				return ret
 			end
 		else
-			assert(false)
+			ret.errorcode = 5
+			ret.msg = "other"
+			return ret
 		end
 	end
 end
@@ -938,6 +1017,7 @@ local function request(name, args, response)
     		end
     	end
     end
+    print("*___________________________*", name)
     if response then
     	return response(r)
     end               

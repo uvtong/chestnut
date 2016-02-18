@@ -114,15 +114,12 @@ proto.c2s = sprotoparser.parse [[.package {
 
 .goods {
     csv_id 0 : integer
-    type 1 : integer
-    currency_type 2 : integer
-    currency_num 3 : integer
-    c_startingtime 4 : string
-    c_countdown 5 : string
-    c_a_num 6 : integer
-    prop_csv_id 7 : integer
-    prop_num 8 : integer
-    icon_id 9 : integer
+    currency_type 1 : integer
+    currency_num 2 : integer
+    g_prop_csv_id 3 : integer
+    g_prop_num 4 : integer
+    inventory 5 : integer
+    countdown 6 : string
 }
  
 .goodsbuy
