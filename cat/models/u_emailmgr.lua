@@ -5,9 +5,9 @@ local _M = {}
 _M.__data = {}
 _M.__count = 0
 
-local _Meta = u_email
+local _Meta = { uid=0, type=0, title=0, }
 
-_M.__tname = "{ csv_id, }"
+_M.__tname = "u_email"
 
 function _Meta.__new()
  	-- body

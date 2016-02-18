@@ -19,6 +19,10 @@ local drawmgr = require "drawmgr"
 local csvReader = require "csvReader"
 local const = require "const"
 
+local M = {}
+local battlerequest = require "battlerequest"
+table.insert(M, battlerequest)
+
 local WATCHDOG
 local host
 local send_request
@@ -245,10 +249,16 @@ function REQUEST:login()
 			sign = user.sign,
 			c_role_id = user.c_role_id,
 
-			uexp = user.u_propmgr:get_by_csv_id(3).num,
-			gold = user.u_propmgr:get_by_csv_id(2).num,
-			diamond = user.u_propmgr:get_by_csv_id(1).num
 		}
+		if user.u_propmgr:get_by_csv_id(const.EXP) then
+			ret.u.uexp = user.u_propmgr:get_by_csv_id(const.EXP).num
+		end
+		if user.u_propmgr:get_by_csv_id(const.GOLD) then
+			ret.u.gold = user.u_propmgr:get_by_csv_id(const.GOLD).num
+		end
+		if user.u_propmgr:get_by_csv_id(const.DIAMOND) then
+			ret.u.diamond = user.u_propmgr:get_by_csv_id(const.DIAMOND).num
+		end
 		-- all roles
 		local l = {}
 		local idx = 1
@@ -564,6 +574,18 @@ function REQUEST:user()
     	recharge_progress = user.recharge_progress,
     	recharge_vip = user.recharge_vip
 	}
+	local exp = user.u_rolemgr:get_by_csv_id(const.EXP)
+	if exp then
+		ret.user.uexp = exp.num
+	end
+	local gold = user.u_rolemgr:get_by_csv_id(const.GOLD)
+	if gold then
+		ret.user.gold = gold.num
+	end
+	local diamond = user.u_rolemgr:get_by_csv_id(const.DIAMOND)
+	if diamond then
+		ret.user.diamond = diamond.num
+	end
 	return ret
 end
 
@@ -904,33 +926,41 @@ function REQUEST:quit()
 	skynet.call(WATCHDOG, "lua", "close", client_fd)
 end
 
-local function request( name, args, response )
-	print( "request name :" .. name )
-    	local f = nil
-    	if nil ~= REQUEST[ name ] then
-    		f = assert(REQUEST[ name ])
-    	elseif nil ~= emailrequest[ name ] then
-    		f = assert( emailrequest[ name ] )
-    		print("***************************************getmsg*************************************\n")
-    	elseif nil ~= friendrequest[ name ] then
-    		f = assert( friendrequest[ name ] )
-    		print("***************************************getmsg*************************************\n")
-    	elseif nil ~= drawrequest[ name ] then
-    		f = assert( drawrequest[ name ] )
-    		print("***************************************getmsg*************************************\n")
-    	else 
-    		assert( f )
+local function request(name, args, response)
+    local f = nil
+    if nil ~= REQUEST[ name ] then
+    	f = assert(REQUEST[ name ])
+    elseif nil ~= emailrequest[ name ] then
+    	f = assert( emailrequest[ name ] )
+    elseif nil ~= friendrequest[ name ] then
+    	f = assert( friendrequest[ name ] )
+    elseif nil ~= drawrequest[ name ] then
+    	f = assert( drawrequest[ name ] )
+    else 
+    	assert( f )
+    end
+
+    if REQUEST[name] ~= nil then
+    	f = REQUEST[name]
+    else
+    	for i,v in ipairs(M) do
+    		if v.REQUEST[name] ~= nil then
+    			f = v.REQUEST[name]
+    			break
+    		end
     	end
-    	local r = f(args)
-    	if response then
-    		return response(r)
-    	end               
+    end 
+    assert(f)
+    local r = f(args)
+    if name = "login" then
+    	for k,v in pairs(M) do
+    		v.REQUEST[name](user)
+    	end
+    end
+    if response then
+    	return response(r)
+    end               
 end      
-	
-local function send_package(pack)
-	local package = string.pack(">s2", pack)
-	socket.write(client_fd, package)
-end	
 	
 local RESPONSE = {}
 
@@ -967,7 +997,6 @@ skynet.register_protocol {
 	unpack = function (msg, sz)
 		if sz > 0 then
 			return host:dispatch(msg, sz)
-
 		elseif sz == 0 then
 			return "HEARTBEAT"
 		else
@@ -1043,7 +1072,9 @@ function CMD.start(conf)
 	c2:subscribe()
 
 	game = loader.load_game()
-
+	for i,v in ipairs(M) do
+		v.start(send_request, game, dc)
+	end
 end	
 	
 function CMD.channel( cn )

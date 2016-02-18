@@ -165,4 +165,9 @@ function util.insert( table_name, columns )
 	return sql
 end
 
+function util.send_package(pack)
+	local package = string.pack(">s2", pack)
+	socket.write(client_fd, package)
+end
+
 return util
