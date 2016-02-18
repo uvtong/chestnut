@@ -42,7 +42,8 @@ function drawdb:select_frienddraw( t )
 	print( sql )
 	local r = db:query( sql )
 	if not r[1] then
-		return nil
+		print( "nil" )
+		return {}
 	else	
 		print( "r length is " .. #r , r[1].srecvtime)
 		return r[1].srecvtime
@@ -57,7 +58,7 @@ function drawdb:select_onetimedraw( t ) -- 0 free , 1 not free
 	print( sql )
 	local r = db:query( sql )
 	if not r[1] then
-		return nil
+		return {}
 	else	
 		print( "r length is " .. #r , r[1].srecvtime)
 		return r[1].srecvtime

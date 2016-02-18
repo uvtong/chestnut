@@ -256,7 +256,7 @@ function drawmgr:applydraw( u )
 	local settime = getsettime()
 	
 	local v = {}
-	if nil == r or ( r < settime - 60 * 60 * 24 ) or ( r < settime  and os.time() > settime ) then
+	if type( r ) == "table" or ( r < settime - 60 * 60 * 24 ) or ( r < settime  and os.time() > settime ) then
 		v.drawtype = drawtype.FRIEND
 		v.drawnum = 0
 		isfriend = true
@@ -271,7 +271,7 @@ function drawmgr:applydraw( u )
 	t.drawtype = drawtype.ONETIME
 
 	local r = drawmgr:_db_select_onetimedraw( t ) -- if free == 1
-	if nil == r then
+	if type( r ) == "table" then
 		print( "r == nil" )
 		 t.drawnum = 0
 		 t.lefttime = 0
@@ -407,7 +407,7 @@ function drawmgr:onetimedraw( tv )
 				print( "<<<<<<<<")
 				proplist.lefttime = recvtime + day - os.time()
 			end 
-			
+			print("**********************")
 			prop:__update_db( {"num"} )
 			--[[local t = {}
 			t.tname = "u_prop"
