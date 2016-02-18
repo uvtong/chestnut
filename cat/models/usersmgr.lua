@@ -5,12 +5,13 @@ local _M = {}
 _M.__data = {}
 _M.__count = 0
 
-local _Meta = { id=0, uname=0, uviplevel=0, uexp=0, config_sound=0, config_music=0, avatar=0, sign=0, c_role_id=0, ifonline=0, level=0, combat=0, defense=0, critical_hit=0, modify_uname_count=0, recharge_total=0, recharge_vip=0, recharge_vip=0, recharge_progress=0, recharge_diamond=0, is_valid=0}
+local _Meta = { id=0, uname=0, uviplevel=0, uexp=0, config_sound=0, config_music=0, avatar=0, sign=0, c_role_id=0, ifonline=0, level=0, combat=0, defense=0, critical_hit=0, modify_uname_count=0, onlinetime=0, iconid=0, recharge_total=0, recharge_vip=0, recharge_vip=0, recharge_progress=0, recharge_diamond=0, is_valid=0}
 
 _Meta.__tname = "users"
 
 function _Meta:__insert_db()
 	-- body
+	local t = {}
 	t.id = self.id
 	t.uname = self.uname
 	t.uviplevel = self.uviplevel
@@ -24,6 +25,10 @@ function _Meta:__insert_db()
 	t.level = self.level
 	t.combat = self.combat
 	t.defense = self.defense
+	t.critical_hit = self.critical_hit
+	t.modify_uname_count = self.modify_uname_count
+	t.onlinetime = self.onlinetime
+	t.iconid = self.iconid
 	skynet.send(util.random_db(), "lua", "command", "insert", self.__tname, t)
 end
 

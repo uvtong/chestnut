@@ -33,9 +33,7 @@ function _Meta:__update_db(t)
 	for i,v in ipairs(t) do
 		columns[tostring(v)] = self[tostring(v)]
 	end
-	print("************sahfaljfalfh")
 	skynet.send(util.random_db(), "lua", "command", "update", self.__tname, {{ user_id = self.user_id,  csv_id = self.csv_id}}, columns)
-	print("***11111111111111111*****************")
 end
 
 function _Meta:__serialize()

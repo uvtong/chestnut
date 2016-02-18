@@ -43,4 +43,6 @@ function battlerequest.disconnect()
 	-- body
 end
 
+battlerequest.REQUEST = REQUEST
+battlerequest.RESPONSE = RESPONSE
 return battlerequest

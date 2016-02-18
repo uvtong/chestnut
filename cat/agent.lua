@@ -197,6 +197,11 @@ end
     
 function REQUEST:login()
 	local ret = {}
+	if user then
+		ret.errorcode = 1
+		ret.msg	= "on"
+		return ret
+	end
 	assert(self.account and	self.password)
 	assert(#self.password > 1)
 	local condition = { uaccount = self.account, upassword = self.password }
@@ -212,29 +217,13 @@ function REQUEST:login()
 		ret.msg = "no"
 		return ret
 	else
-		local addr = util.random_db()
-		local onlinetime = os.time()
-		assert( addr )
-
-		local t = {}
-		t.tname = "users"
-		t.content = { ifonline = true, onlinetime = onlinetime }
-		t.condition = { id = r.id }	
-
-
-		skynet.send(addr, "lua" , "command" , "update_onlinestate" , t)
-
-		print( "callend else" )
-		r.onlinetime = onlinetime
 		
 		local usersmgr = require "models/usersmgr"
 		user = usersmgr.create(r)
-
-		skynet.fork(subscribe)
-		-- load
 		loader.load_user(user)
 		
-		print(">>>>>>>>>>>>>>>", type(usersmgr))
+		skynet.fork(subscribe)
+
 		local level = csvReader.getcont("level")
 		level_limit = convert_level(level)
 
@@ -279,7 +268,13 @@ function REQUEST:login()
 		end
 		ret.rolelist = l
 	end 
-	dc.set(user.id, { client_fd=client_fd, addr = skynet.self()})
+
+	dc.set(user.id, { client_fd=client_fd, addr=skynet.self()})
+	local onlinetime = os.time()
+	user.ifonline = 1
+	user.onlinetime = onlinetime
+	user.__update_db({"ifonline", "onlinetime"})
+
 	user.emailbox = emailbox:loademails( user.id )
 	emailrequest.getvalue( user )
 	user.friendmgr = friendmgr:loadfriend( user , dc )
@@ -293,23 +288,12 @@ end
 
 function REQUEST:logout()
 	-- body
-	print( "logout is" )
-	if user == nil then
-		print( "user is nil" )
-	end
-	--assert( user == nil )
-	local t = {}
-	t.tname = "users"
-	t.content = { ifonline = 0 }
-	t.condition = { id = user.id }
-
-	local addr = util.random_db()
-	assert( addr )
-	skynet.call( addr , "lua" , "command" , "update_onlinestate" , t )
+	assert(user)
+	user.ifonline = 0
+	user.__update_db({"ifonline"})
 	dc.set( user.id , nil )
-	print( "dc.set is called" )
-	skynet.call(WATCHDOG, "lua", "close", client_fd)
-
+	-- send chanel 
+	-- skynet.send()
 	return { errorcode = 0 }
 end
 
@@ -946,9 +930,11 @@ local function request(name, args, response)
     end 
     assert(f)
     local r = f(args)
-    if name = "login" then
+    if name == "login" then
     	for k,v in pairs(M) do
-    		v.REQUEST[name](user)
+    		if v.REQUEST then
+    			v.REQUEST[name](user)
+    		end
     	end
     end
     if response then
@@ -1067,7 +1053,7 @@ function CMD.start(conf)
 
 	game = loader.load_game()
 	for i,v in ipairs(M) do
-		v.start(send_request, game, dc)
+		v.start(conf, send_request, game, dc)
 	end
 end	
 	
