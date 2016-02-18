@@ -521,17 +521,20 @@ function REQUEST:achievement_reward_collect()
 	-- body
 	local ret = {}
 	assert(user)
-	local a = user.achievementmgr:get_by_csv_id(self.csv_id)
+	local a = user.u_achievementmgr:get_by_csv_id(self.csv_id)
 	if a and a.finished == 100 and a.collected == 0 then
 		a.collected = 1
 		skynet.send(util.random_db(), "lua", "command", "update", "achievements", {{ user_id = user.id, csv_id = a.csv_id}}, { collected = a.collected})
-		local prop = user.propmgr:get_by_csvid(a.reward_id)
+		local prop = user.u_propmgr:get_by_csv_id(a.reward_id)
 		if prop then
 			prop.num = prop.num + a.reward_num
-			skynet.send(util.random_db(), "lua", "command", "update", "props", {{ id = prop.id }}, { num = prop.num})
+			prop:__update_db({"num"})
 		else
-			local t = { user_id = user.id, prop_id = a.reward_id, num = a.reward_num}
-			skynet.send(util.random_db(), "lua", "command", "insert", "props", t)
+			local prop = game.g_propmgr:get_by_csv_id(a.reward_id)
+			prop.user_id = user.id
+			prop.num = a.reward_num
+			prop = user.u_propmgr.create(prop)
+			prop:__insert_db()
 		end
 		ret.errorcode = 0
 		ret.msg = "yes"
