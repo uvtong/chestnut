@@ -273,8 +273,9 @@ function REQUEST:login()
 	local onlinetime = os.time()
 	user.ifonline = 1
 	user.onlinetime = onlinetime
-	user.__update_db({"ifonline", "onlinetime"})
-
+	print("*************************afb")
+	user:__update_db({"ifonline", "onlinetime"})
+	print("*************************afbc")
 	user.emailbox = emailbox:loademails( user.id )
 	emailrequest.getvalue( user )
 	user.friendmgr = friendmgr:loadfriend( user , dc )
