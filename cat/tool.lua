@@ -74,7 +74,7 @@ function _M:get_count()
 end
 
 return _M
-]], tname, P)
+]], P, tname)
 
 addr:write(s)
 addr:close()
