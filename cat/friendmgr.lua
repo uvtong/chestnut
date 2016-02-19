@@ -50,6 +50,7 @@ function friendmgr:_createfriend( tfriend )
 	r.heart = tfriend.heart or false
 	r.apply = true
 	r.receive = tfriend.receive or false
+	r.signtime = tfriend.signtime
 	--TODO
 	print( "create friend successfully" )
 	return r
@@ -313,9 +314,7 @@ function friendmgr:apply_friendlist()
 			local t = dc.get( v.friendid )
 			if t then -- if online
 				print( "online" )
-				local msg = {}
-				msg.type = msgtype.OTHER
-				tmp = skynet.call( t.addr , "lua" , "friend" , "agent_request_handle" , msg )
+				tmp = skynet.call( t.addr , "lua" , "friend" , "agent_friendmsg")
 				assert( tmp )
 			else
 				print( "not online" )
@@ -324,12 +323,14 @@ function friendmgr:apply_friendlist()
    				tmp = r[1]
    			end
    			tmp.receive = receive
-   			print( v.recvtime , v.sendtime , settime )
+   			print( v.recvtime , v.sendtime , settime , v.heartamount)
    			
    				if os.time() >= settime then
    					tmp.heartamount = ( v.recvtime > settime ) and v.heartamount or 0
+   					print("bigger than heart amolunt is " .. tmp.heartamount)
    				else
    					tmp.heartamount = ( v.recvtime < lowtime ) and 0 or v.heartamount
+   					print("smaller then heart amolunt is " .. tmp.heartamount)
    				end
 
    			if nil == v.sendtime or 0 == v.sendtime or ( v.sendtime < settime and os.time() > settime ) then
@@ -362,7 +363,7 @@ end
 			t.onlinetime = os.date( "%c" , os.time() )
 			t.ifonline = true
 
-			skynet.call( r.addr , "lua" , "command" , "sendonlinenotice" , t )
+			skynet.send( r.addr , "lua" , "command" , "sendonlinenotice" , t )
 		end	
 	end		
 end			
@@ -556,6 +557,7 @@ function friendmgr:recvfriend( friendlist )
 	for k , v in pairs( friendlist ) do
 		local r = friendmgr:_db_loadfriend( v.friendid )
    		assert( r )
+   		print("redvtive friend " .. v.friendid)
    	 	table.insert( friendmgr._data.friendlist , { friendid = v.friendid , recvtime = 0  , heartamount = 0 , sendtime = 0 } )
    		
    		friendmgr:_db_insert_newfriend( user.id , v.friendid )
@@ -589,7 +591,7 @@ function friendmgr:recvfriend( friendlist )
 			local t = {}
 			t.tname = "u_friendmsg"
 			t.content = { isread = 1 }
-			t.condition = { fromid = v.friendid , toid = user.id , type = msgtype.ACCEPT , signtime = v.signtime }
+			t.condition = { fromid = v.friendid , toid = user.id , type = msgtype.ACCEPT , srecvtime = v.signtime }
 			friendmgr:_db_updatemsg( t )
 
 			print( "insert a new msg to db and update a msg" )
@@ -628,7 +630,7 @@ function friendmgr:refusefriend( friendlist )
 			local t = {}
 			t.tname = "u_friendmsg"
 			t.content = { isread = 1 }
-			t.condition = { fromid = v.friendid , toid = user.id , type = msgtype.REFUSE , signtime = v.signtime }
+			t.condition = { fromid = v.friendid , toid = user.id , type = msgtype.APPLY , srecvtime = v.signtime }
 			friendmgr:_db_updatemsg( t )
 
 			print( "insert a new msg to db and update a msg" )
@@ -636,6 +638,7 @@ function friendmgr:refusefriend( friendlist )
 	end				
 end			
 		
+
 function friendmgr:deletefriend( friendid )
 	assert( friendid )
 
@@ -734,7 +737,7 @@ function friendmgr:findfriend( id )
 end			
 		
 function friendmgr:recvheart( heartlist , totalamount )
-	assert( heartlist )
+	assert( heartlist and totalamount )
 	if recvheartnum + totalamount > MAXHEARTNUM then
 		local ret = {}
 		ret.ok = false
@@ -748,6 +751,21 @@ function friendmgr:recvheart( heartlist , totalamount )
 	for k , v in pairs( heartlist ) do
 			recvheartnum = recvheartnum + v.amount
 			prop.num = prop.num + v.amount
+
+			for sk , sv in ipairs( friendmgr._data.friendlist ) do
+				if v.friendid == sv.friendid then
+					sv.heartamount = 0
+					local t = {}
+
+					t.tname = "u_friend"
+					t.content = { heartamount = 0 }
+					t.condition = { uid = user.id , friendid = v.friendid }
+					friendmgr:_db_updatefriend( t ) 
+
+					print( "update 0 finished ..........................." )
+					break
+				end
+			end
 
 			local t = v
 			t.toid = v.friendid
@@ -769,7 +787,7 @@ function friendmgr:recvheart( heartlist , totalamount )
 				local t = {}
 				t.tname = "u_friendmsg"
 				t.content = { isread = 1 }
-				t.condition = { fromid = v.friendid , toid = user.id , type = msgtype.SENDTHEART , srecvtime = v.signtime }
+				t.condition = { fromid = v.friendid , toid = user.id , type = msgtype.SENDHEART , srecvtime = v.signtime }
 				friendmgr:_db_updatemsg( t )	
 				print( "insert a new msg to db and update a msg" )
 			end	
@@ -806,6 +824,7 @@ function friendmgr:sendheart( heartlist , totalamount )
         	
 		for sk , sv in ipairs( friendmgr._data.friendlist ) do
 			if sv.friendid == v.friendid then
+				print("find friend" .. nm.srecvtime )
 				sv.sendtime = nm.srecvtime
 				break
 			end
@@ -910,8 +929,10 @@ function friendmgr:agent_request_handle( msg )
 
 		for k , v in ipairs( friendmgr._data.friendlist ) do
 			if v.friendid == msg.fromid then
-				v.recvtime = msg.signtime
+				v.recvtime = msg.srecvtime
 				v.heartamount = msg.amount
+
+				print( "agent heartamount is ___________________________" , friendmgr._data.friendlist[k].recvtime ,  friendmgr._data.friendlist[k].heartamount)
 				break
 			end
 		end
@@ -930,28 +951,26 @@ function friendmgr:agent_request_handle( msg )
 		t.condition = { fromid = user.id , toid = msg.friendid , type = msgtype.SENDHEART , srecvtime = msg.signtime }
 		friendmgr:_db_insertmsg( msg )
 		friendmgr:_db_updatemsg( t )
-	else
-		print( "get online user msg !!!!!!!!!!!!!!!!!!" )
-		local r = {}
-		
-		r.id = user.id
-		r.name = user.uname
-		r.level = user.level
-		r.viplevel = user.uviplevel
-		r.iconid = user.iconid
-		r.sign = user.sign
-		r.combat = user.combat
-		r.online_time = os.date( "%Y%m%d%H%M%S" , user.onlinetime) --user.onlinetime
-		r.ifonline = true
-
-		return r
-		--r.heartamount = user.heartamount or 0
-		--r.heart = user.heart or false
-		--r.apply = true
-		--r.receive = user.receive or false
-		--TODO
 	end	
 end 		
 		
+function friendmgr:agent_friendmsg()
+	print( "get online user msg !!!!!!!!!!!!!!!!!!" )
+	local r = {}
+	
+	r.id = user.id
+	r.name = user.uname
+	r.level = user.level
+	r.viplevel = user.uviplevel
+	r.iconid = user.iconid
+	r.sign = user.sign
+	r.combat = user.combat
+	r.online_time = os.date( "%Y%m%d%H%M%S" , user.onlinetime) --user.onlinetime
+	r.ifonline = true
+
+	return r
+
+end
+
 return friendmgr
 		

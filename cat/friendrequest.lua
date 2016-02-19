@@ -130,9 +130,10 @@ end
 function friendrequest:agent_request_handle( msg )
 	assert( msg )
 	print( "agemt_request is called ^^^^^^^^^^^^^^^^^^^" )
-	local ret = friendmgr:agent_request_handle( msg )
+	friendmgr:agent_request_handle( msg )
 	--assert( ret )
-	if ret then
+	--[[if ret then
+		print( "ret is called" )
 		if msg.type <= 6 then
     		sendpackage( sendrequest( "response_apply" , ret ) )
     	else
@@ -140,11 +141,21 @@ function friendrequest:agent_request_handle( msg )
     		for k , v in pairs( ret ) do
     			print( k , v )
     		end
-    		return ret
+    		-- return ret
     	end
-    end	
-   	print( "response apply successfully" )
+    else
+   		print( "response apply successfully" )
+    	return nil
+    end	--]]
+    print( "response apply successfully" )
 end		
+
+function friendrequest:agent_friendmsg()
+	print( "agent_friendmsg is called" )
+
+	return friendmgr:agent_friendmsg()	
+end
+
 
 function friendrequest.getvalue( u , sendpackage , sendrequest )
 	user = u
