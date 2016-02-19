@@ -19,38 +19,12 @@ end
 
 function CMD.shop_all()
 	-- body
-	local ret = {}
 	local l = {}
 	local idx = 1
 	for k,v in pairs(game.g_goodsmgr.__data) do
-		local goods = {}
-		goods.csv_id = v.csv_id
-		goods.type = v.type
-		goods.currency_type = v.currency_type
-		goods.currency_num = v.currency_num
-		goods.c_startingtime = v.c_startingtime
-		
-		if v.c_countdown and type(v.c_countdown) == "string" then
-			--local year = tonumber(string.gsub(v.c_countdown, "(%d+)-(%d+)-(%d+)%s(%d+):(%d+):(%d+)", "%1"))
-			--local month = tonumber(string.gsub(v.c_countdown, "(%d+)-(%d+)-(%d+)%s(%d+):(%d+):(%d+)", "%2"))
-			--local day = tonumber(string.gsub(v.c_countdown, "(%d+)-(%d+)-(%d+)%s(%d+):(%d+):(%d+)", "%3"))
-			local hour = string.gsub(v.c_countdown, "(%d+)-(%d+)-(%d+)%s(%d+):(%d+):(%d+)", "%4")
-			local min = string.gsub(v.c_countdown, "(%d+)-(%d+)-(%d+)%s(%d+):(%d+):(%d+)", "%5")
-			local sec = string.gsub(v.c_countdown, "(%d+)-(%d+)-(%d+)%s(%d+):(%d+):(%d+)", "%6")
-			local total = tonumber(sec) + tonumber(min) * 60 + tonumber(hour) *3600
-			goods.c_countdown = tostring(total)
-		end
-		goods.c_a_num = v.c_a_num
-		goods.prop_csv_id = v.prop_csv_id
-		goods.prop_num = v.prop_num
-		goods.icon_id = v.icon_id
-		l[idx] = goods
-		idx = idx + 1
+		l[idx] = v:__serialize()
 	end
-	ret.errorcode = 0
-	ret.msg	= "yes"
-	ret.l = l
-	return ret
+	return l
 end
 
 function CMD.shop_refresh( goods_id )

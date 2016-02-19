@@ -53,6 +53,18 @@ local function load_g_goods()
 	game.g_goodsmgr = g_goodsmgr
 end
 
+local function load_g_goods_refresh_cost()
+	-- body
+	assert(game.g_goods_refresh_costmgr == nil)
+	local g_goods_refresh_costmgr = require "models/g_goods_refresh_costmgr"
+	local r = skynet.call(util.random_db(), "lua", "command", "select", "g_goods_refresh_cost")
+	for i,v in ipairs(r) do
+		local t = g_goods_refresh_costmgr.create(v)
+		g_goods_refresh_costmgr:add(t)
+	end
+	game.g_goods_refresh_costmgr = g_goods_refresh_costmgr
+end
+
 local function load_g_prop()
 	-- body
 	assert(game.g_propmgr == nil)
@@ -260,6 +272,7 @@ function loader.load_game()
 		load_g_checkpoint()
 		load_g_equipment()
 		load_g_goods()
+		load_g_goods_refresh_cost()
 		load_g_prop()
 		load_g_recharge()
 		load_g_recharge_vip()
