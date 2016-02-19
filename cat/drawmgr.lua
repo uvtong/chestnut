@@ -237,6 +237,21 @@ local function getpropidlist( dtype )
 	assert( propidlist )
 	propidlist.ok = true
 
+	for k , v in ipairs( propidlist.list ) do
+		local prop = user.propmgr:get_by_csvid( v.propid )
+		if prop then
+			prop.num = prop.num + v.propnum
+			prop:__update_db({"num"})
+		else
+			local p = game.g_propmgr:get_by_csv_id( v.propid )
+			p.user_id = user.id
+			p.num = v.propnum
+			local prop = user.u_propmgr.create(p)
+			user.u_propmgr:add(prop)
+			prop:__insert_db()
+		end
+	end
+
 	print( "get propidlist successfully" )
 	return propidlist
 end				
