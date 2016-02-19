@@ -23,6 +23,7 @@ function CMD.shop_all()
 	local idx = 1
 	for k,v in pairs(game.g_goodsmgr.__data) do
 		l[idx] = v:__serialize()
+		idx = idx + 1
 	end
 	return l
 end
@@ -58,26 +59,14 @@ function CMD.shop_purchase( g )
 end
 
 function CMD.recharge_all()
-	local ret = {}
-	ret.errorcode = 0
-	ret.msg = "yes"
 	local l = {}
 	local idx = 1
 	for k,v in pairs(game.g_rechargemgr.__data) do
-		local goods = {}
-		goods.csv_id = v.csv_id
-		goods.icon_id = v.icon
-		goods.name = v.name
-		goods.diamond = v.diamond
-		goods.first = v.first
-		goods.gift = v.gift
-		goods.rmb = v.rmb
-		goods.p_num = v.num
-		l[idx] = goods
+		local g = v:__serialize()
+		l[idx] = g
 		idx = idx + 1
 	end
-	ret.l = l
-	return ret
+	return l
 end
 
 function CMD.recharge_purchase( g )

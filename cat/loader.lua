@@ -89,28 +89,16 @@ local function load_g_recharge()
 	game.g_rechargemgr = g_rechargemgr
 end
 
-local function load_g_recharge_vip()
+local function load_g_recharge_vip_reward()
 	-- body
 	assert(game.g_recharge_vipmgr == nil)
-	local g_recharge_vipmgr = require "models/g_recharge_vipmgr"
-	local r = skynet.call(util.random_db(), "lua", "command", "select", "g_recharge_vip")
+	local g_recharge_vip_rewardmgr = require "models/g_recharge_vip_rewardmgr"
+	local r = skynet.call(util.random_db(), "lua", "command", "select", "g_recharge_vip_reward")
 	for i,v in ipairs(r) do
-		local t = g_recharge_vipmgr.create(v)
-		g_recharge_vipmgr:add(t)
+		local t = g_recharge_vip_rewardmgr.create(v)
+		g_recharge_vip_rewardmgr:add(t)
 	end
-	game.g_recharge_vipmgr = g_recharge_vipmgr
-end
-
-local function load_g_refresh_cost()
-	-- body
-	assert(game.g_refresh_costmgr == nil)
-	local g_refresh_costmgr = require "models/g_refresh_costmgr"
-	local r = skynet.call(util.random_db(), "lua", "command", "select", "g_refresh_cost")
-	for i,v in ipairs(r) do
-		local t = g_refresh_costmgr.create(v)
-		g_refresh_costmgr:add(t)
-	end
-	game.g_refresh_costmgr = g_refresh_costmgr
+	game.g_recharge_vip_rewardmgr = g_recharge_vip_rewardmgr
 end
 
 local function load_g_role()
@@ -264,6 +252,18 @@ local function load_u_recharge_reward(user)
 	user.u_recharge_recordmgr = u_recharge_recordmgr
 end
 
+local function load_u_recharge_vip_reward(user)
+	-- body
+	local u_recharge_vip_recordmgr = require "models/u_recharge_vip_rewardmgr"
+	local r = skynet.call(util.random_db(), "lua", "command", "select", "u_recharge_vip_reward")
+	assert(r)
+	for i,v in ipairs(r) do
+		local t = u_recharge_vip_recordmgr.create(v)
+		u_recharge_vip_recordmgr:add(t)
+	end
+	user.u_recharge_vip_recordmgr = u_recharge_vip_recordmgr
+end
+
 function loader.load_game()
 	-- body
 	local f = function ()
@@ -275,8 +275,7 @@ function loader.load_game()
 		load_g_goods_refresh_cost()
 		load_g_prop()
 		load_g_recharge()
-		load_g_recharge_vip()
-		load_g_refresh_cost()
+		load_g_recharge_vip_reward()
 		load_g_role()
 		load_g_shop()
 	end
@@ -295,7 +294,7 @@ function loader.load_user(user)
 	load_u_purchase_goods(user)
 	load_u_purchase_reward(user)
 	load_u_recharge_record(user)
-	load_u_recharge_reward(user)
+	load_u_recharge_vip_reward(user)
 	return user
 end
 

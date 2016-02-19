@@ -5,7 +5,7 @@ local _M = {}
 _M.__data = {}
 _M.__count = 0
 
-local _Meta = { g_prop_id=0, user_id=1, csv_id=1, num=1, combat=1, skill=1, critical_hit=1, name=1, sub_type=1, level=1, prop_pic=1, pram1=1}
+local _Meta = { user_id=0, csv_id=0, num=0, sub_type=0, level=0, pram1=0, pram2=0, name=0, use_type=0}
 _Meta.__tname = "u_prop"
 
 function _Meta.__new()

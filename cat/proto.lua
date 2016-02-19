@@ -165,6 +165,12 @@ proto.c2s = sprotoparser.parse [[.package {
     propnum 1 : integer
 }  
 
+.recharge_vip_reward 
+{
+    vip 0 : integer
+    props 1 : *prop
+    collected 2 : boolean
+}
 
 handshake 1 {
     request {
@@ -551,6 +557,21 @@ applydraw 39
         msg 1 : string
     }
 }
+
+recharge_vip_reward 41 {
+    response {
+        errorcode 0 : integer
+        msg 1 : string
+        reward 2 : recharge_vip_reward
+    }
+}
+
+recharge_vip_reward_collect 42 {
+    request {
+
+    }    
+}
+
 
 ]]
 

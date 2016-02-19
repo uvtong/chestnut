@@ -156,6 +156,9 @@ function util.insert( table_name, columns )
 	local values_str = "("
 	for k,v in pairs(columns) do
 		columns_str = columns_str .. k .. ", "	
+		if type(v) == "string" then
+			v = "\'" .. v .. "\'"
+		end
 		values_str = values_str .. v .. ", "
 	end
 	columns_str = string.gsub(columns_str, "(.*)%,%s$", "%1)")
