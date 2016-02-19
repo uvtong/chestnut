@@ -290,7 +290,7 @@ function REQUEST:logout()
 	-- body
 	assert(user)
 	user.ifonline = 0
-	user.__update_db({"ifonline"})
+	user:__update_db({"ifonline"})
 	dc.set( user.id , nil )
 	-- send chanel 
 	-- skynet.send()
@@ -1180,13 +1180,21 @@ end
 function CMD.friend( subcmd, ... )
 	-- body
 	local f = assert(friendrequest[subcmd])
-	return f(friendrequest, ...)
+	local r =  f(friendrequest, ...)
+
+	if r ~= nil then
+		print( "r os  sdddddddddddddddddddddddddddddddddddddddm nil" )
+		return r
+	end
 end
 
 skynet.start(function()
 	skynet.dispatch("lua", function(_,_, command, ...)
 		print("agent is called" , command)
 		local f = CMD[command]
-		skynet.ret(skynet.pack(f(...)))
+		local result = f( ... )
+		if result then
+			skynet.ret(skynet.pack(result))
+		end
 	end)
 end)

@@ -389,7 +389,6 @@ function drawmgr:onetimedraw( tv )
     	local prop = user.u_propmgr:get_by_csv_id( tonumber( line.cointype ) )
     	print( "get prop" )
 		if nil == prop or prop.num < tonumber( line.price ) then
-			print( prop , prop.num )
 			local ret = {}
 			ret.ok = false
 			ret.msg = "not enough money"
@@ -404,7 +403,7 @@ function drawmgr:onetimedraw( tv )
 				print( " >>>>>>>>" )
 				proplist.lefttime = 0
 			else
-				print( "<<<<<<<<")
+				print( "<<<<<<<<" )
 				proplist.lefttime = recvtime + day - os.time()
 			end 
 			print("**********************")

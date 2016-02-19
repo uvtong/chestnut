@@ -94,6 +94,8 @@ proto.c2s = sprotoparser.parse [[.package {
 	apply 10 : boolean 
 	receive 11 : boolean 
 	type 12 : integer
+    signtime 13 : integer
+    heartamount 14 : integer
 }
 
 .apply 
