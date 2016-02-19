@@ -137,6 +137,18 @@ local function load_u_achievement(user)
 	user.u_achievementmgr = u_achievementmgr
 end
 
+local function load_u_achievement_rc(user)
+	-- body
+	local u_achievement_rcmgr = require "models/u_achievement_rcmgr"
+	local addr = util.random_db()
+	local r = skynet.call(addr, "lua", "command", "select", "u_achievement_rc", {{ user_id = user.id}})
+	for i,v in ipairs(r) do
+		local a = u_achievement_rcmgr.create(v)
+		u_achievement_rcmgr:add(a)
+	end
+	user.u_achievement_rcmgr = u_achievement_rcmgr
+end
+
 local function load_u_checkin(user)
 	-- body
 	assert(user.u_checkinmgr == nil)
@@ -266,14 +278,14 @@ end
 
 local function load_u_recharge_vip_reward(user)
 	-- body
-	local u_recharge_vip_recordmgr = require "models/u_recharge_vip_rewardmgr"
+	local u_recharge_vip_rewardmgr = require "models/u_recharge_vip_rewardmgr"
 	local r = skynet.call(util.random_db(), "lua", "command", "select", "u_recharge_vip_reward")
 	assert(r)
 	for i,v in ipairs(r) do
-		local t = u_recharge_vip_recordmgr.create(v)
-		u_recharge_vip_recordmgr:add(t)
+		local t = u_recharge_vip_rewardmgr.create(v)
+		u_recharge_vip_rewardmgr:add(t)
 	end
-	user.u_recharge_vip_recordmgr = u_recharge_vip_recordmgr
+	user.u_recharge_vip_rewardmgr = u_recharge_vip_rewardmgr
 end
 
 function loader.load_game()
@@ -298,6 +310,7 @@ end
 function loader.load_user(user)
 	-- body
 	load_u_achievement(user)
+	load_u_achievement_rc(user)
 	load_u_checkin(user)
 	load_u_checkpoint(user)
 	load_u_equipment(user)

@@ -5,7 +5,7 @@ local _M = {}
 _M.__data = {}
 _M.__count = 0
 
-local _Meta = { csv_id=0, type=0, c_gold=0, level=0}
+local _Meta = { csv_id=0, type=0, c_num=0, reward=0, star=0, unlock_next_csv_id=0, is_init=0}
 
 _Meta.__tname = "g_achievement"
 
@@ -67,37 +67,16 @@ end
 	
 function _M:get_by_csv_id(csv_id)
 	-- body
+	return self.__data[tostring(csv_id)]
+end
+
+function _M:get_by_type_and_init(t)
+	-- body
 	for k,v in pairs(self.__data) do
-		if v.csv_id == csv_id then
+		if v.type == t and v.is_init == 1 then
 			return v
 		end
 	end
-end
-
-function _M:get_by_type(t)
-	-- body
-	local r = {}
-	local idx = 1
-	for k,v in pairs(self.__data) do
-		if v.type == t then
-			r[idx] = v
-			idx = idx + 1
-		end
-	end
-	return r
-end
-
-function _M:get_by_type_and_level(t, l)
-	-- body
-	local r = {}
-	local idx = 1
-	for k,v in pairs(self.__data) do
-		if v._type == t and v.level == l then
-			r[idx] = v
-			idx = idx + 1
-		end
-	end
-	return r
 end
 
 function _M:get_count()

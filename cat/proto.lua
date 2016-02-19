@@ -46,6 +46,7 @@ proto.c2s = sprotoparser.parse [[.package {
 .achi {
     csv_id 0 : integer
     finished 1 : integer
+    reward_collected 2 : boolean
 }
 
 .mail

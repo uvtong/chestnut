@@ -5,9 +5,9 @@ local _M = {}
 _M.__data = {}
 _M.__count = 0
 
-local _Meta = { csv_id=0, type=0, finished=0, c_num=0, unlock_next_csv_id=0}
+local _Meta = { g_recharge_csv_id=0, p_count=0 }
 
-_M.__tname = "u_achievement"
+_M.__tname = "u_recharge_count"
 
 function _Meta.__new()
  	-- body
@@ -61,18 +61,18 @@ end
 
 function _M:add( u )
 	assert(u)
-	self.__data[tostring(u.type)] = u
+	self.__data[tostring(u.g_recharge_csv_id)] = u
 	self.__count = self.__count + 1
 end
-
-function _M:get_by_type(type)
+	
+function _M:get_by_csv_id(csv_id)
 	-- body
-	return self.__data[tostring(type)]
+	return self.__data[tostring(csv_id)]
 end
 
-function _M:delete_by_type(type)
+function _M:delete_by_csv_id(csv_id)
 	-- body
-	self.__data[tostring(type)] = nil
+	self.__data[tostring(csv_id)] = nil
 end
 
 function _M:get_count()
