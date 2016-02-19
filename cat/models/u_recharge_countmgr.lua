@@ -5,9 +5,9 @@ local _M = {}
 _M.__data = {}
 _M.__count = 0
 
-local _Meta = { g_recharge_csv_id=0, p_count=0 }
+local _Meta = { user_id=0, g_recharge_csv_id=0, p_count=0 }
 
-_M.__tname = "u_recharge_count"
+_Meta.__tname = "u_recharge_count"
 
 function _Meta.__new()
  	-- body

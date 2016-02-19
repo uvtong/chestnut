@@ -61,18 +61,13 @@ end
 
 function _M:add( u )
 	assert(u)
-	self.__data[tostring(u.csv_id)] = u
+	self.__data[tostring(u.vip)] = u
 	self.__count = self.__count + 1
 end
 	
-function _M:get_by_csv_id(csv_id)
+function _M:get_by_vip(vip)
 	-- body
-	return self.__data[tostring(csv_id)]
-end
-
-function _M:delete_by_csv_id(csv_id)
-	-- body
-	self.__data[tostring(csv_id)] = nil
+	return self.__data[tostring(vip)]
 end
 
 function _M:get_count()

@@ -7,7 +7,7 @@ _M.__count = 0
 
 local _Meta = { user_id=0, vip=0, collected=0}
 
-_M.__tname = "u_recharge_vip_reward"
+_Meta.__tname = "u_recharge_vip_reward"
 
 function _Meta.__new()
  	-- body

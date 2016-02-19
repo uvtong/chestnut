@@ -170,7 +170,6 @@ function REQUEST:login()
 		user = usersmgr.create(r)
 		loader.load_user(user)
 		subscribe()
-
 		skynet.fork(subscribe)
 
 		local level = csvReader.getcont("level")
@@ -497,10 +496,9 @@ function REQUEST:user()
     	avatar = user.avatar,
     	sign = user.sign,
     	c_role_id = user.c_role_id,
-    	recharge_total = user.recharge_total,
+    	recharge_total = user.recharge_rmb,
     	recharge_diamond = user.recharge_diamond,
-    	recharge_progress = user.recharge_progress,
-    	recharge_vip = user.recharge_vip
+    	recharge_progress = user.uvip_progress
 	}
 	local u_propmgr = user.u_propmgr
 	local exp = u_propmgr:get_by_csv_id(const.EXP)
@@ -815,14 +813,24 @@ function REQUEST:recharge_vip_reward_collect()
 		ret.msg = "not online"
 		return ret
 	end
+	if self.vip == 0 then
+		ret.errorcode = 2
+		ret.msg = "no reward"
+		return ret
+	end
+	if self.vip > user.uviplevel then
+		ret.errorcode = 3
+		ret.msg = "error"
+		return ret
+	end
 	assert(user)
-	local rc = user.u_recharge_vip_rewardmgr:get_by_vip(user.uviplevel)
+	local rc = user.u_recharge_vip_rewardmgr:get_by_vip(self.vip)
 	if rc and rc.collected then
 		ret.errorcode = 2
 		ret.msg = "you have collected."
 		return ret
 	end
-	local t = {vip=user.uviplevel, collected=1}
+	local t = {user_id=user.id, vip=self.vip, collected=1}
 	rc = user.u_recharge_vip_rewardmgr.create(t)
 	rc:__insert_db()
 	ret.errorcode = 0
@@ -842,7 +850,19 @@ function REQUEST:recharge_purchase()
 		ret.msg = "not online"
 		return ret
 	end
-	local r = skynet.call(".shop", "lua", "recharge_purchase", self.g)
+	-- local r = skynet.call(".shop", "lua", "recharge_purchase", self.g)
+	local l = {}
+	local idx = 1
+	print(type(self.g))
+	for i,v in ipairs(self.g) do
+		print(v.csv_id)
+		local r = game.g_rechargemgr:get_by_csv_id(v.csv_id)
+		local goods = r:__serialize()
+		goods.p_num = v.num
+		l[idx] = goods
+		idx = idx + 1
+	end
+	local r = l
 	if #r == 0 then
 		ret.errorcode = 2
 		ret.msg = "no exist"
@@ -867,12 +887,13 @@ function REQUEST:recharge_purchase()
 		end
 		-----------------------------
 		repeat
-			local vip = game.g_recharge_vip_rewawrd:get_by_vip(user.uviplevel + 1)
+			local vip = game.g_recharge_vip_rewardmgr:get_by_vip(user.uviplevel + 1)
 			if not vip then
 				error "don't upgrade, no data."
 			end
 			local progress = user.recharge_diamond / vip.diamond
-			if progress > 1 then
+			print("***************", progress)
+			if progress >= 1 then
 				user.uviplevel = user.uviplevel + 1
 				user:__update_db({"uviplevel"})
 			else
@@ -974,7 +995,7 @@ local function request(name, args, response)
     if name == "login" then
     	for k,v in pairs(M) do
     		if v.REQUEST then
-    			v.REQUEST[name](user)
+    			v.REQUEST[name](v.REQUEST, user)
     		end
     	end
     end

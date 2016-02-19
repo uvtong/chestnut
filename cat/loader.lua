@@ -14,6 +14,9 @@ local function load_g_achievement()
 		local t = g_achievementmgr.create(v)
 		g_achievementmgr:add(t)
 	end
+	for k,v in pairs(g_achievementmgr) do
+		print(k,v)
+	end
 	game.g_achievementmgr = g_achievementmgr
 end
 
@@ -91,7 +94,7 @@ end
 
 local function load_g_recharge_vip_reward()
 	-- body
-	assert(game.g_recharge_vipmgr == nil)
+	assert(game.g_recharge_vip_rewardmgr == nil)
 	local g_recharge_vip_rewardmgr = require "models/g_recharge_vip_rewardmgr"
 	local r = skynet.call(util.random_db(), "lua", "command", "select", "g_recharge_vip_reward")
 	for i,v in ipairs(r) do
