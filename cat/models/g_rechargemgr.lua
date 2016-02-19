@@ -5,7 +5,7 @@ local _M = {}
 _M.__data = {}
 _M.__count = 0
 
-local _Meta = { csv_id=0, icon=0, name=0, diamond=0, first=0, gift=0, rmb=0, recharge_befor=0, recharge_after=0, goods_id=0, icon_id=0}
+local _Meta = { csv_id=0, icon_id=0, diamond=0, first=0, gift=0, rmb=0}
 
 _Meta.__tname = "g_recharge"
 

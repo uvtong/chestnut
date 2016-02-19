@@ -31,6 +31,7 @@ local send_request
 local CMD = {}
 local REQUEST = {}
 local RESPONSE = {}
+local SUBSCRIBE = {}
 local client_fd
 
 local game
@@ -77,8 +78,6 @@ local function id(__wake, __level)
 	return __wake * 1000 + __level
 end
 
-local SUBSCRIBE = {}
-
 function SUBSCRIBE:email( tvals, ... )
 	-- body
 	local v = emailbox:recvemail( tvals )
@@ -102,8 +101,6 @@ end
 
 local function subscribe()
 	-- body
-	dc.set(user.id, { client_fd=client_fd, addr = skynet.self()})
-
 	local c = skynet.call(".channel", "lua", "agent_start", user.id, skynet.self())
 	local c2 = mc.new {
 		channel = c,
@@ -222,7 +219,8 @@ function REQUEST:login()
 		local usersmgr = require "models/usersmgr"
 		user = usersmgr.create(r)
 		loader.load_user(user)
-		
+		subscribe()
+
 		skynet.fork(subscribe)
 
 		local level = csvReader.getcont("level")
@@ -476,19 +474,47 @@ function REQUEST:use_prop()
 				g.num = g.num + tonumber(prop.pram1)
 				g:__update_db({"num"})
 			elseif assert(prop.use_type) == 3 then
-				local csv_id1 = string.gsub(prop.pram1, "{%d*}%*{%d*}%*{%d*}%*{%d*}", "%1")
-				local num1 = string.gsub(prop.pram1, "{%d*}%*{%d*}%*{%d*}%*{%d*}", "%2")
+				local csv_id1 = string.gsub(prop.pram1, "(%d*)%*(%d*)%*(%d*)%*(%d*)", "%1")
+				local num1 = string.gsub(prop.pram1, "(%d*)%*(%d*)%*(%d*)%*(%d*)", "%2")
 				local p1 = user.u_propmgr:get_by_csv_id(csv_id1)
-				p1.num = p1.num + num1 * v.num
+				p1.num = p1.num + num1 * math.abs(v.num)
 				p1:__update_db({"num"})
-				local csv_id2 = string.gsub(prop.pram1, "{%d*}%*{%d*}%*{%d*}%*{%d*}", "%3")
-				local num2 = string.gsub(prop.pram1, "{%d*}%*{%d*}%*{%d*}%*{%d*}", "%4")
+				local csv_id2 = string.gsub(prop.pram1, "(%d*)%*(%d*)%*(%d*)%*(%d*)", "%3")
+				local num2 = string.gsub(prop.pram1, "(%d*)%*(%d*)%*(%d*)%*(%d*)", "%4")
 				local p2 = user.u_propmgr:get_by_csv_id(csv_id2)
-				p2.num = p2.num + num1 * v.num
+				p2.num = p2.num + num1 * math.abs(v.num)
 				p2:__update_db({"num"})
 			elseif assert(prop.use_type) == 4 then
-				string.gsub(prop.pram1, "{%d*}%*{%d*}%*{%d*}%*{%d*}%*{%d*}%*{%d*}", "%1")
-				local g = user.u_propmgr:get_by_csv_id(cons)
+				local csv_id1 = string.gsub(prop.pram1, "(%d*)%*(%d*)%*(%d*)%*(%d*)%*(%d*)%*(%d*)", "%1")
+				local num1 = string.gsub(prop.pram1, "(%d*)%*(%d*)%*(%d*)%*(%d*)%*(%d*)%*(%d*)", "%2")
+				local pro1 = string.gsub(prop.pram1, "(%d*)%*(%d*)%*(%d*)%*(%d*)%*(%d*)%*(%d*)", "%3")
+				if math.random(1, 600) < tonumber(pro1) then
+					local p1 = user.u_propmgr:get_by_csv_id(csv_id1)
+					if p1 then
+						p1.num = p1.num + tonumber(num1) * math.abs(v.num)
+						p1:__update_db({"num"})
+					else
+						local p = game.g_propmgr:get_by_csv_id(csv_id1)
+						p.user_id = user.id
+						p.num = tonumber(num1) * math.abs(v.num)
+						p:__insert_db()
+					end
+				end
+				local csv_id2 = string.gsub(prop.pram1, "(%d*)%*(%d*)%*(%d*)%*(%d*)%*(%d*)%*(%d*)", "%4")
+				local num2 = string.gsub(prop.pram1, "(%d*)%*(%d*)%*(%d*)%*(%d*)%*(%d*)%*(%d*)", "%5")
+				local pro2 = string.gsub(prop.pram1, "(%d*)%*(%d*)%*(%d*)%*(%d*)%*(%d*)%*(%d*)", "%6")
+				if math.random(1, 1000) < tonumber(pro2) then
+					local p2 = user.u_propmgr:get_by_csv_id(csv_id2)
+					if p2 then
+						p2.num = p2.num + tonumber(num1) * math.abs(v.num)
+						p2:__update_db({"num"})
+					else
+						local p = game.g_propmgr:get_by_csv_id(csv_id2)
+						p.user_id = user.id
+						p.num = tonumber(num2) * math.abs(v.num)
+						p:__insert_db()
+					end
+				end
 			end	
 			l[idx] = {csv_id=prop.csv_id, num=prop.num}
 			idx = idx + 1
@@ -776,6 +802,7 @@ function REQUEST:shop_purchase()
 			-- gold 2
 			local currency = user.u_propmgr:get_by_csv_id(const.GOLD)
 			if currency.num > gold then
+				print("******************abc", goods.inventory)
 				if goods.inventory == 99 then
 				elseif goods.inventory > goods.p_num then
 					local g = game.g_goodsmgr:get_by_csv_id(goods.csv_id)
@@ -784,7 +811,7 @@ function REQUEST:shop_purchase()
 				else
 					ret.errorcode = 5
 					ret.msg = "not inventory"
-					return
+					return ret
 				end
 				currency.num = currency.num - gold
 				currency:__update_db({"num"})
@@ -812,6 +839,7 @@ function REQUEST:shop_purchase()
 			local diamond = goods.currency_num * goods.p_num
 			local currency = user.u_propmgr:get_by_csv_id(const.DIAMOND)
 			if currency.num > diamond then
+				print("******************abc", goods.inventory)
 				if goods.inventory == 99 then
 				elseif goods.inventory > goods.p_num then
 					local g = game.g_goodsmgr:get_by_csv_id(goods.csv_id)
@@ -820,7 +848,7 @@ function REQUEST:shop_purchase()
 				else
 					ret.errorcode = 5
 					ret.msg = "not inventory"
-					return
+					return ret
 				end
 				currency.num = currency.num - diamond
 				currency:__update_db({"num"})
@@ -850,25 +878,6 @@ function REQUEST:shop_purchase()
 			return ret
 		end
 	end
-end
-
-function REQUEST:checkin_schedule()
-	-- body
-	local ret = {}
-	return ret
-	-- local c_date = os.date()
-	-- local sql = "select * from checkin where CDate(Format("
-	-- local checkins = skynet.call(util.random_db(), "lua", "command", "query", )
-end
-
-function REQUEST:checkin()
-	-- body
-	local ret = {}
-	local c_date = os.date()
-	local checkins = skynet.call(util.random_db(), "lua", "command", "select", "checkin", {{ user_id = user.id, s_checkin_date = c_date}})
-	if #checkins > 1 then
-	end
-	return ret
 end
 
 function REQUEST:recharge_all()
@@ -909,6 +918,101 @@ function REQUEST:recharge_vip_reward()
 	ret.reward = l
 end
 
+function REQUEST:recharge_vip_reward_collect()
+	-- body
+	local ret = {}
+	if not user then
+		ret.errorcode = 1
+		ret.msg = "not online"
+		return ret
+	end
+	assert(user)
+	local rc = user.u_recharge_vip_rewardmgr:get_by_vip(user.uviplevel)
+	if rc and rc.collected then
+		ret.errorcode = 2
+		ret.msg = "you have collected."
+		return ret
+	end
+	local t = {vip=user.uviplevel, collected=1}
+	rc = user.u_recharge_vip_rewardmgr.create(t)
+	rc:__insert_db()
+	ret.errorcode = 0
+	ret.msg = "yes"
+	ret.vip = user.uviplevel
+	ret.collected = true
+	return ret
+end
+
+function REQUEST:recharge_purchase()
+	-- body
+	local ret = {}
+	if not user then
+		ret.errorcode = 0
+		ret.msg = "ss"
+		return ret
+	end
+	local r = skynet.call(".shop", "lua", "recharge_purchase", self.g)
+	if #r == 0 then
+		ret.errorcode = 1
+		ret.msg = "no exist"
+		return ret
+	end
+	for i,v in ipairs(r) do
+		user.recharge_rmb = user.recharge_rmb + v.rmb * v.p_num
+		user.recharge_diamond = user.recharge_diamond + v.diamond * v.p_num
+		local rc = user.u_recharge_countmgr:get_by_csv_id(v.csv_id)
+		if rc then
+			rc.p_count = rc.p_count + 1
+			rc:__update_db({"p_count"})
+			local diamond = user.u_propmgr:get_by_csv_id(const.DIAMOND)
+			diamond.num = diamond.num + (v.diamond + v.gift) * v.p_num
+			diamond:__update_db({"num"})
+		else
+			rc = user.u_recharge_countmgr.create({user_id=user.id, g_recharge_csv_id=v.csv_id, p_count=1})
+			rc:__insert_db()
+			local diamond = user.u_propmgr:get_by_csv_id(const.DIAMOND)
+			diamond.num = diamond.num + (v.diamond + v.gift) * v.p_num
+			diamond:__update_db({"num"})
+		end
+		-----------------------------
+		repeat
+			local vip = game.g_recharge_vip_rewawrd:get_by_vip(user.uviplevel + 1)
+			if not vip then
+				error "don't upgrade, no data."
+			end
+			local progress = user.recharge_diamond / vip.diamond
+			if progress > 1 then
+				user.uviplevel = user.uviplevel + 1
+				user:__update_db({"uviplevel"})
+			else
+				user.uvip_progress = progress * 100
+				user:__update_db({"uvip_progress"})
+				break
+			end
+		until false
+	end
+	ret.errorcode = 0
+	ret.msg = "yes"
+	return ret
+end
+
+function REQUEST:recharge_reward()
+	local ret = {}
+	ret.errorcode = 0
+	ret.msg	= "yes"
+	local l = {}
+	local idx = 1
+	for k,v in pairs(user.u_recharge_reward.__data) do
+		local reward = {}
+		reward["id"] = v.id
+		reward.distribute_dt = v.distribute_dt
+		reward.icon_id = v.icon_id
+		l[idx] = l
+ 	end
+ 	ret.l = l
+ 	return ret
+end
+
 function REQUEST:recharge_collect()
 	-- body
 	print(os.date())
@@ -944,67 +1048,6 @@ function REQUEST:recharge_collect()
 	ret.errorcode = 1
 	ret.msg = "no exist"
 	return ret
-end
-
-function REQUEST:recharge_purchase()
-	-- body
-	local ret = {}
-	local r = skynet.call(".shop", "lua", "recharge_purchase", self.g)
-	if #r == 0 then
-		ret.errorcode = 1
-		ret.msg = "no exist"
-		return ret
-	end
-	for i,v in ipairs(r) do
-		user.recharge_total = user.recharge_total + v.rmb * v.p_num
-		repeat
-			local v1 = game.g_recharge_vipmgr:get_by_vip(vip)
-			local v2 = game.g_recharge_vipmgr:get_by_vip(vip + 1)
-			if not v1 or not v2 then
-				break
-			end
-			print(user.recharge_diamond, "kjdfa", v1.diamond, "KKK", v2.diamond)
-			if user.recharge_diamond < v2.diamond and user.recharge_diamond > v1.diamond then
-				user.recharge_vip = vip
-				print("vip", vip)
-				user.recharge_progress = math.tointeger((user.recharge_diamond - v1.diamond) / (v2.diamond - v1.diamond) * 100)
-				break
-			end
-			vip = vip + 1
-		until false
-		skynet.send(util.random_db(), "lua", "command", "update", "users", {{ id = user.id }}, { recharge_total = user.recharge_total, recharge_diamond = user.recharge_diamond, recharge_progress = user.recharge_progress, recharge_vip = user.recharge_vip })
-		local prop = user.u_propmgr:get_by_csv_id(1)
-		print(prop.num)
-		prop.num = prop.num + v.diamond * v.p_num
-		skynet.send(util.random_db(), "lua", "command", "update", "props", {{ id = prop.id }}, { num = prop.num })
-		ret.errorcode = 0
-		ret.msg = "yes"
-		ret.p = {
-			csv_id = prop.csv_id,
-    		num = prop.num
-    	}
-    	return ret
-	end
-	ret.errorcode = 2
-	ret.msg = "occour error."
-	return ret
-end
-
-function REQUEST:recharge_reward()
-	local ret = {}
-	ret.errorcode = 0
-	ret.msg	= "yes"
-	local l = {}
-	local idx = 1
-	for k,v in pairs(user.u_recharge_reward.__data) do
-		local reward = {}
-		reward["id"] = v.id
-		reward.distribute_dt = v.distribute_dt
-		reward.icon_id = v.icon_id
-		l[idx] = l
- 	end
- 	ret.l = l
- 	return ret
 end
 
 function REQUEST:handshake()
@@ -1048,8 +1091,6 @@ local function request(name, args, response)
     	return response(r)
     end               
 end      
-	
-local RESPONSE = {}
 
 function RESPONSE:newemail( e )
 	assert( e )
@@ -1108,28 +1149,6 @@ skynet.register_protocol {
 	end
 }	
 	
-local SUBSCRIBE = {}
-	
-function SUBSCRIBE:email( tvals, ... )
-	-- body
-	local v = emailbox:recvemail( tvals )
-	local ret = {}
-	ret.mail = {}
-	local tmp = {}
-   	tmp.attachs = {}
-    tmp.emailid = v.id
-    tmp.type = v.type
-    tmp.acctime = os.date("%Y-%m-%d" , v.acctime)
-    tmp.isread = v.isread
-    tmp.isreward = v.isreward
-    tmp.title = v.title
-    tmp.content = v.content
-	tmp.attachs = v:getallitem()
-	tmp.iconid = v.iconid
-	ret.mail = tmp
-	send_package( send_request( "newemail" ,  ret ) )
-end	
-	
 function CMD.start(conf)
 	print("start is called")
 	local fd = conf.client
@@ -1147,36 +1166,12 @@ function CMD.start(conf)
 	client_fd = fd
 	skynet.call(gate, "lua", "forward", fd)
 
-	local c = skynet.call(".channel", "lua", "agent_start", 2, skynet.self())
-	local c2 = mc.new {
-		channel = c,
-		dispatch = function ( channel, source, cmd, tvals , ... )
-			-- body
-			local f = assert(SUBSCRIBE[cmd])
-			f(tvals, ...)
-		end
-	}
-	c2:subscribe()
-
 	game = loader.load_game()
 	for i,v in ipairs(M) do
-		v.start(conf, send_request, game, dc)
+		v.start(conf, send_request, game)
 	end
 end	
-	
-function CMD.channel( cn )
-	print("channeled is called\n" , cn)
-	local c2 = mc.new {
-		channel = cn,
-		dispatch = function ( channel, source, et )
-			print( et.id , et.uid )
-		end,
-	}
-	print("subscribe already")
-	c2:subscribe()
-	skynet.send(addr, "lua", "publish" )
-end
-   
+	   
 function CMD.disconnect()
 	-- todo: do something before exit
 	skynet.exit()

@@ -558,18 +558,24 @@ applydraw 39
     }
 }
 
-recharge_vip_reward 41 {
+recharge_vip_reward_all 41 {
     response {
         errorcode 0 : integer
         msg 1 : string
-        reward 2 : recharge_vip_reward
+        reward 2 : *recharge_vip_reward
     }
 }
 
 recharge_vip_reward_collect 42 {
     request {
-
-    }    
+        vip 0 : integer
+    }
+    response {
+        errorcode 0 : integer
+        msg 1 : string
+        vip 2 : integer
+        collected 3 : boolean
+    }
 }
 
 

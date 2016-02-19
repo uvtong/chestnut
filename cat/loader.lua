@@ -228,6 +228,18 @@ local function load_u_purchase_reward(user)
 	user.u_purchase_rewardmgr = u_purchase_rewardmgr
 end
 
+local function load_u_recharge_count(user)
+	-- body
+	local u_recharge_countmgr = require "models/u_recharge_countmgr"
+	local r = skynet.call(util.random_db(), "lua", "command", "select", "u_recharge_count")
+	assert(r)
+	for i,v in ipairs(r) do
+		local t = u_recharge_countmgr.create(v)
+		u_recharge_countmgr:add(t)
+	end
+	user.u_recharge_countmgr = u_recharge_countmgr
+end
+
 local function load_u_recharge_record(user)
 	-- body
 	local u_recharge_recordmgr = require "models/u_recharge_recordmgr"
@@ -293,6 +305,7 @@ function loader.load_user(user)
 	load_u_role(user)
 	load_u_purchase_goods(user)
 	load_u_purchase_reward(user)
+	load_u_recharge_count(user)
 	load_u_recharge_record(user)
 	load_u_recharge_vip_reward(user)
 	return user

@@ -1,4 +1,5 @@
 local battlerequest = {}
+local dc = require "datacenter"
 local util = require "util"
 
 local send_package
@@ -6,9 +7,10 @@ local send_request
 
 local REQUEST = {}
 local RESPONSE = {}
+local SUBSCRIBE = {}
 local client_fd
 
-local dc
+
 
 local game
 local user
@@ -31,12 +33,11 @@ function RESPONSE:abc()
 	-- body
 end
 
-function battlerequest.start(conf, send_request, game, dc, ...)
+function battlerequest.start(conf, send_request, game, ...)
 	-- body
 	client_fd = conf.client
 	send_request = send_request
 	game = game
-	dc = dc
 end
 
 function battlerequest.disconnect()
@@ -45,4 +46,5 @@ end
 
 battlerequest.REQUEST = REQUEST
 battlerequest.RESPONSE = RESPONSE
+battlerequest.SUBSCRIBE = SUBSCRIBE
 return battlerequest
