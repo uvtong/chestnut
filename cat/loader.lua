@@ -14,9 +14,6 @@ local function load_g_achievement()
 		local t = g_achievementmgr.create(v)
 		g_achievementmgr:add(t)
 	end
-	for k,v in pairs(g_achievementmgr) do
-		print(k,v)
-	end
 	game.g_achievementmgr = g_achievementmgr
 end
 
@@ -29,7 +26,19 @@ local function load_g_checkpoint()
 		local t = g_checkpointmgr.create(v)
 		g_checkpointmgr:add(t)
 	end
-	game.g_achievementmgr = g_achievementmgr
+	game.g_checkpointmgr = g_checkpointmgr
+end
+
+local function load_g_effct()
+	-- body
+	assert(game.g_effctmgr == nil)
+	local g_effctmgr = require "models/g_effctmgr"
+	local r = skynet.call(util.random_db(), "lua", "command", "select", "g_effct")
+	for i,v in ipairs(r) do
+		local t = g_effctmgr.create(v)
+		g_effctmgr:add(t)
+	end
+	game.g_effctmgr = g_effctmgr
 end
 
 local function load_g_equipment()
@@ -116,6 +125,18 @@ local function load_g_role()
 	game.g_rolemgr = g_rolemgr
 end
 
+local function load_g_role_star()
+	-- body
+	assert(game.g_role_starmgr == nil)
+	local g_role_starmgr = require "models/g_role_starmgr"
+	local r = skynet.call(util.random_db(), "lua", "command", "select", "g_user_levelr")
+	for i,v in ipairs(r) do
+		local t = g_user_levelmgr.create(v)
+		g_user_levelmgr:add(t)
+	end
+	game.g_user_levelmgr = g_user_levelmgr
+end
+
 local function load_g_shop()
 	-- body
 	assert(game.g_shopmgr == nil)
@@ -126,6 +147,18 @@ local function load_g_shop()
 		g_shopmgr:add(t)
 	end
 	game.g_shopmgr = g_shopmgr
+end
+
+local function load_g_user_level()
+	-- body
+	assert(game.g_user_levelmgr == nil)
+	local g_user_levelmgr = require "models/g_user_levelmgr"
+	local r = skynet.call(util.random_db(), "lua", "command", "select", "g_user_level")
+	for i,v in ipairs(r) do
+		local t = g_user_levelmgr.create(v)
+		g_user_levelmgr:add(t)
+	end
+	game.g_user_levelmgr = g_user_levelmgr
 end
 
 local function load_u_achievement(user)
@@ -203,24 +236,6 @@ local function load_u_prop(user)
 	user.u_propmgr = u_propmgr
 end
 
-local function load_u_role(user)
-	-- body
-	print("***********************", user.id)
-	local u_rolemgr = require "models/u_rolemgr"
-	local addr = util.random_db()
-	local nr = skynet.call(addr, "lua", "command", "select", "u_role", {{ user_id = user.id }})
-	for i,v in ipairs(nr) do
-		print("*******************", i)
-		
-		local role = u_rolemgr.create( v )
-		for k,v in pairs(role) do
-			print(k,v)
-		end
-		u_rolemgr:add(role)
-	end
-	user.u_rolemgr = u_rolemgr
-end
-
 local function load_u_purchase_goods(user)
 	-- body
 	local u_purchase_goodsmgr = require "models/u_purchase_goodsmgr"
@@ -291,6 +306,21 @@ local function load_u_recharge_vip_reward(user)
 	user.u_recharge_vip_rewardmgr = u_recharge_vip_rewardmgr
 end
 
+local function load_u_role(user)
+	-- body
+	local u_rolemgr = require "models/u_rolemgr"
+	local addr = util.random_db()
+	local nr = skynet.call(addr, "lua", "command", "select", "u_role", {{ user_id = user.id }})
+	for i,v in ipairs(nr) do
+		local role = u_rolemgr.create( v )
+		for k,v in pairs(role) do
+			print(k,v)
+		end
+		u_rolemgr:add(role)
+	end
+	user.u_rolemgr = u_rolemgr
+end
+
 function loader.load_game()
 	-- body
 	local f = function ()
@@ -325,12 +355,6 @@ function loader.load_user(user)
 	load_u_recharge_record(user)
 	load_u_recharge_vip_reward(user)
 	return user
-end
-
-function loader.load_all()
-	-- body
-	load_g_achievement()
-	return game, user
 end
 
 return loader

@@ -5,9 +5,9 @@ local _M = {}
 _M.__data = {}
 _M.__count = 0
 
-local _Meta = { g_checkpoint_id=0, passed=0}
+local _Meta = { user_id=0, csv_id=0, finished=0, reward_collected=0, is_unlock=0}
 
-_Meta.__tname = "u_checkpoint"
+_Meta.__tname = "u_achievement_rc"
 
 function _Meta.__new()
  	-- body
@@ -21,7 +21,7 @@ function _Meta:__insert_db()
 	local t = {}
 	for k,v in pairs(self) do
 		if not string.match(k, "^__*") then
-			t[k] = self[k]
+			t[k] = assert(self[k])
 		end
 	end
 	skynet.send(util.random_db(), "lua", "command", "insert", self.__tname, t)
@@ -53,7 +53,7 @@ function _M.create( P )
 	local u = _Meta.__new()
 	for k,v in pairs(_Meta) do
 		if not string.match(k, "^__*") then
-			u[k] = assert(P[k])
+			u[k] = P[k]
 		end
 	end
 	return u
@@ -64,14 +64,15 @@ function _M:add( u )
 	self.__data[tostring(u.csv_id)] = u
 	self.__count = self.__count + 1
 end
-
+	
 function _M:get_by_csv_id(csv_id)
 	-- body
-	for k,v in pairs(self.__data) do
-		if v.csv_id == csv_id then
-			return v
-		end
-	end
+	return self.__data[tostring(csv_id)]
+end
+
+function _M:delete_by_csv_id(csv_id)
+	-- body
+	self.__data[tostring(csv_id)] = nil
 end
 
 function _M:get_count()
@@ -80,3 +81,4 @@ function _M:get_count()
 end
 
 return _M
+
