@@ -1,9 +1,8 @@
-__count__ = 1
 local _M = {}
 _M.__data = {}
 _M.__count = 0
 
-local _Meta = { g_achievementmgr, g_checkpointmgr, g_goodsmgr, g_rechargemgr, g_refresh_costmgr }
+local _Meta = {}
 
 function _Meta.new()
  	-- body
@@ -13,9 +12,9 @@ function _Meta.new()
 end 
 
 function _M.create( P )
-	assert(__count__ == 1)
-	__count__ = __count__ + 1
+	assert(_M.__count < 1)
 	local u = _Meta.new()
+	_M.__count = _M.__count + 1
 	return u
 end	
 
@@ -33,15 +32,6 @@ end
 function _M:get(id)
 	-- body
 	return self.__data[tostring(id)]
-end
-
-function _M:get_by_csv_id(csv_id)
-	-- body
-	for k,v in pairs(self.__data) do
-		if v.csv_id == csv_id then
-			return v
-		end
-	end
 end
 
 function _M:get_count()

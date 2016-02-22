@@ -34,37 +34,36 @@ function wash.raise_achievement(type, user, game)
 	elseif type == const.A_T_GOLD then -- 2
 		repeat
 			local a = user.u_achievementmgr:get_by_type(const.A_T_GOLD)
-			if not a then
-				local a_src = game.g_achievementmgr:get_by_type_and_init(const.A_T_GOLD)
-				a_src.user_id = user.id
-				a_src.finished = 0
-				a = user.u_achievementmgr.create(a_src)
-				a:__insert_db()
+			assert(a) -- must be only one
+			local gold = user.u_propmgr:get_by_csv_id(const.GOLD) -- abain prop by type (type -- csv_id -- prop.id)		
+			local progress = gold.num / a.c_num
+			print("***********************************ccbc", progress)
+			if progress >= 1 then -- success
+				a.finished = 100
+				a.reward_collected = 0
+				wash.push_achievement(a)
+				
+				
+				-- insert achievement rc	
+				local rc = user.u_achievement_rcmgr.create(a)
+				rc:__insert_db()
+
+				local a_src = game.g_achievementmgr:get_by_csv_id(a.unlock_next_csv_id)
+
+				a.csv_id = a_src.csv_id
+				a.finished = 0
+				a.c_num = a_src.c_num
+				a.unlock_next_csv_id = a_src.unlock_next_csv_id
+				a.is_unlock = 1
+				a:__update_db({"csv_id", "finished", "c_num", "unlock_next_csv_id"})
 			else
-				local gold = user.u_propmgr:get_by_csv_id(const.GOLD) -- abain prop by type (type -- csv_id -- prop.id)		
-				local progress = gold.num / a.c_num
-				if progress >= 1 then -- success
-					a.finished = 100
-					a.reward_collected = 0
-					wash.push_achievement(a)
-					local a_rc = user.u_achievement_rcmgr.create(a)
-					a_rc:__insert_db()
-					local a_src = game.g_achievementmgr:get_by_csv_id(a.unlock_next_csv_id)
-					a.csv_id = a_src.csv_id
-					a.finished = 0
-					a.c_num = a_src.c_num
-					a.unlock_next_csv_id = a_src.unlock_next_csv_id
-					a:__update_db({"csv_id", "finished", "c_num", "unlock_next_csv_id"})
-				else
-					a.finished = progress * 100
-					a:__update_db({"finished"})
-					break
-				end
+				a.finished = progress * 100
+				a:__update_db({"finished"})
+				break
 			end
 		until false
-	elseif type == "kungfu" then
-	elseif type == "raffle" then
-	elseif type == "exp" then
+	elseif type == const.EXP then
+
 	elseif type == "level" then
 	end
 end
