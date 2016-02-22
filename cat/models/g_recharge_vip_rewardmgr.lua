@@ -5,9 +5,9 @@ local _M = {}
 _M.__data = {}
 _M.__count = 0
 
-local _Meta = { csv_id=0, type=0, finished=0, c_num=0, unlock_next_csv_id=0}
+local _Meta = { vip=0, diamond=0, gold_gift=0, exp_gift=0}
 
-_M.__tname = "u_achievement"
+_M.__tname = "g_recharge_vip_reward"
 
 function _Meta.__new()
  	-- body
@@ -61,18 +61,13 @@ end
 
 function _M:add( u )
 	assert(u)
-	self.__data[tostring(u.type)] = u
+	self.__data[tostring(u.vip)] = u
 	self.__count = self.__count + 1
 end
-
-function _M:get_by_type(type)
+	
+function _M:get_by_vip(vip)
 	-- body
-	return self.__data[tostring(type)]
-end
-
-function _M:delete_by_type(type)
-	-- body
-	self.__data[tostring(type)] = nil
+	return self.__data[tostring(vip)]
 end
 
 function _M:get_count()

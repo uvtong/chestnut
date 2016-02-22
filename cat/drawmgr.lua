@@ -238,7 +238,7 @@ local function getpropidlist( dtype )
 	propidlist.ok = true
 
 	for k , v in ipairs( propidlist.list ) do
-		local prop = user.propmgr:get_by_csvid( v.propid )
+		local prop = user.u_propmgr:get_by_csv_id( v.propid )
 		if prop then
 			prop.num = prop.num + v.propnum
 			prop:__update_db({"num"})

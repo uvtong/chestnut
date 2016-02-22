@@ -15,15 +15,23 @@ local client_fd
 local c2s_proto
 local s2c_proto
 
-function REQUEST:get()
-	print("get", self.what)
-	local r = skynet.call("SIMPLEDB", "lua", "get", self.what)
-	return { result = r }
+local game
+local user
+
+local function send_package(pack)
+	local package = string.pack(">s2", pack)
+	socket.write(client_fd, package)
 end
 
-function REQUEST:set()
-	print("set", self.what, self.value)
-	local r = skynet.call("SIMPLEDB", "lua", "set", self.what, self.value)
+function REQUEST:account()
+	-- body
+	return 2, { errorcode = 0, msg = "ok"}
+end
+
+function REQUEST:enter_room()
+	-- body
+	print("enter_room", self.rule, self.mode)
+	return 4, { errorcode=0, msg="ok"}
 end
 
 function REQUEST:handshake()
@@ -36,39 +44,35 @@ end
 
 local function request(name, args, response)
 	local f = assert(REQUEST[name])
-	local r = f(args)
+	local tag, msg = f(args)
 	if response then
-		return response(r)
+		return response(tag, msg)
 	end
-end
-
-local function send_package(pack)
-	local package = string.pack(">s2", pack)
-	socket.write(client_fd, package)
 end
 
 skynet.register_protocol {
 	name = "client",
 	id = skynet.PTYPE_CLIENT,
 	unpack = function (msg, sz)
-		local code = skynet.tostring(msg, sz)
-		local decode = protobuf.decode(c2s_proto.package .. "." .. c2s_proto.message_type[1].name, string.sub(code, 1, 4))
-		-- print(decode.tag)
-		-- print(decode.type)
-		-- print(decode.session)
-		local msg = protobuf.decode(c2s_proto.package .. "." .. c2s_proto.message_type[decode.tag].name, string.sub(code, 5))
-		local function response( msg )
-			-- body
-			local package = {
-				tag = decode.tag + 1,
-				type = "RESPONSE",
-				session = decode.session,
-			}
-			local code = protobuf.encode("c2s.package", package)
-			local encode = protobuf.encode(c2s_proto.package .. "." .. c2s_proto.message_type[decode.tag + 1].name, msg)
-			return code .. encode
+		if sz == 0 then
+			return "HEARTBEAT"
+		else	
+			local code = skynet.tostring(msg, sz)
+			local package = protobuf.decode(c2s_proto.package .. "." .. c2s_proto.message_type[1].name, string.sub(code, 1, 6))
+			local msg = protobuf.decode(c2s_proto.package .. "." .. c2s_proto.message_type[package.tag+1].name, string.sub(code, 7))
+			local function response(tag, msg)
+				-- body
+				local pg = {	
+					tag = tag, -- client.
+					type = "RESPONSE",
+					session = package.session,
+				}
+				local code = protobuf.encode(c2s_proto.package .. "." .. c2s_proto.message_type[1].name, pg)
+				local encode = protobuf.encode(c2s_proto.package .. "." .. c2s_proto.message_type[tag + 1].name, msg)
+				return code .. encode
+			end
+			return package.type, string.gsub(c2s_proto.message_type[package.tag+1].name, "req_(%w*)", "%1"), msg, response
 		end
-		return decode.type, c2s_proto.message_type[decode.tag].name, msg, response
 	end,
 	dispatch = function (_, _, type, ...)
 		if type == "REQUEST" then
@@ -80,6 +84,8 @@ skynet.register_protocol {
 			else
 				skynet.error(result)
 			end
+		elseif type == "HEARTBEAT" then
+			send_package(send_request(2, { msg = "HEARTBEAT"}))
 		else
 			assert(type == "RESPONSE")
 			error "This example doesn't support request client"
@@ -101,18 +107,23 @@ function CMD.start(conf)
 	-- 	end
 	-- end)
 	
-	local addr = io.open("../host/addressbook.pb","rb")
+	local addr = io.open("../host/c2s.pb","rb")
 	local buffer = addr:read "*a"
-	local addr:close()
-
+	addr:close()
 	protobuf.register(buffer)
-
 	t = protobuf.decode("google.protobuf.FileDescriptorSet", buffer)
-
 	c2s_proto = t.file[1]
-
 	print(c2s_proto.name)
 	print(c2s_proto.package)
+
+	addr = io.open("../host/s2c.pb","rb")
+	buffer = addr:read "*a"
+	addr:close()
+	protobuf.register(buffer)
+	t = protobuf.decode("google.protobuf.FileDescriptorSet", buffer)
+	s2c_proto = t.file[1]
+	print(s2c_proto.name)
+	print(s2c_proto.package)
 
 	send_request = function ( tag, msg )
 		-- body
