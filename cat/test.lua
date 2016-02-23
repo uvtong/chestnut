@@ -9,15 +9,21 @@
 -- else
 -- 	print("false")
 -- end
-function stripfilename( path )
-	-- body
-	-- return string.gsub(path, "(.+)/[^/]*%.(jpg|png|css|js)$", "%2")
-	--return string.match(path, "(.+)/[^/]*%.html")
-	return string.gsub(path, "(.+)/[^/]+%.(%w+)", "%2")
+-- function stripfilename( path )
+-- 	-- body
+-- 	-- return string.gsub(path, "(.+)/[^/]*%.(jpg|png|css|js)$", "%2")
+-- 	--return string.match(path, "(.+)/[^/]*%.html")
+-- 	return string.gsub(path, "(.+)/[^/]+%.(%w+)", "%2")
+-- end
+-- local x = stripfilename("/aba/ac.js")
+-- if x then
+-- 	print(x, "ture")
+-- else
+-- 	print("false")
+-- end
+
+local d = os.date("*t")
+for k,v in pairs(d) do
+	print(k,v)
 end
-local x = stripfilename("/aba/ac.js")
-if x then
-	print(x, "ture")
-else
-	print("false")
-end
+local t = {year}

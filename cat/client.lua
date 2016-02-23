@@ -73,9 +73,9 @@ local function print_response(session, args)
 	if args then
 		for k,v in pairs(args) do
 			if type(v) == "table" then
-				for kk,vv in pairs(v) do
-					print(kk,vv)
-				end
+				-- for kk,vv in pairs(v) do
+				-- 	print(kk,vv)
+				-- end
 			else
 				print(k,v)
 			end

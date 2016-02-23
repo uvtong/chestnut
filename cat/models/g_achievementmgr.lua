@@ -53,7 +53,7 @@ function _M.create( P )
 	local u = _Meta.__new()
 	for k,v in pairs(_Meta) do
 		if not string.match(k, "^__*") then
-			u[k] = P[k]
+			u[k] = assert(P[k])
 		end
 	end
 	return u
@@ -77,6 +77,7 @@ function _M:get_by_type_and_init(t)
 			return v
 		end
 	end
+	return nil
 end
 
 function _M:get_count()

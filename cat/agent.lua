@@ -19,14 +19,13 @@ local drawmgr = require "drawmgr"
 local csvReader = require "csvReader"
 local const = require "const"
 local config = require "config"
-local wash = require "wash"
 
 local M = {}
-local battlerequest = require "battlerequest"
+
+--local battlerequest = require "battlerequest"
 local achievementrequest = require "achievementrequest"
 local checkinrequest = require "checkinrequest"
-
-table.insert(M, battlerequest)
+--table.insert(M, battlerequest)
 table.insert(M, achievementrequest)
 table.insert( M, checkinrequest )
 
@@ -74,6 +73,108 @@ local function id(__wake, __level)
 	return __wake * 1000 + __level
 end
 
+local function push_achievement(achievement)
+	-- body
+	ret = {}
+	ret.which = {
+		csv_id = achievement.csv_id,
+		finished = achievement.finished
+	}
+	send_package(send_request("finish_achi", ret))
+end
+
+local function raise_achievement(type, user, game)
+	-- body
+	if type == "combat" then
+	elseif type == const.A_T_GOLD then -- 2
+		repeat
+			local a = user.u_achievementmgr:get_by_type(const.A_T_GOLD)
+			assert(a) -- must be only one
+			local gold = user.u_propmgr:get_by_csv_id(const.GOLD) -- abain prop by type (type -- csv_id -- prop.id)		
+			local progress = gold.num / a.c_num
+			print("***********************************ccbc", gold.num, a.c_num, progress)
+			if progress >= 1 then -- success
+				a.finished = 100
+				a.reward_collected = 0
+				push_achievement(a)
+				
+				-- insert achievement rc	
+				local rc = user.u_achievement_rcmgr.create(a)
+				rc:__insert_db()
+
+				if string.match(a.unlock_next_csv_id, "%d*%*%d*") then
+					local k1 = string.gsub(a.unlock_next_csv_id, "(%d*)%*(%d*)", "%1")
+					local k2 = string.gsub(a.unlock_next_csv_id, "(%d*)%*(%d*)", "%2")
+					print("*******jflda", a.unlock_next_csv_id, k1, k2)
+					local ga = game.g_achievementmgr:get_by_csv_id(k2)
+					assert(ga)
+					a.csv_id = ga.csv_id
+					a.finished = 0
+					a.c_num = ga.c_num
+					a.unlock_next_csv_id = ga.unlock_next_csv_id
+					a.is_unlock = 1
+					a:__update_db({"csv_id", "finished", "c_num", "unlock_next_csv_id"})	
+
+					local ga2 = game.g_achievementmgr:get_by_csv_id(k1)
+					local t = ga2:__serialize()
+					t.user_id = user.id
+					t.finished = 0
+					t.is_unlock = 1
+					local a1 = user.u_achievementmgr.create(t)
+					a1:__insert_db()
+				elseif a.unlock_next_csv_id == "0" then
+					break;
+				else
+					local a_src = game.g_achievementmgr:get_by_csv_id(a.unlock_next_csv_id)
+
+					a.csv_id = a_src.csv_id
+					a.finished = 0
+					a.c_num = a_src.c_num
+					a.unlock_next_csv_id = a_src.unlock_next_csv_id
+					a.is_unlock = 1
+					a:__update_db({"csv_id", "finished", "c_num", "unlock_next_csv_id"})	
+				end
+			else
+				a.finished = progress * 100
+				a.finished = math.floor(a.finished)
+				a:__update_db({"finished"})
+				break
+			end
+		until false
+	elseif type == const.EXP then
+		-- repeat
+		-- 	local a = user.u_achievementmgr:get_by_type(const.A_T_EXP)
+		-- 	assert(a) -- must be only one
+		-- 	local exp = user.u_propmgr:get_by_csv_id(const.EXP) -- abain prop by type (type -- csv_id -- prop.id)		
+		-- 	local progress = exp.num / a.c_num
+		-- 	if progress >= 1 then -- success
+		-- 		a.finished = 100
+		-- 		a.reward_collected = 0
+		-- 		push_achievement(a)
+				
+		-- 		-- insert achievement rc	
+		-- 		local rc = user.u_achievement_rcmgr.create(a)
+		-- 		rc:__insert_db()
+
+		-- 		local a_src = game.g_achievementmgr:get_by_csv_id(a.unlock_next_csv_id)
+
+		-- 		a.csv_id = a_src.csv_id
+		-- 		a.finished = 0
+		-- 		a.c_num = a_src.c_num
+		-- 		a.unlock_next_csv_id = a_src.unlock_next_csv_id
+		-- 		a.is_unlock = 1
+		-- 		a:__update_db({"csv_id", "finished", "c_num", "unlock_next_csv_id"})
+		-- 	else
+		-- 		a.finished = progress * 100
+		-- 		a.finished = math.floor(a.finished)
+		-- 		a:__update_db({"finished"})
+		-- 		break
+		-- 	end
+		-- until false
+	elseif type == "level" then
+	end
+end
+
 function SUBSCRIBE:email( tvals, ... )
 	-- body
 	local v = emailbox:recvemail( tvals )
@@ -107,6 +208,118 @@ local function subscribe()
 		end
 	}
 	c2:subscribe()
+end
+
+function REQUEST:achievement()
+	-- body
+	-- 1 not online
+	-- 2
+	local ret = {}
+	if not user then
+		ret.errorcode = 1
+		ret.msg = "not online"
+		return ret
+	end
+	assert(user)
+	local l = {}
+	local idx = 1
+	for k,v in pairs(user.u_achievementmgr.__data) do
+		print(k,v)
+	end
+	for k,v in pairs(game.g_achievementmgr.__data) do
+		local a = {
+			csv_id = v.csv_id,
+		}
+		
+		local rc2 = user.u_achievementmgr:get_by_csv_id(v.csv_id)
+		if rc2 then
+			print("***************************rc2", v.csv_id)
+			a.finished = rc2.finished
+			a.reward_collected = false
+			a.is_unlock = (rc2.is_unlock == 1) and true or false
+		else
+			if v.is_init == 1 then
+				local t = v:__serialize()
+				t.user_id = user.id
+				t.finished = 0         -- [0, 100]
+				t.reward_collected = 1
+				t.is_unlock = 1
+				local achievement = user.u_achievementmgr.create(t)
+				user.u_achievementmgr:add(achievement)
+				achievement:__insert_db()
+				
+				-- raise_achievement(v.type, user, game)
+				-- fix achievement value
+				a.finished = 0
+				a.reward_collected = false
+				a.is_unlock = false
+				
+			end
+		end
+		local rc1 = user.u_achievement_rcmgr:get_by_csv_id(v.csv_id)
+		if rc1 then
+			a.finished = rc1.finished
+			a.reward_collected = (rc1.reward_collected == 1) and true or false
+			a.is_unlock = (rc1.is_unlock == 1) and true or false
+		end
+
+		if a.finished == nil then
+			a.finished = 0
+		end
+		if a.reward_collected == nil then
+			a.reward_collected = false
+		end
+		if a.is_unlock == nil then
+			a.is_unlock = false
+		end
+		print("***********************is_unlock", a.is_unlock)
+		l[idx] = a
+		idx	= idx + 1
+	end
+	ret.errorcode = 0
+    ret.msg = "this is all achievemtn."
+    ret.achis = l
+    return ret
+end
+
+function REQUEST:achievement_reward_collect()
+	-- body
+	-- 1 not online
+	local ret = {}
+	if not user then
+		ret.errorcode = 1
+		ret.msg = "not online"
+		return ret
+	end
+	assert(user)
+	local a = user.u_achievement_rcmgr:get_by_csv_id(self.csv_id)
+	if a and a.finished == 100 and a.reward_collected == 0 then
+		a.collected = 1
+		a:__update_db({"reward_collected"})
+		local a_src = game.g_achievementmgr:get_by_csv_id(a.csv_id)
+		assert(a_src)
+		if a_src.type == 2 then
+			local csv_id1 = string.gsub(a_src.reward, "(%d*)%*(%d*)", "%1")
+			local num1 = string.gsub(a_src.reward, "(%d*)%*(%d*)", "%2")
+			local prop = user.u_propmgr:get_by_csv_id(csv_id1)
+			if prop then
+				prop.num = prop.num + num1
+				prop:__update_db({"num"})
+			else
+				prop = game.g_propmgr:get_by_csv_id(csv_id1)
+				prop.user_id = user.id
+				prop.num = num1
+				prop = user.u_propmgr.create(prop)
+				prop:__insert_db()
+			end
+		end
+		ret.errorcode = 0
+		ret.msg = "yes"
+		return ret
+	end
+	ret.errorcode = 2
+	ret.msg = "no"
+	return ret
 end
 
 function REQUEST:role()
@@ -159,10 +372,6 @@ function REQUEST:login()
 	local condition = { uaccount = self.account, upassword = self.password }
 	local addr = util.random_db()
 	local r = skynet.call(addr, "lua", "command", "select_user", { condition } )
-
-	level = csvReader.getcont("level")
-	wakecost = csvReader.getcont("wake_cost")
-	wakecost = convert_wakecost(wakecost)
     
 	if not r then
 		ret.errorcode = 1 -- 1 user hasn't register.
@@ -174,9 +383,6 @@ function REQUEST:login()
 		loader.load_user(user)
 		subscribe()
 		skynet.fork(subscribe)
-
-		local level = csvReader.getcont("level")
-		level_limit = convert_level(level)
 
 		ret.errorcode = 0
 		ret.msg = "yes"
@@ -223,9 +429,8 @@ function REQUEST:login()
 	local onlinetime = os.time()
 	user.ifonline = 1
 	user.onlinetime = onlinetime
-	print("*************************afb")
 	user:__update_db({"ifonline", "onlinetime"})
-	print("*************************afbc")
+
 	user.emailbox = emailbox:loademails( user.id )
 	emailrequest.getvalue( user )
 	user.friendmgr = friendmgr:loadfriend( user , dc )
@@ -233,7 +438,6 @@ function REQUEST:login()
 	user.drawmgr = drawmgr
 	drawrequest.getvalue( user )
 	--user.friendmgr:noticeonline( dc )
-
 	return ret
 end	
 
@@ -716,6 +920,9 @@ function REQUEST:shop_purchase()
 					user.u_propmgr:add(prop)
 					prop:__insert_db()
 				end
+				local t = { user_id=user.id, csv_id=goods.id, num=goods.p_num, currency_type=const.GOLD, currency_num=gold, purchase_time=os.time()}
+				local rc = user.u_purchase_goods.create(t)
+				rc:__insert_db()
 				ret.errorcode = 0
 				ret.msg	= "yes, take gold"
 				return ret
@@ -1082,6 +1289,7 @@ function CMD.start(conf)
 	skynet.call(gate, "lua", "forward", fd)
 
 	game = loader.load_game()
+	
 	for i,v in ipairs(M) do
 		v.start(conf, send_request, game)
 	end

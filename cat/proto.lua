@@ -47,6 +47,7 @@ proto.c2s = sprotoparser.parse [[.package {
     csv_id 0 : integer
     finished 1 : integer
     reward_collected 2 : boolean
+    is_unlock 3 : boolean
 }
 
 .mail

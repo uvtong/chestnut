@@ -5,7 +5,7 @@ local _M = {}
 _M.__data = {}
 _M.__count = 0
 
-local _Meta = { totalamount = 0 , prop_id_num = 0 }
+local _Meta = { id = 0 , totalamount = 0 , prop_id_num = 0 }
 
 _M.__tname = "g_checkin_total"
 
@@ -27,7 +27,7 @@ function _Meta:__insert_db()
 	skynet.send(util.random_db(), "lua", "command", "insert", self.__tname, t)
 end
 
-function _Meta:__update_db(t)
+function _Meta:__update_db( t )
 	-- body
 	assert(type(t) == "table")
 	local columns = {}
@@ -61,19 +61,19 @@ end
 
 function _M:add( u )
 	assert(u)
-	self.__data[tostring(u.totalamount)] = u
+	self.__data[tostring(u.id)] = u
 	self.__count = self.__count + 1
 end
 	
-function _M:get_by_totalamount(totalamount)
+function _M:get_by_id( id )
 	-- body
-	return self.__data[tonumber( totalamount ) ]
+	return self.__data[tostring( id ) ]
 end
 
-function _M:delete_by_totalamount(totalamount)
+function _M:delete_by_id( id )
 	-- body
-	assert( csv_id and self.__data[tostring(totalamount)])
-	self.__data[tostring(totalamount)] = nil
+	assert( id and self.__data[tostring( id )])
+	self.__data[tostring( id )] = nil
 	self.__count = self.__count - 1
 end
 

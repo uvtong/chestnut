@@ -5,7 +5,7 @@ local _M = {}
 _M.__data = {}
 _M.__count = 0
 
-local _Meta = { id=0, uname=0, uviplevel=0, uexp=0, config_sound=0, config_music=0, avatar=0, sign=0, c_role_id=0, ifonline=0, level=0, combat=0, defense=0, critical_hit=0, modify_uname_count=0, onlinetime=0, iconid=0, recharge_total=0, is_valid=0, recharge_rmb=0, goods_refresh_count=0, recharge_diamond=0, uvip_progress=0}
+local _Meta = { id=0, uname=0, uviplevel=0, uexp=0, config_sound=0, config_music=0, avatar=0, sign=0, c_role_id=0, ifonline=0, level=0, combat=0, defense=0, critical_hit=0, modify_uname_count=0, onlinetime=0, iconid=0, recharge_total=0, is_valid=0, recharge_rmb=0, goods_refresh_count=0, recharge_diamond=0, uvip_progress=0 , checkin_num = 0 , csv_id = 0 , checkin_reward_num = 0}
 
 _Meta.__tname = "users"
 

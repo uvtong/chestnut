@@ -1,6 +1,7 @@
 local battlerequest = {}
 local dc = require "datacenter"
 local util = require "util"
+local wash = require "wash"
 
 local send_package
 local send_request
@@ -16,7 +17,6 @@ local user
 function REQUEST:login(u)
 	-- body
 	user = u
-	print("****************************achievement")
 end
 
 function REQUEST:logout()
@@ -44,22 +44,48 @@ function REQUEST:achievement()
 		local a = {
 			csv_id = v.csv_id,
 		}
-		local rc = user.u_achievement_rcmgr:get_by_csv_id(v.csv_id)
-		if rc then
-			a.finished = rc.finished
-			a.reward_collected = rc.reward_collected and true or false
+		local rc1 = user.u_achievement_rcmgr:get_by_csv_id(v.csv_id)
+		if rc1 then
+			a.finished = rc1.finished
+			a.reward_collected = (rc1.reward_collected == 1) and true or false
+			a.is_unlock = (rc1.is_unlock == 1) and true or false
 		end
-		rc = user.u_achievementmgr:get_by_csv_id(v.csv_id)
-		if rc then
-			a.finished = rc.finished
+		local rc2 = user.u_achievementmgr:get_by_csv_id(v.csv_id)
+		if rc2 then
+			a.finished = rc2.finished
+			a.reward_collected = false
+			a.is_unlock = (rc2.is_unlock == 1) and true or false
+		else
+			if v.is_init == 1 then
+				local t = v:__serialize()
+				t.user_id = user.id
+				t.finished = 0         -- [0, 100]
+				t.reward_collected = 1
+				t.is_unlock = 1
+				local achievement = user.u_achievementmgr.create(t)
+				user.u_achievementmgr:add(achievement)
+				achievement:__insert_db()
+				a.finished = 0
+				a.reward_collected = false
+				a.is_unlock = false
+				wash.raise_achievement(v.type, user, game)
+			end
+		end
+		if a.finished == nil then
+			a.finished = 0
+		end
+		if a.reward_collected == nil then
 			a.reward_collected = false
 		end
+		if a.is_unlock == nil then
+			a.is_unlock = false
+		end
+		
 		l[idx] = a
 		idx	= idx + 1
 	end
-	-- send_achi(2, 40)
 	ret.errorcode = 0
-    ret.msg = "yes"
+    ret.msg = "this is all achievemtn."
     ret.achis = l
     return ret
 end

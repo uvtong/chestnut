@@ -5,7 +5,7 @@ local _M = {}
 _M.__data = {}
 _M.__count = 0
 
-local _Meta = { user_id=0, csv_id=0, g_goods_id=0, g_goods_num=0, currency_type=0, currency_num=0, purchase_time=0}
+local _Meta = { user_id=0, csv_id=0, num=0, currency_type=0, currency_num=0, purchase_time=0}
 
 _Meta.__tname = "u_purchase_goods"
 
@@ -53,7 +53,7 @@ function _M.create( P )
 	local u = _Meta.__new()
 	for k,v in pairs(_Meta) do
 		if not string.match(k, "^__*") then
-			u[k] = P[k]
+			u[k] = assert(P[k])
 		end
 	end
 	return u

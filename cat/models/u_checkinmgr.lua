@@ -53,7 +53,7 @@ function _M.create( P )
 	local u = _Meta.__new()
 	for k,v in pairs(_Meta) do
 		if not string.match(k, "^__*") then
-			u[k] = P[k]
+			u[k] = assert(P[k])
 		end
 	end
 	return u
@@ -61,18 +61,20 @@ end
 
 function _M:add( u )
 	assert(u)
-	self.__data[tostring(u.)] = u
+	table.insert( self.__data , u )
 	self.__count = self.__count + 1
 end
 	
 function _M:delete_checkin()
-	if 
-	self.__data[tostring(id)] = nil
+	if self.__count > 0 then
+		self.__data[1] = nil
+		self.__count = self.__count - 1
+	end
 end
 
 function _M:get_checkin()
 	-- body
-	return self.__data[tostring(1)]
+	return self.__data[1]
 end
 
 

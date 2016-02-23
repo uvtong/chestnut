@@ -132,6 +132,7 @@ function util.update( table_name, condition, columns )
 			seg = string.format("%s = \"%s\"", k, v)
 		elseif type(v) == "number" then
 			-- seg = string.format("%s = %d", k, math.tointeger(v))
+			print(table_name, k, v)
 			seg = string.format("%s = %d", k, v)
 		else
 			assert(false)
@@ -171,6 +172,10 @@ end
 function util.send_package(pack)
 	local package = string.pack(">s2", pack)
 	socket.write(client_fd, package)
+end
+
+function util.RSHash()
+	-- body
 end
 
 return util

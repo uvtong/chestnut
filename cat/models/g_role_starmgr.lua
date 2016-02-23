@@ -5,9 +5,9 @@ local _M = {}
 _M.__data = {}
 _M.__count = 0
 
-local _Meta = { g_checkpoint_id=0, passed=0}
+local _Meta = { star=0, up_prop_num=0, csv_id=0, gather_buffer_id=0, battle_buffer_id=0}
 
-_Meta.__tname = "u_checkpoint"
+_M.__tname = "g_role_star"
 
 function _Meta.__new()
  	-- body
@@ -61,17 +61,20 @@ end
 
 function _M:add( u )
 	assert(u)
-	self.__data[tostring(u.csv_id)] = u
+	self.__data[tostring(u.star)] = u
 	self.__count = self.__count + 1
 end
-
-function _M:get_by_csv_id(csv_id)
+	
+function _M:get_by_star(star)
 	-- body
-	for k,v in pairs(self.__data) do
-		if v.csv_id == csv_id then
-			return v
-		end
-	end
+	return self.__data[tostring(star)]
+end
+
+function _M:delete_by_star(star)
+	-- body
+	assert(self.__data[tostring(star)])
+	self.__data[tostring(star)] = nil
+	self.__count = self.__count - 1
 end
 
 function _M:get_count()
@@ -80,3 +83,4 @@ function _M:get_count()
 end
 
 return _M
+

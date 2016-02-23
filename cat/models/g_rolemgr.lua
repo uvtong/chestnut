@@ -5,7 +5,7 @@ local _M = {}
 _M.__data = {}
 _M.__count = 0
 
-local _Meta = { nickname=0, user_id=0, wake_level=0, level=0, combat=0, defense=0, critical_hit=0, skill=0, c_equipment=0, c_dress=0, c_kungfu=0, wakeid=0, star_level=0, star_piece=0, csv_id=0}
+local _Meta = { csv_id=0, star=0, upgrade_star_prop_csv_id=0 }
 
 _Meta.__tname = "g_role"
 
@@ -52,7 +52,7 @@ function _M.create( P )
 	local u = _Meta.__new()
 	for k,v in pairs(_Meta) do
 		if not string.match(k, "^__*") then
-			u[k] = P[k]
+			u[k] = assert(P[k])
 		end
 	end
 	return u

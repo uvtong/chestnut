@@ -5,9 +5,9 @@ local _M = {}
 _M.__data = {}
 _M.__count = 0
 
-local _Meta = { csv_id=0, finished=0, reward_collected=0}
+local _Meta = { user_id=0, csv_id=0, finished=0, reward_collected=0, is_unlock=0}
 
-_M.__tname = "u_achievement_rc"
+_Meta.__tname = "u_achievement_rc"
 
 function _Meta.__new()
  	-- body
@@ -21,7 +21,7 @@ function _Meta:__insert_db()
 	local t = {}
 	for k,v in pairs(self) do
 		if not string.match(k, "^__*") then
-			t[k] = self[k]
+			t[k] = assert(self[k])
 		end
 	end
 	skynet.send(util.random_db(), "lua", "command", "insert", self.__tname, t)
