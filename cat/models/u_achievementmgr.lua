@@ -5,7 +5,7 @@ local _M = {}
 _M.__data = {}
 _M.__count = 0
 
-local _Meta = { user_id=0, csv_id=0, type=0, finished=0, c_num=0, unlock_next_csv_id=0, is_unlock=0}
+local _Meta = { user_id=0, csv_id=0, type=0, finished=0, c_num=0, unlock_next_csv_id=0, is_unlock=0, is_valid=0}
 
 _Meta.__tname = "u_achievement"
 
@@ -21,7 +21,7 @@ function _Meta:__insert_db()
 	local t = {}
 	for k,v in pairs(self) do
 		if not string.match(k, "^__*") then
-			t[k] = self[k]
+			t[k] = assert(self[k])
 		end
 	end
 	skynet.send(util.random_db(), "lua", "command", "insert", self.__tname, t)
@@ -32,9 +32,9 @@ function _Meta:__update_db(t)
 	assert(type(t) == "table")
 	local columns = {}
 	for i,v in ipairs(t) do
-		columns[tostring(v)] = self[tostring(v)]
+		columns[tostring(v)] = assert(self[tostring(v)])
 	end
-	skynet.send(util.random_db(), "lua", "command", "update", self.__tname, {{ user_id = self.user_id, csv_id=self.csv_id }}, columns)
+	skynet.send(util.random_db(), "lua", "command", "update", self.__tname, {{ user_id = self.user_id, type=self.type }}, columns)
 end
 
 function _Meta:__serialize()
@@ -53,7 +53,7 @@ function _M.create( P )
 	local u = _Meta.__new()
 	for k,v in pairs(_Meta) do
 		if not string.match(k, "^__*") then
-			u[k] = P[k]
+			u[k] = assert(P[k])
 		end
 	end
 	return u
@@ -79,11 +79,15 @@ end
 
 function _M:get_by_type(type)
 	-- body
+	local r = {}
+	local idx = 1
 	for k,v in pairs(self.__data) do
 		if v.type == type then
-			return v
+			r[idx] = v
+			idx = idx + 1
 		end
 	end
+	return r
 end
 
 function _M:delete_by_type(type)

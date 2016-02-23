@@ -5,7 +5,7 @@ local _M = {}
 _M.__data = {}
 _M.__count = 0
 
-local _Meta = { c_checkin_data=0, s_checkin_data=0, checkin=0, c_checkin_time=0, s_checkin_time=0, user_id=0}
+local _Meta = {}
 
 _Meta.__tname = "u_checkin"
 

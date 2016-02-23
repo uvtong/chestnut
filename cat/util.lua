@@ -126,20 +126,17 @@ function util.update( table_name, condition, columns )
 	assert(type(columns) == "table")
 	local columns_str = "set "
 	for k,v in pairs(columns) do
-		print(k, v)
 		local seg = ""
 		if type(v) == "string" then
 			seg = string.format("%s = \"%s\"", k, v)
 		elseif type(v) == "number" then
 			-- seg = string.format("%s = %d", k, math.tointeger(v))
-			print(table_name, k, v)
 			seg = string.format("%s = %d", k, v)
 		else
 			assert(false)
 		end
 		columns_str = columns_str .. seg .. ", "
 	end
-	print(columns_str)
 	columns_str = string.gsub(columns_str, "(.*)%,%s$", "%1")
 	local condition_str = __condition(condition)
 	if #condition_str > 0 then	

@@ -53,6 +53,7 @@ function _M.create( P )
 	local u = _Meta.__new()
 	for k,v in pairs(_Meta) do
 		if not string.match(k, "^__*") then
+			print("jklajflajfla", k)
 			u[k] = assert(P[k])
 		end
 	end
@@ -61,18 +62,8 @@ end
 
 function _M:add( u )
 	assert(u)
-	self.__data[tostring(u.id)] = u
+	self.__data[tostring(u.csv_id)] = u
 	self.__count = self.__count + 1
-end
-	
-function _M:delete(id)
-	assert(id)
-	self.__data[tostring(id)] = nil
-end
-
-function _M:get(id)
-	-- body
-	return self.__data[tostring(id)]
 end
 
 function _M:get_by_csv_id(csv_id)
@@ -82,7 +73,9 @@ end
 
 function _M:delete_by_csv_id(csv_id)
 	-- body
+	assert(self.__data[tostring(csv_id)])
 	self.__data[tostring(csv_id)] = nil
+	self.__count = self.__count - 1
 end
 
 function _M:get_count()
