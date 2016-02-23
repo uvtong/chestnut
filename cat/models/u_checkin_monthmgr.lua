@@ -5,9 +5,9 @@ local _M = {}
 _M.__data = {}
 _M.__count = 0
 
-local _Meta = { user_id=0, csv_id=0, num=0, dt=0}
+local _Meta = { checkin_month = 0 , user_id = 0 ,}
 
-_Meta.__tname = "u_recharge_record"
+_Meta.__tname = "u_checkin_month"
 
 function _Meta.__new()
  	-- body
@@ -34,7 +34,7 @@ function _Meta:__update_db(t)
 	for i,v in ipairs(t) do
 		columns[tostring(v)] = self[tostring(v)]
 	end
-	skynet.send(util.random_db(), "lua", "command", "update", self.__tname, {{ id = self.id }}, columns)
+	skynet.send(util.random_db(), "lua", "command", "update", self.__tname, {{ user_id = self.user_id }}, columns)
 end
 
 function _Meta:__serialize()
@@ -61,19 +61,19 @@ end
 
 function _M:add( u )
 	assert(u)
-	self.__data[tostring(u.csv_id)] = u
+	table.insert( self.__data , u )
 	self.__count = self.__count + 1
 end
-
-function _M:get_by_csv_id(csv_id)
+	
+function _M:get_checkin_month()
 	-- body
-	return self.__data[tostring(csv_id)]
+	return self.__data[1]
 end
 
-function _M:delete_by_csv_id(csv_id)
+function _M:delete_checkin_month()
 	-- body
-	assert(self.__data[tostring(csv_id)])
-	self.__data[tostring(csv_id)] = nil
+	assert( csv_id and self.__data[1] )
+	self.__data[1] = nil
 	self.__count = self.__count - 1
 end
 
@@ -83,3 +83,4 @@ function _M:get_count()
 end
 
 return _M
+

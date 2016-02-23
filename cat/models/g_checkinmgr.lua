@@ -5,9 +5,9 @@ local _M = {}
 _M.__data = {}
 _M.__count = 0
 
-local _Meta = { user_id=0, csv_id=0, num=0, dt=0}
+local _Meta = { csv_id = 0 , month = 0 , count = 0 , g_prop_csv_id = 0 , g_prop_num = 0 , vip = 0 , vip_g_prop_csv_id = 0 , vip_g_prop_num = 0 }
 
-_Meta.__tname = "u_recharge_record"
+_M.__tname = "g_checkin"
 
 function _Meta.__new()
  	-- body
@@ -64,7 +64,7 @@ function _M:add( u )
 	self.__data[tostring(u.csv_id)] = u
 	self.__count = self.__count + 1
 end
-
+	
 function _M:get_by_csv_id(csv_id)
 	-- body
 	return self.__data[tostring(csv_id)]
@@ -72,7 +72,7 @@ end
 
 function _M:delete_by_csv_id(csv_id)
 	-- body
-	assert(self.__data[tostring(csv_id)])
+	assert( csv_id and self.__data[tostring(csv_id)])
 	self.__data[tostring(csv_id)] = nil
 	self.__count = self.__count - 1
 end
@@ -83,3 +83,4 @@ function _M:get_count()
 end
 
 return _M
+

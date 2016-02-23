@@ -221,6 +221,12 @@ while true do
 			send_request( "applydraw" , { drawtype = 2 , iffree = false } )
 		elseif cmd == "applydraw3" then
 			send_request( "applydraw" , { drawtype = 3 , iffree = false } )
+		elseif cmd == "checkin" then
+			send_request( "checkin" )
+		elseif cmd == "aday" then
+			send_request( "checkin_aday" )
+		elseif cmd == "reward" then
+			send_request( "checkin_reward" )
 		end
 	else
 		socket.usleep(100)

@@ -5,8 +5,7 @@ local _M = {}
 _M.__data = {}
 _M.__count = 0
 
-local _Meta = { c_checkin_data=0, s_checkin_data=0, checkin=0, c_checkin_time=0, s_checkin_time=0, user_id=0}
-
+local _Meta = { csv_id = 0 , user_id = 0 , u_checkin_time = 0 , ifcheck_in = 0}
 _Meta.__tname = "u_checkin"
 
 function _Meta.__new()
@@ -61,28 +60,22 @@ end
 
 function _M:add( u )
 	assert(u)
-	self.__data[tostring(u.id)] = u
+	table.insert( self.__data , u )
 	self.__count = self.__count + 1
 end
 	
-function _M:delete(id)
-	assert(id)
-	self.__data[tostring(id)] = nil
-end
-
-function _M:get(id)
-	-- body
-	return self.__data[tostring(id)]
-end
-
-function _M:get_by_csv_id(csv_id)
-	-- body
-	for k,v in pairs(self.__data) do
-		if v.csv_id == csv_id then
-			return v
-		end
+function _M:delete_checkin()
+	if self.__count > 0 then
+		self.__data[1] = nil
+		self.__count = self.__count - 1
 	end
 end
+
+function _M:get_checkin()
+	-- body
+	return self.__data[1]
+end
+
 
 function _M:get_count()
 	-- body
