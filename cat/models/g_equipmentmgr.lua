@@ -5,7 +5,7 @@ local _M = {}
 _M.__data = {}
 _M.__count = 0
 
-local _Meta = { csv_id=0, nickname=0, level=0, star_level=0, combat=0, defense=0, critical_hit=0}
+local _Meta = { csv_id=0, combat=0, defense=0, critical_hit=0, king=0, combat_probability=0, defense_probability=0, critical_hit_probability=0, king_probability=0, enhance_success_rate=0, currency_type=0, currency_num=0}
 
 _Meta.__tname = "g_equipment"
 
@@ -50,8 +50,12 @@ end
 
 function _M.create( P )
 	assert(P)
-	local u = _Meta.new()
-	u.csv_id = assert(P["csv_id"])
+	local u = _Meta.__new()
+	for k,v in pairs(_Meta) do
+		if not string.match(k, "^__*") then
+			u[k] = assert(P[k])
+		end
+	end
 	return u
 end	
 

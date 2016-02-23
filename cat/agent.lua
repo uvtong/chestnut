@@ -88,8 +88,12 @@ local function raise_achievement(type, user, game)
 	if type == "combat" then
 	elseif type == const.A_T_GOLD then -- 2
 		repeat
-			local a = user.u_achievementmgr:get_by_type(const.A_T_GOLD)
+			local r = user.u_achievementmgr:get_by_type(const.A_T_GOLD)
+			local a = r[1]
 			assert(a) -- must be only one
+			if a.is_valid == 0 then
+				break
+			end
 			local gold = user.u_propmgr:get_by_csv_id(const.GOLD) -- abain prop by type (type -- csv_id -- prop.id)		
 			local progress = gold.num / a.c_num
 			print("***********************************ccbc", gold.num, a.c_num, progress)
@@ -100,6 +104,68 @@ local function raise_achievement(type, user, game)
 				
 				-- insert achievement rc	
 				local rc = user.u_achievement_rcmgr.create(a)
+				user.u_achievement_rcmgr:add(rc)
+				rc:__insert_db()
+
+				if string.match(a.unlock_next_csv_id, "%d*%*%d*") then
+					local k1 = string.gsub(a.unlock_next_csv_id, "(%d*)%*(%d*)", "%1")
+					local k2 = string.gsub(a.unlock_next_csv_id, "(%d*)%*(%d*)", "%2")
+					
+					local ga2 = game.g_achievementmgr:get_by_csv_id(k1)
+					local t = ga2:__serialize()
+					t.user_id = user.id
+					t.finished = 100
+					t.is_unlock = 1
+					t.reward_collected = 0
+					local a1 = user.u_achievement_rcmgr.create(t)
+					user.u_achievement_rcmgr:add(a1)
+					a1:__insert_db()
+
+					if tonumber(k2) == 0 then
+						a.is_valid = 0
+						a:__update_db({"is_valid"})	
+						break
+					else
+						local ga = game.g_achievementmgr:get_by_csv_id(k2)
+						assert(ga)
+						a.csv_id = ga.csv_id
+						a.finished = 0
+						a.c_num = ga.c_num
+						a.unlock_next_csv_id = ga.unlock_next_csv_id
+						-- a.is_unlock = 1
+						a:__update_db({"csv_id", "finished", "c_num", "unlock_next_csv_id", "is_valid"})	
+					end
+				else
+					local ga = game.g_achievementmgr:get_by_csv_id(a.unlock_next_csv_id)
+					assert(ga)
+					a.csv_id = ga.csv_id
+					a.finished = 0
+					a.c_num = ga.c_num
+					a.unlock_next_csv_id = ga.unlock_next_csv_id
+					a.is_unlock = 1
+					a:__update_db({"csv_id", "finished", "c_num", "unlock_next_csv_id"})	
+				end
+			else
+				a.finished = progress * 100
+				a.finished = math.floor(a.finished)
+				a:__update_db({"finished"})
+				break
+			end
+		until false
+	elseif type == const.A_T_EXP then
+		repeat
+			local r = user.u_achievementmgr:get_by_type(type)
+			local a = assert(r[1])
+			local exp = user.u_propmgr:get_by_csv_id(const.EXP) -- abain prop by type (type -- csv_id -- prop.id)		
+			local progress = exp.num / a.c_num
+			if progress >= 1 then -- success
+				a.finished = 100
+				a.reward_collected = 0
+				push_achievement(a)
+				
+				-- insert achievement rc	
+				local rc = user.u_achievement_rcmgr.create(a)
+				user.u_achievement_rcmgr:add(rc)
 				rc:__insert_db()
 
 				if string.match(a.unlock_next_csv_id, "%d*%*%d*") then
@@ -118,19 +184,19 @@ local function raise_achievement(type, user, game)
 					local ga2 = game.g_achievementmgr:get_by_csv_id(k1)
 					local t = ga2:__serialize()
 					t.user_id = user.id
-					t.finished = 0
+					t.finished = 100
 					t.is_unlock = 1
-					local a1 = user.u_achievementmgr.create(t)
+					t.reward_collected = 0
+					local a1 = user.u_achievement_rcmgr.create(t)
+					user.u_achievement_rcmgr:add(a1)
 					a1:__insert_db()
-				elseif a.unlock_next_csv_id == "0" then
-					break;
 				else
-					local a_src = game.g_achievementmgr:get_by_csv_id(a.unlock_next_csv_id)
-
-					a.csv_id = a_src.csv_id
+					local ga = game.g_achievementmgr:get_by_csv_id(a.unlock_next_csv_id)
+					assert(ga)
+					a.csv_id = ga.csv_id
 					a.finished = 0
-					a.c_num = a_src.c_num
-					a.unlock_next_csv_id = a_src.unlock_next_csv_id
+					a.c_num = ga.c_num
+					a.unlock_next_csv_id = ga.unlock_next_csv_id
 					a.is_unlock = 1
 					a:__update_db({"csv_id", "finished", "c_num", "unlock_next_csv_id"})	
 				end
@@ -141,36 +207,6 @@ local function raise_achievement(type, user, game)
 				break
 			end
 		until false
-	elseif type == const.EXP then
-		-- repeat
-		-- 	local a = user.u_achievementmgr:get_by_type(const.A_T_EXP)
-		-- 	assert(a) -- must be only one
-		-- 	local exp = user.u_propmgr:get_by_csv_id(const.EXP) -- abain prop by type (type -- csv_id -- prop.id)		
-		-- 	local progress = exp.num / a.c_num
-		-- 	if progress >= 1 then -- success
-		-- 		a.finished = 100
-		-- 		a.reward_collected = 0
-		-- 		push_achievement(a)
-				
-		-- 		-- insert achievement rc	
-		-- 		local rc = user.u_achievement_rcmgr.create(a)
-		-- 		rc:__insert_db()
-
-		-- 		local a_src = game.g_achievementmgr:get_by_csv_id(a.unlock_next_csv_id)
-
-		-- 		a.csv_id = a_src.csv_id
-		-- 		a.finished = 0
-		-- 		a.c_num = a_src.c_num
-		-- 		a.unlock_next_csv_id = a_src.unlock_next_csv_id
-		-- 		a.is_unlock = 1
-		-- 		a:__update_db({"csv_id", "finished", "c_num", "unlock_next_csv_id"})
-		-- 	else
-		-- 		a.finished = progress * 100
-		-- 		a.finished = math.floor(a.finished)
-		-- 		a:__update_db({"finished"})
-		-- 		break
-		-- 	end
-		-- until false
 	elseif type == "level" then
 	end
 end
@@ -221,63 +257,68 @@ function REQUEST:achievement()
 		return ret
 	end
 	assert(user)
-	local l = {}
-	local idx = 1
-	for k,v in pairs(user.u_achievementmgr.__data) do
-		print(k,v)
-	end
-	for k,v in pairs(game.g_achievementmgr.__data) do
-		local a = {
-			csv_id = v.csv_id,
-		}
-		
-		local rc2 = user.u_achievementmgr:get_by_csv_id(v.csv_id)
-		if rc2 then
-			print("***************************rc2", v.csv_id)
-			a.finished = rc2.finished
-			a.reward_collected = false
-			a.is_unlock = (rc2.is_unlock == 1) and true or false
+	local function achievement_r(v, a)
+		-- body
+		local rc2 = user.u_achievementmgr:get_by_type(v.type)
+		if rc2 and #rc2 >= 1 then
+			if rc2[1].is_valid == 1 then
+				if rc2[1].c_num > v.c_num then
+					local rc1 = user.u_achievement_rcmgr:get_by_csv_id(v.csv_id)
+					assert(rc1)
+					a.finished = rc1.finished
+					a.reward_collected = (rc1.reward_collected == 1) and true or false
+					a.is_unlock = (rc1.is_unlock == 1) and true or false
+				elseif rc2[1].csv_id == v.csv_id then
+					a.finished = rc2[1].finished
+					a.reward_collected = false
+					a.is_unlock = (rc2[1].is_unlock == 1) and true or false
+				else
+					a.finished = 0
+					a.reward_collected = false
+					a.is_unlock = false
+				end
+			elseif rc2[1].is_valid == 0 and rc2[1].type == v.type then
+				local rc1 = user.u_achievement_rcmgr:get_by_csv_id(v.csv_id)
+				assert(rc1)
+				a.finished = rc1.finished
+				a.reward_collected = (rc1.reward_collected == 1) and true or false
+				a.is_unlock = (rc1.is_unlock == 1) and true or false
+			else
+				a = nil
+			end
 		else
 			if v.is_init == 1 then
 				local t = v:__serialize()
 				t.user_id = user.id
 				t.finished = 0         -- [0, 100]
-				t.reward_collected = 1
+				t.reward_collected = 0
 				t.is_unlock = 1
+				t.is_valid = 1
 				local achievement = user.u_achievementmgr.create(t)
 				user.u_achievementmgr:add(achievement)
 				achievement:__insert_db()
-				
-				-- raise_achievement(v.type, user, game)
-				-- fix achievement value
+					-- raise_achievement(v.type, user, game)
+					-- fix achievement value
 				a.finished = 0
 				a.reward_collected = false
-				a.is_unlock = false
-				
+				a.is_unlock = true
 			end
 		end
-		local rc1 = user.u_achievement_rcmgr:get_by_csv_id(v.csv_id)
-		if rc1 then
-			a.finished = rc1.finished
-			a.reward_collected = (rc1.reward_collected == 1) and true or false
-			a.is_unlock = (rc1.is_unlock == 1) and true or false
+		return a
+	end
+	local l = {}
+	local idx = 1
+	for k,v in pairs(game.g_achievementmgr.__data) do
+		local a = {}
+		a.csv_id = v.csv_id
+		achievement_r(v, a)
+		if a then
+			l[idx] = a
+			idx	= idx + 1
 		end
-
-		if a.finished == nil then
-			a.finished = 0
-		end
-		if a.reward_collected == nil then
-			a.reward_collected = false
-		end
-		if a.is_unlock == nil then
-			a.is_unlock = false
-		end
-		print("***********************is_unlock", a.is_unlock)
-		l[idx] = a
-		idx	= idx + 1
 	end
 	ret.errorcode = 0
-    ret.msg = "this is all achievemtn."
+    ret.msg = "this is all achievement."
     ret.achis = l
     return ret
 end
@@ -346,16 +387,43 @@ end
 function REQUEST:signup()
 	-- body
 	local ret = {}
-	local r = math.random(1, 5)
-	local addr = skynet.localname(string.format(".db%d", math.floor(r))) 
-	local ok = skynet.call(addr, "lua", "signup", {self.account, self.password})
-	if ok then
+	local condition = { uaccount = self.account}
+	local addr = util.random_db()
+	local r = skynet.call(addr, "lua", "command", "select_user", { condition } )
+	if not r then
+		local t = { csv_id=os.time(), uname="hello", uviplevel=0, config_sound=1, config_music=1, avatar=0, sign="hello", c_role_id=1, ifonline=0, level=0, combat=0, defense=0, critical_hit=0, blessing=0, modify_uname_count=0, onlinetime=0, iconid=0, recharge_total=0, is_valid=1, recharge_rmb=0, goods_refresh_count=0, recharge_diamond=0, uvip_progress=0, checkin_num=0, checkin_reward_num=0}
+		local usersmgr = require "models/usersmgr"
+		local u = usersmgr.create(r)
+		u:__insert_db()
+
+		local u_equipment = require "models/u_equipment"
+		local e1 = game.g_equipment:get_by_csv_id(1001)
+		e1.user_id = t.csv_id
+		e1.type = 1
+		e1.level = 1
+		local ue1 = u_equipment.create(e1)
+		ue1:__insert_db()
+
+		local e2 = game.g_equipment:get_by_csv_id(1002)
+		e2.user_id = t.csv_id
+		e2.type = 1
+		e2.level = 1
+		local ue2 = u_equipment.create(e2)
+		ue2:__insert_db()
+
+		local e3 = game.g_equipment:get_by_csv_id(1001)
+		e3.user_id = t.csv_id
+		e3.type = 1
+		e3.level = 1
+		local ue3 = u_equipment.create(e3)
+		ue3:__insert_db()
+
 		ret.errorcode = 0
 		ret.msg	= "yes"
 		return ret
 	else
 		ret.errorcode = 1
-		ret.msg = "no"
+		ret.msg = "yes, have "
 		return ret
 	end
 end 
@@ -624,23 +692,33 @@ function REQUEST:use_prop()
 				local e = user.u_propmgr:get_by_csv_id(const.EXP)
 				e.num = e.num + tonumber(prop.pram1)
 				e:__update_db({"num"})
+				raise_achievement(const.A_T_EXP, user, game)
 			elseif assert(prop.use_type) == 2 then -- gold
 				local g = user.u_propmgr:get_by_csv_id(const.GOLD)
 				g.num = g.num + tonumber(prop.pram1)
 				g:__update_db({"num"})
-				wash.raise_achievement(const.A_T_GOLD, user, game)
+				raise_achievement(const.A_T_GOLD, user, game)
 			elseif assert(prop.use_type) == 3 then
 				local csv_id1 = string.gsub(prop.pram1, "(%d*)%*(%d*)%*(%d*)%*(%d*)", "%1")
 				local num1 = string.gsub(prop.pram1, "(%d*)%*(%d*)%*(%d*)%*(%d*)", "%2")
 				local p1 = user.u_propmgr:get_by_csv_id(csv_id1)
 				p1.num = p1.num + num1 * math.abs(v.num)
 				p1:__update_db({"num"})
+				if csv_id1 == const.GOLD then
+					raise_achievement(const.A_T_GOLD, user, game)
+				elseif csv_id1 == const.EXP then
+					raise_achievement(const.A_T_EXP, user, game)
+				end
 				local csv_id2 = string.gsub(prop.pram1, "(%d*)%*(%d*)%*(%d*)%*(%d*)", "%3")
 				local num2 = string.gsub(prop.pram1, "(%d*)%*(%d*)%*(%d*)%*(%d*)", "%4")
 				local p2 = user.u_propmgr:get_by_csv_id(csv_id2)
 				p2.num = p2.num + num1 * math.abs(v.num)
 				p2:__update_db({"num"})
-				wash.raise_achievement(const.A_T_GOLD, user, game)
+				if csv_id2 == const.GOLD then
+					raise_achievement(const.A_T_GOLD, user, game)
+				elseif csv_id2 == const.EXP then
+					raise_achievement(const.A_T_EXP, user, game)
+				end
 			elseif assert(prop.use_type) == 4 then
 				local csv_id1 = string.gsub(prop.pram1, "(%d*)%*(%d*)%*(%d*)%*(%d*)%*(%d*)%*(%d*)", "%1")
 				local num1 = string.gsub(prop.pram1, "(%d*)%*(%d*)%*(%d*)%*(%d*)%*(%d*)%*(%d*)", "%2")
@@ -921,7 +999,8 @@ function REQUEST:shop_purchase()
 					prop:__insert_db()
 				end
 				local t = { user_id=user.id, csv_id=goods.id, num=goods.p_num, currency_type=const.GOLD, currency_num=gold, purchase_time=os.time()}
-				local rc = user.u_purchase_goods.create(t)
+				local rc = user.u_purchase_goodsmgr.create(t)
+				user.u_purchase_goodsmgr:add(rc)
 				rc:__insert_db()
 				ret.errorcode = 0
 				ret.msg	= "yes, take gold"
@@ -960,6 +1039,10 @@ function REQUEST:shop_purchase()
 					user.u_propmgr:add(prop)
 					prop:__insert_db()
 				end
+				local t = { user_id=user.id, csv_id=goods.csv_id, num=goods.p_num, currency_type=const.DIAMOND, currency_num=diamond, purchase_time=os.time()}
+				local rc = user.u_purchase_goodsmgr.create(t)
+				user.u_purchase_goodsmgr:add(rc)
+				rc:__insert_db()
 				ret.errorcode = 0
 				ret.msg	= "yes, take diamond"
 				return ret
@@ -1083,18 +1166,23 @@ function REQUEST:recharge_purchase()
 		user.recharge_diamond = user.recharge_diamond + v.diamond * v.p_num
 		local rc = user.u_recharge_countmgr:get_by_csv_id(v.csv_id)
 		if rc then
-			rc.p_count = rc.p_count + 1
-			rc:__update_db({"p_count"})
+			rc.count = rc.count + 1
+			rc:__update_db({"count"})
 			local diamond = user.u_propmgr:get_by_csv_id(const.DIAMOND)
 			diamond.num = diamond.num + (v.diamond + v.gift) * v.p_num
 			diamond:__update_db({"num"})
 		else
-			rc = user.u_recharge_countmgr.create({user_id=user.id, g_recharge_csv_id=v.csv_id, p_count=1})
+			rc = user.u_recharge_countmgr.create({user_id=user.id, csv_id=v.csv_id, count=1})
 			rc:__insert_db()
 			local diamond = user.u_propmgr:get_by_csv_id(const.DIAMOND)
 			diamond.num = diamond.num + (v.diamond + v.gift) * v.p_num
 			diamond:__update_db({"num"})
 		end
+		local t = {user_id=user.id, csv_id=v.csv_id, num=v.p_num, dt=os.time()}
+		rc = user.u_recharge_recordmgr.create(t)
+		user.u_recharge_recordmgr:add(rc)
+		rc:__insert_db()
+
 		-----------------------------
 		repeat
 			local vip = game.g_recharge_vip_rewardmgr:get_by_vip(user.uviplevel + 1)
@@ -1170,6 +1258,10 @@ function REQUEST:recharge_collect()
 	ret.errorcode = 1
 	ret.msg = "no exist"
 	return ret
+end
+
+function REQUEST:enhance()
+	-- body
 end
 
 function REQUEST:handshake()

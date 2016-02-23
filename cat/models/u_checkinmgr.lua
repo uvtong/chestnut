@@ -6,7 +6,6 @@ _M.__data = {}
 _M.__count = 0
 
 local _Meta = { csv_id = 0 , user_id = 0 , u_checkin_time = 0 , ifcheck_in = 0}
-
 _Meta.__tname = "u_checkin"
 
 function _Meta.__new()
