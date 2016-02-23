@@ -581,7 +581,37 @@ recharge_vip_reward_collect 42 {
     }
 }
 
+checkin 43
+ {
+    response {
+        totalamount 0 : integer
+        monthamount 1 : integer
+        ifcheckin_t 2 : boolean
+        rewardnum 3 : integer
+    }
+ }
 
+ checkin_aday 44
+{
+    response {
+        ok 0 : boolean
+        error 1 : integer
+        msg 2 : string  
+    }
+ }
+ 
+ checkin_reward 45
+ {
+    request {
+        totalamount 0 : integer
+        rewardnum 1 : integer
+    }
+    response {
+        ok 0 : boolean
+        error 1 : integer
+        msg 2 : string      
+    }
+ }
 ]]
 
 proto.s2c = sprotoparser.parse [[

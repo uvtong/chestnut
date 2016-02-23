@@ -24,8 +24,11 @@ local wash = require "wash"
 local M = {}
 local battlerequest = require "battlerequest"
 local achievementrequest = require "achievementrequest"
+local checkinrequest = require "checkinrequest"
+
 table.insert(M, battlerequest)
 table.insert(M, achievementrequest)
+table.insert( M, checkinrequest )
 
 local WATCHDOG
 local host

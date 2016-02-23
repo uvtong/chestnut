@@ -180,7 +180,8 @@ function REQUEST:checkin()
 			elseif month ~= tonumber( os.date( "%m" , tcheckin.u_checkin_time ) ) then
 				changed = true
 			end
-			if month ~= tonumber( os.date( "%m" , time ) ) and then
+
+			if changed then
 				tcheckin_month.checkin_month = 0
 				tcheckin_month:__update_db( { "checkin_month" } )
 			end	
