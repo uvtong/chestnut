@@ -42,9 +42,11 @@ function _Meta:__insert_db()
 	-- body
 	local t = {}
 	t.id = self.id
+	t.csv_id = self.csv_id
 	t.uname = self.uname
+	t.uaccount = self.uaccount
+	t.upassword = self.upassword
 	t.uviplevel = self.uviplevel
-	t.uexp = self.uexp
 	t.config_sound = self.config_sound
 	t.config_music = self.config_music
 	t.avatar = self.avatar
@@ -55,6 +57,9 @@ function _Meta:__insert_db()
 	t.combat = self.combat
 	t.defense = self.defense
 	t.critical_hit = self.critical_hit
+	t.blessing = self.blessing
+	t.permission = self.permission
+	t.group = self.group
 	t.modify_uname_count = self.modify_uname_count
 	t.onlinetime = self.onlinetime
 	t.iconid = self.iconid
@@ -65,6 +70,9 @@ function _Meta:__insert_db()
 	t.uvip_progress = self.uvip_progress
 	t.checkin_num = self.checkin_num
 	t.checkin_reward_num = self.checkin_reward_num
+	t.exercise_level = self.exercise_level
+	t.cgold_level = self.cgold_level
+	
 	skynet.send(util.random_db(), "lua", "command", "insert", self.__tname, t)
 end
 
