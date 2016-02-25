@@ -11,7 +11,7 @@ _M.__count = 0
 
 local _Meta = %s
 
-_M.__tname = "%s"
+_Meta.__tname = "%s"
 
 function _Meta.__new()
  	-- body
@@ -23,9 +23,9 @@ end
 function _Meta:__insert_db()
 	-- body
 	local t = {}
-	for k,v in pairs(self) do
+	for k,v in pairs(_Meta) do
 		if not string.match(k, "^__*") then
-			t[k] = self[k]
+			t[k] = assert(self[k])
 		end
 	end
 	skynet.send(util.random_db(), "lua", "command", "insert", self.__tname, t)
@@ -38,7 +38,7 @@ function _Meta:__update_db(t)
 	for i,v in ipairs(t) do
 		columns[tostring(v)] = self[tostring(v)]
 	end
-	skynet.send(util.random_db(), "lua", "command", "update", self.__tname, {{ id = self.id }}, columns)
+	skynet.send(util.random_db(), "lua", "command", "update", self.__tname, {{ csv_id=assert(self.csv_id) }}, columns)
 end
 
 function _Meta:__serialize()

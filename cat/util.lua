@@ -183,13 +183,14 @@ end
 
 function util.guid(game, csv_id)
 	-- body
-	local r = game.g_uid:get_by_csv_id(csv_id)
+	local r = game.g_uidmgr:get_by_csv_id(csv_id)
 	if not r then
 		local t = {csv_id = csv_id, entropy=1}
-		local h = game.g_uid.create(t)
+		local h = game.g_uidmgr.create(t)
 		h:__insert_db()
 		return t.entropy
 	else
+		print("*********************ljfajfalf", r.entropy)
 		r.entropy = r.entropy + 1
 		r:__update_db({"entropy"})
 		return r.entropy

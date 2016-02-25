@@ -200,16 +200,14 @@ end
 
 local function load_g_uid()
 	-- body
-	assert( nil == game.g_daily_taskmgr )
-
-	local g_daily_taskmgr = require "models/g_daily_taskmgr"
-	local r = skynet.call( util.random_db() , "lua" , "command" , "select" , "g_daily_task" )
+	assert(nil == game.g_uidmgr)
+	local g_uidmgr = require "models/g_uidmgr"
+	local r = skynet.call(util.random_db() , "lua" , "command" , "select" , "g_uid")
 	for i , v in ipairs( r ) do
-		local t = g_daily_taskmgr.create( v )
-		g_daily_taskmgr:add( t )
+		local t = g_uidmgr.create( v )
+		g_uidmgr:add( t )
 	end
-
-	game.g_daily_taskmgr = g_daily_taskmgr
+	game.g_uidmgr = g_uidmgr
 end
 
 local function load_u_achievement(user)
@@ -446,6 +444,7 @@ function loader.load_game()
 		load_g_recharge_vip_reward()
 		load_g_role()
 		load_g_shop()
+		load_g_uid()
 	end
 	skynet.fork(f)
 	return game

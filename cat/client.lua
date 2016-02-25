@@ -228,7 +228,7 @@ while true do
 		elseif cmd == "reward" then
 			send_request( "checkin_reward" )
 		elseif cmd == "signup" then
-			send_request("signup", { account = "hello1" , password = "world1" })
+			send_request("signup", { account = "hello3" , password = "world2" })
 		elseif cmd == "exercise" then
 			send_request( "exercise" )
 		elseif cmd == "eonce" then

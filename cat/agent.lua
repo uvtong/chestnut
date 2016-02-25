@@ -22,13 +22,10 @@ local config = require "config"
 
 local M = {}
 
---local battlerequest = require "battlerequest"
-local achievementrequest = require "achievementrequest"
 local checkinrequest = require "checkinrequest"
 local exercise_request = require "exercise_request"
 local cgold_request = require "cgold_request"
---table.insert(M, battlerequest)
-table.insert( M , achievementrequest )
+
 table.insert( M , checkinrequest )
 table.insert( M , exercise_request )
 table.insert( M , cgold_request )
@@ -76,9 +73,7 @@ end
 local function id(__wake, __level)
 	-- body
 	return __wake * 1000 + __level
-	local t = {csv_id=util.u_guid(user_id, game, const.UEMAILENTROPY), uid=user.csv_id, type=}
-	local email = user.u_emailmgr.create(t)
-	email:__insert_db()
+	
 end
 
 local function push_achievement(achievement)
@@ -399,16 +394,15 @@ function REQUEST:signup()
 	local addr = util.random_db()
 	local r = skynet.call(addr, "lua", "command", "signup", { condition } )
 	if #r == 0 then
-		print(os.time(), self.account, self.password)
-		local t = { csv_id=os.time(), 
+		local t = { csv_id=util.guid(game, const.UENTROPY), 
 				uname="nihao", 
 				uaccount=self.account, 
 				upassword=self.password, 
 				uviplevel=0,
-				config_sound=0, 
-				config_music=0, 
+				config_sound=1, 
+				config_music=1, 
 				avatar=0, 
-				sign=0, 
+				sign="peferct ", 
 				c_role_id=1, 
 				ifonline=0, 
 				level=0, 
@@ -419,8 +413,7 @@ function REQUEST:signup()
 				modify_uname_count=0, 
 				onlinetime=0, 
 				iconid=0, 
-				recharge_total=0, 
-				is_valid=0, 
+				is_valid=1, 
 				recharge_rmb=0, 
 				goods_refresh_count=0, 
 				recharge_diamond=0, 
@@ -434,7 +427,7 @@ function REQUEST:signup()
 		u:__insert_db()
 
 		local u_equipmentmgr = require "models/u_equipmentmgr"
-		local e1 = game.g_equipment:get_by_csv_id(1001)
+		local e1 = game.g_equipmentmgr:get_by_csv_id(1001)
 		e1.user_id = t.csv_id
 		e1.type = 1
 		e1.level = 1

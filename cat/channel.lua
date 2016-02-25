@@ -26,12 +26,12 @@ function CMD:hello( _ , tval )
 	local addr = util.random_db()
 	skynet.send( addr, "lua", "command" , "insert_offlineemail", tval)
 
-	local t = {csv_id=util.u_guid(user_id, game, const.UEMAILENTROPY), uid=user.csv_id, type=}
-	tval.csv_id = 
-	tval.user_id = user_id
-	local u_emailmgr = require "u_emailmgr"
-	local email = u_emailmgr.create(tval)
-	email:__insert_db()
+	-- local t = {csv_id=util.u_guid(user_id, game, const.UEMAILENTROPY), uid=user.csv_id, type=}
+	-- tval.csv_id = 
+	-- tval.user_id = user_id
+	-- local u_emailmgr = require "u_emailmgr"
+	-- local email = u_emailmgr.create(tvalh)
+	-- email:__insert_db()
 end		   			
 
 skynet.start( function () 
