@@ -175,4 +175,9 @@ function util.RSHash()
 	-- body
 end
 
+function util.guid()
+	-- body
+	return os.time()
+end
+
 return util

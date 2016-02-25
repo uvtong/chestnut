@@ -396,12 +396,12 @@ function REQUEST:signup()
 	local addr = util.random_db()
 	local r = skynet.call(addr, "lua", "command", "signup", { condition } )
 	if #r == 0 then
-		local _Meta = { csv_id=os.time(), 
+		print(os.time(), self.account, self.password)
+		local t = { csv_id=os.time(), 
 				uname="nihao", 
 				uaccount=self.account, 
 				upassword=self.password, 
-				uviplevel=0, 
-				uexp=0, 
+				uviplevel=0,
 				config_sound=0, 
 				config_music=0, 
 				avatar=0, 
@@ -424,10 +424,10 @@ function REQUEST:signup()
 				uvip_progress=0, 
 				checkin_num=0, 
 				checkin_reward_num=0, 
-				exercise_leveo=0, 
+				exercise_level=0, 
 				cgold_level=0 }
 		local usersmgr = require "models/usersmgr"
-		local u = usersmgr.create(r)
+		local u = usersmgr.create(t)
 		u:__insert_db()
 
 		local u_equipmentmgr = require "models/u_equipmentmgr"
