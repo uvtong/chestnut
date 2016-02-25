@@ -21,7 +21,7 @@ local time_second
 local time_third
 local cgold_time
 local ifcgold = 0 -- judge if can cgold , 0 cannot , 1 can
-local ERROR{ WAI_GUA = 1 , NOT_ENOUGH_MONEY = 2 }
+local ERROR = { WAI_GUA = 1 , NOT_ENOUGH_MONEY = 2 }
 
 local function send_package(pack)
 	local package = string.pack(">s2", pack)

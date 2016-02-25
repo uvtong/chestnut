@@ -33,7 +33,7 @@ local _Meta = { csv_id=0,
 				uvip_progress=0, 
 				checkin_num=0, 
 				checkin_reward_num=0, 
-				exercise_leveo=0, 
+				exercise_level=0, 
 				cgold_level=0 }
 
 _Meta.__tname = "users"
