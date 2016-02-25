@@ -198,6 +198,20 @@ local function load_g_daily_task()
 	game.g_daily_taskmgr = g_daily_taskmgr
 end
 
+local function load_g_uid()
+	-- body
+	assert( nil == game.g_daily_taskmgr )
+
+	local g_daily_taskmgr = require "models/g_daily_taskmgr"
+	local r = skynet.call( util.random_db() , "lua" , "command" , "select" , "g_daily_task" )
+	for i , v in ipairs( r ) do
+		local t = g_daily_taskmgr.create( v )
+		g_daily_taskmgr:add( t )
+	end
+
+	game.g_daily_taskmgr = g_daily_taskmgr
+end
+
 local function load_u_achievement(user)
 	-- body
 	local u_achievementmgr = require "models/u_achievementmgr"
@@ -413,6 +427,8 @@ local function load_u_role(user)
 	user.u_rolemgr = u_rolemgr
 end
 
+
+
 function loader.load_game()
 	-- body
 	local f = function ()
@@ -430,6 +446,16 @@ function loader.load_game()
 		load_g_recharge_vip_reward()
 		load_g_role()
 		load_g_shop()
+	end
+	skynet.fork(f)
+	return game
+end
+
+function loader.load_channel_game()
+	-- body
+	local f = function ()
+		-- body
+		load_g_uid()
 	end
 	skynet.fork(f)
 	return game
