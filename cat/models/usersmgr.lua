@@ -6,7 +6,7 @@ _M.__data = {}
 _M.__count = 0
 
 
-local _Meta = { csv_id=0, uname=0, uaccount=0, upassword=0, uviplevel=0, uexp=0, config_sound=0, config_music=0, avatar=0, sign=0, c_role_id=0, ifonline=0, level=0, combat=0, defense=0, critical_hit=0, blessing=0, modify_uname_count=0, onlinetime=0, iconid=0, recharge_total=0, is_valid=0, recharge_rmb=0, goods_refresh_count=0, recharge_diamond=0, uvip_progress=0, checkin_num=0, checkin_reward_num=0}
+local _Meta = { csv_id=0, uname=0, uaccount=0, upassword=0, uviplevel=0, uexp=0, config_sound=0, config_music=0, avatar=0, sign=0, c_role_id=0, ifonline=0, level=0, combat=0, defense=0, critical_hit=0, blessing=0, modify_uname_count=0, onlinetime=0, iconid=0, recharge_total=0, is_valid=0, recharge_rmb=0, goods_refresh_count=0, recharge_diamond=0, uvip_progress=0, checkin_num=0, checkin_reward_num=0, exercise_leveo=0, cgold_level=0}
 
 _Meta.__tname = "users"
 
@@ -30,6 +30,13 @@ function _Meta:__insert_db()
 	t.modify_uname_count = self.modify_uname_count
 	t.onlinetime = self.onlinetime
 	t.iconid = self.iconid
+	t.is_valid = self.is_valid
+	t.recharge_rmb = self.recharge_rmb
+	t.goods_refresh_count = self.goods_refresh_count
+	t.recharge_diamond = self.recharge_diamond
+	t.uvip_progress = self.uvip_progress
+	t.checkin_num = self.checkin_num
+	t.checkin_reward_num = self.checkin_reward_num
 	skynet.send(util.random_db(), "lua", "command", "insert", self.__tname, t)
 end
 
@@ -55,6 +62,7 @@ function _M.create( P )
 	local u = _Meta.__new()
 	for k,v in pairs(_Meta) do
 		if not string.match(k, "^__*") then
+			print(k)
 			u[k] = assert(P[k])
 		end
 	end
@@ -63,18 +71,21 @@ end
 
 function _M:add( u )
 	assert(u)
-	self.__data[tostring(u.id)] = u
+	self.__data[tostring(u.csv_id)] = u
 	self.__count = self.__count + 1
 end
-	
-function _M:delete(id)
-	assert(id)
-	self.__data[tostring(id)] = nil
+
+function _M:get_by_csv_id(csv_id)
+	-- body
+	return self.__data[tostring(csv_id)]
 end
 
-function _M:get(id)
+function _M:delete_by_csv_id(csv_id)
 	-- body
-	return self.__data[tostring(id)]
+	local u = assert(self.__data[tostring(csv_id)])
+	u.is_valid = 0
+	u:__update_db({"is_valid"})
+	assert(false)
 end
 
 function _M:get_count()

@@ -613,6 +613,17 @@ checkin 43
         msg 2 : string      
     }
  }
+
+equipment_enhance 46 {
+    request {
+        csv_id 0 : integer
+    }
+    response {
+        errorcode 0 : integer
+        msg 1 : string
+    }
+}
+
 ]]
 
 proto.s2c = sprotoparser.parse [[

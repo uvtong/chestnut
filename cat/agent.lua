@@ -389,14 +389,14 @@ function REQUEST:signup()
 	local ret = {}
 	local condition = { uaccount = self.account}
 	local addr = util.random_db()
-	local r = skynet.call(addr, "lua", "command", "select_user", { condition } )
-	if not r then
-		local t = { csv_id=os.time(), uname="hello", uviplevel=0, config_sound=1, config_music=1, avatar=0, sign="hello", c_role_id=1, ifonline=0, level=0, combat=0, defense=0, critical_hit=0, blessing=0, modify_uname_count=0, onlinetime=0, iconid=0, recharge_total=0, is_valid=1, recharge_rmb=0, goods_refresh_count=0, recharge_diamond=0, uvip_progress=0, checkin_num=0, checkin_reward_num=0}
+	local r = skynet.call(addr, "lua", "command", "signup", { condition } )
+	if #r == 0 then
+		local t = { csv_id=os.time(), uname="hello", uaccount=self.account, upassword=self.password, uviplevel=0, config_sound=1, config_music=1, avatar=0, sign="hello", c_role_id=1, ifonline=0, level=0, combat=0, defense=0, critical_hit=0, blessing=0, permission=0, group=0, modify_uname_count=0, onlinetime=0, iconid=0, is_valid=1, recharge_rmb=0, goods_refresh_count=0, recharge_diamond=0, uvip_progress=0, checkin_num=0, checkin_reward_num=0, exercise_level=0, cgold_level=0}
 		local usersmgr = require "models/usersmgr"
 		local u = usersmgr.create(r)
 		u:__insert_db()
 
-		local u_equipment = require "models/u_equipment"
+		local u_equipmentmgr = require "models/u_equipmentmgr"
 		local e1 = game.g_equipment:get_by_csv_id(1001)
 		e1.user_id = t.csv_id
 		e1.type = 1
@@ -404,19 +404,26 @@ function REQUEST:signup()
 		local ue1 = u_equipment.create(e1)
 		ue1:__insert_db()
 
-		local e2 = game.g_equipment:get_by_csv_id(1002)
+		local e2 = game.g_equipment:get_by_csv_id(2001)
 		e2.user_id = t.csv_id
 		e2.type = 1
 		e2.level = 1
 		local ue2 = u_equipment.create(e2)
 		ue2:__insert_db()
 
-		local e3 = game.g_equipment:get_by_csv_id(1001)
+		local e3 = game.g_equipment:get_by_csv_id(3001)
 		e3.user_id = t.csv_id
 		e3.type = 1
 		e3.level = 1
 		local ue3 = u_equipment.create(e3)
 		ue3:__insert_db()
+
+		local e4 = game.g_equipment:get_by_csv_id(4001)
+		e4.user_id = t.csv_id
+		e4.type = 1
+		e4.level = 1
+		local ue4 = u_equipment.create(e4)
+		ue4:__insert_db()		
 
 		ret.errorcode = 0
 		ret.msg	= "yes"
@@ -1260,8 +1267,58 @@ function REQUEST:recharge_collect()
 	return ret
 end
 
-function REQUEST:enhance()
+function REQUEST:equipment_enhance()
 	-- body
+	-- 1 offline
+	-- 2 don't have enough money.
+	-- 3 rate
+	local ret = {}
+	if not user then
+		ret.errorcode = 1
+		ret.msg = "offline."
+		return ret
+	end
+	local e = user.u_equipmentmgr:get_by_csv_id(self.csv_id)
+	if e.type == 1 then
+		local last = user.u_achievementmgr:get_by_type(4)
+		assert(e.level <= last.level)
+	else
+		local last = user.u_achievementmgr:get_by_type(e.type - 1)
+		assert(e.level <= last.level)
+	end
+	local currency = user.u_propmgr:get_by_csv_id(e.currency_type)
+	if currency.num < e.currency_num then
+		ret.errorcode = 2
+		ret.msg = "don't have enough money."
+	else
+		local r = math.random(0, 100)
+		if r < e.enhance_success_rate then
+			currency.num = currency.num - e.currency_num
+			currency:__update_db({"num"})
+			local id = (e.level + 1) + 1000 * e.type
+			local ge = game.g_equipmentmgr:get_by_csv_id(id)
+			e.csv_id = ge.csv_id
+			e.level = ge.level
+			e.combat = ge.combat
+			e.defense = ge.defense
+			e.critical_hit = ge.critical_hit
+			e.king = ge.king
+			e.critical_hit_probability = ge.critical_hit_probability
+			e.defense_probability = ge.defense_probability
+			e.king_probability = ge.king_probability
+			e.enhance_success_rate = ge.enhance_success_rate
+			e.currency_type = ge.currency_type
+			e.currency_num = ge.currency_num
+			e:__update_db({"csv_id", "level", "combat", "defense", "critical_hit_probability", "defense_probability", "king_probability", "enhance_success_rate", "currency_type", "currency_num"})
+			ret.errorcode = 0
+			ret.msg = "yes"
+			return ret
+		else
+			ret.errorcode = 3
+			ret.msg = "enhance failture."
+			return ret
+		end
+	end
 end
 
 function REQUEST:handshake()

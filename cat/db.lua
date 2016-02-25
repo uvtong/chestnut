@@ -82,38 +82,11 @@ function QUERY:insert( table_name, columns )
 	db:query(sql)
 end
 
-function QUERY:signup( t )
+function QUERY:signup( condition )
 	-- body
-	local sql = util.insert("users", { uaccount = t.uaccount, upassword = t.upassword, uviplevel = 1, config_music = 0, confg_sound = 0, c_role_id = 1, })
+	local sql = util.select("users", condition)
 	local r = db:query(sql)
-
-	dump(r)
-	sql = util.insert("roles", { user_id = 1})
-	if #r > 0 then
-		return false
-	else
-		-- insert user
-		sql = string.format("insert into users (uname, uaccount, upassword, uviplevel, uexp, config_music, confg_sound, avatar, sign, c_role_id) values (\"\", \"%s\", \"%s\", 0, 0, 0, 0, 0, \"\", 0)", t.account, t.password)
-		r = db:query(sql)
-		-- insert role
-		local role = csvreader.getcont("role")
-		for i=1,2 do
-			sql = string.format("insert into role (nickname, user_id, wake_level, level, combat, defense, critical_hit, skill, c_equipment, c_dress, c_kungfu) values (\"\", %d, %d, %d, %d, %d, %d, %d, %d, %d, %d)", r[0].id, 0, level[0].level, level[0].combat, level[0].defense, level[0].critical_hit, level[0].skill, 0, 0, 0)
-			db:query(sql)
-		end
-		-- insert props. all table
-		sql = stirng.format("select name from prop")
-		r = db:query(sql)
-		for k,v in pairs(r) do
-			sql = string.format("insert into props (user_id, name, num) values (user_id, \"%s\", 0)", v.name)
-			db:query(sql)
-		end
-		
-		-- inset equipment
-		-- insert dress
-		-- inset kungfu
-		return true
-	end
+	return r
 end	
 	
 function QUERY:update_onlinestate( t )

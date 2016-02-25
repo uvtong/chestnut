@@ -227,6 +227,8 @@ while true do
 			send_request( "checkin_aday" )
 		elseif cmd == "reward" then
 			send_request( "checkin_reward" )
+		elseif cmd == "signup" then
+			send_request("signup", { account = "hello1" , password = "world1" })
 		end
 	else
 		socket.usleep(100)
