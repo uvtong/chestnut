@@ -76,6 +76,9 @@ end
 local function id(__wake, __level)
 	-- body
 	return __wake * 1000 + __level
+	local t = {csv_id=util.u_guid(user_id, game, const.UEMAILENTROPY), uid=user.csv_id, type=}
+	local email = user.u_emailmgr.create(t)
+	email:__insert_db()
 end
 
 local function push_achievement(achievement)
