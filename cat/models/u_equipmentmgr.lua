@@ -19,7 +19,7 @@ end
 function _Meta:__insert_db()
 	-- body
 	local t = {}
-	for k,v in pairs(self) do
+	for k,v in pairs(_Meta) do
 		if not string.match(k, "^__*") then
 			t[k] = self[k]
 		end

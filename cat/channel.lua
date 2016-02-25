@@ -30,18 +30,38 @@ function CMD:hello( tval , ... )
 	-- body	
 	print("hello is callled\n")
 
-	--[[tval.csv_id = util.u_guid(user_id, game, const.UEMAILENTROPY)
-
 	channel:publish( "email" , { emailtype = , tval )
 	local addr = util.random_db()
 	skynet.send( addr, "lua", "command" , "insert_offlineemail", tval)
 
-	local t = {csv_id=util.u_guid(user_id, game, const.UEMAILENTROPY), uid=user.csv_id, type=}
-	local u_emailmgr = require "u_emailmgr"
-	local email = u_emailmgr.create(tval)
-	email:__insert_db() --]]
+	-- local t = {csv_id=util.u_guid(user_id, game, const.UEMAILENTROPY), uid=user.csv_id, type=}
+	-- tval.csv_id = 
+	-- tval.user_id = user_id
+	-- local u_emailmgr = require "u_emailmgr"
+	-- local email = u_emailmgr.create(tvalh)
+	-- email:__insert_db()
 end		   			
 
+--[[local T = { QF=1, ZF=2, DS = 3}
+
+function CMD:fire(countdowk, type, {}, {})
+	it type == T.QF then
+		elseif type == T.ZF then
+	skynent.timeout(coutnfd. CMD:hell(type, {}, {})
+
+end
+
+function CMD.ds()
+{
+	now	os.time()
+	t= {
+	lsf
+sfllj
+sf
+local s = os.time(t)
+s - now
+ skynet.timeout(ssf, funcito)
+--]]
 skynet.start( function () 
 	skynet.dispatch( "lua" , function( _, _, cmd, ... )
 		print("channel is called")
@@ -53,9 +73,6 @@ skynet.start( function ()
 	end)
 	channel = mc.new()
 	skynet.register ".channel"
-	-- skynet.timeout()
-	-- skynet.fork(function ()
-	-- 	-- body
-	-- end)
+	
 	game = loader.load_channel_game()
 end)

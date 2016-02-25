@@ -176,6 +176,12 @@ proto.c2s = sprotoparser.parse [[.package {
     collected 2 : boolean
 }
 
+.equipment {
+    csv_id 0 : integer
+    type 1 : integer
+    level 2 : integer
+}
+
 handshake 1 {
     request {
         secret 0 : string
@@ -669,6 +675,14 @@ exercise 46
     response {
         errorcode 0 : integer
         msg 1 : string
+    }
+}
+
+equipment_all 51 {
+    response {
+        errorcode 0 : integer
+        msg 1 : string
+        l 2 : *equipment
     }
 }
 

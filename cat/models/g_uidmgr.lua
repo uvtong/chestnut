@@ -1,7 +1,3 @@
-local tname = tostring(...)
-local addr = io.open("./models/" .. tname .. "mgr.lua", "w")
-local P = "{ user_id=0, csv_id=0, }"
-local s = string.format([[
 local skynet = require "skynet"
 local util = require "util"
 
@@ -9,9 +5,9 @@ local _M = {}
 _M.__data = {}
 _M.__count = 0
 
-local _Meta = %s
+local _Meta = { csv_id=0, entropy=0}
 
-_Meta.__tname = "%s"
+_Meta.__tname = "g_uid"
 
 function _Meta.__new()
  	-- body
@@ -23,9 +19,9 @@ end
 function _Meta:__insert_db()
 	-- body
 	local t = {}
-	for k,v in pairs(_Meta) do
+	for k,v in pairs(self) do
 		if not string.match(k, "^__*") then
-			t[k] = assert(self[k])
+			t[k] = self[k]
 		end
 	end
 	skynet.send(util.random_db(), "lua", "command", "insert", self.__tname, t)
@@ -38,7 +34,7 @@ function _Meta:__update_db(t)
 	for i,v in ipairs(t) do
 		columns[tostring(v)] = self[tostring(v)]
 	end
-	skynet.send(util.random_db(), "lua", "command", "update", self.__tname, {{ csv_id=assert(self.csv_id) }}, columns)
+	skynet.send(util.random_db(), "lua", "command", "update", self.__tname, {{ csv_id=self.csv_id }}, columns)
 end
 
 function _Meta:__serialize()
@@ -88,8 +84,3 @@ end
 
 return _M
 
-]], P, tname)
-
-
-addr:write(s)
-addr:close()
