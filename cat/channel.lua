@@ -30,7 +30,7 @@ function CMD:hello( tval , ... )
 	-- body	
 	print("hello is callled\n")
 
-	channel:publish( "email" , { emailtype = , tval )
+	--channel:publish( "email" , { emailtype = , tval )
 	local addr = util.random_db()
 	skynet.send( addr, "lua", "command" , "insert_offlineemail", tval)
 
