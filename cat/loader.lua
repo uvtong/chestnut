@@ -185,17 +185,17 @@ local function load_g_checkin_total()
 	game.g_checkin_totalmgr = g_checkin_totalmgr
 end
 
-local function load_g_exercise()
-	assert( nil == game.g_exercisemgr )
+local function load_g_daily_task()
+	assert( nil == game.g_daily_taskmgr )
 
-	local g_exercisemgr = require "models/g_exercisemgr"
-	local r = skynet.call( util.random_db() , "lua" , "command" , "select" , "g_exercise" )
+	local g_daily_taskmgr = require "models/g_daily_taskmgr"
+	local r = skynet.call( util.random_db() , "lua" , "command" , "select" , "g_daily_task" )
 	for i , v in ipairs( r ) do
-		local t = g_exercisemgr.create( v )
-		g_exercisemgr:add( t )
+		local t = g_daily_taskmgr.create( v )
+		g_daily_taskmgr:add( t )
 	end
 
-	game.g_exercisemgr = g_exercisemgr
+	game.g_daily_taskmgr = g_daily_taskmgr
 end
 
 local function load_u_achievement(user)
@@ -261,7 +261,7 @@ local function load_u_exercise( user )
 	assert( nil == user.u_exercise_mgr )
 
 	local u_exercise_mgr = require "models/u_exercise_mgr"
-	local sql = string.format( "select * from u_exercise where exercise_time = ( select exercise_time from u_exercise where user_id = %s ORDER BY u_checkin_time DESC limit 1 )" , user.id)
+	local sql = string.format( "select * from u_exercise where exercise_time = ( select exercise_time from u_exercise where user_id = %s ORDER BY exercise_time DESC limit 1 )" , user.id)
 	local r = skynet.call( util.random_db() , "lua" , "command" , "query" , sql )
 	for i , v in ipairs( r ) do
 		local a = u_exercise_mgr.create( v )
@@ -270,6 +270,21 @@ local function load_u_exercise( user )
 
 	user.u_exercise_mgr = u_exercise_mgr
 	print( "**********************load u_exercise over" )
+end
+
+local function load_u_cgold( user )
+	assert( nil == user.u_cgoldmgr )
+
+	local u_cgoldmgr = require "models/u_cgoldmgr"
+	local sql = string.format( "select * from u_cgold where cgold_time = ( select cgold_time from u_cgold where user_id = %s ORDER BY cgold_time DESC limit 1 )" , user.id)
+	local r = skynet.call( util.random_db() , "lua" , "command" , "query" , sql )
+	for i , v in ipairs( r ) do
+		local a = u_cgoldmgr.create( v )
+		u_cgoldmgr:add( a )
+	end
+
+	user.u_cgoldmgr = u_cgoldmgr
+	print( "**********************load u_cgold over" )
 end
 
 local function load_u_checkpoint(user)
@@ -407,6 +422,7 @@ function loader.load_game()
 		load_g_checkin()
 		load_g_checkin_total()
 		load_g_equipment()
+		load_g_daily_task()
 		load_g_goods()
 		load_g_goods_refresh_cost()
 		load_g_prop()
@@ -427,6 +443,8 @@ function loader.load_user(user)
 	load_u_checkin_month( user )
 	load_u_checkpoint(user)
 	load_u_equipment(user)
+	load_u_exercise( user)
+	load_u_cgold( user )
 	load_u_prop(user)
 	load_u_role(user)
 	load_u_purchase_goods(user)

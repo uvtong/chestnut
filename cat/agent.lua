@@ -25,9 +25,13 @@ local M = {}
 --local battlerequest = require "battlerequest"
 local achievementrequest = require "achievementrequest"
 local checkinrequest = require "checkinrequest"
+local exercise_request = require "exercise_request"
+local cgold_request = require "cgold_request"
 --table.insert(M, battlerequest)
-table.insert(M, achievementrequest)
-table.insert( M, checkinrequest )
+table.insert( M , achievementrequest )
+table.insert( M , checkinrequest )
+table.insert( M , exercise_request )
+table.insert( M , cgold_request )
 
 local WATCHDOG
 local host
@@ -45,6 +49,7 @@ local level_limit
 local wakeattr
 local wakecost
 	  
+
 local function send_package(pack)
 	local package = string.pack(">s2", pack)
 	socket.write(client_fd, package)
@@ -211,7 +216,7 @@ local function raise_achievement(type, user, game)
 	end
 end
 
-function SUBSCRIBE:email( tvals, ... )
+--[[function SUBSCRIBE:email( tvals, ... )
 	-- body
 	local v = emailbox:recvemail( tvals )
 	local ret = {}
@@ -230,7 +235,7 @@ function SUBSCRIBE:email( tvals, ... )
 	tmp.iconid = v.iconid
 	ret.mail = tmp
 	send_package( send_request( "newemail" ,  ret ) )
-end
+end--]]
 
 local function subscribe()
 	-- body
@@ -499,8 +504,10 @@ function REQUEST:login()
 		end
 		ret.rolelist = l
 	end 
-
+	print( "dc is  *******************************************************" )
+	print( user.id , client_fd , skynet.self() )
 	dc.set(user.id, { client_fd=client_fd, addr=skynet.self()})
+	print( "dc is called *******************************************************" )
 	local onlinetime = os.time()
 	user.ifonline = 1
 	user.onlinetime = onlinetime
@@ -1362,21 +1369,6 @@ local function request(name, args, response)
     	return response(r)
     end               
 end      
-
-function RESPONSE:newemail( e )
-	assert( e )
-	local ret = {}
-   	ret.emailid = v.id
-   	ret.type = v.type
-  	ret.acctime = os.date("%Y-%m-%d" , v.acctime)
-	ret.isread = ( v.isread == 0 ) 
-   	ret.isreward = ( v.isreward  == 0 ) 
-   	ret.title = v.title
-   	ret.content = v.content
-	ret.attachs = v:getallitem()
-	ret.iconid = v.iconid
-	return ret
-end
 
 function RESPONSE:finish_achi( ... )
 	-- body

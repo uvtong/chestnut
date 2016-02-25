@@ -614,7 +614,55 @@ checkin 43
     }
  }
 
-equipment_enhance 46 {
+exercise 46
+ {
+    response {
+        ifexercise 0 : boolean
+        lefttime 1 : integer
+        exercise_level 2 : integer
+    }
+ }
+ 
+ exercise_once 47
+ {
+    request {
+        daily_type 0 : integer
+        exercise_type 1 : integer
+        exercise_level 2 : integer
+    }
+    response {
+        ok 0 : boolean
+        error 1 : integer
+        msg 2 : string
+        lefttime 3 : integer
+    }
+ }
+ 
+ c_gold 48 
+ {
+    response {
+        ifc_gold 0 : boolean
+        lefttime 1 : integer
+        c_gold_level 2 :  integer
+    }
+ }
+ 
+ c_gold_once 49
+ {
+    request {
+        daily_type 0 : integer
+        c_gold_type 1 : integer
+        c_gold_level 2 : integer
+    }
+    response {
+        ok 0 : boolean
+        error 1 : integer
+        msg 2 : string
+        lefttime 3 : integer
+    }
+ }
+
+ equipment_enhance 50 {
     request {
         csv_id 0 : integer
     }
