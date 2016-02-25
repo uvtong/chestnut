@@ -227,6 +227,10 @@ while true do
 			send_request( "checkin_aday" )
 		elseif cmd == "reward" then
 			send_request( "checkin_reward" )
+		elseif cmd == "exercise" then
+			send_request( "exercise" )
+		elseif cmd == "eonce" then
+			send_request( "exercise_once" , { daily_type = 1 , exercise_type = 1 , exercise_level = 0 } )
 		end
 	else
 		socket.usleep(100)

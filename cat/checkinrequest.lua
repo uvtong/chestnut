@@ -15,7 +15,7 @@ local user
 local dc
 local checkin_mgr
 local checkin_month_mgr
-local REWARD_STEP = 10
+
 	
 local function send_package(pack)
 	local package = string.pack(">s2", pack)
@@ -253,8 +253,7 @@ function REQUEST:checkin_aday()
 		tcheckin_month.checkin_month = tcheckin_month.checkin_month + 1
 		print( "*********************************user_checkin_num " , user.checkin_num )
 		local t = get_g_checkin_by_csv_id( time , tcheckin_month.checkin_month )
-		ret = get_aday_reward( t )
-		add_to_prop( ret )
+		add_to_prop( get_aday_reward( t ) )
 
 		user:__update_db( { "checkin_num" } )
 		tcheckin_month:__update_db( { "checkin_month" } )	
@@ -284,9 +283,8 @@ function REQUEST:checkin_reward()
 			user.checkin_reward_num = user.checkin_reward_num + 1
 			user:__update_db( { "checkin_reward_num" } )
 						
-			ret = get_accumulate_reward( t )
-			add_to_prop( ret )
-
+			add_to_prop( get_accumulate_reward( t ) )
+						
 			ret.ok = true
 		end	
 	end		
