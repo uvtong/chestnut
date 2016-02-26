@@ -1,7 +1,3 @@
-local tname = tostring(...)
-local addr = io.open("./models/" .. tname .. "mgr.lua", "w")
-local P = "{ user_id=0, csv_id=0, }"
-local s = string.format([[
 local skynet = require "skynet"
 local util = require "util"
 
@@ -9,9 +5,9 @@ local _M = {}
 _M.__data = {}
 _M.__count = 0
 
-local _Meta = %s
+local _Meta = { user_id=0, csv_id=0, level=0, type=0, harm_type=0, arise_probability=0, arise_count=0, arise_type=0, arise_param=0, attack_type=0, propperty_csv_id=0, propperty_p=0, prop_csv_id=0, prop_num=0, currency_type=0, currency_num=0, is_learned=0 }
 
-_Meta.__tname = "%s"
+_Meta.__tname = "u_kungfu"
 
 function _Meta.__new()
  	-- body
@@ -88,8 +84,3 @@ end
 
 return _M
 
-]], P, tname)
-
-
-addr:write(s)
-addr:close()
