@@ -49,12 +49,14 @@ function _Meta:__getallitem()
 		local num = "itemnum" .. i
 		if nil ~= self.id and 0 ~= self.id then
 			local ni = {}
-
-			ni.itemid = self.id
+			print( self.id , self.num  )
+			ni.itemsn = self.id
 			ni.itemnum = self.num
 			table.insert( item_list , ni )
 		end
-	end	
+	end
+
+	return item_list	
 end
 
 function _M.create( P )
