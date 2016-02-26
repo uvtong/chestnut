@@ -23,22 +23,47 @@ function CMD:agent_start( user_id, addr )
 	return channel.channel
 end			
 			
-function CMD:send_email_to_all( tval )
+function CMD:send_email_to_all( tvals )
 	print( "channel send_email_to_all is called" )
 
-	assert( tval )
-	channel:publish( "email" , tval )
+	assert( tvals )
+	for k , v in pairs( tvals ) do
+		print( k , v )
+	end
+
+	tvals.acctime = os.time() -- an integer
+	tvals.isread = 0
+	tvals.isreward = 0
+	tvals.isdel = 0
+	tvals.deltime = 0
+	for i = 1 , 5 do
+		local id = "itemsn" .. i
+		local num = "itemnum" .. i
+		print( id , tvals.id , num , tvals.num )
+		if nil == tvals.id then
+			assert( self.num == nil )
+			
+			tvals.id = 0
+			tvals.num = 0
+		end
+	end
+
+	channel:publish( "email" , tvals )
 	local sql = "select csv_id from users where ifonline = 0" -- in users , csv_id now is "uid".
 	local r = skynet.call( util.random_db() , "lua" , "command" , "query" , sql )
-
-	for _ , v in ipairs( r ) do
-		tval.csv_id = util.u_guid( v.csv_id , game, const.UEMAILENTROPY ) 
-		tval.uid = v.csv_id
-
-		local ne = u_emailmgr.create( tval )
+	print( "sizeof r = " , #r )
+	
+	print( "begin to insert" )
+	for _ , v in pairs( r ) do
+		tvals.csv_id = util.u_guid( v.csv_id , game, const.UEMAILENTROPY ) 
+		tvals.uid = v.csv_id
+		local ne = u_emailmgr.create( tvals )
 		assert( ne )
-		ne:__insert_db()		
+		ne:__insert_db()
+		i = i + 1		
 	end 
+
+	print( " ********************************* i = " , i )
 end 	
 		
 function CMD:send_email_to_group( tval , tucsv_id )
