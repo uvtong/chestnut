@@ -50,18 +50,19 @@ end
 
 function _M:add( u )
 	assert(u)
-	self.__data[tostring(u.csv_id)] = u
+	self.__data[tostring(u.drawtype)] = u
 	self.__count = self.__count + 1
 end
 	
-function _M:get_by_csv_id(csv_id)
+function _M:get_by_drawtype( type )
 	-- body
-	return self.__data[tostring(csv_id)]
+	return self.__data[tostring(type)]
 end
 
-function _M:delete_by_csv_id(csv_id)
+function _M:delete_by_drawtype(type)
 	-- body
-	self.__data[tostring(csv_id)] = nil
+	self.__data[tostring(type)] = nil
+	self.__count = self.__count + 1
 end
 
 function _M:get_count()

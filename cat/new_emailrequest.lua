@@ -91,7 +91,7 @@ function REQUEST:mail_delete()
 		emailmgr:delete_by_id( v.id )
 	end 
 end
-
+	
 function REQUESST:email_getreward()
 	print( "****************************get_reward is called" )
 
@@ -106,13 +106,34 @@ function REQUESST:email_getreward()
 		e.isreward = 1
 		e:__update( { "isreward" } )
 	end 
-end
+end 
+	
+function new_emailrequest:newemail( tval , ... ) -- get a email to group
+	assert( tval )
+	print( "*********************************************REQUEST:newemail" )
 
-function REQUEST:mail_newemail()
+	local v = emailmgr:recvemail( tval )
+	assert( v )
 
-end
+	local ret = {}
+	ret.mail = {}
+	local tmp = {}
+   	tmp.attachs = {}
 
-function SUBSCRIBE:email( tvals , ... )
+    tmp.emailid = v.csv_id
+    tmp.type = v.type
+    tmp.acctime = os.date("%Y-%m-%d" , v.acctime)
+    tmp.isread = v.isread
+    tmp.isreward = v.isreward
+    tmp.title = v.title
+    tmp.content = v.content
+	tmp.attachs = v:getallitem()
+	tmp.iconid = v.iconid
+	ret.mail = tmp
+	send_package( send_request( "newemail" ,  ret ) )
+end 
+	
+function SUBSCRIBE:email( tvals , ... ) -- get email from channl , a email to all users 
 	assert( tvals )
 	print( " ***********************************SUBSCRIBE:email " )
 	tvals.csv_id = util.u_guid( user.id, game, const.UEMAILENTROPY )

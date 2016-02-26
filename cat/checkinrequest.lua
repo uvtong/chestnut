@@ -157,8 +157,10 @@ function REQUEST:checkin()
 	local tcheckin_month = checkin_month_mgr:get_checkin_month()
 	print( tcheckin , tcheckin_month )
 	if not tcheckin then
-		print( "*********************** both nill " )
-		local n = {}
+		print ( "*********************** both nill " )
+		ret.ifcheckin_t = true
+		ret.monthamount = 0 
+		--[[local n = {}
 		n.csv_id = 0
 		n.user_id = user.id
 		n.u_checkin_time = 0
@@ -181,8 +183,7 @@ function REQUEST:checkin()
 		tcheckin_month = u
 		tcheckin_month:__insert_db()
 		
-		ret.ifcheckin_t = true
-
+		--]]
 	else
 		if tcheckin.u_checkin_time ~= 0 then
 			local changed = false
@@ -211,10 +212,11 @@ function REQUEST:checkin()
 			ret.ifcheckin_t = false
 			tcheckin.ifcheck_in = 0
 		end
+		
+		ret.monthamount = tcheckin_month.checkin_month 
 	end
 	--print( user.checkin_num , ret.rewardnum)
 	ret.totalamount = user.checkin_num
-	ret.monthamount = tcheckin_month.checkin_month 
 	ret.rewardnum = user.checkin_reward_num
 
 	return ret
@@ -225,10 +227,17 @@ function REQUEST:checkin_aday()
 
 	local ret = {}
 	
+	local notexeit = false
+
 	local time = os.time()
 	local tcheckin = checkin_mgr:get_checkin()
 	local tcheckin_month = checkin_month_mgr:get_checkin_month()
-	assert( tcheckin and tcheckin_month )
+	if not tcheckin then
+		tcheckin = {}
+		tcheckin_month = {}
+
+		notexeit = true
+	end
 
 	if 0 == tcheckin.ifcheck_in then
 		if 0 == counter then
@@ -246,6 +255,20 @@ function REQUEST:checkin_aday()
 		tcheckin.ifcheck_in = 0
 		tcheckin.user_id = user.id
 		tcheckin.csv_id = 0
+
+		if notexeit then
+			tcheckin = checkin_mgr.create( tcheckin )
+			assert( tcheckin )
+			checkin_mgr:add( tcheckin )
+
+			tcheckin_month.checkin_month = 0
+			tcheckin_month.user_id = user.id
+			tcheckin_month = checkin_month_mgr.create( tcheckin_month )
+			assert( tcheckin_month )
+			checkin_month_mgr:add( tcheckin_month )
+			tcheckin_month:__insert_db()
+		end
+
 		print( tcheckin.u_checkin_time )
 		tcheckin:__insert_db()
 
@@ -284,7 +307,7 @@ function REQUEST:checkin_reward()
 			user:__update_db( { "checkin_reward_num" } )
 						
 			add_to_prop( get_accumulate_reward( t ) )
-						
+
 			ret.ok = true
 		end	
 	end		

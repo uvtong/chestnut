@@ -1477,6 +1477,11 @@ function CMD.friend( subcmd, ... )
 	end
 end
 
+function CMD.newemail( subcmd , ... )
+	local f = assert( new_emailrequest[ subcmd ] )
+	f( new_emailrequest , ... )
+end
+
 skynet.start(function()
 	skynet.dispatch("lua", function(_,_, command, ...)
 		print("agent is called" , command)
