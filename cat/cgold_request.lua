@@ -61,9 +61,7 @@ function REQUEST:login(u)
 	time_second = tonumber( string.sub( record_date[ 2 ] , 1 , 2 ) )
 
 	cgold_time = #record_date
-	for i , v in ipairs( record_date ) do
-		print( i , v )
-	end
+	
 
 	if 3 == cgold_time then
 		time_third = tonumber( string.sub( record_date[ 3 ] , 1 , 2 ) )
@@ -210,11 +208,13 @@ function REQUEST:c_gold()
 		if 0 == laststage or newstage ~= laststage then
 			ret.ifc_gold = true
 			ret.lefttime = 0
+			print( "user.cgold_level" , user.cgold_level  )
 			ret.c_gold_level = user.cgold_level
 			ifcgold = 1
 		else
 			ret.ifc_gold = false
 			ret.lefttime = lefttime
+			print( "user.cgold_level" , user.cgold_level  )
 			ret.c_gold_level = user.cgold_level
 			ifcgold = 0
 		end 

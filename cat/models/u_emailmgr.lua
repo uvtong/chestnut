@@ -41,20 +41,23 @@ function _Meta:__update_db(t)
 	skynet.send(util.random_db(), "lua", "command", "update", self.__tname, { { csv_id = self.csv_id , uid = self.uid } }, columns)
 end
 
-function _Meta:__etallitem()
+function _Meta:__getallitem()
 	local item_list = {}
-
+	print( "********************___getallitem is called" )
 	for i = 1 , 5 do
 		local id = "itemsn" .. i
 		local num = "itemnum" .. i
-		if nil ~= self.id and 0 ~= self.id then
+		
+		if nil ~= self[id] and 0 ~= self[num] then
 			local ni = {}
-
-			ni.itemid = self.id
-			ni.itemnum = self.num
+			
+			ni.itemsn = self[id]
+			ni.itemnum = self[num]
 			table.insert( item_list , ni )
 		end
-	end	
+	end
+
+	return item_list	
 end
 
 function _M.create( P )
@@ -87,6 +90,9 @@ function _M:delete_by_csv_id(csv_id)
 end 
     
 function _M:get_all_emails()
+	for k , v in pairs( self.__data ) do
+		print( k , v )
+	end
 	return self.__data
 end 
 	
@@ -100,9 +106,8 @@ function _M:recvemail( tvals )
 	if self.__count >= MAXEMAILNUM then
 		self:sysdelemail()
 	end
-	
-	tvals.acctime = os.time() -- an integer
-	local newemail = self._create( tvals )
+
+	local newemail = self.create( tvals )
 	assert( newemail )
 	self:_add( newemail )
 	newemail:__insert_db()

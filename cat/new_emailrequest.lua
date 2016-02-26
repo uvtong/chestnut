@@ -23,35 +23,39 @@ local function send_package(pack)
 	socket.write(client_fd, package)
 end
 
-function REQUEST:login(user)
+function REQUEST:login(u)
 	-- body
-	assert( user )
-	user = user
+	assert( u )
+	user = u
+	for k,v in pairs(u.u_emailmgr.__data) do
+		print(k,v)
+	end
 	emailmgr = user.u_emailmgr
 end
 
 function REQUEST:mails()
 	local ret = {}
+	
 	ret.mail_list = {}
 
 	local emailbox = emailmgr:get_all_emails()
 	assert( emailbox )
-
-	for i , v in ipairs( emailbox ) do
+	for i , v in pairs( emailbox ) do
+		print( "called" )
 		local tmp = {}
 		tmp.attachs = {}
 
 		tmp.emailid = v.csv_id
 		tmp.type = v.type
 		tmp.acctime = os.date( "%Y-%m-%d" , v.acctime )
-		tmp.isread = ( v.isread == 1 ) and true or false 
-		tmp.isreward = ( v.isreward == 1 ) and true or false 
+		tmp.isread = ( v.isread == 0 ) and true or false 
+		tmp.isreward = ( v.isreward == 0 ) and true or false 
 		tmp.title = v.title
 		tmp.content = v.content
-		tmp.attachs = v:getallitem()
+		tmp.attachs = v:__getallitem()
 		tmp.iconid = v.iconid
 
-		table.insert( ret.email_list , tmp )
+		table.insert( ret.mail_list , tmp )
 	end
 
 	print( "mails is called already" )
@@ -65,13 +69,13 @@ function REQUEST:mail_read()
 	local emailbox = emailmgr:get_all_emails()
 	assert( emailbox )
 
-	for k , v in pairs( self.id_list ) do
+	for k , v in pairs( self.mail_id ) do
 		print ( k , v , v.id )
-		local e = emailmgr:get_by_id( v.id )
+		local e = emailmgr:get_by_csv_id( v.id )
 		assert( e )
 
 		e.isread = 1
-		e:__update( { "isread" } )
+		e:__update_db( { "isread" } )
 	end
 end
 
@@ -81,30 +85,35 @@ function REQUEST:mail_delete()
 	local emailbox = emailmgr:get_all_emails()
 	assert( emailbox )
 
-	for k , v in pairs( self.id_list ) do
+	for k , v in pairs( self.mail_id ) do
 		print ( k , v , v.id )
-		local e = emailmgr:get_by_id( v.id )
+		local e = emailmgr:get_by_csv_id( v.id )
 		assert( e )
 
 		e.isdel = 1
-		e:__update( { "isdel" } )
+		e:__update_db( { "isdel" } )
 		emailmgr:delete_by_id( v.id )
 	end 
 end
 	
-function REQUEST:email_getreward()
+function REQUEST:mail_getreward()
 	print( "****************************get_reward is called" )
 
 	local emailbox = emailmgr:get_all_emails()
 	assert( emailbox )
 
-	for k , v in pairs( self.id_list ) do
+	for k , v in pairs( self.mail_id ) do
 		print ( k , v , v.id )
-		local e = emailmgr:get_by_id( v.id )
+		local e = emailmgr:get_by_csv_id( v.id )
 		assert( e )
 
-		e.isreward = 1
-		e:__update( { "isreward" } )
+		if ( 1 == e.type ) then
+			e.isdel = 1
+			e:__update_db( { "isdel" } )
+		else
+			e.isread = 1
+			e:__update_db( { "isreward" } )
+		end
 	end 
 end 
 	
@@ -166,12 +175,12 @@ end
 
 
 
-function new_emailrequest.start(conf, send_request, game, dc, ...)
+function new_emailrequest.start(c, s, g, d, ...)
 	-- body
-	client_fd = conf.client
-	send_request = send_request
-	game = game
-	dc = dc
+	client_fd = c
+	send_request = s
+	game = g
+	dc = d
 end
 
 function new_emailrequest.disconnect()

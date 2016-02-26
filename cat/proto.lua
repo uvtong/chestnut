@@ -50,6 +50,11 @@ proto.c2s = sprotoparser.parse [[.package {
     is_unlock 3 : boolean
 }
 
+.attach
+{
+            itemsn 0 : integer
+            itemnum 1 : integer
+}
 .mail
 {	
 		emailid 0 : integer
@@ -61,11 +66,7 @@ proto.c2s = sprotoparser.parse [[.package {
 		title 6 : string
 		content 7 : string
 		error 8 : integer
-		.attach
-		{
-			itemsn 0 : integer
-			itemnum 1 : integer
-		}
+		
 		attachs 9 : *attach
 }
 

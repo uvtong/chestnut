@@ -316,13 +316,16 @@ local function load_u_email( user )
 
 	local u_emailmgr = require "models/u_emailmgr"
 	local r = skynet.call( util.random_db() , "lua", "command" , "select" , "u_new_email", {{ uid = user.id }})
-
+	print( "****************************** emailnum is " , #r )
 	for i , v in ipairs( r ) do
 		local a = u_emailmgr.create( v )
 		u_emailmgr:add( a )
 	end
 
 	user.u_emailmgr = u_emailmgr
+	for k , v in pairs( user.u_emailmgr.__data ) do
+		print( k , v )
+	end
 	print( "********************************load u_emailmgr over " )
 end
 
@@ -357,7 +360,7 @@ local function load_u_kungfu(user)
 	assert(user.u_kungfumgr == nil)
 	local u_kungfumgr = require "models/u_kungfumgr"
 	local addr = util.random_db()
-	local r = skynet.call(addr, "lua", "command", "select", "u_equipment", {{ user_id = assert(user.csv_id) }})
+	local r = skynet.call(addr, "lua", "command", "select", "u_kungfu", {{ user_id = assert(user.csv_id) }})
 	for i,v in ipairs(r) do
 		local a = u_kungfumgr.create(v)
 		u_kungfumgr:add(a)
