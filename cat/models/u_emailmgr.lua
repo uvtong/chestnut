@@ -102,6 +102,21 @@ function _M:recvemail( tvals )
 	end
 	
 	tvals.acctime = os.time() -- an integer
+	tvals.isread = 0
+	tvals.isreward = 0
+	tvals.isdel = 0
+	tvals.deltime = 0
+	for i = 1 , 5 do
+		local id = "itemsn" .. i
+		local num = "itemnum" .. i
+		if nil == tvals.id then
+			assert( self.num == nil )
+			
+			tvals[ id ] = 0
+			tvals[ num ] = 0
+		end
+	end 
+
 	local newemail = self._create( tvals )
 	assert( newemail )
 	self:_add( newemail )

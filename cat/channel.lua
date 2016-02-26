@@ -6,7 +6,7 @@ local util = require "util"
 local loader = require "loader"
 local const = require "const"
 local dc = require "datacenter"
-local emailmgr = require "models/u_emailmgr"	
+local u_emailmgr = require "models/u_emailmgr"	
 
 local game
 local channel
