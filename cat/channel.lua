@@ -24,6 +24,8 @@ function CMD:agent_start( user_id, addr )
 end			
 			
 function CMD:send_email_to_all( tval )
+	print( "channel send_email_to_all is called" )
+
 	assert( tval )
 	channel:publish( "email" , tval )
 	local sql = "select csv_id from users where ifonline = 0" -- in users , csv_id now is "uid".
@@ -65,7 +67,7 @@ end
 
 	--channel:publish( "email" , { emailtype = , tval )
 	local addr = util.random_db()
-	skynet.send( addr, "lua", "command" , "insert_offlineemail", tval)
+
 
 	-- local t = {csv_id=util.u_guid(user_id, game, const.UEMAILENTROPY), uid=user.csv_id, type=}
 	-- tval.csv_id = 
@@ -83,27 +85,19 @@ local ROUTINE = { TIME = -1 , ECONTENT = {} }
 	ROUTINE.ECONTENT = tval
 end		
 
-function start	
+function CMD:start_routine( )
+
+end	
 		
-function CMD:get_emailcontent( delay_time , type , temailcontent , tuser_list )
+--[[function CMD:get_emailcontent( delay_time , type , temailcontent , tuser_list )
 	if type == SEND_TYPE.TO_ALL then
 		skynet.timeout( delay_time , send_email_to_all( temailcontent ) )
 	elseif type == SEND_TYPE.TO_GROUP then
 		skynet.timeout( )	  	
 	end 					  
 	skynet.timeout(coutnfd. CMD:hello( type , {} , {} )
-end 						  
+end --]]						  
 							  
-function CMD.ds()             
-{		
-	now	os.time()
-	t= {
-	lsf 
-	local s = os.time(t)
-	s - now
- 	skynet.timeout(ssf, funcito)
-}		
---]]
 skynet.start( function () 
 	skynet.dispatch( "lua" , function( _, _, cmd, ... )
 		print("channel is called")

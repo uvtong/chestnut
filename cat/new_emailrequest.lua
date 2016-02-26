@@ -1,4 +1,4 @@
-local emailrequest = {}
+local new_emailrequest = {}
 local util = require "util"
 
 local send_package
@@ -92,7 +92,7 @@ function REQUEST:mail_delete()
 	end 
 end
 	
-function REQUESST:email_getreward()
+function REQUEST:email_getreward()
 	print( "****************************get_reward is called" )
 
 	local emailbox = emailmgr:get_all_emails()
@@ -160,13 +160,13 @@ function SUBSCRIBE:email( tvals , ... ) -- get email from channl , a email to al
 	send_package( send_request( "newemail" ,  ret ) )
 end
 
-function RESPONSE:()
+function RESPONSE:abd()
 	-- body
 end
 
 
 
-function emailrequest.start(conf, send_request, game, dc, ...)
+function new_emailrequest.start(conf, send_request, game, dc, ...)
 	-- body
 	client_fd = conf.client
 	send_request = send_request
@@ -174,12 +174,12 @@ function emailrequest.start(conf, send_request, game, dc, ...)
 	dc = dc
 end
 
-function emailrequest.disconnect()
+function new_emailrequest.disconnect()
 	-- body
 end
 
-emailrequest.REQUEST = REQUEST
-emailrequest.RESPONSE = RESPONSE
-emailrequest.SUBSCRIBE = SUBSCRIBE
+new_emailrequest.REQUEST = REQUEST
+new_emailrequest.RESPONSE = RESPONSE
+new_emailrequest.SUBSCRIBE = SUBSCRIBE
 
-return emailrequest
+return new_emailrequest

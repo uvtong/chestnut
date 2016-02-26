@@ -299,6 +299,21 @@ local function load_u_cgold( user )
 	print( "**********************load u_cgold over" )
 end
 
+local function load_u_email( user )
+	assert( nil == user.u_emailmgr )
+
+	local u_emailmgr = require "models/u_emailmgr"
+	local r = skynet.call( util.random_db() , "lua", "command" , "select" , "u_new_email", {{ uid = user.id }})
+
+	for i , v in ipairs( r ) do
+		local a = u_emailmgr.create( v )
+		u_emailmgr:add( a )
+	end
+
+	user.u_emailmgr = u_emailmgr
+	print( "********************************load u_emailmgr over " )
+end
+
 local function load_u_checkpoint(user)
 	-- body
 	assert(user.u_checkpointmgr == nil)
@@ -470,6 +485,7 @@ function loader.load_user(user)
 	load_u_equipment(user)
 	load_u_exercise( user)
 	load_u_cgold( user )
+	load_u_email( user )
 	load_u_prop(user)
 	load_u_role(user)
 	load_u_purchase_goods(user)

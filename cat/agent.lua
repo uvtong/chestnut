@@ -10,8 +10,8 @@ local dc = require "datacenter"
 local util = require "util"
 local loader = require "loader"
 
-local emailrequest = require "emailrequest"
-local emailbox = require "emailbox"
+--local emailrequest = require "emailrequest"
+--local emailbox = require "emailbox"
 local friendrequest = require "friendrequest"
 local friendmgr = require "friendmgr"
 local drawrequest = require "drawrequest"
@@ -21,7 +21,7 @@ local const = require "const"
 local config = require "config"
 
 local M = {}
-
+local new_emailrequest = require "new_emailrequest"
 local checkinrequest = require "checkinrequest"
 local exercise_request = require "exercise_request"
 local cgold_request = require "cgold_request"
@@ -29,6 +29,7 @@ local cgold_request = require "cgold_request"
 table.insert( M , checkinrequest )
 table.insert( M , exercise_request )
 table.insert( M , cgold_request )
+table.insert( M , new_emailrequest )
 
 local WATCHDOG
 local host
@@ -535,8 +536,8 @@ function REQUEST:login()
 	user.onlinetime = onlinetime
 	user:__update_db({"ifonline", "onlinetime"})
 
-	user.emailbox = emailbox:loademails( user.id )
-	emailrequest.getvalue( user )
+	--user.emailbox = emailbox:loademails( user.id )
+	--emailrequest.getvalue( user )
 	user.friendmgr = friendmgr:loadfriend( user , dc )
 	friendrequest.getvalue( user , send_package , send_request )
 	user.drawmgr = drawmgr
@@ -1364,8 +1365,8 @@ local function request(name, args, response)
     local f = nil
     if REQUEST[name] ~= nil then
     	f = assert(REQUEST[name])
-    elseif nil ~= emailrequest[ name ] then
-    	f = assert( emailrequest[ name ] )
+    --elseif nil ~= emailrequest[ name ] then
+    --	f = assert( emailrequest[ name ] )
     elseif nil ~= friendrequest[ name ] then
     	f = assert( friendrequest[ name ] )
     elseif nil ~= drawrequest[ name ] then
