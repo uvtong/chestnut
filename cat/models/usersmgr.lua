@@ -80,6 +80,7 @@ function _M.create( P )
 	local u = _Meta.__new()
 	for k,v in pairs(_Meta) do
 		if not string.match(k, "^__*") then
+			print(k)
 			u[k] = assert(P[k])
 		end
 	end

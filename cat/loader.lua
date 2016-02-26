@@ -314,13 +314,16 @@ end
 
 local function load_u_equipment(user)
 	-- body
-	assert(user.u_equipment == nil)
+	assert(user.u_equipmentmgr == nil)
 	local u_equipmentmgr = require "models/u_equipmentmgr"
 	local addr = util.random_db()
 	local r = skynet.call(addr, "lua", "command", "select", "u_equipment", {{ user_id = user.id}})
 	for i,v in ipairs(r) do
 		local a = u_equipmentmgr.create(v)
 		u_equipmentmgr:add(a)
+	end
+	for k,v in pairs(u_equipmentmgr.__data) do
+		print(k,v)
 	end
 	user.u_equipmentmgr = u_equipmentmgr
 end
@@ -424,8 +427,6 @@ local function load_u_role(user)
 	end
 	user.u_rolemgr = u_rolemgr
 end
-
-
 
 function loader.load_game()
 	-- body
