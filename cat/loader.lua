@@ -77,6 +77,18 @@ local function load_g_goods_refresh_cost()
 	game.g_goods_refresh_costmgr = g_goods_refresh_costmgr
 end
 
+local function load_g_kungfu()
+	-- body
+	assert(game.g_kungfumgr == nil)
+	local g_kungfumgr = require "models/g_kungfumgr"
+	local r = skynet.call(util.random_db(), "lua", "command", "select", "g_kungfumgr")
+	for i,v in ipairs(r) do
+		local t = g_kungfumgr.create(v)
+		g_kungfumgr:add(t)
+	end
+	game.g_kungfumgr = g_kungfumgr
+end
+
 local function load_g_prop()
 	-- body
 	assert(game.g_propmgr == nil)
@@ -337,10 +349,20 @@ local function load_u_equipment(user)
 		local a = u_equipmentmgr.create(v)
 		u_equipmentmgr:add(a)
 	end
-	for k,v in pairs(u_equipmentmgr.__data) do
-		print(k,v)
-	end
 	user.u_equipmentmgr = u_equipmentmgr
+end
+
+local function load_u_kungfu(user)
+	-- body
+	assert(user.u_kungfumgr == nil)
+	local u_kungfumgr = require "models/u_kungfumgr"
+	local addr = util.random_db()
+	local r = skynet.call(addr, "lua", "command", "select", "u_equipment", {{ user_id = assert(user.csv_id) }})
+	for i,v in ipairs(r) do
+		local a = u_kungfumgr.create(v)
+		u_kungfumgr:add(a)
+	end
+	user.u_kungfumgr = u_kungfumgr
 end
 
 local function load_u_prop(user)
@@ -455,6 +477,7 @@ function loader.load_game()
 		load_g_daily_task()
 		load_g_goods()
 		load_g_goods_refresh_cost()
+		load_g_kungfu()
 		load_g_prop()
 		load_g_recharge()
 		load_g_recharge_vip_reward()
@@ -487,6 +510,7 @@ function loader.load_user(user)
 	load_u_exercise( user)
 	load_u_cgold( user )
 	load_u_email( user )
+	load_u_kungfu(user)
 	load_u_prop(user)
 	load_u_role(user)
 	load_u_purchase_goods(user)
