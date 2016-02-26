@@ -43,15 +43,16 @@ end
 
 function _Meta:__getallitem()
 	local item_list = {}
-
+	print( "********************___getallitem is called" )
 	for i = 1 , 5 do
 		local id = "itemsn" .. i
 		local num = "itemnum" .. i
-		if nil ~= self.id and 0 ~= self.id then
+		
+		if nil ~= self[id] and 0 ~= self[num] then
 			local ni = {}
-			print( self.id , self.num  )
-			ni.itemsn = self.id
-			ni.itemnum = self.num
+			
+			ni.itemsn = self[id]
+			ni.itemnum = self[num]
 			table.insert( item_list , ni )
 		end
 	end

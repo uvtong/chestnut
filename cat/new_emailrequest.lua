@@ -40,8 +40,6 @@ function REQUEST:mails()
 
 	local emailbox = emailmgr:get_all_emails()
 	assert( emailbox )
-	print( "email num is " , emailbox ,  #user.u_emailmgr.__data )
-	print( "email get count " , emailmgr:get_count() , user.u_emailmgr:get_count() )
 	for i , v in pairs( emailbox ) do
 		print( "called" )
 		local tmp = {}
@@ -50,8 +48,8 @@ function REQUEST:mails()
 		tmp.emailid = v.csv_id
 		tmp.type = v.type
 		tmp.acctime = os.date( "%Y-%m-%d" , v.acctime )
-		tmp.isread = ( v.isread == 1 ) and true or false 
-		tmp.isreward = ( v.isreward == 1 ) and true or false 
+		tmp.isread = ( v.isread == 0 ) and true or false 
+		tmp.isreward = ( v.isreward == 0 ) and true or false 
 		tmp.title = v.title
 		tmp.content = v.content
 		tmp.attachs = v:__getallitem()
@@ -98,7 +96,7 @@ function REQUEST:mail_delete()
 	end 
 end
 	
-function REQUEST:email_getreward()
+function REQUEST:mail_getreward()
 	print( "****************************get_reward is called" )
 
 	local emailbox = emailmgr:get_all_emails()
