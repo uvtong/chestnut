@@ -332,7 +332,7 @@ local function load_u_equipment(user)
 	assert(user.u_equipmentmgr == nil)
 	local u_equipmentmgr = require "models/u_equipmentmgr"
 	local addr = util.random_db()
-	local r = skynet.call(addr, "lua", "command", "select", "u_equipment", {{ user_id = user.id}})
+	local r = skynet.call(addr, "lua", "command", "select", "u_equipment", {{ user_id = assert(user.csv_id) }})
 	for i,v in ipairs(r) do
 		local a = u_equipmentmgr.create(v)
 		u_equipmentmgr:add(a)
