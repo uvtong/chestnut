@@ -46,7 +46,6 @@ local level_limit
 local wakeattr
 local wakecost
 	  
-
 local function send_package(pack)
 	local package = string.pack(">s2", pack)
 	socket.write(client_fd, package)
@@ -72,8 +71,7 @@ end
 
 local function id(__wake, __level)
 	-- body
-	return __wake * 1000 + __level
-	
+	return __wake * 1000 + __level	
 end
 
 local function push_achievement(achievement)
@@ -428,32 +426,31 @@ function REQUEST:signup()
 
 		local u_equipmentmgr = require "models/u_equipmentmgr"
 		local e1 = game.g_equipmentmgr:get_by_csv_id(1001)
-		e1.user_id = t.csv_id
-		e1.type = 1
-		e1.level = 1
-		local ue1 = u_equipment.create(e1)
+		e1.user_id = u.csv_id
+		local ue1 = u_equipmentmgr.create(e1)
 		ue1:__insert_db()
 
-		local e2 = game.g_equipment:get_by_csv_id(2001)
-		e2.user_id = t.csv_id
-		e2.type = 1
-		e2.level = 1
-		local ue2 = u_equipment.create(e2)
+		local e2 = game.g_equipmentmgr:get_by_csv_id(2001)
+		e2.user_id = u.csv_id
+		local ue2 = u_equipmentmgr.create(e2)
 		ue2:__insert_db()
 
-		local e3 = game.g_equipment:get_by_csv_id(3001)
-		e3.user_id = t.csv_id
-		e3.type = 1
-		e3.level = 1
-		local ue3 = u_equipment.create(e3)
+		local e3 = game.g_equipmentmgr:get_by_csv_id(3001)
+		e3.user_id = u.csv_id
+		local ue3 = u_equipmentmgr.create(e3)
 		ue3:__insert_db()
 
-		local e4 = game.g_equipment:get_by_csv_id(4001)
-		e4.user_id = t.csv_id
-		e4.type = 1
-		e4.level = 1
-		local ue4 = u_equipment.create(e4)
+		local e4 = game.g_equipmentmgr:get_by_csv_id(4001)
+		e4.user_id = u.csv_id
+		local ue4 = u_equipmentmgr.create(e4)
 		ue4:__insert_db()		
+
+		local u_propmgr = require "models/u_propmgr"
+		local gold = u_propmgr.create_gold(u, 100)
+		gold:__insert_db()
+
+		local diamond = u_propmgr.create_diamond(u, 10)
+		diamond:__insert_db()
 
 		ret.errorcode = 0
 		ret.msg	= "yes"
@@ -556,6 +553,7 @@ function REQUEST:logout()
 	dc.set( user.id , nil )
 	-- send chanel 
 	-- skynet.send()
+	user = nil
 	return { errorcode = 0 }
 end
 

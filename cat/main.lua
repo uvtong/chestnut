@@ -16,7 +16,8 @@ skynet.start(function()
 
 	skynet.uniqueservice("shop")
    	skynet.newservice("channel")
-	skynet.newservice( "randomdraw" )
+	skynet.newservice("randomdraw")
+
 	--skynet.newservice( "simpleweb" ) 
 	local watchdog = skynet.newservice("watchdog")
 	--skynet.newservice("testtimer")
