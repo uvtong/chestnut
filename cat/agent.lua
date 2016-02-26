@@ -175,15 +175,7 @@ local function raise_achievement(type, user, game)
 					local k1 = string.gsub(a.unlock_next_csv_id, "(%d*)%*(%d*)", "%1")
 					local k2 = string.gsub(a.unlock_next_csv_id, "(%d*)%*(%d*)", "%2")
 					print("*******jflda", a.unlock_next_csv_id, k1, k2)
-					local ga = game.g_achievementmgr:get_by_csv_id(k2)
-					assert(ga)
-					a.csv_id = ga.csv_id
-					a.finished = 0
-					a.c_num = ga.c_num
-					a.unlock_next_csv_id = ga.unlock_next_csv_id
-					a.is_unlock = 1
-					a:__update_db({"csv_id", "finished", "c_num", "unlock_next_csv_id"})	
-
+					
 					local ga2 = game.g_achievementmgr:get_by_csv_id(k1)
 					local t = ga2:__serialize()
 					t.user_id = user.id
@@ -193,6 +185,22 @@ local function raise_achievement(type, user, game)
 					local a1 = user.u_achievement_rcmgr.create(t)
 					user.u_achievement_rcmgr:add(a1)
 					a1:__insert_db()
+
+					if tonumber(k2) == 0 then
+						a.is_valid = 0
+						a:__update_db({"is_valid"})	
+						break
+					else
+						local ga = game.g_achievementmgr:get_by_csv_id(k2)
+						assert(ga)
+						a.csv_id = ga.csv_id
+						a.finished = 0
+						a.c_num = ga.c_num
+						a.unlock_next_csv_id = ga.unlock_next_csv_id
+						-- a.is_unlock = 1
+						a:__update_db({"csv_id", "finished", "c_num", "unlock_next_csv_id", "is_valid"})	
+					end
+
 				else
 					local ga = game.g_achievementmgr:get_by_csv_id(a.unlock_next_csv_id)
 					assert(ga)
@@ -1373,6 +1381,7 @@ function REQUEST:equipment_all()
 	end
 	local l = {}
 	for k,v in pairs(user.u_equipmentmgr.__data) do
+		print(k, v)
 		local e = {
 			csv_id = v.csv_id,
 			type = v.type,
