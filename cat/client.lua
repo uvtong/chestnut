@@ -170,7 +170,7 @@ while true do
 		elseif cmd == "channel" then
 			send_request(cmd)
 		elseif cmd == "login" then
-			send_request("login", { account = "hello26" , password = "world2" })
+			send_request("login", { account = "hello25" , password = "world2" })
 		elseif cmd == "role_upgrade_star" then
 			send_request("role_upgrade_star", { role_csv_id=1})
 		elseif cmd == "user_can_modify_name" then
@@ -227,8 +227,6 @@ while true do
 			send_request( "checkin_aday" )
 		elseif cmd == "reward" then
 			send_request( "checkin_reward" )
-		elseif cmd == "signup" then
-			send_request("signup", { account = "hello25" , password = "world2" })
 		elseif cmd == "exercise" then
 			send_request( "exercise" )
 		elseif cmd == "eonce" then
