@@ -563,7 +563,7 @@ function REQUEST:login()
 	user.friendmgr = friendmgr:loadfriend( user , dc )
 	friendrequest.getvalue( user , send_package , send_request )
 	user.drawmgr = drawmgr
-	drawrequest.getvalue( user )
+	drawrequest.getvalue( user , game )
 	--user.friendmgr:noticeonline( dc )
 	return ret
 end	
@@ -1251,6 +1251,7 @@ function REQUEST:recharge_purchase()
 				break
 			end
 		until false
+		user:__update_db({"recharge_rmb", "recharge_diamond"})
 	end
 	ret.errorcode = 0
 	ret.msg = "yes"
