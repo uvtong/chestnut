@@ -41,7 +41,7 @@ function REQUEST:mails()
 		local tmp = {}
 		tmp.attachs = {}
 
-		tmp.emailid = v.id
+		tmp.emailid = v.csv_id
 		tmp.type = v.type
 		tmp.acctime = os.date( "%Y-%m-%d" , v.acctime )
 		tmp.isread = ( v.isread == 1 ) and true or false 
@@ -113,8 +113,11 @@ function REQUEST:mail_newemail()
 end
 
 function SUBSCRIBE:email( tvals , ... )
+	assert( tvals )
 	print( " ***********************************SUBSCRIBE:email " )
-
+	tvals.csv_id = util.u_guid( user.id, game, const.UEMAILENTROPY )
+	tvals.uid = user.id
+	print( "*********************************email csv_id is " , tvals.csv_id )
 	local v = emailmgr:recvemail( tvals )
 	assert( v )
 
@@ -123,7 +126,7 @@ function SUBSCRIBE:email( tvals , ... )
 	local tmp = {}
    	tmp.attachs = {}
 
-    tmp.emailid = v.id
+    tmp.emailid = v.csv_id
     tmp.type = v.type
     tmp.acctime = os.date("%Y-%m-%d" , v.acctime)
     tmp.isread = v.isread

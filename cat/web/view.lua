@@ -28,6 +28,8 @@ function VIEW.index()
 	function R:__post()
 		-- body
 		-- local body = self.body
+		
+				--skynet.send(".channel", "lua", "fire", 1, {head="sljd", content="jksldfj", })
 	end
 	function R:__file()
 		-- body

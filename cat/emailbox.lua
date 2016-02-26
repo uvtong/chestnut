@@ -242,7 +242,7 @@ function emailbox:recvemail( tvals )
 		emailbox:_sysdelemail()
 		emailnum = emailbox:_getemailnum()
 	end
-
+	
 	tvals.acctime = os.time() -- an integer
 	local newemail = emailbox:_create( tvals )
 	assert( newemail )

@@ -10,19 +10,27 @@ local game
 local channel
 local u_client_id = {} -- if
 
-local CMD = {}
-		
+local CMD = {}		
+
 function CMD:agent_start( user_id, addr )
-	u_client_id.user_id = addr
+	u_client_id.user_id = user_id
+	u_client_id.addr = addr 
+
 	assert(channel.channel)
 	return channel.channel
 end			
 			
-function CMD:hello( _ , tval )
+function CMD:send_email_to_all( ... )
+end
+
+function CMD:send_email_to_group( ... )
+end
+
+function CMD:hello( tval , ... )
 	-- body	
 	print("hello is callled\n")
-	print( tval.type , tval.iconid )
-	channel:publish("email", tval )
+
+	--channel:publish( "email" , { emailtype = , tval )
 	local addr = util.random_db()
 	skynet.send( addr, "lua", "command" , "insert_offlineemail", tval)
 
@@ -34,6 +42,26 @@ function CMD:hello( _ , tval )
 	-- email:__insert_db()
 end		   			
 
+--[[local T = { QF=1, ZF=2, DS = 3}
+
+function CMD:fire(countdowk, type, {}, {})
+	it type == T.QF then
+		elseif type == T.ZF then
+	skynent.timeout(coutnfd. CMD:hell(type, {}, {})
+
+end
+
+function CMD.ds()
+{
+	now	os.time()
+	t= {
+	lsf
+sfllj
+sf
+local s = os.time(t)
+s - now
+ skynet.timeout(ssf, funcito)
+--]]
 skynet.start( function () 
 	skynet.dispatch( "lua" , function( _, _, cmd, ... )
 		print("channel is called")
@@ -45,9 +73,6 @@ skynet.start( function ()
 	end)
 	channel = mc.new()
 	skynet.register ".channel"
-	-- skynet.timeout()
-	-- skynet.fork(function ()
-	-- 	-- body
-	-- end)
+	
 	game = loader.load_channel_game()
 end)
