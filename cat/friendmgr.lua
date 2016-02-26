@@ -434,15 +434,14 @@ local function pickfriends()
    	if #friendmgr._data.avaliblelist < MAXFRIENDNUM then
    		print( "avalible friends is less than 10" )
    		return friendmgr._data.avaliblelist
-   	else		
+   	else	
    		while true do
 	    	index = math.floor( math.random(1 , #friendmgr._data.avaliblelist ) )
 	    	local uid = friendmgr._data.avaliblelist[index]
-    		
-    		if not f.index then
-				f.index = uid
+    		if not f[index] then
+				table.insert( f , uid )
 				counter = counter + 1
-				if counter > MAXFRIENDNUM then
+				if counter >= MAXFRIENDNUM then
 					break
 				end
 			end
@@ -457,7 +456,7 @@ function friendmgr:apply_otherfriendlist()
 
 	local a = pickfriends()
 	assert( a )
-	
+	print( "getback from pickfriends" )
 	for  k , v in pairs( a ) do
 		print( k , v )
 		local f = friendmgr:_db_loadfriend( v )

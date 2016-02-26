@@ -11,7 +11,7 @@ _M.__count = 0
 local _Meta = { csv_id = 0 , uid=0, type=0, title=0, content = 0 , acctime = 0 , deltime = 0 , isread = 0 , isdel = 0 , itemsn1 = 0 , itemnum1 = 0 , 
 			itemsn2 = 0 , itemnum2 = 0 ,itemsn3 = 0 , itemnum3 = 0 ,itemsn4 = 0 , itemnum4 = 0 ,itemsn5 = 0 , itemnum5 = 0 , iconid = 0 , isreward = 0 }
 
-_M.__tname = "u_new_email"
+_Meta.__tname = "u_new_email"
 
 function _Meta.__new()
  	-- body
@@ -41,7 +41,7 @@ function _Meta:__update_db(t)
 	skynet.send(util.random_db(), "lua", "command", "update", self.__tname, { { csv_id = self.csv_id , uid = self.uid } }, columns)
 end
 
-function _Meta:getallitem()
+function _Meta:__etallitem()
 	local item_list = {}
 
 	for i = 1 , 5 do
@@ -62,6 +62,7 @@ function _M.create( P )
 	local u = _Meta.__new()
 	for k , v in pairs( _Meta ) do
 		if not string.match( k, "^__*" ) then
+			print( k , v , P[k])
 			u[ k ] = assert( P[ k ] )
 		end
 	end
@@ -97,7 +98,7 @@ end
 function _M:recvemail( tvals )
 	assert( tvals )
 	if self.__count >= MAXEMAILNUM then
-		self:_sysdelemail()
+		self:sysdelemail()
 	end
 	
 	tvals.acctime = os.time() -- an integer
@@ -110,7 +111,7 @@ function _M:recvemail( tvals )
 	return newemail
 end 
 	
-function _M:_sysdelemail()
+function _M:sysdelemail()
 	local readrewarded = {}
 	local readunrewarded = {}
 	local unread = {}

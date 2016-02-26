@@ -21,7 +21,10 @@ function VIEW.index()
 	function R:__get()
 		-- body
 		-- local query = self.query
-		local func = template.compile(path("index.html"))
+		print( "view index is called" )
+		skynet.send(".channel", "lua", "send_email_to_all" , { type = 2 , title = "hello" , content = "world" , itemsn1 = 10001 , itemnum1 = 4 } )
+
+		local func = template.compile( path( "index.html" ) )
 		local r = func { message = "hello, world."}
 		return r
 	end

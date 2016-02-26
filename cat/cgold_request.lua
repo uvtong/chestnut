@@ -168,7 +168,7 @@ local function judge_time_quantum( time , lastlength ) -- msg: judge which time_
 				lefttime = third - time + 1
 			elseif 3 == cgold_time then
 				third = first + time_second * 60 * 60  --os.time( { year = year , month = month , day = day , hour = time_second , min = 0 , sec = 0 } )
-				forth = first + ( time_third - 1 ) + 59 * 60 + 59  --os.time( { year = year , month = month , day = day , hour = time_third - 1 , min = 59 , sec = 59 } )
+				forth = first + ( time_third - 1 ) * 60 * 60 + 59 * 60 + 59  --os.time( { year = year , month = month , day = day , hour = time_third - 1 , min = 59 , sec = 59 } )
 				
 				if second <= time and time < third then
 					stage = 2
