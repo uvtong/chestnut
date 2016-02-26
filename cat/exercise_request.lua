@@ -55,14 +55,11 @@ function REQUEST:login(u)
 	local t = game.g_daily_taskmgr:get_one() -- may be changed
 	assert( t )
 	record_date = Split( t.update_time , "|" )
-	print( record_date[ 1 ] , record_date[ 2 ] , record_date[ 3 ] )
 	time_first = tonumber( string.sub( record_date[ 1 ] , 1 , 2 ) )
 	time_second = tonumber( string.sub( record_date[ 2 ] , 1 , 2 ) )
 
 	exercise_time = #record_date
-	for i , v in ipairs( record_date ) do
-		print( i , v )
-	end
+	
 
 	if 3 == exercise_time then
 		time_third = tonumber( string.sub( record_date[ 3 ] , 1 , 2 ) )

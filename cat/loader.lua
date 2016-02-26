@@ -304,13 +304,16 @@ local function load_u_email( user )
 
 	local u_emailmgr = require "models/u_emailmgr"
 	local r = skynet.call( util.random_db() , "lua", "command" , "select" , "u_new_email", {{ uid = user.id }})
-
+	print( "****************************** emailnum is " , #r )
 	for i , v in ipairs( r ) do
 		local a = u_emailmgr.create( v )
 		u_emailmgr:add( a )
 	end
 
 	user.u_emailmgr = u_emailmgr
+	for k , v in pairs( user.u_emailmgr.__data ) do
+		print( k , v )
+	end
 	print( "********************************load u_emailmgr over " )
 end
 

@@ -41,7 +41,7 @@ function _Meta:__update_db(t)
 	skynet.send(util.random_db(), "lua", "command", "update", self.__tname, { { csv_id = self.csv_id , uid = self.uid } }, columns)
 end
 
-function _Meta:__etallitem()
+function _Meta:__getallitem()
 	local item_list = {}
 
 	for i = 1 , 5 do
@@ -87,6 +87,9 @@ function _M:delete_by_csv_id(csv_id)
 end 
     
 function _M:get_all_emails()
+	for k , v in pairs( self.__data ) do
+		print( k , v )
+	end
 	return self.__data
 end 
 	

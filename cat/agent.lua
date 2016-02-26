@@ -402,6 +402,7 @@ end
     
 function REQUEST:signup()
 	-- body
+	print( "*****************************signup is called" )
 	local ret = {}
 	local condition = { uaccount = self.account}
 	local addr = util.random_db()

@@ -39,12 +39,12 @@ function CMD:send_email_to_all( tvals )
 	for i = 1 , 5 do
 		local id = "itemsn" .. i
 		local num = "itemnum" .. i
-		print( id , tvals.id , num , tvals.num )
-		if nil == tvals.id then
-			assert( self.num == nil )
+		print( id , tvals[id] , num , tvals[num] )
+		if nil == tvals[id] then
+			assert( tvals[num] == nil )
 			
-			tvals.id = 0
-			tvals.num = 0
+			tvals[id] = 0
+			tvals[num] = 0
 		end
 	end
 
@@ -59,8 +59,7 @@ function CMD:send_email_to_all( tvals )
 		tvals.uid = v.csv_id
 		local ne = u_emailmgr.create( tvals )
 		assert( ne )
-		ne:__insert_db()
-		i = i + 1		
+		ne:__insert_db()	
 	end 
 
 	print( " ********************************* i = " , i )
