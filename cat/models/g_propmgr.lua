@@ -42,6 +42,7 @@ function _Meta:__serialize()
 	local r = {}
 	for k,v in pairs(_Meta) do
 		if not string.match(k, "^__*") then
+			print(k)
 			r[k] = self[k]
 		end
 	end

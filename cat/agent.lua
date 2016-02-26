@@ -466,6 +466,13 @@ function REQUEST:signup()
 		local diamond = u_propmgr.create_diamond(u, 10)
 		diamond:__insert_db()
 
+		local u_kungfumgr = require "models/u_kungfumgr"
+		local kungfu = game.g_kungfumgr:get_by_csv_id(1001)
+		kungfu.user_id = assert(u.csv_id)
+		kungfu.is_learned = 0
+		local k = u_kungfumgr.create(kungfu)
+		k:__insert_db()
+
 		ret.errorcode = 0
 		ret.msg	= "yes"
 		return ret

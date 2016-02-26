@@ -81,7 +81,7 @@ local function load_g_kungfu()
 	-- body
 	assert(game.g_kungfumgr == nil)
 	local g_kungfumgr = require "models/g_kungfumgr"
-	local r = skynet.call(util.random_db(), "lua", "command", "select", "g_kungfumgr")
+	local r = skynet.call(util.random_db(), "lua", "command", "select", "g_kungfu")
 	for i,v in ipairs(r) do
 		local t = g_kungfumgr.create(v)
 		g_kungfumgr:add(t)
