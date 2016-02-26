@@ -26,6 +26,7 @@ local checkinrequest = require "checkinrequest"
 local exercise_request = require "exercise_request"
 local cgold_request = require "cgold_request"
 
+
 table.insert( M , checkinrequest )
 table.insert( M , exercise_request )
 table.insert( M , cgold_request )
@@ -335,9 +336,14 @@ function REQUEST:achievement_reward_collect()
 		return ret
 	end
 	assert(user)
+	assert(self.csv_id)
 	local a = user.u_achievement_rcmgr:get_by_csv_id(self.csv_id)
+	print(self.csv_id)
+	for k,v in pairs(a) do
+		print(k,v)
+	end
 	if a and a.finished == 100 and a.reward_collected == 0 then
-		a.collected = 1
+		a.reward_collected = 1
 		a:__update_db({"reward_collected"})
 		local a_src = game.g_achievementmgr:get_by_csv_id(a.csv_id)
 		assert(a_src)
@@ -474,15 +480,16 @@ function REQUEST:login()
 	assert(#self.password > 1)
 	local condition = { uaccount = self.account, upassword = self.password }
 	local addr = util.random_db()
-	local r = skynet.call(addr, "lua", "command", "select_user", { condition } )
+	local r = skynet.call(addr, "lua", "command", "select", "users", { condition } )
     
-	if not r then
+	if #r == 0  then
+		print("***************************afa", #r)
 		ret.errorcode = 1 -- 1 user hasn't register.
 		ret.msg = "no"
 		return ret
 	else
 		local usersmgr = require "models/usersmgr"
-		user = usersmgr.create(r)
+		user = usersmgr.create(r[1])
 		loader.load_user(user)
 		subscribe()
 		skynet.fork(subscribe)
@@ -1309,6 +1316,9 @@ function REQUEST:equipment_enhance()
 		ret.msg = "offline."
 		return ret
 	end
+	for k,v in pairs(user.u_equipmentmgr.__data) do
+		print(k,v)
+	end
 	local e = user.u_equipmentmgr:get_by_csv_id(self.csv_id)
 	if e.type == 1 then
 		local last = user.u_achievementmgr:get_by_type(4)
@@ -1350,6 +1360,30 @@ function REQUEST:equipment_enhance()
 			return ret
 		end
 	end
+end
+
+function REQUEST:equipment_all()
+	-- body
+	-- 1 offline 
+	local ret = {}
+	if not user then
+		ret.errorcode = 1
+		ret.msg = "offline"
+		return ret
+	end
+	local l = {}
+	for k,v in pairs(user.u_equipmentmgr.__data) do
+		local e = {
+			csv_id = v.csv_id,
+			type = v.type,
+			level = v.level
+		}
+		table.insert(l, e)
+	end
+	ret.errorcode = 0
+	ret.msg = "yes"
+	ret.l = l
+	return ret
 end
 
 function REQUEST:handshake()

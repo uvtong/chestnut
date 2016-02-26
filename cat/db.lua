@@ -78,8 +78,10 @@ end
 
 function QUERY:insert( table_name, columns )
 	-- body
+
 	local sql = util.insert(table_name, columns)
 	db:query(sql)
+	-- print("*******************************", sql)
 end
 
 function QUERY:signup( condition )
