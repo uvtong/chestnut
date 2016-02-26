@@ -360,7 +360,7 @@ local function load_u_kungfu(user)
 	assert(user.u_kungfumgr == nil)
 	local u_kungfumgr = require "models/u_kungfumgr"
 	local addr = util.random_db()
-	local r = skynet.call(addr, "lua", "command", "select", "u_equipment", {{ user_id = assert(user.csv_id) }})
+	local r = skynet.call(addr, "lua", "command", "select", "u_kungfu", {{ user_id = assert(user.csv_id) }})
 	for i,v in ipairs(r) do
 		local a = u_kungfumgr.create(v)
 		u_kungfumgr:add(a)
