@@ -80,7 +80,10 @@ function QUERY:insert( table_name, columns )
 	-- body
 
 	local sql = util.insert(table_name, columns)
-	db:query(sql)
+	skynet.fork(function (db, sql)
+		-- body
+		db:query(sql)
+	end, db, sql)
 	-- print("*******************************", sql)
 end
 

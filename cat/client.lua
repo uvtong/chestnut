@@ -171,6 +171,8 @@ while true do
 			send_request(cmd)
 		elseif cmd == "login" then
 			send_request("login", { account = "hello25" , password = "world2" })
+		elseif cmd == "signup" then
+			send_request("signup", { account = "hello32" , password = "world2" })
 		elseif cmd == "role_upgrade_star" then
 			send_request("role_upgrade_star", { role_csv_id=1})
 		elseif cmd == "user_can_modify_name" then

@@ -26,7 +26,6 @@ local checkinrequest = require "checkinrequest"
 local exercise_request = require "exercise_request"
 local cgold_request = require "cgold_request"
 
-
 table.insert( M , checkinrequest )
 table.insert( M , exercise_request )
 table.insert( M , cgold_request )
@@ -922,33 +921,19 @@ function REQUEST:shop_all()
 		return ret
 	end
 	assert(user)
-	local l = skynet.call(".shop", "lua", "shop_all")
 	local ll = {}
-	local idx = 1
-	for i,v in ipairs(l) do
-		local g = {
-			csv_id = v.csv_id,
-			currency_type = v.currency_type,
-			currency_num = v.currency_num,
-			g_prop_csv_id = v.g_prop_csv_id,
-			g_prop_num = v.g_prop_num,
-			inventory = v.inventory
-		}
+	for k,v in pairs(game.g_goodsmgr.__data) do
 		if v.inventory == 0 then
 			local now = os.time()
 			if os.difftime(now, v.st) > v.cd then
 				v.inventory = v.inventory_init
-				g.inventory = v.inventory
 				v:__update_db({"inventory"})
-				g.countdown = v.cd
 			else
 				v.countdown = now - v.st
-				g.countdown = v.countdown
 				v:__update_db({"countdown"})
 			end
 		end
-		ll[idx] = g
-		idx = idx + 1
+		table.insert(ll, v)
 	end
 	ret.errorcode = 0
 	ret.msg = "yes"
@@ -1139,12 +1124,12 @@ function REQUEST:recharge_vip_reward_all()
 	end
 	assert(user)
 	local l = {}
-	local idx = 1
 	for k,v in pairs(game.g_recharge_vip_rewardmgr.__data) do
 		local r = {}
 		r.vip = v.vip
 		r.props = {{csv_id=const.DIAMOND, num=v.diamond}}
 		r.collected = user.u_recharge_vip_rewardmgr:get_by_vip(v.vip) and true or false
+		table.insert(l, r)
 	end
 	ret.errorcode = 0
 	ret.msg = "yes"
@@ -1197,7 +1182,6 @@ function REQUEST:recharge_purchase()
 		ret.msg = "not online"
 		return ret
 	end
-	-- local r = skynet.call(".shop", "lua", "recharge_purchase", self.g)
 	local l = {}
 	local idx = 1
 	print(type(self.g))
@@ -1221,10 +1205,14 @@ function REQUEST:recharge_purchase()
 		local rc = user.u_recharge_countmgr:get_by_csv_id(v.csv_id)
 		if rc then
 			rc.count = rc.count + 1
-			rc:__update_db({"count"})
-			local diamond = user.u_propmgr:get_by_csv_id(const.DIAMOND)
-			diamond.num = diamond.num + (v.diamond + v.gift) * v.p_num
-			diamond:__update_db({"num"})
+			if rc.count > 1 then
+				rc:__update_db({"count"})
+				local diamond = user.u_propmgr:get_by_csv_id(const.DIAMOND)
+				diamond.num = diamond.num + (v.diamond + v.gift) * v.p_num
+				diamond:__update_db({"num"})
+			else
+				assert(false)
+			end
 		else
 			rc = user.u_recharge_countmgr.create({user_id=user.id, csv_id=v.csv_id, count=1})
 			rc:__insert_db()
@@ -1239,12 +1227,14 @@ function REQUEST:recharge_purchase()
 
 		-----------------------------
 		repeat
+			if user.uviplevel + 1 >= 6 then
+				break
+			end
 			local vip = game.g_recharge_vip_rewardmgr:get_by_vip(user.uviplevel + 1)
 			if not vip then
 				error "don't upgrade, no data."
 			end
 			local progress = user.recharge_diamond / vip.diamond
-			print("***************", progress)
 			if progress >= 1 then
 				user.uviplevel = user.uviplevel + 1
 				user:__update_db({"uviplevel"})
@@ -1330,10 +1320,10 @@ function REQUEST:equipment_enhance()
 	end
 	local e = user.u_equipmentmgr:get_by_csv_id(self.csv_id)
 	if e.type == 1 then
-		local last = user.u_achievementmgr:get_by_type(4)
+		local last = user.u_equipmentmgr:get_by_type(4)
 		assert(e.level <= last.level)
 	else
-		local last = user.u_achievementmgr:get_by_type(e.type - 1)
+		local last = user.u_equipmentmgr:get_by_type(e.type - 1)
 		assert(e.level <= last.level)
 	end
 	local currency = user.u_propmgr:get_by_csv_id(e.currency_type)
@@ -1347,7 +1337,6 @@ function REQUEST:equipment_enhance()
 			currency:__update_db({"num"})
 			local id = (e.level + 1) + 1000 * e.type
 			local ge = game.g_equipmentmgr:get_by_csv_id(id)
-			e.csv_id = ge.csv_id
 			e.level = ge.level
 			e.combat = ge.combat
 			e.defense = ge.defense
@@ -1359,7 +1348,7 @@ function REQUEST:equipment_enhance()
 			e.enhance_success_rate = ge.enhance_success_rate
 			e.currency_type = ge.currency_type
 			e.currency_num = ge.currency_num
-			e:__update_db({"csv_id", "level", "combat", "defense", "critical_hit_probability", "defense_probability", "king_probability", "enhance_success_rate", "currency_type", "currency_num"})
+			e:__update_db({"level", "combat", "defense", "critical_hit_probability", "defense_probability", "king_probability", "enhance_success_rate", "currency_type", "currency_num"})
 			ret.errorcode = 0
 			ret.msg = "yes"
 			return ret
