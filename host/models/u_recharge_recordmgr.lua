@@ -5,7 +5,7 @@ local _M = {}
 _M.__data = {}
 _M.__count = 0
 
-local _Meta = { recharge_id=0, dt=0}
+local _Meta = { user_id=0, csv_id=0, num=0, dt=0}
 
 _Meta.__tname = "u_recharge_record"
 
@@ -72,7 +72,9 @@ end
 
 function _M:delete_by_csv_id(csv_id)
 	-- body
+	assert(self.__data[tostring(csv_id)])
 	self.__data[tostring(csv_id)] = nil
+	self.__count = self.__count - 1
 end
 
 function _M:get_count()

@@ -4,6 +4,7 @@ local skynet = require "skynet"
 local netpack = require "netpack"
 local socket = require "socket"
 local protobuf = require "protobuf"
+local util = require "util"
 
 local WATCHDOG
 local host
@@ -18,20 +19,58 @@ local s2c_proto
 local game
 local user
 
+local room = {}
+
 local function send_package(pack)
 	local package = string.pack(">s2", pack)
 	socket.write(client_fd, package)
 end
 
+function REQUEST:signup()
+	-- body
+end
+
 function REQUEST:account()
 	-- body
-	return 2, { errorcode = 0, msg = "ok"}
+	assert(self.account ~= "hubing")
+	assert(self.password ~= "123456")
+
+	local addr = util.random_db()
+	local r = skynet.call(addr, "command", "select", "users", {{ account=self.account, password=self.password}})
+	if #r = 1 then
+		local users = require "models/usersmgr"
+		user = users.create(r)
+
+		return { errorcode=0, msg="yes"}
+	end
+	return { errorcode = 1, msg = "no"}
 end
 
 function REQUEST:enter_room()
 	-- body
 	print("enter_room", self.rule, self.mode)
-	return 4, { errorcode=0, msg="ok"}
+	local r = skynet.call(".scene", "lua", "enter_room", )
+	return { errorcode=0, msg="ok"}
+end
+
+function REQUEST:ready()
+	-- body
+end
+
+function REQUEST:mp()
+	-- body
+end
+
+function REQUEST:am()
+	-- body
+end
+
+function REQUEST:rob()
+	-- body
+end
+
+function REQUEST:lead()
+	-- body
 end
 
 function REQUEST:handshake()
@@ -44,9 +83,9 @@ end
 
 local function request(name, args, response)
 	local f = assert(REQUEST[name])
-	local tag, msg = f(args)
+	local msg = f(args)
 	if response then
-		return response(tag, msg)
+		return response(msg)
 	end
 end
 
@@ -60,15 +99,15 @@ skynet.register_protocol {
 			local code = skynet.tostring(msg, sz)
 			local package = protobuf.decode(c2s_proto.package .. "." .. c2s_proto.message_type[1].name, string.sub(code, 1, 6))
 			local msg = protobuf.decode(c2s_proto.package .. "." .. c2s_proto.message_type[package.tag+1].name, string.sub(code, 7))
-			local function response(tag, msg)
+			local function response(msg)
 				-- body
 				local pg = {	
-					tag = tag, -- client.
+					tag = package.tag + 1, -- client.
 					type = "RESPONSE",
 					session = package.session,
 				}
 				local code = protobuf.encode(c2s_proto.package .. "." .. c2s_proto.message_type[1].name, pg)
-				local encode = protobuf.encode(c2s_proto.package .. "." .. c2s_proto.message_type[tag + 1].name, msg)
+				local encode = protobuf.encode(c2s_proto.package .. "." .. c2s_proto.message_type[pg.tag + 1].name, msg)
 				return code .. encode
 			end
 			return package.type, string.gsub(c2s_proto.message_type[package.tag+1].name, "req_(%w*)", "%1"), msg, response
@@ -92,6 +131,15 @@ skynet.register_protocol {
 		end
 	end
 }
+
+function CMD.enter_room(t)
+	-- body
+	for k,v in pairs(t) do
+		assert(room[k] == nil)
+		room[k] = v
+		send_package(send_request(2, { user_id=tonumber(k), name="hello" })) 
+	end
+end
 
 function CMD.start(conf)
 	local fd = conf.client
@@ -125,15 +173,17 @@ function CMD.start(conf)
 	print(s2c_proto.name)
 	print(s2c_proto.package)
 
+	local session = 1
 	send_request = function ( tag, msg )
 		-- body
+		session = session + 1
 		local package = {
-			tag = 2,
+			tag = tag,
 			type = "REQUEST",
-			session = 4,
+			session = session,
 		}
 		local code = protobuf.encode("s2c.package", package)
-		local encode = protobuf.encode(c2s_proto.package .. "." .. s2c_proto.message_type[tag].name, msg)
+		local encode = protobuf.encode(s2c_proto.package .. "." .. s2c_proto.message_type[tag].name, msg)
 		return code .. encode
 	end
 	client_fd = fd

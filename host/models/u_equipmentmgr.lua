@@ -5,7 +5,7 @@ local _M = {}
 _M.__data = {}
 _M.__count = 0
 
-local _Meta = { nickname=0, level=0, star_level=0, combat=0, defense=0, critical_hit=0, skill=0, role_id=0, user_id=0, csv_id=0}
+local _Meta = { level=0, combat=0, defense=0, critical_hit=0, king=0, user_id=0, csv_id=0, type=0, critical_hit_probability=0, combat_probability=0, defense_probability=0, king_probability=0, enhance_success_rate=0}
 
 _Meta.__tname = "u_equipment"
 
@@ -53,7 +53,7 @@ function _M.create( P )
 	local u = _Meta.__new()
 	for k,v in pairs(_Meta) do
 		if not string.match(k, "^__*") then
-			u[k] = P[k]
+			u[k] = assert(P[k])
 		end
 	end
 	return u
@@ -72,7 +72,9 @@ end
 
 function _M:delete_by_csv_id(csv_id)
 	-- body
+	assert(self.__data[tostring(csv_id)])
 	self.__data[tostring(csv_id)] = nil
+	self.__count = self.__count - 1
 end
 
 function _M:get_count()

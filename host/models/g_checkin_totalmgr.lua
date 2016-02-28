@@ -5,9 +5,9 @@ local _M = {}
 _M.__data = {}
 _M.__count = 0
 
-local _Meta = { g_checkpoint_id=0, passed=0}
+local _Meta = { id = 0 , totalamount = 0 , prop_id_num = 0 }
 
-_Meta.__tname = "u_checkpoint"
+_M.__tname = "g_checkin_total"
 
 function _Meta.__new()
  	-- body
@@ -27,7 +27,7 @@ function _Meta:__insert_db()
 	skynet.send(util.random_db(), "lua", "command", "insert", self.__tname, t)
 end
 
-function _Meta:__update_db(t)
+function _Meta:__update_db( t )
 	-- body
 	assert(type(t) == "table")
 	local columns = {}
@@ -53,7 +53,7 @@ function _M.create( P )
 	local u = _Meta.__new()
 	for k,v in pairs(_Meta) do
 		if not string.match(k, "^__*") then
-			u[k] = assert(P[k])
+			u[k] = P[k]
 		end
 	end
 	return u
@@ -61,17 +61,20 @@ end
 
 function _M:add( u )
 	assert(u)
-	self.__data[tostring(u.csv_id)] = u
+	self.__data[tostring(u.id)] = u
 	self.__count = self.__count + 1
 end
-
-function _M:get_by_csv_id(csv_id)
+	
+function _M:get_by_id( id )
 	-- body
-	for k,v in pairs(self.__data) do
-		if v.csv_id == csv_id then
-			return v
-		end
-	end
+	return self.__data[tostring( id ) ]
+end
+
+function _M:delete_by_id( id )
+	-- body
+	assert( id and self.__data[tostring( id )])
+	self.__data[tostring( id )] = nil
+	self.__count = self.__count - 1
 end
 
 function _M:get_count()
@@ -80,3 +83,4 @@ function _M:get_count()
 end
 
 return _M
+

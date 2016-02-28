@@ -5,9 +5,9 @@ local _M = {}
 _M.__data = {}
 _M.__count = 0
 
-local _Meta = { g_checkpoint_id=0, passed=0}
+local _Meta = { csv_id = 0 , month = 0 , count = 0 , g_prop_csv_id = 0 , g_prop_num = 0 , vip = 0 , vip_g_prop_csv_id = 0 , vip_g_prop_num = 0 }
 
-_Meta.__tname = "u_checkpoint"
+_M.__tname = "g_checkin"
 
 function _Meta.__new()
  	-- body
@@ -53,7 +53,7 @@ function _M.create( P )
 	local u = _Meta.__new()
 	for k,v in pairs(_Meta) do
 		if not string.match(k, "^__*") then
-			u[k] = assert(P[k])
+			u[k] = P[k]
 		end
 	end
 	return u
@@ -64,14 +64,17 @@ function _M:add( u )
 	self.__data[tostring(u.csv_id)] = u
 	self.__count = self.__count + 1
 end
-
+	
 function _M:get_by_csv_id(csv_id)
 	-- body
-	for k,v in pairs(self.__data) do
-		if v.csv_id == csv_id then
-			return v
-		end
-	end
+	return self.__data[tostring(csv_id)]
+end
+
+function _M:delete_by_csv_id(csv_id)
+	-- body
+	assert( csv_id and self.__data[tostring(csv_id)])
+	self.__data[tostring(csv_id)] = nil
+	self.__count = self.__count - 1
 end
 
 function _M:get_count()
@@ -80,3 +83,4 @@ function _M:get_count()
 end
 
 return _M
+

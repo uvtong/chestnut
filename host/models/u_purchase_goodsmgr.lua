@@ -5,7 +5,7 @@ local _M = {}
 _M.__data = {}
 _M.__count = 0
 
-local _Meta = { user_id=0, csv_id=0, g_goods_id=0, g_goods_num=0, currency_type=0, currency_num=0, purchase_time=0}
+local _Meta = { user_id=0, csv_id=0, num=0, currency_type=0, currency_num=0, purchase_time=0}
 
 _Meta.__tname = "u_purchase_goods"
 
@@ -53,7 +53,8 @@ function _M.create( P )
 	local u = _Meta.__new()
 	for k,v in pairs(_Meta) do
 		if not string.match(k, "^__*") then
-			u[k] = P[k]
+			print("jklajflajfla", k)
+			u[k] = assert(P[k])
 		end
 	end
 	return u
@@ -61,18 +62,8 @@ end
 
 function _M:add( u )
 	assert(u)
-	self.__data[tostring(u.id)] = u
+	self.__data[tostring(u.csv_id)] = u
 	self.__count = self.__count + 1
-end
-	
-function _M:delete(id)
-	assert(id)
-	self.__data[tostring(id)] = nil
-end
-
-function _M:get(id)
-	-- body
-	return self.__data[tostring(id)]
 end
 
 function _M:get_by_csv_id(csv_id)
@@ -82,7 +73,9 @@ end
 
 function _M:delete_by_csv_id(csv_id)
 	-- body
+	assert(self.__data[tostring(csv_id)])
 	self.__data[tostring(csv_id)] = nil
+	self.__count = self.__count - 1
 end
 
 function _M:get_count()

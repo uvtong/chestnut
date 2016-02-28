@@ -5,9 +5,9 @@ local _M = {}
 _M.__data = {}
 _M.__count = 0
 
-local _Meta = { csv_id=0, currency_type=0, currency_num=0, g_prop_csv_id=0, g_prop_num=0, inventory_init=0, inventory=0, cd=0, icon_id=0, st=0, countdown=0}
+local _Meta = { csv_id=0, currency_type=0, currency_num=0, g_prop_csv_id=0, g_prop_num=0, inventory_init=0, inventory=0, cd=0, st=0, countdown=0}
 
-_M.__tname = "g_goods"
+_Meta.__tname = "g_goods"
 
 function _Meta.__new()
  	-- body
@@ -34,7 +34,7 @@ function _Meta:__update_db(t)
 	for i,v in ipairs(t) do
 		columns[tostring(v)] = self[tostring(v)]
 	end
-	skynet.send(util.random_db(), "lua", "command", "update", self.__tname, {{ id = self.id }}, columns)
+	skynet.send(util.random_db(), "lua", "command", "update", self.__tname, {{ csv_id = self.csv_id }}, columns)
 end
 
 function _Meta:__serialize()
@@ -42,7 +42,7 @@ function _Meta:__serialize()
 	local r = {}
 	for k,v in pairs(_Meta) do
 		if not string.match(k, "^__*") then
-			r[k] = self[k]
+			r[k] = assert(self[k])
 		end
 	end
 	return r
@@ -53,7 +53,7 @@ function _M.create( P )
 	local u = _Meta.__new()
 	for k,v in pairs(_Meta) do
 		if not string.match(k, "^__*") then
-			u[k] = P[k]
+			u[k] = assert(P[k])
 		end
 	end
 	return u

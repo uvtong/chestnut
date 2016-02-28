@@ -5,9 +5,9 @@ local _M = {}
 _M.__data = {}
 _M.__count = 0
 
-local _Meta = { g_checkpoint_id=0, passed=0}
+local _Meta = { checkin_month = 0 , user_id = 0 ,}
 
-_Meta.__tname = "u_checkpoint"
+_Meta.__tname = "u_checkin_month"
 
 function _Meta.__new()
  	-- body
@@ -34,7 +34,7 @@ function _Meta:__update_db(t)
 	for i,v in ipairs(t) do
 		columns[tostring(v)] = self[tostring(v)]
 	end
-	skynet.send(util.random_db(), "lua", "command", "update", self.__tname, {{ id = self.id }}, columns)
+	skynet.send(util.random_db(), "lua", "command", "update", self.__tname, {{ user_id = self.user_id }}, columns)
 end
 
 function _Meta:__serialize()
@@ -53,7 +53,7 @@ function _M.create( P )
 	local u = _Meta.__new()
 	for k,v in pairs(_Meta) do
 		if not string.match(k, "^__*") then
-			u[k] = assert(P[k])
+			u[k] = P[k]
 		end
 	end
 	return u
@@ -61,17 +61,20 @@ end
 
 function _M:add( u )
 	assert(u)
-	self.__data[tostring(u.csv_id)] = u
+	table.insert( self.__data , u )
 	self.__count = self.__count + 1
 end
-
-function _M:get_by_csv_id(csv_id)
+	
+function _M:get_checkin_month()
 	-- body
-	for k,v in pairs(self.__data) do
-		if v.csv_id == csv_id then
-			return v
-		end
-	end
+	return self.__data[1]
+end
+
+function _M:delete_checkin_month()
+	-- body
+	assert( csv_id and self.__data[1] )
+	self.__data[1] = nil
+	self.__count = self.__count - 1
 end
 
 function _M:get_count()
@@ -80,3 +83,4 @@ function _M:get_count()
 end
 
 return _M
+
