@@ -50,6 +50,11 @@ proto.c2s = sprotoparser.parse [[.package {
     is_unlock 3 : boolean
 }
 
+.attach
+{
+            itemsn 0 : integer
+            itemnum 1 : integer
+}
 .mail
 {	
 		emailid 0 : integer
@@ -61,11 +66,7 @@ proto.c2s = sprotoparser.parse [[.package {
 		title 6 : string
 		content 7 : string
 		error 8 : integer
-		.attach
-		{
-			itemsn 0 : integer
-			itemnum 1 : integer
-		}
+		
 		attachs 9 : *attach
 }
 
@@ -174,6 +175,12 @@ proto.c2s = sprotoparser.parse [[.package {
     vip 0 : integer
     props 1 : *prop
     collected 2 : boolean
+}
+
+.equipment {
+    csv_id 0 : integer
+    type 1 : integer
+    level 2 : integer
 }
 
 handshake 1 {
@@ -613,6 +620,73 @@ checkin 43
         msg 2 : string      
     }
  }
+
+exercise 46
+ {
+    response {
+        ifexercise 0 : boolean
+        lefttime 1 : integer
+        exercise_level 2 : integer
+    }
+ }
+ 
+ exercise_once 47
+ {
+    request {
+        daily_type 0 : integer
+        exercise_type 1 : integer
+        exercise_level 2 : integer
+    }
+    response {
+        ok 0 : boolean
+        error 1 : integer
+        msg 2 : string
+        lefttime 3 : integer
+    }
+ }
+ 
+ c_gold 48 
+ {
+    response {
+        ifc_gold 0 : boolean
+        lefttime 1 : integer
+        c_gold_level 2 :  integer
+    }
+ }
+ 
+ c_gold_once 49
+ {
+    request {
+        daily_type 0 : integer
+        c_gold_type 1 : integer
+        c_gold_level 2 : integer
+    }
+    response {
+        ok 0 : boolean
+        error 1 : integer
+        msg 2 : string
+        lefttime 3 : integer
+    }
+ }
+
+ equipment_enhance 50 {
+    request {
+        csv_id 0 : integer
+    }
+    response {
+        errorcode 0 : integer
+        msg 1 : string
+    }
+}
+
+equipment_all 51 {
+    response {
+        errorcode 0 : integer
+        msg 1 : string
+        l 2 : *equipment
+    }
+}
+
 ]]
 
 proto.s2c = sprotoparser.parse [[

@@ -211,9 +211,7 @@ function emailbox:reademail( uid , id_list )
 	assert( uid and id_list )
 	for k , v in pairs( id_list ) do
 		print( k , v , v.id )
-		for k , v in pairs( self._data ) do
-			print( k , v , type( v.id ) , v.id )
-		end
+		
 		local e = self._data[ tostring( v.id ) ]
 		assert( e ) 
 		e.isread = true
@@ -244,7 +242,7 @@ function emailbox:recvemail( tvals )
 		emailbox:_sysdelemail()
 		emailnum = emailbox:_getemailnum()
 	end
-
+	
 	tvals.acctime = os.time() -- an integer
 	local newemail = emailbox:_create( tvals )
 	assert( newemail )

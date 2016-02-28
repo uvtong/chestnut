@@ -10,8 +10,8 @@ local dc = require "datacenter"
 local util = require "util"
 local loader = require "loader"
 
-local emailrequest = require "emailrequest"
-local emailbox = require "emailbox"
+--local emailrequest = require "emailrequest"
+--local emailbox = require "emailbox"
 local friendrequest = require "friendrequest"
 local friendmgr = require "friendmgr"
 local drawrequest = require "drawrequest"
@@ -21,13 +21,15 @@ local const = require "const"
 local config = require "config"
 
 local M = {}
-
---local battlerequest = require "battlerequest"
-local achievementrequest = require "achievementrequest"
+local new_emailrequest = require "new_emailrequest"
 local checkinrequest = require "checkinrequest"
---table.insert(M, battlerequest)
-table.insert(M, achievementrequest)
-table.insert( M, checkinrequest )
+local exercise_request = require "exercise_request"
+local cgold_request = require "cgold_request"
+
+table.insert( M , checkinrequest )
+table.insert( M , exercise_request )
+table.insert( M , cgold_request )
+table.insert( M , new_emailrequest )
 
 local WATCHDOG
 local host
@@ -70,7 +72,7 @@ end
 
 local function id(__wake, __level)
 	-- body
-	return __wake * 1000 + __level
+	return __wake * 1000 + __level	
 end
 
 local function push_achievement(achievement)
@@ -172,15 +174,7 @@ local function raise_achievement(type, user, game)
 					local k1 = string.gsub(a.unlock_next_csv_id, "(%d*)%*(%d*)", "%1")
 					local k2 = string.gsub(a.unlock_next_csv_id, "(%d*)%*(%d*)", "%2")
 					print("*******jflda", a.unlock_next_csv_id, k1, k2)
-					local ga = game.g_achievementmgr:get_by_csv_id(k2)
-					assert(ga)
-					a.csv_id = ga.csv_id
-					a.finished = 0
-					a.c_num = ga.c_num
-					a.unlock_next_csv_id = ga.unlock_next_csv_id
-					a.is_unlock = 1
-					a:__update_db({"csv_id", "finished", "c_num", "unlock_next_csv_id"})	
-
+					
 					local ga2 = game.g_achievementmgr:get_by_csv_id(k1)
 					local t = ga2:__serialize()
 					t.user_id = user.id
@@ -190,6 +184,22 @@ local function raise_achievement(type, user, game)
 					local a1 = user.u_achievement_rcmgr.create(t)
 					user.u_achievement_rcmgr:add(a1)
 					a1:__insert_db()
+
+					if tonumber(k2) == 0 then
+						a.is_valid = 0
+						a:__update_db({"is_valid"})	
+						break
+					else
+						local ga = game.g_achievementmgr:get_by_csv_id(k2)
+						assert(ga)
+						a.csv_id = ga.csv_id
+						a.finished = 0
+						a.c_num = ga.c_num
+						a.unlock_next_csv_id = ga.unlock_next_csv_id
+						-- a.is_unlock = 1
+						a:__update_db({"csv_id", "finished", "c_num", "unlock_next_csv_id", "is_valid"})	
+					end
+
 				else
 					local ga = game.g_achievementmgr:get_by_csv_id(a.unlock_next_csv_id)
 					assert(ga)
@@ -211,7 +221,7 @@ local function raise_achievement(type, user, game)
 	end
 end
 
-function SUBSCRIBE:email( tvals, ... )
+--[[function SUBSCRIBE:email( tvals, ... )
 	-- body
 	local v = emailbox:recvemail( tvals )
 	local ret = {}
@@ -230,7 +240,7 @@ function SUBSCRIBE:email( tvals, ... )
 	tmp.iconid = v.iconid
 	ret.mail = tmp
 	send_package( send_request( "newemail" ,  ret ) )
-end
+end--]]
 
 local function subscribe()
 	-- body
@@ -333,9 +343,14 @@ function REQUEST:achievement_reward_collect()
 		return ret
 	end
 	assert(user)
+	assert(self.csv_id)
 	local a = user.u_achievement_rcmgr:get_by_csv_id(self.csv_id)
+	print(self.csv_id)
+	for k,v in pairs(a) do
+		print(k,v)
+	end
 	if a and a.finished == 100 and a.reward_collected == 0 then
-		a.collected = 1
+		a.reward_collected = 1
 		a:__update_db({"reward_collected"})
 		local a_src = game.g_achievementmgr:get_by_csv_id(a.csv_id)
 		assert(a_src)
@@ -386,37 +401,78 @@ end
     
 function REQUEST:signup()
 	-- body
+	print( "*****************************signup is called" )
 	local ret = {}
 	local condition = { uaccount = self.account}
 	local addr = util.random_db()
-	local r = skynet.call(addr, "lua", "command", "select_user", { condition } )
-	if not r then
-		local t = { csv_id=os.time(), uname="hello", uviplevel=0, config_sound=1, config_music=1, avatar=0, sign="hello", c_role_id=1, ifonline=0, level=0, combat=0, defense=0, critical_hit=0, blessing=0, modify_uname_count=0, onlinetime=0, iconid=0, recharge_total=0, is_valid=1, recharge_rmb=0, goods_refresh_count=0, recharge_diamond=0, uvip_progress=0, checkin_num=0, checkin_reward_num=0}
+	local r = skynet.call(addr, "lua", "command", "signup", { condition } )
+	if #r == 0 then
+		local t = { csv_id=util.guid(game, const.UENTROPY), 
+				uname="nihao", 
+				uaccount=self.account, 
+				upassword=self.password, 
+				uviplevel=0,
+				config_sound=1, 
+				config_music=1, 
+				avatar=0, 
+				sign="peferct ", 
+				c_role_id=1, 
+				ifonline=0, 
+				level=0, 
+				combat=0, 
+				defense=0, 
+				critical_hit=0, 
+				blessing=0, 
+				modify_uname_count=0, 
+				onlinetime=0, 
+				iconid=0, 
+				is_valid=1, 
+				recharge_rmb=0, 
+				goods_refresh_count=0, 
+				recharge_diamond=0, 
+				uvip_progress=0, 
+				checkin_num=0, 
+				checkin_reward_num=0, 
+				exercise_level=0, 
+				cgold_level=0 }
 		local usersmgr = require "models/usersmgr"
-		local u = usersmgr.create(r)
+		local u = usersmgr.create(t)
 		u:__insert_db()
 
-		local u_equipment = require "models/u_equipment"
-		local e1 = game.g_equipment:get_by_csv_id(1001)
-		e1.user_id = t.csv_id
-		e1.type = 1
-		e1.level = 1
-		local ue1 = u_equipment.create(e1)
+		local u_equipmentmgr = require "models/u_equipmentmgr"
+		local e1 = game.g_equipmentmgr:get_by_csv_id(1001)
+		e1.user_id = u.csv_id
+		local ue1 = u_equipmentmgr.create(e1)
 		ue1:__insert_db()
 
-		local e2 = game.g_equipment:get_by_csv_id(1002)
-		e2.user_id = t.csv_id
-		e2.type = 1
-		e2.level = 1
-		local ue2 = u_equipment.create(e2)
+		local e2 = game.g_equipmentmgr:get_by_csv_id(2001)
+		e2.user_id = u.csv_id
+		local ue2 = u_equipmentmgr.create(e2)
 		ue2:__insert_db()
 
-		local e3 = game.g_equipment:get_by_csv_id(1001)
-		e3.user_id = t.csv_id
-		e3.type = 1
-		e3.level = 1
-		local ue3 = u_equipment.create(e3)
+		local e3 = game.g_equipmentmgr:get_by_csv_id(3001)
+		e3.user_id = u.csv_id
+		local ue3 = u_equipmentmgr.create(e3)
 		ue3:__insert_db()
+
+		local e4 = game.g_equipmentmgr:get_by_csv_id(4001)
+		e4.user_id = u.csv_id
+		local ue4 = u_equipmentmgr.create(e4)
+		ue4:__insert_db()		
+
+		local u_propmgr = require "models/u_propmgr"
+		local gold = u_propmgr.create_gold(u, 100)
+		gold:__insert_db()
+
+		local diamond = u_propmgr.create_diamond(u, 10)
+		diamond:__insert_db()
+
+		local u_kungfumgr = require "models/u_kungfumgr"
+		local kungfu = game.g_kungfumgr:get_by_csv_id(1001)
+		kungfu.user_id = assert(u.csv_id)
+		kungfu.is_learned = 0
+		local k = u_kungfumgr.create(kungfu)
+		k:__insert_db()
 
 		ret.errorcode = 0
 		ret.msg	= "yes"
@@ -439,15 +495,16 @@ function REQUEST:login()
 	assert(#self.password > 1)
 	local condition = { uaccount = self.account, upassword = self.password }
 	local addr = util.random_db()
-	local r = skynet.call(addr, "lua", "command", "select_user", { condition } )
+	local r = skynet.call(addr, "lua", "command", "select", "users", { condition } )
     
-	if not r then
+	if #r == 0  then
+		print("***************************afa", #r)
 		ret.errorcode = 1 -- 1 user hasn't register.
 		ret.msg = "no"
 		return ret
 	else
 		local usersmgr = require "models/usersmgr"
-		user = usersmgr.create(r)
+		user = usersmgr.create(r[1])
 		loader.load_user(user)
 		subscribe()
 		skynet.fork(subscribe)
@@ -492,19 +549,21 @@ function REQUEST:login()
 		end
 		ret.rolelist = l
 	end 
-
+	print( "dc is  *******************************************************" )
+	print( user.id , client_fd , skynet.self() )
 	dc.set(user.id, { client_fd=client_fd, addr=skynet.self()})
+	print( "dc is called *******************************************************" )
 	local onlinetime = os.time()
 	user.ifonline = 1
 	user.onlinetime = onlinetime
 	user:__update_db({"ifonline", "onlinetime"})
 
-	user.emailbox = emailbox:loademails( user.id )
-	emailrequest.getvalue( user )
+	--user.emailbox = emailbox:loademails( user.id )
+	--emailrequest.getvalue( user )
 	user.friendmgr = friendmgr:loadfriend( user , dc )
 	friendrequest.getvalue( user , send_package , send_request )
 	user.drawmgr = drawmgr
-	drawrequest.getvalue( user )
+	drawrequest.getvalue( user , game )
 	--user.friendmgr:noticeonline( dc )
 	return ret
 end	
@@ -517,6 +576,7 @@ function REQUEST:logout()
 	dc.set( user.id , nil )
 	-- send chanel 
 	-- skynet.send()
+	user = nil
 	return { errorcode = 0 }
 end
 
@@ -868,33 +928,19 @@ function REQUEST:shop_all()
 		return ret
 	end
 	assert(user)
-	local l = skynet.call(".shop", "lua", "shop_all")
 	local ll = {}
-	local idx = 1
-	for i,v in ipairs(l) do
-		local g = {
-			csv_id = v.csv_id,
-			currency_type = v.currency_type,
-			currency_num = v.currency_num,
-			g_prop_csv_id = v.g_prop_csv_id,
-			g_prop_num = v.g_prop_num,
-			inventory = v.inventory
-		}
+	for k,v in pairs(game.g_goodsmgr.__data) do
 		if v.inventory == 0 then
 			local now = os.time()
 			if os.difftime(now, v.st) > v.cd then
 				v.inventory = v.inventory_init
-				g.inventory = v.inventory
 				v:__update_db({"inventory"})
-				g.countdown = v.cd
 			else
 				v.countdown = now - v.st
-				g.countdown = v.countdown
 				v:__update_db({"countdown"})
 			end
 		end
-		ll[idx] = g
-		idx = idx + 1
+		table.insert(ll, v)
 	end
 	ret.errorcode = 0
 	ret.msg = "yes"
@@ -1085,12 +1131,12 @@ function REQUEST:recharge_vip_reward_all()
 	end
 	assert(user)
 	local l = {}
-	local idx = 1
 	for k,v in pairs(game.g_recharge_vip_rewardmgr.__data) do
 		local r = {}
 		r.vip = v.vip
 		r.props = {{csv_id=const.DIAMOND, num=v.diamond}}
 		r.collected = user.u_recharge_vip_rewardmgr:get_by_vip(v.vip) and true or false
+		table.insert(l, r)
 	end
 	ret.errorcode = 0
 	ret.msg = "yes"
@@ -1143,7 +1189,6 @@ function REQUEST:recharge_purchase()
 		ret.msg = "not online"
 		return ret
 	end
-	-- local r = skynet.call(".shop", "lua", "recharge_purchase", self.g)
 	local l = {}
 	local idx = 1
 	print(type(self.g))
@@ -1167,10 +1212,14 @@ function REQUEST:recharge_purchase()
 		local rc = user.u_recharge_countmgr:get_by_csv_id(v.csv_id)
 		if rc then
 			rc.count = rc.count + 1
-			rc:__update_db({"count"})
-			local diamond = user.u_propmgr:get_by_csv_id(const.DIAMOND)
-			diamond.num = diamond.num + (v.diamond + v.gift) * v.p_num
-			diamond:__update_db({"num"})
+			if rc.count > 1 then
+				rc:__update_db({"count"})
+				local diamond = user.u_propmgr:get_by_csv_id(const.DIAMOND)
+				diamond.num = diamond.num + (v.diamond + v.gift) * v.p_num
+				diamond:__update_db({"num"})
+			else
+				assert(false)
+			end
 		else
 			rc = user.u_recharge_countmgr.create({user_id=user.id, csv_id=v.csv_id, count=1})
 			rc:__insert_db()
@@ -1185,12 +1234,14 @@ function REQUEST:recharge_purchase()
 
 		-----------------------------
 		repeat
+			if user.uviplevel + 1 >= 6 then
+				break
+			end
 			local vip = game.g_recharge_vip_rewardmgr:get_by_vip(user.uviplevel + 1)
 			if not vip then
 				error "don't upgrade, no data."
 			end
 			local progress = user.recharge_diamond / vip.diamond
-			print("***************", progress)
 			if progress >= 1 then
 				user.uviplevel = user.uviplevel + 1
 				user:__update_db({"uviplevel"})
@@ -1200,6 +1251,7 @@ function REQUEST:recharge_purchase()
 				break
 			end
 		until false
+		user:__update_db({"recharge_rmb", "recharge_diamond"})
 	end
 	ret.errorcode = 0
 	ret.msg = "yes"
@@ -1260,8 +1312,85 @@ function REQUEST:recharge_collect()
 	return ret
 end
 
-function REQUEST:enhance()
+function REQUEST:equipment_enhance()
 	-- body
+	-- 1 offline
+	-- 2 don't have enough money.
+	-- 3 rate
+	local ret = {}
+	if not user then
+		ret.errorcode = 1
+		ret.msg = "offline."
+		return ret
+	end
+	for k,v in pairs(user.u_equipmentmgr.__data) do
+		print(k,v)
+	end
+	local e = user.u_equipmentmgr:get_by_csv_id(self.csv_id)
+	if e.type == 1 then
+		local last = user.u_equipmentmgr:get_by_type(4)
+		assert(e.level <= last.level)
+	else
+		local last = user.u_equipmentmgr:get_by_type(e.type - 1)
+		assert(e.level <= last.level)
+	end
+	local currency = user.u_propmgr:get_by_csv_id(e.currency_type)
+	if currency.num < e.currency_num then
+		ret.errorcode = 2
+		ret.msg = "don't have enough money."
+	else
+		local r = math.random(0, 100)
+		if r < e.enhance_success_rate then
+			currency.num = currency.num - e.currency_num
+			currency:__update_db({"num"})
+			local id = (e.level + 1) + 1000 * e.type
+			local ge = game.g_equipmentmgr:get_by_csv_id(id)
+			e.level = ge.level
+			e.combat = ge.combat
+			e.defense = ge.defense
+			e.critical_hit = ge.critical_hit
+			e.king = ge.king
+			e.critical_hit_probability = ge.critical_hit_probability
+			e.defense_probability = ge.defense_probability
+			e.king_probability = ge.king_probability
+			e.enhance_success_rate = ge.enhance_success_rate
+			e.currency_type = ge.currency_type
+			e.currency_num = ge.currency_num
+			e:__update_db({"level", "combat", "defense", "critical_hit_probability", "defense_probability", "king_probability", "enhance_success_rate", "currency_type", "currency_num"})
+			ret.errorcode = 0
+			ret.msg = "yes"
+			return ret
+		else
+			ret.errorcode = 3
+			ret.msg = "enhance failture."
+			return ret
+		end
+	end
+end
+
+function REQUEST:equipment_all()
+	-- body
+	-- 1 offline 
+	local ret = {}
+	if not user then
+		ret.errorcode = 1
+		ret.msg = "offline"
+		return ret
+	end
+	local l = {}
+	for k,v in pairs(user.u_equipmentmgr.__data) do
+		print(k, v)
+		local e = {
+			csv_id = v.csv_id,
+			type = v.type,
+			level = v.level
+		}
+		table.insert(l, e)
+	end
+	ret.errorcode = 0
+	ret.msg = "yes"
+	ret.l = l
+	return ret
 end
 
 function REQUEST:handshake()
@@ -1277,8 +1406,8 @@ local function request(name, args, response)
     local f = nil
     if REQUEST[name] ~= nil then
     	f = assert(REQUEST[name])
-    elseif nil ~= emailrequest[ name ] then
-    	f = assert( emailrequest[ name ] )
+    --elseif nil ~= emailrequest[ name ] then
+    --	f = assert( emailrequest[ name ] )
     elseif nil ~= friendrequest[ name ] then
     	f = assert( friendrequest[ name ] )
     elseif nil ~= drawrequest[ name ] then
@@ -1305,21 +1434,6 @@ local function request(name, args, response)
     	return response(r)
     end               
 end      
-
-function RESPONSE:newemail( e )
-	assert( e )
-	local ret = {}
-   	ret.emailid = v.id
-   	ret.type = v.type
-  	ret.acctime = os.date("%Y-%m-%d" , v.acctime)
-	ret.isread = ( v.isread == 0 ) 
-   	ret.isreward = ( v.isreward  == 0 ) 
-   	ret.title = v.title
-   	ret.content = v.content
-	ret.attachs = v:getallitem()
-	ret.iconid = v.iconid
-	return ret
-end
 
 function RESPONSE:finish_achi( ... )
 	-- body
@@ -1401,6 +1515,11 @@ function CMD.friend( subcmd, ... )
 		print( "r os  sdddddddddddddddddddddddddddddddddddddddm nil" )
 		return r
 	end
+end
+
+function CMD.newemail( subcmd , ... )
+	local f = assert( new_emailrequest[ subcmd ] )
+	f( new_emailrequest , ... )
 end
 
 skynet.start(function()

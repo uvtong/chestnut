@@ -5,6 +5,7 @@ local util = {}
 function util.random_db()
 	-- body
 	local r = math.random(1, 5)
+	r = 1
 	local addr = skynet.localname(string.format(".db%d", math.floor(r))) 
 	return addr
 end
@@ -173,6 +174,28 @@ end
 
 function util.RSHash()
 	-- body
+end
+
+function util.u_guid(user_id, game, csv_id)
+	-- body
+	local e = user_id * 10000 + csv_id
+	return util.guid(game, e)
+end
+
+function util.guid(game, csv_id)
+	-- body
+	local r = game.g_uidmgr:get_by_csv_id(csv_id)
+	if not r then
+		local t = {csv_id = csv_id, entropy=1}
+		local h = game.g_uidmgr.create(t)
+		h:__insert_db()
+		return t.entropy
+	else
+		r.entropy = r.entropy + 1
+		r:__update_db({"entropy"})
+		return r.entropy
+	end
+	-- return os.time()
 end
 
 return util

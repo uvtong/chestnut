@@ -3,11 +3,12 @@ package.path = "./../cat/?.lua;" .. package.path
 local drawrequest = {}
 local user
 local drawmgr    	
+local game
 		
 function drawrequest:draw()
 	print( "applydraw is called ........................." )
     local ret = {}
-    ret = drawmgr:applydraw( user )
+    ret = drawmgr:applydraw( user , game )
     print( ret )
     return ret
 end		
@@ -18,7 +19,7 @@ function drawrequest:applydraw( )
 	local t = {}
 	t.drawtype = self.drawtype
 	t.iffree = self.iffree
- 
+ 	print( "drawtype is ..........." , self.drawtype )
 	if 1 == self.drawtype then
 		print( "frienddraw is called" )
 		ret = drawmgr:frienddraw( t )
@@ -35,9 +36,10 @@ function drawrequest:applydraw( )
 	return ret
 end	
 	
-function drawrequest.getvalue( u )
+function drawrequest.getvalue( u , g )
 	assert( u )
 	user = u 
+	game = g
 	drawmgr = user.drawmgr
 	print( "load user successfully in drawrequest" )
 end	

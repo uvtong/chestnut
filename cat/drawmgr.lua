@@ -14,6 +14,8 @@ local day = 60 * 60 * 24
 local drawtype = { FRIEND = 1 , ONETIME = 2 , TENTIME = 3 }
 
 local user
+local game
+
 local recvtime = 0
 local isfriend 
 
@@ -256,9 +258,10 @@ local function getpropidlist( dtype )
 	return propidlist
 end				
 
-function drawmgr:applydraw( u )
+function drawmgr:applydraw( u , g )
 	assert( u )
 	user = u
+	game = g
 
 	print( "applydraw is called in drawmgr" )
 	local ret = {}

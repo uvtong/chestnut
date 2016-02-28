@@ -170,7 +170,9 @@ while true do
 		elseif cmd == "channel" then
 			send_request(cmd)
 		elseif cmd == "login" then
-			send_request("login", { account = "hello" , password = "world" })
+			send_request("login", { account = "hello25" , password = "world2" })
+		elseif cmd == "signup" then
+			send_request("signup", { account = "hello39" , password = "world2" })
 		elseif cmd == "role_upgrade_star" then
 			send_request("role_upgrade_star", { role_csv_id=1})
 		elseif cmd == "user_can_modify_name" then
@@ -227,6 +229,14 @@ while true do
 			send_request( "checkin_aday" )
 		elseif cmd == "reward" then
 			send_request( "checkin_reward" )
+		elseif cmd == "exercise" then
+			send_request( "exercise" )
+		elseif cmd == "eonce" then
+			send_request( "exercise_once" , { daily_type = 1 , exercise_type = 1 , exercise_level = 0 } )
+		elseif cmd == "equipment_all" then
+			send_request( "equipment_all")
+		elseif cmd == "equipment_enhance" then
+			send_request( "equipment_enhance", { csv_id=1000 })
 		end
 	else
 		socket.usleep(100)
