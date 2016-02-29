@@ -110,7 +110,7 @@ local function add_to_prop( t )
 		else
 			print( "propid is " , v.propid )
 			local p = game.g_propmgr:get_by_csv_id( v.propid )
-			p.user_id = user.id
+			p.user_id = user.csv_id
 			p.num = v.amount
 			local prop = user.u_propmgr.create(p)
 			user.u_propmgr:add(prop)
@@ -236,7 +236,7 @@ function REQUEST:exercise_once()
 		ret.msg = "you wai gua"
 		--should logout
 	else 	
-		texercise.user_id = user.id
+		texercise.user_id = user.csv_id
 		texercise.exercise_time = time
 		texercise.exercise_type = self.exercise_type
 		texercise.time_length = exercise_time

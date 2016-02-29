@@ -63,7 +63,7 @@ function friendmgr:_createmsg( tvals )
     local nm = msg:_new()
     assert( nm )
 
-    nm.fromid = user.id
+    nm.fromid = user.csv_id
     nm.toid = tvals.toid
     nm.type = tvals.type
     nm.propid = tvals.propid or 0
@@ -196,20 +196,20 @@ function friendmgr:loadfriend( u , datacenter )
 	user = u
     dc = datacenter
 	
-	friendmgr._data.friendlist = friendmgr:_db_loadfriend_idlist( user.id )
+	friendmgr._data.friendlist = friendmgr:_db_loadfriend_idlist( user.csv_id )
 	--[[for i = 1 , #friendmgr._data.friendlist do
 		friendmgr._data.friendlist[i] = friendmgr._data.friendlist[i]
 	end--]]
-	friendmgr._data.avaliblelist = friendmgr:_db_loadavaliblefriend_idlist( user.id , user.level )
+	friendmgr._data.avaliblelist = friendmgr:_db_loadavaliblefriend_idlist( user.csv_id , user.level )
 	for i = 1 , #friendmgr._data.avaliblelist do
 	print( friendmgr._data.avaliblelist[i] , friendmgr._data.avaliblelist[i].id)
 		friendmgr._data.avaliblelist[i] = friendmgr._data.avaliblelist[i].id
 	end	
-	friendmgr._data.appliedlist = friendmgr:_db_applied_idlist( user.id , msgtype.APPLY )
+	friendmgr._data.appliedlist = friendmgr:_db_applied_idlist( user.csv_id , msgtype.APPLY )
 	--[[for i = 1 , #friendmgr._data.appliedlist do
 		friendmgr._data.appliedlist[i] = friendmgr._data.appliedlist[i]
 	end--]]
-	friendmgr._data.applylist = friendmgr:_db_apply_idlist( user.id , msgtype.APPLY )
+	friendmgr._data.applylist = friendmgr:_db_apply_idlist( user.csv_id , msgtype.APPLY )
 	for i = 1 , #friendmgr._data.applylist do
 		friendmgr._data.applylist[i] = friendmgr._data.applylist[i].toid
 	end
@@ -277,7 +277,7 @@ local function gettodayheart()
 		lowtime = settime
 	end	
 	--local lowtime = { year = year , month = month , day = day , hour = 0 , min = 0 , sec = 1 }
-	local r = friendmgr:_db_get_recvheart( lowtime , hightime , user.id )
+	local r = friendmgr:_db_get_recvheart( lowtime , hightime , user.csv_id )
 
 	local heart = 0
 	if #r then
@@ -340,7 +340,7 @@ function friendmgr:apply_friendlist()
    			else                                                                                                                                                                                                                                                            
    				tmp.heart = false
    			end
-   			tmp.signtime = v.sendtime -- '0' represents that i never sent heart to others
+   			--tmp.signtime = v.sendtime -- '0' represents that i never sent heart to others
    	 		local f = friendmgr:_createfriend( tmp )
    			assert( f )
 
@@ -498,7 +498,7 @@ function friendmgr:applyfriend( friendlist )
     		
 	for k , v in pairs( friendlist ) do
 		local isfind = false
-		if v.friendid == user.id then
+		if v.friendid == user.csv_id then
 			print( "can not apply youself" )
 
 			local ret = {}
@@ -577,12 +577,13 @@ function friendmgr:recvfriend( friendlist )
 	assert( friendlist )
 
 	for k , v in pairs( friendlist ) do
+		print( "**************************************** " , v.signtime )
 		local r = friendmgr:_db_loadfriend( v.friendid )
    		assert( r )
    		print("redvtive friend " .. v.friendid)
    	 	table.insert( friendmgr._data.friendlist , { friendid = v.friendid , recvtime = 0  , heartamount = 0 , sendtime = 0 } )
    		
-   		friendmgr:_db_insert_newfriend( user.id , v.friendid )
+   		friendmgr:_db_insert_newfriend( user.csv_id , v.friendid )
 
    		local tmp = {}
 		for sk , sv in pairs( friendmgr._data.appliedlist ) do
@@ -607,13 +608,13 @@ function friendmgr:recvfriend( friendlist )
 			skynet.send( r.addr , "lua" , "friend", "agent_request_handle" , nm )
 			print( "notify an agent " , v.friendid ) 
 		else
-			print( v.friendid , user.id )
-			friendmgr:_db_insert_newfriend( v.friendid , user.id )
+			print( v.friendid , user.csv_id )
+			friendmgr:_db_insert_newfriend( v.friendid , user.csv_id )
 			friendmgr:_db_insertmsg( nm )
 			local t = {}
 			t.tname = "u_friendmsg"
 			t.content = { isread = 1 }
-			t.condition = { fromid = v.friendid , toid = user.id , type = msgtype.ACCEPT , srecvtime = v.signtime }
+			t.condition = { fromid = v.friendid , toid = user.csv_id , type = msgtype.ACCEPT , srecvtime = v.signtime }
 			friendmgr:_db_updatemsg( t )
 
 			print( "insert a new msg to db and update a msg" )
@@ -652,7 +653,7 @@ function friendmgr:refusefriend( friendlist )
 			local t = {}
 			t.tname = "u_friendmsg"
 			t.content = { isread = 1 }
-			t.condition = { fromid = v.friendid , toid = user.id , type = msgtype.APPLY , srecvtime = v.signtime }
+			t.condition = { fromid = v.friendid , toid = user.csv_id , type = msgtype.APPLY , srecvtime = v.signtime }
 			friendmgr:_db_updatemsg( t )
 
 			print( "insert a new msg to db and update a msg" )
@@ -685,7 +686,7 @@ function friendmgr:deletefriend( friendid )
   	local t = {}
 	t.tname = "u_friend"
 	t.content = { isdel = 1 }
-	t.condition = { uid = user.id , friendid = friendid }
+	t.condition = { uid = user.csv_id , friendid = friendid }
 
 	friendmgr:_db_updatefriend( t ) -- delete friend data in db set isdel '1'
 	local r = dc.get( friendid )
@@ -700,7 +701,7 @@ function friendmgr:deletefriend( friendid )
 		local t = {}
 		t.tname = "u_friend"
 		t.content = { isdel = 1 }
-		t.condition = { uid = friendid , friendid = user.id }
+		t.condition = { uid = friendid , friendid = user.csv_id }
 		friendmgr:_db_updatefriend( t ) -- 
 
 		print( "insert a new msg to db and update a msg" )
@@ -721,7 +722,7 @@ function friendmgr:findfriend( id )
 		
 		return ret 
 	else
-		if id == user.id then
+		if id == user.csv_id then
 			ret.ok = false
 			ret.error = 2
 			ret.msg = "can not add yourself"
@@ -781,7 +782,7 @@ function friendmgr:recvheart( heartlist , totalamount )
 
 					t.tname = "u_friend"
 					t.content = { heartamount = 0 }
-					t.condition = { uid = user.id , friendid = v.friendid }
+					t.condition = { uid = user.csv_id , friendid = v.friendid }
 					friendmgr:_db_updatefriend( t ) 
 
 					print( "update 0 finished ..........................." )
@@ -804,12 +805,12 @@ function friendmgr:recvheart( heartlist , totalamount )
 				print( "notify an agent " , v.friendid ) 
 			else 
 				friendmgr:_db_insertmsg( nm ) -- insert a msg to friendmsg 
-				--friendmgr:_db_updaterecv( user.id , v.friendid , )
-				--friendmgr:_db_delete_friend( v.friendid , user.id ) -- 
+				--friendmgr:_db_updaterecv( user.csv_id , v.friendid , )
+				--friendmgr:_db_delete_friend( v.friendid , user.csv_id ) -- 
 				local t = {}
 				t.tname = "u_friendmsg"
 				t.content = { isread = 1 }
-				t.condition = { fromid = v.friendid , toid = user.id , type = msgtype.SENDHEART , srecvtime = v.signtime }
+				t.condition = { fromid = v.friendid , toid = user.csv_id , type = msgtype.SENDHEART , srecvtime = v.signtime }
 				friendmgr:_db_updatemsg( t )	
 				print( "insert a new msg to db and update a msg" )
 			end	
@@ -857,7 +858,7 @@ function friendmgr:sendheart( heartlist , totalamount )
         local t = {}
 		t.tname = "u_friend"
 		t.content = { sendtime = nm.srecvtime }
-		t.condition = { uid = user.id , friendid = v.friendid }
+		t.condition = { uid = user.csv_id , friendid = v.friendid }
 		friendmgr:_db_updatefriend( t ) 
 		
 		if r then -- if online notice the friend 
@@ -868,7 +869,7 @@ function friendmgr:sendheart( heartlist , totalamount )
 			t = {}
 			t.tname = "u_friend"
 			t.content = { heartamount = v.amount , recvtime = nm.srecvtime }
-			t.condition = { uid = v.friendid , friendid = user.id }
+			t.condition = { uid = v.friendid , friendid = user.csv_id }
 			friendmgr:_db_updatefriend( t )
 			print( "insert a new msg to db and update a msg" )
 		end	
@@ -884,7 +885,7 @@ function friendmgr:agent_request_handle( msg )
 	--local ret.friendmsg = {}
 	if msg.type == msgtype.APPLY then
 		friendmgr:_db_insertmsg( msg )
-		table.insert( friendmgr._data.appliedlist , { fromid = msg.fromid , srecvtime = msg.signtime } )
+		table.insert( friendmgr._data.appliedlist , { fromid = msg.fromid , srecvtime = msg.srecvtime } )
 
 	elseif msg.type == msgtype.DELETE then
 		friendmgr:_db_insertmsg( msg ) -- insert a msg to friendmsg 
@@ -900,12 +901,12 @@ function friendmgr:agent_request_handle( msg )
 		local t = {}
 		t.tname = "u_friend"
 		t.content = { isdel = 1 }
-		t.condition = { uid = user.id , friendid = msg.fromid }
+		t.condition = { uid = user.csv_id , friendid = msg.fromid }
 		friendmgr:_db_updatefriend( t )
 		--TODO
 	elseif msg.type == msgtype.ACCEPT then
 		friendmgr:_db_insertmsg( msg )
-		friendmgr:_db_insert_newfriend( user.id , msg.fromid )
+		friendmgr:_db_insert_newfriend( user.csv_id , msg.fromid )
 		table.insert( friendmgr._data.friendlist , { friendid = msg.fromid , recvtime = 0 , heartamount = 0 , sendtime = 0 } )
 		local tmp = {}
 		for k , v in pairs( friendmgr._data.applylist ) do
@@ -919,7 +920,7 @@ function friendmgr:agent_request_handle( msg )
 		t.tname = "u_friendmsg"
 		t.content = { isread = 1 }
 		print( "msg.signtime is ......................." , msg.signtime )
-		t.condition = { fromid = user.id , toid = msg.fromid , type = msgtype.APPLY --[[, srecvtime = msg.signtime--]] }
+		t.condition = { fromid = user.csv_id , toid = msg.fromid , type = msgtype.APPLY , srecvtime = msg.signtime }
 		friendmgr:_db_updatemsg( t )
 		
 		--local ret = {}
@@ -942,7 +943,7 @@ function friendmgr:agent_request_handle( msg )
 		local t = {}
 		t.tname = "u_friendmsg"
 		t.content = { isread = 1 }
-		t.condition = { fromid = user.id , toid = msg.fromid , type = msgtype.APPLY , srecvtime = msg.signtime }
+		t.condition = { fromid = user.csv_id , toid = msg.fromid , type = msgtype.APPLY , srecvtime = msg.signtime }
 		friendmgr:_db_insertmsg( msg )
 		friendmgr:_db_updatemsg( t )
 		--TODO maybe should send some msg to client for redpoint
@@ -963,7 +964,7 @@ function friendmgr:agent_request_handle( msg )
 		local t = {}
 		t.tname = "u_friend"
 		t.content = { heartamount = msg.amount , recvtime = msg.srecvtime }
-		t.condition = { uid = user.id , friendid = msg.friendid }
+		t.condition = { uid = user.csv_id , friendid = msg.friendid }
 		friendmgr:_db_updatefriend( t )
 
 	elseif msg.type == msgtype.ACCEPTHEART then
@@ -971,7 +972,7 @@ function friendmgr:agent_request_handle( msg )
 		local t = {}
 		t.tname = "u_friendmsg"
 		t.content = { isread = 1 }
-		t.condition = { fromid = user.id , toid = msg.friendid , type = msgtype.SENDHEART , srecvtime = msg.signtime }
+		t.condition = { fromid = user.csv_id , toid = msg.friendid , type = msgtype.SENDHEART , srecvtime = msg.signtime }
 		friendmgr:_db_insertmsg( msg )
 		friendmgr:_db_updatemsg( t )
 	end	
@@ -981,7 +982,7 @@ function friendmgr:agent_friendmsg()
 	print( "get online user msg !!!!!!!!!!!!!!!!!!" )
 	local r = {}
 	
-	r.id = user.id
+	r.id = user.csv_id
 	r.name = user.uname
 	r.level = user.level
 	r.viplevel = user.uviplevel
