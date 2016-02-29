@@ -1,15 +1,17 @@
 local skynet = require "skynet"
 require "skynet.manager"
+
+local game
+
 local CMD = {}
-local q = {}
-local rooms = {}
 
 function CMD.enter_room(t)
 	-- body
-	for k,v in pairs(t) do
-		table.insert(q, k)
+	for k,v in pairs(game.g_roommgr.__data) do
+		if v.is_empty == 1 then
+			return v.csv_id
+		end
 	end
-
 end
 
 skynet.start(function()
