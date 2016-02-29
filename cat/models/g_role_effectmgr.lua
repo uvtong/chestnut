@@ -5,9 +5,9 @@ local _M = {}
 _M.__data = {}
 _M.__count = 0
 
-local _Meta = { g_csv_id=0, csv_id=0, name=0, star=0, us_prop_csv_id=0, us_prop_num=0, sharp=0, skill_csv_id=0, gather_buffer_id=0, battle_buffer_id=0}
+local _Meta = { user_id=0, csv_id=0, }
 
-_Meta.__tname = "g_role_star"
+_Meta.__tname = "g_role_effect"
 
 function _Meta.__new()
  	-- body

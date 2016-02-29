@@ -84,7 +84,6 @@ function _M.create( P )
 			u[k] = assert(P[k])
 		end
 	end
-	u.id = P.id
 	return u
 end	
 

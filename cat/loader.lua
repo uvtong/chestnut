@@ -141,12 +141,12 @@ local function load_g_role_star()
 	-- body
 	assert(game.g_role_starmgr == nil)
 	local g_role_starmgr = require "models/g_role_starmgr"
-	local r = skynet.call(util.random_db(), "lua", "command", "select", "g_user_levelr")
+	local r = skynet.call(util.random_db(), "lua", "command", "select", "g_role_star")
 	for i,v in ipairs(r) do
-		local t = g_user_levelmgr.create(v)
-		g_user_levelmgr:add(t)
+		local t = g_role_starmgr.create(v)
+		g_role_starmgr:add(t)
 	end
-	game.g_user_levelmgr = g_user_levelmgr
+	game.g_role_starmgr = g_role_starmgr
 end
 
 local function load_g_shop()
@@ -524,6 +524,7 @@ function loader.load_game()
 		load_g_recharge()
 		load_g_recharge_vip_reward()
 		load_g_role()
+		load_g_role_star()
 		load_g_shop()
 		load_g_uid()
 	end

@@ -115,7 +115,7 @@ local function raise_achievement(type, user, game)
 					
 					local ga2 = game.g_achievementmgr:get_by_csv_id(k1)
 					local t = ga2:__serialize()
-					t.user_id = user.id
+					t.user_id = user.csv_id
 					t.finished = 100
 					t.is_unlock = 1
 					t.reward_collected = 0
@@ -177,7 +177,7 @@ local function raise_achievement(type, user, game)
 					
 					local ga2 = game.g_achievementmgr:get_by_csv_id(k1)
 					local t = ga2:__serialize()
-					t.user_id = user.id
+					t.user_id = user.csv_id
 					t.finished = 100
 					t.is_unlock = 1
 					t.reward_collected = 0
@@ -244,7 +244,7 @@ end--]]
 
 local function subscribe()
 	-- body
-	local c = skynet.call(".channel", "lua", "agent_start", user.id, skynet.self())
+	local c = skynet.call(".channel", "lua", "agent_start", user.csv_id, skynet.self())
 	local c2 = mc.new {
 		channel = c,
 		dispatch = function ( channel, source, cmd, tvals , ... )
@@ -299,7 +299,7 @@ function REQUEST:achievement()
 		else
 			if v.is_init == 1 then
 				local t = v:__serialize()
-				t.user_id = user.id
+				t.user_id = user.csv_id
 				t.finished = 0         -- [0, 100]
 				t.reward_collected = 0
 				t.is_unlock = 1
@@ -363,7 +363,7 @@ function REQUEST:achievement_reward_collect()
 				prop:__update_db({"num"})
 			else
 				prop = game.g_propmgr:get_by_csv_id(csv_id1)
-				prop.user_id = user.id
+				prop.user_id = user.csv_id
 				prop.num = num1
 				prop = user.u_propmgr.create(prop)
 				prop:__insert_db()
@@ -547,16 +547,13 @@ function REQUEST:login()
 		end
 		ret.rolelist = l
 	end 
-	print( "dc is  *******************************************************" )
-	print( user.id , client_fd , skynet.self() )
-	dc.set(user.id, { client_fd=client_fd, addr=skynet.self()})
-	print( "dc is called *******************************************************" )
+	dc.set(user.csv_id, { client_fd=client_fd, addr=skynet.self()})
 	local onlinetime = os.time()
 	user.ifonline = 1
 	user.onlinetime = onlinetime
 	user:__update_db({"ifonline", "onlinetime"})
 
-	--user.emailbox = emailbox:loademails( user.id )
+	--user.emailbox = emailbox:loademails( user.csv_id )
 	--emailrequest.getvalue( user )
 	user.friendmgr = friendmgr:loadfriend( user , dc )
 	friendrequest.getvalue( user , send_package , send_request )
@@ -571,7 +568,7 @@ function REQUEST:logout()
 	assert(user)
 	user.ifonline = 0
 	user:__update_db({"ifonline"})
-	dc.set( user.id , nil )
+	dc.set( user.csv_id , nil )
 	-- send chanel 
 	-- skynet.send()
 	user = nil
@@ -582,7 +579,7 @@ function REQUEST:role()
 	assert(user)
 	assert(self.role_id)
 	print(self.role_id)
-	print(user.id)
+	print(user.csv_id)
 	for k,v in pairs(user.u_rolemgr.__data) do
 		print(k,v)
 	end
@@ -792,7 +789,7 @@ function REQUEST:use_prop()
 						p1:__update_db({"num"})
 					else
 						local p = game.g_propmgr:get_by_csv_id(csv_id1)
-						p.user_id = user.id
+						p.user_id = user.csv_id
 						p.num = tonumber(num1) * math.abs(v.num)
 						p:__insert_db()
 					end
@@ -803,7 +800,7 @@ function REQUEST:use_prop()
 						p2:__update_db({"num"})
 					else
 						local p = game.g_propmgr:get_by_csv_id(csv_id2)
-						p.user_id = user.id
+						p.user_id = user.csv_id
 						p.num = tonumber(num2) * math.abs(v.num)
 						p:__insert_db()
 					end
@@ -1036,13 +1033,13 @@ function REQUEST:shop_purchase()
 					prop:__update_db({"num"})
 				else
 					local p = game.g_propmgr:get_by_csv_id(goods.g_prop_csv_id)
-					p.user_id = user.id
+					p.user_id = user.csv_id
 					p.num = goods.g_prop_num * goods.p_num
 					local prop = user.u_propmgr.create(p)
 					user.u_propmgr:add(prop)
 					prop:__insert_db()
 				end
-				local t = { user_id=user.id, csv_id=goods.id, num=goods.p_num, currency_type=const.GOLD, currency_num=gold, purchase_time=os.time()}
+				local t = { user_id=user.csv_id, csv_id=goods.id, num=goods.p_num, currency_type=const.GOLD, currency_num=gold, purchase_time=os.time()}
 				local rc = user.u_purchase_goodsmgr.create(t)
 				user.u_purchase_goodsmgr:add(rc)
 				rc:__insert_db()
@@ -1077,13 +1074,13 @@ function REQUEST:shop_purchase()
 					prop:__update_db({"num"})
 				else	
 					prop = game.g_propmgr:get_by_csv_id(assert(goods.g_prop_csv_id))
-					prop.user_id = user.id
+					prop.user_id = user.csv_id
 					prop.num = goods.g_prop_num * goods.p_num
 					prop = user.u_propmgr.create(prop)
 					user.u_propmgr:add(prop)
 					prop:__insert_db()
 				end
-				local t = { user_id=user.id, csv_id=goods.csv_id, num=goods.p_num, currency_type=const.DIAMOND, currency_num=diamond, purchase_time=os.time()}
+				local t = { user_id=user.csv_id, csv_id=goods.csv_id, num=goods.p_num, currency_type=const.DIAMOND, currency_num=diamond, purchase_time=os.time()}
 				local rc = user.u_purchase_goodsmgr.create(t)
 				user.u_purchase_goodsmgr:add(rc)
 				rc:__insert_db()
@@ -1167,7 +1164,7 @@ function REQUEST:recharge_vip_reward_collect()
 		ret.msg = "you have collected."
 		return ret
 	end
-	local t = {user_id=user.id, vip=self.vip, collected=1}
+	local t = {user_id=user.csv_id, vip=self.vip, collected=1}
 	rc = user.u_recharge_vip_rewardmgr.create(t)
 	rc:__insert_db()
 	ret.errorcode = 0
@@ -1219,13 +1216,13 @@ function REQUEST:recharge_purchase()
 				assert(false)
 			end
 		else
-			rc = user.u_recharge_countmgr.create({user_id=user.id, csv_id=v.csv_id, count=1})
+			rc = user.u_recharge_countmgr.create({user_id=user.csv_id, csv_id=v.csv_id, count=1})
 			rc:__insert_db()
 			local diamond = user.u_propmgr:get_by_csv_id(const.DIAMOND)
 			diamond.num = diamond.num + (v.diamond + v.gift) * v.p_num
 			diamond:__update_db({"num"})
 		end
-		local t = {user_id=user.id, csv_id=v.csv_id, num=v.p_num, dt=os.time()}
+		local t = {user_id=user.csv_id, csv_id=v.csv_id, num=v.p_num, dt=os.time()}
 		rc = user.u_recharge_recordmgr.create(t)
 		user.u_recharge_recordmgr:add(rc)
 		rc:__insert_db()
@@ -1295,7 +1292,7 @@ function REQUEST:recharge_collect()
 				skynet.send(util.random_db(), "lua", "command", "update_prop", prop.user_id, prop.csv_id, prop.num)
 				skynet.send(util.random_db(), "lua", "command", "update", "u_purchase_reward", {{ id = v.id }}, { collected = 1})
 			else
-				local t = { user_id = user.id, csv_id = v.prop_csv_id, num = v.prop_num}
+				local t = { user_id = user.csv_id, csv_id = v.prop_csv_id, num = v.prop_num}
 				local prop = user.propmgr.create(t)
 				skynet.send(util.random_db(), "lua", "command", "insert", "props", t)
 			end
@@ -1392,6 +1389,92 @@ function REQUEST:equipment_all()
 	return ret
 end
 
+function REQUEST:role_all()
+	-- body
+	-- 1. offline
+	-- 2. 
+	local ret = {}
+	if not user then
+		ret.errorcode = 1
+		ret.msg = "offline"
+		return ret
+	end
+	local l = {}
+	for k,v in pairs(game.g_rolemgr.__data) do
+		local role = {}
+		role.csv_id = v.csv_id
+		if user.u_rolemgr:get_by_csv_id(v.csv_id) then
+			role.is_possessed = true
+		end
+		table.insert(l, role)
+	end
+	-- for k,v in pairs(user.u_rolemgr.__data) do
+		
+	-- end
+	ret.errorcode = 0
+	ret.msg = "yes"
+	ret.l = l
+	-- ret.combat = 
+ --    ret.defense =
+ --    ret.critical_hit =
+ --    ret.blessing =
+    return ret
+end
+
+function REQUEST:role_recruit()
+	-- body
+	-- 1 offline
+	local ret = {}
+	if not ret then
+		ret.errorcode = 1
+		ret.msg = "offline"
+		return ret
+	end
+	assert(self.csv_id)
+	assert(user.u_rolemgr:get_by_csv_id(self.csv_id) == nil)
+	local grole = game.g_rolemgr:get_by_csv_id(self.csv_id)
+	local prop = user.u_propmgr:get_by_csv_id(grole.us_prop_csv_id)
+	local role_us = game.g_role_starmgr:get_by_csv_id(self.csv_id*1000+(role.star - 1))
+	assert(role_us)
+	if prop.num >= role_us.us_prop_num then
+		prop.num = prop.num - role_us.us_prop_num
+		prop:__update_db({"num"})
+		grole.user_id = user.csv_id
+		local role = user.u_rolemgr.create(grole)
+		user.u_rolemgr:add(role)
+		role:__insert_db()
+		ret.errorcode = 0
+		ret.msg = "yes"
+		ret.r = {
+			csv_id = role.csv_id,
+			is_possessed = true
+		}
+		return ret
+	else
+		ret.errorcode = 2
+		ret.msg = "don't have enough"
+		return ret
+	end
+end
+
+function REQUEST:role_battle()
+	-- body
+	-- 1. offline
+	-- 2. 
+	local ret = {}
+	if not user then
+		ret.errorcode = 1
+		ret.msg = "offline"
+		return ret
+	end
+	assert(self.csv_id)
+	assert(user.u_propmgr:get_by_csv_id(self.csv_id))
+	user.c_role_id = self.csv_id
+	ret.errorcode = 0
+	ret.msg = "yes"
+	return ret
+end
+
 function REQUEST:handshake()
 	print("Welcome to skynet, I will send heartbeat every 5 sec." )
 	return { msg = "Welcome to skynet, I will send heartbeat every 5 sec." }
@@ -1419,7 +1502,6 @@ local function request(name, args, response)
     		end
     	end
     end
-    print("*___________________________*", name) 
     assert(f)
     local r = f(args)
     if name == "login" then

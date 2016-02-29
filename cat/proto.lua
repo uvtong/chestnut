@@ -8,16 +8,9 @@ proto.c2s = sprotoparser.parse [[.package {
 }
 
 .role {
-    id 0 : integer
-    wake_level 1 : integer
-    level 2 : integer
-    combat 3 : integer
-    defense 4 : integer
-    critical_hit 5 : integer
-    skill 6 : integer
-    c_equipment 7 : integer
-    c_dress 8 : integer
-    c_kungfu 9 : integer
+    csv_id 0 : integer
+    is_possessed 0 : boolean
+
 }
 
 .user {
@@ -685,6 +678,39 @@ equipment_all 51 {
         errorcode 0 : integer
         msg 1 : string
         l 2 : *equipment
+    }
+}
+
+role_all 52 {
+    response {
+        errorcode 0 : integer
+        msg 1 : string
+        l 2 : *role
+        combat 3 : integer
+        defense 4 : integer
+        critical_hit 5 : integer
+        blessing 6 : integer
+    }
+}
+
+role_recruit {
+    request {
+        csv_id 0 : integer
+    }
+    response {
+        errorcode 0 : integer
+        msg 1 : string
+        r 2 : role
+    }
+}
+
+role_battle {
+    request {
+        csv_id 0 : integer
+    }
+    response {
+        errorcode 0 : integer
+        msg 1 : integer
     }
 }
 
