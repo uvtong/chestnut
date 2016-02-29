@@ -210,6 +210,42 @@ local function load_g_daily_task()
 	game.g_daily_taskmgr = g_daily_taskmgr
 end
 
+local function load_g_drawcost()
+	assert( nil == game.g_drawcostmgr )
+
+	local g_drawcostmgr = require "models/g_drawcostmgr"
+	local r = skynet.call(util.random_db() , "lua" , "command" , "select" , "g_drawcost")
+	for i , v in ipairs( r ) do
+		local t = g_drawcostmgr.create( v )
+		g_drawcostmgr:add( t )
+	end
+	game.g_drawcostmgr = g_drawcostmgr
+end
+
+local function load_g_mainreward()
+	assert( nil == game.g_mainrewardmgr )
+
+	local g_mainrewardmgr = require "models/g_mainrewardmgr"
+	local r = skynet.call(util.random_db() , "lua" , "command" , "select" , "g_mainreward")
+	for i , v in ipairs( r ) do
+		local t = g_mainrewardmgr.create( v )
+		g_mainrewardmgr:add( t )
+	end
+	game.g_mainrewardmgr = g_mainrewardmgr
+end
+
+local function load_g_subreward()
+	assert( nil == game.g_subrewardmgr )
+
+	local g_subrewardmgr = require "models/g_subrewardmgr"
+	local r = skynet.call(util.random_db() , "lua" , "command" , "select" , "g_subreward")
+	for i , v in ipairs( r ) do
+		local t = g_subrewardmgr.create( v )
+		g_subrewardmgr:add( t )
+	end
+	game.g_subrewardmgr = g_subrewardmgr
+end
+
 local function load_g_uid()
 	-- body
 	assert(nil == game.g_uidmgr)
@@ -315,7 +351,7 @@ local function load_u_email( user )
 	assert( nil == user.u_emailmgr )
 
 	local u_emailmgr = require "models/u_emailmgr"
-	local r = skynet.call( util.random_db() , "lua", "command" , "select" , "u_new_email", {{ uid = user.id }})
+	local r = skynet.call( util.random_db() , "lua", "command" , "select" , "u_new_email", {{ uid = user.id , isdel = 0 }})
 	print( "****************************** emailnum is " , #r )
 	for i , v in ipairs( r ) do
 		local a = u_emailmgr.create( v )
@@ -481,6 +517,9 @@ function loader.load_game()
 		load_g_goods()
 		load_g_goods_refresh_cost()
 		load_g_kungfu()
+		load_g_drawcost()
+		load_g_mainreward()
+		load_g_subreward()
 		load_g_prop()
 		load_g_recharge()
 		load_g_recharge_vip_reward()

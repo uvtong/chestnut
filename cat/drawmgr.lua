@@ -466,6 +466,7 @@ function drawmgr:frienddraw( tv )
 	t.csvid = tonumber( line.cointype )
 
 	local prop = user.u_propmgr:get_by_csv_id( tonumber( line.cointype ) )
+	print( "***************************line.cointype is " , line.cointype )
 	--assert( prop )
 	--local num = drawmgr:_db_getdioment_or_heart_num( t )
     --print( "money from db  is " .. prop.num )
@@ -480,7 +481,7 @@ function drawmgr:frienddraw( tv )
 	else
 		print( "line price is " , tonumber( line.price ) )
 		prop.num = prop.num - tonumber( line.price )
-		proplist = getpropidlist( drawtype.TENTIME ) 
+		proplist = getpropidlist( drawtype.FRIEND ) 
 		print( "update prop is called in " )
 
 		prop:__update_db( {"num"} )

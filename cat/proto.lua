@@ -99,6 +99,7 @@ proto.c2s = sprotoparser.parse [[.package {
 	type 12 : integer
     signtime 13 : integer
     heartamount 14 : integer
+    today_left_heart 15 : integer
 }
 
 .apply 

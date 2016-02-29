@@ -54,15 +54,17 @@ function CMD:send_email_to_all( tvals )
 	print( "sizeof r = " , #r )
 	
 	print( "begin to insert" )
-	for _ , v in pairs( r ) do
+	local tmp = {}
+	for _ , v in ipairs( r ) do
 		tvals.csv_id = util.u_guid( v.csv_id , game, const.UEMAILENTROPY ) 
 		tvals.uid = v.csv_id
 		local ne = u_emailmgr.create( tvals )
-		assert( ne )
-		ne:__insert_db()	
+		--assert( ne )
+		--ne:__insert_db()
+		table.insert( tmp , ne )	
 	end 
 
-	print( " ********************************* i = " , i )
+	u_emailmgr.insert_db( tmp )
 end 	
 		
 function CMD:send_email_to_group( tval , tucsv_id )
@@ -126,7 +128,10 @@ skynet.start( function ()
 	skynet.dispatch( "lua" , function( _, _, cmd, ... )
 		print("channel is called")
 		local f = assert( CMD[ cmd ] )
+		print( "result is " , result )
 		local result = f(CMD, ... )
+
+		print( "result is " , result )
 		if result then
 			skynet.ret( skynet.pack( result ) )
 		end

@@ -9,7 +9,7 @@ local sendrequest
 	 		  	
 function friendrequest:friend_list()
 	print( "friedlist is called ^^^^^^^^^^^^^^^^^^^")
-	local list = friendmgr:apply_friendlist()
+	local list, heartamount = friendmgr:apply_friendlist()
 	local ret = {}
 	ret.friendlist = {}
 	if list then
@@ -18,6 +18,7 @@ function friendrequest:friend_list()
 		end
 	end
 	print("send friendlist ")
+	ret.today_left_heart = heartamount
 	return ret
 end	
 	

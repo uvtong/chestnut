@@ -60,12 +60,39 @@ function _Meta:__getallitem()
 	return item_list	
 end
 
+function _M.insert_db( values )
+	assert( values )
+	print( "sizeof values id " , #values )
+	local total = {}
+	for k , v in ipairs( values ) do
+
+		local t = {}
+		for sk,sv in pairs( v ) do
+			if not string.match(k, "^__*") then
+				t[sk] = v[sk]
+			end
+		end
+
+
+		table.insert( total , t )
+	end
+	for k , v in ipairs( total ) do
+		for sk , sv in pairs( v ) do
+			print( sk , sv )
+		end
+		print( "*************************")
+	end
+
+	skynet.send( util.random_db() , "lua" , "command" , "insert_all" , _Meta.__tname , total )
+	--skynet.send(util.random_db(), "lua", "command", "insert", self.__tname, t)
+end 
+
 function _M.create( P )
 	assert(P)
 	local u = _Meta.__new()
 	for k , v in pairs( _Meta ) do
 		if not string.match( k, "^__*" ) then
-			print( k , v , P[k])
+			--print( k , v , P[k])
 			u[ k ] = assert( P[ k ] )
 		end
 	end

@@ -8,7 +8,7 @@ local cache
 	
 function frienddb:select_friendidlist( t )
 	assert( t )
-	local sql = string.format( "select friendid , recvtime , heartamount , sendtime from u_friend where uid = %s and isdel = 0 " , t.uid )
+	local sql = string.format( "select friendid , recvtime , heartamount , sendtime  from u_friend where uid = %s and isdel = 0 " , t.uid )
 
 	print( sql )
 	local r = db:query( sql )

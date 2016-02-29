@@ -166,6 +166,58 @@ function util.insert( table_name, columns )
 	print_sql(sql)
 	return sql
 end
+	
+function util.insert_all( table_name , tcolumns )
+	assert( table_name and tcolumns )
+	--assert( #tcolumns == 0 )
+	local f = assert( tcolumns[1] )
+	assert( f )
+	local columns_str = "("
+
+	for k,v in pairs(f) do
+
+		columns_str = columns_str .. k .. ", "	
+	end	
+	columns_str = string.gsub(columns_str, "(.*)%,%s$", "%1)")
+
+	local tmp = {}
+	local counter = 0
+	
+	for sk , sv in ipairs( tcolumns ) do
+		local count = 0
+		local values_str = {}
+		table.insert( values_str , "(" )
+		for k,v in pairs( sv ) do
+			--print( v )
+			--values_str = "("
+			if type( v ) == "string" then
+				v = "\'" .. v .. "\'"
+			end
+			if count >= 1 then
+				table.insert( values_str , "," )
+			end 
+			table.insert( values_str , v )
+			count = count + 1
+			--values_str = values_str .. v .. ", "
+			--print( values_str )
+		end
+		table.insert( values_str , ")" )
+		local value = table.concat( values_str )
+		--print( "values_str is " , value )
+	
+		value = string.gsub(value, "(.*)%,%s$", "%1)")
+
+		if counter >= 1 then
+			table.insert( tmp , " , " )
+		end
+		counter = counter + 1
+		table.insert( tmp , value )
+	end
+
+	local sql = string.format( "insert into %s " , table_name ) .. columns_str .. " values " .. table.concat( tmp ) .. ";"
+
+	return sql
+end 
 
 function util.send_package(pack)
 	local package = string.pack(">s2", pack)

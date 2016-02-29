@@ -46,11 +46,12 @@ function friendmgr:_createfriend( tfriend )
 	r.combat = tfriend.combat
 	r.online_time = os.date( "%Y%m%d%H%M%S" , tfriend.onlinetime) --tfriend.onlinetime
 	r.ifonline = ( tfriend.ifonline == 0 ) and false or true
-	r.heartamount = tfriend.heartamount or 0
+	r.heartamount = tfriend.heartamount or 0 -- the heart num that sended by another user
 	r.heart = tfriend.heart or false
 	r.apply = true
 	r.receive = tfriend.receive or false
 	r.signtime = tfriend.signtime
+	
 	--TODO
 	print( "create friend successfully" )
 	return r
@@ -322,6 +323,7 @@ function friendmgr:apply_friendlist()
    				assert( r )
    				tmp = r[1]
    			end
+
    			tmp.receive = receive
    			print( v.recvtime , v.sendtime , settime , v.heartamount)
    			
@@ -347,7 +349,7 @@ function friendmgr:apply_friendlist()
    			print( "build a friend successfully" )
    			
    		end	
-   		return fl
+   		return fl , ( MAXHEARTNUM - recvheartnum ) -- today_heart is the heart amount user gets today
    	end		
 end			
 
@@ -379,9 +381,19 @@ function friendmgr:apply_appliedlist()
 		print( "not nil" , #friendmgr._data.appliedlist )
 		for k , v in pairs( friendmgr._data.appliedlist ) do
 			print( v.fromid )
-			local r = friendmgr:_db_loadfriend( v.fromid )
-			assert( r[1] )
-    		local tmp = r[1]
+			local tmp
+			local t = dc.get( v.fromid )
+			if t then -- if online
+				print( "online" )
+				tmp = skynet.call( t.addr , "lua" , "friend" , "agent_friendmsg")
+				assert( tmp )
+			else
+				print( "not online" )
+   				local r = friendmgr:_db_loadfriend( v.fromid )
+   				assert( r )
+   				tmp = r[1]
+   			end
+
     		tmp.signtime = v.srecvtime
     		print( "v.srecvtime is " .. v.srecvtime )
 			local n = friendmgr:_createfriend( tmp )
@@ -459,9 +471,20 @@ function friendmgr:apply_otherfriendlist()
 	print( "getback from pickfriends" )
 	for  k , v in pairs( a ) do
 		print( k , v )
-		local f = friendmgr:_db_loadfriend( v )
-		assert( f )
-		local n = friendmgr:_createfriend( f[1] )
+		local tmp
+		local t = dc.get( v )
+		if t then -- if online
+			print( "online" )
+			tmp = skynet.call( t.addr , "lua" , "friend" , "agent_friendmsg")
+			assert( tmp )
+		else
+			print( "not online" )
+   			local r = friendmgr:_db_loadfriend( v )
+   			assert( r )
+   			tmp = r[1]
+   		end
+
+		local n = friendmgr:_createfriend( tmp )
 		assert( n )
         	
 		table.insert( avaliblefriends , n )
@@ -895,7 +918,8 @@ function friendmgr:agent_request_handle( msg )
 		local t = {}
 		t.tname = "u_friendmsg"
 		t.content = { isread = 1 }
-		t.condition = { fromid = user.id , toid = msg.fromid , type = msgtype.APPLY , srecvtime = msg.signtime }
+		print( "msg.signtime is ......................." , msg.signtime )
+		t.condition = { fromid = user.id , toid = msg.fromid , type = msgtype.APPLY --[[, srecvtime = msg.signtime--]] }
 		friendmgr:_db_updatemsg( t )
 		
 		--local ret = {}
