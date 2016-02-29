@@ -1,4 +1,5 @@
 local skynet = require "skynet"
+require "skynet.manager"
 local sprotoloader = require "sprotoloader"
 
 local max_client = 64
@@ -16,6 +17,13 @@ skynet.start(function()
 		nodelay = true,
 	})
 	print("Watchdog listen on ", 8888)
+
+	for i=1,5 do
+		local db = skynet.newservice("db")
+		skynet.name(string.format(".db%d", i), db)
+	end
+
+	skynet.uniqueservice("scene")
 
 	skynet.exit()
 end)

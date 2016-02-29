@@ -1,0 +1,126 @@
+syntax = "proto2";
+
+package s2c;
+
+// 0
+message package {
+	enum Type {    
+    	REQUEST         = 0;
+    	RESPONSE        = 1;
+    };
+	required int32 tag = 1;
+	required Type type = 2;
+	required int32 session = 3;
+}
+
+// 1
+message req_enter_room {
+	required int32 user_id = 1;
+	required string name = 2;
+}
+
+// 2
+message resp_enter_room {
+	required int32 errorcode = 1;
+	required string msg = 2;
+}
+
+// 3
+message req_ready {
+	required int32 user_id = 1;
+	required int32 ready = 2;
+}
+
+// 4
+message resp_ready {
+	required int32 errorcode = 1;
+	required string msg = 2;
+}
+
+// 5
+message req_mp {
+	required int32 user_id = 1;
+	required int32 m = 2;
+}
+
+// 6 
+message resp_mp {
+	required int32 errorcode = 1;
+	required string msg = 2;
+	required int32 m = 3;	
+}
+
+// 7
+message req_deal_cards {
+	required int32 user_id1 = 1;
+	repeated int32 cards1 = 2;
+	required int32 user_id2 = 3;
+	repeated int32 cards2 = 4;
+	required int32 user_id3 = 5;
+	repeated int32 cards3 = 6;
+}
+
+// 8
+message resp_deal_cards {
+	required int32 errorcode = 1;
+	required string msg = 2;
+}
+
+// 9
+message req_rob {
+	required int32 user_id = 1;
+	required int32 m = 2;
+}
+
+// 10
+message resp_rob {
+	required int32 errorcode = 1;
+	required string msg = 2;
+}
+
+// 11
+message req_turn_rob {
+	required int32 user_id = 1;
+	required int32 countdown = 2;
+}
+
+// 12
+message resp_turn_rob {
+	required int32 errorcode = 1;
+	required string msg = 2;
+}
+
+// 13
+message req_mark {
+	required int32 user_id = 1;
+}
+
+// 14
+message resp_mark {
+	required int32 errorcode = 1;
+	required string msg = 2;
+}
+
+// 15
+message req_lead {
+	required int32 user_id = 1;
+	repeated int32 cards = 2;
+}
+
+// 16
+message resp_lead {
+	required int32 errorcode = 1;
+	required string msg = 2;
+}
+
+// 17
+message req_turn_lead {
+	required int32 user_id = 1;
+	required int32 countdown = 2;
+}
+
+// 18
+message resp_turn_lead {
+	required int32 errorcode = 1;
+	required string msg = 2;
+}
