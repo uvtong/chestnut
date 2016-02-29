@@ -379,7 +379,6 @@ function REQUEST:achievement_reward_collect()
 end
 
 function REQUEST:role()
-	print "************************role"
 	print(user.c_role_id)
 	local role = rolemgr:find(user.c_role_id)
 	local ret = {
@@ -401,7 +400,6 @@ end
     
 function REQUEST:signup()
 	-- body
-	print( "*****************************signup is called" )
 	local ret = {}
 	local condition = { uaccount = self.account}
 	local addr = util.random_db()
@@ -1251,6 +1249,7 @@ function REQUEST:recharge_purchase()
 				break
 			end
 		until false
+			
 		user:__update_db({"recharge_rmb", "recharge_diamond"})
 	end
 	ret.errorcode = 0
