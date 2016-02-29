@@ -5,7 +5,7 @@ local _M = {}
 _M.__data = {}
 _M.__count = 0
 
-local _Meta = { csv_id=0, star=0, upgrade_star_prop_csv_id=0 }
+local _Meta = { csv_id=0, star=0, name=0, us_prop_csv_id=0 }
 
 _Meta.__tname = "g_role"
 
@@ -42,7 +42,7 @@ function _Meta:__serialize()
 	local r = {}
 	for k,v in pairs(_Meta) do
 		if not string.match(k, "^__*") then
-			r[k] = self[k]
+			r[k] = assert(self[k])
 		end
 	end
 	return r

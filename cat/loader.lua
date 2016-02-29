@@ -125,7 +125,7 @@ local function load_g_recharge_vip_reward()
 	game.g_recharge_vip_rewardmgr = g_recharge_vip_rewardmgr
 end
 
---[[local function load_g_role()
+local function load_g_role()
 	-- body
 	assert(game.g_rolemgr == nil)
 	local g_rolemgr = require "models/g_rolemgr"
@@ -136,7 +136,7 @@ end
 	end
 	game.g_rolemgr = g_rolemgr
 end
---]]
+
 local function load_g_role_star()
 	-- body
 	assert(game.g_role_starmgr == nil)

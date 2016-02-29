@@ -9,8 +9,7 @@ proto.c2s = sprotoparser.parse [[.package {
 
 .role {
     csv_id 0 : integer
-    is_possessed 0 : boolean
-
+    is_possessed 1 : boolean
 }
 
 .user {
@@ -185,7 +184,7 @@ handshake 1 {
     }
 }
 
-role 2 {
+role_info 2 {
     request {
         role_id 0 : integer
     }
@@ -693,7 +692,7 @@ role_all 52 {
     }
 }
 
-role_recruit {
+role_recruit 53 {
     request {
         csv_id 0 : integer
     }
@@ -704,7 +703,7 @@ role_recruit {
     }
 }
 
-role_battle {
+role_battle 54 {
     request {
         csv_id 0 : integer
     }
