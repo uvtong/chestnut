@@ -10,6 +10,8 @@ proto.c2s = sprotoparser.parse [[.package {
 .role {
     csv_id 0 : integer
     is_possessed 1 : boolean
+    star 2 : integer
+    u_us_prop_num 3 : integer
 }
 
 .user {
@@ -33,6 +35,8 @@ proto.c2s = sprotoparser.parse [[.package {
 .prop {
     csv_id 0 : integer
     num 1 : integer
+    star 2 : integer
+    u_us_prop_num 3 : integer
 }
 
 .achi {

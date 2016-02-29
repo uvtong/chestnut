@@ -10,8 +10,6 @@ local dc = require "datacenter"
 local util = require "util"
 local loader = require "loader"
 
---local emailrequest = require "emailrequest"
---local emailbox = require "emailbox"
 local friendrequest = require "friendrequest"
 local friendmgr = require "friendmgr"
 local drawrequest = require "drawrequest"
@@ -26,10 +24,10 @@ local checkinrequest = require "checkinrequest"
 local exercise_request = require "exercise_request"
 local cgold_request = require "cgold_request"
 
-table.insert( M , checkinrequest )
-table.insert( M , exercise_request )
-table.insert( M , cgold_request )
-table.insert( M , new_emailrequest )
+-- table.insert( M , checkinrequest )
+-- table.insert( M , exercise_request )
+-- table.insert( M , cgold_request )
+-- table.insert( M , new_emailrequest )
 
 local WATCHDOG
 local host
@@ -400,15 +398,23 @@ end
     
 function REQUEST:signup()
 	-- body
+	-- 0. success
+	-- 1. account > 8
+	-- 2. account already exists.
 	local ret = {}
-	local condition = { uaccount = self.account}
+	if #self.account == 0 or #self.password == 0 then
+		ret.errorcode = 1
+		ret.msg = "length of account must be."
+		return ret
+	end
+	local condition = {{ uaccount = self.account}}
 	local addr = util.random_db()
-	local r = skynet.call(addr, "lua", "command", "signup", { condition } )
+	local r = skynet.call(addr, "lua", "command", "select", "users", condition)
 	if #r == 0 then
 		local t = { csv_id=util.guid(game, const.UENTROPY), 
 				uname="nihao", 
-				uaccount=self.account, 
-				upassword=self.password, 
+				uaccount=assert(self.account), 
+				upassword=assert(self.password), 
 				uviplevel=0,
 				config_sound=1, 
 				config_music=1, 
@@ -438,46 +444,50 @@ function REQUEST:signup()
 		u:__insert_db()
 
 		local u_equipmentmgr = require "models/u_equipmentmgr"
+		local l = {}
 		local e1 = game.g_equipmentmgr:get_by_csv_id(1001)
 		e1.user_id = u.csv_id
 		local ue1 = u_equipmentmgr.create(e1)
-		ue1:__insert_db()
+		table.insert(l, ue1)
 
 		local e2 = game.g_equipmentmgr:get_by_csv_id(2001)
 		e2.user_id = u.csv_id
 		local ue2 = u_equipmentmgr.create(e2)
-		ue2:__insert_db()
+		table.insert(l, ue2)
 
 		local e3 = game.g_equipmentmgr:get_by_csv_id(3001)
 		e3.user_id = u.csv_id
 		local ue3 = u_equipmentmgr.create(e3)
-		ue3:__insert_db()
+		table.insert(l, ue3)
 
 		local e4 = game.g_equipmentmgr:get_by_csv_id(4001)
 		e4.user_id = u.csv_id
 		local ue4 = u_equipmentmgr.create(e4)
-		ue4:__insert_db()		
+		table.insert(ue4)
+		u_equipmentmgr.insert_db(l)
 
 		local u_propmgr = require "models/u_propmgr"
+		local pl = {}
 		local gold = u_propmgr.create_gold(u, 100)
-		gold:__insert_db()
+		table.insert(pl, gold)
 
 		local diamond = u_propmgr.create_diamond(u, 10)
-		diamond:__insert_db()
+		table.insert(pl, diamond)
+		u_propmgr.insert_db(pl)
 
-		local u_kungfumgr = require "models/u_kungfumgr"
-		local kungfu = game.g_kungfumgr:get_by_csv_id(1001)
-		kungfu.user_id = assert(u.csv_id)
-		kungfu.is_learned = 0
-		local k = u_kungfumgr.create(kungfu)
-		k:__insert_db()
+		-- local u_kungfumgr = require "models/u_kungfumgr"
+		-- local kungfu = game.g_kungfumgr:get_by_csv_id(1001)
+		-- kungfu.user_id = assert(u.csv_id)
+		-- kungfu.is_learned = 0
+		-- local k = u_kungfumgr.create(kungfu)
+		-- k:__insert_db()
 
 		ret.errorcode = 0
 		ret.msg	= "yes"
 		return ret
 	else
-		ret.errorcode = 1
-		ret.msg = "yes, have "
+		ret.errorcode = 2
+		ret.msg = "account already exists."
 		return ret
 	end
 end 
@@ -569,39 +579,30 @@ function REQUEST:logout()
 	user.ifonline = 0
 	user:__update_db({"ifonline"})
 	dc.set( user.csv_id , nil )
-	-- send chanel 
-	-- skynet.send()
 	user = nil
 	return { errorcode = 0 }
 end
 
-function REQUEST:role()
+function REQUEST:role_info()
+	-- 0. success
+	-- 1. offline
+	-- 2. not enough
+	local ret = {}
+	if not user then
+		ret.errorcode = 1
+		ret.msg = "offline"
+		return ret
+	end
 	assert(user)
 	assert(self.role_id)
-	print(self.role_id)
-	print(user.csv_id)
-	for k,v in pairs(user.u_rolemgr.__data) do
-		print(k,v)
-	end
-	local role = user.u_rolemgr:get_by_csv_id(self.role_id)
-	for k,v in pairs(role) do
-		print(k,v)
-	end
-	local ret = {
-		errorcode = 0,
-		msg = "",
-		r = {
-			id = role.csv_id,
-			wake_level = role.wake_level,
-			level = role.level,
-			combat = role.combat,
-			defense = role.defense,
-			critical_hit = role.critical_hit,
-			skill = role.skill,
-			c_equipment = role.c_equipment,
-			c_dress = role.c_dress,
-			c_kungfu = role.c_kungfu
-		}
+	local role = assert(user.u_rolemgr:get_by_csv_id(self.role_id))
+	ret.errorcode = 0
+	ret.msg = ""
+	ret.r = {
+		csv_id = role.csv_id,
+		is_possessed = true,
+		star = role.star,
+		u_us_prop_num = assert(user.u_propmgr:get_by_csv_id(role.us_prop_csv_id).num)
 	}
 	return ret
 end	
@@ -624,36 +625,37 @@ function REQUEST:choose_role()
 end	
 	
 function REQUEST:role_upgrade_star()
-	assert(user)
-	print(self.role_csv_id, user.c_role_id)
-	-- assert(self.role_csv_id == user.c_role_id)
+	-- 0. success
+	-- 1. offline
+	-- 2. not enough
 	local ret = {}
-	local role = user.u_rolemgr:get_by_csv_id(self.role_csv_id)
-	local role_pieces_csv_id = 1
-	local prop = user.u_propmgr:get_by_csv_id(self.role_id)
-	if prop.num > role.star_piece then
-		role.star_level = role.star_level + 1
-		skynet.send(util.random_db(), "lua", "command", "update", "roles", {{ id = role.id }}, { star_level = role.star_level })
+	if not user then
+		ret.errorcode = 1
+		ret.msg = "offline"
+		return ret
+	end
+	assert(self.role_csv_id)
+	local role = assert(user.u_rolemgr:get_by_csv_id(self.role_csv_id))
+	local prop = user.u_propmgr:get_by_csv_id(role.us_prop_csv_id)
+	local role_star = game.g_role_starmgr:get_by_csv_id(role.csv_id*1000+star+1)
+	if prop and prop.num >= role_star.us_prop_num then
+		prop.num = prop.num - role_star.us_prop_num
+		prop:__update_db({"num"})
+		role.star = role.star + 1
+		role.__update_db({"star"})
 		-- return
 		ret.errorcode = 0
 		ret.msg = "yes"
 		ret.r = {
-			id = role.id,
-			wake_level = role.wake_level,
-			level = role.level,
-			combat = role.combat,
-			defense = role.defense,
-			critical_hit = role.critical_hit,
-			skill = role.skill,
-			c_equipment = role.c_equipment,
-			c_dress = role.c_dress,
-			c_kungfu = role.c_kungfu,
-			star_level = role.star_level
+			csv_id = role.csv_id,
+			is_possessed = true,
+			star = role.star,
+    		u_us_prop_num = prop.num
 		}
 		return ret
 	else
-		ret.errorcode = 1
-		ret.msg = "not enough exp."
+		ret.errorcode = 2
+		ret.msg = "not enough"
 		return ret
 	end
 end		
@@ -1116,6 +1118,67 @@ function REQUEST:recharge_all()
 	return ret
 end
 
+function REQUEST:recharge_purchase()
+	-- body
+	-- 1 offline
+	local ret = {}
+	if not user then
+		ret.errorcode = 1
+		ret.msg = "offline"
+		return ret
+	end
+	assert(self.g)
+	for i,v in ipairs(self.g) do
+		local goods = game.g_rechargemgr:get_by_csv_id(v.csv_id)
+		user.recharge_rmb = user.recharge_rmb + goods.rmb * v.num
+		user.recharge_diamond = user.recharge_diamond + goods.diamond * v.num
+		user:__update_db({"recharge_rmb", "recharge_diamond"})
+		local rc = user.u_recharge_countmgr:get_by_csv_id(v.csv_id)
+		if rc then
+			rc.count = rc.count + 1
+			if rc.count > 1 then
+				rc:__update_db({"count"})
+				local diamond = user.u_propmgr:get_by_csv_id(const.DIAMOND)
+				diamond.num = diamond.num + (v.diamond + v.gift) * v.num
+				diamond:__update_db({"num"})
+			else
+				assert(false)
+			end
+		else
+			rc = user.u_recharge_countmgr.create({user_id=user.csv_id, csv_id=v.csv_id, count=1})
+			rc:__insert_db()
+			local diamond = user.u_propmgr:get_by_csv_id(const.DIAMOND)
+			diamond.num = diamond.num + (v.diamond + v.gift) * v.num
+			diamond:__update_db({"num"})
+		end
+		local t = {user_id=assert(user.csv_id), csv_id=assert(v.csv_id), num=assert(v.num), dt=os.time()}
+		rr = user.u_recharge_recordmgr.create(t)
+		user.u_recharge_recordmgr:add(rr)
+		rr:__insert_db()
+
+		-----------------------------
+		repeat
+			if user.uviplevel >= const.H_VIP then
+				break
+			end
+			local condition = game.g_recharge_vip_rewardmgr:get_by_vip(user.uviplevel + 1)
+			assert(condition)
+			local progress = user.recharge_diamond / condition.diamond
+			if progress >= 1 then
+				user.uviplevel = user.uviplevel + 1
+				user:__update_db({"uviplevel"})
+			else
+				user.uvip_progress = progress * 100
+				user:__update_db({"uvip_progress"})
+				break
+			end
+		until false
+	end
+	ret.errorcode = 0
+	ret.msg = "yes"
+	return ret
+end
+
 function REQUEST:recharge_vip_reward_all()
 	-- body
 	local ret = {}
@@ -1171,140 +1234,6 @@ function REQUEST:recharge_vip_reward_collect()
 	ret.msg = "yes"
 	ret.vip = user.uviplevel
 	ret.collected = true
-	return ret
-end
-
-function REQUEST:recharge_purchase()
-	-- body
-	-- 1 not online
-	-- 2 no exit
-	local ret = {}
-	if not user then
-		ret.errorcode = 1
-		ret.msg = "not online"
-		return ret
-	end
-	local l = {}
-	local idx = 1
-	print(type(self.g))
-	for i,v in ipairs(self.g) do
-		print(v.csv_id)
-		local r = game.g_rechargemgr:get_by_csv_id(v.csv_id)
-		local goods = r:__serialize()
-		goods.p_num = v.num
-		l[idx] = goods
-		idx = idx + 1
-	end
-	local r = l
-	if #r == 0 then
-		ret.errorcode = 2
-		ret.msg = "no exist"
-		return ret
-	end
-	for i,v in ipairs(r) do
-		user.recharge_rmb = user.recharge_rmb + v.rmb * v.p_num
-		user.recharge_diamond = user.recharge_diamond + v.diamond * v.p_num
-		local rc = user.u_recharge_countmgr:get_by_csv_id(v.csv_id)
-		if rc then
-			rc.count = rc.count + 1
-			if rc.count > 1 then
-				rc:__update_db({"count"})
-				local diamond = user.u_propmgr:get_by_csv_id(const.DIAMOND)
-				diamond.num = diamond.num + (v.diamond + v.gift) * v.p_num
-				diamond:__update_db({"num"})
-			else
-				assert(false)
-			end
-		else
-			rc = user.u_recharge_countmgr.create({user_id=user.csv_id, csv_id=v.csv_id, count=1})
-			rc:__insert_db()
-			local diamond = user.u_propmgr:get_by_csv_id(const.DIAMOND)
-			diamond.num = diamond.num + (v.diamond + v.gift) * v.p_num
-			diamond:__update_db({"num"})
-		end
-		local t = {user_id=user.csv_id, csv_id=v.csv_id, num=v.p_num, dt=os.time()}
-		rc = user.u_recharge_recordmgr.create(t)
-		user.u_recharge_recordmgr:add(rc)
-		rc:__insert_db()
-
-		-----------------------------
-		repeat
-			if user.uviplevel + 1 >= 6 then
-				break
-			end
-			local vip = game.g_recharge_vip_rewardmgr:get_by_vip(user.uviplevel + 1)
-			if not vip then
-				error "don't upgrade, no data."
-			end
-			local progress = user.recharge_diamond / vip.diamond
-			if progress >= 1 then
-				user.uviplevel = user.uviplevel + 1
-				user:__update_db({"uviplevel"})
-			else
-				user.uvip_progress = progress * 100
-				user:__update_db({"uvip_progress"})
-				break
-			end
-		until false
-			
-		user:__update_db({"recharge_rmb", "recharge_diamond"})
-	end
-	ret.errorcode = 0
-	ret.msg = "yes"
-	return ret
-end
-
-function REQUEST:recharge_reward()
-	local ret = {}
-	ret.errorcode = 0
-	ret.msg	= "yes"
-	local l = {}
-	local idx = 1
-	for k,v in pairs(user.u_recharge_reward.__data) do
-		local reward = {}
-		reward["id"] = v.id
-		reward.distribute_dt = v.distribute_dt
-		reward.icon_id = v.icon_id
-		l[idx] = l
- 	end
- 	ret.l = l
- 	return ret
-end
-
-function REQUEST:recharge_collect()
-	-- body
-	print(os.date())
-	local year = os.date("%Y")
-	local month = os.date("%m")
-	local day = os.date("%d")
-	local hour = os.date("%H")
-	local min = os.date("%M")
-	local sec = os.date("%S")
-	
-	local condition = string.format("distribute_time between \"%d-%d-%d 00:00:00\" and \"%s\"", year, month, day, os.date("%Y-%m-%d %H:%M:%S"))
-	local r = skynet.call(util.random_db(), "lua", "command", "select", "u_recharge_reward", condition)
-	print(#r)
-	for i,v in ipairs(r) do
-		if v.collected == 0 then
-			local prop = user.propmgr:get_by_csvid(v.prop_csv_id)
-			if prop then
-				prop.num = prop.num + v.prop_num
-				skynet.send(util.random_db(), "lua", "command", "update_prop", prop.user_id, prop.csv_id, prop.num)
-				skynet.send(util.random_db(), "lua", "command", "update", "u_purchase_reward", {{ id = v.id }}, { collected = 1})
-			else
-				local t = { user_id = user.csv_id, csv_id = v.prop_csv_id, num = v.prop_num}
-				local prop = user.propmgr.create(t)
-				skynet.send(util.random_db(), "lua", "command", "insert", "props", t)
-			end
-			local ret = {}
-			ret.errorcode = 0
-			ret.msg = "yes"
-			return ret
-		end
-	end
-	local ret = {}
-	ret.errorcode = 1
-	ret.msg = "no exist"
 	return ret
 end
 

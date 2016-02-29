@@ -13,12 +13,15 @@ local send_request
 
 local CMD = {}
 local REQUEST = {}
+local RESPONSE = {}
 local client_fd
 local c2s_proto
 local s2c_proto
 
 local game
 local user
+local left
+local right
 
 local room = {}
 
@@ -91,11 +94,28 @@ function REQUEST:enter_room()
 	-- body
 	print("enter_room", self.rule, self.mode)
 	local r = skynet.call(".scene", "lua", "enter_room", )
+	local r = { name="left", addr=2, user_id=1}
+	if r.name == "left" then
+		left = {}
+		left.user_id = r.user_id
+		left.addr = r.addr
+	elseif r.name == "right" then
+		right = {}
+		right.user_id = r.user_id
+		right.addr = r.addr
+	end
 	return { errorcode=0, msg="ok"}
 end
 
 function REQUEST:ready()
 	-- body
+	assert(user)
+	user.ready = self.ready
+	local addr = left.addr
+	skynet.send(addr, "lua", "ready", user.csv_id, self.ready)
+	local addr = right.addr
+	skynet.send(addr, "lua", "ready", user.csv_id, self.ready)
+	return { errorcode=0, msg="0k"}
 end
 
 function REQUEST:mp()
@@ -108,6 +128,7 @@ end
 
 function REQUEST:rob()
 	-- body
+	skynet.send(right.addr, "lua", "left.user_id", self.m)
 end
 
 function REQUEST:lead()
@@ -130,6 +151,52 @@ local function request(name, args, response)
 	end
 end
 
+
+function RESPONSE:enter_room()
+	-- body
+	assert(self.errorcode == 0)
+end
+
+function RESPONSE:ready()
+	-- body
+	assert(self.errorcode == 0)
+end
+
+function RESPONSE:mp()
+	-- body
+end
+
+function RESPONSE:deal_cards()
+	-- body
+end
+
+function RESPONSE:rob()
+	-- body
+end
+
+function RESPONSE:turn_rob()
+	-- body
+end
+
+function RESPONSE:mark()
+	-- body
+end
+
+function RESPONSE:lead()
+	-- body
+end
+
+function RESPONSE:turn_lead()
+	-- body
+
+end
+
+local function response(name, args)
+	-- body
+	local f = assert(RESPONSE[name])
+	f(args)
+end
+
 skynet.register_protocol {
 	name = "client",
 	id = skynet.PTYPE_CLIENT,
@@ -139,19 +206,26 @@ skynet.register_protocol {
 		else	
 			local code = skynet.tostring(msg, sz)
 			local package = protobuf.decode(c2s_proto.package .. "." .. c2s_proto.message_type[1].name, string.sub(code, 1, 6))
-			local msg = protobuf.decode(c2s_proto.package .. "." .. c2s_proto.message_type[package.tag+1].name, string.sub(code, 7))
-			local function response(msg)
-				-- body
-				local pg = {	
-					tag = package.tag + 1, -- client.
-					type = "RESPONSE",
-					session = package.session,
-				}
-				local code = protobuf.encode(c2s_proto.package .. "." .. c2s_proto.message_type[1].name, pg)
-				local encode = protobuf.encode(c2s_proto.package .. "." .. c2s_proto.message_type[pg.tag + 1].name, msg)
-				return code .. encode
+			if package.type == "REQUEST" then
+				local msg = protobuf.decode(c2s_proto.package .. "." .. c2s_proto.message_type[package.tag+1].name, string.sub(code, 7))
+				local function response(msg)
+					-- body
+					local pg = {	
+						tag = package.tag + 1, -- client.
+						type = "RESPONSE",
+						session = package.session,
+					}
+					local code = protobuf.encode(c2s_proto.package .. "." .. c2s_proto.message_type[1].name, pg)
+					local encode = protobuf.encode(c2s_proto.package .. "." .. c2s_proto.message_type[pg.tag + 1].name, msg)
+					return code .. encode
+				end
+				return package.type, string.gsub(c2s_proto.message_type[package.tag+1].name, "req_(%w*)", "%1"), msg, response
+			elseif package.type == "RESPONSE" then
+				local msg = protobuf.decode(s2c_proto.package .. "." .. s2c_proto.message_type[package.tag+1].name, string.sub(code, 7))
+				return package.type, string.gsub(c2s_proto.message_type[package.tag+1].name, "resp_(%w*)", "%1"), msg
+			else
+				assert(false)
 			end
-			return package.type, string.gsub(c2s_proto.message_type[package.tag+1].name, "req_(%w*)", "%1"), msg, response
 		end
 	end,
 	dispatch = function (_, _, type, ...)
@@ -166,7 +240,7 @@ skynet.register_protocol {
 			end
 		elseif type == "HEARTBEAT" then
 			send_package(send_request(2, { msg = "HEARTBEAT"}))
-		else
+		elseif type == "RESPONSE" then
 			assert(type == "RESPONSE")
 			error "This example doesn't support request client"
 		end
@@ -180,6 +254,19 @@ function CMD.enter_room(t)
 		room[k] = v
 		send_package(send_request(2, { user_id=tonumber(k), name="hello" })) 
 	end
+end
+
+function CMD.ready(user_id, ready)
+	-- body
+	assert(room[tostring(user_id)])
+	room[tostring(user_id)].ready = ready
+	send_package(send_request(4, { user_id=user_id, ready=ready}))
+end
+
+function CMD.rob(user_id, m)
+	-- body
+	left.rob = m
+	send_package(send_request(12, {user_id=user.csv_id, countdown=20}))
 end
 
 function CMD.start(conf)
