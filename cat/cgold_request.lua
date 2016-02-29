@@ -112,7 +112,7 @@ local function add_to_prop( t )
 		else
 			print( "propid is " , v.propid )
 			local p = game.g_propmgr:get_by_csv_id( v.propid )
-			p.user_id = user.id
+			p.user_id = user.csv_id
 			p.num = v.amount
 			local prop = user.u_propmgr.create(p)
 			user.u_propmgr:add(prop)
@@ -244,7 +244,7 @@ function REQUEST:c_gold_once()
 		ret.msg = "you wai gua"
 		--should logout
 	else 	
-		tcgold.user_id = user.id
+		tcgold.user_id = user.csv_id
 		tcgold.cgold_time = time
 		tcgold.cgold_type = self.c_gold_type
 		tcgold.time_length = cgold_time

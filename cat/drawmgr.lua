@@ -35,7 +35,7 @@ function drawmgr:_create( t )
 	local n = draw:_new()
 	assert( n )
 
-	n.uid = user.id 
+	n.uid = user.csv_id 
 	n.drawtype =  t.drawtype
 	n.cdrawtime = t.cdrawtime or 0
 	n.srecvtime = os.time()
@@ -246,7 +246,7 @@ local function getpropidlist( dtype )
 			prop:__update_db({"num"})
 		else
 			local p = game.g_propmgr:get_by_csv_id( v.propid )
-			p.user_id = user.id
+			p.user_id = user.csv_id
 			p.num = v.propnum
 			local prop = user.u_propmgr.create(p)
 			user.u_propmgr:add(prop)
@@ -268,7 +268,7 @@ function drawmgr:applydraw( u , g )
 	ret.list = {}
 	
 	local t = {}
-	t.uid = user.id
+	t.uid = user.csv_id
 	t.drawtype = drawtype.FRIEND
 	local r = drawmgr:_db_select_frienddraw( t )
 	local settime = getsettime()
@@ -331,7 +331,7 @@ function drawmgr:tentimedraw( tv )
 	assert( line )
 
 	local v = {}
-	v.uid = user.id
+	v.uid = user.csv_id
 	v.csvid = tonumber( line.cointype )
 
 	--local num = drawmgr:_db_getdioment_or_heart_num( v )
@@ -352,7 +352,7 @@ function drawmgr:tentimedraw( tv )
 		--[[local t = {}
 		t.tname = "u_prop"
 		t.content = { num = num }
-		t.condition = { user_id = user.id , csv_id = v.csvid }
+		t.condition = { user_id = user.csv_id , csv_id = v.csvid }
 
 		drawmgr:_db_update_prop( t )--]]
 		print( "update prop successfully in tentimedraw" )
@@ -400,7 +400,7 @@ function drawmgr:onetimedraw( tv )
 		assert( line )
 
 		local t = {}
-		t.uid = user.id
+		t.uid = user.csv_id
 		t.csvid = tonumber( line.cointype )
 		print( "t.csvid" )
 		-- num = drawmgr:_db_getdioment_or_heart_num( t )
@@ -429,7 +429,7 @@ function drawmgr:onetimedraw( tv )
 			--[[local t = {}
 			t.tname = "u_prop"
 			t.content = { num = num }
-			t.condition = { user_id = user.id , csv_id = 1 }
+			t.condition = { user_id = user.csv_id , csv_id = 1 }
 			
 			drawmgr:_db_update_prop( t )--]]
 			print( "update prop successfully in tentimedraw" )
@@ -462,7 +462,7 @@ function drawmgr:frienddraw( tv )
 
 
 	local t = {}
-	t.uid = user.id
+	t.uid = user.csv_id
 	t.csvid = tonumber( line.cointype )
 
 	local prop = user.u_propmgr:get_by_csv_id( tonumber( line.cointype ) )
@@ -489,7 +489,7 @@ function drawmgr:frienddraw( tv )
 		--[[local v = {}
 		v.tname = "u_prop"
 		v.content = { num = num }
-		v.condition = { user_id = user.id , csv_id = tonumber( abortine.cointype ) }
+		v.condition = { user_id = user.csv_id , csv_id = tonumber( abortine.cointype ) }
 
 		drawmgr:_db_update_prop( v )--]]
 		print( "update prop successfully in tentimedraw" )

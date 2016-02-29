@@ -127,7 +127,7 @@ local function add_to_prop( t )
 		else
 			print( "propid is " , v.propid )
 			local p = game.g_propmgr:get_by_csv_id( v.propid )
-			p.user_id = user.id
+			p.user_id = user.csv_id
 			p.num = v.amount
 			local prop = user.u_propmgr.create(p)
 			user.u_propmgr:add(prop)
@@ -162,7 +162,7 @@ function REQUEST:checkin()
 		ret.monthamount = 0 
 		--[[local n = {}
 		n.csv_id = 0
-		n.user_id = user.id
+		n.user_id = user.csv_id
 		n.u_checkin_time = 0
 		n.ifcheck_in = 1
 		--add checkin
@@ -174,7 +174,7 @@ function REQUEST:checkin()
 
 		n = {}
 		n.checkin_month = 0
-		n.user_id = user.id
+		n.user_id = user.csv_id
 		-- add checkin_month
 		u = checkin_month_mgr.create( n )
 		assert( u )
@@ -253,7 +253,7 @@ function REQUEST:checkin_aday()
 
 		tcheckin.u_checkin_time = time
 		tcheckin.ifcheck_in = 0
-		tcheckin.user_id = user.id
+		tcheckin.user_id = user.csv_id
 		tcheckin.csv_id = 0
 
 		if notexeit then
@@ -262,7 +262,7 @@ function REQUEST:checkin_aday()
 			checkin_mgr:add( tcheckin )
 
 			tcheckin_month.checkin_month = 0
-			tcheckin_month.user_id = user.id
+			tcheckin_month.user_id = user.csv_id
 			tcheckin_month = checkin_month_mgr.create( tcheckin_month )
 			assert( tcheckin_month )
 			checkin_month_mgr:add( tcheckin_month )

@@ -92,7 +92,6 @@ proto.c2s = sprotoparser.parse [[.package {
 	type 12 : integer
     signtime 13 : integer
     heartamount 14 : integer
-    today_left_heart 15 : integer
 }
 
 .apply 
@@ -316,6 +315,7 @@ friend_list 15
 		error 1 : integer
 		msg 2 : string
 		friendlist  3 : *subuser
+        today_left_heart 4 : integer
 	}
 }
 
