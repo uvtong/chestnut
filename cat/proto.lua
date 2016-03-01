@@ -179,6 +179,11 @@ proto.c2s = sprotoparser.parse [[.package {
     level 2 : integer
 }
 
+<<<<<<< HEAD
+
+
+ 
+=======
 .kungfu_content
 {
 	k_csv_id 1 : integer
@@ -200,6 +205,7 @@ proto.c2s = sprotoparser.parse [[.package {
 	k_csv_id 1 : integer
 }
 
+>>>>>>> e99e8d82c9b88aae7775b4620a0d2423b90c380a
 handshake 1 {
     request {
         secret 0 : string
@@ -716,6 +722,40 @@ role_battle 54 {
     }
 }
 
+<<<<<<< HEAD
+.kungfu_content
+ {
+    k_csv_id 1 : integer
+    k_level 2 : integer
+    k_type 3 : integer
+    k_sp_num 4 : integer 
+ }
+ 
+.kungfu_pos_and_id
+{
+    position 0 : integer
+    k_csv_id 1 : integer
+}
+
+.kungfu_role_list
+{
+    r_csv_id 0 : integer    
+    pos_list 1 : *kungfu_pos_and_id
+}
+
+
+kungfu 55
+{
+	response
+	{
+		k_list 0 : *kungfu_content
+        role_kid_list 1 : *kungfu_role_list
+	}
+}
+ 
+ kungfu_levelup 56
+ {
+=======
 kungfu 55 {
 	response
 	{
@@ -724,12 +764,17 @@ kungfu 55 {
 }
  
 kungfu_levelup 56 {
+>>>>>>> e99e8d82c9b88aae7775b4620a0d2423b90c380a
 	request
 	{
 		k_csv_id 0 : integer
 		k_level 1 : integer
+<<<<<<< HEAD
+		k_type 2 : integer
+=======
 		r_csv_id 2 : integer
 		k_type 3 : integer
+>>>>>>> e99e8d82c9b88aae7775b4620a0d2423b90c380a
 	}
 	response
 	{
@@ -737,6 +782,18 @@ kungfu_levelup 56 {
 		error 1 : boolean
 		msg 2 : string
 	}
+<<<<<<< HEAD
+ }
+ 
+ kungfu_chose 57
+ {
+	request
+	{
+		r_csv_id 0 : integer
+		idlist 1 : *kungfu_pos_and_id
+	}
+ }
+=======
 }
  
 kungfu_chose 57 {
@@ -745,6 +802,7 @@ kungfu_chose 57 {
 		idlist 1 : *kungfu_idlist
 	}
 }
+>>>>>>> e99e8d82c9b88aae7775b4620a0d2423b90c380a
 
 ]]
 

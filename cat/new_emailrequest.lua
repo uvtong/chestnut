@@ -1,5 +1,6 @@
 local new_emailrequest = {}
 local util = require "util"
+local const = require "const"
 
 local send_package
 local send_request
@@ -89,12 +90,12 @@ function REQUEST:mail_delete()
 		print ( k , v , v.id )
 		local e = emailmgr:get_by_csv_id( v.id )
 		assert( e )
-
+		
 		e.isdel = 1
 		e:__update_db( { "isdel" } )
 		emailmgr:delete_by_id( v.id )
 	end 
-end
+end 
 	
 function REQUEST:mail_getreward()
 	print( "****************************get_reward is called" )
@@ -112,7 +113,7 @@ function REQUEST:mail_getreward()
 			e:__update_db( { "isdel" } )
 			emailmgr:delete_by_csv_id( e.csv_id )
 		else
-			e.isread = 1
+			e.isreward = 1
 			e:__update_db( { "isreward" } )
 		end
 	end 
@@ -125,11 +126,11 @@ function new_emailrequest:newemail( tval , ... ) -- get a email to group
 	local v = emailmgr:recvemail( tval )
 	assert( v )
 
-	local ret = {}
+	--[[local ret = {}
 	ret.mail = {}
 	local tmp = {}
    	tmp.attachs = {}
-
+	
     tmp.emailid = v.csv_id
     tmp.type = v.type
     tmp.acctime = os.date("%Y-%m-%d" , v.acctime)
@@ -140,9 +141,9 @@ function new_emailrequest:newemail( tval , ... ) -- get a email to group
 	tmp.attachs = v:getallitem()
 	tmp.iconid = v.iconid
 	ret.mail = tmp
-	send_package( send_request( "newemail" ,  ret ) )
+	send_package( send_request( "newemail" ,  ret ) )--]]
 end 
-	
+		
 function SUBSCRIBE:email( tvals , ... ) -- get email from channl , a email to all users 
 	assert( tvals )
 	print( " ***********************************SUBSCRIBE:email " )
@@ -152,7 +153,7 @@ function SUBSCRIBE:email( tvals , ... ) -- get email from channl , a email to al
 	local v = emailmgr:recvemail( tvals )
 	assert( v )
 
-	local ret = {}
+	--[[local ret = {}
 	ret.mail = {}
 	local tmp = {}
    	tmp.attachs = {}
@@ -164,10 +165,10 @@ function SUBSCRIBE:email( tvals , ... ) -- get email from channl , a email to al
     tmp.isreward = v.isreward
     tmp.title = v.title
     tmp.content = v.content
-	tmp.attachs = v:getallitem()
+	tmp.attachs = v:__getallitem()
 	tmp.iconid = v.iconid
 	ret.mail = tmp
-	send_package( send_request( "newemail" ,  ret ) )
+	send_package( send_request( "newemail" ,  ret ) )--]]
 end
 
 function RESPONSE:abd()

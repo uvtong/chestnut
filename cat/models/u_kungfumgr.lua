@@ -5,7 +5,7 @@ local _M = {}
 _M.__data = {}
 _M.__count = 0
 
-local _Meta = { user_id=0, csv_id=0, level=0, type=0, harm_type=0, arise_probability=0, arise_count=0, arise_type=0, arise_param=0, attack_type=0, propperty_csv_id=0, propperty_p=0, prop_csv_id=0, prop_num=0, currency_type=0, currency_num=0, is_learned=0 }
+local _Meta = { user_id = 0 , csv_id = 0 , level = 0 , type = 0 , sp_id = 0 }
 
 _Meta.__tname = "u_kungfu"
 
@@ -34,9 +34,9 @@ function _Meta:__update_db(t)
 	for i,v in ipairs(t) do
 		columns[tostring(v)] = self[tostring(v)]
 	end
-	skynet.send(util.random_db(), "lua", "command", "update", self.__tname, {{ csv_id=assert(self.csv_id) }}, columns)
-end
-
+	skynet.send(util.random_db(), "lua", "command", "update", self.__tname, {{ user_id = self.user_id , r_csv_id = self.r_csv_id , k_csv_id = self.k_csv_id }},  columns)
+end	
+	
 function _Meta:__serialize()
 	-- body
 	local r = {}
@@ -46,8 +46,8 @@ function _Meta:__serialize()
 		end
 	end
 	return r
-end
-
+end	
+	
 function _M.create( P )
 	assert(P)
 	local u = _Meta.__new()
@@ -58,25 +58,26 @@ function _M.create( P )
 	end
 	return u
 end	
-
-function _M:add( u )
-	assert(u)
-	self.__data[tostring(u.csv_id)] = u
-	self.__count = self.__count + 1
-end
 	
+function _M:add( u )
+	assert( u )
+	self.__data[ tostring( u.csv_id ) ] = u
+
+	self.__count = self.__count + 1
+end	
+		
 function _M:get_by_csv_id(csv_id)
 	-- body
-	return self.__data[tostring(csv_id)]
-end
+	return self.__data[ tostring( csv_id ) ] 
+end	
 
 function _M:delete_by_csv_id(csv_id)
 	-- body
 	assert(self.__data[tostring(csv_id)])
 	self.__data[tostring(csv_id)] = nil
 	self.__count = self.__count - 1
-end
-
+end	
+	
 function _M:get_count()
 	-- body
 	return self.__count

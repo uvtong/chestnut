@@ -13,14 +13,8 @@ local client_fd
 local game
 local user
 local dc
-local new_drawrequest_mgr
+local draw_mgr
 local record_date = {}
-
-local time_first
-local time_second
-local time_third
-local new_drawrequest
-local ifnew_drawrequest = 0 -- judge if can new_drawrequest , 0 cannot , 1 can
 
 local function send_package(pack)
 	local package = string.pack(">s2", pack)
@@ -49,8 +43,8 @@ function REQUEST:login(u)
 	assert( u )
 	print( "**********************************new_drawrequestrequest_login " )
 	user = u
-	new_drawrequest_mgr = user.u_drawmgr
-	assert( new_drawrequest_mgr )
+	draw_mgr = user.u_drawmgr
+	assert( draw_mgr )
 end		
 	
 -- msg: **ifnew_drawrequest_t * 1 can check , --0 can not new_drawrequest**
@@ -170,11 +164,6 @@ end
 		
 function REQUEST:draw()
 	-- body
-	print( "*-------------------------* draw is called")
-
-	assert( u )
-	user = u
-
 	print( "applydraw is called in drawmgr" )
 	local ret = {}
 	ret.list = {}
@@ -183,6 +172,7 @@ function REQUEST:draw()
 	t.uid = user.id
 	t.drawtype = drawtype.FRIEND
 	local r = drawmgr:_db_select_frienddraw( t )
+
 	local settime = getsettime()
 	
 	local v = {}
