@@ -56,9 +56,9 @@ local function get_g_new_drawrequest( type )
 
 	return t
 end	
-
-
-						
+	
+	
+							
 local function get_new_drawrequest_reward( t )
 	assert( t )
 	print( "****************************get_new_drawrequest_reward" )
@@ -168,15 +168,12 @@ function REQUEST:draw()
 	local ret = {}
 	ret.list = {}
 	
-	local t = {}
-	t.uid = user.id
-	t.drawtype = drawtype.FRIEND
-	local r = drawmgr:_db_select_frienddraw( t )
+	local tfrienddraw = draw_mgr:get_by_type( drawtype.FRIEND )
 
 	local settime = getsettime()
 	
 	local v = {}
-	if type( r ) == "table" or ( r < settime - 60 * 60 * 24 ) or ( r < settime  and os.time() > settime ) then
+	if not tfrienddraw or ( tfrienddraw.srecvtime < settime - 60 * 60 * 24 ) or ( tfrienddraw.srecvtime < settime  and os.time() > settime ) then
 		v.drawtype = drawtype.FRIEND
 		v.drawnum = 0
 		isfriend = true
@@ -188,89 +185,106 @@ function REQUEST:draw()
 
 	table.insert( ret.list , v )
 
-	t.drawtype = drawtype.ONETIME
-
-	local r = drawmgr:_db_select_onetimedraw( t ) -- if free == 1
-	if type( r ) == "table" then
-		print( "r == nil" )
-		 t.drawnum = 0
-		 t.lefttime = 0
+	local t = {}
+	local tonetime = draw_mgr:get_by_type( drawtype.ONETIME )
+	if not tonetime then
+		print( "has not draw_onetime yet" )
+		t.drawnum = 0
+		t.lefttime = 0
 	else
-		--local left = MAXDRAWNUM - r.drawnum 
 		print( "find the onetime draw" )
 		t.drawtype = drawtype.ONETIME
-		--t.drawnum = ( r.drawnum == MAXDRAWNUM ) and  or left
-		local drawcost = csvReader.getcont( "drawcost" )
-		local line = getline_byid( drawcost , tostring( drawtype.ONETIME * 1000 ) )   --drawcost[tostring( id * 1000 )]
+		local line = game.g_drawcostmgr:get_by_csv_id( drawtype.ONETIME * 1000 )	
 		assert( line )
+		
 		local nowtime = os.time() 
-		if nowtime >= ( r +  tonumber( line.cdtime ) ) then
-			print( nowtime , r , line.cdtime )
-			print( "nowtime >= ..." )
+		if nowtime >= ( tonetime.srecvtime + line.cdtime ) then
 			t.lefttime = 0
+			t.drawnum = 1
 		else
-			print( nowtime , r , line.cdtime )
-			print( "nowtime < ..." )
-			t.lefttime = r + tonumber( line.cdtime ) - os.time() -- nowtime - srecvtime
+			t.lefttime = tonetime.srecvtime + line.cdtime - os.time() -- nowtime - srecvtime
 		end
 	end	
 	table.insert( ret.list , t )			
 	          
 	return ret
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-	local ret = {}
-	ret.list = {}
-
-	local tdraw = drawmgr:get_by_type( 1 )
-
-	if not tdraw then
-		print( "***********************not exist tnew_drawrequest" )
-		ret.ifnew_drawrequest = true
-		ret.lefttime = 0
-		ret.new_drawrequest_level = 0
-		ifnew_drawrequest = 1
-	else 	
-		print( "***********************exist tnew_drawrequest" )
-		local time = os.time()
-		local laststage = judge_time_quantum( tnew_drawrequest.new_drawrequest_time , tnew_drawrequest.time_length )
-		local newstage , lefttime = judge_time_quantum( time , tnew_drawrequest.time_length )
-			
-		if 0 == laststage or newstage ~= laststage then
-			ret.ifnew_drawrequest = true
-			ret.lefttime = 0
-			ret.new_drawrequest_level = user.new_drawrequest_level
-			ifnew_drawrequest = 1
-		else
-			ret.ifnew_drawrequest = false
-			ret.lefttime = lefttime
-			ret.new_drawrequest_level = user.new_drawrequest_level
-			ifnew_drawrequest = 0
-		end 
-	end     
-
-	return ret
 end			
-			
-function REQUEST:new_drawrequest_once()
+	
+local frienddraw()
+	
+end 
+	
+local function getpropidlist( dtype )
+	print( "get[rp[od is called" )
+	assert( dtype )
+	local propidlist = {}
+	propidlist.list = {}
+		
+	local subreward = csvReader.getcont( "subreward" )
+	local mainreward = csvReader.getcont( "mainreward" )
+	assert( subreward and mainreward )
+
+	local sublist = splitsubreward_bytype( mainreward , tostring( dtype * 1000 ) )
+	assert( sublist )
+
+	if drawtype.TENTIME == dtype then
+		print( "dtype id in getpropidlis is " .. dtype )
+		for i = 1 , 10 do
+			local r = skynet.call( ".randomdraw" , "lua" , "command" , "draw" , dtype ) --drawmgr:_db_getrandomid( dtype )
+			print( r )
+			local id = getgroupid( sublist , r )
+			print( "groupid is >>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>" .. id )
+			for i = 1 , #subreward do
+				if subreward[ i ].id == id then
+					table.insert( propidlist.list , { propid = tonumber( subreward[ i ].propid ) ,
+					propnum = tonumber( subreward[ i ].propnum ) } )
+				end 	
+			end	
+		end	  
+	else
+		print( "dtype id in getpropidlis is " .. dtype )
+		local r = skynet.call( ".randomdraw" , "lua" , "command" , "draw" , dtype )
+		print( r )
+		print( "here" )
+		local id = getgroupid( sublist , r )
+		print( "groupid is >>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>" .. id )
+		print( type( id ) )
+		for i = 1 , #subreward do
+			if subreward[i].id == id then
+				print( type( subreward[i].id ) , type( id ) , subreward[i].id , id )
+				table.insert( propidlist.list , { propid = tonumber( subreward[ i ].propid ) ,
+						propnum = tonumber( subreward[ i ].propnum ) } )
+				break
+			end
+		end
+	end		
+
+	assert( propidlist )
+	propidlist.ok = true
+
+	for k , v in ipairs( propidlist.list ) do
+		local prop = user.u_propmgr:get_by_csv_id( v.propid )
+		if prop then
+			prop.num = prop.num + v.propnum
+			prop:__update_db({"num"})
+		else
+			local p = game.g_propmgr:get_by_csv_id( v.propid )
+			p.user_id = user.csv_id
+			p.num = v.propnum
+			local prop = user.u_propmgr.create(p)
+			user.u_propmgr:add(prop)
+			prop:__insert_db()
+		end
+	end
+
+	print( "get propidlist successfully" )
+	return propidlist
+end				
+
+
+
+
+function REQUEST:applydraw()
 	print( "*-----------------------------* new_drawrequest_day is called" )
 
 	local ret = {}

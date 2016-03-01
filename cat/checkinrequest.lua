@@ -141,7 +141,7 @@ local counter = 0
 function REQUEST:checkin()
 	-- body
 	print( "*-------------------------* checkin is called")
-
+	
 	local ret = {}
 
 	local date = tonumber( os.date( "%Y%m%d" , os.time() ) )
