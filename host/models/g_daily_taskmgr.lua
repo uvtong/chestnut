@@ -5,9 +5,10 @@ local _M = {}
 _M.__data = {}
 _M.__count = 0
 
-local _Meta = { vip=0, diamond=0, gold_up=0, exp_up=0, gold_top=0, exp_top=0, equipment_enhance_success_rate_up=0, prop_refresh_reduction=0, s_diamond=0, c_diamond=0, store_refresh_count=0, rewared=0, gift_reward=0}
+-- type = daily_type * 10 + exercise_type
+local _Meta = { update_time = 0 , type = 0 , task_name = 0 , cost_amount = 0 , iconid = 0 , basic_reward = 0 , levelup_reward = 0 , level_up = 0 , cost_id = 0 }
 
-_M.__tname = "g_recharge_vip_reward"
+_M.__tname = "g_daily_task"
 
 function _Meta.__new()
  	-- body
@@ -61,13 +62,26 @@ end
 
 function _M:add( u )
 	assert(u)
-	self.__data[tostring(u.vip)] = u
+	self.__data[tostring(u.type)] = u
 	self.__count = self.__count + 1
 end
 	
-function _M:get_by_vip(vip)
+function _M:get_by_type( type )
 	-- body
-	return self.__data[tostring(vip)]
+	return self.__data[ tostring( type ) ]
+end
+
+function _M:get_one()
+	for k , v in pairs( self.__data ) do
+		return v
+	end
+end
+
+function _M:delete_by_type( type )
+	-- body
+	assert(self.__data[tostring( type )])
+	self.__data[tostring( type )] = nil
+	self.__count = self.__count - 1
 end
 
 function _M:get_count()

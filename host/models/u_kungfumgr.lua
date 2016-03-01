@@ -5,9 +5,9 @@ local _M = {}
 _M.__data = {}
 _M.__count = 0
 
-local _Meta = { vip=0, diamond=0, gold_up=0, exp_up=0, gold_top=0, exp_top=0, equipment_enhance_success_rate_up=0, prop_refresh_reduction=0, s_diamond=0, c_diamond=0, store_refresh_count=0, rewared=0, gift_reward=0}
+local _Meta = { user_id=0, csv_id=0, level=0, type=0, harm_type=0, arise_probability=0, arise_count=0, arise_type=0, arise_param=0, attack_type=0, propperty_csv_id=0, propperty_p=0, prop_csv_id=0, prop_num=0, currency_type=0, currency_num=0, is_learned=0 }
 
-_M.__tname = "g_recharge_vip_reward"
+_Meta.__tname = "u_kungfu"
 
 function _Meta.__new()
  	-- body
@@ -19,9 +19,9 @@ end
 function _Meta:__insert_db()
 	-- body
 	local t = {}
-	for k,v in pairs(self) do
+	for k,v in pairs(_Meta) do
 		if not string.match(k, "^__*") then
-			t[k] = self[k]
+			t[k] = assert(self[k])
 		end
 	end
 	skynet.send(util.random_db(), "lua", "command", "insert", self.__tname, t)
@@ -34,7 +34,7 @@ function _Meta:__update_db(t)
 	for i,v in ipairs(t) do
 		columns[tostring(v)] = self[tostring(v)]
 	end
-	skynet.send(util.random_db(), "lua", "command", "update", self.__tname, {{ id = self.id }}, columns)
+	skynet.send(util.random_db(), "lua", "command", "update", self.__tname, {{ csv_id=assert(self.csv_id) }}, columns)
 end
 
 function _Meta:__serialize()
@@ -42,7 +42,7 @@ function _Meta:__serialize()
 	local r = {}
 	for k,v in pairs(_Meta) do
 		if not string.match(k, "^__*") then
-			r[k] = self[k]
+			r[k] = assert(self[k])
 		end
 	end
 	return r
@@ -61,13 +61,20 @@ end
 
 function _M:add( u )
 	assert(u)
-	self.__data[tostring(u.vip)] = u
+	self.__data[tostring(u.csv_id)] = u
 	self.__count = self.__count + 1
 end
 	
-function _M:get_by_vip(vip)
+function _M:get_by_csv_id(csv_id)
 	-- body
-	return self.__data[tostring(vip)]
+	return self.__data[tostring(csv_id)]
+end
+
+function _M:delete_by_csv_id(csv_id)
+	-- body
+	assert(self.__data[tostring(csv_id)])
+	self.__data[tostring(csv_id)] = nil
+	self.__count = self.__count - 1
 end
 
 function _M:get_count()

@@ -5,9 +5,9 @@ local _M = {}
 _M.__data = {}
 _M.__count = 0
 
-local _Meta = { vip=0, diamond=0, gold_up=0, exp_up=0, gold_top=0, exp_top=0, equipment_enhance_success_rate_up=0, prop_refresh_reduction=0, s_diamond=0, c_diamond=0, store_refresh_count=0, rewared=0, gift_reward=0}
+local _Meta = { user_id = 0 , cgold_time = 0 , cgold_type = 0 , time_length = 0 }
 
-_M.__tname = "g_recharge_vip_reward"
+_Meta.__tname = "u_cgold"
 
 function _Meta.__new()
  	-- body
@@ -53,6 +53,7 @@ function _M.create( P )
 	local u = _Meta.__new()
 	for k,v in pairs(_Meta) do
 		if not string.match(k, "^__*") then
+			print( u[k] , P[k])
 			u[k] = assert(P[k])
 		end
 	end
@@ -61,13 +62,20 @@ end
 
 function _M:add( u )
 	assert(u)
-	self.__data[tostring(u.vip)] = u
+	table.insert( self.__data , u )
 	self.__count = self.__count + 1
 end
 	
-function _M:get_by_vip(vip)
+function _M:get_cgold()
 	-- body
-	return self.__data[tostring(vip)]
+	return self.__data[1]
+end
+
+function _M:delete_cgold()
+	-- body
+	assert(self.__data[1])
+	self.__data[1] = nil
+	self.__count = self.__count - 1
 end
 
 function _M:get_count()
