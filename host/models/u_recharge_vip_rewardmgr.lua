@@ -67,7 +67,7 @@ end
 	
 function _M:get_by_vip(vip)
 	-- body
-	return self.__data[tostring(csv_id)]
+	return self.__data[tostring(vip)]
 end
 
 function _M:delete_by_vip(vip)

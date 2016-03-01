@@ -34,7 +34,7 @@ function _Meta:__update_db(t)
 	for i,v in ipairs(t) do
 		columns[tostring(v)] = self[tostring(v)]
 	end
-	skynet.send(util.random_db(), "lua", "command", "update", self.__tname, {{ id = self.id }}, columns)
+	skynet.send(util.random_db(), "lua", "command", "update", self.__tname, {{ user_id = self.user_id, csv_id=self.csv_id }}, columns)
 end
 
 function _Meta:__serialize()
@@ -53,11 +53,12 @@ function _M.create( P )
 	local u = _Meta.__new()
 	for k,v in pairs(_Meta) do
 		if not string.match(k, "^__*") then
+			print(k)
 			u[k] = assert(P[k])
 		end
 	end
 	return u
-end	
+end
 
 function _M:add(u)
 	assert(u)

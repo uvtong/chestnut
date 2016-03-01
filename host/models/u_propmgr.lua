@@ -1,11 +1,12 @@
 local skynet = require "skynet"
 local util = require "util"
+local const = require "const"
 
 local _M = {}
 _M.__data = {}
 _M.__count = 0
 
-local _Meta = { user_id=0, csv_id=0, num=0, sub_type=0, level=0, pram1=0, pram2=0, name=0, use_type=0}
+local _Meta = { user_id=0, csv_id=0, num=0, sub_type=0, level=0, pram1=0, pram2=0, use_type=0}
 _Meta.__tname = "u_prop"
 
 function _Meta.__new()
@@ -18,9 +19,9 @@ end
 function _Meta:__insert_db()
 	-- body
 	local t = {}
-	for k,v in pairs(self) do
+	for k,v in pairs(_Meta) do
 		if not string.match(k, "^__*") then
-			t[k] = self[k]
+			t[k] = assert(self[k])
 		end
 	end
 	skynet.send(util.random_db(), "lua", "command", "insert", self.__tname, t)
@@ -47,16 +48,53 @@ function _Meta:__serialize()
 	return r
 end
 
+function _M.insert_db( values )
+	assert(type(values) == "table" )
+	local total = {}
+	for i,v in ipairs(values) do
+		local t = {}
+		for kk,vv in pairs(v) do
+			if not string.match(kk, "^__*") then
+				t[kk] = vv
+			end
+		end
+		table.insert(total, t)
+	end
+	skynet.send( util.random_db() , "lua" , "command" , "insert_all" , _Meta.__tname , total )
+end 
+
 function _M.create(P)
 	assert(P)
 	local u = _Meta.__new()
 	for k,v in pairs(_Meta) do
 		if not string.match(k, "^__*") then
-			u[k] = P[k]
+			u[k] = assert(P[k])
 		end
 	end
 	return u
 end	
+
+function _M.create_gold(user, num)
+	-- body
+	assert(user)
+	local u = _Meta.__new()
+	u.user_id = user.csv_id
+	u.csv_id = const.GOLD
+	u.num = num
+	u.name = "gold"
+	return u
+end
+
+function _M.create_diamond(user, num)
+	-- body
+	assert(user)
+	local u = _Meta.__new()
+	u.user_id = user.csv_id
+	u.csv_id = const.DIAMOND
+	u.num = num
+	u.name = "diamond"
+	return u
+end
 
 function _M:add( u )
 	assert(u)

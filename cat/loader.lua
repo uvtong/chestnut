@@ -267,9 +267,6 @@ local function load_u_achievement(user)
 		local a = u_achievementmgr.create(v)
 		u_achievementmgr:add(a)
 	end
-	for k,v in pairs(u_achievementmgr.__data) do
-		print(k,v)
-	end
 	user.u_achievementmgr = u_achievementmgr
 end
 
@@ -297,10 +294,6 @@ local function load_u_checkin(user)
 		u_checkinmgr:add( a )
 	end
 	user.u_checkinmgr = u_checkinmgr
-	print( "**********************load u_checkin over" )
-	for k,v in pairs(u_checkinmgr) do
-		print(k,v)
-	end
 end
 
 local function load_u_checkin_month( user )
@@ -314,7 +307,6 @@ local function load_u_checkin_month( user )
 		u_checkin_monthmgr:add( a )
 	end
 	user.u_checkin_monthmgr = u_checkin_monthmgr
-	print( "**********************load u_checkin_month over" )
 end
 
 local function load_u_exercise( user )
@@ -329,7 +321,6 @@ local function load_u_exercise( user )
 	end
 
 	user.u_exercise_mgr = u_exercise_mgr
-	print( "**********************load u_exercise over" )
 end
 
 local function load_u_cgold( user )
@@ -344,7 +335,6 @@ local function load_u_cgold( user )
 	end
 
 	user.u_cgoldmgr = u_cgoldmgr
-	print( "**********************load u_cgold over" )
 end
 
 local function load_u_email( user )
@@ -352,17 +342,11 @@ local function load_u_email( user )
 
 	local u_emailmgr = require "models/u_emailmgr"
 	local r = skynet.call( util.random_db() , "lua", "command" , "select" , "u_new_email", {{ uid = user.csv_id , isdel = 0 }})
-	print( "****************************** emailnum is " , #r )
 	for i , v in ipairs( r ) do
 		local a = u_emailmgr.create( v )
 		u_emailmgr:add( a )
 	end
-
 	user.u_emailmgr = u_emailmgr
-	for k , v in pairs( user.u_emailmgr.__data ) do
-		print( k , v )
-	end
-	print( "********************************load u_emailmgr over " )
 end
 
 local function load_u_checkpoint(user)
@@ -459,9 +443,6 @@ local function load_u_recharge_record(user)
 		local t = u_recharge_recordmgr.create(v)
 		u_recharge_recordmgr:add(t)
 	end
-	for k,v in pairs(u_recharge_recordmgr) do
-		print(k,v)
-	end
 	user.u_recharge_recordmgr = u_recharge_recordmgr
 end
 
@@ -496,9 +477,6 @@ local function load_u_role(user)
 	local nr = skynet.call(addr, "lua", "command", "select", "u_role", {{ user_id = user.csv_id }})
 	for i,v in ipairs(nr) do
 		local role = u_rolemgr.create( v )
-		for k,v in pairs(role) do
-			print(k,v)
-		end
 		u_rolemgr:add(role)
 	end
 	user.u_rolemgr = u_rolemgr

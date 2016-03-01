@@ -24,10 +24,10 @@ local checkinrequest = require "checkinrequest"
 local exercise_request = require "exercise_request"
 local cgold_request = require "cgold_request"
 
--- table.insert( M , checkinrequest )
--- table.insert( M , exercise_request )
--- table.insert( M , cgold_request )
--- table.insert( M , new_emailrequest )
+table.insert( M , checkinrequest )
+table.insert( M , exercise_request )
+table.insert( M , cgold_request )
+table.insert( M , new_emailrequest )
 
 local WATCHDOG
 local host
@@ -307,7 +307,8 @@ end
 
 function REQUEST:achievement_reward_collect()
 	-- body
-	-- 1 not online
+	-- 0. success
+	-- 1. offline
 	local ret = {}
 	if not user then
 		ret.errorcode = 1
@@ -417,7 +418,7 @@ function REQUEST:signup()
 		local e4 = game.g_equipmentmgr:get_by_csv_id(4001)
 		e4.user_id = u.csv_id
 		local ue4 = u_equipmentmgr.create(e4)
-		table.insert(ue4)
+		table.insert(l, ue4)
 		u_equipmentmgr.insert_db(l)
 
 		local u_propmgr = require "models/u_propmgr"
@@ -435,6 +436,17 @@ function REQUEST:signup()
 		-- kungfu.is_learned = 0
 		-- local k = u_kungfumgr.create(kungfu)
 		-- k:__insert_db()
+
+		local u_rolemgr = require "models/u_rolemgr"
+		local grole = game.g_rolemgr:get_by_csv_id(1)
+		assert(grole)
+		local grole_star = game.g_role_starmgr:get_by_csv_id(grole.csv_id*1000+grole.star)
+		for k,v in pairs(grole_star) do
+			grole[k] = v
+		end
+		grole.user_id = u.csv_id
+		local role = u_rolemgr.create(grole)
+		role:__insert_db()
 
 		ret.errorcode = 0
 		ret.msg	= "yes"
@@ -495,12 +507,12 @@ function REQUEST:login()
 		-- all roles
 		local l = {}
 		for k,v in pairs(user.u_rolemgr.__data) do
-			local num = user.u_propmgr:get_by_csv_id(v.us_prop_csv_id).num
+			local prop = user.u_propmgr:get_by_csv_id(v.us_prop_csv_id)
 			local r = {
 				csv_id = v.csv_id,
 				is_possessed = true,
 				star = v.star,
-				u_us_prop_num = num and num or 0
+				u_us_prop_num = prop and prop.num or 0
 			}
 			table.insert(l, r)
 		end

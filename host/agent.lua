@@ -1,4 +1,4 @@
-package.path = "../host/lualib/?.lua;" .. package.path
+package.path = "../host/lualib/?.lua;../host/?.lua;" .. package.path
 package.cpath = "../host/luaclib/?.so;" .. package.cpath
 local skynet = require "skynet"
 local netpack = require "netpack"
@@ -6,6 +6,7 @@ local socket = require "socket"
 local protobuf = require "protobuf"
 local util = require "util"
 local dc = require "datacenter"
+local loader = require "loader"
 
 local WATCHDOG
 local host
@@ -32,6 +33,8 @@ end
 
 function REQUEST:signup()
 	-- body
+	-- 0. success
+	-- 1.
 	local ret = {}
 	local condition = { uaccount = self.account}
 	local addr = util.random_db()
@@ -69,7 +72,7 @@ function REQUEST:signup()
 		local u = usersmgr.create(t)
 		u:__insert_db()
 		ret.errorcode = 0
-		ret.msg = "yes"
+		ret.msg = "success"
 		return ret
 	end
 end
@@ -80,7 +83,7 @@ function REQUEST:account()
 	assert(self.password ~= "123456")
 	local addr = util.random_db()
 	local r = skynet.call(addr, "command", "select", "users", {{ account=self.account, password=self.password }})
-	if #r = 1 then
+	if r and #r == 1 then
 		local users = require "models/usersmgr"
 		user = users.create(r)
 		dc.set(user.csv_id, { addr=skynet.self(), client_fd=client_fd })
@@ -93,7 +96,7 @@ end
 function REQUEST:enter_room()
 	-- body
 	print("enter_room", self.rule, self.mode)
-	local r = skynet.call(".scene", "lua", "enter_room", )
+	local r = skynet.call(".scene", "lua", "enter_room", user.csv_id)
 	local r = { name="left", addr=2, user_id=1}
 	if r.name == "left" then
 		left = {}
@@ -241,8 +244,9 @@ skynet.register_protocol {
 		elseif type == "HEARTBEAT" then
 			send_package(send_request(2, { msg = "HEARTBEAT"}))
 		elseif type == "RESPONSE" then
-			assert(type == "RESPONSE")
-			error "This example doesn't support request client"
+			pcall(response, ...)
+			-- assert(type == "RESPONSE")
+			-- error "This example doesn't support request client"
 		end
 	end
 }
@@ -268,10 +272,6 @@ function CMD.rob(user_id, m)
 	left.rob = m
 	-- turn rob
 	send_package(send_request(12, {user_id=user.csv_id, countdown=20}))
-end
-
-function function_name( ... )
-	-- body
 end
 
 function CMD.start(conf)
@@ -321,6 +321,8 @@ function CMD.start(conf)
 	end
 	client_fd = fd
 	skynet.call(gate, "lua", "forward", fd)
+
+	game = loader.load_game()
 end
 
 function CMD.disconnect()

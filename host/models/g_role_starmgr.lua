@@ -5,9 +5,9 @@ local _M = {}
 _M.__data = {}
 _M.__count = 0
 
-local _Meta = { star=0, up_prop_num=0, csv_id=0, gather_buffer_id=0, battle_buffer_id=0}
+local _Meta = { g_csv_id=0, csv_id=0, name=0, star=0, us_prop_csv_id=0, us_prop_num=0, sharp=0, skill_csv_id=0, gather_buffer_id=0, battle_buffer_id=0}
 
-_M.__tname = "g_role_star"
+_Meta.__tname = "g_role_star"
 
 function _Meta.__new()
  	-- body
@@ -19,9 +19,9 @@ end
 function _Meta:__insert_db()
 	-- body
 	local t = {}
-	for k,v in pairs(self) do
+	for k,v in pairs(_Meta) do
 		if not string.match(k, "^__*") then
-			t[k] = self[k]
+			t[k] = assert(self[k])
 		end
 	end
 	skynet.send(util.random_db(), "lua", "command", "insert", self.__tname, t)
@@ -34,7 +34,7 @@ function _Meta:__update_db(t)
 	for i,v in ipairs(t) do
 		columns[tostring(v)] = self[tostring(v)]
 	end
-	skynet.send(util.random_db(), "lua", "command", "update", self.__tname, {{ id = self.id }}, columns)
+	skynet.send(util.random_db(), "lua", "command", "update", self.__tname, {{ csv_id=assert(self.csv_id) }}, columns)
 end
 
 function _Meta:__serialize()
@@ -42,7 +42,7 @@ function _Meta:__serialize()
 	local r = {}
 	for k,v in pairs(_Meta) do
 		if not string.match(k, "^__*") then
-			r[k] = self[k]
+			r[k] = assert(self[k])
 		end
 	end
 	return r
@@ -61,19 +61,19 @@ end
 
 function _M:add( u )
 	assert(u)
-	self.__data[tostring(u.star)] = u
+	self.__data[tostring(u.g_csv_id)] = u
 	self.__count = self.__count + 1
 end
 	
-function _M:get_by_star(star)
+function _M:get_by_csv_id(csv_id)
 	-- body
-	return self.__data[tostring(star)]
+	return self.__data[tostring(csv_id)]
 end
 
-function _M:delete_by_star(star)
+function _M:delete_by_csv_id(csv_id)
 	-- body
-	assert(self.__data[tostring(star)])
-	self.__data[tostring(star)] = nil
+	assert(self.__data[tostring(csv_id)])
+	self.__data[tostring(csv_id)] = nil
 	self.__count = self.__count - 1
 end
 

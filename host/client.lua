@@ -1,5 +1,5 @@
 package.cpath = "luaclib/?.so"
-package.path = "lualib/?.lua;../host/?.lua"
+package.path = "lualib/?.lua;../host/?.lua;../host/lualib/?.lua;../host/luaclib/?.lua"
 
 if _VERSION ~= "Lua 5.3" then
 	error "Use lua 5.3"
@@ -8,9 +8,41 @@ end
 local socket = require "clientsocket"
 local proto = require "proto"
 local sproto = require "sproto"
+local protobuf = require "protobuf"
 
-local host = sproto.new(proto.s2c):host "package"
-local request = host:attach(sproto.new(proto.c2s))
+-- local host = sproto.new(proto.s2c):host "package"
+-- local request = host:attach(sproto.new(proto.c2s))
+
+local addr = io.open("../host/c2s.pb","rb")
+local buffer = addr:read "*a"
+addr:close()
+protobuf.register(buffer)
+local t = protobuf.decode("google.protobuf.FileDescriptorSet", buffer)
+local c2s_proto = t.file[1]
+print(c2s_proto.name)
+print(c2s_proto.package)
+
+addr = io.open("../host/s2c.pb","rb")
+buffer = addr:read "*a"
+addr:close()
+protobuf.register(buffer)
+t = protobuf.decode("google.protobuf.FileDescriptorSet", buffer)
+local s2c_proto = t.file[1]
+print(s2c_proto.name)
+print(s2c_proto.package)
+
+local request = function ( tag, args, session )
+	-- body
+	session = session + 1
+	local package = {
+		tag = tag,
+		type = "REQUEST",
+		session = session,
+	}
+	local code = protobuf.encode("c2s.package", package)
+	local encode = protobuf.encode(c2s_proto.package .. "." .. s2c_proto.message_type[tag].name, args)
+	return code .. encode
+end
 
 local fd = assert(socket.connect("127.0.0.1", 8888))
 
@@ -97,16 +129,9 @@ function REQUEST:finish_achi( ... )
 end
 
 local function request(name, args, response)
-	print( "request name :" .. name)
-	for k,v in pairs(args) do
-		print(k,v)
-	end
-	print(response)
     local f = assert(REQUEST[name])
     local r = f(args)
-
     if response then
-    	print "hakldjfalfj"
     	return response(r)
     end               
 end      
@@ -141,15 +166,15 @@ local function dispatch_package()
 	end
 end
 
---send_request("login", { account = "hello" , password = "world" })
 while true do
 	dispatch_package()
 	local cmd = socket.readstdin()
 	if cmd then
+		print("print:", cmd)
 		if cmd == "handshake" then
-			send_request(cmd)
-		elseif cmd == "role" then
-			send_request(cmd)
+			assert(false)
+		elseif cmd == "account" then
+			send_request(2, { account="end1", password="end1"})
 		elseif cmd == "upgrade" then
 			send_request(cmd, { role_id = 2 })
 		elseif cmd == "choose_role" then

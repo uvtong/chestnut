@@ -61,7 +61,6 @@ end
 function QUERY:select( table_name, condition, columns)
 	-- body
 	local sql = util.select(table_name, condition, columns)
-	-- return db:query(sql, condition)
 	return db:query(sql)
 end
 
@@ -99,11 +98,13 @@ function connect_mysql( ... )
 	end
 	
 	local db = mysql.connect( { 
-		host = "192.168.1.105",
+		host = "192.168.1.116",
+		-- host = "192.168.1.105",
 		port = 3306,
 		database = "project",
 		user = "root",
-		password = "123456",
+		-- password = "123456",
+		password = "yulei",
 		max_packet_size = 1024 * 1024,
 		on_connect = on_connect,
 	} )
