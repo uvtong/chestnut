@@ -413,35 +413,40 @@ function REQUEST:signup()
 
 		local u_equipmentmgr = require "models/u_equipmentmgr"
 		local l = {}
-		local e1 = game.g_equipmentmgr:get_by_csv_id(1001)
-		e1.user_id = u.csv_id
-		local ue1 = u_equipmentmgr.create(e1)
-		table.insert(l, ue1)
-
-		local e2 = game.g_equipmentmgr:get_by_csv_id(2001)
-		e2.user_id = u.csv_id
-		local ue2 = u_equipmentmgr.create(e2)
-		table.insert(l, ue2)
-
-		local e3 = game.g_equipmentmgr:get_by_csv_id(3001)
-		e3.user_id = u.csv_id
-		local ue3 = u_equipmentmgr.create(e3)
-		table.insert(l, ue3)
-
-		local e4 = game.g_equipmentmgr:get_by_csv_id(4001)
-		e4.user_id = u.csv_id
-		local ue4 = u_equipmentmgr.create(e4)
-		table.insert(l, ue4)
+		for k,v in pairs(game.g_equipmentmgr.__data) do
+			local equip = game.g_equipment_enhancemgr:get_by_csv_id(v.csv_id*1000+v.level)	
+			equip.user_id = u.csv_id
+			local e = u_equipmentmgr.create(equip)
+			table.insert(l, e1)
+		end
 		u_equipmentmgr.insert_db(l)
 
 		local u_propmgr = require "models/u_propmgr"
-		local pl = {}
-		local gold = u_propmgr.create_gold(u, 100)
-		table.insert(pl, gold)
+		l = {}
+		local prop = game.g_propmgr:get_by_csv_id(const.GOLD)
+		prop.user_id = u.csv_id
+		prop.num = 100
+		local p = u_propmgr.create(prop)
+		table.insert(l, p)
 
-		local diamond = u_propmgr.create_diamond(u, 10)
-		table.insert(pl, diamond)
-		u_propmgr.insert_db(pl)
+		local prop = game.g_propmgr:get_by_csv_id(const.DIAMOND)
+		prop.user_id = u.csv_id
+		prop.num = 100
+		local p = u_propmgr.create(prop)
+		table.insert(l, p)
+
+		local prop = game.g_propmgr:get_by_csv_id(const.EXP)
+		prop.user_id = u.csv_id
+		prop.num = 100
+		local p = u_propmgr.create(prop)
+		table.insert(l, p)
+
+		local prop = game.g_propmgr:get_by_csv_id(const.LOVE)
+		prop.user_id = u.csv_id
+		prop.num = 100
+		local p = u_propmgr.create(prop)
+		table.insert(l, p)
+		u_propmgr.insert_db(l)
 
 		-- local u_kungfumgr = require "models/u_kungfumgr"
 		-- local kungfu = game.g_kungfumgr:get_by_csv_id(1001)
@@ -451,15 +456,15 @@ function REQUEST:signup()
 		-- k:__insert_db()
 
 		local u_rolemgr = require "models/u_rolemgr"
-		local grole = game.g_rolemgr:get_by_csv_id(1)
-		assert(grole)
-		local grole_star = game.g_role_starmgr:get_by_csv_id(grole.csv_id*1000+grole.star)
-		for k,v in pairs(grole_star) do
-			grole[k] = v
+		local role = game.g_rolemgr:get_by_csv_id(1)
+		assert(role)
+		local role_star = game.g_role_starmgr:get_by_csv_id(grole.csv_id*1000+grole.star)
+		for k,v in pairs(role_star) do
+			role[k] = v
 		end
-		grole.user_id = u.csv_id
-		local role = u_rolemgr.create(grole)
-		role:__insert_db()
+		role.user_id = u.csv_id
+		local r = u_rolemgr.create(role)
+		r:__insert_db()
 
 		ret.errorcode = 0
 		ret.msg	= "yes"
@@ -621,9 +626,12 @@ function REQUEST:role_upgrade_star()
 		return ret
 	end
 	assert(self.role_csv_id)
+	for k,v in pairs(user.u_rolemgr.__data) do
+		print(k,v)
+	end
 	local role = assert(user.u_rolemgr:get_by_csv_id(self.role_csv_id))
 	local prop = user.u_propmgr:get_by_csv_id(role.us_prop_csv_id)
-	local role_star = game.g_role_starmgr:get_by_csv_id(role.csv_id*1000+star+1)
+	local role_star = game.g_role_starmgr:get_by_csv_id(role.csv_id*1000+role.star+1)
 	if prop and prop.num >= role_star.us_prop_num then
 		prop.num = prop.num - role_star.us_prop_num
 		prop:__update_db({"num"})
@@ -1245,7 +1253,7 @@ function REQUEST:equipment_enhance()
 		return ret
 	end
 	-- 
-	local e = user.u_equipmentmgr:get_by_csv_id(self.csv_id)
+	local e = assert(user.u_equipmentmgr:get_by_csv_id(self.csv_id))
 	if e.type == 1 then
 		local last = user.u_equipmentmgr:get_by_type(4)
 		assert(e.level <= last.level)
@@ -1331,8 +1339,8 @@ function REQUEST:role_all()
 		if r then
 			role.is_possessed = true
 			role.star = r.star
-			local num = user.u_propmgr:get_by_csv_id(r.us_prop_csv_id).num
-			role.u_us_prop_num = num and num or 0
+			local prop = user.u_propmgr:get_by_csv_id(r.us_prop_csv_id)
+			role.u_us_prop_num = prop and prop.num or 0
 		else
 			role.star = v.star
 			role.u_us_prop_num = 0

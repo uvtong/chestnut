@@ -735,7 +735,7 @@ role_battle 54 {
     }
     response {
         errorcode 0 : integer
-        msg 1 : integer
+        msg 1 : string
     }
 }
 

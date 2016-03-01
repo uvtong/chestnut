@@ -5,9 +5,9 @@ local _M = {}
 _M.__data = {}
 _M.__count = 0
 
-local _Meta = { user_id=0, csv_id=0, level=0, combat=0, defense=0, critical_hit=0, king=0, critical_hit_probability=0, combat_probability=0, defense_probability=0, king_probability=0, enhance_success_rate=0, currency_type=0, currency_num=0}
+local _Meta = { g_csv_id=0, csv_id=0, name=0, level=0, combat=0, defense=0, critical_hit=0, king=0, combat_probability=0, defense_probability=0, king_probability=0, enhance_success_rate=0, currency_type=0, currency_num=0}
 
-_Meta.__tname = "u_equipment"
+_Meta.__tname = "g_equipment_enhance"
 
 function _Meta.__new()
  	-- body
@@ -21,7 +21,7 @@ function _Meta:__insert_db()
 	local t = {}
 	for k,v in pairs(_Meta) do
 		if not string.match(k, "^__*") then
-			t[k] = self[k]
+			t[k] = assert(self[k])
 		end
 	end
 	skynet.send(util.random_db(), "lua", "command", "insert", self.__tname, t)
@@ -34,7 +34,7 @@ function _Meta:__update_db(t)
 	for i,v in ipairs(t) do
 		columns[tostring(v)] = self[tostring(v)]
 	end
-	skynet.send(util.random_db(), "lua", "command", "update", self.__tname, {{ user_id=self.user_id, csv_id=self.csv_id }}, columns)
+	skynet.send(util.random_db(), "lua", "command", "update", self.__tname, {{ csv_id=assert(self.csv_id) }}, columns)
 end
 
 function _Meta:__serialize()
@@ -42,7 +42,7 @@ function _Meta:__serialize()
 	local r = {}
 	for k,v in pairs(_Meta) do
 		if not string.match(k, "^__*") then
-			r[k] = self[k]
+			r[k] = assert(self[k])
 		end
 	end
 	return r
@@ -79,7 +79,7 @@ function _M:add( u )
 	self.__data[tostring(u.csv_id)] = u
 	self.__count = self.__count + 1
 end
-
+	
 function _M:get_by_csv_id(csv_id)
 	-- body
 	return self.__data[tostring(csv_id)]
@@ -92,29 +92,10 @@ function _M:delete_by_csv_id(csv_id)
 	self.__count = self.__count - 1
 end
 
-function _M:get_by_type(type)
-	-- body
-	for k,v in pairs(self.__data) do
-		if v.type == type then
-			return v
-		end
-	end
-end
-
-function _M:delete_by_type(type)
-	-- body
-	for k,v in pairs(self.__data) do
-		if v.type == type then
-			self.__data[k] = nil
-			self.__count = self.__count - 1
-			return
-		end
-	end
-end
-
 function _M:get_count()
 	-- body
 	return self.__count
 end
 
 return _M
+
