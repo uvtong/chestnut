@@ -5,7 +5,7 @@ local _M = {}
 _M.__data = {}
 _M.__count = 0
 
-local _Meta = { g_csv_id=0, csv_id=0, type=0, level=0, combat=0, defense=0, critical_hit=0, king=0, combat_probability=0, defense_probability=0, critical_hit_probability=0, king_probability=0, enhance_success_rate=0, currency_type=0, currency_num=0}
+local _Meta = { csv_id=0, level=0}
 
 _Meta.__tname = "g_equipment"
 
@@ -14,14 +14,14 @@ function _Meta.__new()
  	local t = {}
  	setmetatable( t, { __index = _Meta } )
  	return t
-end
+end 
 
 function _Meta:__insert_db()
 	-- body
 	local t = {}
-	for k,v in pairs(self) do
+	for k,v in pairs(_Meta) do
 		if not string.match(k, "^__*") then
-			t[k] = self[k]
+			t[k] = assert(self[k])
 		end
 	end
 	skynet.send(util.random_db(), "lua", "command", "insert", self.__tname, t)
@@ -34,7 +34,7 @@ function _Meta:__update_db(t)
 	for i,v in ipairs(t) do
 		columns[tostring(v)] = self[tostring(v)]
 	end
-	skynet.send(util.random_db(), "lua", "command", "update", self.__tname, {{ id = self.id }}, columns)
+	skynet.send(util.random_db(), "lua", "command", "update", self.__tname, {{ csv_id=assert(self.csv_id) }}, columns)
 end
 
 function _Meta:__serialize()
@@ -42,11 +42,26 @@ function _Meta:__serialize()
 	local r = {}
 	for k,v in pairs(_Meta) do
 		if not string.match(k, "^__*") then
-			r[k] = self[k]
+			r[k] = assert(self[k])
 		end
 	end
 	return r
 end
+
+function _M.insert_db( values )
+	assert(type(values) == "table" )
+	local total = {}
+	for i,v in ipairs(values) do
+		local t = {}
+		for kk,vv in pairs(v) do
+			if not string.match(kk, "^__*") then
+				t[kk] = vv
+			end
+		end
+		table.insert(total, t)
+	end
+	skynet.send( util.random_db() , "lua" , "command" , "insert_all" , _Meta.__tname , total )
+end 
 
 function _M.create( P )
 	assert(P)
@@ -61,10 +76,10 @@ end
 
 function _M:add( u )
 	assert(u)
-	self.__data[tostring(u.g_csv_id)] = u
+	self.__data[tostring(u.csv_id)] = u
 	self.__count = self.__count + 1
 end
-
+	
 function _M:get_by_csv_id(csv_id)
 	-- body
 	return self.__data[tostring(csv_id)]
@@ -83,3 +98,4 @@ function _M:get_count()
 end
 
 return _M
+

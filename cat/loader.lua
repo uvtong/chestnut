@@ -481,7 +481,7 @@ local function load_u_role(user)
 	-- body
 	local u_rolemgr = require "models/u_rolemgr"
 	local addr = util.random_db()
-	local nr = skynet.call(addr, "lua", "command", "select", "u_role", {{ user_id = user.csv_id }})
+	local nr = skynet.call(addr, "lua", "command", "select", "u_role", {{ user_id = assert(user.csv_id)}})
 	for i,v in ipairs(nr) do
 		local role = u_rolemgr.create( v )
 		u_rolemgr:add(role)
