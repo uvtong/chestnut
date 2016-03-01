@@ -11,7 +11,8 @@ local u_emailmgr = require "models/u_emailmgr"
 local game
 local channel
 local u_client_id = {} -- if
-	
+local R = {}
+
 local CMD = {}		
 local SEND_TYPE = { TO_ALL = 1 , TO_GROUP = 2 } 
 
@@ -112,7 +113,6 @@ local ROUTINE = { TIME = -1 , ECONTENT = {} }
 end		
 
 function CMD:start_routine( )
-
 end	
 		
 --[[function CMD:get_emailcontent( delay_time , type , temailcontent , tuser_list )
@@ -123,7 +123,39 @@ end
 	end 					  
 	skynet.timeout(coutnfd. CMD:hello( type , {} , {} )
 end --]]						  
-							  
+
+-- local function send(coutdown, count, content, type, l)
+-- 	-- body
+-- 	if type == QF then
+-- 		skynet.send()
+-- 		channel.publish(content)
+-- 		skynet.timeout(cd, function function_name(ftype, content, l)
+-- 			-- body
+-- 			send_email_to_all()
+-- 			if R[ftype].count == 0 then
+-- 				os.time(R[ftype].coutdown)
+
+-- 				send()
+
+-- 		end)
+-- 	else
+-- end
+
+-- function CMD.send_email(ftype, coutdown, count, content, type, l)
+-- 	-- body
+-- 	if ttype == "xx" then
+-- 		if R[ftype] then
+-- 			R[ftype].coutdown
+-- 			else
+-- 		R[ftype] == { coutdown = coutdown, count = count}
+-- 		local s = os.time(coutdown)
+-- 		local now os.time()
+-- 		local cd = s - now
+
+-- 	else
+	
+-- end
+
 skynet.start( function () 
 	skynet.dispatch( "lua" , function( _, _, cmd, ... )
 		print("channel is called")

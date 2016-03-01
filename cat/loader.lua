@@ -125,7 +125,7 @@ local function load_g_recharge_vip_reward()
 	game.g_recharge_vip_rewardmgr = g_recharge_vip_rewardmgr
 end
 
---[[local function load_g_role()
+local function load_g_role()
 	-- body
 	assert(game.g_rolemgr == nil)
 	local g_rolemgr = require "models/g_rolemgr"
@@ -136,17 +136,17 @@ end
 	end
 	game.g_rolemgr = g_rolemgr
 end
---]]
+
 local function load_g_role_star()
 	-- body
 	assert(game.g_role_starmgr == nil)
 	local g_role_starmgr = require "models/g_role_starmgr"
-	local r = skynet.call(util.random_db(), "lua", "command", "select", "g_user_levelr")
+	local r = skynet.call(util.random_db(), "lua", "command", "select", "g_role_star")
 	for i,v in ipairs(r) do
-		local t = g_user_levelmgr.create(v)
-		g_user_levelmgr:add(t)
+		local t = g_role_starmgr.create(v)
+		g_role_starmgr:add(t)
 	end
-	game.g_user_levelmgr = g_user_levelmgr
+	game.g_role_starmgr = g_role_starmgr
 end
 
 local function load_g_shop()
@@ -530,7 +530,8 @@ function loader.load_game()
 		load_g_prop()
 		load_g_recharge()
 		load_g_recharge_vip_reward()
-		--load_g_role()
+		load_g_role()
+		load_g_role_star()
 		load_g_shop()
 		load_g_uid()
 	end
@@ -559,7 +560,7 @@ function loader.load_user(user)
 	load_u_exercise( user)
 	load_u_cgold( user )
 	load_u_email( user )
-	load_u_kungfu(user)
+	-- load_u_kungfu(user)
 	load_u_prop(user)
 	load_u_role(user)
 	load_u_purchase_goods(user)

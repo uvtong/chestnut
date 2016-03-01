@@ -241,6 +241,12 @@ while true do
 			send_request( "equipment_all")
 		elseif cmd == "equipment_enhance" then
 			send_request( "equipment_enhance", { csv_id=1000 })
+		elseif cmd == "role_all" then
+			send_request(cmd)
+		elseif cmd == "role_recruit" then
+			send_request(cmd, { csv_id=4})
+		elseif cmd == "role_battle" then
+			send_request(cmd, { csv_id=4})
 		end
 	else
 		socket.usleep(100)

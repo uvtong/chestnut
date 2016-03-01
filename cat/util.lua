@@ -116,7 +116,7 @@ function util.select( table_name, condition, columns )
 	else
 		assert(false)
 	end
-	local sql = string.format("select %s from %s", columns_str, table_name) .. condition_str
+	local sql = string.format("select %s from %s", columns_str, table_name) .. condition_str .. ";"
 	print_sql(sql)
 	return sql
 end
@@ -143,7 +143,7 @@ function util.update( table_name, condition, columns )
 	if #condition_str > 0 then	
 		condition_str = " where " .. condition_str
 	end
-	local sql = string.format("update %s ", table_name) .. columns_str .. condition_str
+	local sql = string.format("update %s ", table_name) .. columns_str .. condition_str .. ";"
 	print_sql(sql)
 	return sql
 end
@@ -162,14 +162,13 @@ function util.insert( table_name, columns )
 	end
 	columns_str = string.gsub(columns_str, "(.*)%,%s$", "%1)")
 	values_str = string.gsub(values_str, "(.*)%,%s$", "%1)")
-	local sql = string.format("insert into %s ", table_name) .. columns_str .. " values " .. values_str
+	local sql = string.format("insert into %s ", table_name) .. columns_str .. " values " .. values_str .. ";"
 	print_sql(sql)
 	return sql
 end
 	
 function util.insert_all( table_name , tcolumns )
 	assert( table_name and tcolumns )
-	--assert( #tcolumns == 0 )
 	local f = assert( tcolumns[1] )
 	assert( f )
 	local columns_str = "("
@@ -179,7 +178,6 @@ function util.insert_all( table_name , tcolumns )
 		columns_str = columns_str .. k .. ", "	
 	end	
 	columns_str = string.gsub(columns_str, "(.*)%,%s$", "%1)")
-
 	local tmp = {}
 	local counter = 0
 	
@@ -206,16 +204,13 @@ function util.insert_all( table_name , tcolumns )
 		--print( "values_str is " , value )
 	
 		value = string.gsub(value, "(.*)%,%s$", "%1)")
-
 		if counter >= 1 then
 			table.insert( tmp , " , " )
 		end
 		counter = counter + 1
 		table.insert( tmp , value )
 	end
-
 	local sql = string.format( "insert into %s " , table_name ) .. columns_str .. " values " .. table.concat( tmp ) .. ";"
-
 	return sql
 end 
 

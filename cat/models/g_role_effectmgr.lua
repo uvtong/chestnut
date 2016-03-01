@@ -5,43 +5,23 @@ local _M = {}
 _M.__data = {}
 _M.__count = 0
 
-local _Meta = { csv_id=0, 
-				uname=0, 
-				uaccount=0, 
-				upassword=0, 
-				uviplevel=0, 
-				config_sound=0, 
-				config_music=0, 
-				avatar=0, 
-				sign=0, 
-				c_role_id=0, 
-				ifonline=0, 
-				level=0, 
-				combat=0, 
-				defense=0, 
-				critical_hit=0, 
-				blessing=0, 
-				modify_uname_count=0, 
-				onlinetime=0, 
-				iconid=0, 
-				is_valid=0, 
-				recharge_rmb=0, 
-				goods_refresh_count=0, 
-				recharge_diamond=0, 
-				uvip_progress=0, 
-				checkin_num=0, 
-				checkin_reward_num=0, 
-				exercise_level=0, 
-				cgold_level=0 }
+local _Meta = { user_id=0, csv_id=0, }
 
-_Meta.__tname = "users"
+_Meta.__tname = "g_role_effect"
+
+function _Meta.__new()
+ 	-- body
+ 	local t = {}
+ 	setmetatable( t, { __index = _Meta } )
+ 	return t
+end 
 
 function _Meta:__insert_db()
 	-- body
 	local t = {}
 	for k,v in pairs(_Meta) do
 		if not string.match(k, "^__*") then
-			t[k] = self[k]
+			t[k] = assert(self[k])
 		end
 	end
 	skynet.send(util.random_db(), "lua", "command", "insert", self.__tname, t)
@@ -54,7 +34,7 @@ function _Meta:__update_db(t)
 	for i,v in ipairs(t) do
 		columns[tostring(v)] = self[tostring(v)]
 	end
-	skynet.send(util.random_db(), "lua", "command", "update", self.__tname, {{ csv_id = self.csv_id }}, columns)
+	skynet.send(util.random_db(), "lua", "command", "update", self.__tname, {{ csv_id=assert(self.csv_id) }}, columns)
 end
 
 function _Meta:__serialize()
@@ -62,25 +42,17 @@ function _Meta:__serialize()
 	local r = {}
 	for k,v in pairs(_Meta) do
 		if not string.match(k, "^__*") then
-			r[k] = self[k]
+			r[k] = assert(self[k])
 		end
 	end
 	return r
 end
-
-function _Meta.__new()
- 	-- body
- 	local t = {}
- 	setmetatable( t, { __index = _Meta } )
- 	return t
-end 
 
 function _M.create( P )
 	assert(P)
 	local u = _Meta.__new()
 	for k,v in pairs(_Meta) do
 		if not string.match(k, "^__*") then
-			print(k)
 			u[k] = assert(P[k])
 		end
 	end
@@ -92,7 +64,7 @@ function _M:add( u )
 	self.__data[tostring(u.csv_id)] = u
 	self.__count = self.__count + 1
 end
-
+	
 function _M:get_by_csv_id(csv_id)
 	-- body
 	return self.__data[tostring(csv_id)]
@@ -100,10 +72,9 @@ end
 
 function _M:delete_by_csv_id(csv_id)
 	-- body
-	local u = assert(self.__data[tostring(csv_id)])
-	u.is_valid = 0
-	u:__update_db({"is_valid"})
-	assert(false)
+	assert(self.__data[tostring(csv_id)])
+	self.__data[tostring(csv_id)] = nil
+	self.__count = self.__count - 1
 end
 
 function _M:get_count()
@@ -112,3 +83,4 @@ function _M:get_count()
 end
 
 return _M
+

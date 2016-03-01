@@ -78,20 +78,13 @@ end
 
 function QUERY:insert( table_name, columns )
 	-- body
-
 	local sql = util.insert(table_name, columns)
-	-- skynet.fork(function (db, sql)
-	-- 	-- body
 	db:query(sql)
-	-- end, db, sql)
-	-- print("*******************************", sql)
 end
 
 function QUERY:insert_all( table_name , tcolumns )
-	assert( table_name and tcolumns )
 	local sql = util.insert_all( table_name , tcolumns )
 	db:query( sql )
-	print("*******************************", sql)
 end
 
 function QUERY:signup( condition )
