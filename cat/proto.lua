@@ -122,7 +122,7 @@ proto.c2s = sprotoparser.parse [[.package {
     inventory 5 : integer
     countdown 6 : string
 }
- 
+
 .goodsbuy
 {
     goods_id 0 : integer
@@ -180,20 +180,20 @@ proto.c2s = sprotoparser.parse [[.package {
 }
 
 .kungfu_content
- {
+{
 	k_csv_id 1 : integer
 	isequipment 2 : boolean
 	k_level 3 : integer
 	k_type 4 : integer
 	k_sp_id 5 : integer
 	k_sp_level 6 : integer
- }
+}
  
- .kungfu_list
- {
+.kungfu_list
+{
 	r_csv_id 0 : integer
 	kungfu_list 1 : *kungfu_content
- }
+}
 
 .kungfu_idlist
 {

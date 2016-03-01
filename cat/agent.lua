@@ -556,12 +556,13 @@ function REQUEST:role_info()
 	assert(self.role_id)
 	local role = assert(user.u_rolemgr:get_by_csv_id(self.role_id))
 	ret.errorcode = 0
-	ret.msg = ""
+	ret.msg = "success"
+	local num = user.u_propmgr:get_by_csv_id(role.us_prop_csv_id).num
 	ret.r = {
 		csv_id = role.csv_id,
 		is_possessed = true,
 		star = role.star,
-		u_us_prop_num = assert(user.u_propmgr:get_by_csv_id(role.us_prop_csv_id).num)
+		u_us_prop_num = num and num or 0
 	}
 	return ret
 end	
@@ -1327,7 +1328,7 @@ function REQUEST:role_recruit()
 	-- body
 	-- 0. success
 	-- 1. offline
-	-- 2. 
+	-- 2. don't have enough
 	local ret = {}
 	if not ret then
 		ret.errorcode = 1
@@ -1337,10 +1338,11 @@ function REQUEST:role_recruit()
 	assert(self.csv_id)
 	assert(user.u_rolemgr:get_by_csv_id(self.csv_id) == nil)
 	local grole = game.g_rolemgr:get_by_csv_id(self.csv_id)
+	local g_csv_id = self.csv_id * 1000 + grole.star
+	local grole_us = game.g_role_starmgr:get_by_csv_id(self.csv_id*1000+grole.star)
+	assert(grole_us)
 	local prop = user.u_propmgr:get_by_csv_id(grole.us_prop_csv_id)
-	local role_us = game.g_role_starmgr:get_by_csv_id(self.csv_id*1000+(role.star - 1))
-	assert(role_us)
-	if prop.num >= role_us.us_prop_num then
+	if prop and prop.num >= grole_us.us_prop_num then
 		prop.num = prop.num - role_us.us_prop_num
 		prop:__update_db({"num"})
 		grole.user_id = user.csv_id
@@ -1351,7 +1353,9 @@ function REQUEST:role_recruit()
 		ret.msg = "yes"
 		ret.r = {
 			csv_id = role.csv_id,
-			is_possessed = true
+			is_possessed = true,
+			star = role.star,
+			u_us_prop_num = prop.num
 		}
 		return ret
 	else
