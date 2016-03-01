@@ -141,7 +141,7 @@ local counter = 0
 function REQUEST:checkin()
 	-- body
 	print( "*-------------------------* checkin is called")
-	
+
 	local ret = {}
 
 	local date = tonumber( os.date( "%Y%m%d" , os.time() ) )
@@ -155,6 +155,7 @@ function REQUEST:checkin()
 
 	local tcheckin = checkin_mgr:get_checkin()
 	local tcheckin_month = checkin_month_mgr:get_checkin_month()
+	--assert( tcheckin )
 	print( tcheckin , tcheckin_month )
 	if not tcheckin then
 		print ( "*********************** both nill " )
