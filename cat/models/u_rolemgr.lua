@@ -5,12 +5,8 @@ local _M = {}
 _M.__data = {}
 _M.__count = 0
 
-<<<<<<< HEAD
-local _Meta = { user_id=0, star=0, upgrade_star_prop_csv_id=0, csv_id=0 , k_csv_id1 = 0 , k_csv_id2 = 0 , k_csv_id3 = 0 , k_csv_id4 = 0 , k_csv_id5 = 0 ,
-				k_csv_id6 = 0 , k_csv_id7 = 0 }
-=======
-local _Meta = { user_id=0, csv_id=0, name=0, star=0, us_prop_csv_id=0, us_prop_num=0, sharp=0, skill_csv_id=0, gather_buffer_id=0, battle_buffer_id=0}
->>>>>>> e99e8d82c9b88aae7775b4620a0d2423b90c380a
+local _Meta = { user_id=0, csv_id=0, name=0, star=0, us_prop_csv_id=0, us_prop_num=0, sharp=0, skill_csv_id=0, gather_buffer_id=0, battle_buffer_id=0,
+k_csv_id1=0, k_csv_id2=0, k_csv_id3=0, k_csv_id4=0, k_csv_id5=0, k_csv_id6=0, k_csv_id7=0}
 
 _Meta.__tname = "u_role"
 
@@ -58,7 +54,6 @@ function _M.create( P )
 	local u = _Meta.__new()
 	for k,v in pairs(_Meta) do
 		if not string.match(k, "^__*") then
-			print(k)
 			u[k] = assert(P[k])
 		end
 	end

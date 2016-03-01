@@ -25,18 +25,11 @@ local exercise_request = require "exercise_request"
 local cgold_request = require "cgold_request"
 local kungfurequest = require "kungfurequest"
 
-<<<<<<< HEAD
-=======
-
->>>>>>> 0b3f14d4b8794dc325d616cd577b40bc3e72c8e2
 table.insert( M , checkinrequest )
 table.insert( M , exercise_request )
 table.insert( M , cgold_request )
 table.insert( M , new_emailrequest )
-<<<<<<< HEAD
-=======
 table.insert( M , kungfurequest )
->>>>>>> 0b3f14d4b8794dc325d616cd577b40bc3e72c8e2
 
 local WATCHDOG
 local host
