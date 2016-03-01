@@ -266,7 +266,12 @@ end
 function CMD.rob(user_id, m)
 	-- body
 	left.rob = m
+	-- turn rob
 	send_package(send_request(12, {user_id=user.csv_id, countdown=20}))
+end
+
+function function_name( ... )
+	-- body
 end
 
 function CMD.start(conf)

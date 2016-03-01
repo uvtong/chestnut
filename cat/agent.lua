@@ -41,36 +41,10 @@ local client_fd
 
 local game
 local user
-local level_limit
-local wakeattr
-local wakecost
 	  
 local function send_package(pack)
 	local package = string.pack(">s2", pack)
 	socket.write(client_fd, package)
-end
-
-local function convert_level( t )
-	-- body
-	local r = {}
-	for i,v in ipairs(t) do
-		r[tostring(v.level)] = v
-	end
-	return r
-end
-
-local function convert_wakecost( t )
-	-- body
-	local r = {}
-	for i,v in ipairs(t) do
-		r[tostring(v.id)] = v
-	end
-	return r
-end
-
-local function id(__wake, __level)
-	-- body
-	return __wake * 1000 + __level	
 end
 
 local function push_achievement(achievement)
@@ -375,26 +349,6 @@ function REQUEST:achievement_reward_collect()
 	ret.msg = "no"
 	return ret
 end
-
-function REQUEST:role()
-	print(user.c_role_id)
-	local role = rolemgr:find(user.c_role_id)
-	local ret = {
-		errorcode = 0,
-		msg = "",
-		id = role.id,
-		wake_level = role.wake_level,
-		level = role.level,
-		combat = role.combat,
-		defense = role.defense,
-		critical_hit = role.critical_hit,
-		skill = role.skill,
-		c_equipment = role.c_equipment,
-		c_dress = role.c_dress,
-		c_kungfu = role.c_kungfu
-	}
-	return ret
-end	
     
 function REQUEST:signup()
 	-- body
@@ -493,24 +447,25 @@ function REQUEST:signup()
 end 
     
 function REQUEST:login()
+	-- 0. success
+	-- 1. online.
+	-- 2. account already exists
 	local ret = {}
 	if user then
 		ret.errorcode = 1
-		ret.msg	= "on"
+		ret.msg	= "online"
 		return ret
 	end
 	assert(self.account and	self.password)
 	assert(#self.password > 1)
-	local condition = { uaccount = self.account, upassword = self.password }
+	local condition = {{ uaccount = self.account, upassword = self.password }}
 	local addr = util.random_db()
-	local r = skynet.call(addr, "lua", "command", "select", "users", { condition } )
-    
+	local r = skynet.call(addr, "lua", "command", "select", "users", condition)
 	if #r == 0  then
-		print("***************************afa", #r)
-		ret.errorcode = 1 -- 1 user hasn't register.
-		ret.msg = "no"
+		ret.errorcode = 2 
+		ret.msg = "account already exists"
 		return ret
-	else
+	elseif #r == 1 then
 		local usersmgr = require "models/usersmgr"
 		user = usersmgr.create(r[1])
 		loader.load_user(user)
@@ -518,7 +473,7 @@ function REQUEST:login()
 		skynet.fork(subscribe)
 
 		ret.errorcode = 0
-		ret.msg = "yes"
+		ret.msg = "success"
 		ret.u = {
 			uname = user.uname,
 			uviplevel = user.uviplevel,
@@ -539,21 +494,15 @@ function REQUEST:login()
 		end
 		-- all roles
 		local l = {}
-		local idx = 1
 		for k,v in pairs(user.u_rolemgr.__data) do
+			local num = user.u_propmgr:get_by_csv_id(v.us_prop_csv_id).num
 			local r = {
-				role_id = v.id,
-				wake_level = v.wake_level,
-				level = v.level,
-				combat = v.combat,
-				defense = v.defense,
-				critical_hit = v.critical_hit,
-				skill = v.skill,
-				c_equipment = v.c_equipment,
-				c_dress = v.c_dress,
-				c_kungfu = v.c_kungfu
+				csv_id = v.csv_id,
+				is_possessed = true,
+				star = v.star,
+				u_us_prop_num = num and num or 0
 			}
-			l[idx] = r
+			table.insert(l, r)
 		end
 		ret.rolelist = l
 	end 
@@ -575,12 +524,22 @@ end
 
 function REQUEST:logout()
 	-- body
+	-- 0. success
+	-- 1. offline
+	local ret = {}
+	if not user then
+		ret.errorcode = 1
+		ret.msg = "offline"
+		return ret
+	end
 	assert(user)
 	user.ifonline = 0
 	user:__update_db({"ifonline"})
 	dc.set( user.csv_id , nil )
 	user = nil
-	return { errorcode = 0 }
+	ret.errorcode = 0
+	ret.msg = "success"
+	return ret
 end
 
 function REQUEST:role_info()
@@ -608,6 +567,7 @@ function REQUEST:role_info()
 end	
 
 function REQUEST:choose_role()
+	assert(false)
 	assert(user)
 	local ret = {}
 	if user.c_role_id == self.role_id then
@@ -1104,23 +1064,24 @@ end
 
 function REQUEST:recharge_all()
 	-- body
-	-- 1 not online
-	-- 2 
+	-- 0. success
+	-- 1. offline
 	local ret = {}
 	if not user then
 		ret.errorcode = 1
-		ret.msg = "no"
+		ret.msg = "offline"
 		return ret
 	end
 	ret.errorcode = 0
-	ret.msg = "yes"
+	ret.msg = "success"
 	ret.l = skynet.call(".shop", "lua", "recharge_all")
 	return ret
 end
 
 function REQUEST:recharge_purchase()
 	-- body
-	-- 1 offline
+	-- 0. success
+	-- 1. offline
 	local ret = {}
 	if not user then
 		ret.errorcode = 1
@@ -1175,16 +1136,18 @@ function REQUEST:recharge_purchase()
 		until false
 	end
 	ret.errorcode = 0
-	ret.msg = "yes"
+	ret.msg = "success"
 	return ret
 end
 
 function REQUEST:recharge_vip_reward_all()
 	-- body
+	-- 0. success
+	-- 1. offline
 	local ret = {}
 	if not user then
 		ret.errorcode = 1
-		ret.msg = "no"
+		ret.msg = "offline"
 		return ret
 	end
 	assert(user)
@@ -1197,22 +1160,27 @@ function REQUEST:recharge_vip_reward_all()
 		table.insert(l, r)
 	end
 	ret.errorcode = 0
-	ret.msg = "yes"
+	ret.msg = "success"
 	ret.reward = l
 	return ret
 end
 
 function REQUEST:recharge_vip_reward_collect()
 	-- body
+	-- 0. success
+	-- 1. offline
+	-- 2. non-existent
+	-- 3. error
+	-- 4. have done
 	local ret = {}
 	if not user then
 		ret.errorcode = 1
-		ret.msg = "not online"
+		ret.msg = "offline"
 		return ret
 	end
 	if self.vip == 0 then
 		ret.errorcode = 2
-		ret.msg = "no reward"
+		ret.msg = "non-existent"
 		return ret
 	end
 	if self.vip > user.uviplevel then
@@ -1223,15 +1191,15 @@ function REQUEST:recharge_vip_reward_collect()
 	assert(user)
 	local rc = user.u_recharge_vip_rewardmgr:get_by_vip(self.vip)
 	if rc and rc.collected then
-		ret.errorcode = 2
-		ret.msg = "you have collected."
+		ret.errorcode = 4
+		ret.msg = "have done"
 		return ret
 	end
 	local t = {user_id=user.csv_id, vip=self.vip, collected=1}
 	rc = user.u_recharge_vip_rewardmgr.create(t)
 	rc:__insert_db()
 	ret.errorcode = 0
-	ret.msg = "yes"
+	ret.msg = "success"
 	ret.vip = user.uviplevel
 	ret.collected = true
 	return ret
@@ -1239,18 +1207,18 @@ end
 
 function REQUEST:equipment_enhance()
 	-- body
-	-- 1 offline
-	-- 2 don't have enough money.
-	-- 3 rate
+	-- 0. success
+	-- 1. offline
+	-- 2. don't have enough money.
+	-- 3. rate
+	-- 4. error.
 	local ret = {}
 	if not user then
 		ret.errorcode = 1
 		ret.msg = "offline."
 		return ret
 	end
-	for k,v in pairs(user.u_equipmentmgr.__data) do
-		print(k,v)
-	end
+	-- 
 	local e = user.u_equipmentmgr:get_by_csv_id(self.csv_id)
 	if e.type == 1 then
 		local last = user.u_equipmentmgr:get_by_type(4)
@@ -1320,6 +1288,7 @@ end
 
 function REQUEST:role_all()
 	-- body
+	-- 0. success
 	-- 1. offline
 	-- 2. 
 	local ret = {}
@@ -1332,16 +1301,20 @@ function REQUEST:role_all()
 	for k,v in pairs(game.g_rolemgr.__data) do
 		local role = {}
 		role.csv_id = v.csv_id
-		if user.u_rolemgr:get_by_csv_id(v.csv_id) then
+		local r = user.u_rolemgr:get_by_csv_id(v.csv_id)
+		if r then
 			role.is_possessed = true
+			role.star = r.star
+			local num = user.u_propmgr:get_by_csv_id(r.us_prop_csv_id).num
+			role.u_us_prop_num = num and num or 0
+		else
+			role.star = v.star
+			role.u_us_prop_num = 0
 		end
 		table.insert(l, role)
 	end
-	-- for k,v in pairs(user.u_rolemgr.__data) do
-		
-	-- end
 	ret.errorcode = 0
-	ret.msg = "yes"
+	ret.msg = "success"
 	ret.l = l
 	-- ret.combat = 
  --    ret.defense =
@@ -1352,7 +1325,9 @@ end
 
 function REQUEST:role_recruit()
 	-- body
-	-- 1 offline
+	-- 0. success
+	-- 1. offline
+	-- 2. 
 	local ret = {}
 	if not ret then
 		ret.errorcode = 1
@@ -1388,6 +1363,7 @@ end
 
 function REQUEST:role_battle()
 	-- body
+	-- 0. success
 	-- 1. offline
 	-- 2. 
 	local ret = {}
@@ -1400,7 +1376,7 @@ function REQUEST:role_battle()
 	assert(user.u_propmgr:get_by_csv_id(self.csv_id))
 	user.c_role_id = self.csv_id
 	ret.errorcode = 0
-	ret.msg = "yes"
+	ret.msg = "success"
 	return ret
 end
 
