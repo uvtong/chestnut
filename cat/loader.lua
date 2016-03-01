@@ -373,8 +373,8 @@ local function load_u_equipment(user)
 		u_equipmentmgr:add(a)
 	end
 	user.u_equipmentmgr = u_equipmentmgr
-end
-
+end 
+	
 local function load_u_kungfu(user)
 	-- body
 	assert(user.u_kungfumgr == nil)
@@ -386,15 +386,33 @@ local function load_u_kungfu(user)
 		u_kungfumgr:add(a)
 	end
 	user.u_kungfumgr = u_kungfumgr
-end
+end 
+	
+local function load_u_draw( user )
+	assert( nil == user.u_drawmgr )
 
---local function load_u_draw( user )
---	assert( nil == user.u_drawmgr )
+	local u_drawmgr = require "models/u_drawmgr"
+	local sql1 = string.format( "select * from u_new_draw where srecvtime = ( select * from u_new_draw where uid = %s and drawtype = 1 ORDER BY srecvtime DESC limit 1 )" , user.id )
+	local r = skynet.call( util.random_db() , "lua" , "command" , "select" , "" )
 
---	local u_drawmgr = require "models/u_drawmgr"
+	for i , v in ipairs( r ) do
+		local draw = u_drawmgr.create( v )
+		assert( draw )
+		u_drawmgr:add( draw )
+	end
 
---end
+	local sql2 = string.format( "select * from u_new_draw where srecvtime = ( select * from u_new_draw where uid = %s and drawtype = 2 ORDER BY srecvtime DESC limit 1 )" , user.id )
+	local t = skynet.call( util.random_db() , "lua" , "command" , "select" , "" )
 
+	for i , v in ipairs(  ) do
+		local draw = u_drawmgr.create( v )
+		assert( draw )
+		u_drawmgr:add( draw )
+	end
+
+	user.u_drawmgr = u_drawmgr
+end	
+	
 local function load_u_prop(user)
 	-- body
 	local u_propmgr = require "models/u_propmgr"
@@ -539,6 +557,7 @@ function loader.load_user(user)
 	load_u_cgold( user )
 	load_u_email( user )
 	load_u_kungfu(user)
+	--load_u_draw( user )
 	load_u_prop(user)
 	load_u_role(user)
 	load_u_purchase_goods(user)
