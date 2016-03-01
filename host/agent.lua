@@ -154,7 +154,6 @@ local function request(name, args, response)
 	end
 end
 
-
 function RESPONSE:enter_room()
 	-- body
 	assert(self.errorcode == 0)
@@ -191,7 +190,6 @@ end
 
 function RESPONSE:turn_lead()
 	-- body
-
 end
 
 local function response(name, args)
