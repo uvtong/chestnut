@@ -153,6 +153,10 @@ while true do
 	if cmd then
 		if cmd == "handshake" then
 			send_request(cmd)
+		elseif cmd == "kungfu" then
+			send_request( cmd )
+		elseif cmd == "klevelup" then
+			send_request( "kungfu_levelup" , { k_csv_id = 1001 , k_level = 1 , k_type = 1 } )
 		elseif cmd == "role" then
 			send_request(cmd, { role_id = 1})
 		elseif cmd == "upgrade" then

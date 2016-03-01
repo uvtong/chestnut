@@ -5,7 +5,8 @@ local _M = {}
 _M.__data = {}
 _M.__count = 0
 
-local _Meta = { user_id=0, star=0, upgrade_star_prop_csv_id=0, csv_id=0}
+local _Meta = { user_id=0, star=0, upgrade_star_prop_csv_id=0, csv_id=0 , k_csv_id1 = 0 , k_csv_id2 = 0 , k_csv_id3 = 0 , k_csv_id4 = 0 , k_csv_id5 = 0 ,
+				k_csv_id6 = 0 , k_csv_id7 = 0 }
 
 _Meta.__tname = "u_role"
 

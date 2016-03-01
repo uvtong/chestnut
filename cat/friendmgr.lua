@@ -340,7 +340,7 @@ function friendmgr:apply_friendlist()
    			else                                                                                                                                                                                                                                                            
    				tmp.heart = false
    			end
-   			--tmp.signtime = v.sendtime -- '0' represents that i never sent heart to others
+   			tmp.signtime = v.sendtime -- '0' represents that i never sent heart to others , and used for sendheart and recvheart
    	 		local f = friendmgr:_createfriend( tmp )
    			assert( f )
 

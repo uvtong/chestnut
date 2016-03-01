@@ -25,11 +25,13 @@ local new_emailrequest = require "new_emailrequest"
 local checkinrequest = require "checkinrequest"
 local exercise_request = require "exercise_request"
 local cgold_request = require "cgold_request"
+local kungfurequest = require "kungfurequest"
 
 table.insert( M , checkinrequest )
 table.insert( M , exercise_request )
 table.insert( M , cgold_request )
 table.insert( M , new_emailrequest )
+table.insert( M , kungfurequest )
 
 local WATCHDOG
 local host
@@ -242,15 +244,26 @@ end
 	send_package( send_request( "newemail" ,  ret ) )
 end--]]
 
-local function subscribe()
+local function subscribe( )
 	-- body
 	local c = skynet.call(".channel", "lua", "agent_start", user.id, skynet.self())
 	local c2 = mc.new {
 		channel = c,
 		dispatch = function ( channel, source, cmd, tvals , ... )
 			-- body
-			local f = assert(SUBSCRIBE[cmd])
-			f(tvals, ...)
+			print( "************************ commond is " , cmd )
+			if SUBSCRIBE[cmd] then
+				local f = assert(SUBSCRIBE[cmd])
+				f(SUBSCRIBE, tvals, ...)
+			else
+				for k,v in pairs(M) do
+					if v.SUBSCRIBE[cmd] then
+						local f = assert(v.SUBSCRIBE[cmd])
+						f(SUBSCRIBE, tvals, ...)
+						break		
+					end
+				end
+			end
 		end
 	}
 	c2:subscribe()

@@ -324,8 +324,7 @@ function drawmgr:tentimedraw( tv )
 	assert( drawcost )
 	local dm = drawmgr:_create( tv ) 
 	assert( dm )
-	drawmgr:_db_insert_drawmsg( dm )
-	print( "insert drawmsg over" )
+	
 
 	local line = getline_byid( drawcost , tostring( tv.drawtype * 1000 ) )   --drawcost[tostring( id * 1000 )]
 	assert( line )
@@ -345,6 +344,9 @@ function drawmgr:tentimedraw( tv )
 
 		return ret
 	else 
+		drawmgr:_db_insert_drawmsg( dm )
+		print( "insert drawmsg over" )
+
 		prop.num = prop.num - tonumber( line.price )
 		proplist = getpropidlist( drawtype.TENTIME )
 		
@@ -370,12 +372,14 @@ function drawmgr:onetimedraw( tv )
 	local dm = drawmgr:_create( tv ) 
 	
 	assert( dm )
-	drawmgr:_db_insert_drawmsg( dm )
-	print( "insert drawmsg over" )
+	
 	local freetime = 1
 	print( tv.freetime )
 	print( "dm.srecvtime is " , dm.srecvtime )
 	if true == tv.iffree then
+		drawmgr:_db_insert_drawmsg( dm )
+		print( "insert drawmsg over" )
+
 		print( "is free" )
 		if freetime > 1 then
 			proplist.ok = false
@@ -412,6 +416,9 @@ function drawmgr:onetimedraw( tv )
 			ret.msg = "not enough money"
 			return ret
 		else
+			drawmgr:_db_insert_drawmsg( dm )
+			print( "insert drawmsg over" )
+
 			print( "update prop is called in " )
 
 			prop.num = prop.num - tonumber( line.price )

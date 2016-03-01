@@ -404,6 +404,13 @@ local function load_u_kungfu(user)
 	user.u_kungfumgr = u_kungfumgr
 end
 
+--local function load_u_draw( user )
+--	assert( nil == user.u_drawmgr )
+
+--	local u_drawmgr = require "models/u_drawmgr"
+
+--end
+
 local function load_u_prop(user)
 	-- body
 	local u_propmgr = require "models/u_propmgr"

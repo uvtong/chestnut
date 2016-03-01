@@ -8,16 +8,10 @@ proto.c2s = sprotoparser.parse [[.package {
 }
 
 .role {
-    id 0 : integer
-    wake_level 1 : integer
-    level 2 : integer
-    combat 3 : integer
-    defense 4 : integer
-    critical_hit 5 : integer
-    skill 6 : integer
-    c_equipment 7 : integer
-    c_dress 8 : integer
-    c_kungfu 9 : integer
+    csv_id 0 : integer
+    is_possessed 1 : boolean
+    star 2 : integer
+    u_us_prop_num 3 : integer
 }
 
 .user {
@@ -41,6 +35,8 @@ proto.c2s = sprotoparser.parse [[.package {
 .prop {
     csv_id 0 : integer
     num 1 : integer
+    star 2 : integer
+    u_us_prop_num 3 : integer
 }
 
 .achi {
@@ -183,6 +179,9 @@ proto.c2s = sprotoparser.parse [[.package {
     level 2 : integer
 }
 
+
+
+ 
 handshake 1 {
     request {
         secret 0 : string
@@ -192,7 +191,7 @@ handshake 1 {
     }
 }
 
-role 2 {
+role_info 2 {
     request {
         role_id 0 : integer
     }
@@ -687,6 +686,94 @@ equipment_all 51 {
         l 2 : *equipment
     }
 }
+
+role_all 52 {
+    response {
+        errorcode 0 : integer
+        msg 1 : string
+        l 2 : *role
+        combat 3 : integer
+        defense 4 : integer
+        critical_hit 5 : integer
+        blessing 6 : integer
+    }
+}
+
+role_recruit 53 {
+    request {
+        csv_id 0 : integer
+    }
+    response {
+        errorcode 0 : integer
+        msg 1 : string
+        r 2 : role
+    }
+}
+
+role_battle 54 {
+    request {
+        csv_id 0 : integer
+    }
+    response {
+        errorcode 0 : integer
+        msg 1 : integer
+    }
+}
+
+.kungfu_content
+ {
+    k_csv_id 1 : integer
+    k_level 2 : integer
+    k_type 3 : integer
+    k_sp_num 4 : integer 
+ }
+ 
+.kungfu_pos_and_id
+{
+    position 0 : integer
+    k_csv_id 1 : integer
+}
+
+.kungfu_role_list
+{
+    r_csv_id 0 : integer    
+    pos_list 1 : *kungfu_pos_and_id
+}
+
+
+kungfu 55
+{
+	response
+	{
+		k_list 0 : *kungfu_content
+        role_kid_list 1 : *kungfu_role_list
+	}
+}
+ 
+ kungfu_levelup 56
+ {
+	request
+	{
+		k_csv_id 0 : integer
+		k_level 1 : integer
+		k_type 2 : integer
+	}
+	response
+	{
+		ok 0 : boolean
+		error 1 : boolean
+		msg 2 : string
+	}
+ }
+ 
+ kungfu_chose 57
+ {
+	request
+	{
+		r_csv_id 0 : integer
+		idlist 1 : *kungfu_pos_and_id
+	}
+ }
 
 ]]
 

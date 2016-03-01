@@ -66,15 +66,20 @@ function _M:add( u )
 	self.__count = self.__count + 1
 end
 	
-function _M:get_by_csv_id(csv_id)
+function _M:get_by_g_csv_id( type , level )
 	-- body
-	return self.__data[tostring(csv_id)]
+	assert( type , level )
+	for k , v in pairs( self.__data ) do
+		if v.level == level and v.csv_id == type then
+			return v
+		end
+	end
 end
 
-function _M:delete_by_csv_id(csv_id)
+function _M:delete_by_g_csv_id(g_csv_id)
 	-- body
-	assert(self.__data[tostring(csv_id)])
-	self.__data[tostring(csv_id)] = nil
+	assert(self.__data[tostring(g_csv_id)])
+	self.__data[tostring(g_csv_id)] = nil
 	self.__count = self.__count - 1
 end
 
