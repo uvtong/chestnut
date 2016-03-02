@@ -161,7 +161,7 @@ local function judge_time_quantum( time , lastlength ) -- msg: judge which time_
 	assert( stage and lefttime )
 	return stage , lefttime 
 end 	
-		
+
 function REQUEST:draw()
 	-- body
 	print( "applydraw is called in drawmgr" )
