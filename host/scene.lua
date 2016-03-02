@@ -1,5 +1,6 @@
 local skynet = require "skynet"
 require "skynet.manager"
+local errorcode = require "errorcode"
 
 local game
 
@@ -7,11 +8,13 @@ local CMD = {}
 
 function CMD.enter_room(t)
 	-- body
-	for k,v in pairs(game.g_roommgr.__data) do
-		if v.is_empty == 1 then
-			return v.csv_id
-		end
+	local room = game.g_roommgr.get_next()
+	table.insert(room.users, room)
+	for i,v in ipairs(room.users) do
+		print(i,v)
 	end
+	local ret = { name="left", addr=2, user_id=1}
+	return ret
 end
 
 skynet.start(function()

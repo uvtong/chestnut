@@ -5,9 +5,9 @@ local _M = {}
 _M.__data = {}
 _M.__count = 0
 
-local _Meta = { g_csv_id = 0 , name = 0 , csv_id = 0 , level = 0, iconid = 0 , skill_descp = 0 , skill_effect = 0 , type = 0 , harm_type = 0 , arise_probability = 0 , arise_count = 0 , arise_type = 0 , arise_param = 0 , attack_type = 0 , effect_percent = 0 , addition_effect_type = 0 , addition_prog = 0 ,  property_csv_id = 0 , property_p = 0 , prop_csv_id = 0 , prop_num = 0 , currency_type = 0 , currency_num = 0 }
+local _Meta = { g_csv_id=0, csv_id=0, name=0, level=0, combat=0, defense=0, critical_hit=0, king=0, combat_probability=0, defense_probability=0, king_probability=0, enhance_success_rate=0, currency_type=0, currency_num=0}
 
-_Meta.__tname = "g_kungfu"
+_Meta.__tname = "g_equipment_enhance"
 
 function _Meta.__new()
  	-- body
@@ -48,6 +48,21 @@ function _Meta:__serialize()
 	return r
 end
 
+function _M.insert_db( values )
+	assert(type(values) == "table" )
+	local total = {}
+	for i,v in ipairs(values) do
+		local t = {}
+		for kk,vv in pairs(v) do
+			if not string.match(kk, "^__*") then
+				t[kk] = vv
+			end
+		end
+		table.insert(total, t)
+	end
+	skynet.send( util.random_db() , "lua" , "command" , "insert_all" , _Meta.__tname , total )
+end 
+
 function _M.create( P )
 	assert(P)
 	local u = _Meta.__new()
@@ -61,24 +76,19 @@ end
 
 function _M:add( u )
 	assert(u)
-	self.__data[tostring(u.g_csv_id)] = u
+	self.__data[tostring(u.csv_id)] = u
 	self.__count = self.__count + 1
 end
 	
-function _M:get_by_g_csv_id( type , level )
+function _M:get_by_csv_id(csv_id)
 	-- body
-	assert( type , level )
-	for k , v in pairs( self.__data ) do
-		if v.level == level and v.csv_id == type then
-			return v
-		end
-	end
+	return self.__data[tostring(csv_id)]
 end
 
-function _M:delete_by_g_csv_id(g_csv_id)
+function _M:delete_by_csv_id(csv_id)
 	-- body
-	assert(self.__data[tostring(g_csv_id)])
-	self.__data[tostring(g_csv_id)] = nil
+	assert(self.__data[tostring(csv_id)])
+	self.__data[tostring(csv_id)] = nil
 	self.__count = self.__count - 1
 end
 

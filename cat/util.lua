@@ -245,4 +245,23 @@ function util.guid(game, csv_id)
 	-- return os.time()
 end
 
+function util.parse_text(src, parten, D)
+	-- body
+	src = "1000*10*10*10*10*10"
+	D = 2
+	parten = "(%d+%*%d+%*%d+%*?)"
+	local r = {}
+	string.gsub(src, parten, function (s)
+		-- body
+		local t = {}
+		for i=1,D do
+			local x = string.gsub(s, "(%d+)%*(%d+)%*(%d+)%*?", string.format("%%%d", i))
+			print(x)
+			table.insert(t, assert(tonumber(x)))
+		end
+		table.insert(r, t)
+	end)
+	return r
+end
+
 return util

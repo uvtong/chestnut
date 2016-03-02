@@ -72,28 +72,6 @@ function _M.create(P)
 		end
 	end
 	return u
-end	
-
-function _M.create_gold(user, num)
-	-- body
-	assert(user)
-	local u = _Meta.__new()
-	u.user_id = user.csv_id
-	u.csv_id = const.GOLD
-	u.num = num
-	u.name = "gold"
-	return u
-end
-
-function _M.create_diamond(user, num)
-	-- body
-	assert(user)
-	local u = _Meta.__new()
-	u.user_id = user.csv_id
-	u.csv_id = const.DIAMOND
-	u.num = num
-	u.name = "diamond"
-	return u
 end
 
 function _M:add( u )

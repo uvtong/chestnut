@@ -5,7 +5,7 @@ local _M = {}
 _M.__data = {}
 _M.__count = 0
 
-local _Meta = { user_id=0, csv_id=0, }
+local _Meta = { uid = 0 , drawtype = 0 , srecvtime = 0 , propid = 0 , iffree = 0 , amount = 0 }
 
 _Meta.__tname = "u_draw"
 
@@ -34,7 +34,7 @@ function _Meta:__update_db(t)
 	for i,v in ipairs(t) do
 		columns[tostring(v)] = self[tostring(v)]
 	end
-	skynet.send(util.random_db(), "lua", "command", "update", self.__tname, {{ csv_id=assert(self.csv_id) }}, columns)
+	skynet.send(util.random_db(), "lua", "command", "update", self.__tname, { { uid = assert( self.uid ) , drawtype = self.drawtype } } , columns )
 end
 
 function _Meta:__serialize()
@@ -53,27 +53,27 @@ function _M.create( P )
 	local u = _Meta.__new()
 	for k,v in pairs(_Meta) do
 		if not string.match(k, "^__*") then
-			u[k] = assert(P[k])
+			u[ k ] = assert( P[ k ] )
 		end
 	end
 	return u
 end	
 
 function _M:add( u )
-	assert(u)
-	self.__data[tostring(u.csv_id)] = u
+	assert( u )
+	self.__data[ tostring( u.drawtype )] = u
 	self.__count = self.__count + 1
 end
 	
-function _M:get_by_csv_id(csv_id)
+function _M:get_by_type( drawtype )
 	-- body
-	return self.__data[tostring(csv_id)]
+	return self.__data[ tostring( drawtype ) ]
 end
 
-function _M:delete_by_csv_id(csv_id)
+function _M:delete_by_type( drawtype )
 	-- body
-	assert(self.__data[tostring(csv_id)])
-	self.__data[tostring(csv_id)] = nil
+	assert(self.__data[ tostring( drawtype ) ] )
+	self.__data[ tostring( drawtype ) ] = nil
 	self.__count = self.__count - 1
 end
 

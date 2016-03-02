@@ -258,6 +258,18 @@ local function load_g_uid()
 	game.g_uidmgr = g_uidmgr
 end
 
+local function load_g_room()
+	-- body
+	assert(game.g_roommgr == nil)
+	local g_roommgr = require "models/g_roommgr"
+	for i=1,1000 do
+		local t = { csv_id = i, users = {}}
+		local room = g_roommgr.create(t)
+		g_roommgr:add(room)
+	end
+	game.g_roommgr = g_roommgr
+end
+
 local function load_u_achievement(user)
 	-- body
 	local u_achievementmgr = require "models/u_achievementmgr"
@@ -494,7 +506,7 @@ function loader.load_game()
 		load_g_daily_task()
 		load_g_goods()
 		load_g_goods_refresh_cost()
-		load_g_kungfu()
+		-- load_g_kungfu()
 		load_g_drawcost()
 		load_g_mainreward()
 		load_g_subreward()
@@ -505,6 +517,7 @@ function loader.load_game()
 		load_g_role_star()
 		load_g_shop()
 		load_g_uid()
+
 	end
 	skynet.fork(f)
 	return game
