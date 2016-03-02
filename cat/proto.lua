@@ -14,24 +14,6 @@ proto.c2s = sprotoparser.parse [[.package {
     u_us_prop_num 3 : integer
 }
 
-.user {
-    uname 0 : string 
-    uviplevel 1 : integer
-    uexp 2 : integer
-    config_sound 3 : boolean
-    config_music 4 : boolean
-    avatar 5 : integer
-    sign 6 : string
-    c_role_id 7 : integer
-    rolelist 8 : *role
-    gold 9 : integer
-    diamond 10 : integer
-    recharge_total 11 : integer
-    recharge_vip 12 : integer
-    recharge_progress 13 : integer
-    recharge_diamond 14 : integer
-}
-
 .prop {
     csv_id 0 : integer
     num 1 : integer
@@ -175,10 +157,8 @@ proto.c2s = sprotoparser.parse [[.package {
 
 .equipment {
     csv_id 0 : integer
-    type 1 : integer
     level 2 : integer
 }
-
 
 .kungfu_content
  {
@@ -199,7 +179,27 @@ proto.c2s = sprotoparser.parse [[.package {
     r_csv_id 0 : integer    
     pos_list 1 : *kungfu_pos_and_id
 } 
- 
+
+.user {
+    uname 0 : string 
+    uviplevel 1 : integer
+    uexp 2 : integer
+    config_sound 3 : boolean
+    config_music 4 : boolean
+    avatar 5 : integer
+    sign 6 : string
+    c_role_id 7 : integer
+    rolelist 8 : *role
+    gold 9 : integer
+    diamond 10 : integer
+    recharge_total 11 : integer
+    recharge_vip 12 : integer
+    recharge_progress 13 : integer
+    recharge_diamond 14 : integer
+    love 15 : integer
+    equipment_list 16 : *equipment
+    kungfu_list 17 : *kungfu_content
+}
 
 handshake 1 {
     request {
@@ -764,14 +764,42 @@ kungfu 55
 	}
  }
  
- kungfu_chose 57
- {
+kungfu_chose 57
+{
 	request
 	{
 		r_csv_id 0 : integer
 		idlist 1 : *kungfu_pos_and_id
 	}
- }
+}
+
+user_sign 58 {
+	request {	
+		sign 0 : string
+	}
+	response {
+		errorcode 0 : integer
+		msg 1 : string
+	}
+}
+
+user_random_name 59 {
+	response {
+		errorcode 0 : integer
+		msg 1 : string
+		name 2 : string
+	}
+}
+
+user_random_name_ok 60 {
+	request {	
+		name 0 : string
+	}
+	response {
+		errorcode 0 : integer
+		msg 1 : string
+	}
+}
 ]]
 
 proto.s2c = sprotoparser.parse [[
