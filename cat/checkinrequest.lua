@@ -76,8 +76,8 @@ local function get_g_checkin_month_by_reward_num( reward_num )
 
 	return t
 end	
-
-local function Split(szFullString, szSeparator)  
+	
+--[[local function Split(szFullString, szSeparator)  
 	local nFindStartIndex = 1  
 	local nSplitIndex = 1  
 	local nSplitArray = {}  
@@ -92,7 +92,27 @@ local function Split(szFullString, szSeparator)
    		nSplitIndex = nSplitIndex + 1  
 	end  
 	return nSplitArray  
+end --]]
+
+local function Split(src, parten, D)
+	-- body
+	src = "1000*10*10*10*10*10"
+	D = 2
+	parten = "(%d+%*%d+%*%d+%*?)"
+	local r = {}
+	string.gsub(src, parten, function (s)
+		-- body
+		local t = {}
+		for i=1,D do
+			local x = string.gsub(s, "(%d+)%*(%d+)%*(%d+)%*?", string.format("%%%d", i))
+			print(x)
+			table.insert(t, assert(tonumber(x)))
+		end
+		table.insert(r, t)
+	end)
+	return r
 end
+
 						
 local function get_accumulate_reward( t )
 	assert( t )
@@ -100,8 +120,21 @@ local function get_accumulate_reward( t )
 	local ret = {}
 	
 	print( "*********************************get_accumulate_reward" )
-	local r = Split( t.prop_id_num , "," )
+	local r = Split( t.prop_id_num , "(%d+%*%d+%*?)" , 2 )
+
+	for _ , sub in ipairs( r ) do
+		local tmp = {}
+		tmp.propid = tonumber( sub[ 1 ] )
+		tmp.amount = tonumber( sub[ 2 ] )
+		print( k , v , sub[ 1 ] , sub[ 2 ] )
+		table.insert( ret , tmp )
+	end	
+
+	--[[local r = Split( t.prop_id_num , "," )
 	assert( r )
+
+	print( "size of r in checkinrequest is ******************************* " , #r )
+	--local length = r / 2
 
 	for k , v in ipairs( r ) do
 		local tmp = {}
@@ -112,7 +145,7 @@ local function get_accumulate_reward( t )
 		print( k , v , sub[ 1 ] , sub[ 2 ] )
 		table.insert( ret , tmp )
 	end	
-
+--]]
 	return ret
 end	
 		

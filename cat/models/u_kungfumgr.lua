@@ -5,7 +5,7 @@ local _M = {}
 _M.__data = {}
 _M.__count = 0
 
-local _Meta = { user_id = 0 , csv_id = 0 , level = 0 , type = 0 , sp_id = 0 }
+local _Meta = { user_id = 0 , csv_id = 0 , level = 0 , type = 0 , sp_id = 0 } -- type 1 zhudong , 2 beidong , csv_id is quanfa leixing id = 1,2,3,4,...
 
 _Meta.__tname = "u_kungfu"
 
@@ -66,15 +66,15 @@ function _M:add( u )
 	self.__count = self.__count + 1
 end	
 		
-function _M:get_by_csv_id(csv_id)
+function _M:get_by_type(type)
 	-- body
-	return self.__data[ tostring( csv_id ) ] 
+	return self.__data[ tostring( type ) ] 
 end	
 
-function _M:delete_by_csv_id(csv_id)
+function _M:delete_by_type(type)
 	-- body
-	assert(self.__data[tostring(csv_id)])
-	self.__data[tostring(csv_id)] = nil
+	assert(self.__data[tostring(type)])
+	self.__data[tostring(type)] = nil
 	self.__count = self.__count - 1
 end	
 	

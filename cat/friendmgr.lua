@@ -614,7 +614,7 @@ function friendmgr:recvfriend( friendlist )
 			local t = {}
 			t.tname = "u_friendmsg"
 			t.content = { isread = 1 }
-			t.condition = { fromid = v.friendid , toid = user.csv_id , type = msgtype.ACCEPT , srecvtime = v.signtime }
+			t.condition = { fromid = v.friendid , toid = user.csv_id , type = msgtype.APPLY , srecvtime = v.signtime }
 			friendmgr:_db_updatemsg( t )
 
 			print( "insert a new msg to db and update a msg" )

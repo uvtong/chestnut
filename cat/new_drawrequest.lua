@@ -214,6 +214,37 @@ local frienddraw()
 	
 end 
 	
+local function splitsubreward_bytype( typeid )
+	assert( typeid )
+
+	local sublist = {}
+	for k , v in pairs( game.u_mainrewardmgr.__data )
+		if v.csv_id == typeid then
+			table.insert( sublist , v )
+		end
+	end
+
+	print( "splitsubreward_bytype i called" )
+	return sublist
+end	
+	
+local function getgroupid( list , val )
+	assert( val and list )
+
+	local len = #list
+	local sub = tonumber( list[len].probid )
+	print( "sub and val is " )
+
+	for i = len , 1 , -1 do
+		if sub < val  then
+			i = i - 1
+			sub = sub + tonumber( list[i].probid )
+		else    
+			return list[i].groupid
+		end 		
+	end
+end 
+	
 local function getpropidlist( dtype )
 	print( "get[rp[od is called" )
 	assert( dtype )
@@ -224,24 +255,22 @@ local function getpropidlist( dtype )
 	local mainreward = csvReader.getcont( "mainreward" )
 	assert( subreward and mainreward )
 
-	local sublist = splitsubreward_bytype( mainreward , tostring( dtype * 1000 ) )
+	local sublist = splitsubreward_bytype( dtype * 1000 )
 	assert( sublist )
 
 	if drawtype.TENTIME == dtype then
 		print( "dtype id in getpropidlis is " .. dtype )
 		for i = 1 , 10 do
 			local r = skynet.call( ".randomdraw" , "lua" , "command" , "draw" , dtype ) --drawmgr:_db_getrandomid( dtype )
-			print( r )
 			local id = getgroupid( sublist , r )
-			print( "groupid is >>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>" .. id )
 			for i = 1 , #subreward do
 				if subreward[ i ].id == id then
 					table.insert( propidlist.list , { propid = tonumber( subreward[ i ].propid ) ,
 					propnum = tonumber( subreward[ i ].propnum ) } )
-				end 	
+			 	end 	
 			end	
 		end	  
-	else
+	else 	 
 		print( "dtype id in getpropidlis is " .. dtype )
 		local r = skynet.call( ".randomdraw" , "lua" , "command" , "draw" , dtype )
 		print( r )
@@ -281,7 +310,12 @@ local function getpropidlist( dtype )
 	return propidlist
 end				
 
-
+local function frienddraw( )
+	local proplist ={}
+	if false = isfriend then
+		proplist.ok = false
+	end
+end
 
 
 function REQUEST:applydraw()
@@ -343,6 +377,7 @@ function REQUEST:applydraw()
 	return ret
 end					
 			
+
 function RESPONSE:abc()
 	-- body	
 end			

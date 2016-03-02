@@ -182,7 +182,7 @@ proto.c2s = sprotoparser.parse [[.package {
 
 .kungfu_content
  {
-    k_csv_id 1 : integer
+    csv_id 1 : integer
     k_level 2 : integer
     k_type 3 : integer
     k_sp_num 4 : integer 
@@ -752,14 +752,14 @@ kungfu 55
  {
 	request
 	{
-		k_csv_id 0 : integer
+		csv_id 0 : integer
 		k_level 1 : integer
 		k_type 2 : integer
 	}
 	response
 	{
 		ok 0 : boolean
-		error 1 : boolean
+		errorcode 1 : integer
 		msg 2 : string
 	}
  }
