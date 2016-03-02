@@ -1417,6 +1417,28 @@ function REQUEST:role_battle()
 	return ret
 end
 
+function REQUEST:user_sign()
+	-- body
+	local ret = {}
+	user.sign = self.sign
+	user:__update_db({"sign"})
+	ret.errorcode = 0
+	ret.msg = "success"
+	return ret
+end
+
+function REQUEST:user_random_name()
+	-- body
+	local ret = {}
+	return ret
+end
+
+function REQUEST:user_random_name_ok()
+ 	-- body
+ 	local ret = {}
+ 	return ret
+end
+
 function REQUEST:handshake()
 	print("Welcome to skynet, I will send heartbeat every 5 sec." )
 	return { msg = "Welcome to skynet, I will send heartbeat every 5 sec." }

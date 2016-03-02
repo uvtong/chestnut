@@ -124,7 +124,7 @@ function _M:recvemail( tvals )
 
 	local newemail = self.create( tvals )
 	assert( newemail )
-	self:_add( newemail )
+	self:add( newemail )
 	newemail:__insert_db()
 
 	print("add email succe in recvemail\n")

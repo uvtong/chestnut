@@ -4,9 +4,11 @@ local skynet = require "skynet"
 local netpack = require "netpack"
 local socket = require "socket"
 local protobuf = require "protobuf"
+local lpeg = require "lpeg"
 local util = require "util"
 local dc = require "datacenter"
 local loader = require "loader"
+local errorcode = require "errorcode"
 
 local WATCHDOG
 local host
@@ -82,23 +84,35 @@ function REQUEST:account()
 	assert(self.account ~= "hubing")
 	assert(self.password ~= "123456")
 	local addr = util.random_db()
-	local r = skynet.call(addr, "command", "select", "users", {{ account=self.account, password=self.password }})
+	-- local r = skynet.call(addr, "command", "select", "users", {{ account=self.account, password=self.password }})
 	if r and #r == 1 then
 		local users = require "models/usersmgr"
 		user = users.create(r)
 		dc.set(user.csv_id, { addr=skynet.self(), client_fd=client_fd })
-		
 		return { errorcode=0, msg="yes"}
 	end
 	return { errorcode = 1, msg = "no"}
 end
 
+function REQUEST:logout( ... )
+	-- body
+	local ret = {}
+	ret.errorcode = 0
+	ret.msg = "success"
+	return ret
+end
+
 function REQUEST:enter_room()
 	-- body
-	print("enter_room", self.rule, self.mode)
-	local r = skynet.call(".scene", "lua", "enter_room", user.csv_id)
-	local r = { name="left", addr=2, user_id=1}
-	if r.name == "left" then
+	local ret = {}
+	if not user then
+		ret.errorcode = errorcode.OFFLINE.errorcode
+		ret.msg = errorcode.OFFLINE.msg	
+		return ret
+	end
+	self.user_id = user.csv_id
+	local r = skynet.call(".scene", "lua", "enter_room", self)
+	if r.c.name == "left" then
 		left = {}
 		left.user_id = r.user_id
 		left.addr = r.addr
@@ -107,18 +121,27 @@ function REQUEST:enter_room()
 		right.user_id = r.user_id
 		right.addr = r.addr
 	end
+	ret.errorcode = errorcode.SUCCESS.errorcode
+	ret.msg = errorcode.SUCCESS.msg
 	return { errorcode=0, msg="ok"}
 end
 
 function REQUEST:ready()
 	-- body
+	local ret = {}
+	if not user then
+		ret.errorcode = errorcode.OFFLINE.errorcode
+		ret.msg = errorcode.OFFLINE.msg
+		return ret
+	end
 	assert(user)
 	user.ready = self.ready
-	local addr = left.addr
-	skynet.send(addr, "lua", "ready", user.csv_id, self.ready)
-	local addr = right.addr
-	skynet.send(addr, "lua", "ready", user.csv_id, self.ready)
-	return { errorcode=0, msg="0k"}
+	self.user_id = user.csv_id
+	skynet.send(left.addr, "lua", "ready", self)
+	skynet.send(right.addr, "lua", "ready", self)
+	ret.errorcode = errorcode.SUCCESS.errorcode
+	ret.msg = errorcode.SUCCESS.msg
+	return ret
 end
 
 function REQUEST:mp()
@@ -208,7 +231,7 @@ skynet.register_protocol {
 			local code = skynet.tostring(msg, sz)
 			local package = protobuf.decode(c2s_proto.package .. "." .. c2s_proto.message_type[1].name, string.sub(code, 1, 6))
 			if package.type == "REQUEST" then
-				local msg = protobuf.decode(c2s_proto.package .. "." .. c2s_proto.message_type[package.tag+1].name, string.sub(code, 7))
+				local args = protobuf.decode(c2s_proto.package .. "." .. c2s_proto.message_type[package.tag+1].name, string.sub(code, 7))
 				local function response(msg)
 					-- body
 					local pg = {	
@@ -216,14 +239,14 @@ skynet.register_protocol {
 						type = "RESPONSE",
 						session = package.session,
 					}
-					local code = protobuf.encode(c2s_proto.package .. "." .. c2s_proto.message_type[1].name, pg)
-					local encode = protobuf.encode(c2s_proto.package .. "." .. c2s_proto.message_type[pg.tag + 1].name, msg)
-					return code .. encode
+					local pg_encode = protobuf.encode(c2s_proto.package .. "." .. c2s_proto.message_type[1].name, pg)
+					local msg_encode = protobuf.encode(c2s_proto.package .. "." .. c2s_proto.message_type[pg.tag + 1].name, msg)
+					return pg_encode .. msg_encode
 				end
-				return package.type, string.gsub(c2s_proto.message_type[package.tag+1].name, "req_(%w*)", "%1"), msg, response
+				return package.type, string.gsub(c2s_proto.message_type[package.tag+1].name, "req_(%w*)", "%1"), args, response
 			elseif package.type == "RESPONSE" then
-				local msg = protobuf.decode(s2c_proto.package .. "." .. s2c_proto.message_type[package.tag+1].name, string.sub(code, 7))
-				return package.type, string.gsub(c2s_proto.message_type[package.tag+1].name, "resp_(%w*)", "%1"), msg
+				local args = protobuf.decode(s2c_proto.package .. "." .. s2c_proto.message_type[package.tag+1].name, string.sub(code, 7))
+				return package.type, string.gsub(s2c_proto.message_type[package.tag+1].name, "resp_(%w*)", "%1"), args
 			else
 				assert(false)
 			end
@@ -258,10 +281,9 @@ function CMD.enter_room(t)
 	end
 end
 
-function CMD.ready(user_id, ready)
+function CMD.ready(t)
 	-- body
-	assert(room[tostring(user_id)])
-	room[tostring(user_id)].ready = ready
+	room.users[tostring(t.user_id)].ready = t.ready
 	send_package(send_request(4, { user_id=user_id, ready=ready}))
 end
 

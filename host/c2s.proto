@@ -15,8 +15,8 @@ message package {
 
 // 1
 message req_account {
-	optional string account = 1;
-	optional string password = 2;
+	required string account = 1;
+	required string password = 2;
 }
 
 // 2
@@ -95,4 +95,14 @@ message resp_lead {
 	required int32 errorcode = 1;
 	required string msg = 2;
 	required int32 m = 3;	
+}
+
+// 15 
+message req_logout {
+}
+
+// 16
+message resp_logout {
+	required int32 errorcode = 1;
+	required string msg = 2;
 }

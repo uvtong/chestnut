@@ -9,9 +9,10 @@ local socket = require "clientsocket"
 local proto = require "proto"
 local sproto = require "sproto"
 local protobuf = require "protobuf"
-
+local host = {}
 -- local host = sproto.new(proto.s2c):host "package"
 -- local request = host:attach(sproto.new(proto.c2s))
+
 
 local addr = io.open("../host/c2s.pb","rb")
 local buffer = addr:read "*a"
@@ -31,16 +32,41 @@ local s2c_proto = t.file[1]
 print(s2c_proto.name)
 print(s2c_proto.package)
 
+function host:dispatch(code)
+	-- body
+	local package = protobuf.decode(c2s_proto.package .. "." .. c2s_proto.message_type[1].name, string.sub(code, 1, 6))
+	if package.type == "REQUEST" then
+		local args = protobuf.decode(c2s_proto.package .. "." .. c2s_proto.message_type[package.tag+1].name, string.sub(code, 7))
+		local function response(msg)
+			-- body
+			local pg = {	
+				tag = package.tag + 1, -- client.
+				type = "RESPONSE",
+				session = package.session,
+			}
+			local pg_encode = protobuf.encode(s2c_proto.package .. "." .. s2c_proto.message_type[1].name, pg)
+			local msg_encode = protobuf.encode(s2c_proto.package .. "." .. s2c_proto.message_type[pg.tag + 1].name, msg)
+			return pg_encode .. msg_encode
+		end
+		return package.type, string.gsub(c2s_proto.message_type[package.tag+1].name, "req_(%w*)", "%1"), args, response
+	elseif package.type == "RESPONSE" then
+		local args = protobuf.decode(c2s_proto.package .. "." .. c2s_proto.message_type[package.tag+1].name, string.sub(code, 7))
+		return package.type, string.gsub(c2s_proto.message_type[package.tag+1].name, "resp_(%w*)", "%1"), args
+	else
+		assert(false)
+	end
+end
+
 local request = function ( tag, args, session )
 	-- body
-	session = session + 1
 	local package = {
 		tag = tag,
 		type = "REQUEST",
 		session = session,
 	}
 	local code = protobuf.encode("c2s.package", package)
-	local encode = protobuf.encode(c2s_proto.package .. "." .. s2c_proto.message_type[tag].name, args)
+	print(tag+1)
+	local encode = protobuf.encode(c2s_proto.package .. "." .. c2s_proto.message_type[tag+1].name, args)
 	return code .. encode
 end
 
@@ -174,23 +200,11 @@ while true do
 		if cmd == "handshake" then
 			assert(false)
 		elseif cmd == "account" then
-			send_request(2, { account="end1", password="end1"})
-		elseif cmd == "upgrade" then
-			send_request(cmd, { role_id = 2 })
-		elseif cmd == "choose_role" then
-			send_request(cmd, { role_id = 2 })
-		elseif cmd == "wake" then
-			send_request(cmd, { role_id = 2 })
-		elseif cmd == "props" then
-			send_request(cmd)
-		elseif cmd == "use_prop" then
-			send_request(cmd, { props = {{ csv_id = 1, num = 1}}, role_id = 2})
-		elseif cmd == "achievement" then
-			send_request(cmd)
-		elseif cmd == "channel" then
-			send_request(cmd)
-		elseif cmd == "login" then
-			send_request("login", { account = "hello" , password = "world" })
+			send_request(1, { account="end1", password="end1"})
+		elseif cmd == "logout" then
+			send_request(15, {})
+		elseif cmd == "enter_room" then
+			send_request(15, {})
 		end
 	else
 		socket.usleep(100)

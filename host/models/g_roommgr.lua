@@ -5,7 +5,7 @@ local _M = {}
 _M.__data = {}
 _M.__count = 0
 
-local _Meta = { csv_id=0, is_empty=0}
+local _Meta = { csv_id=0, users=0 }
 
 _Meta.__tname = "g_room"
 
@@ -48,6 +48,8 @@ function _Meta:__serialize()
 	return r
 end
 
+
+
 function _M.create( P )
 	assert(P)
 	local u = _Meta.__new()
@@ -80,6 +82,14 @@ end
 function _M:get_count()
 	-- body
 	return self.__count
+end
+
+local idx = 1
+
+function _M:get_next()
+	-- body
+	idx = idx + 1
+	return self.__data[tostring(idx)] 
 end
 
 return _M

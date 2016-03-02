@@ -5,7 +5,8 @@ local _M = {}
 _M.__data = {}
 _M.__count = 0
 
-local _Meta = { user_id=0, csv_id=0, name=0, star=0, us_prop_csv_id=0, us_prop_num=0, sharp=0, skill_csv_id=0, gather_buffer_id=0, battle_buffer_id=0}
+local _Meta = { user_id=0, csv_id=0, name=0, star=0, us_prop_csv_id=0, us_prop_num=0, sharp=0, skill_csv_id=0, gather_buffer_id=0, battle_buffer_id=0,
+k_csv_id1=0, k_csv_id2=0, k_csv_id3=0, k_csv_id4=0, k_csv_id5=0, k_csv_id6=0, k_csv_id7=0}
 
 _Meta.__tname = "u_role"
 
@@ -34,7 +35,7 @@ function _Meta:__update_db(t)
 	for i,v in ipairs(t) do
 		columns[tostring(v)] = self[tostring(v)]
 	end
-	skynet.send(util.random_db(), "lua", "command", "update", self.__tname, {{ id = self.id }}, columns)
+	skynet.send(util.random_db(), "lua", "command", "update", self.__tname, {{ user_id = self.user_id, csv_id=self.csv_id }}, columns)
 end
 
 function _Meta:__serialize()
@@ -57,7 +58,7 @@ function _M.create( P )
 		end
 	end
 	return u
-end	
+end
 
 function _M:add(u)
 	assert(u)
