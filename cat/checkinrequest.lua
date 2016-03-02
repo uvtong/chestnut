@@ -152,7 +152,7 @@ function REQUEST:checkin()
 
 	local today_start_time = os.time( { year = year , month = month , day = day , hour = 0 , min = 0 , sec = 0 } )
 	--local today_start_time 
-
+	print( "sizeof checkin is ################################" , checkin_mgr:get_count() )
 	local tcheckin = checkin_mgr:get_checkin()
 	local tcheckin_month = checkin_month_mgr:get_checkin_month()
 	--assert( tcheckin )
