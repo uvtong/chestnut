@@ -107,7 +107,7 @@ function REQUEST:kungfu_levelup()
 		print( " not enough money" )
 		ret.ok = false
 		ret.errorcode = NOT_ENOUGH_PROP
-
+			
 		return ret
 	else    
 		--print( t , t[ tostring( self.k_csv_id) ] )
@@ -120,7 +120,7 @@ function REQUEST:kungfu_levelup()
 			tkungfu.type = self.k_type
 			tkungfu.sp_id = g_tk.prop_csv_id			
 			tkungfu = kungfu_mgr.create( tkungfu )
- 
+ 			
 			assert( tkungfu )
 			kungfu_mgr:add( tkungfu )
                               
@@ -162,6 +162,7 @@ function REQUEST:kungfu_chose()
 	local ret = {}
 	local t = user.u_rolemgr:get_by_csv_id( self.r_csv_id )
 	assert( t )
+
 
 	for i = 1 , KUNGFU_NUM do
 		local k_csv_id = "k_csv_id" .. i
