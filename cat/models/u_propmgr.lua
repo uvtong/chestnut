@@ -6,7 +6,14 @@ local _M = {}
 _M.__data = {}
 _M.__count = 0
 
-local _Meta = { user_id=0, csv_id=0, num=0, sub_type=0, level=0, pram1=0, pram2=0, use_type=0}
+local _Meta = { user_id=0, 
+				csv_id=0, 
+				num=0, 
+				sub_type=0, 
+				level=0, 
+				pram1=0, 
+				pram2=0, 
+				use_type=0}
 _Meta.__tname = "u_prop"
 
 function _Meta.__new()
@@ -93,22 +100,6 @@ end
 function _M:get_count()
 	-- body
 	return self.__count
-end
-
-function _M:update_num(user, csv_id, num)
-	-- body
-	local prop = user.u_propmgr:get_by_csvid(csv_id)
-	if prop then
-		prop.num = prop.num + num
-		prop:__update_db({"num"})
-	else
-		local p = game.g_propmgr:get_by_csv_id(csv_id)
-		p.user_id = user.id
-		p.num = num
-		local prop = user.u_propmgr.create(p)
-		user.u_propmgr:add(prop)
-		prop:__insert_db()
-	end
 end
 
 return _M

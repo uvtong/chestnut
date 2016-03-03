@@ -32,7 +32,19 @@ local _Meta = { csv_id=0,
 				checkin_num=0, 
 				checkin_reward_num=0, 
 				exercise_level=0, 
-				cgold_level=0 }
+				cgold_level=0,
+				gold_max=0,
+				exp_max=0,
+				equipment_enhance_success_rate_up_p=0,
+				store_refresh_count_max=0,
+				prop_refresh=0,
+				arena_frozen_time=0,
+				purchase_hp_count=0,
+				gain_gold_up_p=0,
+				gain_exp_up_p=0,
+				purchase_hp_count_max=0,
+				SCHOOL_reset_count_max=0,
+				SCHOOL_reset_count=0 }
 
 _Meta.__tname = "users"
 
@@ -80,7 +92,6 @@ function _M.create( P )
 	local u = _Meta.__new()
 	for k,v in pairs(_Meta) do
 		if not string.match(k, "^__*") then
-			print(k)
 			u[k] = assert(P[k])
 		end
 	end

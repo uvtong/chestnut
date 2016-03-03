@@ -5,7 +5,12 @@ local _M = {}
 _M.__data = {}
 _M.__count = 0
 
-local _Meta = { csv_id=0, sub_type=0, pram1=0, pram2=0, icon_id=0, intro=0, level=0, use_type=0}
+local _Meta = { csv_id=0,
+				sub_type=0, 
+				level=0, 
+				pram1=0, 
+				pram2=0, 
+				use_type=0}
 
 _Meta.__tname = "g_prop"
 

@@ -211,6 +211,7 @@ function util.insert_all( table_name , tcolumns )
 		table.insert( tmp , value )
 	end
 	local sql = string.format( "insert into %s " , table_name ) .. columns_str .. " values " .. table.concat( tmp ) .. ";"
+	print_sql(sql)
 	return sql
 end 
 
@@ -247,9 +248,9 @@ end
 
 function util.parse_text(src, parten, D)
 	-- body
-	src = "1000*10*10*10*10*10"
-	D = 2
-	parten = "(%d+%*%d+%*%d+%*?)"
+	-- src = "1000*10*10*10*10*10"
+	-- D = 2
+	-- parten = "(%d+%*%d+%*%d+%*?)"
 	local r = {}
 	string.gsub(src, parten, function (s)
 		-- body

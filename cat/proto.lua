@@ -791,15 +791,18 @@ user_random_name 59 {
 	}
 }
 
-user_random_name_ok 60 {
-	request {	
-		name 0 : string
-	}
-	response {
-		errorcode 0 : integer
-		msg 1 : string
-	}
+recharge_vip_reward_purchase 60 {
+    request {
+        vip 0 : integer
+    }
+    response {
+        errorcode 0 : integer
+        msg 1 : string
+        l 2 : *prop
+    }
 }
+
+
 ]]
 
 proto.s2c = sprotoparser.parse [[

@@ -53,6 +53,18 @@ local function load_g_equipment()
 	game.g_equipmentmgr = g_equipmentmgr
 end
 
+local function load_g_equipment_enhance()
+	-- body
+	assert(game.g_equipment_enhancemgr == nil)
+	local g_equipment_enhancemgr = require "models/g_equipment_enhancemgr"
+	local r = skynet.call(util.random_db(), "lua", "command", "select", "g_equipment_enhance")
+	for i,v in ipairs(r) do
+		local t = g_equipment_enhancemgr.create(v)
+		g_equipment_enhancemgr:add(t)
+	end
+	game.g_equipment_enhancemgr = g_equipment_enhancemgr
+end
+
 local function load_g_goods()
 	-- body
 	assert(game.g_goodsmgr == nil)
@@ -199,14 +211,12 @@ end
 
 local function load_g_daily_task()
 	assert( nil == game.g_daily_taskmgr )
-
 	local g_daily_taskmgr = require "models/g_daily_taskmgr"
 	local r = skynet.call( util.random_db() , "lua" , "command" , "select" , "g_daily_task" )
 	for i , v in ipairs( r ) do
 		local t = g_daily_taskmgr.create( v )
 		g_daily_taskmgr:add( t )
 	end
-
 	game.g_daily_taskmgr = g_daily_taskmgr
 end
 
@@ -517,6 +527,7 @@ function loader.load_game()
 		load_g_checkin()
 		load_g_checkin_total()
 		load_g_equipment()
+		load_g_equipment_enhance()
 		load_g_daily_task()
 		load_g_goods()
 		load_g_goods_refresh_cost()
@@ -530,6 +541,7 @@ function loader.load_game()
 		load_g_role()
 		load_g_role_star()
 		load_g_shop()
+		load_g_user_level()
 		load_g_uid()
 	end
 	skynet.fork(f)

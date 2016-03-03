@@ -176,7 +176,7 @@ while true do
 		elseif cmd == "login" then
 			send_request("login", { account = "aaa" , password = "aaa" })
 		elseif cmd == "signup" then
-			send_request("signup", { account = "hello39" , password = "world2" })
+			send_request("signup", { account = "hello46" , password = "world2" })
 		elseif cmd == "role_upgrade_star" then
 			send_request("role_upgrade_star", { role_csv_id=1})
 		elseif cmd == "user_can_modify_name" then
@@ -234,19 +234,25 @@ while true do
 		elseif cmd == "reward" then
 			send_request( "checkin_reward" )
 		elseif cmd == "exercise" then
-			send_request( "exercise" )
+			send_request("exercise" )
 		elseif cmd == "eonce" then
-			send_request( "exercise_once" , { daily_type = 1 , exercise_type = 1 , exercise_level = 0 } )
+			send_request("exercise_once" , { daily_type = 1 , exercise_type = 1 , exercise_level = 0 } )
 		elseif cmd == "equipment_all" then
-			send_request( "equipment_all")
+			send_request("equipment_all")
 		elseif cmd == "equipment_enhance" then
-			send_request( "equipment_enhance", { csv_id=1000 })
+			send_request("equipment_enhance", { csv_id=1000 })
 		elseif cmd == "role_all" then
 			send_request(cmd)
 		elseif cmd == "role_recruit" then
 			send_request(cmd, { csv_id=4})
 		elseif cmd == "role_battle" then
 			send_request(cmd, { csv_id=4})
+		elseif cmd == "user_sign" then
+			send_request(cmd, { sign="abc"})
+		elseif cmd == "user_random_name" then
+			send_request(cmd)
+		elseif cmd == "recharge_vip_reward_purchase" then
+			send_request(cmd, { vip = 1})
 		end
 	else
 		socket.usleep(100)

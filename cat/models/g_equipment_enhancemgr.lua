@@ -5,7 +5,21 @@ local _M = {}
 _M.__data = {}
 _M.__count = 0
 
-local _Meta = { g_csv_id=0, csv_id=0, name=0, level=0, combat=0, defense=0, critical_hit=0, king=0, combat_probability=0, defense_probability=0, king_probability=0, enhance_success_rate=0, currency_type=0, currency_num=0}
+local _Meta = { g_csv_id=0, 
+				csv_id=0, 
+				name=0, 
+				level=0, 
+				combat=0, 
+				defense=0, 
+				critical_hit=0, 
+				king=0, 
+				combat_probability=0, 
+				defense_probability=0, 
+				critical_hit_probability=0,
+				king_probability=0, 
+				enhance_success_rate=0, 
+				currency_type=0, 
+				currency_num=0}
 
 _Meta.__tname = "g_equipment_enhance"
 
@@ -76,7 +90,7 @@ end
 
 function _M:add( u )
 	assert(u)
-	self.__data[tostring(u.csv_id)] = u
+	self.__data[tostring(u.g_csv_id)] = u
 	self.__count = self.__count + 1
 end
 	

@@ -5,9 +5,24 @@ local _M = {}
 _M.__data = {}
 _M.__count = 0
 
-local _Meta = { vip=0, diamond=0, gold_up=0, exp_up=0, gold_top=0, exp_top=0, equipment_enhance_success_rate_up=0, prop_refresh_reduction=0, s_diamond=0, c_diamond=0, store_refresh_count=0, rewared=0, gift_reward=0}
+local _Meta = { vip=0, 
+				diamond=0, 
+				gain_gold_up_p=0, 
+				gain_exp_up_p=0, 
+				gold_max_up_p=0, 
+				exp_max_up_p=0, 
+				equipment_enhance_success_rate_up_p=0, 
+				prop_refresh_reduction_p=0,
+				arena_frozen_time_reduction_p=0,
+				purchase_hp_count_max=0,
+				SCHOOL_reset_count_max=0,
+				rewared=0,
+				store_refresh_count_max=0,
+				purchasable_gift=0,
+				marked_diamond=0,
+				purchasable_diamond=0}
 
-_M.__tname = "g_recharge_vip_reward"
+_Meta.__tname = "g_recharge_vip_reward"
 
 function _Meta.__new()
  	-- body
