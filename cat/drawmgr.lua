@@ -83,11 +83,12 @@ end
 end	--]]	
 		
 local function getsettime()
-	local year = tonumber( os.date( "%Y" , os.time() ) )
-	local month = tonumber( os.date( "%m" , os.time() ) )
-	local day = tonumber( os.date( "%d" , os.time() ) )
+	local date = os.time()
+	local year = tonumber( os.date( "%Y" , date ) )
+	local month = tonumber( os.date( "%m" , date ) )
+	local day = tonumber( os.date( "%d" , date ) )
 	local hightime = { year = year , month = month , day = day , hour = updatetime , min = 0 , sec = 0 }
-	local hour = tonumber( os.date( "%H" , os.time() ) )
+	local hour = tonumber( os.date( "%H" , date ) )
 	local settime
 	if 0 <= hour and hour < updatetime then
 		settime = os.time( hightime ) - 60 * 60 * 24
