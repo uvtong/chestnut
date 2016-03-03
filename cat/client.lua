@@ -174,7 +174,7 @@ while true do
 		elseif cmd == "channel" then
 			send_request(cmd)
 		elseif cmd == "login" then
-			send_request("login", { account = "aaa" , password = "aaa" })
+			send_request("login", { account = "hello46" , password = "world2" })
 		elseif cmd == "signup" then
 			send_request("signup", { account = "hello46" , password = "world2" })
 		elseif cmd == "role_upgrade_star" then

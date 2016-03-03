@@ -251,13 +251,18 @@ function util.parse_text(src, parten, D)
 	-- src = "1000*10*10*10*10*10"
 	-- D = 2
 	-- parten = "(%d+%*%d+%*%d+%*?)"
+	local xparten = ""
+	string.gsub(parten, "(%%%w%+)%%%*", function (s)
+		-- body
+		xparten = xparten .. "(" .. s .. ")" .. "%*"
+	end)
+	xparten = xparten .. "?"
 	local r = {}
 	string.gsub(src, parten, function (s)
 		-- body
 		local t = {}
 		for i=1,D do
-			local x = string.gsub(s, "(%d+)%*(%d+)%*(%d+)%*?", string.format("%%%d", i))
-			print(x)
+			local x = string.gsub(s, xparten, string.format("%%%d", i))
 			table.insert(t, assert(tonumber(x)))
 		end
 		table.insert(r, t)

@@ -35,6 +35,8 @@ message req_ready {
 message resp_ready {
 	required int32 errorcode = 1;
 	required string msg = 2;
+	repeated int32 cards = 3;
+	repeated int32 rcards = 4;
 }
 
 // 5
