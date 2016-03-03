@@ -60,7 +60,7 @@ function REQUEST:kungfu()
 		tmp.k_level = v.level
 		tmp.k_type = v.type
 		tmp.k_sp_num = tprop.num
-
+		print( v.csv_id , v.level , v.type )
 		table.insert( ret.k_list , tmp )
 	end		  	
 	print( "length of is *****************" , #( user.u_rolemgr.__data ) )
@@ -70,14 +70,15 @@ function REQUEST:kungfu()
 
 		tmp.pos_list = {}	
 		tmp.r_csv_id = v.csv_id
-		local f = {}
+		
 		for i = 1 , KUNGFU_NUM do
+			local f = {}
+			local kcsv_id = "k_csv_id" .. i
 			
-			local k_csv_id = "k_csv_id" .. i
-			print( k_csv_id , v[ k_csv_id ] )
-			if 0 ~= v[ k_csv_id ] then
+			if 0 ~= v[ kcsv_id ] then
 				f.position = i
-				f[k_csv_id] = v[ k_csv_id ]
+				f.k_csv_id = v[ kcsv_id ]
+				print( f.position , f.k_csv_id )
 				table.insert( tmp.pos_list , f )
 			end 
 		end

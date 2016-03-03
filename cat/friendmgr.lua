@@ -12,6 +12,7 @@ local user
 local updatetime = 17
 local total = 50 --dai ding
 local dc 
+local SENDTYPE = 4 -- dai ding 4 presents heart
 	
 local friend = { id, apply , name , level , viplevel , iconid , sign , fightpower , isonline , online_time , heart , apply , receive }
 function friend:_new( ... )
@@ -30,7 +31,7 @@ function msg:_new()
 
 	return t
 end	
-	
+		
 function friendmgr:_createfriend( tfriend )
 	assert( tfriend )
 	
@@ -95,9 +96,9 @@ function friendmgr:_db_insertmsg( msg )
 	skynet.send( addr , "lua" , "command" , "insert_newmsg" , msg )
 
 	print("insert a msg successfully")	
-end
-
-
+end 
+	
+	
 function friendmgr:_db_loadfriend( uid )
 	assert( uid )
 	local addr = randomaddr()
@@ -179,8 +180,8 @@ function friendmgr:_db_delete_friend( t )
 
 	skynet.send( addr , "lua" , "command" , "delete_friend" , t ) 
 	print( "delete a friend successfully" )
-end		
-
+end	 	
+	
 function friendmgr:_db_updatefriend( t )
 	assert( t )
 
@@ -768,7 +769,7 @@ function friendmgr:recvheart( heartlist , totalamount )
 		return ret
 	end		
 
-	local prop = user.u_propmgr:get_by_csv_id( 3 )
+	local prop = user.u_propmgr:get_by_csv_id( SENDTYPE )
 	
 	--print( "total num is " .. total.num )
 	for k , v in pairs( heartlist ) do
@@ -823,7 +824,7 @@ end
 function friendmgr:sendheart( heartlist , totalamount ) 
 	assert( heartlist )
 	print(	"heartamount = " .. totalamount )
-	local prop = user.u_propmgr:get_by_csv_id( 3 )
+	local prop = user.u_propmgr:get_by_csv_id( SENDTYPE )
 	--assert( total )
 	--print( "total num is " .. total.num )
 	if nil == prop or prop.num - totalamount < 0 then -- not enough heart then return error
