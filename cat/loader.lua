@@ -125,7 +125,7 @@ local function load_g_recharge()
 	game.g_rechargemgr = g_rechargemgr
 end
 
-local function load_g_recharge_vip_reward()
+--[[local function load_g_recharge_vip_reward()
 	-- body
 	assert(game.g_recharge_vip_rewardmgr == nil)
 	local g_recharge_vip_rewardmgr = require "models/g_recharge_vip_rewardmgr"
@@ -135,7 +135,7 @@ local function load_g_recharge_vip_reward()
 		g_recharge_vip_rewardmgr:add(t)
 	end
 	game.g_recharge_vip_rewardmgr = g_recharge_vip_rewardmgr
-end
+end--]]
 
 local function load_g_role()
 	-- body
@@ -537,7 +537,7 @@ function loader.load_game()
 		load_g_subreward()
 		load_g_prop()
 		load_g_recharge()
-		load_g_recharge_vip_reward()
+		--load_g_recharge_vip_reward()
 		load_g_role()
 		load_g_role_star()
 		load_g_shop()

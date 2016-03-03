@@ -171,6 +171,7 @@ end
 
 local function request(name, args, response)
 	local f = assert(REQUEST[name])
+	print("REQUEST:", name)
 	local msg = f(args)
 	if response then
 		return response(msg)

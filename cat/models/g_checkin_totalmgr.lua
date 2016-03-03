@@ -5,7 +5,7 @@ local _M = {}
 _M.__data = {}
 _M.__count = 0
 
-local _Meta = { id = 0 , totalamount = 0 , prop_id_num = 0 }
+local _Meta = { csv_id = 0 , totalamount = 0 , prop_id_num = 0 }
 
 _M.__tname = "g_checkin_total"
 
@@ -61,19 +61,19 @@ end
 
 function _M:add( u )
 	assert(u)
-	self.__data[tostring(u.id)] = u
+	self.__data[tostring(u.csv_id)] = u
 	self.__count = self.__count + 1
 end
 	
-function _M:get_by_id( id )
+function _M:get_by_id( csv_id )
 	-- body
-	return self.__data[tostring( id ) ]
+	return self.__data[tostring( csv_id ) ]
 end
 
-function _M:delete_by_id( id )
+function _M:delete_by_id( csv_id )
 	-- body
-	assert( id and self.__data[tostring( id )])
-	self.__data[tostring( id )] = nil
+	assert( id and self.__data[tostring( csv_id )])
+	self.__data[tostring( csv_id )] = nil
 	self.__count = self.__count - 1
 end
 

@@ -209,9 +209,68 @@ function REQUEST:draw()
 	          
 	return ret
 end			
+
+local ERROR = { WAI_GUA = 1 , NOT_ENOUGH_MONEY = 2 }
+
+local function frienddraw( tv )
+	assert( tv )
+	local proplist = {}
+
+	if false == isfriend then
+		proplist.ok = false
+		proplist.errorcode = ERROR.WAI_GUA
+		return proplist
+	end
 	
-local frienddraw()
+	local id = tv.drawtype
+	local t = {}
 	
+	local drawcost = csvReader.getcont( "drawcost" )
+	assert( drawcost )
+	local dm = drawmgr:_create( tv ) 
+	assert( dm )
+	drawmgr:_db_insert_drawmsg( dm )
+	print( "insert drawmsg over" )
+	frecvtime = dm.srecvtime
+	local line = getline_byid( drawcost , tostring( id * 1000 ) )   --drawcost[ tostring( id * 1000 ) ]
+	assert( line )
+
+
+	local t = {}
+	t.uid = user.csv_id
+	t.csvid = tonumber( line.cointype )
+
+	local prop = user.u_propmgr:get_by_csv_id( tonumber( line.cointype ) )
+	print( "***************************line.cointype is " , line.cointype )
+	--assert( prop )
+	--local num = drawmgr:_db_getdioment_or_heart_num( t )
+    --print( "money from db  is " .. prop.num )
+    --print( prop.num , line.price )
+	if nil == prop or prop.num < tonumber( line.price ) then
+		print( "money is less then price" )
+		local ret = {}
+		ret.ok = false
+		ret.msg = "not enough money"
+
+		return ret
+	else
+		print( "line price is " , tonumber( line.price ) )
+		prop.num = prop.num - tonumber( line.price )
+		proplist = getpropidlist( drawtype.FRIEND ) 
+		print( "update prop is called in " )
+
+		prop:__update_db( {"num"} )
+
+		--[[local v = {}
+		v.tname = "u_prop"
+		v.content = { num = num }
+		v.condition = { user_id = user.csv_id , csv_id = tonumber( abortine.cointype ) }
+
+		drawmgr:_db_update_prop( v )--]]
+		print( "update prop successfully in tentimedraw" )
+	end	
+
+	return proplist
 end 
 	
 local function splitsubreward_bytype( typeid )
@@ -316,7 +375,6 @@ local function frienddraw( )
 		proplist.ok = false
 	end
 end
-
 
 function REQUEST:applydraw()
 	print( "*-----------------------------* new_drawrequest_day is called" )
