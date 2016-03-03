@@ -98,13 +98,13 @@ function connect_mysql( ... )
 	end
 	
 	local db = mysql.connect( { 
-		host = "192.168.1.116",
-		-- host = "192.168.1.105",
+		-- host = "192.168.1.116",
+		host = "192.168.1.106",
 		port = 3306,
 		database = "project",
 		user = "root",
-		-- password = "123456",
-		password = "yulei",
+		password = "123456",
+		-- password = "yulei",
 		max_packet_size = 1024 * 1024,
 		on_connect = on_connect,
 	} )
