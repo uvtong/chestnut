@@ -1371,13 +1371,17 @@ function REQUEST:equipment_enhance()
 	end
 	local ee = game.g_equipment_enhancemgr:get_by_csv_id(e.csv_id *1000 + e.level + 1)
 	local currency = user.u_propmgr:get_by_csv_id(ee.currency_type)
-	if currency.num < e.currency_num then
+	if currency.num < ee.currency_num then
 		ret.errorcode = 2
 		ret.msg = "don't have enough money."
+		return ret
 	else
+		assert(currency.num >= ee.currency_num)
 		local r = math.random(0, 100)
 		if r < e.enhance_success_rate then
+			assert(currency.num > 0)
 			currency.num = currency.num - ee.currency_num
+			assert(currency.num > 0)
 			currency:__update_db({"num"})
 			e.level = ee.level
 			e.combat = ee.combat
@@ -1627,6 +1631,7 @@ local function request(name, args, response)
     end
     assert(f)
     local r = f(args)
+    print("**********************************", name)
     if name == "login" then
     	if r.errorcode == 0 then
     		for k,v in pairs(M) do
