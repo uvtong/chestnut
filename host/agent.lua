@@ -248,8 +248,10 @@ function REQUEST:rob()
 	end
 	user.rob = self.rob
 	local t = {
-		user_id	 = user.csv_id
-		m = self.rob
+		user_id	 = user.csv_id,
+		m = self.rob,
+		your_trun = left.csv_id,
+		countdown = 
 	}
 	skynet.send(right.addr, "lua", "rob", t)
 	skynet.send(left.addr, "lua", "rob", t)

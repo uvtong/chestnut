@@ -244,18 +244,18 @@ function REQUEST:achievement()
 	assert(user)
 	local function decorate(v, a)
 		-- body
-		local cur = assert(user.u_achievementmgr:get_by_type(v.type))
+		local cur = user.u_achievementmgr:get_by_type(v.type)
 		if cur then
 			if cur.is_valid == 1 then
 				if cur.csv_id > v.csv_id then
 					local r = assert(user.u_achievement_rcmgr:get_by_csv_id(v.csv_id))
 					a.finished = r.finished
 					a.reward_collected = (r.reward_collected == 1) and true or false
-					a.is_unlock = (r.is_unlock == 1) and true or false
+					a.is_unlock = true
 				elseif cur.csv_id == v.csv_id then
 					a.finished = cur.finished
 					a.reward_collected = false
-					a.is_unlock = (cur.is_unlock == 1) and true or false
+					a.is_unlock = true
 				else
 					assert(cur.csv_id < v.csv_id)
 					a.finished = 0
@@ -266,7 +266,7 @@ function REQUEST:achievement()
 				local r = assert(user.u_achievement_rcmgr:get_by_csv_id(v.csv_id))
 				a.finished = r.finished
 				a.reward_collected = (r.reward_collected == 1) and true or false
-				a.is_unlock = (r.is_unlock == 1) and true or false
+				a.is_unlock = true
 			else
 				assert(false)
 			end
@@ -284,7 +284,6 @@ function REQUEST:achievement()
 				a.reward_collected = (v.reward_collected == 1) and true or false
 				a.is_unlock = (v.is_unlock == 1) and true or false
 			else
-				assert(false)
 			end
 		end
 		return a
@@ -315,10 +314,6 @@ function REQUEST:achievement_reward_collect()
 	assert(user)
 	assert(self.csv_id)
 	local a = user.u_achievement_rcmgr:get_by_csv_id(self.csv_id)
-	print(self.csv_id)
-	for k,v in pairs(a) do
-		print(k,v)
-	end
 	if a and a.finished == 100 and a.reward_collected == 0 then
 		a.reward_collected = 1
 		a:__update_db({"reward_collected"})
@@ -762,26 +757,21 @@ function REQUEST:use_prop()
 				table.insert(l, { csv_id=g.csv_id, num=g.num})
 				raise_achievement(const.A_T_GOLD, user, game)
 			elseif assert(prop.use_type) == 3 then
-				assert(false)
-				local csv_id1 = string.gsub(prop.pram1, "(%d*)%*(%d*)%*(%d*)%*(%d*)", "%1")
-				local num1 = string.gsub(prop.pram1, "(%d*)%*(%d*)%*(%d*)%*(%d*)", "%2")
-				local p1 = user.u_propmgr:get_by_csv_id(csv_id1)
-				p1.num = p1.num + num1 * math.abs(v.num)
-				p1:__update_db({"num"})
-				if csv_id1 == const.GOLD then
-					raise_achievement(const.A_T_GOLD, user, game)
-				elseif csv_id1 == const.EXP then
-					raise_achievement(const.A_T_EXP, user, game)
-				end
-				local csv_id2 = string.gsub(prop.pram1, "(%d*)%*(%d*)%*(%d*)%*(%d*)", "%3")
-				local num2 = string.gsub(prop.pram1, "(%d*)%*(%d*)%*(%d*)%*(%d*)", "%4")
-				local p2 = user.u_propmgr:get_by_csv_id(csv_id2)
-				p2.num = p2.num + num1 * math.abs(v.num)
-				p2:__update_db({"num"})
-				if csv_id2 == const.GOLD then
-					raise_achievement(const.A_T_GOLD, user, game)
-				elseif csv_id2 == const.EXP then
-					raise_achievement(const.A_T_EXP, user, game)
+				local r = util.parse_text(prop.pram1, "(%d+%*%d+%*?)", 2)
+				for k,v in pairs(r) do
+					if v[1] == const.GOLD then
+						local prop = user.u_propmgr:get_by_csv_id(const.GOLD)
+						prop.num = prop.num + v[2]
+						prop:__update_db({"num"})
+						raise_achievement(const.A_T_GOLD, user, game)
+					elseif v[1] == const.EXP then
+						local prop = user.u_propmgr:get_by_csv_id(v[1])
+						prop.num = prop.num + v[2]
+						prop:__update_db({"num"})
+						raise_achievement(const.A_T_EXP, user, game)
+					else
+						assert(false)
+					end
 				end
 			elseif assert(prop.use_type) == 4 then
 				local r = util.parse_text(prop.pram1, "(%d+%*%d+%*%d+%*?)", 3)

@@ -74,7 +74,6 @@ message req_am {
 message resp_am {
 	required int32 errorcode = 1;
 	required string msg = 2;
-	required int32 m = 3;
 }
 
 // 11
@@ -99,7 +98,10 @@ message req_lead {
 message resp_lead {
 	required int32 errorcode = 1;
 	required string msg = 2;
-	required int32 m = 3;	
+	required int32 your_turn = 3;
+	required int32 countdown = 4;
+	optional int32 user_id = 6;
+	optional int32 user_id = 6;
 }
 
 // 15 
