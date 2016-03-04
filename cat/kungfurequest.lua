@@ -147,6 +147,18 @@ function REQUEST:kungfu_levelup()
 
 		tprop_currency.num = tprop_currency.num - g_tk.currency_num
 		tprop_currency:__update_db( { "num" } )	
+
+		local g_tk = get_g_kungfu_by_skill_type_and_level( self.csv_id , self.k_level + 1 )
+		if not g_tk then
+			ret.amount = 0
+		else
+			local tprop = user.u_propmgr:get_by_csv_id( g_tk.prop_csv_id )
+			if not tprop then
+				ret.amount = 0
+			else
+				ret.amount = tprop.num
+			end
+		end 
 	end 	
 
 	ret.ok = true

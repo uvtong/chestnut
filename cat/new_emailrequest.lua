@@ -36,7 +36,7 @@ end
 
 function REQUEST:mails()
 	local ret = {}
-	
+		
 	ret.mail_list = {}
 
 	local emailbox = emailmgr:get_all_emails()
@@ -45,7 +45,7 @@ function REQUEST:mails()
 		print( "called" )
 		local tmp = {}
 		tmp.attachs = {}
-
+		
 		tmp.emailid = v.csv_id
 		tmp.type = v.type
 		tmp.acctime = os.date( "%Y-%m-%d" , v.acctime )
@@ -57,13 +57,13 @@ function REQUEST:mails()
 		tmp.iconid = v.iconid
 
 		table.insert( ret.mail_list , tmp )
-	end
-
+	end 
+ 		
 	print( "mails is called already" )
 
 	return ret
-end
-
+end      
+		
 function REQUEST:mail_read()
 	print( "****************************email_read is called" )
 
@@ -77,9 +77,9 @@ function REQUEST:mail_read()
 
 		e.isread = 1
 		e:__update_db( { "isread" } )
-	end
-end
-
+	end 
+end		
+		
 function REQUEST:mail_delete()
 	print( "****************************email_delete is called" )
 
