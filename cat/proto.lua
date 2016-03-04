@@ -486,6 +486,7 @@ shop_purchase 30 {
         errorcode 0 : integer
         msg 1 : string
         l 2 : *prop
+        ll 3 : *goods
     }
 }
 

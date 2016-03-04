@@ -22,10 +22,10 @@ local c2s_proto
 local s2c_proto
 
 local game
+local room
 local user
 local left
 local right
-
 
 local function send_package(pack)
 	local package = string.pack(">s2", pack)
@@ -134,34 +134,130 @@ end
 
 function REQUEST:ready()
 	-- body
+	-- 0. success
+	-- 3. success and  
 	local ret = {}
 	if not user then
-		ret.errorcode = errorcode.OFFLINE.errorcode
-		ret.msg = errorcode.OFFLINE.msg
+		ret.errorcode = errorcode[2].code
+		ret.msg = errorcode[2].msg
 		return ret
 	end
 	assert(user)
 	user.ready = self.ready
 	if left.ready and right.ready then
-	self.user_id = user.csv_id
-	skynet.send(left.addr, "lua", "ready", self)
-	skynet.send(right.addr, "lua", "ready", self)
-	ret.errorcode = errorcode.SUCCESS.errorcode
-	ret.msg = errorcode.SUCCESS.msg
-	return ret
+		local a = shuffle()
+		user.cards = a[1]
+		local t = {
+			errorcode = errorcode[3].code,
+			msg = errorcode[3].msg,
+			user_id = user.csv_id,
+			ready = assert(self.ready),
+			cards = a[2],
+			rcards = a[4],
+			your_trun = user.csv_id,
+			countdown = 20
+		}
+		skynet.send(right.addr, "lua", "ready", t)
+		t = {
+			errorcode = errorcode[3].code,
+			msg = errorcode[3].msg
+			user_id = user.csv_id,
+			ready = assert(self.ready),
+			cards = a[3],
+			rcards = a[4],
+			your_trun = user.csv_id,
+			countdown = 20
+		}
+		skynet.send(left.addr, "lua", "ready", t)
+		ret.errorcode = errorcode[3].code
+		ret.msg = errorcode[3].msg
+		ret.cards = a[1]
+		ret.rcards = a[4]
+		ret.your_trun = user.csv_id
+		ret.countdown = 20
+		return ret
+	else
+		self.user_id = user.csv_id
+		skynet.send(left.addr, "lua", "ready", self)
+		skynet.send(right.addr, "lua", "ready", self)
+		ret.errorcode = errorcode[1].code
+		ret.msg = errorcode[1].msg
+		return ret	
+	end
 end
 
 function REQUEST:mp()
 	-- body
+	local ret = {}
+	if not user then
+		ret.errorcode = errorcode[2].code
+		ret.msg = errorcode[2].msg
+		return ret
+	end
+	assert(user)
+	user.mp = assert(self.mp)
+	local t = {
+		errorcode = errorcode[1].code,
+		msg = errorcode[1].msg,
+		user_id	= user.csv_id,
+		m = assert(self.m)
+	}
+	skynet.send(right.addr, "lua", "mp", t)
+	skynet.send(left.addr, "lua", "mp", t)
+	ret.errorcode = errorcode[1].code
+	ret.msg = errorcode[1].msg
+	return ret
 end
 
 function REQUEST:am()
 	-- body
+	local ret = {}
+	if not user then
+		ret.errorcode = errorcode[2].code
+		ret.msg = errorcode[2].msg
+		return ret
+	end
+	assert(user)
+	user.am	= self.m
+	room.m = room.m * 2
+	local t = {
+		errorcode = errorcode[1].code,
+		msg = errorcode[1].msg,
+		user_id = user.csv_id,
+		m = room.m
+
+	}
+	ret.errorcode = errorcode[1].code
+	ret.msg = errorcode[1].msg
+	return ret
 end
 
 function REQUEST:rob()
 	-- body
-	skynet.send(right.addr, "lua", "left.user_id", self.m)
+	local ret = {}
+	if not user then
+		ret.errorcode = errorcode[2].code
+		ret.msg = errorcode[2].msg
+		return ret
+	end
+	assert(user)
+	if user.rob_count then
+		user.rob_count = user.rob_count + 1
+	else
+		user.rob_count = 1
+	end
+	user.rob = self.rob
+	local t = {
+		user_id	 = user.csv_id
+		m = self.rob
+	}
+	skynet.send(right.addr, "lua", "rob", t)
+	skynet.send(left.addr, "lua", "rob", t)
+	ret.errorcode = errorcode[1].code
+	ret.msg = errorcode[1].msg
+	ret.your_trun = left.csv_id
+	ret.countdown = 20
+	return ret
 end
 
 function REQUEST:lead()
@@ -201,10 +297,12 @@ end
 
 function RESPONSE:deal_cards()
 	-- body
+	assert(false)
 end
 
 function RESPONSE:rob()
 	-- body
+
 end
 
 function RESPONSE:turn_rob()
@@ -295,15 +393,55 @@ end
 
 function CMD.ready(t)
 	-- body
-	room.users[tostring(t.user_id)].ready = t.ready
-	send_package(send_request(3, { user_id=user_id, ready=ready}))
+	if t.user_id == right.csv_id then
+		right.ready = assert(t.ready)
+	elseif t.user_id == left.csv_id then
+		left.ready = assert(t.ready)
+	else
+		assert(false)
+	end
+	send_package(send_request(3, t))
 end
 
-function CMD.rob(user_id, m)
+function CMD.mp(t)
 	-- body
-	left.rob = m
-	-- turn rob
-	send_package(send_request(11, {user_id=user.csv_id, countdown=20}))
+	if t.user_id == right.csv_id then
+		right.mp = t.mp
+	elseif t.user_id == left.csv_id then
+		left.mp = t.mp
+	else
+		assert(false)
+	end
+	send_package(send_request(5, t))
+end
+
+function CMD.am(t)
+	-- body
+	if t.user_id == right.csv_id then
+		right.am = t.am
+	elseif t.user_id == left.csv_id then
+		left.am	t.am
+	else
+		assert(false)
+	end
+	send_package(send_request(19, t))
+end
+
+function CMD.rob(t)
+	-- body
+	if t.user_id == right.csv_id then
+		right.rob = t.rob
+	elseif t.user_id == left.csv_id then
+		left.rob = t.rob
+	else
+		assert(false)
+	end
+	send_package(send_request(9, t))
+end
+
+function CMD.turn_rob(t)
+	-- body
+	send_package(send_request(11, t))
 end
 
 function CMD.start(conf)

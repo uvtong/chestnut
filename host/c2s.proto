@@ -47,6 +47,11 @@ message req_ready {
 message resp_ready {
 	required int32 errorcode = 1;
 	required string msg = 2;
+	required int32 user_id = 3;
+	repeated int32 cards = 4;
+	repeated int32 rcards = 5;
+	optional int32 your_turn = 6;
+	optional int32 countdown = 7;
 }
 
 // 7
@@ -58,7 +63,6 @@ message req_mp {
 message resp_mp {
 	required int32 errorcode = 1;
 	required string msg = 2;
-	required int32 m = 3;	
 }
 
 // 9
@@ -70,7 +74,7 @@ message req_am {
 message resp_am {
 	required int32 errorcode = 1;
 	required string msg = 2;
-	required int32 m = 3;	
+	required int32 m = 3;
 }
 
 // 11
@@ -82,7 +86,8 @@ message req_rob {
 message resp_rob {
 	required int32 errorcode = 1;
 	required string msg = 2;
-	required int32 m = 3;	
+	required int32 your_turn = 3;	
+	required int32 countdown = 4;
 }
 
 // 13

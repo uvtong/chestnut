@@ -68,7 +68,7 @@ end
 
 function _M:get_by_type(type)
 	-- body
-	return assert(self.__data[tostring(type)])
+	return self.__data[tostring(type)]
 end
 
 function _M:delete_by_type(type)
