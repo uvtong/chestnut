@@ -37,6 +37,14 @@ local function shuffle()
 	return t
 end
 
+local function user_logout()
+	-- body
+	if user then
+		dc.set(user.csv_id, nil)
+		user = nil
+	end
+end
+
 function REQUEST:signup()
 	-- body
 	-- 0. success
@@ -102,8 +110,7 @@ function REQUEST:logout( ... )
 	-- body
 	local ret = {}
 	assert(user)
-	dc.set(user.csv_id, nil)
-	user = nil
+	user_logout()
 	ret.errorcode = 0
 	ret.msg = "success"
 	return ret
@@ -225,7 +232,6 @@ function REQUEST:am()
 		msg = errorcode[1].msg,
 		user_id = user.csv_id,
 		m = room.m
-
 	}
 	ret.errorcode = errorcode[1].code
 	ret.msg = errorcode[1].msg
@@ -251,7 +257,7 @@ function REQUEST:rob()
 		user_id	 = user.csv_id,
 		m = self.rob,
 		your_trun = left.csv_id,
-		countdown = 
+		countdown = 20
 	}
 	skynet.send(right.addr, "lua", "rob", t)
 	skynet.send(left.addr, "lua", "rob", t)
@@ -264,6 +270,15 @@ end
 
 function REQUEST:lead()
 	-- body
+	local ret = {}
+	local t = {
+		user_id = user.csv_id,
+		cards = self.cards
+	}
+	skynet.send(right.addr, "lua", "lead", t)
+	ret.errorcode = errorcode[1].code
+	ret.msg = errorcode[1].msg
+	return ret
 end
 
 function REQUEST:handshake()
@@ -304,7 +319,6 @@ end
 
 function RESPONSE:rob()
 	-- body
-
 end
 
 function RESPONSE:turn_rob()
@@ -499,10 +513,7 @@ end
 
 function CMD.disconnect()
 	-- todo: do something before exit
-	if user then
-		dc.set(user.csv_id, nil)
-		user = nil
-	end
+	user_logout()
 	skynet.exit()
 end
 

@@ -96,12 +96,16 @@ message req_lead {
 
 // 14
 message resp_lead {
+	message settlement {
+		required int32 gold = 1;	
+	}
 	required int32 errorcode = 1;
 	required string msg = 2;
 	required int32 your_turn = 3;
 	required int32 countdown = 4;
-	optional int32 user_id = 6;
-	optional int32 user_id = 6;
+	optional settlement me = 5;
+	optional settlement right = 6;
+	optional settlement left = 7;
 }
 
 // 15 
