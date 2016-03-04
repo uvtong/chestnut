@@ -1,21 +1,21 @@
 local skynet = require "skynet"
 local util = require "util"
-
+    
 local _M = {}
 _M.__data = {}
 _M.__count = 0
-
-local _Meta = { uid = 0 , drawtype = 0 , srecvtime = 0 , propid = 0 , iffree = 0 , amount = 0 }
-
-_Meta.__tname = "u_draw"
-
+    
+local _Meta = { uid = 0 , drawtype = 0 , srecvtime = 0 , propid = 0 , amount = 0 , iffree = 0 }
+    
+_Meta.__tname = "u_new_draw"
+    
 function _Meta.__new()
  	-- body
  	local t = {}
  	setmetatable( t, { __index = _Meta } )
  	return t
 end 
-
+    
 function _Meta:__insert_db()
 	-- body
 	local t = {}
@@ -24,9 +24,9 @@ function _Meta:__insert_db()
 			t[k] = assert(self[k])
 		end
 	end
-	skynet.send(util.random_db(), "lua", "command", "insert", self.__tname, t)
-end
-
+	skynet.send(util.random_db(), "lua", "command", "insert", self.__tname, t )
+end 
+    
 function _Meta:__update_db(t)
 	-- body
 	assert(type(t) == "table")
@@ -35,8 +35,8 @@ function _Meta:__update_db(t)
 		columns[tostring(v)] = self[tostring(v)]
 	end
 	skynet.send(util.random_db(), "lua", "command", "update", self.__tname, { { uid = assert( self.uid ) , drawtype = self.drawtype } } , columns )
-end
-
+end 
+    
 function _Meta:__serialize()
 	-- body
 	local r = {}

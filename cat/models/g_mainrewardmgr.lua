@@ -61,7 +61,7 @@ end
 
 function _M:add( u )
 	assert(u)
-	self.__data[tostring(u.csv_id)] = u
+	self.__data[tostring(u.groupid)] = u
 	self.__count = self.__count + 1
 end
 	

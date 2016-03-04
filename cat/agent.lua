@@ -25,12 +25,14 @@ local checkinrequest = require "checkinrequest"
 local exercise_request = require "exercise_request"
 local cgold_request = require "cgold_request"
 local kungfurequest = require "kungfurequest"
+local new_drawrequest = require "new_drawrequest"
 
 table.insert( M , checkinrequest )
 table.insert( M , exercise_request )
 table.insert( M , cgold_request )
 table.insert( M , new_emailrequest )
 table.insert( M , kungfurequest )
+table.insert( M , new_drawrequest )
 
 local WATCHDOG
 local host
@@ -455,13 +457,13 @@ function REQUEST:signup()
 			role[k] = v
 		end
 		role.user_id = assert(u.csv_id)
-		role.k_csv_id1 = 1
-		role.k_csv_id2 = 1
-		role.k_csv_id3 = 1
-		role.k_csv_id4 = 1
-		role.k_csv_id5 = 1
-		role.k_csv_id6 = 1
-		role.k_csv_id7 = 1
+		role.k_csv_id1 = 0
+		role.k_csv_id2 = 0
+		role.k_csv_id3 = 0
+		role.k_csv_id4 = 0
+		role.k_csv_id5 = 0
+		role.k_csv_id6 = 0
+		role.k_csv_id7 = 0
 		role = u_rolemgr.create(role)
 		role:__insert_db()
 
@@ -553,8 +555,8 @@ function REQUEST:login()
 	--emailrequest.getvalue( user )
 	user.friendmgr = friendmgr:loadfriend( user , dc )
 	friendrequest.getvalue( user , send_package , send_request )
-	user.drawmgr = drawmgr
-	drawrequest.getvalue( user , game )
+	--user.drawmgr = drawmgr
+	--drawrequest.getvalue( user , game )
 	--user.friendmgr:noticeonline( dc )
 	return ret
 end	
@@ -1614,8 +1616,8 @@ local function request(name, args, response)
     --	f = assert( emailrequest[ name ] )
     elseif nil ~= friendrequest[ name ] then
     	f = assert( friendrequest[ name ] )
-    elseif nil ~= drawrequest[ name ] then
-    	f = assert( drawrequest[ name ] )
+    --elseif nil ~= drawrequest[ name ] then
+    --	f = assert( drawrequest[ name ] )
     else
     	for i,v in ipairs(M) do
     		if v.REQUEST[name] ~= nil then

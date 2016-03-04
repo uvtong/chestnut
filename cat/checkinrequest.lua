@@ -94,25 +94,6 @@ end
 	return nSplitArray  
 end --]]
 
-local function Split(src, parten, D)
-	-- body
-	src = "1000*10*10*10*10*10"
-	D = 2
-	parten = "(%d+%*%d+%*%d+%*?)"
-	local r = {}
-	string.gsub(src, parten, function (s)
-		-- body
-		local t = {}
-		for i=1,D do
-			local x = string.gsub(s, "(%d+)%*(%d+)%*(%d+)%*?", string.format("%%%d", i))
-			print(x)
-			table.insert(t, assert(tonumber(x)))
-		end
-		table.insert(r, t)
-	end)
-	return r
-end
-
 						
 local function get_accumulate_reward( t )
 	assert( t )
@@ -120,7 +101,7 @@ local function get_accumulate_reward( t )
 	local ret = {}
 	
 	print( "*********************************get_accumulate_reward" )
-	local r = Split( t.prop_id_num , "(%d+%*%d+%*?)" , 2 )
+	local r = util.parse_text( t.prop_id_num , "(%d+%*%d+%*?)" , 2 )
 
 	for _ , sub in ipairs( r ) do
 		local tmp = {}
@@ -322,9 +303,12 @@ function REQUEST:checkin_aday()
 end				
 		
 function REQUEST:checkin_reward()
+	print( "checkin_reward is called" )
 	assert( self.totalamount and self.rewardnum )
+	print( "checkin_reward is called" , self.totalamount , self.rewardnum )
 	local ret = {}
 	if user.checkin_num ~= self.totalamount or user.checkin_reward_num ~= self.rewardnum then
+		print( "donot match the server totalmount" )
 		ret.ok = false
 		ret.msg = "donot match the server totalmount"
 		-- logout
