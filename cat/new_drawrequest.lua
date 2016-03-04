@@ -55,6 +55,9 @@ local function add_to_prop( t )
 	assert( t )
 
 	for k , v in ipairs( t ) do
+		--local g_role = game.g_rolemgr:get_by_us
+
+
 		local prop = user.u_propmgr:get_by_csv_id( v.propid )
    		if prop then
    			prop.num = prop.num + v.amount
