@@ -47,17 +47,19 @@ local function getsettime()
 	else
 		settime = os.time( hightime )
 	end		
-	
+		
 	return settime
 end				
-
+		
 local function add_to_prop( t )
 	assert( t )
 
 	for k , v in ipairs( t ) do
-		--local g_role = game.g_rolemgr:get_by_us
-
-
+		--[[local g_role = game.g_rolemgr:get_by_us_prop_csv_id( v.propid )
+		if g_role then
+			local u_role = 
+		else
+		--]]
 		local prop = user.u_propmgr:get_by_csv_id( v.propid )
    		if prop then
    			prop.num = prop.num + v.amount
@@ -71,20 +73,20 @@ local function add_to_prop( t )
    			local prop = user.u_propmgr.create( p )
    			user.u_propmgr:add( prop )
    			prop:__insert_db()
-   		end 
+   		end
    	end		
-end				
+end			
    	 	    
 function REQUEST:draw()
    	-- body
    	print( "applydraw is called in drawmgr" )
    	local ret = {}
    	ret.list = {}
-   	
+   		
    	local tfrienddraw = draw_mgr:get_by_type( drawtype.FRIEND )
-   	
+   		
    	local settime = getsettime()
-   	
+   		
    	local v = {}
    	if not tfrienddraw or ( tfrienddraw.srecvtime < settime - 60 * 60 * 24 ) or ( tfrienddraw.srecvtime < settime  and os.time() > settime ) then
    		print( "tfrienddraw is nil " , tfrienddraw )
@@ -99,7 +101,7 @@ function REQUEST:draw()
    	end 
 
    	table.insert( ret.list , v )
-	   
+	   	
    	local t = {}
    	local tonetime = draw_mgr:get_by_type( drawtype.ONETIME )
    	if not tonetime then
@@ -126,7 +128,7 @@ function REQUEST:draw()
 end			
 		
 local ERROR = { WAI_GUA = 1 , NOT_ENOUGH_MONEY = 2 }
-	
+		
 local function splitsubreward_bytype( typeid )
 	assert( typeid )
 
@@ -268,7 +270,7 @@ local function onetimedraw( iffree )
 	local proplist = {}
 
 	local tonetime = draw_mgr:get_by_type( drawtype.ONETIME )    
-	assert( tonetime )
+	
 	local date = os.time()
 
 	if true == iffree then
