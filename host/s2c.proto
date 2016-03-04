@@ -105,8 +105,12 @@ message resp_mark {
 message req_lead {
 	// 1. lead 2. turn_lead 3. result
 	required int32 errorcode = 1
-	required int32 user_id = 1;
-	repeated int32 cards = 2;
+	required int32 user_id = 2;
+	repeated int32 cards = 3;
+	required int32 your_turn = 4;
+	required int32 countdown = 5;
+	optional int32 user_id = 6;
+	optional int32 user_id = 6;
 }
 
 // 16
@@ -117,14 +121,12 @@ message resp_lead {
 
 // 17
 message req_turn_lead {
-	required int32 user_id = 1;
-	required int32 countdown = 2;
+	// waste
 }
 
 // 18
 message resp_turn_lead {
-	required int32 errorcode = 1;
-	required string msg = 2;
+	// waste
 }
 
 // 19
