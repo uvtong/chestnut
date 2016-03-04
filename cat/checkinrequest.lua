@@ -96,9 +96,6 @@ end --]]
 
 local function Split(src, parten, D)
 	-- body
-	src = "1000*10*10*10*10*10"
-	D = 2
-	parten = "(%d+%*%d+%*%d+%*?)"
 	local r = {}
 	string.gsub(src, parten, function (s)
 		-- body
@@ -322,9 +319,12 @@ function REQUEST:checkin_aday()
 end				
 		
 function REQUEST:checkin_reward()
+	print( "checkin_reward is called" )
 	assert( self.totalamount and self.rewardnum )
+	print( "checkin_reward is called" , self.totalamount , self.rewardnum )
 	local ret = {}
 	if user.checkin_num ~= self.totalamount or user.checkin_reward_num ~= self.rewardnum then
+		print( "donot match the server totalmount" )
 		ret.ok = false
 		ret.msg = "donot match the server totalmount"
 		-- logout
