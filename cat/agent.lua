@@ -246,7 +246,6 @@ function REQUEST:achievement()
 		-- body
 		local cur = user.u_achievementmgr:get_by_type(v.type)
 		if cur then
-			print("**********************************************", cur.csv_id)
 			if cur.is_valid == 1 then
 				if cur.csv_id > v.csv_id then
 					local r = assert(user.u_achievement_rcmgr:get_by_csv_id(v.csv_id))
