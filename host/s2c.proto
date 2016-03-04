@@ -27,8 +27,13 @@ message resp_enter_room {
 
 // 3
 message req_ready {
-	required int32 user_id = 1;
-	required int32 ready = 2;
+	required int32 errorcode = 1;
+	required int32 user_id = 2;
+	required int32 ready = 3;
+	repeated int32 cards = 4;
+	repeated int32 rcards = 5;
+	optional int32 your_turn = 6;
+	optional int32 countdown = 7;
 }
 
 // 4
@@ -47,29 +52,26 @@ message req_mp {
 message resp_mp {
 	required int32 errorcode = 1;
 	required string msg = 2;
-	required int32 m = 3;	
 }
 
 // 7
 message req_deal_cards {
-	required int32 user_id1 = 1;
-	repeated int32 cards1 = 2;
-	required int32 user_id2 = 3;
-	repeated int32 cards2 = 4;
-	required int32 user_id3 = 5;
-	repeated int32 cards3 = 6;
+	// waste
 }
 
 // 8
 message resp_deal_cards {
-	required int32 errorcode = 1;
-	required string msg = 2;
+	// waste
 }
 
 // 9
 message req_rob {
-	required int32 user_id = 1;
-	required int32 m = 2;
+	// 1.rob 2.turn 3. lead
+	required int32 errorcode = 1;
+	required int32 user_id = 2;
+	required int32 m = 3;
+	required int32 your_turn = 4;
+	required int32 countdown = 5;
 }
 
 // 10
@@ -80,14 +82,12 @@ message resp_rob {
 
 // 11
 message req_turn_rob {
-	required int32 user_id = 1;
-	required int32 countdown = 2;
+	// waste
 }
 
 // 12
 message resp_turn_rob {
-	required int32 errorcode = 1;
-	required string msg = 2;
+	// waste
 }
 
 // 13
@@ -103,6 +103,8 @@ message resp_mark {
 
 // 15
 message req_lead {
+	// 1. lead 2. turn_lead 3. result
+	required int32 errorcode = 1
 	required int32 user_id = 1;
 	repeated int32 cards = 2;
 }
@@ -121,6 +123,18 @@ message req_turn_lead {
 
 // 18
 message resp_turn_lead {
+	required int32 errorcode = 1;
+	required string msg = 2;
+}
+
+// 19
+message req_am {
+	required int32 user_id = 1;
+	required int32 m = 2;
+}
+
+// 20 
+message resp_am {
 	required int32 errorcode = 1;
 	required string msg = 2;
 }

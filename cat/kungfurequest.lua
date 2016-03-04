@@ -78,7 +78,7 @@ function REQUEST:kungfu()
 			if 0 ~= v[ kcsv_id ] then
 				f.position = i
 				f.k_csv_id = v[ kcsv_id ]
-				print( f.position , f.k_csv_id )
+				print( f.position , f.k_csv_id , v[ kcsv_id ] )
 				table.insert( tmp.pos_list , f )
 			end 
 		end

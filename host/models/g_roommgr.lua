@@ -5,7 +5,7 @@ local _M = {}
 _M.__data = {}
 _M.__count = 0
 
-local _Meta = { csv_id=0, users=0 }
+local _Meta = { csv_id=0, users={} }
 
 _Meta.__tname = "g_room"
 
@@ -16,8 +16,16 @@ function _Meta.__new()
  	return t
 end 
 
+function _Meta:add(u)
+	-- body
+	assert(type(users) == "table")
+	assert(#users < 3)
+	table.insert(self.users, u)
+end
+
 function _Meta:__insert_db()
 	-- body
+	assert(false)
 	local t = {}
 	for k,v in pairs(_Meta) do
 		if not string.match(k, "^__*") then
@@ -29,6 +37,7 @@ end
 
 function _Meta:__update_db(t)
 	-- body
+	assert(false)
 	assert(type(t) == "table")
 	local columns = {}
 	for i,v in ipairs(t) do
@@ -39,6 +48,7 @@ end
 
 function _Meta:__serialize()
 	-- body
+	assert(false)
 	local r = {}
 	for k,v in pairs(_Meta) do
 		if not string.match(k, "^__*") then
@@ -47,8 +57,6 @@ function _Meta:__serialize()
 	end
 	return r
 end
-
-
 
 function _M.create( P )
 	assert(P)
@@ -88,8 +96,13 @@ local idx = 1
 
 function _M:get_next()
 	-- body
-	idx = idx + 1
-	return self.__data[tostring(idx)] 
+	while true do 
+		idx = idx + 1	
+		local room = self.__data[tostring(idx)]
+		if #room.users < 3 then
+			return room
+		end
+	end
 end
 
 return _M
