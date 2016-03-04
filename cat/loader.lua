@@ -260,7 +260,7 @@ local function load_g_randomval()
 	assert( nil == game.g_randomvalmgr )
 
 	local g_randomvalmgr = require "models/g_randomvalmgr"
-	local r = skyner.call( util.random_db() , "lua" , "command" , "select" , "randomval" )
+	local r = skynet.call( util.random_db() , "lua" , "command" , "select" , "randomval" )
 	for k , v in ipairs( r ) do
 		local t = g_randomvalmgr.create( v )
 		g_randomvalmgr:add( t )

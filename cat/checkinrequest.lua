@@ -94,22 +94,6 @@ end
 	return nSplitArray  
 end --]]
 
-local function Split(src, parten, D)
-	-- body
-	local r = {}
-	string.gsub(src, parten, function (s)
-		-- body
-		local t = {}
-		for i=1,D do
-			local x = string.gsub(s, "(%d+)%*(%d+)%*(%d+)%*?", string.format("%%%d", i))
-			print(x)
-			table.insert(t, assert(tonumber(x)))
-		end
-		table.insert(r, t)
-	end)
-	return r
-end
-
 						
 local function get_accumulate_reward( t )
 	assert( t )
@@ -117,7 +101,7 @@ local function get_accumulate_reward( t )
 	local ret = {}
 	
 	print( "*********************************get_accumulate_reward" )
-	local r = Split( t.prop_id_num , "(%d+%*%d+%*?)" , 2 )
+	local r = util.parse_text( t.prop_id_num , "(%d+%*%d+%*?)" , 2 )
 
 	for _ , sub in ipairs( r ) do
 		local tmp = {}
