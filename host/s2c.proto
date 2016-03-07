@@ -15,8 +15,13 @@ message package {
 
 // 1
 message req_enter_room {
-	required int32 user_id = 1;
-	required string name = 2;
+	enum Type {
+		RIGHT          = 1;
+		LEFT           = 0;
+	};
+	required Type type = 1;
+	required int32 user_id = 2;
+	required string name = 3;
 }
 
 // 2
@@ -30,10 +35,12 @@ message req_ready {
 	required int32 errorcode = 1;
 	required int32 user_id = 2;
 	required int32 ready = 3;
-	repeated int32 cards = 4;
+	repeated int32 mcards = 4;
 	repeated int32 rcards = 5;
-	optional int32 your_turn = 6;
-	optional int32 countdown = 7;
+	repeated int32 lcards = 6;
+	repeated int32 dcards = 7;
+	optional int32 your_turn = 8;
+	optional int32 countdown = 9;
 }
 
 // 4
@@ -45,7 +52,12 @@ message resp_ready {
 // 5
 message req_mp {
 	required int32 user_id = 1;
-	required int32 m = 2;
+	required int32 user_id = 2;
+	required int32 m = 3;
+	repeated int32 mcards = 4;
+	repeated int32 rcards = 5;
+	repeated int32 lcards = 6;
+	repeated int32 dcards = 7;
 }
 
 // 6 
@@ -56,12 +68,16 @@ message resp_mp {
 
 // 7
 message req_deal_cards {
-	// waste
+	required int32 errorcode = 1;
+	required string msg = 2;
+	optional int32 your_turn = 3;
+	optional int32 countdown = 4;
 }
 
 // 8
 message resp_deal_cards {
-	// waste
+	required int32 errorcode = 1;
+	required string msg = 2;	
 }
 
 // 9
@@ -104,13 +120,17 @@ message resp_mark {
 // 15
 message req_lead {
 	// 1. lead 2. turn_lead 3. result
-	required int32 errorcode = 1
+	message settlement {
+		required int32 gold = 1;	
+	}
+	required int32 errorcode = 1;
 	required int32 user_id = 2;
 	repeated int32 cards = 3;
 	required int32 your_turn = 4;
 	required int32 countdown = 5;
-	optional int32 user_id = 6;
-	optional int32 user_id = 6;
+	optional settlement me = 6;
+	optional settlement right = 7;
+	optional settlement left = 8;
 }
 
 // 16
