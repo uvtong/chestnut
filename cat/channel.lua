@@ -28,9 +28,6 @@ function CMD:send_email_to_all( tvals )
 	print( "channel send_email_to_all is called" )
 
 	assert( tvals )
-	for k , v in pairs( tvals ) do
-		print( k , v )
-	end
 
 	tvals.acctime = os.time() -- an integer
 	tvals.isread = 0
@@ -53,7 +50,7 @@ function CMD:send_email_to_all( tvals )
 	local sql = "select csv_id from users where ifonline = 0" -- in users , csv_id now is "uid".
 	local r = skynet.call( util.random_db() , "lua" , "command" , "query" , sql )
 	print( "sizeof r = " , #r )
-	
+		
 	print( "begin to insert" )
 	local tmp = {}
 	for _ , v in ipairs( r ) do
@@ -70,16 +67,34 @@ end
 		
 function CMD:send_email_to_group( tval , tucsv_id )
 	assert( tval and tucsv_id )
-
-	for _ , ucsv_id in pairs( tucsv_id ) do
-		tval.csv_id = util.u_guid( ucsv_id , game, const.UEMAILENTROPY )
-		tval.uid = ucsv_id
+	print( "send to group is called" )
+	tval.acctime = os.time() -- an integer
+	tval.isread = 0
+	tval.isreward = 0
+	tval.isdel = 0
+	tval.deltime = 0
+	for i = 1 , 5 do
+		local id = "itemsn" .. i
+		local num = "itemnum" .. i
+		print( id , tval[id] , num , tval[num] )
+		if nil == tval[id] then
+			assert( tval[num] == nil )
 			
-		local t = dc.get( ucsv_id )
+			tval[id] = 0
+			tval[num] = 0
+		end
+	end
+
+	for _ , v in ipairs( tucsv_id ) do
+		print( v.csv_id )
+		tval.csv_id = util.u_guid( v.csv_id , game, const.UEMAILENTROPY )
+		tval.uid = v.csv_id
+			
+		local t = dc.get( v.csv_id )
 
 		--[[ id user online then send directly , else insert into db --]]
 		if t then 
-			skynet.send( t.addr , "lua" , "command" , "newemail" , tval )
+			skynet.send( t.addr , "lua" , "newemail" , "newemail" , tval )
 		else
 			local ne = u_emailmgr.create( tval )
 			assert( ne )

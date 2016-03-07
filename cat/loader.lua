@@ -361,17 +361,7 @@ local function load_u_cgold( user )
 	user.u_cgoldmgr = u_cgoldmgr
 end
 
-local function load_u_email( user )
-	assert( nil == user.u_emailmgr )
 
-	local u_emailmgr = require "models/u_emailmgr"
-	local r = skynet.call( util.random_db() , "lua", "command" , "select" , "u_new_email", {{ uid = user.csv_id , isdel = 0 }})
-	for i , v in ipairs( r ) do
-		local a = u_emailmgr.create( v )
-		u_emailmgr:add( a )
-	end
-	user.u_emailmgr = u_emailmgr
-end
 
 local function load_u_checkpoint(user)
 	-- body
@@ -420,7 +410,7 @@ local function load_u_draw( user )
 	local r = skynet.call( util.random_db() , "lua" , "command" , "query" , sql1 )
 
 	for i , v in ipairs( r ) do
-		print( " has number" )
+		--print( " has number" )
 		local draw = u_drawmgr.create( v )
 		assert( draw )
 		u_drawmgr:add( draw )
@@ -430,7 +420,7 @@ local function load_u_draw( user )
 	local t = skynet.call( util.random_db() , "lua" , "command" , "query" , sql2 )
 
 	for i , v in ipairs( t ) do
-		print( " has number" )
+		--print( " has number" )
 		local draw = u_drawmgr.create( v )
 		assert( draw )
 		u_drawmgr:add( draw )
@@ -438,6 +428,25 @@ local function load_u_draw( user )
 
 	user.u_drawmgr = u_drawmgr
 end	
+
+local function load_u_email( user )
+	assert( nil == user.u_emailmgr )
+
+	local u_emailmgr = require "models/u_emailmgr"
+	local r = skynet.call( util.random_db() , "lua", "command" , "select" , "u_new_email", { { uid = user.csv_id , isdel = 0 } } )
+	print( "sizeof r is ************************************************************" , #r )
+	for i , v in ipairs( r ) do
+		local a = u_emailmgr.create( v )
+		u_emailmgr:add( a )
+	end
+	print( "u_emailmgr:get_count" , u_emailmgr:get_count() )
+	if u_emailmgr:get_count() > u_emailmgr.__MAXEMAILNUM then
+		print( "sysdelemail is called *********************************************" , u_emailmgr:get_count() )
+		u_emailmgr:sysdelemail()
+	end
+
+	user.u_emailmgr = u_emailmgr
+end
 
 
 local function load_u_prop(user)

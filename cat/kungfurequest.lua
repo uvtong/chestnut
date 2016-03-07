@@ -44,17 +44,17 @@ end
 function REQUEST:kungfu()
 	-- body
 	print( "*-------------------------* kungfu is called")
-
+	
 	local ret = {}
 	ret.k_list = {}
 	ret.role_kid_list = {}
-
+	
 	for k , v in pairs( kungfu_mgr.__data ) do
 		local tmp = {}
-
+		
 		local tprop = user.u_propmgr:get_by_csv_id( v.sp_id )
 		assert( tprop )
-
+		
 		tmp.csv_id = v.csv_id
 		--tmp.isequipment = ( sv.isequipment == 1 ) and true or false
 		tmp.k_level = v.level
@@ -67,7 +67,7 @@ function REQUEST:kungfu()
 	for k , v in pairs( user.u_rolemgr.__data ) do
 		print( "in the kungfu" )
 		local tmp = {}
-
+		
 		tmp.pos_list = {}	
 		tmp.r_csv_id = v.csv_id
 		
@@ -102,12 +102,12 @@ function REQUEST:kungfu_levelup()
 	local tprop_currency = user.u_propmgr:get_by_csv_id( g_tk.currency_type )
 
 	local tkungfu = kungfu_mgr:get_by_type( self.csv_id ) 
-
+	print( g_tk.prop_csv_id , tprop_prop.num , g_tk.prop_num , tprop_currency.num , g_tk.currency_num )
 	if not tprop_prop or tprop_prop.num < g_tk.prop_num or not tprop_currency or tprop_currency.num < g_tk.currency_num then
 		print( " not enough money" )
 		ret.ok = false
-		ret.errorcode = NOT_ENOUGH_PROP
-			
+		ret.errorcode = ERROR.NOT_ENOUGH_PROP
+		ret.msg = "not enough money"	
 		return ret
 	else    
 		--print( t , t[ tostring( self.k_csv_id) ] )
@@ -134,7 +134,7 @@ function REQUEST:kungfu_levelup()
 				ret.ok = false
 				ret.errorcode = ERROR.LEVEL_NOT_MATCH
 				ret.msg = "level not match"
-
+				
 				return ret
 			end
 
@@ -148,7 +148,7 @@ function REQUEST:kungfu_levelup()
 		tprop_currency.num = tprop_currency.num - g_tk.currency_num
 		tprop_currency:__update_db( { "num" } )	
 
-		local g_tk = get_g_kungfu_by_skill_type_and_level( self.csv_id , self.k_level + 1 )
+		local g_tk = get_g_kungfu_by_skill_type_and_level( self.csv_id , self.k_level + 1 ) -- dai gai
 		if not g_tk then
 			ret.amount = 0
 		else

@@ -88,7 +88,7 @@ local function get_exercise_reward( t )
 	print( "basic_reward " , t.basic_reward )
 	local r = Split( t.basic_reward , "," )
 	assert( r )
-	print( t.level_up , t.levelup_reward )
+	--print( t.level_up , t.levelup_reward )
 	local sub = Split( r[ 1 ] , "*" )
 	assert( sub )
 	tmp.propid = tonumber( sub[ 1 ] )
@@ -108,7 +108,7 @@ local function add_to_prop( t )
 			prop.num = prop.num + v.amount
 			prop:__update_db({"num"})
 		else
-			print( "propid is " , v.propid )
+			--print( "propid is " , v.propid )
 			local p = game.g_propmgr:get_by_csv_id( v.propid )
 			p.user_id = user.csv_id
 			p.num = v.amount
@@ -170,7 +170,7 @@ local function judge_time_quantum( time , lastlength ) -- msg: judge which time_
 					lefttime = third - time + 1
 				else
 					stage = 3
-					print( time_second , forth , time , forth - time )
+					--print( time_second , forth , time , forth - time )
 					lefttime = forth - time
 				end	
 			else
@@ -258,7 +258,7 @@ function REQUEST:exercise_once()
 		else
 			print( "************************************can exercise reward" )
 			ifexercise = 0
-
+			print( "cost money is ********************************" , t.cost_id , t.cost_amount )
 			prop.num = prop.num - t.cost_amount
 			prop:__update_db( { "num" } )
 

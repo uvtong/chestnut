@@ -67,7 +67,17 @@ local function raise_achievement(type, user, game)
 	if type == "combat" then
 	elseif type == const.A_T_GOLD then -- 2
 		repeat
-			local a = assert(user.u_achievementmgr:get_by_type(const.A_T_GOLD))
+			local a = user.u_achievementmgr:get_by_type(const.A_T_GOLD)
+			if not a then
+				a = game.g_achievementmgr:get_by_csv_id(1001)
+				a.user_id = user.csv_id
+				a.finished = 0
+				a.is_unlock = 1
+				a.is_valid = 1
+				a = user.u_achievementmgr.create(a)
+				user.u_achievementmgr:add(a)
+				a:__insert_db()
+			end
 			if a.is_valid == 0 then
 				break
 			end
@@ -126,6 +136,19 @@ local function raise_achievement(type, user, game)
 	elseif type == const.A_T_EXP then
 		repeat
 			local a = assert(user.u_achievementmgr:get_by_type(type))
+			if not a then
+				a = game.g_achievementmgr:get_by_csv_id(2001)
+				a.user_id = user.csv_id
+				a.finished = 0
+				a.is_unlock = 1
+				a.is_valid = 1
+				a = user.u_achievementmgr.create(a)
+				user.u_achievementmgr:add(a)
+				a:__insert_db()
+			end
+			if a.is_valid == 0 then
+				break
+			end
 			local prop = user.u_propmgr:get_by_csv_id(const.EXP) -- abain prop by type (type -- csv_id -- prop.id)		
 			local progress = prop.num / a.c_num
 			if progress >= 1 then -- success
@@ -1057,7 +1080,7 @@ function REQUEST:shop_purchase()
 				end
 				currency.num = currency.num - gold
 				currency:__update_db({"num"})
-				local prop = user.u_propmgr:get_by_csvid(goods.g_prop_csv_id)
+				local prop = user.u_propmgr:get_by_csv_id(goods.g_prop_csv_id)
 				if prop then
 					prop.num = prop.num + goods.g_prop_num * v.p_num
 					prop:__update_db({"num"})
@@ -1323,12 +1346,12 @@ function REQUEST:recharge_vip_reward_collect()
 	local vipr = game.g_recharge_vip_rewardmgr:get_by_vip(self.vip)
 	local t = util.parse_text(vipr.rewared, "%d+%*%d+%*?", 2)
 	for i,v in ipairs(t) do
-		local prop = user.u_propmgr:get_by_csvid(v[1])
+		local prop = user.u_propmgr:get_by_csv_id(v[1])
 		if prop then
 			prop.num = prop.num + v[2]
 			prop:__update_db({"num"})
 		else
-			prop = assert(game.g_propmgr:get_by_csvid(v[1]))
+			prop = assert(game.g_propmgr:get_by_csv_id(v[1]))
 			prop.user_id = user.csv_id
 			prop.num = v[2]
 			prop = user.u_propmgr.create(prop)
