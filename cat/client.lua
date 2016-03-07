@@ -174,7 +174,7 @@ while true do
 		elseif cmd == "channel" then
 			send_request(cmd)
 		elseif cmd == "login" then
-			send_request("login", { account = "hello46" , password = "world2" })
+			send_request("login", { account = "aaaz" , password = "aaaz" })
 		elseif cmd == "signup" then
 			send_request("signup", { account = "hello46" , password = "world2" })
 		elseif cmd == "role_upgrade_star" then
@@ -240,7 +240,7 @@ while true do
 		elseif cmd == "equipment_all" then
 			send_request("equipment_all")
 		elseif cmd == "equipment_enhance" then
-			send_request("equipment_enhance", { csv_id=1000 })
+			send_request("equipment_enhance", { csv_id=1 })
 		elseif cmd == "role_all" then
 			send_request(cmd)
 		elseif cmd == "role_recruit" then

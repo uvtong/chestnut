@@ -153,11 +153,21 @@ proto.c2s = sprotoparser.parse [[.package {
     vip 0 : integer
     props 1 : *prop
     collected 2 : boolean
+    purchased 3 : boolean
 }
 
 .equipment {
     csv_id 0 : integer
-    level 2 : integer
+    level 1 : integer
+    combat 2 : integer
+    defense 3 : integer
+    critical_hit 4 : integer
+    king 5 : integer
+    critical_hit_probability 6 : integer
+    combat_probability 7 : integer
+    defense_probability 8 : integer
+    king_probability 9 : integer
+    enhance_success_rate 10 : integer
 }
 
 .kungfu_content
@@ -535,26 +545,14 @@ recharge_purchase 35 {
         errorcode 0 : integer
         msg 1 : string
         l 2 : *prop
+        u 3 : user
     }
 }
 
 recharge_collect 36 {
-    request {
-        reward_id 0 : integer
-    }
-    response {
-        errorcode 0 : integer
-        msg 1 : string
-        u 2 : user
-    }
 }
 
 recharge_reward 37 {
-    response {
-        errorcode 0 : integer
-        msg 1 : string
-        l 2 : *recharge_reward_item
-    }
 }
 
 draw 38
@@ -696,6 +694,7 @@ exercise 46
     response {
         errorcode 0 : integer
         msg 1 : string
+        e 2 : equipment
     }
 }
 
@@ -802,7 +801,6 @@ recharge_vip_reward_purchase 60 {
         l 2 : *prop
     }
 }
-
 
 ]]
 

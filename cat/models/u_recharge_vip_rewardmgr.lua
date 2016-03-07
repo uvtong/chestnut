@@ -5,7 +5,7 @@ local _M = {}
 _M.__data = {}
 _M.__count = 0
 
-local _Meta = { user_id=0, vip=0, collected=0}
+local _Meta = { user_id=0, vip=0, collected=0, purchased=0}
 
 _Meta.__tname = "u_recharge_vip_reward"
 
@@ -34,7 +34,7 @@ function _Meta:__update_db(t)
 	for i,v in ipairs(t) do
 		columns[tostring(v)] = self[tostring(v)]
 	end
-	skynet.send(util.random_db(), "lua", "command", "update", self.__tname, {{ id = self.id }}, columns)
+	skynet.send(util.random_db(), "lua", "command", "update", self.__tname, {{ user_id=self.user_id, vip=self.vip }}, columns)
 end
 
 function _Meta:__serialize()

@@ -484,7 +484,7 @@ function REQUEST:login()
 	local ret = {}
 	if user then
 		ret.errorcode = 1
-		ret.msg	= "offline"
+		ret.msg	= "account already login"
 		return ret
 	end
 	assert(self.account and	self.password)
@@ -515,21 +515,18 @@ function REQUEST:login()
 		ret.u = {
 			uname = user.uname,
 			uviplevel = user.uviplevel,
-			config_sound = user.config_sound and true or false,
-			config_music = user.config_music and true or false,
+			config_sound = (user.config_sound == 1) and true or false,
+			config_music = (user.config_music == 1) and true or false,
 			avatar = user.avatar,
 			sign = user.sign,
 			c_role_id = user.c_role_id,
+			recharge_total = user.recharge_rmb,
+    		recharge_diamond = user.recharge_diamond,
+    		recharge_progress = user.uvip_progress
 		}
-		if user.u_propmgr:get_by_csv_id(const.EXP) then
-			ret.u.uexp = user.u_propmgr:get_by_csv_id(const.EXP).num
-		end
-		if user.u_propmgr:get_by_csv_id(const.GOLD) then
-			ret.u.gold = user.u_propmgr:get_by_csv_id(const.GOLD).num
-		end
-		if user.u_propmgr:get_by_csv_id(const.DIAMOND) then
-			ret.u.diamond = user.u_propmgr:get_by_csv_id(const.DIAMOND).num
-		end
+		ret.u.uexp = assert(user.u_propmgr:get_by_csv_id(const.EXP)).num
+		ret.u.gold = assert(user.u_propmgr:get_by_csv_id(const.GOLD)).num
+		ret.u.diamond = assert(user.u_propmgr:get_by_csv_id(const.DIAMOND)).num
 		-- all roles
 		local l = {}
 		for k,v in pairs(user.u_rolemgr.__data) do
@@ -727,34 +724,31 @@ function REQUEST:use_prop()
 			-- get
 			prop.num = prop.num + v.num
 			prop.__update_db({"num"})
-			table.insert(l, { csv_id=prop.csv_id, num=prop.num})
-		else
+			table.insert(l, prop)
+		elseif v.num < 0 then
 			-- consume
 			if prop.num < math.abs(v.num) then
 				ret.errorcode = errorcode.NOT_ENOUGH.errorcode
 				ret.msg = errorcode.NOT_ENOUGH.msg
 				return ret
 			end
-			if prop.use_type == 0 then
-				ret.errorcode = errorcode.PROP_UNSERVICEABLE.errorcode
-				ret.msg = errorcode.PROP_UNSERVICEABLE.msg
-				return ret
-			end
 			prop.num = prop.num + v.num
 			prop:__update_db({"num"})
-			table.insert(l, { csv_id=prop.csv_id, num=prop.num})
-			-------------------------------------------------------
-			if assert(prop.use_type) == 1 then -- exp 
+			table.insert(l, prop)
+
+			if assert(prop.use_type) == 0 then
+				assert(false)
+			elseif assert(prop.use_type) == 1 then -- exp 
 				local e = user.u_propmgr:get_by_csv_id(const.EXP)
 				e.num = e.num + tonumber(prop.pram1)
 				e:__update_db({"num"})
-				table.insert(l, { csv_id=e.csv_id, num=e.num})
+				table.insert(l, prop)
 				raise_achievement(const.A_T_EXP, user, game)
 			elseif assert(prop.use_type) == 2 then -- gold
 				local g = user.u_propmgr:get_by_csv_id(const.GOLD)
 				g.num = g.num + tonumber(prop.pram1)
 				g:__update_db({"num"})
-				table.insert(l, { csv_id=g.csv_id, num=g.num})
+				table.insert(l, prop)
 				raise_achievement(const.A_T_GOLD, user, game)
 			elseif assert(prop.use_type) == 3 then
 				local r = util.parse_text(prop.pram1, "(%d+%*%d+%*?)", 2)
@@ -788,7 +782,7 @@ function REQUEST:use_prop()
 						if prop then
 							prop.num = prop.num + assert(v[2])
 							prop:__update_db({"num"})
-							table.insert(l, { csv_id=prop.csv_id, num=prop.num})
+							table.insert(l, prop)
 							break
 						else
 							local t = game.g_propmgr:get_by_csv_id(assert(v[1]))
@@ -797,7 +791,7 @@ function REQUEST:use_prop()
 							prop = user.u_propmgr.create(t)
 							user.u_propmgr:add(prop)
 							prop:__insert_db()
-							table.insert(l, { csv_id=prop.csv_id, num=prop.num})
+							table.insert(l, prop)
 							break
 						end
 					else
@@ -805,11 +799,16 @@ function REQUEST:use_prop()
 					end
 				end
 			end	
+		else
+			assert(false)
 		end
 	end
 	ret.errorcode = 0
-	ret.msg	= "yes"
-	ret.props = l
+	ret.msg	= "success"
+	ret.props = {}
+	for i,v in ipairs(l) do
+		table.insert(ret.props, { csv_id=v.csv_id, num=v.num})
+	end
 	return ret
 end
 
@@ -837,19 +836,10 @@ function REQUEST:user()
     	recharge_diamond = user.recharge_diamond,
     	recharge_progress = user.uvip_progress
 	}
-	local u_propmgr = user.u_propmgr
-	local exp = u_propmgr:get_by_csv_id(const.EXP)
-	if exp then
-		ret.user.uexp = exp.num
-	end
-	local gold = u_propmgr:get_by_csv_id(const.GOLD)
-	if gold then
-		ret.user.gold = gold.num
-	end
-	local diamond = u_propmgr:get_by_csv_id(const.DIAMOND)
-	if diamond then
-		ret.user.diamond = diamond.num
-	end
+	ret.user.uexp = assert(user.u_propmgr:get_by_csv_id(const.EXP)).num
+	ret.user.gold = assert(user.u_propmgr:get_by_csv_id(const.GOLD)).num
+	ret.user.diamond = assert(user.u_propmgr:get_by_csv_id(const.DIAMOND)).num
+	print("*************************user", user.recharge_rmb, user.recharge_diamond, user.uvip_progress)
 	return ret
 end
 
@@ -1057,7 +1047,7 @@ function REQUEST:shop_purchase()
 				end
 				currency.num = currency.num - gold
 				currency:__update_db({"num"})
-				local prop = user.u_propmgr:get_by_csvid(goods.g_prop_csv_id)
+				local prop = user.u_propmgr:get_by_csv_id(goods.g_prop_csv_id)
 				if prop then
 					prop.num = prop.num + goods.g_prop_num * v.p_num
 					prop:__update_db({"num"})
@@ -1192,7 +1182,7 @@ function REQUEST:recharge_purchase()
 	end
 	assert(self.g)
 	for i,v in ipairs(self.g) do
-		local goods = game.g_rechargemgr:get_by_csv_id(v.csv_id)
+		local goods = assert(game.g_rechargemgr:get_by_csv_id(v.csv_id))
 		assert(user.recharge_rmb)
 		assert(user.recharge_diamond)
 		user.recharge_rmb = user.recharge_rmb + goods.rmb * v.num
@@ -1204,10 +1194,12 @@ function REQUEST:recharge_purchase()
 			assert(rc.count > 1)
 			rc:__update_db({"count"})
 			local diamond = user.u_propmgr:get_by_csv_id(const.DIAMOND)
-			diamond.num = diamond.num + (goods.diamond + goods.gift) * v.num
+			diamond.num = diamond.num + ((goods.diamond + goods.gift) * v.num)
 			diamond:__update_db({"num"})
 		else
+			print("****************************************abc")
 			rc = user.u_recharge_countmgr.create({user_id=user.csv_id, csv_id=v.csv_id, count=1})
+			user.u_recharge_countmgr:add(rc)
 			rc:__insert_db()
 			local diamond = user.u_propmgr:get_by_csv_id(const.DIAMOND)
 			diamond.num = diamond.num + (assert(goods.diamond) + assert(goods.first)) * v.num
@@ -1223,8 +1215,7 @@ function REQUEST:recharge_purchase()
 			if user.uviplevel >= const.H_VIP then
 				break
 			end
-			local condition = game.g_recharge_vip_rewardmgr:get_by_vip(user.uviplevel + 1)
-			assert(condition)
+			local condition = assert(game.g_recharge_vip_rewardmgr:get_by_vip(user.uviplevel + 1))
 			local progress = user.recharge_diamond / condition.diamond
 			if progress >= 1 then
 				assert(user.exp_max)
@@ -1281,7 +1272,14 @@ function REQUEST:recharge_vip_reward_all()
 		for i,v in ipairs(t) do
 			table.insert(r.props, { csv_id=v[1], num=v[2]})
 		end
-		r.collected = user.u_recharge_vip_rewardmgr:get_by_vip(v.vip) and true or false
+		local reward = user.u_recharge_vip_rewardmgr:get_by_vip(v.vip)
+		if reward then
+			r.collected = (reward.collected == 1) and true or false
+			r.purchased = (reward.purchased == 1) and true or false
+		else
+			r.collected = false
+			r.purchased = false
+		end
 		table.insert(l, r)
 	end
 	ret.errorcode = 0
@@ -1315,36 +1313,58 @@ function REQUEST:recharge_vip_reward_collect()
 	end
 	assert(user)
 	local rc = user.u_recharge_vip_rewardmgr:get_by_vip(self.vip)
-	if rc and rc.collected then
-		ret.errorcode = 4
-		ret.msg = "have done"
+	if rc then
+		if rc.collected == 1 then
+			ret.errorcode = 4
+			ret.msg = "have done"
+			return ret
+		else
+			local reward = game.g_recharge_vip_rewardmgr:get_by_vip(self.vip)
+			local t = util.parse_text(reward.rewared, "%d+%*%d+%*?", 2)
+			for i,v in ipairs(t) do
+				local prop = user.u_propmgr:get_by_csv_id(v[1])
+				if prop then
+					prop.num = prop.num + assert(v[2])
+					prop:__update_db({"num"})
+				else
+					prop = assert(game.g_propmgr:get_by_csv_id(v[1]))
+					prop.user_id = user.csv_id
+					prop.num = assert(v[2])
+					prop = user.u_propmgr.create(prop)
+					user.u_propmgr:add(prop)
+					prop:__insert_db()
+				end
+			end
+			rc.collected = 1
+			rc:__update_db({"collected"})
+		end
+	else
+		local reward = game.g_recharge_vip_rewardmgr:get_by_vip(self.vip)
+		local t = util.parse_text(reward.rewared, "%d+%*%d+%*?", 2)
+		for i,v in ipairs(t) do
+			local prop = user.u_propmgr:get_by_csv_id(v[1])
+			if prop then
+				prop.num = prop.num + assert(v[2])
+				prop:__update_db({"num"})
+			else
+				prop = assert(game.g_propmgr:get_by_csv_id(v[1]))
+				prop.user_id = user.csv_id
+				prop.num = assert(v[2])
+				prop = user.u_propmgr.create(prop)
+				user.u_propmgr:add(prop)
+				prop:__insert_db()
+			end
+		end
+		local t = {user_id=user.csv_id, vip=self.vip, collected=1, purchased=0}	
+		rc = user.u_recharge_vip_rewardmgr.create(t)
+		user.u_recharge_vip_rewardmgr:add(rc)
+		rc:__insert_db()
+		ret.errorcode = 0
+		ret.msg = "success"
+		ret.vip = user.uviplevel
+		ret.collected = true
 		return ret
 	end
-	local vipr = game.g_recharge_vip_rewardmgr:get_by_vip(self.vip)
-	local t = util.parse_text(vipr.rewared, "%d+%*%d+%*?", 2)
-	for i,v in ipairs(t) do
-		local prop = user.u_propmgr:get_by_csvid(v[1])
-		if prop then
-			prop.num = prop.num + v[2]
-			prop:__update_db({"num"})
-		else
-			prop = assert(game.g_propmgr:get_by_csvid(v[1]))
-			prop.user_id = user.csv_id
-			prop.num = v[2]
-			prop = user.u_propmgr.create(prop)
-			user.u_propmgr:add(prop)
-			prop:__insert_db()
-		end
-	end
-
-	local t = {user_id=user.csv_id, vip=self.vip, collected=1}
-	rc = user.u_recharge_vip_rewardmgr.create(t)
-	rc:__insert_db()
-	ret.errorcode = 0
-	ret.msg = "success"
-	ret.vip = user.uviplevel
-	ret.collected = true
-	return ret
 end
 
 function REQUEST:equipment_enhance()
@@ -1354,22 +1374,27 @@ function REQUEST:equipment_enhance()
 	-- 2. don't have enough money.
 	-- 3. rate
 	-- 4. error.
+	-- 5. do not exceed the level of the player
 	local ret = {}
 	if not user then
 		ret.errorcode = 1
 		ret.msg = "offline."
 		return ret
 	end
-	-- 
 	local e = assert(user.u_equipmentmgr:get_by_csv_id(self.csv_id))
 	if e.csv_id == 1 then
 		local last = user.u_equipmentmgr:get_by_csv_id(4)
-		assert(e.level <= last.level)
+		assert(e.level ~= last.level)
 	else
 		local last = user.u_equipmentmgr:get_by_csv_id(e.csv_id - 1)
-		assert(e.level <= last.level)
+		assert(e.level < last.level)
 	end
 	local ee = game.g_equipment_enhancemgr:get_by_csv_id(e.csv_id *1000 + e.level + 1)
+	if ee.level > user.level then
+		ret.errorcode = 5
+		ret.msg = "do not exceed the level of the player."
+		return ret
+	end
 	local currency = user.u_propmgr:get_by_csv_id(ee.currency_type)
 	if currency.num < ee.currency_num then
 		ret.errorcode = 2
@@ -1388,6 +1413,7 @@ function REQUEST:equipment_enhance()
 			e.defense = ee.defense
 			e.critical_hit = ee.critical_hit
 			e.king = ee.king
+			e.combat_probability = ee.combat_probability
 			e.critical_hit_probability = ee.critical_hit_probability
 			e.defense_probability = ee.defense_probability
 			e.king_probability = ee.king_probability
@@ -1396,7 +1422,19 @@ function REQUEST:equipment_enhance()
 			e.currency_num = ee.currency_num
 			e:__update_db({"level", "combat", "defense", "critical_hit_probability", "defense_probability", "king_probability", "enhance_success_rate", "currency_type", "currency_num"})
 			ret.errorcode = 0
-			ret.msg = "yes"
+			ret.msg = "success"
+			ret.e = {}
+			ret.e.csv_id = assert(e.csv_id)
+			ret.e.level = assert(e.level)
+			ret.e.combat = assert(e.combat)
+			ret.e.defense = assert(e.defense)
+			ret.e.critical_hit = assert(e.critical_hit)
+			ret.e.king = assert(e.king)
+			ret.e.combat_probability = assert(e.combat_probability)
+			ret.e.defense_probability = assert(e.defense_probability)
+			ret.e.critical_hit_probability = assert(e.critical_hit_probability)
+			ret.e.defense_probability = assert(e.defense_probability)
+			ret.e.enhance_success_rate = assert(e.enhance_success_rate)
 			return ret
 		else
 			ret.errorcode = 3
@@ -1417,11 +1455,18 @@ function REQUEST:equipment_all()
 	end
 	local l = {}
 	for k,v in pairs(user.u_equipmentmgr.__data) do
-		print(k, v)
 		local e = {
 			csv_id = v.csv_id,
-			type = v.type,
-			level = v.level
+			level = v.level,
+			combat = v.combat,
+			defense = v.defense,
+			critical_hit = v.critical_hit,
+			king = v.king,
+			combat_probability = v.combat_probability,
+			critical_hit_probability = v.critical_hit_probability,
+			defense_probability = v.defense_probability,
+			king_probability = v.king_probability,
+			enhance_success_rate = v.enhance_success_rate
 		}
 		table.insert(l, e)
 	end
@@ -1562,6 +1607,7 @@ function REQUEST:recharge_vip_reward_purchase()
  	-- 0. success
  	-- 1. offline
  	-- 2. your vip don't
+ 	-- 3. has purchased
  	local ret = {}
  	if not user then
  		ret.errorcode = 1
@@ -1575,31 +1621,83 @@ function REQUEST:recharge_vip_reward_purchase()
  		ret.msg = "your vip don't"
  		return ret
  	end
- 	local r = game.g_recharge_vip_rewardmgr:get_by_vip(self.vip)
- 	local prop = user.u_propmgr:get_by_csv_id(const.DIAMOND)
- 	if prop.num < r.purchasable_diamond then
- 		ret.errorcode = 2
- 		ret.msg = "no enough diamond"
+ 	local l = {}
+ 	local rc = user.u_recharge_vip_rewardmgr:get_by_vip(self.vip)
+ 	if rc then
+ 		if rc.purchased == 1 then
+ 			ret.errorcode = 3
+ 			ret.msg = "has purchased"
+ 			return ret
+ 		else
+ 			local reward = game.g_recharge_vip_rewardmgr:get_by_vip(self.vip)
+ 			local prop = user.u_propmgr:get_by_csv_id(const.DIAMOND)
+ 			if prop.num < reward.purchasable_diamond then
+ 				ret.errorcode = 2
+ 				ret.msg = "no enough diamond"
+ 				return ret
+ 			end
+ 			prop.num = prop.num - reward.purchasable_diamond
+ 			prop:__update_db({"num"})
+ 			local r = util.parse_text(reward.purchasable_gift, "%d+%*%d+%*?", 2)
+ 			for i,v in ipairs(r) do
+ 				prop = user.u_propmgr:get_by_csv_id(v[1])
+ 				if prop then
+ 					prop.num = prop.num + assert(v[2])
+ 					prop:__update_db({"num"})
+ 					table.insert(l, { csv_id=prop.csv_id, num=prop.num})
+ 				else
+ 					prop = assert(game.g_propmgr:get_by_csv_id(v[1]))
+ 					prop.user_id = user.csv_id
+ 					prop.num = assert(v[2])
+ 					prop = user.u_propmgr.create(prop)
+ 					user.u_propmgr:add(prop)
+ 					prop:__insert_db()
+ 					table.insert(l, { csv_id=prop.csv_id, num=prop.num})
+ 				end
+ 			end
+ 			rc.purchased = 1
+ 			rc:__update_db({"purchased"})
+ 			ret.errorcode = 0
+ 			ret.msg = "success"
+ 			ret.l = l
+ 			return ret
+ 		end
+ 	else
+ 		local reward = game.g_recharge_vip_rewardmgr:get_by_vip(self.vip)
+ 		local prop = user.u_propmgr:get_by_csv_id(const.DIAMOND)
+ 		if prop.num < reward.purchasable_diamond then
+ 			ret.errorcode = 2
+ 			ret.msg = "no enough diamond"
+ 			return ret
+ 		end
+ 		prop.num = prop.num - reward.purchasable_diamond
+ 		prop:__update_db({"num"})
+ 		local r = util.parse_text(reward.purchasable_gift, "%d+%*%d+%*?", 2)
+ 		for i,v in ipairs(r) do
+ 			prop = user.u_propmgr:get_by_csv_id(v[1])
+ 			if prop then
+ 				prop.num = prop.num + assert(v[2])
+ 				prop:__update_db({"num"})
+ 				table.insert(l, { csv_id=prop.csv_id, num=prop.num})
+ 			else
+				prop = assert(game.g_propmgr:get_by_csv_id(v[1]))
+				prop.user_id = user.csv_id
+				prop.num = assert(v[2])
+				prop = user.u_propmgr.create(prop)
+				user.u_propmgr:add(prop)
+				prop:__insert_db()
+				table.insert(l, { csv_id=prop.csv_id, num=prop.num})
+ 			end
+ 		end
+ 		local t = { user_id=user.csv_id, vip=self.vip, collected=0, purchased=1}
+ 		rc = user.u_recharge_vip_rewardmgr.create(t)
+ 		user.u_recharge_vip_rewardmgr:add(rc)
+ 		rc:__insert_db()
+ 		ret.errorcode = 0
+ 		ret.msg = "success"
+ 		ret.l = l
  		return ret
  	end
- 	prop.num = prop.num - r.purchasable_diamond
- 	prop:__update_db({"num"})
- 	r = util.parse_text(r.purchasable_gift, "%d+%*%d+%*?", 2)
- 	for i,v in ipairs(r) do
- 		prop = user.u_propmgr:get_by_csv_id(v[1])
- 		if prop then
- 			prop.num = prop.num + v[2]
- 			prop:__update_db({"num"})
- 		else
- 			prop = assert(game.g_propmgr:get_by_csv_id(v[1]))
- 			prop.user_id = user.csv_id
- 			prop.num = v[2]
- 			prop = user.u_propmgr.create(prop)
- 			user.u_propmgr:add(prop)
- 			prop:__insert_db()
- 		end
- 	end
- 	return ret
 end
 
 function REQUEST:handshake()

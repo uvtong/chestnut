@@ -5,7 +5,6 @@ local util = {}
 function util.random_db()
 	-- body
 	local r = math.random(1, 5)
-	r = 1
 	local addr = skynet.localname(string.format(".db%d", math.floor(r))) 
 	return addr
 end
