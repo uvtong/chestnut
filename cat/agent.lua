@@ -680,6 +680,7 @@ function REQUEST:role_upgrade_star()
 end		
 		
 function REQUEST:wake()
+	assert(false)
 	assert(user)
 	assert(self.role_id)
 	local ret = {}
@@ -862,7 +863,6 @@ function REQUEST:user()
 	ret.user.uexp = assert(user.u_propmgr:get_by_csv_id(const.EXP)).num
 	ret.user.gold = assert(user.u_propmgr:get_by_csv_id(const.GOLD)).num
 	ret.user.diamond = assert(user.u_propmgr:get_by_csv_id(const.DIAMOND)).num
-	print("*************************user", user.recharge_rmb, user.recharge_diamond, user.uvip_progress)
 	return ret
 end
 
@@ -934,6 +934,9 @@ end
 
 function REQUEST:shop_all()
 	-- body
+	-- 0. success
+	-- 1. offline
+	-- 2. 
 	local ret = {}
 	if not user then
 		ret.errorcode = 1
@@ -956,8 +959,18 @@ function REQUEST:shop_all()
 		table.insert(ll, v)
 	end
 	ret.errorcode = 0
-	ret.msg = "yes"
+	ret.msg = "success"
 	ret.l = ll
+	local t = os.date("*t", os.time())
+	t = { year=t.year, month=t.month, day=t.day}
+	local sec = os.time(t)
+	local j = user.u_journalmgr:get_by_date(sec)
+	if j then
+		ret.goods_refresh_count = j.goods_refresh_count
+	else
+		ret.goods_refresh_count = 0
+	end
+	ret.store_refresh_count_max = assert(user.store_refresh_count_max)
 	return ret
 end
 
@@ -967,6 +980,7 @@ function REQUEST:shop_refresh()
 	-- 1. offline
 	-- 2. goods_refresh_count <= store_refresh_cout_max
 	-- 3. not enought diamon
+	-- 4. no need refresh
 	local ret = {}
 	if not user then
 		ret.errorcode = 1
@@ -974,36 +988,64 @@ function REQUEST:shop_refresh()
 		return ret
 	end
 	assert(user)
-	local hour = os.date("%H")
-	local min = os.date("%M")
-	local sec = os.date("%S")
-	if tonumber(hour) > config.goods_refresh_reset_h then
-		user.goods_refresh_count = 0
+	local t = os.date("*t", os.time())
+	t = { year=t.year, month=t.month, day=t.day}
+	local sec = os.time(t)
+	local j = user.u_journalmgr:get_by_date(sec)
+	if j then
+		if j.goods_refresh_reset_count == 1 then
+		else
+			local hour = os.date("%H")
+			local min = os.date("%M")
+			local sec = os.date("%S")
+			if tonumber(hour) > config.goods_refresh_reset_h then
+				j.goods_refresh_count = 0
+			end
+		end
+		if user.goods_refresh_count >= assert(user.store_refresh_count_max) then
+			ret.errorcode = 2
+			ret.msg = "more then store refresh count max"
+			return ret
+		end
+	else
+		t = os.date("*t", os.time())
+		t = { year=t.year, month=t.month, day=t.day}
+		local sec = os.time(t)
+		t = { user_id=user.csv_id, date=sec, goods_refresh_count=0, goods_refresh_reset_count=0}
+		j = user.u_journalmgr.create(t)
+		user.u_journalmgr:add(j)
+		j:__insert_db()
 	end
-	if user.goods_refresh_count >= assert(user.store_refresh_count_max) then
-		ret.errorcode = 2
-		ret.msg = "more then store refresh count max"
+	local goods = assert(game.g_goodsmgr:get_by_csv_id(self.goods_id))
+	if goods.inventory ~= 0 then
+		ret.errorcode = 4
+		ret.msg = "no need refresh"
 		return ret
 	end
-	local rc = game.g_goods_refresh_costmgr:get_by_csv_id(user.goods_refresh_count + 1)
-	local prop = user.u_propmgr:get_by_csv_id(rc.currency_type)
-	if prop.num > rc.currency_num then
-		prop.num = prop.num - rc.currency_num
-		prop:__update_db({"num"})
-		user.goods_refresh_count = user.goods_refresh_count + 1
-		user:__update_db({"goods_refresh_count"})
-		local goods = game.g_goodsmgr:get_by_csv_id(self.goods_id)
-		goods.inventory = goods.inventory_init
-		goods.countdown = goods.cd
-		goods:__update_db({"inventory", "countdown"})
-		ret.errorcode = 0
-		ret.msg = "success"
-		ret.l = { goods }
-		return ret
+	if goods.currency_type == 1 then
+		local rc = game.g_goods_refresh_costmgr:get_by_csv_id(j.goods_refresh_count + 1)
+		local prop = user.u_propmgr:get_by_csv_id(rc.currency_type)
+		if prop.num > rc.currency_num then
+			prop.num = prop.num - rc.currency_num
+			prop:__update_db({"num"})
+			j.goods_refresh_count = j.goods_refresh_count + 1
+			j:__update_db({"goods_refresh_count"})
+			local goods = game.g_goodsmgr:get_by_csv_id(self.goods_id)
+			goods.inventory = goods.inventory_init
+			goods.countdown = goods.cd
+			goods:__update_db({"inventory", "countdown"})
+			ret.errorcode = 0
+			ret.msg = "success"
+			ret.l = { goods }
+			return ret
+		else
+			ret.errorcode = 3
+			ret.msg = "not enough diamond."
+			return ret	
+		end
+	else
+		assert(false)
 	end
-	ret.errorcode = 3
-	ret.msg = "not enough diamond."
-	return ret
 end
 
 function REQUEST:shop_purchase()
@@ -1220,7 +1262,6 @@ function REQUEST:recharge_purchase()
 			diamond.num = diamond.num + ((goods.diamond + goods.gift) * v.num)
 			diamond:__update_db({"num"})
 		else
-			print("****************************************abc")
 			rc = user.u_recharge_countmgr.create({user_id=user.csv_id, csv_id=v.csv_id, count=1})
 			user.u_recharge_countmgr:add(rc)
 			rc:__insert_db()
@@ -1336,7 +1377,6 @@ function REQUEST:recharge_vip_reward_collect()
 	end
 	assert(user)
 	local rc = user.u_recharge_vip_rewardmgr:get_by_vip(self.vip)
-<<<<<<< HEAD
 	if rc then
 		if rc.collected == 1 then
 			ret.errorcode = 4
@@ -1361,27 +1401,6 @@ function REQUEST:recharge_vip_reward_collect()
 			end
 			rc.collected = 1
 			rc:__update_db({"collected"})
-=======
-	if rc and rc.collected then
-		ret.errorcode = 4
-		ret.msg = "have done"
-		return ret
-	end
-	local vipr = game.g_recharge_vip_rewardmgr:get_by_vip(self.vip)
-	local t = util.parse_text(vipr.rewared, "%d+%*%d+%*?", 2)
-	for i,v in ipairs(t) do
-		local prop = user.u_propmgr:get_by_csv_id(v[1])
-		if prop then
-			prop.num = prop.num + v[2]
-			prop:__update_db({"num"})
-		else
-			prop = assert(game.g_propmgr:get_by_csv_id(v[1]))
-			prop.user_id = user.csv_id
-			prop.num = v[2]
-			prop = user.u_propmgr.create(prop)
-			user.u_propmgr:add(prop)
-			prop:__insert_db()
->>>>>>> d15f3f87c9ed56d75df922f34ae62043600c8bb3
 		end
 	else
 		local reward = game.g_recharge_vip_rewardmgr:get_by_vip(self.vip)
@@ -1429,7 +1448,8 @@ function REQUEST:equipment_enhance()
 	local e = assert(user.u_equipmentmgr:get_by_csv_id(self.csv_id))
 	if e.csv_id == 1 then
 		local last = user.u_equipmentmgr:get_by_csv_id(4)
-		assert(e.level ~= last.level)
+		print("*************", e.level, last.level)
+		assert(tonumber(e.level) ~= tonumber(last.level))
 	else
 		local last = user.u_equipmentmgr:get_by_csv_id(e.csv_id - 1)
 		assert(e.level < last.level)

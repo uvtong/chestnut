@@ -44,7 +44,6 @@ proto.c2s = sprotoparser.parse [[.package {
 		title 6 : string
 		content 7 : string
 		error 8 : integer
-		
 		attachs 9 : *attach
 }
 
@@ -486,6 +485,8 @@ shop_all 29 {
         errorcode 0 : integer
         msg 1 : string
         l 2 : *goods
+        goods_refresh_count 3 : integer
+        store_refresh_count_max 4 : integer
     }
 }
 
