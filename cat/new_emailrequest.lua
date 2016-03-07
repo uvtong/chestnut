@@ -41,11 +41,12 @@ function REQUEST:mails()
 
 	local emailbox = emailmgr:get_all_emails()
 	assert( emailbox )
+	local counter = 0
 	for i , v in pairs( emailbox ) do
-		print( "called" )
+		counter = counter + 1
 		local tmp = {}
 		tmp.attachs = {}
-		
+
 		tmp.emailid = v.csv_id
 		tmp.type = v.type
 		tmp.acctime = os.date( "%Y-%m-%d" , v.acctime )
@@ -58,8 +59,8 @@ function REQUEST:mails()
 
 		table.insert( ret.mail_list , tmp )
 	end 
- 		
-	print( "mails is called already" )
+ 	
+	print( "mails is called already" , counter )
 
 	return ret
 end      
@@ -103,18 +104,35 @@ function REQUEST:mail_getreward()
 	local emailbox = emailmgr:get_all_emails()
 	assert( emailbox )
 
-	for k , v in pairs( self.mail_id ) do
-		print ( k , v , v.id )
+	for k , v in pairs( self.mail_id ) do		
 		local e = emailmgr:get_by_csv_id( v.id )
 		assert( e )
+		if 0 == e.isreward then 	
+			local items = e:__getallitem()
+			assert( items )
+			for k , v in ipairs( items ) do
+				local prop = user.u_propmgr:get_by_csv_id( v.itemsn )
+				if prop then
+					prop.num = prop.num + v.itemnum
+					prop:__update_db( { "num" } )
+				else
+					local p = game.g_propmgr:get_by_csv_id( v.itemsn )
+					p.user_id = user.csv_id
+					p.num = v.itemnum 
+					local prop = user.u_propmgr.create( p )
+					user.u_propmgr:add( prop )
+					prop:__insert_db()
+				end
+			end
 
-		if ( 1 == e.type ) then
-			e.isdel = 1
-			e:__update_db( { "isdel" } )
-			emailmgr:delete_by_csv_id( e.csv_id )
-		else
-			e.isreward = 1
-			e:__update_db( { "isreward" } )
+			if ( 1 == e.type ) then
+				e.isdel = 1
+				e:__update_db( { "isdel" } )
+				emailmgr:delete_by_csv_id( e.csv_id )
+			else
+				e.isreward = 1
+				e:__update_db( { "isreward" } )
+			end
 		end
 	end 
 end 

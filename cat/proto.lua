@@ -146,6 +146,7 @@ proto.c2s = sprotoparser.parse [[.package {
 {      
     propid 0 : integer
     propnum 1 : integer
+    proptype 2 : integer
 }  
 
 .recharge_vip_reward 

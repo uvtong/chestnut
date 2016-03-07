@@ -14,7 +14,7 @@ local total = 50 --dai ding
 local dc 
 local SENDTYPE = 4 -- dai ding 4 presents heart
 	
-local friend = { id, apply , name , level , viplevel , iconid , sign , fightpower , isonline , online_time , heart , apply , receive }
+local friend = { csv_id, apply , name , level , viplevel , iconid , sign , fightpower , isonline , online_time , heart , apply , receive }
 function friend:_new( ... )
 	local t = {}
 
@@ -37,8 +37,8 @@ function friendmgr:_createfriend( tfriend )
 	
 	local r = friend:_new()
 	assert( r )
-	print( "tfriendid is " , tfriend.id )
-	r.id = tfriend.id
+	--print( "tfriendid is " , tfriend.csv_id )
+	r.id = tfriend.csv_id
 	r.name = tfriend.uname
 	r.level = tfriend.level
 	r.viplevel = tfriend.viplevel
@@ -60,7 +60,7 @@ end
 	
 function friendmgr:_createmsg( tvals )
     assert( tvals )
-    print("_createmsg is called")
+   -- print("_createmsg is called")
     local nm = msg:_new()
     assert( nm )
 
@@ -74,14 +74,14 @@ function friendmgr:_createmsg( tvals )
     nm.signtime = tvals.signtime 
     nm.isread = tvals.isread or 0
     
-    print( "create msg successfully" )
+   -- print( "create msg successfully" )
     return nm
 end 
 	
 local function randomaddr()
 	local r = math.random( 1 , 5 )
 	local addr = skynet.localname( string.format( ".db%d", math.floor( r ) ) )
-	print("addr is " .. addr )
+	--print("addr is " .. addr )
 	assert( addr , "randomaddr failed\n" )
 
 	return addr
@@ -89,7 +89,7 @@ end
 	
 function friendmgr:_db_insertmsg( msg )
 	assert( msg )
-	print( "isertmsg is called in mgr" )
+	--print( "isertmsg is called in mgr" )
 	local addr = randomaddr()
 	assert( addr )
 
@@ -203,8 +203,8 @@ function friendmgr:loadfriend( u , datacenter )
 	end--]]
 	friendmgr._data.avaliblelist = friendmgr:_db_loadavaliblefriend_idlist( user.csv_id , user.level )
 	for i = 1 , #friendmgr._data.avaliblelist do
-	print( friendmgr._data.avaliblelist[i] , friendmgr._data.avaliblelist[i].id)
-		friendmgr._data.avaliblelist[i] = friendmgr._data.avaliblelist[i].id
+	--print( friendmgr._data.avaliblelist[i] , friendmgr._data.avaliblelist[i].csv_id)
+		friendmgr._data.avaliblelist[i] = friendmgr._data.avaliblelist[i].csv_id
 	end	
 	friendmgr._data.appliedlist = friendmgr:_db_applied_idlist( user.csv_id , msgtype.APPLY )
 	--[[for i = 1 , #friendmgr._data.appliedlist do
@@ -311,7 +311,7 @@ function friendmgr:apply_friendlist()
 
 		for k , v in pairs( friendmgr._data.friendlist ) do
 			local tmp 
-			print( k , v.friendid , v.recvtime , v.sendtime )
+			--print( k , v.friendid , v.recvtime , v.sendtime )
 
 			local t = dc.get( v.friendid )
 			if t then -- if online
@@ -326,7 +326,7 @@ function friendmgr:apply_friendlist()
    			end
 
    			tmp.receive = receive
-   			print( v.recvtime , v.sendtime , settime , v.heartamount)
+   			--print( v.recvtime , v.sendtime , settime , v.heartamount)
    			
    				if os.time() >= settime then
    					tmp.heartamount = ( v.recvtime > settime ) and v.heartamount or 0
@@ -341,7 +341,8 @@ function friendmgr:apply_friendlist()
    			else                                                                                                                                                                                                                                                            
    				tmp.heart = false
    			end
-   			tmp.signtime = v.sendtime -- '0' represents that i never sent heart to others , and used for sendheart and recvheart
+   			tmp.signtime = v.recvtime -- '0' represents that i never sent heart to others , and used for sendheart and recvheart
+   			print( "tmp.signtime is **************************" , tmp.signtime )
    	 		local f = friendmgr:_createfriend( tmp )
    			assert( f )
 
@@ -381,7 +382,7 @@ function friendmgr:apply_appliedlist()
 	else
 		print( "not nil" , #friendmgr._data.appliedlist )
 		for k , v in pairs( friendmgr._data.appliedlist ) do
-			print( v.fromid )
+			--print( v.fromid )
 			local tmp
 			local t = dc.get( v.fromid )
 			if t then -- if online
@@ -432,7 +433,7 @@ local function pickfriends()
 
    	for k , v in pairs( friendmgr._data.avaliblelist ) do
    		if false == findexist( friendmgr._data.friendlist , v ) and false == findexist( friendmgr._data.appliedlist , v ) then
-   			print( v )
+   		--	print( v )
    			table.insert( tmp , v )
 		end 
    	end		
@@ -471,7 +472,7 @@ function friendmgr:apply_otherfriendlist()
 	assert( a )
 	print( "getback from pickfriends" )
 	for  k , v in pairs( a ) do
-		print( k , v )
+	--	print( k , v )
 		local tmp
 		local t = dc.get( v )
 		if t then -- if online
@@ -759,7 +760,7 @@ function friendmgr:findfriend( id )
 	table.insert( ret.friend , f )
 	return ret
 end			
-		
+			
 function friendmgr:recvheart( heartlist , totalamount )
 	assert( heartlist and totalamount )
 	if recvheartnum + totalamount > MAXHEARTNUM then
@@ -770,12 +771,22 @@ function friendmgr:recvheart( heartlist , totalamount )
 	end		
 
 	local prop = user.u_propmgr:get_by_csv_id( SENDTYPE )
-	
+
 	--print( "total num is " .. total.num )
 	for k , v in pairs( heartlist ) do
 			recvheartnum = recvheartnum + v.amount
-			prop.num = prop.num + v.amount
-
+			if prop then
+					prop.num = prop.num + v.amount
+					prop:__update_db( { "num" } )
+			else
+				local p = game.g_propmgr:get_by_csv_id( SENDTYPE )
+				p.user_id = user.csv_id
+				p.num = v.amount
+				local prop = user.u_propmgr.create( p )
+				user.u_propmgr:add( prop )
+				prop:__insert_db()
+			end		
+					
 			for sk , sv in ipairs( friendmgr._data.friendlist ) do
 				if v.friendid == sv.friendid then
 					sv.heartamount = 0

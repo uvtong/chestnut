@@ -52,11 +52,11 @@ function REQUEST:login(u)
 	user = u
 	cgold_mgr = user.u_cgoldmgr
 	assert( cgold_mgr )
-	print( game.g_daily_taskmgr:get_count() )
+	--print( game.g_daily_taskmgr:get_count() )
 	local t = game.g_daily_taskmgr:get_one() -- may be changed
 	assert( t )
 	record_date = Split( t.update_time , "|" )
-	print( record_date[ 1 ] , record_date[ 2 ] , record_date[ 3 ] )
+	--print( record_date[ 1 ] , record_date[ 2 ] , record_date[ 3 ] )
 	time_first = tonumber( string.sub( record_date[ 1 ] , 1 , 2 ) )
 	time_second = tonumber( string.sub( record_date[ 2 ] , 1 , 2 ) )
 
@@ -67,7 +67,7 @@ function REQUEST:login(u)
 		time_third = tonumber( string.sub( record_date[ 3 ] , 1 , 2 ) )
 	end 
 
-	print( time_first , time_second , time_third )
+	--print( time_first , time_second , time_third )
 end		
 	
 -- msg: **ifcgold_t * 1 can check , --0 can not cgold**
@@ -90,7 +90,7 @@ local function get_cgold_reward( t )
 	print( "basic_reward " , t.basic_reward )
 	local r = Split( t.basic_reward , "," )
 	assert( r )
-	print( t.level_up , t.levelup_reward )
+	--print( t.level_up , t.levelup_reward )
 	local sub = Split( r[ 1 ] , "*" )
 	assert( sub )
 	tmp.propid = tonumber( sub[ 1 ] )
@@ -110,7 +110,7 @@ local function add_to_prop( t )
 			prop.num = prop.num + v.amount
 			prop:__update_db({"num"})
 		else
-			print( "propid is " , v.propid )
+			--print( "propid is " , v.propid )
 			local p = game.g_propmgr:get_by_csv_id( v.propid )
 			p.user_id = user.csv_id
 			p.num = v.amount
@@ -235,9 +235,7 @@ function REQUEST:c_gold_once()
 		notexist = true
 		tcgold = {}
 	end 
-	for k , v in pairs( self ) do
-		print( k , v )
-	end
+	
 	print( ifcgold , self , self.c_gold_type ,  self.c_gold_level , user.cgold_level )
 	if 0 == ifcgold or self.c_gold_level ~= user.cgold_level then
 		ret.ok = false
@@ -277,7 +275,7 @@ function REQUEST:c_gold_once()
 			
 			ret.ok = true 
 			local sta , lefttime = judge_time_quantum( time , tcgold.time_length )
-			print( sta , lefttime )
+			--print( sta , lefttime )
 			ret.lefttime = lefttime 
 		end 
 	end 	

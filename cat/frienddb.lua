@@ -13,27 +13,16 @@ function frienddb:select_friendidlist( t )
 	print( sql )
 	local r = db:query( sql )
 	print("select friend idlist over")
-	for k , v in pairs( r ) do
-		print( d , v , v.friendid )
-	end
 	return r
 end	
 			
 function frienddb:select_loadavaliblefriendids( t )
 	assert( t )
 	
-	local sql = string.format( "select id from users where id != %s and level > %s and level < %s" , t.uid , t.level - 10 , t.level + 10 )
+	local sql = string.format( "select csv_id from users where csv_id != %s and level > %s and level < %s" , t.uid , t.level - 10 , t.level + 10 )
 	print( sql )
 	
 	local r = db:query( sql )
-	
-	if r then
-		for k , v in pairs( r ) do
-			print( k , v )
-		end
-	else
-		print( "no result in select_loadavaliblefriendids" )
-	end
 	
 	return r
 end	
@@ -87,7 +76,7 @@ end
 	
 function frienddb:select_usermsg( t )
 	assert( t )
-	local sql = string.format( "select id , uname , uviplevel , level , sign , ifonline , combat , onlinetime , iconid from users where id = %s" , t.uid )
+	local sql = string.format( "select csv_id , uname , uviplevel , level , sign , ifonline , combat , onlinetime , iconid from users where csv_id = %s" , t.uid )
 	print( sql )
     
 	local r = db:query( sql )
