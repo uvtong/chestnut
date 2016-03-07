@@ -17,7 +17,7 @@ function friendrequest:friend_list()
 			table.insert( ret.friendlist , v )
 		end
 	end
-	print("send friendlist ")
+	print("send friendlist " , heartamount )
 	ret.today_left_heart = heartamount
 	return ret
 end	

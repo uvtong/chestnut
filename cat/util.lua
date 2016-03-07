@@ -209,7 +209,8 @@ function util.insert_all( table_name , tcolumns )
 		counter = counter + 1
 		table.insert( tmp , value )
 	end
-	local sql = string.format( "insert into %s " , table_name ) .. columns_str .. " values " .. table.concat( tmp ) .. ";"
+	table.insert( tmp , ";" )
+	local sql = string.format( "insert into %s " , table_name ) .. columns_str .. " values " .. table.concat( tmp ) 
 	print_sql(sql)
 	return sql
 end 
