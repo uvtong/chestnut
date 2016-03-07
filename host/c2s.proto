@@ -48,10 +48,10 @@ message resp_ready {
 	required int32 errorcode = 1;
 	required string msg = 2;
 	required int32 user_id = 3;
-	repeated int32 cards = 4;
+	repeated int32 mcards = 4;
 	repeated int32 rcards = 5;
-	optional int32 your_turn = 6;
-	optional int32 countdown = 7;
+	repeated int32 lcards = 6;
+	repeated int32 dcards = 7;
 }
 
 // 7
@@ -63,6 +63,11 @@ message req_mp {
 message resp_mp {
 	required int32 errorcode = 1;
 	required string msg = 2;
+	required int32 m = 3;
+	repeated int32 mcards = 4;
+	repeated int32 rcards = 5;
+	repeated int32 lcards = 6;
+	repeated int32 dcards = 7;
 }
 
 // 9
@@ -96,12 +101,16 @@ message req_lead {
 
 // 14
 message resp_lead {
+	message settlement {
+		required int32 gold = 1;	
+	}
 	required int32 errorcode = 1;
 	required string msg = 2;
 	required int32 your_turn = 3;
 	required int32 countdown = 4;
-	optional int32 user_id = 6;
-	optional int32 user_id = 6;
+	optional settlement me = 5;
+	optional settlement right = 6;
+	optional settlement left = 7;
 }
 
 // 15 
@@ -112,4 +121,16 @@ message req_logout {
 message resp_logout {
 	required int32 errorcode = 1;
 	required string msg = 2;
+}
+
+// 17
+message req_deal_cards {
+}
+
+// 18
+message resp_deal_cards {
+	required int32 errorcode = 1;
+	required string msg = 2;
+	optional int32 your_turn = 3;
+	optional int32 countdown = 4;
 }
