@@ -132,7 +132,6 @@ function _M:sysdelemail()
 	local readrewarded = {}
 	local readunrewarded = {}
 	local unread = {}
-	local i = 1
 	
 	for k , v in pairs( self.__data ) do
 		if 1 == v.isread then
