@@ -101,7 +101,7 @@ proto.c2s = sprotoparser.parse [[.package {
     g_prop_csv_id 3 : integer
     g_prop_num 4 : integer
     inventory 5 : integer
-    countdown 6 : string
+    countdown 6 : integer
 }
  
 .goodsbuy
@@ -499,6 +499,8 @@ shop_purchase 30 {
         msg 1 : string
         l 2 : *prop
         ll 3 : *goods
+        goods_refresh_count 4 : integer
+        store_refresh_count_max 5 : integer
     }
 }
 
@@ -510,6 +512,8 @@ shop_refresh 31 {
         errorcode 0 : integer
         msg 1 : string
         l 2 : *goods
+        goods_refresh_count 3 : integer
+        store_refresh_count_max 4 : integer
     }
 }
 

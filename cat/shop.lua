@@ -43,17 +43,11 @@ end
 function CMD.shop_purchase( g )
 	-- body
 	local l = {}
-	local idx = 1
 	for i,v in ipairs(g) do
-		print(v.goods_id)
-		local r = game.g_goodsmgr:get_by_csv_id(v.goods_id)
-		local goods = r:__serialize()
-		goods.p_num = v.goods_num
-		for k,v in pairs(goods) do
-			print(k,v)
-		end
-		l[idx] = goods
-		idx = idx + 1
+		local r = assert(game.g_goodsmgr:get_by_csv_id(v.goods_id))
+		r = r:__serialize()
+		r.p_num = v.goods_num
+		table.insert(l, r)
 	end
 	return l
 end
