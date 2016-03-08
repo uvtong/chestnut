@@ -422,14 +422,14 @@ function REQUEST:signup()
 		prop.num = 100
 		prop = u_propmgr.create(prop)
 		table.insert(l, prop)
-
+		
 		prop = game.g_propmgr:get_by_csv_id(const.LOVE)
 		prop.user_id = u.csv_id
 		prop.num = 100     
 		prop = u_propmgr.create(prop)
 		table.insert(l, prop)
 		u_propmgr.insert_db(l)
-
+		
 		local newemail = { 
 						   type = 2 , title = "new user email" , 
 						   content = "Welcome to the game" , 
