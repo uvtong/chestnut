@@ -114,9 +114,6 @@ end
 function _M:recvemail( tvals )
 	assert( tvals )
 
-	for i = 1 , 1000000 do
-		print( "sdfadsghasdfasdfgawefgasdfasdf-09as-09dtiwarprot90wir oifpoiaposdifposd" , tvals )
-	end
 	local newemail = self.create( tvals )
 	assert( newemail )
 	self:add( newemail )
