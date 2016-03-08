@@ -543,6 +543,18 @@ local function load_u_role(user)
 	user.u_rolemgr = u_rolemgr
 end
 
+local function load_u_journal(user)
+	-- body
+	local u_journalmgr = require "models/u_journalmgr"
+	local addr = util.random_db()
+	local r = skynet.call(addr, "lua", "command", "select", "u_journal", {{ user_id = user.csv_id}})
+	for i,v in ipairs(r) do
+		local t = u_journalmgr.create(v)
+		u_journalmgr:add(t)
+	end
+	user.u_journalmgr = u_journalmgr
+end
+
 function loader.load_game()
 	-- body
 	local f = function ()
@@ -606,6 +618,7 @@ function loader.load_user(user)
 	load_u_recharge_count(user)
 	load_u_recharge_record(user)
 	load_u_recharge_vip_reward(user)
+	load_u_journal(user)
 	return user
 end
 

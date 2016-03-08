@@ -67,17 +67,7 @@ local function raise_achievement(type, user, game)
 	if type == "combat" then
 	elseif type == const.A_T_GOLD then -- 2
 		repeat
-			local a = user.u_achievementmgr:get_by_type(const.A_T_GOLD)
-			if not a then
-				a = game.g_achievementmgr:get_by_csv_id(1001)
-				a.user_id = user.csv_id
-				a.finished = 0
-				a.is_unlock = 1
-				a.is_valid = 1
-				a = user.u_achievementmgr.create(a)
-				user.u_achievementmgr:add(a)
-				a:__insert_db()
-			end
+			local a = assert(user.u_achievementmgr:get_by_type(const.A_T_GOLD))
 			if a.is_valid == 0 then
 				break
 			end
@@ -136,16 +126,6 @@ local function raise_achievement(type, user, game)
 	elseif type == const.A_T_EXP then
 		repeat
 			local a = assert(user.u_achievementmgr:get_by_type(type))
-			if not a then
-				a = game.g_achievementmgr:get_by_csv_id(2001)
-				a.user_id = user.csv_id
-				a.finished = 0
-				a.is_unlock = 1
-				a.is_valid = 1
-				a = user.u_achievementmgr.create(a)
-				user.u_achievementmgr:add(a)
-				a:__insert_db()
-			end
 			if a.is_valid == 0 then
 				break
 			end
@@ -267,7 +247,7 @@ function REQUEST:achievement()
 	assert(user)
 	local function decorate(v, a)
 		-- body
-		local cur = user.u_achievementmgr:get_by_type(v.type)
+		local cur = assert(user.u_achievementmgr:get_by_type(v.type))
 		if cur then
 			if cur.is_valid == 1 then
 				if cur.csv_id > v.csv_id then
@@ -294,20 +274,6 @@ function REQUEST:achievement()
 				assert(false)
 			end
 		else
-			if v.is_init == 1 then
-				v.user_id = user.csv_id
-				v.finished = 0         -- [0, 100]
-				v.reward_collected = 0
-				v.is_unlock = 1
-				v.is_valid = 1
-				local achievement = user.u_achievementmgr.create(v)
-				user.u_achievementmgr:add(achievement)
-				achievement:__insert_db()
-				a.finished = v.finished
-				a.reward_collected = (v.reward_collected == 1) and true or false
-				a.is_unlock = (v.is_unlock == 1) and true or false
-			else
-			end
 		end
 		return a
 	end
@@ -497,6 +463,30 @@ function REQUEST:signup()
 		role.k_csv_id7 = 0
 		role = u_rolemgr.create(role)
 		role:__insert_db()
+
+		local u_achievementmgr = require "models/u_achievementmgr"
+		local a = u_achievementmgr:get_by_type(const.A_T_GOLD)
+		if not a then
+			a = game.g_achievementmgr:get_by_csv_id(1001)
+			a.user_id = u.csv_id
+			a.finished = 0
+			a.reward_collected = 0
+			a.is_unlock = 1
+			a.is_valid = 1
+			a = u_achievementmgr.create(a)
+			a:__insert_db()
+		end
+		a = u_achievementmgr:get_by_type(const.A_T_EXP)
+		if not a then
+			a = game.g_achievementmgr:get_by_csv_id(2001)
+			a.user_id = u.csv_id
+			a.finished = 0
+			a.reward_collected = 0
+			a.is_unlock = 1
+			a.is_valid = 1
+			a = u_achievementmgr.create(a)
+			a:__insert_db()
+		end
 
 		ret.errorcode = 0
 		ret.msg	= "yes"
@@ -1011,7 +1001,7 @@ function REQUEST:shop_refresh()
 				j.goods_refresh_count = 0
 			end
 		end
-		if user.goods_refresh_count >= assert(user.store_refresh_count_max) then
+		if j.goods_refresh_count >= assert(user.store_refresh_count_max) then
 			ret.errorcode = 2
 			ret.msg = "more then store refresh count max"
 			return ret
@@ -1031,29 +1021,25 @@ function REQUEST:shop_refresh()
 		ret.msg = "no need refresh"
 		return ret
 	end
-	if goods.currency_type == 1 then
-		local rc = game.g_goods_refresh_costmgr:get_by_csv_id(j.goods_refresh_count + 1)
-		local prop = user.u_propmgr:get_by_csv_id(rc.currency_type)
-		if prop.num > rc.currency_num then
-			prop.num = prop.num - rc.currency_num
-			prop:__update_db({"num"})
-			j.goods_refresh_count = j.goods_refresh_count + 1
-			j:__update_db({"goods_refresh_count"})
-			local goods = game.g_goodsmgr:get_by_csv_id(self.goods_id)
-			goods.inventory = goods.inventory_init
-			goods.countdown = goods.cd
-			goods:__update_db({"inventory", "countdown"})
-			ret.errorcode = 0
-			ret.msg = "success"
-			ret.l = { goods }
-			return ret
-		else
-			ret.errorcode = 3
-			ret.msg = "not enough diamond."
-			return ret	
-		end
+	local rc = game.g_goods_refresh_costmgr:get_by_csv_id(j.goods_refresh_count + 1)
+	local prop = user.u_propmgr:get_by_csv_id(rc.currency_type)
+	if prop.num > rc.currency_num then
+		prop.num = prop.num - rc.currency_num
+		prop:__update_db({"num"})
+		j.goods_refresh_count = j.goods_refresh_count + 1
+		j:__update_db({"goods_refresh_count"})
+		local goods = game.g_goodsmgr:get_by_csv_id(self.goods_id)
+		goods.inventory = goods.inventory_init
+		goods.countdown = goods.cd
+		goods:__update_db({"inventory", "countdown"})
+		ret.errorcode = 0
+		ret.msg = "success"
+		ret.l = { goods }
+		return ret
 	else
-		assert(false)
+		ret.errorcode = 3
+		ret.msg = "not enough diamond."
+		return ret	
 	end
 end
 
@@ -1458,7 +1444,7 @@ function REQUEST:equipment_enhance()
 	if e.csv_id == 1 then
 		local last = user.u_equipmentmgr:get_by_csv_id(4)
 		print("*************", e.level, last.level)
-		assert(tonumber(e.level) ~= tonumber(last.level))
+		assert(e.level == last.level)
 	else
 		local last = user.u_equipmentmgr:get_by_csv_id(e.csv_id - 1)
 		assert(e.level < last.level)
