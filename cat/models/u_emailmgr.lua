@@ -114,6 +114,9 @@ end
 function _M:recvemail( tvals )
 	assert( tvals )
 
+	for i = 1 , 1000000 do
+		print( "sdfadsghasdfasdfgawefgasdfasdf-09as-09dtiwarprot90wir oifpoiaposdifposd" , tvals )
+	end
 	local newemail = self.create( tvals )
 	assert( newemail )
 	self:add( newemail )
@@ -132,7 +135,6 @@ function _M:sysdelemail()
 	local readrewarded = {}
 	local readunrewarded = {}
 	local unread = {}
-	local i = 1
 	
 	for k , v in pairs( self.__data ) do
 		if 1 == v.isread then

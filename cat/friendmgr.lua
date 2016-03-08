@@ -304,7 +304,7 @@ function friendmgr:apply_friendlist()
     print( "friend mgr date is " .. #friendmgr._data.friendlist )
 	if 0 == #friendmgr._data.friendlist then
 		print( "no friendmgr._data.friendlist in friendmgr._data.friendlist" )
-		return nil
+		return nil , MAXHEARTNUM - recvheartnum
 	else
 		local settime = getsettime()
 		local lowtime = settime - 60 * 60 * 24
@@ -351,6 +351,7 @@ function friendmgr:apply_friendlist()
    			print( "build a friend successfully" )
    			
    		end	
+   		print( MAXHEARTNUM ,  MAXHEARTNUM - recvheartnum , recvheartnum )
    		return fl , ( MAXHEARTNUM - recvheartnum ) -- today_heart is the heart amount user gets today
    	end		
 end			

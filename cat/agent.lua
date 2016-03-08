@@ -438,21 +438,30 @@ function REQUEST:signup()
 		prop.num = 100
 		prop = u_propmgr.create(prop)
 		table.insert(l, prop)
-
+		
 		prop = game.g_propmgr:get_by_csv_id(const.LOVE)
 		prop.user_id = u.csv_id
-		prop.num = 100
+		prop.num = 100     
 		prop = u_propmgr.create(prop)
 		table.insert(l, prop)
 		u_propmgr.insert_db(l)
-
+		
+		local newemail = { 
+						   type = 2 , title = "new user email" , 
+						   content = "Welcome to the game" , 
+						   itemsn1 = 1 , itemnum1 = 10000 , 
+						   itemsn2 = 2 , itemnum2 = 10000 , 
+						   itemsn3 = 3 , itemnum3 = 10000 , 
+						   iconid = 10001 
+						}  
+		skynet.send(".channel", "lua", "send_email_to_group" , newemail ,  { { csv_id = u.csv_id } } )
 		-- local u_kungfumgr = require "models/u_kungfumgr"
 		-- local kungfu = game.g_kungfumgr:get_by_csv_id(1001)
 		-- kungfu.user_id = assert(u.csv_id)
 		-- kungfu.is_learned = 0
 		-- local k = u_kungfumgr.create(kungfu)
-		-- k:__insert_db()
-
+		-- k:__insert_db() 
+						   	
 		local u_rolemgr = require "models/u_rolemgr"
 		local role = assert(game.g_rolemgr:get_by_csv_id(1))
 		local role_star = game.g_role_starmgr:get_by_csv_id(assert(role.csv_id)*1000+assert(role.star))
