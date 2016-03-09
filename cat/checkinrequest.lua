@@ -1,7 +1,8 @@
 local checkinrequest = {}
 local dc = require "datacenter"
 local util = require "util"
-	
+local errorcode = require "errorcode"
+
 local send_package
 local send_request
 	
@@ -257,11 +258,13 @@ function REQUEST:checkin_aday()
 	if 0 == tcheckin.ifcheck_in then
 		if 0 == counter then
 			ret.ok = false
-			ret.msg = "you wai gua"
+			ret.errorcode = errorcode[ 53 ].code
+			ret.msg = errorcode[ 53 ].msg
 			--if this case happens , maybe waigua . then logout game should be callled
 		else
 			ret.ok = false
-			ret.msg = "checkin already"
+			ret.errorcode = errorcode[ 54 ].code
+			ret.msg = errorcode[ 54 ].msg
 		end
 	else
 		counter = counter + 1
@@ -296,7 +299,8 @@ function REQUEST:checkin_aday()
 		user:__update_db( { "checkin_num" } )
 		tcheckin_month:__update_db( { "checkin_month" } )	
 
-		ret.ok = true				
+		ret.ok = true
+		ret.errorcode = errorcode[ 1 ].code				
 	end	
 
 	return ret
@@ -310,14 +314,16 @@ function REQUEST:checkin_reward()
 	if user.checkin_num ~= self.totalamount or user.checkin_reward_num ~= self.rewardnum then
 		print( "donot match the server totalmount" )
 		ret.ok = false
-		ret.msg = "donot match the server totalmount"
+		ret.errorcode = errorcode[ 55 ].code
+		ret.msg = errorcode[ 55 ].msg
 		-- logout
 	else	
 		local t = get_g_checkin_month_by_reward_num( self.rewardnum + 1 )
 		
 		if  t.totalamount > user.checkin_num  then
 			ret.ok = false
-			ret.msg = "can not reward"
+			ret.errorcode = errorcode[ 56 ].code
+			ret.msg = errorcode[ 56 ].msg
 			-- should logout
 		else
 			print( "******************************************checkin_reward" )
@@ -327,6 +333,7 @@ function REQUEST:checkin_reward()
 			add_to_prop( get_accumulate_reward( t ) )
 
 			ret.ok = true
+			ret.errorcode = errorcode[ 1 ].code
 		end	
 	end		
 			

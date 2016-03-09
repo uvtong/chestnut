@@ -26,4 +26,19 @@ errorcode[23] = { code = 23, msg = "equipment enhance, do not exceed the level o
 errorcode[24] = { code = 24, msg = "equipment enhance failture."}
 errorcode[25] = { code = 25, msg = "your vip gift has purchased"}
 errorcode[26] = { code = 26, msg = "your achievement reward don't collected"}
+
+
+
+
+
+--kungfu
+errorcode[51] = { code = 51 , msg = "kongfu not exist" }
+errorcode[52] = { code = 52 , msg = "kungfu level not match" }
+--friend
+errorcode[ 53 ] = { code = 53 , msg = "you wai gua" }
+errorcode][ 54 ] = { code = 54 , msg = "checkin already" } 
+--checkin
+errorcode[ 55 ] = { code = 55 , msg = "donot match the server totalmount" }
+errorcode[ 56 ] = { code = 56 , msg = "can not checkin_reward" }
+
 return errorcode
