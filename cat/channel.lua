@@ -89,6 +89,8 @@ function CMD:send_email_to_group( tval , tucsv_id )
 		print( v.csv_id )
 		tval.csv_id = util.u_guid( v.csv_id , game, const.UEMAILENTROPY )
 		tval.uid = v.csv_id
+		
+		print("********************************eamil", tval.csv_id)
 			
 		local t = dc.get( v.csv_id )
 
