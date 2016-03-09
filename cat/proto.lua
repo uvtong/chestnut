@@ -43,7 +43,7 @@ proto.c2s = sprotoparser.parse [[.package {
 		isreward 5 : boolean
 		title 6 : string
 		content 7 : string
-		error 8 : integer
+		errorcode 8 : integer
 		attachs 9 : *attach
 }
 
@@ -348,7 +348,7 @@ friend_list 15
 {
 	response {
 		ok 0 : boolean
-		error 1 : integer
+		errorcode 1 : integer
 		msg 2 : string
 		friendlist  3 : *subuser
         today_left_heart 4 : integer
@@ -359,7 +359,7 @@ applied_list 16
 {
 	response {
 		ok 0 : boolean
-		error 1 : integer
+		errorcode 1 : integer
 		msg 2 : string
 		friendlist  3 : *subuser
 	}
@@ -369,7 +369,7 @@ otherfriend_list  17
 {
 	response {
 		ok 0 : boolean
-		error 1 : integer
+		errorcode 1 : integer
 		msg 2 : string
 		friendlist  3 : *subuser
 	}
@@ -382,7 +382,7 @@ findfriend 18
 	}
 	response {
 		ok 0 : boolean
-		error 1 : integer
+		errorcode 1 : integer
 		msg 2 : string
 		friend 3 : *subuser
 	}
@@ -418,7 +418,7 @@ deletefriend 22
     }
     response {
         ok 0 : boolean
-        error 1 : integer
+        errorcode 1 : integer
         msg 2 : string
     }
 }	 
@@ -431,7 +431,7 @@ recvheart 23
     }   
     response {
         ok 0 : boolean
-        error 1 : integer
+        errorcode 1 : integer
         msg 2 : string
     } 
 }		
@@ -444,7 +444,7 @@ sendheart 24
     }   
     response {
        ok 0 : boolean
-       error 1 : integer
+       errorcode 1 : integer
        msg 2 : string
     }	
 }
@@ -577,7 +577,7 @@ applydraw 39
     }
     response {
         ok 0 : boolean
-        error 1 : integer
+        errorcode 1 : integer
         msg 2 : string
         list 3 : *drawrewardlist
         lefttime 4 : integer
@@ -628,7 +628,7 @@ checkin 43
 {
     response {
         ok 0 : boolean
-        error 1 : integer
+        errorcode 1 : integer
         msg 2 : string  
     }
  }
@@ -641,7 +641,7 @@ checkin 43
     }
     response {
         ok 0 : boolean
-        error 1 : integer
+        errorcode 1 : integer
         msg 2 : string      
     }
  }
@@ -664,7 +664,7 @@ exercise 46
     }
     response {
         ok 0 : boolean
-        error 1 : integer
+        errorcode 1 : integer
         msg 2 : string
         lefttime 3 : integer
     }
@@ -688,7 +688,7 @@ exercise 46
     }
     response {
         ok 0 : boolean
-        error 1 : integer
+        errorcode 1 : integer
         msg 2 : string
         lefttime 3 : integer
     }
@@ -833,7 +833,7 @@ mail 2 {
     }
     response {
         ok 0 : boolean 
-        error 1 : integer
+        errorcode 1 : integer
         msg 2 : string
     }
 }

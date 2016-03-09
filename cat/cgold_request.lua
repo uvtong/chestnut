@@ -1,7 +1,8 @@
 local cgold_request = {}
 local dc = require "datacenter"
 local util = require "util"
-	
+local errorcode = require "errorcode"
+
 local send_package
 local send_request
 	
@@ -21,7 +22,7 @@ local time_second
 local time_third
 local cgold_time
 local ifcgold = 0 -- judge if can cgold , 0 cannot , 1 can
-local ERROR = { WAI_GUA = 1 , NOT_ENOUGH_MONEY = 2 }
+local errorcode = { WAI_GUA = 1 , NOT_ENOUGH_MONEY = 2 }
 
 local function send_package(pack)
 	local package = string.pack(">s2", pack)
@@ -259,8 +260,8 @@ function REQUEST:c_gold_once()
 		local prop = user.u_propmgr:get_by_csv_id( t.cost_id )
 		if not prop or prop.num < t.cost_amount then
 			ret.ok = false
-			ret.error = 2
-			ret.msg = "not enough money"
+			ret.errorcode = errorcode[ 16 ].code
+			ret.msg = errorcode[ 16 ].msg
 		else
 			print( "************************************can cgold reward" )
 			ifcgold = 0

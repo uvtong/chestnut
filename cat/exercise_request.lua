@@ -1,7 +1,8 @@
 local exerciserequest = {}
 local dc = require "datacenter"
 local util = require "util"
-	
+local errorcode = require "errorcode"	
+
 local send_package
 local send_request
 	
@@ -253,8 +254,8 @@ function REQUEST:exercise_once()
 		local prop = user.u_propmgr:get_by_csv_id( t.cost_id )
 		if not prop or prop.num < t.cost_amount then
 			ret.ok = false
-			ret.error = 2
-			ret.msg = "not enough money"
+			ret.errorcode = errorcode[ 16 ].code
+			ret.msg = errorcode[ 16 ].msg
 		else
 			print( "************************************can exercise reward" )
 			ifexercise = 0

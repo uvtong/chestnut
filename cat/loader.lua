@@ -101,6 +101,54 @@ local function load_g_kungfu()
 	game.g_kungfumgr = g_kungfumgr
 end
 
+local function load_g_lilian_level()
+	-- body
+	assert(game.g_lilian_levelmgr == nil)
+	local g_lilian_levelmgr = require "models/g_lilian_levelmgr"
+	local r = skynet.call(util.random_db(), "lua", "command", "select", "g_lilian_level")
+	for i,v in ipairs(r) do
+		local t = g_lilian_levelmgr.create(v)
+		g_lilian_levelmgr:add(t)
+	end
+	game.g_lilian_levelmgr = g_lilian_levelmgr
+end
+
+local function load_g_lilian_event()
+	-- body
+	assert(game.g_lilian_eventmgr == nil)
+	local g_lilian_eventmgr = require "models/g_lilian_eventmgr"
+	local r = skynet.call(util.random_db(), "lua", "command", "select", "g_lilian_event")
+	for i,v in ipairs(r) do
+		local t = g_lilian_eventmgr.create(v)
+		g_lilian_eventmgr:add(t)
+	end
+	game.g_lilian_eventmgr = g_lilian_eventmgr
+end
+
+local function load_g_lilian_quanguan()
+	-- body
+	assert(game.g_lilian_quanguanmgr == nil)
+	local g_lilian_quanguanmgr = require "models/g_lilian_quanguanmgr"
+	local r = skynet.call(util.random_db(), "lua", "command", "select", "g_lilian_quanguan")
+	for i,v in ipairs(r) do
+		local t = g_lilian_quanguanmgr.create(v)
+		g_lilian_quanguanmgr:add(t)
+	end
+	game.g_lilian_quanguanmgr = g_lilian_quanguanmgr
+end
+
+local function load_g_lilian_invitation()
+	-- body
+	assert(game.g_lilian_invitationmgr == nil)
+	local g_lilian_invitationmgr = require "models/g_lilian_invitationmgr"
+	local r = skynet.call(util.random_db(), "lua", "command", "select", "g_lilian_invitation")
+	for i,v in ipairs(r) do
+		local t = g_lilian_invitationmgr.create(v)
+		g_lilian_invitationmgr:add(t)
+	end
+	game.g_lilian_invitationmgr = g_lilian_invitationmgr
+end
+
 local function load_g_prop()
 	-- body
 	assert(game.g_propmgr == nil)
@@ -586,7 +634,11 @@ function loader.load_game()
 		load_g_subreward()
 		load_g_prop()
 		load_g_recharge()
-
+		--load_g_lilian_invitation()
+		--load_g_lilian_level()
+		--load_g_lilian_event()
+		--load_g_lilian_quanguan()
+		
 		load_g_randomval()
 		load_g_recharge_vip_reward()
 		load_g_role()

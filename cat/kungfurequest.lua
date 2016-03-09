@@ -1,7 +1,8 @@
 local kungfurequest = {}
 local dc = require "datacenter"
 local util = require "util"
-	
+local errorcode = require "errorcode"
+
 local send_package
 local send_request
 	
@@ -87,9 +88,7 @@ function REQUEST:kungfu()
 
 	return ret
 end		
-		
-local ERROR = { K_NOT_EXIST = 1 , LEVEL_NOT_MATCH = 2 , NOT_ENOUGH_PROP = 3 }
-		
+				
 function REQUEST:kungfu_levelup()
 	print( "*-----------------------------* kungfu_day is called" )
 	print( self.csv_id , self.k_level , self.k_type )
@@ -106,8 +105,8 @@ function REQUEST:kungfu_levelup()
 	if not tprop_prop or tprop_prop.num < g_tk.prop_num or not tprop_currency or tprop_currency.num < g_tk.currency_num then
 		print( " not enough money" )
 		ret.ok = false
-		ret.errorcode = ERROR.NOT_ENOUGH_PROP
-		ret.msg = "not enough money"	
+		ret.errorcode = errorcode[ 3 ].code
+		ret.msg = errorcode[ 3 ].msg
 		return ret
 	else    
 		--print( t , t[ tostring( self.k_csv_id) ] )
@@ -132,8 +131,8 @@ function REQUEST:kungfu_levelup()
 			if tkungfu.level + 1 ~= self.k_level then
 				print( "not match" )
 				ret.ok = false
-				ret.errorcode = ERROR.LEVEL_NOT_MATCH
-				ret.msg = "level not match"
+				ret.errorcode = errorcode[ 52 ].code --  ERROR.LEVEL_NOT_MATCH
+				ret.msg = errorcode[ 52 ].msg
 				
 				return ret
 			end
@@ -162,7 +161,7 @@ function REQUEST:kungfu_levelup()
 	end 	
 
 	ret.ok = true
-	ret.errorcode = 0				
+	ret.errorcode = errorcode[ 1 ].code			
 			
 	return ret
 end				
