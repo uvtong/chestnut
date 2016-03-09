@@ -36,7 +36,7 @@ errorcode[51] = { code = 51 , msg = "kongfu not exist" }
 errorcode[52] = { code = 52 , msg = "kungfu level not match" }
 --friend
 errorcode[ 53 ] = { code = 53 , msg = "you wai gua" }
-errorcode][ 54 ] = { code = 54 , msg = "checkin already" } 
+errorcode[ 54 ] = { code = 54 , msg = "checkin already" } 
 --checkin
 errorcode[ 55 ] = { code = 55 , msg = "donot match the server totalmount" }
 errorcode[ 56 ] = { code = 56 , msg = "can not checkin_reward" }
