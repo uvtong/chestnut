@@ -132,15 +132,9 @@ function CMD:command( subcmd, ... )
     if nil ~= QUERY[subcmd] then
     	f = assert(QUERY[ subcmd ])
 		return f(QUERY, ... )
-	elseif nil ~= emaildb[ subcmd ] then	
-		f = assert( emaildb[ subcmd ] )
-		return f(emaildb, ...)
 	elseif nil ~= frienddb[ subcmd ] then
 		f = assert( frienddb[ subcmd ] )
 		return f(frienddb, ...)
-	elseif nil ~= drawdb[ subcmd ] then
-		f = assert( drawdb[ subcmd ] )
-		return f(drawdb, ...) 
 	else
 		print(subcmd)
 		assert( f )

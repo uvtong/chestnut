@@ -209,6 +209,7 @@ proto.c2s = sprotoparser.parse [[.package {
     love 15 : integer
     equipment_list 16 : *equipment
     kungfu_list 17 : *kungfu_content
+    level 18 : integer
 }
 
 handshake 1 {

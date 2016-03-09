@@ -7,7 +7,7 @@ local game
 
 local CMD = {}
  
-function CMD.load_goods()
+function CMD.start()
  	-- body
  	game = loader.load_game()
  end 
@@ -19,13 +19,7 @@ end
 
 function CMD.shop_all()
 	-- body
-	local l = {}
-	local idx = 1
-	for k,v in pairs(game.g_goodsmgr.__data) do
-		l[idx] = v:__serialize()
-		idx = idx + 1
-	end
-	return l
+	return game.g_goodsmgr.__data
 end
 
 function CMD.shop_refresh( goods_id )
