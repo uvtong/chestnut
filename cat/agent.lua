@@ -10,15 +10,11 @@ local dc = require "datacenter"
 local util = require "util"
 local loader = require "loader"
 local errorcode = require "errorcode"
-
-local friendrequest = require "friendrequest"
-local friendmgr = require "friendmgr"
-local drawrequest = require "drawrequest"
-local drawmgr = require "drawmgr"
-local csvReader = require "csvReader"
 local const = require "const"
 local config = require "config"
 
+local friendrequest = require "friendrequest"
+local friendmgr = require "friendmgr"
 local M = {}
 local new_emailrequest = require "new_emailrequest"
 local checkinrequest = require "checkinrequest"
