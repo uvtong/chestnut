@@ -555,6 +555,18 @@ local function load_u_journal(user)
 	user.u_journalmgr = u_journalmgr
 end
 
+local function load_u_goods(user)
+	-- body
+	local u_goodsmgr = require "models/u_goodsmgr"
+	local addr = util.random_db()
+	local r = skynet.call(addr, "lua", "command", "select", "u_goodsmgr", {{ user_id = user.csv_id}})
+	for i,v in ipairs(r) do
+		local t = u_goodsmgr.create(v)
+		u_goodsmgr:add(t)
+	end
+	user.u_goodsmgr = u_goodsmgr
+end
+
 function loader.load_game()
 	-- body
 	local f = function ()
@@ -609,7 +621,6 @@ function loader.load_user(user)
 	load_u_cgold( user )
 	load_u_email( user )
 	load_u_kungfu(user)
-
 	load_u_draw( user )
 	load_u_prop(user)
 	load_u_role(user)
@@ -619,6 +630,7 @@ function loader.load_user(user)
 	load_u_recharge_record(user)
 	load_u_recharge_vip_reward(user)
 	load_u_journal(user)
+	load_u_goods(user)
 	return user
 end
 
