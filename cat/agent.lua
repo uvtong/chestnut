@@ -256,8 +256,8 @@ function REQUEST:achievement()
 	-- 2
 	local ret = {}
 	if not user then
-		ret.errorcode = 1
-		ret.msg = "not online"
+		ret.errorcode = errorcode[2].code
+		ret.msg = errorcode[2].msg
 		return ret
 	end
 	assert(user)
@@ -300,8 +300,8 @@ function REQUEST:achievement()
 		decorate(v, a)
 		table.insert(l, a)
 	end
-	ret.errorcode = 0
-    ret.msg = "this is all achievement."
+	ret.errorcode = errorcode[1].code
+    ret.msg = errorcode[1].msg
     ret.achis = l
     return ret
 end
@@ -312,8 +312,8 @@ function REQUEST:achievement_reward_collect()
 	-- 1. offline
 	local ret = {}
 	if not user then
-		ret.errorcode = 1
-		ret.msg = "not online"
+		ret.errorcode = errorcode[2].code
+		ret.msg = errorcode[2].msg
 		return ret
 	end
 	assert(user)
@@ -322,8 +322,7 @@ function REQUEST:achievement_reward_collect()
 	if a and a.finished == 100 and a.reward_collected == 0 then
 		a.reward_collected = 1
 		a:__update_db({"reward_collected"})
-		local a_src = game.g_achievementmgr:get_by_csv_id(a.csv_id)
-		assert(a_src)
+		local a_src = assert(game.g_achievementmgr:get_by_csv_id(a.csv_id))
 		if a_src.type == 2 then
 			local csv_id1 = string.gsub(a_src.reward, "(%d*)%*(%d*)", "%1")
 			local num1 = string.gsub(a_src.reward, "(%d*)%*(%d*)", "%2")
@@ -339,12 +338,12 @@ function REQUEST:achievement_reward_collect()
 				prop:__insert_db()
 			end
 		end
-		ret.errorcode = 0
-		ret.msg = "yes"
+		ret.errorcode = errorcode[1].code
+		ret.msg = errorcode[1].msg
 		return ret
 	end
-	ret.errorcode = 2
-	ret.msg = "no"
+	ret.errorcode = errorcode[26].code
+	ret.msg = errorcode[26].msg
 	return ret
 end
     
@@ -545,6 +544,14 @@ function REQUEST:login()
 		subscribe()
 		skynet.fork(subscribe)
 
+		dc.set(user.csv_id, { client_fd=client_fd, addr=skynet.self()})
+		local onlinetime = os.time()
+		user.ifonline = 1
+		user.onlinetime = onlinetime
+		user:__update_db({"ifonline", "onlinetime"})
+		user.friendmgr = friendmgr:loadfriend( user , dc )
+		friendrequest.getvalue( user , send_package , send_request )
+
 		ret.errorcode = errorcode[1].code
 		ret.msg = errorcode[1].msg
 		ret.u = {
@@ -575,21 +582,8 @@ function REQUEST:login()
 			table.insert(l, r)
 		end
 		ret.rolelist = l
+		return ret
 	end 
-	dc.set(user.csv_id, { client_fd=client_fd, addr=skynet.self()})
-	local onlinetime = os.time()
-	user.ifonline = 1
-	user.onlinetime = onlinetime
-	user:__update_db({"ifonline", "onlinetime"})
-
-	--user.emailbox = emailbox:loademails( user.csv_id )
-	--emailrequest.getvalue( user )
-	user.friendmgr = friendmgr:loadfriend( user , dc )
-	friendrequest.getvalue( user , send_package , send_request )
-	--user.drawmgr = drawmgr
-	--drawrequest.getvalue( user , game )
-	--user.friendmgr:noticeonline( dc )
-	return ret
 end	
 
 function REQUEST:logout()
@@ -731,8 +725,8 @@ function REQUEST:props()
 	-- body
 	local ret = {}
 	if not user then
-		ret.errorcode = errorcode[0].code
-		ret.msg = errorcode[0].msg
+		ret.errorcode = errorcode[2].code
+		ret.msg = errorcode[2].msg
 		return ret
 	end
 	assert(user)
@@ -743,6 +737,7 @@ function REQUEST:props()
 		p.num = v.num
 		table.insert(l, p)
 	end
+
 	ret.l = l
 	return ret
 end
@@ -1126,6 +1121,7 @@ function REQUEST:shop_purchase()
 		return ret
 	end
 	assert(user)
+	assert(self.g)
 	local l = skynet.call(".shop", "lua", "shop_purchase", self.g)
 	local props = {}
 	local gs = {}
@@ -1171,7 +1167,7 @@ function REQUEST:shop_purchase()
 					end
 					table.insert(props, prop)
 					table.insert(gs, goods)
-					local t = { user_id=user.csv_id, csv_id=goods.id, num=v.p_num, currency_type=const.GOLD, currency_num=gold, purchase_time=os.time()}
+					local t = { user_id=user.csv_id, csv_id=goods.csv_id, num=v.p_num, currency_type=const.GOLD, currency_num=gold, purchase_time=os.time()}
 					local rc = user.u_purchase_goodsmgr.create(t)
 					user.u_purchase_goodsmgr:add(rc)
 					rc:__insert_db()
@@ -1208,7 +1204,7 @@ function REQUEST:shop_purchase()
 						end
 						table.insert(props, prop)
 						table.insert(gs, goods)
-						local t = { user_id=user.csv_id, csv_id=goods.id, num=v.p_num, currency_type=const.GOLD, currency_num=gold, purchase_time=os.time()}
+						local t = { user_id=user.csv_id, csv_id=goods.csv_id, num=v.p_num, currency_type=const.GOLD, currency_num=gold, purchase_time=os.time()}
 						local rc = user.u_purchase_goodsmgr.create(t)
 						user.u_purchase_goodsmgr:add(rc)
 						rc:__insert_db()
@@ -1274,7 +1270,7 @@ function REQUEST:shop_purchase()
 					end
 					table.insert(props, prop)
 					table.insert(gs, goods)
-					local t = { user_id=user.csv_id, csv_id=goods.id, num=v.p_num, currency_type=const.DIAMOND, currency_num=diamond, purchase_time=os.time()}
+					local t = { user_id=user.csv_id, csv_id=goods.csv_id, num=v.p_num, currency_type=const.DIAMOND, currency_num=diamond, purchase_time=os.time()}
 					local rc = user.u_purchase_goodsmgr.create(t)
 					user.u_purchase_goodsmgr:add(rc)
 					rc:__insert_db()
@@ -1311,7 +1307,7 @@ function REQUEST:shop_purchase()
 						end
 						table.insert(props, prop)
 						table.insert(gs, goods)
-						local t = { user_id=user.csv_id, csv_id=goods.id, num=v.p_num, currency_type=const.DIAMOND, currency_num=diamond, purchase_time=os.time()}
+						local t = { user_id=user.csv_id, csv_id=goods.csv_id, num=v.p_num, currency_type=const.DIAMOND, currency_num=diamond, purchase_time=os.time()}
 						local rc = user.u_purchase_goodsmgr.create(t)
 						user.u_purchase_goodsmgr:add(rc)
 						rc:__insert_db()
@@ -1356,7 +1352,7 @@ function REQUEST:recharge_all()
 		ret.msg = errorcode[2].msg
 		return ret
 	end
-	ret.errorcode = errorcode[1].msg
+	ret.errorcode = errorcode[1].code
 	ret.msg = errorcode[1].msg
 	ret.l = skynet.call(".shop", "lua", "recharge_all")
 	return ret
@@ -1652,17 +1648,17 @@ function REQUEST:equipment_all()
 	local l = {}
 	for k,v in pairs(user.u_equipmentmgr.__data) do
 		local e = {
-			csv_id = v.csv_id,
-			level = v.level,
-			combat = v.combat,
-			defense = v.defense,
-			critical_hit = v.critical_hit,
-			king = v.king,
-			combat_probability = v.combat_probability,
-			critical_hit_probability = v.critical_hit_probability,
-			defense_probability = v.defense_probability,
-			king_probability = v.king_probability,
-			enhance_success_rate = v.enhance_success_rate
+			csv_id = assert(v.csv_id),
+			level = assert(v.level),
+			combat = assert(v.combat),
+			defense = assert(v.defense),
+			critical_hit = assert(v.critical_hit),
+			king = assert(v.king),
+			combat_probability = assert(v.combat_probability),
+			critical_hit_probability = assert(v.critical_hit_probability),
+			defense_probability = assert(v.defense_probability),
+			king_probability = assert(v.king_probability),
+			enhance_success_rate = assert(v.enhance_success_rate)
 		}
 		table.insert(l, e)
 	end
@@ -1936,7 +1932,7 @@ local function request(name, args, response)
     local r = f(args)
     print("**********************************", name)
     if name == "login" then
-    	if r.errorcode == 0 then
+    	if r.errorcode == errorcode[1].code then
     		for k,v in pairs(M) do
     			if v.REQUEST then
     				v.REQUEST[name](v.REQUEST, user)
@@ -1951,7 +1947,7 @@ end
 
 function RESPONSE:finish_achi( ... )
 	-- body
-	assert(self.errorcode == 0)
+	assert(self.errorcode == 1)
 	skynet.error(self.msg)
 end
 
