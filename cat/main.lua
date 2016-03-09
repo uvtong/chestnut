@@ -14,13 +14,12 @@ skynet.start(function()
 		skynet.name(string.format(".db%d", i), db)
 	end
 
+	skynet.uniqueservice("game")
 	skynet.uniqueservice("shop")
    	skynet.newservice("channel")
 	skynet.newservice("randomdraw")
 
-	--skynet.newservice( "simpleweb" ) 
 	local watchdog = skynet.newservice("watchdog")
-	--skynet.newservice("testtimer")
 	skynet.call(watchdog, "lua", "start", {
 		port = 8888,
 		maxclient = max_client,
@@ -29,7 +28,8 @@ skynet.start(function()
 	})
 	print("Watchdog listen on ", 8888)
 
-	skynet.send(".shop", "lua", "load_goods")
+	skynet.send(".game", "lua", "start")
+	skynet.send(".shop", "lua", "start")
 	
 	skynet.exit()
 end)

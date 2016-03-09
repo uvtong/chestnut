@@ -200,26 +200,6 @@ local function journal()
 		return j
 	end
 end
---[[function SUBSCRIBE:email( tvals, ... )
-	-- body
-	local v = emailbox:recvemail( tvals )
-	local ret = {}
-	ret.mail = {}
-	local tmp = {}
-   	tmp.attachs = {}
-
-    tmp.emailid = v.id
-    tmp.type = v.type
-    tmp.acctime = os.date("%Y-%m-%d-%H-%M-%s" , v.acctime)
-    tmp.isread = v.isread
-    tmp.isreward = v.isreward
-    tmp.title = v.title
-    tmp.content = v.content
-	tmp.attachs = v:getallitem()
-	tmp.iconid = v.iconid
-	ret.mail = tmp
-	send_package( send_request( "newemail" ,  ret ) )
-end--]]
 
 local function subscribe( )
 	-- body
@@ -560,7 +540,8 @@ function REQUEST:login()
 			c_role_id = user.c_role_id,
 			recharge_total = user.recharge_rmb,
     		recharge_diamond = user.recharge_diamond,
-    		recharge_progress = user.uvip_progress
+    		recharge_progress = user.uvip_progress,
+    		level = assert(user.level)
 		}
 		ret.u.uexp = assert(user.u_propmgr:get_by_csv_id(const.EXP)).num
 		ret.u.gold = assert(user.u_propmgr:get_by_csv_id(const.GOLD)).num
@@ -688,33 +669,6 @@ end
 		
 function REQUEST:wake()
 	assert(false)
-	assert(user)
-	assert(self.role_id)
-	local ret = {}
-	local role = user.u_rolemgr:get_by_csv_id(self.role_id)
-	local nowid = id(role.wake_level, role.level)
-	for k,v in pairs(wakecost) do
-		print(k,v)
-	end
-	local cost = assert(wakecost[tostring(role.wake_level)])
-	for k,v in pairs(cost) do
-		for k,v in pairs(cost) do
-			print(k,v)
-		end
-	end
-	if role.level > tonumber(cost.level) and user.gold > tonumber(cost.gold) then
-		role.wake_level = role.wake_level + 1
-		role.level = role.level - 1
-		user.gold = user.gold - cost.gold
-		ret.errorcode = 0
-		ret.msg = "yes"
-		ret.r = role
-		return ret
-	else
-		ret.errorcode = 1
-		ret.msg	= "level is not enough."
-		return ret
-	end
 end		
 
 function REQUEST:props()
@@ -791,14 +745,27 @@ function REQUEST:use_prop()
 						local prop = user.u_propmgr:get_by_csv_id(const.GOLD)
 						prop.num = prop.num + v[2]
 						prop:__update_db({"num"})
+						table.insert(l, prop)
 						raise_achievement(const.A_T_GOLD, user, game)
 					elseif v[1] == const.EXP then
 						local prop = user.u_propmgr:get_by_csv_id(v[1])
 						prop.num = prop.num + v[2]
 						prop:__update_db({"num"})
+						table.insert(l, prop)
 						raise_achievement(const.A_T_EXP, user, game)
 					else
-						assert(false)
+						local prop = user.u_propmgr:get_by_csv_id(v[1])
+						if prop then
+							prop.num = prop.num + v[2]
+							prop:__update_db({"num"})
+							table.insert(l, prop)
+						else
+							prop = assert(game.g_propmgr:get_by_csv_id(v[1]))
+							prop.user_id = user.csv_id
+							prop.num = assert(v[2])
+							prop:__insert_db()
+							table.insert(l, prop)
+						end
 					end
 				end
 			elseif assert(prop.use_type) == 4 then
@@ -902,17 +869,28 @@ function REQUEST:user_modify_name()
 		ret.msg	= errorcode[2].msg
 		return ret
 	end
-	if user.modify_uname_count >= 1 then
-		ret.errorcode = errorcode[18].code
-		ret.msg = errorcode[18].msg
+	if user.modify_uname_count > 1 then
+		local prop = user.u_propmgr:get_by_csv_id(const.DIAMOND)
+		if prop.num > 100 then
+			prop.num = prop.num - 100
+			user.uname = self.name
+			user.modify_uname_count = user.modify_uname_count + 1
+			user:__update_db({"modify_uname_count", "uname"})
+			ret.errorcode = errorcode[1].code
+			ret.msg = errorcode[1].msg
+		else
+			ret.errorcode = errorcode[6].code
+			ret.msg = errorcode[6].msg
+			return ret
+		end
+	else
+		user.uname = self.name
+		user.modify_uname_count = user.modify_uname_count + 1
+		user:__update_db({"modify_uname_count", "uname"})
+		ret.errorcode = errorcode[1].code
+		ret.msg = errorcode[1].msg
 		return ret
 	end
-	user.uname = self.name
-	user.modify_uname_count = user.modify_uname_count + 1
-	user:__update_db({"modify_uname_count", "uname"})
-	ret.errorcode = errorcode[1].code
-	ret.msg = errorcode[1].msg
-	return ret
 end
 
 function REQUEST:user_upgrade()
@@ -934,9 +912,10 @@ function REQUEST:user_upgrade()
 		user.combat = L.combat
 		user.defense = L.defense
 		user.critical_hit = L.critical_hit
+		user.blessing = L.skill              -- blessing.
 		user.gold_max = assert(L.gold_max)
 		user.exp_max = assert(L.exp_max)
-		user:__update_db({ "level", "combat", "defense", "critical_hit", "gold_max", "exp_max"})
+		user:__update_db({ "level", "combat", "defense", "critical_hit", "blessing", "gold_max", "exp_max"})
 		ret.errorcode = errorcode[1].code
 		ret.msg = errorcode[1].msg
 		return ret
@@ -956,8 +935,14 @@ function REQUEST:shop_all()
 		return ret
 	end
 	assert(user)
+	local r = skynet.call(".shop", "lua", "shop_all")
 	local ll = {}
-	for k,v in pairs(game.g_goodsmgr.__data) do
+	for k,v in pairs(r) do
+		print("---------------------------------------")
+		for k,v in pairs(v) do
+			print(k,v)
+		end
+
 		if v.inventory == 0 then
 			local now = os.time()
 			local countdown = os.difftime(now, v.st)
@@ -1947,7 +1932,7 @@ function RESPONSE:finish_achi( ... )
 	skynet.error(self.msg)
 end
 
-local function response( name, args )
+local function response(name, args)
 	-- body
 	local f = assert(RESPONSE[name])
 	f(args)
