@@ -25,4 +25,5 @@ errorcode[22] = { code = 22, msg = "your vip reward has been collected."}
 errorcode[23] = { code = 23, msg = "equipment enhance, do not exceed the level of the player."}
 errorcode[24] = { code = 24, msg = "equipment enhance failture."}
 errorcode[25] = { code = 25, msg = "your vip gift has purchased"}
+errorcode[26] = { code = 26, msg = "your achievement reward don't collected"}
 return errorcode
