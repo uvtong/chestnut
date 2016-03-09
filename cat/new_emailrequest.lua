@@ -42,7 +42,9 @@ function REQUEST:mails()
 	local emailbox = emailmgr:get_all_emails()
 	assert( emailbox )
 	local counter = 0
+	print( "emailbox num is *************************" , #emailbox )
 	for i , v in pairs( emailbox ) do
+		print( k , v )
 		counter = counter + 1
 		local tmp = {}
 		tmp.attachs = {}

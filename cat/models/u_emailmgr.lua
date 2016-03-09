@@ -103,6 +103,9 @@ function _M:delete_by_csv_id(csv_id)
 end 
     
 function _M:get_all_emails()
+	for k , v in pairs( self.__data ) do
+		print( k , v )
+	end
 	return self.__data
 end 
 	
