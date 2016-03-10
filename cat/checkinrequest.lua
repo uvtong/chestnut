@@ -14,8 +14,6 @@ local client_fd
 local game
 local user
 local dc
-local checkin_mgr
-local checkin_month_mgr
 
 	
 local function send_package(pack)
@@ -28,11 +26,6 @@ function REQUEST:login(u)
 	assert( u )
 	print( "**********************************checkinrequest_login " )
 	user = u
-	
-	checkin_mgr = user.u_checkinmgr
-	checkin_month_mgr = user.u_checkin_monthmgr
-	assert( checkin_mgr )
-	assert( checkin_month_mgr )
 end		
 	
 -- msg: **ifcheckin_t * 1 can check , --0 can not checkin**
@@ -167,9 +160,9 @@ function REQUEST:checkin()
 
 	local today_start_time = os.time( { year = year , month = month , day = day , hour = 0 , min = 0 , sec = 0 } )
 	--local today_start_time 
-	print( "sizeof checkin is ################################" , checkin_mgr:get_count() )
-	local tcheckin = checkin_mgr:get_checkin()
-	local tcheckin_month = checkin_month_mgr:get_checkin_month()
+	print( "sizeof checkin is ################################" , user.u_checkinmgr:get_count() )
+	local tcheckin = user.u_checkinmgr:get_checkin()
+	local tcheckin_month = user.u_checkin_monthmgr:get_checkin_month()
 	--assert( tcheckin )
 	print( tcheckin , tcheckin_month )
 	if not tcheckin then
@@ -246,8 +239,8 @@ function REQUEST:checkin_aday()
 	local notexeit = false
 
 	local time = os.time()
-	local tcheckin = checkin_mgr:get_checkin()
-	local tcheckin_month = checkin_month_mgr:get_checkin_month()
+	local tcheckin = user.u_checkinmgr:get_checkin()
+	local tcheckin_month = user.u_checkin_monthmgr:get_checkin_month()
 	if not tcheckin then
 		tcheckin = {}
 		tcheckin_month = {}
@@ -275,29 +268,31 @@ function REQUEST:checkin_aday()
 		tcheckin.csv_id = 0
 
 		if notexeit then
-			tcheckin = checkin_mgr.create( tcheckin )
+			tcheckin = user.u_checkinmgr.create( tcheckin )
 			assert( tcheckin )
-			checkin_mgr:add( tcheckin )
+			user.u_checkinmgr:add( tcheckin )
 
-			tcheckin_month.checkin_month = 0
+			tcheckin_month.checkin_month = 1
 			tcheckin_month.user_id = user.csv_id
-			tcheckin_month = checkin_month_mgr.create( tcheckin_month )
+			tcheckin_month = user.u_checkin_monthmgr.create( tcheckin_month )
 			assert( tcheckin_month )
-			checkin_month_mgr:add( tcheckin_month )
+			user.u_checkin_monthmgr:add( tcheckin_month )
 			tcheckin_month:__insert_db()
+		else
+			tcheckin_month.checkin_month = tcheckin_month.checkin_month + 1
+			tcheckin_month:__update_db( { "checkin_month" } )	
 		end
 
 		print( tcheckin.u_checkin_time )
 		tcheckin:__insert_db()
 
 		user.checkin_num  = user.checkin_num + 1
-		tcheckin_month.checkin_month = tcheckin_month.checkin_month + 1
+		user:__update_db( { "checkin_num" } )
+		
 		print( "*********************************user_checkin_num " , user.checkin_num )
 		local t = get_g_checkin_by_csv_id( time , tcheckin_month.checkin_month )
 		add_to_prop( get_aday_reward( t ) )
 
-		user:__update_db( { "checkin_num" } )
-		tcheckin_month:__update_db( { "checkin_month" } )	
 
 		ret.ok = true
 		ret.errorcode = errorcode[ 1 ].code				

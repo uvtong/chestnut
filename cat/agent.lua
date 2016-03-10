@@ -490,7 +490,7 @@ function REQUEST:signup()
 		u_achievementmgr.insert_db(l)
 
 		local u_goodsmgr = require "models/u_goodsmgr"
-		local r = skynet.call(".game", "lua", "shop_all")
+		local r = skynet.call(".game", "lua", "query_g_goods")
 		for k,v in pairs(r) do
 			local t = { user_id = u.csv_id, csv_id=v.csv_id, inventory=v.inventory_init, countdown=0, st=0}
 			local a = u_goodsmgr.create(t)
@@ -600,8 +600,13 @@ function REQUEST:logout()
 	user:__update_db({"ifonline"})
 	dc.set(user.csv_id , nil)
 	user = nil
+
+	loader.clear()
+
 	ret.errorcode = errorcode[1].code
 	ret.msg = errorcode[1].msg
+
+
 	return ret
 end
 
@@ -1041,7 +1046,7 @@ function REQUEST:shop_refresh()
 				ret.errorcode = errorcode[1].code
 				ret.msg = errorcode[1].msg
 				for k,v in pairs(ug) do
-					gg[k] == ug[k]
+					gg[k] = ug[k]
 				end
 				ret.l = { gg }
 				ret.goods_refresh_count = assert(j.goods_refresh_count)
@@ -1088,240 +1093,240 @@ function REQUEST:shop_refresh()
 	end
 end
 
-function REQUEST:shop_purchase()
-	-- body
-	local ret = {}
-	if not user then
-		ret.errorcode = errorcode[2].code
-		ret.msg	= errorcode[2].msg
-		return ret
-	end
-	assert(user)
-	assert(self.g)
-	local gg = skynet.call(".game", "lua", "query_g_goods", self.g[1].goods_id)
-	local ug = user.u_goodsmgr:get_by_csv_id(gg.csv_id)
-	if gg.currency_type == const.GOLD then
-		local gold = goods.currency_num * self.g[1].goods_num
-		local currency = user.u_propmgr:get_by_csv_id(const.GOLD)
-		if currency.num >= gold then
-			if ug.inventory == 0 then
-				local now = os.time()
-				local countdown = os.difftime(now, goods.st)
-				if countdown > goods.cd then
-					ug.inventory = ug.inventory_init
-					ug.countdown = 0
-					ug:__update_db({"inventory", "countdown"})
-				else
-					ug.countdown = countdown
-					ug:__update_db({"countdown"})
-				end
-				if ug.inventory > self.g[1].goods_num then
-					ug.inventory = ug.inventory - self.g[1].goods_num
-					ug:__update_db({"inventory"})
-					currency.num = currency.num - gold
-					currency:__update_db({"num"})
-					local prop = prop(gg.g_prop_csv_id)
-					prop.num = prop.num + (gg.g_prop_num * self.g[1].goods_num)
-					prop:__update_db({"num"})
+-- function REQUEST:shop_purchase()
+-- 	-- body
+-- 	local ret = {}
+-- 	if not user then
+-- 		ret.errorcode = errorcode[2].code
+-- 		ret.msg	= errorcode[2].msg
+-- 		return ret
+-- 	end
+-- 	assert(user)
+-- 	assert(self.g)
+-- 	local gg = skynet.call(".game", "lua", "query_g_goods", self.g[1].goods_id)
+-- 	local ug = user.u_goodsmgr:get_by_csv_id(gg.csv_id)
+-- 	if gg.currency_type == const.GOLD then
+-- 		local gold = goods.currency_num * self.g[1].goods_num
+-- 		local currency = user.u_propmgr:get_by_csv_id(const.GOLD)
+-- 		if currency.num >= gold then
+-- 			if ug.inventory == 0 then
+-- 				local now = os.time()
+-- 				local countdown = os.difftime(now, goods.st)
+-- 				if countdown > goods.cd then
+-- 					ug.inventory = ug.inventory_init
+-- 					ug.countdown = 0
+-- 					ug:__update_db({"inventory", "countdown"})
+-- 				else
+-- 					ug.countdown = countdown
+-- 					ug:__update_db({"countdown"})
+-- 				end
+-- 				if ug.inventory > self.g[1].goods_num then
+-- 					ug.inventory = ug.inventory - self.g[1].goods_num
+-- 					ug:__update_db({"inventory"})
+-- 					currency.num = currency.num - gold
+-- 					currency:__update_db({"num"})
+-- 					local prop = prop(gg.g_prop_csv_id)
+-- 					prop.num = prop.num + (gg.g_prop_num * self.g[1].goods_num)
+-- 					prop:__update_db({"num"})
 					
-					ret.errorcode = errorcode[10].code
-					ret.msg = errorcode[10].msg
-					ret.ll = { goods}
-					local j = assert(journal())
-					ret.goods_refresh_count = assert(j.goods_refresh_count)
-					ret.store_refresh_count_max = assert(user.store_refresh_count_max)
-					return ret
-			end
-			if goods.inventory == 99 then
-				currency.num = currency.num - gold
-				currency:__update_db({"num"})
-				local prop = user.u_propmgr:get_by_csv_id(goods.g_prop_csv_id)
-				if prop then
-					prop.num = prop.num + goods.g_prop_num * v.p_num
-					prop:__update_db({"num"})
-				else
-					local p = game.g_propmgr:get_by_csv_id(goods.g_prop_csv_id)
-					p.user_id = user.csv_id
-					p.num = goods.g_prop_num * v.p_num
-					local prop = user.u_propmgr.create(p)
-					user.u_propmgr:add(prop)
-					prop:__insert_db()
-				end
-				table.insert(props, prop)
-				table.insert(gs, goods)
-				local t = { user_id=user.csv_id, csv_id=goods.csv_id, num=v.p_num, currency_type=const.GOLD, currency_num=gold, purchase_time=os.time()}
-				local rc = user.u_purchase_goodsmgr.create(t)
-				user.u_purchase_goodsmgr:add(rc)
-				rc:__insert_db()
-				ret.errorcode = errorcode[1].code
-				ret.msg	= errorcode[1].msg
-				ret.l = props
-				ret.ll = gs
-				ret.goods_refresh_count = assert(journal()).goods_refresh_count
-				ret.store_refresh_count_max = assert(user.store_refresh_count_max)
-				return ret
-			else
-				if goods.inventory >= v.p_num then
-					goods.inventory = goods.inventory - v.p_num
-					if goods.inventory == 0 then
-						goods.st = os.time()
-						goods.countdown = goods.cd
-						goods:__update_db({"st", "countdown", "inventory"})
-					else
-						goods:__update_db({"inventory"})
-					end
-					currency.num = currency.num - gold
-					currency:__update_db({"num"})
-					local prop = user.u_propmgr:get_by_csv_id(goods.g_prop_csv_id)
-					if prop then
-						prop.num = prop.num + goods.g_prop_num * v.p_num
-						prop:__update_db({"num"})
-					else
-						local p = game.g_propmgr:get_by_csv_id(goods.g_prop_csv_id)
-						p.user_id = user.csv_id
-						p.num = goods.g_prop_num * v.p_num
-						local prop = user.u_propmgr.create(p)
-						user.u_propmgr:add(prop)
-						prop:__insert_db()
-					end
-					table.insert(props, prop)
-					table.insert(gs, goods)
-					local t = { user_id=user.csv_id, csv_id=goods.csv_id, num=v.p_num, currency_type=const.GOLD, currency_num=gold, purchase_time=os.time()}
-					local rc = user.u_purchase_goodsmgr.create(t)
-					user.u_purchase_goodsmgr:add(rc)
-					rc:__insert_db()
-					ret.errorcode = errorcode[1].code
-					ret.msg	= errorcode[1].msg
-					ret.l = props
-					ret.ll = gs
-					ret.goods_refresh_count = assert(journal()).goods_refresh_count
-					ret.store_refresh_count_max = assert(user.store_refresh_count_max)
-					return ret
-				else
-					ret.errorcode = errorcode[11].code
-					ret.msg = errorcode[11].msg
-					ret.l = props
-					ret.ll = gs
-					ret.goods_refresh_count = assert(journal()).goods_refresh_count
-					ret.store_refresh_count_max = assert(user.store_refresh_count_max)
-					return ret
-				end
-			end
-		else
-			ret.errorcode = errorcode[9].code
-			ret.msg	= errorcode[9].msg
-			return ret
-		end
-	elseif goods.currency_type == const.DIAMOND then
-		local diamond = goods.currency_num * v.p_num
-		-- gold 2
-		local currency = user.u_propmgr:get_by_csv_id(const.DIAMOND)
-		if currency.num >= diamond then
-			if goods.inventory == 0 then
-				local now = os.time()
-				local countdown = os.difftime(now, goods.st)
-				if countdown > goods.cd then
-					goods.inventory = goods.inventory_init
-					goods.countdown = 0
-					goods:__update_db({"inventory", "countdown"})
-				else
-					goods.countdown = countdown
-					ret.errorcode = errorcode[10].code
-					ret.msg = errorcode[10].msg
-					ret.ll = { goods}
-					local j = assert(journal())
-					ret.goods_refresh_count = assert(j.goods_refresh_count)
-					ret.store_refresh_count_max = assert(user.store_refresh_count_max)
-					return ret
-				end
-			end
-			if goods.inventory == 99 then
-				currency.num = currency.num - diamond
-				currency:__update_db({"num"})
-				local prop = user.u_propmgr:get_by_csv_id(goods.g_prop_csv_id)
-				if prop then
-					prop.num = prop.num + goods.g_prop_num * v.p_num
-					prop:__update_db({"num"})
-				else
-					local p = game.g_propmgr:get_by_csv_id(goods.g_prop_csv_id)
-					p.user_id = user.csv_id
-					p.num = goods.g_prop_num * v.p_num
-					local prop = user.u_propmgr.create(p)
-					user.u_propmgr:add(prop)
-					prop:__insert_db()
-				end
-				table.insert(props, prop)
-				table.insert(gs, goods)
-				local t = { user_id=user.csv_id, csv_id=goods.csv_id, num=v.p_num, currency_type=const.DIAMOND, currency_num=diamond, purchase_time=os.time()}
-				local rc = user.u_purchase_goodsmgr.create(t)
-				user.u_purchase_goodsmgr:add(rc)
-				rc:__insert_db()
-				ret.errorcode = errorcode[1].code
-				ret.msg	= errorcode[1].msg
-				ret.l = props
-				ret.ll = gs
-				ret.goods_refresh_count = assert(journal()).goods_refresh_count
-				ret.store_refresh_count_max = assert(user.store_refresh_count_max)
-				return ret
-			else
-				if goods.inventory >= v.p_num then
-					goods.inventory = goods.inventory - v.p_num
-					if goods.inventory == 0 then
-						goods.st = os.time()
-						goods.countdown = goods.cd
-						goods:__update_db({"st", "countdown", "inventory"})
-					else
-						goods:__update_db({"inventory"})
-					end
-					currency.num = currency.num - diamond
-					currency:__update_db({"num"})
-					local prop = user.u_propmgr:get_by_csv_id(goods.g_prop_csv_id)
-					if prop then
-						prop.num = prop.num + goods.g_prop_num * v.p_num
-						prop:__update_db({"num"})
-					else
-						local p = game.g_propmgr:get_by_csv_id(goods.g_prop_csv_id)
-						p.user_id = user.csv_id
-						p.num = goods.g_prop_num * v.p_num
-						local prop = user.u_propmgr.create(p)
-						user.u_propmgr:add(prop)
-						prop:__insert_db()
-					end
-					table.insert(props, prop)
-					table.insert(gs, goods)
-					local t = { user_id=user.csv_id, csv_id=goods.csv_id, num=v.p_num, currency_type=const.DIAMOND, currency_num=diamond, purchase_time=os.time()}
-					local rc = user.u_purchase_goodsmgr.create(t)
-					user.u_purchase_goodsmgr:add(rc)
-					rc:__insert_db()
-					ret.errorcode = errorcode[1].code
-					ret.msg	= errorcode[1].msg
-					ret.l = props
-					ret.ll = gs
-					ret.goods_refresh_count = assert(journal()).goods_refresh_count
-					ret.store_refresh_count_max = assert(user.store_refresh_count_max)
-					return ret
-				else
-					ret.errorcode = errorcode[11].code
-					ret.msg = errorcode[11].msg
-					ret.l = props
-					ret.ll = gs
-					ret.goods_refresh_count = assert(journal()).goods_refresh_count
-					ret.store_refresh_count_max = assert(user.store_refresh_count_max)
-					return ret
-				end
-			end
-		else
-			ret.errorcode = errorcode[6].code
-			ret.msg	= errorcode[6].msg
-			return ret
-		end
-	else
-		ret.errorcode = 5
-		ret.msg = "other"
-		return ret
-	end
+-- 					ret.errorcode = errorcode[10].code
+-- 					ret.msg = errorcode[10].msg
+-- 					ret.ll = { goods}
+-- 					local j = assert(journal())
+-- 					ret.goods_refresh_count = assert(j.goods_refresh_count)
+-- 					ret.store_refresh_count_max = assert(user.store_refresh_count_max)
+-- 					return ret
+-- 			end
+-- 			if goods.inventory == 99 then
+-- 				currency.num = currency.num - gold
+-- 				currency:__update_db({"num"})
+-- 				local prop = user.u_propmgr:get_by_csv_id(goods.g_prop_csv_id)
+-- 				if prop then
+-- 					prop.num = prop.num + goods.g_prop_num * v.p_num
+-- 					prop:__update_db({"num"})
+-- 				else
+-- 					local p = game.g_propmgr:get_by_csv_id(goods.g_prop_csv_id)
+-- 					p.user_id = user.csv_id
+-- 					p.num = goods.g_prop_num * v.p_num
+-- 					local prop = user.u_propmgr.create(p)
+-- 					user.u_propmgr:add(prop)
+-- 					prop:__insert_db()
+-- 				end
+-- 				table.insert(props, prop)
+-- 				table.insert(gs, goods)
+-- 				local t = { user_id=user.csv_id, csv_id=goods.csv_id, num=v.p_num, currency_type=const.GOLD, currency_num=gold, purchase_time=os.time()}
+-- 				local rc = user.u_purchase_goodsmgr.create(t)
+-- 				user.u_purchase_goodsmgr:add(rc)
+-- 				rc:__insert_db()
+-- 				ret.errorcode = errorcode[1].code
+-- 				ret.msg	= errorcode[1].msg
+-- 				ret.l = props
+-- 				ret.ll = gs
+-- 				ret.goods_refresh_count = assert(journal()).goods_refresh_count
+-- 				ret.store_refresh_count_max = assert(user.store_refresh_count_max)
+-- 				return ret
+-- 			else
+-- 				if goods.inventory >= v.p_num then
+-- 					goods.inventory = goods.inventory - v.p_num
+-- 					if goods.inventory == 0 then
+-- 						goods.st = os.time()
+-- 						goods.countdown = goods.cd
+-- 						goods:__update_db({"st", "countdown", "inventory"})
+-- 					else
+-- 						goods:__update_db({"inventory"})
+-- 					end
+-- 					currency.num = currency.num - gold
+-- 					currency:__update_db({"num"})
+-- 					local prop = user.u_propmgr:get_by_csv_id(goods.g_prop_csv_id)
+-- 					if prop then
+-- 						prop.num = prop.num + goods.g_prop_num * v.p_num
+-- 						prop:__update_db({"num"})
+-- 					else
+-- 						local p = game.g_propmgr:get_by_csv_id(goods.g_prop_csv_id)
+-- 						p.user_id = user.csv_id
+-- 						p.num = goods.g_prop_num * v.p_num
+-- 						local prop = user.u_propmgr.create(p)
+-- 						user.u_propmgr:add(prop)
+-- 						prop:__insert_db()
+-- 					end
+-- 					table.insert(props, prop)
+-- 					table.insert(gs, goods)
+-- 					local t = { user_id=user.csv_id, csv_id=goods.csv_id, num=v.p_num, currency_type=const.GOLD, currency_num=gold, purchase_time=os.time()}
+-- 					local rc = user.u_purchase_goodsmgr.create(t)
+-- 					user.u_purchase_goodsmgr:add(rc)
+-- 					rc:__insert_db()
+-- 					ret.errorcode = errorcode[1].code
+-- 					ret.msg	= errorcode[1].msg
+-- 					ret.l = props
+-- 					ret.ll = gs
+-- 					ret.goods_refresh_count = assert(journal()).goods_refresh_count
+-- 					ret.store_refresh_count_max = assert(user.store_refresh_count_max)
+-- 					return ret
+-- 				else
+-- 					ret.errorcode = errorcode[11].code
+-- 					ret.msg = errorcode[11].msg
+-- 					ret.l = props
+-- 					ret.ll = gs
+-- 					ret.goods_refresh_count = assert(journal()).goods_refresh_count
+-- 					ret.store_refresh_count_max = assert(user.store_refresh_count_max)
+-- 					return ret
+-- 				end
+-- 			end
+-- 		else
+-- 			ret.errorcode = errorcode[9].code
+-- 			ret.msg	= errorcode[9].msg
+-- 			return ret
+-- 		end
+-- 	elseif goods.currency_type == const.DIAMOND then
+-- 		local diamond = goods.currency_num * v.p_num
+-- 		-- gold 2
+-- 		local currency = user.u_propmgr:get_by_csv_id(const.DIAMOND)
+-- 		if currency.num >= diamond then
+-- 			if goods.inventory == 0 then
+-- 				local now = os.time()
+-- 				local countdown = os.difftime(now, goods.st)
+-- 				if countdown > goods.cd then
+-- 					goods.inventory = goods.inventory_init
+-- 					goods.countdown = 0
+-- 					goods:__update_db({"inventory", "countdown"})
+-- 				else
+-- 					goods.countdown = countdown
+-- 					ret.errorcode = errorcode[10].code
+-- 					ret.msg = errorcode[10].msg
+-- 					ret.ll = { goods}
+-- 					local j = assert(journal())
+-- 					ret.goods_refresh_count = assert(j.goods_refresh_count)
+-- 					ret.store_refresh_count_max = assert(user.store_refresh_count_max)
+-- 					return ret
+-- 				end
+-- 			end
+-- 			if goods.inventory == 99 then
+-- 				currency.num = currency.num - diamond
+-- 				currency:__update_db({"num"})
+-- 				local prop = user.u_propmgr:get_by_csv_id(goods.g_prop_csv_id)
+-- 				if prop then
+-- 					prop.num = prop.num + goods.g_prop_num * v.p_num
+-- 					prop:__update_db({"num"})
+-- 				else
+-- 					local p = game.g_propmgr:get_by_csv_id(goods.g_prop_csv_id)
+-- 					p.user_id = user.csv_id
+-- 					p.num = goods.g_prop_num * v.p_num
+-- 					local prop = user.u_propmgr.create(p)
+-- 					user.u_propmgr:add(prop)
+-- 					prop:__insert_db()
+-- 				end
+-- 				table.insert(props, prop)
+-- 				table.insert(gs, goods)
+-- 				local t = { user_id=user.csv_id, csv_id=goods.csv_id, num=v.p_num, currency_type=const.DIAMOND, currency_num=diamond, purchase_time=os.time()}
+-- 				local rc = user.u_purchase_goodsmgr.create(t)
+-- 				user.u_purchase_goodsmgr:add(rc)
+-- 				rc:__insert_db()
+-- 				ret.errorcode = errorcode[1].code
+-- 				ret.msg	= errorcode[1].msg
+-- 				ret.l = props
+-- 				ret.ll = gs
+-- 				ret.goods_refresh_count = assert(journal()).goods_refresh_count
+-- 				ret.store_refresh_count_max = assert(user.store_refresh_count_max)
+-- 				return ret
+-- 			else
+-- 				if goods.inventory >= v.p_num then
+-- 					goods.inventory = goods.inventory - v.p_num
+-- 					if goods.inventory == 0 then
+-- 						goods.st = os.time()
+-- 						goods.countdown = goods.cd
+-- 						goods:__update_db({"st", "countdown", "inventory"})
+-- 					else
+-- 						goods:__update_db({"inventory"})
+-- 					end
+-- 					currency.num = currency.num - diamond
+-- 					currency:__update_db({"num"})
+-- 					local prop = user.u_propmgr:get_by_csv_id(goods.g_prop_csv_id)
+-- 					if prop then
+-- 						prop.num = prop.num + goods.g_prop_num * v.p_num
+-- 						prop:__update_db({"num"})
+-- 					else
+-- 						local p = game.g_propmgr:get_by_csv_id(goods.g_prop_csv_id)
+-- 						p.user_id = user.csv_id
+-- 						p.num = goods.g_prop_num * v.p_num
+-- 						local prop = user.u_propmgr.create(p)
+-- 						user.u_propmgr:add(prop)
+-- 						prop:__insert_db()
+-- 					end
+-- 					table.insert(props, prop)
+-- 					table.insert(gs, goods)
+-- 					local t = { user_id=user.csv_id, csv_id=goods.csv_id, num=v.p_num, currency_type=const.DIAMOND, currency_num=diamond, purchase_time=os.time()}
+-- 					local rc = user.u_purchase_goodsmgr.create(t)
+-- 					user.u_purchase_goodsmgr:add(rc)
+-- 					rc:__insert_db()
+-- 					ret.errorcode = errorcode[1].code
+-- 					ret.msg	= errorcode[1].msg
+-- 					ret.l = props
+-- 					ret.ll = gs
+-- 					ret.goods_refresh_count = assert(journal()).goods_refresh_count
+-- 					ret.store_refresh_count_max = assert(user.store_refresh_count_max)
+-- 					return ret
+-- 				else
+-- 					ret.errorcode = errorcode[11].code
+-- 					ret.msg = errorcode[11].msg
+-- 					ret.l = props
+-- 					ret.ll = gs
+-- 					ret.goods_refresh_count = assert(journal()).goods_refresh_count
+-- 					ret.store_refresh_count_max = assert(user.store_refresh_count_max)
+-- 					return ret
+-- 				end
+-- 			end
+-- 		else
+-- 			ret.errorcode = errorcode[6].code
+-- 			ret.msg	= errorcode[6].msg
+-- 			return ret
+-- 		end
+-- 	else
+-- 		ret.errorcode = 5
+-- 		ret.msg = "other"
+-- 		return ret
+-- 	end
 	
-end
+-- end
 
 function REQUEST:recharge_all()
 	-- body

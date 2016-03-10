@@ -67,6 +67,10 @@ function _M.insert_db( values )
 	skynet.send( util.random_db() , "lua" , "command" , "insert_all" , _Meta.__tname , total )
 end 
 
+function _M:clear()
+	self.__data = {}
+end
+
 function _M.create( P )
 	assert(P)
 	local u = _Meta.__new()

@@ -34,11 +34,9 @@ function REQUEST:mails()
 		
 	ret.mail_list = {}
 
-	local emailbox =user.u_emailmgr:get_all_emails()
-	assert( emailbox )
+	
 	local counter = 0
-	print( "emailbox num is *************************" , #emailbox )
-	for i , v in pairs( emailbox ) do
+	for i , v in pairs( user.u_emailmgr.__data ) do
 		print( k , v )
 		counter = counter + 1
 		local tmp = {}
@@ -65,9 +63,6 @@ end
 function REQUEST:mail_read()
 	print( "****************************email_read is called" )
 
-	local emailbox =user.u_emailmgr:get_all_emails()
-	assert( emailbox )
-
 	for k , v in pairs( self.mail_id ) do
 		print ( k , v , v.id )
 		local e =user.u_emailmgr:get_by_csv_id( v.id )
@@ -81,9 +76,6 @@ end
 function REQUEST:mail_delete()
 	print( "****************************email_delete is called" )
 
-	local emailbox =user.u_emailmgr:get_all_emails()
-	assert( emailbox )
-
 	for k , v in pairs( self.mail_id ) do
 		print ( k , v , v.id )
 		local e =user.u_emailmgr:get_by_csv_id( v.id )
@@ -91,17 +83,14 @@ function REQUEST:mail_delete()
 		
 		e.isdel = 1
 		e:__update_db( { "isdel" } )
-		emailmgr:delete_by_id( v.id )
+		user.u_emailmgr:delete_by_id( v.id )
 	end 
 end 
 	
 function REQUEST:mail_getreward()
 	print( "****************************get_reward is called" )
 
-	local emailbox =user.u_emailmgr:get_all_emails()
-	assert( emailbox )
-
-	for k , v in pairs( self.mail_id ) do		
+	for k , v in pairs( self.mail_id ) do                         		
 		local e =user.u_emailmgr:get_by_csv_id( v.id )
 		assert( e )
 		if 0 == e.isreward then 	

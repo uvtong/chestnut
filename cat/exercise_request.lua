@@ -14,7 +14,6 @@ local client_fd
 local game
 local user
 local dc
-local exercise_mgr
 local record_date = {}
 
 local time_first
@@ -50,8 +49,6 @@ function REQUEST:login(u)
 	assert( u )
 	print( "**********************************exerciserequest_login " )
 	user = u
-	exercise_mgr = user.u_exercise_mgr
-	assert( exercise_mgr )
 	print( game.g_daily_taskmgr:get_count() )
 	local t = game.g_daily_taskmgr:get_one() -- may be changed
 	assert( t )
@@ -189,7 +186,7 @@ function REQUEST:exercise()
 	print( "*-------------------------* exercise is called")
 
 	local ret = {}
-	local texercise = exercise_mgr:get_exercise()
+	local texercise = user.u_exercise_mgr:get_exercise()
 
 	if not texercise then
 		print( "***********************not exist texercise" )
@@ -226,7 +223,7 @@ function REQUEST:exercise_once()
 	local time = os.time()
 	local notexist = false
 
-	local texercise = exercise_mgr:get_exercise()
+	local texercise = user.u_exercise_mgr:get_exercise()
 	if not texercise then
 		notexist = true
 		texercise = {}
@@ -243,9 +240,9 @@ function REQUEST:exercise_once()
 		texercise.time_length = exercise_time
 			
 		if notexist then
-			texercise = exercise_mgr.create( texercise )
+			texercise = user.u_exercise_mgr.create( texercise )
 			assert( texercise )
-			exercise_mgr:add( texercise )
+			user.u_exercise_mgr:add( texercise )
 		end 
 
 		texercise:__insert_db()

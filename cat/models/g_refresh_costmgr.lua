@@ -37,6 +37,10 @@ function _Meta:__update_db(t)
 	skynet.send(util.random_db(), "lua", "command", "update", self.__tname, {{ id = self.id }}, columns)
 end
 
+function _M:clear()
+	self.__data = {}
+end
+
 function _M.create( P )
 	assert(P)
 	local u = _Meta.__new()

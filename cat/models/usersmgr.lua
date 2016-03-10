@@ -116,6 +116,10 @@ function _M:delete_by_csv_id(csv_id)
 	assert(false)
 end
 
+function _M:clear()
+	self.__data = {}
+end
+
 function _M:get_count()
 	-- body
 	return self.__count

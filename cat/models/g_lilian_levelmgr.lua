@@ -55,6 +55,10 @@ function _Meta:__serialize()
 	return r
 end
 
+function _M:clear()
+	self.__data = {}
+end
+
 function _M.insert_db( values )
 	assert(type(values) == "table" )
 	local total = {}

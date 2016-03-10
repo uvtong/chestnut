@@ -78,6 +78,10 @@ function _M:delete_cgold()
 	self.__count = self.__count - 1
 end
 
+function _M:clear()
+	self.__data = {}
+end
+
 function _M:get_count()
 	-- body
 	return self.__count

@@ -101,18 +101,15 @@ function _M:delete_by_csv_id(csv_id)
 	self.__data[tostring(csv_id)] = nil
 	self.__count = self.__count - 1
 end 
-    
-function _M:get_all_emails()
-	for k , v in pairs( self.__data ) do
-		print( k , v )
-	end
-	return self.__data
-end 
 	
 function _M:get_count()
 	-- body
 	return self.__count
 end 
+
+function _M:clear()
+	self.__data = {}
+end
 	
 function _M:recvemail( tvals )
 	assert( tvals )

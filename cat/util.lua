@@ -236,6 +236,7 @@ function util.guid(game, csv_id)
 	if not r then
 		local t = {csv_id = csv_id, entropy=1}
 		local h = game.g_uidmgr.create(t)
+		game.g_uidmgr:add(h)
 		h:__insert_db()
 		return t.entropy
 	else

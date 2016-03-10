@@ -54,7 +54,7 @@ function CMD:send_email_to_all( tvals )
 	print( "begin to insert" )
 	local tmp = {}
 	for _ , v in ipairs( r ) do
-		tvals.csv_id = util.u_guid( v.csv_id , game, const.UEMAILENTROPY ) 
+		tvals.csv_id =  skynet.call( ".game" , "lua" , "u_guid" , v.csv_id , const.UEMAILENTROPY ) --util.u_guid( v.csv_id , game, const.UEMAILENTROPY ) 
 		tvals.uid = v.csv_id
 		local ne = u_emailmgr.create( tvals )
 		--assert( ne )
@@ -87,7 +87,7 @@ function CMD:send_email_to_group( tval , tucsv_id )
 
 	for _ , v in ipairs( tucsv_id ) do
 		print( v.csv_id )
-		tval.csv_id = util.u_guid( v.csv_id , game, const.UEMAILENTROPY )
+		tval.csv_id = skynet.call( ".game" , "lua" , "u_guid" , v.csv_id , const.UEMAILENTROPY )
 		tval.uid = v.csv_id
 		
 		print("********************************eamil", tval.csv_id)

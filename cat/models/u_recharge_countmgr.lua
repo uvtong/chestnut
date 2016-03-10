@@ -16,6 +16,10 @@ function _Meta.__new()
  	return t
 end 
 
+function _M:clear()
+	self.__data = {}
+end
+
 function _Meta:__insert_db()
 	-- body
 	local t = {}

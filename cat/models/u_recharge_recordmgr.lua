@@ -27,6 +27,10 @@ function _Meta:__insert_db()
 	skynet.send(util.random_db(), "lua", "command", "insert", self.__tname, t)
 end
 
+function _M:clear()
+	self.__data = {}
+end
+
 function _Meta:__update_db(t)
 	-- body
 	assert(type(t) == "table")

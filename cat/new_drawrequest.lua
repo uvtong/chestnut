@@ -54,9 +54,10 @@ end
 		        
 local function add_to_prop( t )
 	assert( t )  
-                 
+    print( "add_to_prop is called" )
 	for k , v in ipairs( t ) do
 		if t.proptype == PROPTYPE.ROLE_SP then
+			print( "get a role" )
 			local g_role = game.g_rolemgr:get_by_us_prop_csv_id( v.propid )
 			assert( g_role )
 
@@ -91,7 +92,7 @@ local function add_to_prop( t )
 				g_role.k_csv_id7 = 0
 				g_role = u_rolemgr.create( g_role )
 				g_role:__insert_db()
-			end       
+			end 
 		else     
 			local prop = user.u_propmgr:get_by_csv_id( v.propid )
    			if prop then

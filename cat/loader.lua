@@ -686,4 +686,14 @@ function loader.load_user(user)
 	return user
 end
 
+function loader.clear(user)
+	-- body
+	for k,v in pairs(user) do
+		if string.match(k, "^u_%w+mgr$") then
+			if v:clear then
+				v:clear()
+			end
+		end
+	end
+end
 return loader

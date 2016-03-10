@@ -101,6 +101,10 @@ function _M:get_count()
 	return self.__count
 end
 
+function _M:clear()
+	self.__data = {}
+end
+
 return _M
 
 ]], P, tname)

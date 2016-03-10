@@ -61,20 +61,24 @@ function CMD.query_g_prop(pk)
 	end
 end
 
-function CMD.u_guid(user_id, game, csv_id)
+function CMD.u_guid(user_id, csv_id)
 	-- body
+	print(user_id, csv_id)
+	assert(game)
 	return util.u_guid(user_id, game, csv_id)
 end
 
-function CMD.guid(game, csv_id)
+function CMD.guid(csv_id)
 	-- body
 	return util.guid(game, csv_id)
 end
 
 skynet.start(function()
 	skynet.dispatch("lua", function(_,_, command, ...)
+		print("*(8)game", command)
 		local f = CMD[command]
-		skynet.ret(skynet.pack(f(...)))
+		local result = assert(f(...))
+		skynet.ret(skynet.pack(result))
 	end)
 	skynet.register ".game"
 end)

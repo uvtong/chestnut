@@ -59,6 +59,9 @@ function _M.create( P )
 	return u
 end	
 
+function _M:clear()
+	self.__data = {}
+end
 function _M:add( u )
 	assert(u)
 	self.__data[tostring(u.g_csv_id)] = u

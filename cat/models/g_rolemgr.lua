@@ -49,6 +49,10 @@ function _Meta:__serialize()
 	return r
 end
 
+function _M:clear()
+	self.__data = {}
+end
+
 function _M.create( P )
 	local u = _Meta.__new()
 	for k,v in pairs(_Meta) do

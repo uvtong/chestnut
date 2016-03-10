@@ -61,6 +61,10 @@ function _Meta:__serialize()
 	return r
 end
 
+function _M:clear()
+	self.__data = {}
+end
+
 function _M.create( P )
 	assert(P)
 	local u = _Meta.__new()

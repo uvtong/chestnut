@@ -14,7 +14,6 @@ local client_fd
 local game
 local user
 local dc
-local cgold_mgr
 local record_date = {}
 
 local time_first
@@ -51,8 +50,7 @@ function REQUEST:login(u)
 	assert( u )
 	print( "**********************************cgoldrequest_login " )
 	user = u
-	cgold_mgr = user.u_cgoldmgr
-	assert( cgold_mgr )
+	
 	--print( game.g_daily_taskmgr:get_count() )
 	local t = game.g_daily_taskmgr:get_one() -- may be changed
 	assert( t )
@@ -192,7 +190,7 @@ function REQUEST:c_gold()
 	print( "*-------------------------* cgold is called")
 
 	local ret = {}
-	local tcgold = cgold_mgr:get_cgold()
+	local tcgold = user.u_cgoldmgr:get_cgold()
 
 	if not tcgold then
 		print( "***********************not exist tcgold" )
@@ -231,7 +229,7 @@ function REQUEST:c_gold_once()
 	local time = os.time()
 	local notexist = false
 
-	local tcgold = cgold_mgr:get_cgold()
+	local tcgold = user.u_cgoldmgr:get_cgold()
 	if not tcgold then
 		notexist = true
 		tcgold = {}
@@ -249,9 +247,9 @@ function REQUEST:c_gold_once()
 		tcgold.time_length = cgold_time
 			
 		if notexist then
-			tcgold = cgold_mgr.create( tcgold )
+			tcgold = user.u_cgoldmgr.create( tcgold )
 			assert( tcgold )
-			cgold_mgr:add( tcgold )
+			user.u_cgoldmgr:add( tcgold )
 		end 
 
 		tcgold:__insert_db()

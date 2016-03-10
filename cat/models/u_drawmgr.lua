@@ -70,6 +70,10 @@ function _M:get_by_type( drawtype )
 	return self.__data[ tostring( drawtype ) ]
 end
 
+function _M:clear()
+	self.__data = {}
+end
+
 function _M:delete_by_type( drawtype )
 	-- body
 	assert(self.__data[ tostring( drawtype ) ] )
