@@ -6,6 +6,7 @@ local dc
 local friendmgr 	
 local sendpackage
 local sendrequest
+local errorcode = require "errorcode"
 	 		  	
 function friendrequest:friend_list()
 	print( "friedlist is called ^^^^^^^^^^^^^^^^^^^")

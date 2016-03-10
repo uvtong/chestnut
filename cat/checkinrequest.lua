@@ -309,16 +309,16 @@ function REQUEST:checkin_reward()
 	if user.checkin_num ~= self.totalamount or user.checkin_reward_num ~= self.rewardnum then
 		print( "donot match the server totalmount" )
 		ret.ok = false
-		ret.errorcode = errorcode[ 55 ].code
-		ret.msg = errorcode[ 55 ].msg
+		ret.errorcode = errorcode[ 71 ].code
+		ret.msg = errorcode[ 71 ].msg
 		-- logout
 	else	
 		local t = get_g_checkin_month_by_reward_num( self.rewardnum + 1 )
 		
 		if  t.totalamount > user.checkin_num  then
 			ret.ok = false
-			ret.errorcode = errorcode[ 56 ].code
-			ret.msg = errorcode[ 56 ].msg
+			ret.errorcode = errorcode[ 72 ].code
+			ret.msg = errorcode[ 72 ].msg
 			-- should logout
 		else
 			print( "******************************************checkin_reward" )

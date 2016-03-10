@@ -121,7 +121,7 @@ function REQUEST:kungfu_levelup()
 			tkungfu =user.u_kungfumgr.create( tkungfu )
  			
 			assert( tkungfu )
-			kungfu_mgr:add( tkungfu )
+			user.u_kungfumgr:add( tkungfu )
                               
 			tkungfu:__insert_db()
 		else				  		
