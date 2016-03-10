@@ -42,6 +42,9 @@ errorcode[ 64 ] = { code = 64 , msg = "no such user" }
 errorcode[ 65 ] = { code = 65 , msg = "can not add yourself" }
 errorcode[ 66 ] = { code = 66 , msg = "already friend" }
 errorcode[ 67 ] = { code = 67 , msg = "in the appliedlist" }
+errorcode[ 68 ] = { code = 68 , msg = "not enough heart" }
+errorcode[ 69 ] = { code = 69 , msg = "too much heart" }
+errorcode[ 70 ] = { code = 70 , msg = "can not add this one" }
 
 --checkin
 errorcode[ 71 ] = { code = 71 , msg = "donot match the server totalmount" }

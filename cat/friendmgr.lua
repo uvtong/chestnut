@@ -1,7 +1,8 @@
 package.path = "./../cat/?.lua;" .. package.path
 	
 local skynet = require "skynet"
-	
+local errorcode = require "errorcode"	
+
 local friendmgr = {}
 friendmgr._data = { friendlist = {} , applylist = {} , appliedlist = {} , avaliblelist = {} }
 	
@@ -498,16 +499,16 @@ end
 		 	
 function friendmgr:applyfriend( friendlist )
 	assert( friendlist )
-    		
+	local ret = {}
+    
 	for k , v in pairs( friendlist ) do
 		local isfind = false
 		if v.friendid == user.csv_id then
 			print( "can not apply youself" )
 
-			local ret = {}
 			ret.ok = false
-			ret.error = 1
-			ret.msg = "can not apply yourself"
+			ret.errorcode = errorcode[63].code
+			ret.msg =  errorcode[63].msg  --"can not apply yourself"
         	
 			return ret
 		end	
@@ -547,8 +548,17 @@ function friendmgr:applyfriend( friendlist )
 				friendmgr:_db_insertmsg( nm )
 				print( "insert a new msg to db" )
 			end
+
+			ret.errorcode = errorcode[ 1 ].code
+			ret.msg = errorcode[ 1 ].msg
+			return ret
 		end	
 	end		
+
+	ret.errorcode = errorcode[ 70 ].code
+	ret.msg = errorcode[ 70 ].msg
+
+	return ret
 end			
 
 function friendmgr:_db_insert_newfriend( uid , friendid )
@@ -667,7 +677,7 @@ end
 
 function friendmgr:deletefriend( friendid )
 	assert( friendid )
-
+	local ret = {}
 	local tmp = {}
 	for sk , sv in pairs( friendmgr._data.friendlist ) do
 		if sv.friendid ~= friendid then
@@ -710,7 +720,9 @@ function friendmgr:deletefriend( friendid )
 		print( "insert a new msg to db and update a msg" )
 	end	
 
-	return true
+	ret.errorcode = errorcode[ 1 ].code
+	ret.msg = errorcode[ 1 ].msg
+	return ret
 end			
 	
 function friendmgr:findfriend( id )
@@ -720,15 +732,15 @@ function friendmgr:findfriend( id )
 	local r = friendmgr:_db_loadfriend( id )
 	if nil == r[1] then
 		ret.ok = false
-		ret.error = 1
-		ret.msg = "no such user"
+		ret.errorcode = errorcode[ 64 ].code
+		ret.msg = errorcode[ 64 ].msg  --"no such user"
 		
 		return ret 
 	else
 		if id == user.csv_id then
 			ret.ok = false
-			ret.error = 2
-			ret.msg = "can not add yourself"
+			ret.errorcode = errorcode[ 65 ].code
+			ret.msg = errorcode[ 65 ].msg   --"can not add yourself"
 			
 			return ret 
 		end	
@@ -736,8 +748,8 @@ function friendmgr:findfriend( id )
 		for k , v in pairs( friendmgr._data.friendlist ) do
 			if v.friendid == id then
 				ret.ok = false
-				ret.error = 3
-				ret.msg = "already friend"
+				ret.errorcode = errorcode[ 66 ].code
+				ret.msg = errorcode[ 66 ].msg  --"already friend"
 
 				return ret
 			end
@@ -746,8 +758,8 @@ function friendmgr:findfriend( id )
 		for k , v in pairs( friendmgr._data.appliedlist ) do
 			if v.fromid == id then
 				ret.ok = false
-				ret.error = 4
-				ret.msg = "in the appliedlist "
+				ret.errorcode = errorcode[ 67 ].code
+				ret.msg = errorcode[ 67 ].msg  --"in the appliedlist "
 
 				return ret
 			end
@@ -757,6 +769,8 @@ function friendmgr:findfriend( id )
 	local f = friendmgr:_createfriend( r[ 1 ] )
 	assert( f )
 	ret.ok = true
+	ret.errorcode = errorcode[ 1 ].code
+	ret.msg = errorcode[ 1 ].msg
 	ret.friend = {}
 	table.insert( ret.friend , f )
 	return ret
@@ -764,10 +778,12 @@ end
 			
 function friendmgr:recvheart( heartlist , totalamount )
 	assert( heartlist and totalamount )
+	local ret = {}
+
 	if recvheartnum + totalamount > MAXHEARTNUM then
-		local ret = {}
 		ret.ok = false
-		ret.msg = "too much heart"
+		ret.errorcode = errorcode[ 69 ].code
+		ret.msg = errorcode[ 69 ].msg
 		return ret
 	end		
 
@@ -831,18 +847,22 @@ function friendmgr:recvheart( heartlist , totalamount )
 
 	prop:__update_db( {"num"} )
 
+	ret.errorcode = errorcode[ 69 ].code
+	ret.msg = errorcode[ 69 ].msg
 end			
 		
 function friendmgr:sendheart( heartlist , totalamount ) 
 	assert( heartlist )
 	print(	"heartamount = " .. totalamount )
+
+	local ret = {}
 	local prop = user.u_propmgr:get_by_csv_id( SENDTYPE )
 	--assert( total )
 	--print( "total num is " .. total.num )
 	if nil == prop or prop.num - totalamount < 0 then -- not enough heart then return error
-		local ret = {}
 		ret.ok = false
-		ret.msg = "not enough heart"
+		ret.errorcode = errorcode[ 68 ].code
+		ret.msg = errorcode[ 68 ].msg
 
 		return ret
 	end  
@@ -889,6 +909,8 @@ function friendmgr:sendheart( heartlist , totalamount )
 	end	
 	prop:__update_db( {"num"} )
 
+	ret.errorcode = errorcode[ 1 ].code
+	ret.msg = errorcode[ 1 ].msg
 end		
 			
 function friendmgr:agent_request_handle( msg )
