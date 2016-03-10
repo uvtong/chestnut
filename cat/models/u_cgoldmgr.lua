@@ -53,7 +53,7 @@ function _M.create( P )
 	local u = _Meta.__new()
 	for k,v in pairs(_Meta) do
 		if not string.match(k, "^__*") then
-			print( u[k] , P[k])
+			--print( u[k] , P[k])
 			u[k] = assert(P[k])
 		end
 	end
@@ -76,6 +76,10 @@ function _M:delete_cgold()
 	assert(self.__data[1])
 	self.__data[1] = nil
 	self.__count = self.__count - 1
+end
+
+function _M:clear()
+	self.__data = {}
 end
 
 function _M:get_count()

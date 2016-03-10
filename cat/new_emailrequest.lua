@@ -1,5 +1,6 @@
 local new_emailrequest = {}
 local util = require "util"
+local const = require "const"
 
 local send_package
 local send_request
@@ -14,7 +15,6 @@ local dc
 
 local game
 local user
-local emailmgr
 
 local MAXEMAILNUM = 50
 
@@ -27,21 +27,18 @@ function REQUEST:login(u)
 	-- body
 	assert( u )
 	user = u
-	for k,v in pairs(u.u_emailmgr.__data) do
-		print(k,v)
-	end
-	emailmgr = user.u_emailmgr
 end
 
 function REQUEST:mails()
 	local ret = {}
-	
+		
 	ret.mail_list = {}
 
-	local emailbox = emailmgr:get_all_emails()
-	assert( emailbox )
-	for i , v in pairs( emailbox ) do
-		print( "called" )
+	
+	local counter = 0
+	for i , v in pairs( user.u_emailmgr.__data ) do
+		print( k , v )
+		counter = counter + 1
 		local tmp = {}
 		tmp.attachs = {}
 
@@ -56,63 +53,72 @@ function REQUEST:mails()
 		tmp.iconid = v.iconid
 
 		table.insert( ret.mail_list , tmp )
-	end
-
-	print( "mails is called already" )
+	end 
+ 	
+	print( "mails is called already" , counter )
 
 	return ret
-end
-
+end      
+		
 function REQUEST:mail_read()
 	print( "****************************email_read is called" )
 
-	local emailbox = emailmgr:get_all_emails()
-	assert( emailbox )
-
 	for k , v in pairs( self.mail_id ) do
 		print ( k , v , v.id )
-		local e = emailmgr:get_by_csv_id( v.id )
+		local e =user.u_emailmgr:get_by_csv_id( v.id )
 		assert( e )
 
 		e.isread = 1
 		e:__update_db( { "isread" } )
-	end
-end
-
+	end 
+end		
+		
 function REQUEST:mail_delete()
 	print( "****************************email_delete is called" )
 
-	local emailbox = emailmgr:get_all_emails()
-	assert( emailbox )
-
 	for k , v in pairs( self.mail_id ) do
 		print ( k , v , v.id )
-		local e = emailmgr:get_by_csv_id( v.id )
+		local e =user.u_emailmgr:get_by_csv_id( v.id )
 		assert( e )
-
+		
 		e.isdel = 1
 		e:__update_db( { "isdel" } )
-		emailmgr:delete_by_id( v.id )
+		user.u_emailmgr:delete_by_id( v.id )
 	end 
-end
+end 
 	
 function REQUEST:mail_getreward()
 	print( "****************************get_reward is called" )
 
-	local emailbox = emailmgr:get_all_emails()
-	assert( emailbox )
-
-	for k , v in pairs( self.mail_id ) do
-		print ( k , v , v.id )
-		local e = emailmgr:get_by_csv_id( v.id )
+	for k , v in pairs( self.mail_id ) do                         		
+		local e =user.u_emailmgr:get_by_csv_id( v.id )
 		assert( e )
+		if 0 == e.isreward then 	
+			local items = e:__getallitem()
+			assert( items )
+			for k , v in ipairs( items ) do
+				local prop = user.u_propmgr:get_by_csv_id( v.itemsn )
+				if prop then
+					prop.num = prop.num + v.itemnum
+					prop:__update_db( { "num" } )
+				else
+					local p = game.g_propmgr:get_by_csv_id( v.itemsn )
+					p.user_id = user.csv_id
+					p.num = v.itemnum 
+					local prop = user.u_propmgr.create( p )
+					user.u_propmgr:add( prop )
+					prop:__insert_db()
+				end
+			end
 
-		if ( 1 == e.type ) then
-			e.isdel = 1
-			e:__update_db( { "isdel" } )
-		else
-			e.isread = 1
-			e:__update_db( { "isreward" } )
+			if ( 1 == e.type ) then
+				e.isdel = 1
+				e:__update_db( { "isdel" } )
+				user.u_emailmgr:delete_by_csv_id( e.csv_id )
+			else
+				e.isreward = 1
+				e:__update_db( { "isreward" } )
+			end
 		end
 	end 
 end 
@@ -121,14 +127,14 @@ function new_emailrequest:newemail( tval , ... ) -- get a email to group
 	assert( tval )
 	print( "*********************************************REQUEST:newemail" )
 
-	local v = emailmgr:recvemail( tval )
+	local v =user.u_emailmgr:recvemail( tval )
 	assert( v )
 
-	local ret = {}
+	--[[local ret = {}
 	ret.mail = {}
 	local tmp = {}
    	tmp.attachs = {}
-
+	
     tmp.emailid = v.csv_id
     tmp.type = v.type
     tmp.acctime = os.date("%Y-%m-%d" , v.acctime)
@@ -139,19 +145,19 @@ function new_emailrequest:newemail( tval , ... ) -- get a email to group
 	tmp.attachs = v:getallitem()
 	tmp.iconid = v.iconid
 	ret.mail = tmp
-	send_package( send_request( "newemail" ,  ret ) )
+	send_package( send_request( "newemail" ,  ret ) )--]]
 end 
-	
+		
 function SUBSCRIBE:email( tvals , ... ) -- get email from channl , a email to all users 
 	assert( tvals )
 	print( " ***********************************SUBSCRIBE:email " )
-	tvals.csv_id = util.u_guid( user.id, game, const.UEMAILENTROPY )
-	tvals.uid = user.id
+	tvals.csv_id = util.u_guid( user.csv_id, game, const.UEMAILENTROPY )
+	tvals.uid = user.csv_id
 	print( "*********************************email csv_id is " , tvals.csv_id )
-	local v = emailmgr:recvemail( tvals )
+	local v =user.u_emailmgr:recvemail( tvals )
 	assert( v )
 
-	local ret = {}
+	--[[local ret = {}
 	ret.mail = {}
 	local tmp = {}
    	tmp.attachs = {}
@@ -163,10 +169,10 @@ function SUBSCRIBE:email( tvals , ... ) -- get email from channl , a email to al
     tmp.isreward = v.isreward
     tmp.title = v.title
     tmp.content = v.content
-	tmp.attachs = v:getallitem()
+	tmp.attachs = v:__getallitem()
 	tmp.iconid = v.iconid
 	ret.mail = tmp
-	send_package( send_request( "newemail" ,  ret ) )
+	send_package( send_request( "newemail" ,  ret ) )--]]
 end
 
 function RESPONSE:abd()

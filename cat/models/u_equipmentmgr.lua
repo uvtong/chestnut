@@ -5,7 +5,20 @@ local _M = {}
 _M.__data = {}
 _M.__count = 0
 
-local _Meta = { level=0, combat=0, defense=0, critical_hit=0, king=0, user_id=0, csv_id=0, type=0, critical_hit_probability=0, combat_probability=0, defense_probability=0, king_probability=0, enhance_success_rate=0, currency_type=0, currency_num=0}
+local _Meta = { user_id=0, 
+				csv_id=0, 
+				level=0, 
+				combat=0, 
+				defense=0, 
+				critical_hit=0, 
+				king=0, 
+				critical_hit_probability=0, 
+				combat_probability=0, 
+				defense_probability=0, 
+				king_probability=0, 
+				enhance_success_rate=0, 
+				currency_type=0, 
+				currency_num=0}
 
 _Meta.__tname = "u_equipment"
 
@@ -48,6 +61,25 @@ function _Meta:__serialize()
 	return r
 end
 
+function _M.insert_db( values )
+	assert(type(values) == "table" )
+	local total = {}
+	for i,v in ipairs(values) do
+		local t = {}
+		for kk,vv in pairs(v) do
+			if not string.match(kk, "^__*") then
+				t[kk] = vv
+			end
+		end
+		table.insert(total, t)
+	end
+	skynet.send(util.random_db() , "lua" , "command" , "insert_all" , _Meta.__tname , total)
+end 
+
+function _M:clear()
+	self.__data = {}
+end
+
 function _M.create( P )
 	assert(P)
 	local u = _Meta.__new()
@@ -75,26 +107,6 @@ function _M:delete_by_csv_id(csv_id)
 	assert(self.__data[tostring(csv_id)])
 	self.__data[tostring(csv_id)] = nil
 	self.__count = self.__count - 1
-end
-
-function _M:get_by_type(type)
-	-- body
-	for k,v in pairs(self.__data) do
-		if v.type == type then
-			return v
-		end
-	end
-end
-
-function _M:delete_by_type(type)
-	-- body
-	for k,v in pairs(self.__data) do
-		if v.type == type then
-			self.__data[k] = nil
-			self.__count = self.__count - 1
-			return
-		end
-	end
 end
 
 function _M:get_count()

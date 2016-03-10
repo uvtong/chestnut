@@ -64,6 +64,10 @@ function _M:add( u )
 	self.__data[tostring(u.csv_id)] = u
 	self.__count = self.__count + 1
 end
+
+function _M:clear()
+	self.__data = {}
+end
 	
 function _M:get_by_csv_id(csv_id)
 	-- body

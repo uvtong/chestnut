@@ -53,6 +53,18 @@ local function load_g_equipment()
 	game.g_equipmentmgr = g_equipmentmgr
 end
 
+local function load_g_equipment_enhance()
+	-- body
+	assert(game.g_equipment_enhancemgr == nil)
+	local g_equipment_enhancemgr = require "models/g_equipment_enhancemgr"
+	local r = skynet.call(util.random_db(), "lua", "command", "select", "g_equipment_enhance")
+	for i,v in ipairs(r) do
+		local t = g_equipment_enhancemgr.create(v)
+		g_equipment_enhancemgr:add(t)
+	end
+	game.g_equipment_enhancemgr = g_equipment_enhancemgr
+end
+
 local function load_g_goods()
 	-- body
 	assert(game.g_goodsmgr == nil)
@@ -87,6 +99,54 @@ local function load_g_kungfu()
 		g_kungfumgr:add(t)
 	end
 	game.g_kungfumgr = g_kungfumgr
+end
+
+local function load_g_lilian_level()
+	-- body
+	assert(game.g_lilian_levelmgr == nil)
+	local g_lilian_levelmgr = require "models/g_lilian_levelmgr"
+	local r = skynet.call(util.random_db(), "lua", "command", "select", "g_lilian_level")
+	for i,v in ipairs(r) do
+		local t = g_lilian_levelmgr.create(v)
+		g_lilian_levelmgr:add(t)
+	end
+	game.g_lilian_levelmgr = g_lilian_levelmgr
+end
+
+local function load_g_lilian_event()
+	-- body
+	assert(game.g_lilian_eventmgr == nil)
+	local g_lilian_eventmgr = require "models/g_lilian_eventmgr"
+	local r = skynet.call(util.random_db(), "lua", "command", "select", "g_lilian_event")
+	for i,v in ipairs(r) do
+		local t = g_lilian_eventmgr.create(v)
+		g_lilian_eventmgr:add(t)
+	end
+	game.g_lilian_eventmgr = g_lilian_eventmgr
+end
+
+local function load_g_lilian_quanguan()
+	-- body
+	assert(game.g_lilian_quanguanmgr == nil)
+	local g_lilian_quanguanmgr = require "models/g_lilian_quanguanmgr"
+	local r = skynet.call(util.random_db(), "lua", "command", "select", "g_lilian_quanguan")
+	for i,v in ipairs(r) do
+		local t = g_lilian_quanguanmgr.create(v)
+		g_lilian_quanguanmgr:add(t)
+	end
+	game.g_lilian_quanguanmgr = g_lilian_quanguanmgr
+end
+
+local function load_g_lilian_invitation()
+	-- body
+	assert(game.g_lilian_invitationmgr == nil)
+	local g_lilian_invitationmgr = require "models/g_lilian_invitationmgr"
+	local r = skynet.call(util.random_db(), "lua", "command", "select", "g_lilian_invitation")
+	for i,v in ipairs(r) do
+		local t = g_lilian_invitationmgr.create(v)
+		g_lilian_invitationmgr:add(t)
+	end
+	game.g_lilian_invitationmgr = g_lilian_invitationmgr
 end
 
 local function load_g_prop()
@@ -141,12 +201,12 @@ local function load_g_role_star()
 	-- body
 	assert(game.g_role_starmgr == nil)
 	local g_role_starmgr = require "models/g_role_starmgr"
-	local r = skynet.call(util.random_db(), "lua", "command", "select", "g_user_levelr")
+	local r = skynet.call(util.random_db(), "lua", "command", "select", "g_role_star")
 	for i,v in ipairs(r) do
-		local t = g_user_levelmgr.create(v)
-		g_user_levelmgr:add(t)
+		local t = g_role_starmgr.create(v)
+		g_role_starmgr:add(t)
 	end
-	game.g_user_levelmgr = g_user_levelmgr
+	game.g_role_starmgr = g_role_starmgr
 end
 
 local function load_g_shop()
@@ -199,15 +259,62 @@ end
 
 local function load_g_daily_task()
 	assert( nil == game.g_daily_taskmgr )
-
 	local g_daily_taskmgr = require "models/g_daily_taskmgr"
 	local r = skynet.call( util.random_db() , "lua" , "command" , "select" , "g_daily_task" )
 	for i , v in ipairs( r ) do
 		local t = g_daily_taskmgr.create( v )
 		g_daily_taskmgr:add( t )
 	end
-
 	game.g_daily_taskmgr = g_daily_taskmgr
+end
+
+local function load_g_drawcost()
+	assert( nil == game.g_drawcostmgr )
+
+	local g_drawcostmgr = require "models/g_drawcostmgr"
+	local r = skynet.call(util.random_db() , "lua" , "command" , "select" , "g_drawcost")
+	for i , v in ipairs( r ) do
+		local t = g_drawcostmgr.create( v )
+		g_drawcostmgr:add( t )
+	end
+	game.g_drawcostmgr = g_drawcostmgr
+end
+
+local function load_g_mainreward()
+	assert( nil == game.g_mainrewardmgr )
+
+	local g_mainrewardmgr = require "models/g_mainrewardmgr"
+	local r = skynet.call(util.random_db() , "lua" , "command" , "select" , "g_mainreward")
+	for i , v in ipairs( r ) do
+		local t = g_mainrewardmgr.create( v )
+		g_mainrewardmgr:add( t )
+	end
+	game.g_mainrewardmgr = g_mainrewardmgr
+end
+
+local function load_g_subreward()
+	assert( nil == game.g_subrewardmgr )
+
+	local g_subrewardmgr = require "models/g_subrewardmgr"
+	local r = skynet.call(util.random_db() , "lua" , "command" , "select" , "g_subreward")
+	for i , v in ipairs( r ) do
+		local t = g_subrewardmgr.create( v )
+		g_subrewardmgr:add( t )
+	end
+	game.g_subrewardmgr = g_subrewardmgr
+end
+
+local function load_g_randomval()
+	assert( nil == game.g_randomvalmgr )
+
+	local g_randomvalmgr = require "models/g_randomvalmgr"
+	local r = skynet.call( util.random_db() , "lua" , "command" , "select" , "randomval" )
+	for k , v in ipairs( r ) do
+		local t = g_randomvalmgr.create( v )
+		g_randomvalmgr:add( t )
+	end
+
+	game.g_randomvalmgr = g_randomvalmgr
 end
 
 local function load_g_uid()
@@ -226,13 +333,10 @@ local function load_u_achievement(user)
 	-- body
 	local u_achievementmgr = require "models/u_achievementmgr"
 	local addr = util.random_db()
-	local r = skynet.call(addr, "lua", "command", "select", "u_achievement", {{ user_id = user.id}})
+	local r = skynet.call(addr, "lua", "command", "select", "u_achievement", {{ user_id = user.csv_id}})
 	for i,v in ipairs(r) do
 		local a = u_achievementmgr.create(v)
 		u_achievementmgr:add(a)
-	end
-	for k,v in pairs(u_achievementmgr.__data) do
-		print(k,v)
 	end
 	user.u_achievementmgr = u_achievementmgr
 end
@@ -241,7 +345,7 @@ local function load_u_achievement_rc(user)
 	-- body
 	local u_achievement_rcmgr = require "models/u_achievement_rcmgr"
 	local addr = util.random_db()
-	local r = skynet.call(addr, "lua", "command", "select", "u_achievement_rc", {{ user_id = user.id}})
+	local r = skynet.call(addr, "lua", "command", "select", "u_achievement_rc", {{ user_id = user.csv_id}})
 	for i,v in ipairs(r) do
 		local a = u_achievement_rcmgr.create(v)
 		u_achievement_rcmgr:add(a)
@@ -254,17 +358,14 @@ local function load_u_checkin(user)
 	assert( user.u_checkinmgr == nil )
 	local u_checkinmgr = require "models/u_checkinmgr"
 	local addr = util.random_db()
-	local sql = string.format( "select * from u_checkin where u_checkin_time = ( select u_checkin_time from u_checkin where user_id = %s ORDER BY u_checkin_time DESC limit 1 )" , user.id)
-	local r = skynet.call( addr, "lua", "command", "query", "sql" )
+	local sql = string.format( "select * from u_checkin where u_checkin_time = ( select u_checkin_time from u_checkin where user_id = %s ORDER BY u_checkin_time DESC limit 1 )" , user.csv_id)
+	local r = skynet.call( addr, "lua", "command", "query", sql )
+
 	for i,v in ipairs( r ) do
 		local a = u_checkinmgr.create( v )
 		u_checkinmgr:add( a )
 	end
 	user.u_checkinmgr = u_checkinmgr
-	print( "**********************load u_checkin over" )
-	for k,v in pairs(u_checkinmgr) do
-		print(k,v)
-	end
 end
 
 local function load_u_checkin_month( user )
@@ -272,20 +373,19 @@ local function load_u_checkin_month( user )
 	assert( user.u_checkin_monthmgr == nil )
 	local u_checkin_monthmgr = require "models/u_checkin_monthmgr"
 	local addr = util.random_db()
-	local r = skynet.call( addr, "lua", "command", "select", "u_checkin_month" , { { user_id = user.id } } )
+	local r = skynet.call( addr, "lua", "command", "select", "u_checkin_month" , { { user_id = user.csv_id } } )
 	for i,v in ipairs( r ) do
 		local a = u_checkin_monthmgr.create( v )
 		u_checkin_monthmgr:add( a )
 	end
 	user.u_checkin_monthmgr = u_checkin_monthmgr
-	print( "**********************load u_checkin_month over" )
 end
 
 local function load_u_exercise( user )
 	assert( nil == user.u_exercise_mgr )
 
 	local u_exercise_mgr = require "models/u_exercise_mgr"
-	local sql = string.format( "select * from u_exercise where exercise_time = ( select exercise_time from u_exercise where user_id = %s ORDER BY exercise_time DESC limit 1 )" , user.id)
+	local sql = string.format( "select * from u_exercise where exercise_time = ( select exercise_time from u_exercise where user_id = %s ORDER BY exercise_time DESC limit 1 )" , user.csv_id)
 	local r = skynet.call( util.random_db() , "lua" , "command" , "query" , sql )
 	for i , v in ipairs( r ) do
 		local a = u_exercise_mgr.create( v )
@@ -293,14 +393,13 @@ local function load_u_exercise( user )
 	end
 
 	user.u_exercise_mgr = u_exercise_mgr
-	print( "**********************load u_exercise over" )
 end
 
 local function load_u_cgold( user )
 	assert( nil == user.u_cgoldmgr )
 
 	local u_cgoldmgr = require "models/u_cgoldmgr"
-	local sql = string.format( "select * from u_cgold where cgold_time = ( select cgold_time from u_cgold where user_id = %s ORDER BY cgold_time DESC limit 1 )" , user.id)
+	local sql = string.format( "select * from u_cgold where cgold_time = ( select cgold_time from u_cgold where user_id = %s ORDER BY cgold_time DESC limit 1 )" , user.csv_id)
 	local r = skynet.call( util.random_db() , "lua" , "command" , "query" , sql )
 	for i , v in ipairs( r ) do
 		local a = u_cgoldmgr.create( v )
@@ -308,33 +407,16 @@ local function load_u_cgold( user )
 	end
 
 	user.u_cgoldmgr = u_cgoldmgr
-	print( "**********************load u_cgold over" )
 end
 
-local function load_u_email( user )
-	assert( nil == user.u_emailmgr )
 
-	local u_emailmgr = require "models/u_emailmgr"
-	local r = skynet.call( util.random_db() , "lua", "command" , "select" , "u_new_email", {{ uid = user.id }})
-	print( "****************************** emailnum is " , #r )
-	for i , v in ipairs( r ) do
-		local a = u_emailmgr.create( v )
-		u_emailmgr:add( a )
-	end
-
-	user.u_emailmgr = u_emailmgr
-	for k , v in pairs( user.u_emailmgr.__data ) do
-		print( k , v )
-	end
-	print( "********************************load u_emailmgr over " )
-end
 
 local function load_u_checkpoint(user)
 	-- body
 	assert(user.u_checkpointmgr == nil)
 	local u_checkpointmgr = require "models/u_checkpointmgr"
 	local addr = util.random_db()
-	local r = skynet.call(addr, "lua", "command", "select", "u_checkpoint", {{ user_id = user.id }})
+	local r = skynet.call(addr, "lua", "command", "select", "u_checkpoint", {{ user_id = user.csv_id }})
 	for i,v in ipairs(r) do
 		local a = u_checkpointmgr.create(v)
 		u_checkpointmgr:add(a)
@@ -353,26 +435,73 @@ local function load_u_equipment(user)
 		u_equipmentmgr:add(a)
 	end
 	user.u_equipmentmgr = u_equipmentmgr
-end
-
+end 
+	
 local function load_u_kungfu(user)
 	-- body
 	assert(user.u_kungfumgr == nil)
 	local u_kungfumgr = require "models/u_kungfumgr"
 	local addr = util.random_db()
-	local r = skynet.call(addr, "lua", "command", "select", "u_kungfu", {{ user_id = assert(user.csv_id) }})
+	local r = skynet.call(addr, "lua", "command", "select", "u_kungfu", { { user_id = assert( user.csv_id ) } } )
 	for i,v in ipairs(r) do
 		local a = u_kungfumgr.create(v)
 		u_kungfumgr:add(a)
 	end
 	user.u_kungfumgr = u_kungfumgr
+end 
+	
+local function load_u_draw( user )
+	assert( nil == user.u_drawmgr )
+
+	local u_drawmgr = require "models/u_drawmgr"
+	local sql1 = string.format( "select * from u_new_draw where srecvtime = ( select srecvtime from u_new_draw where uid = %s and drawtype = 1 ORDER BY srecvtime DESC limit 1 )" , user.csv_id )
+	local r = skynet.call( util.random_db() , "lua" , "command" , "query" , sql1 )
+
+	for i , v in ipairs( r ) do
+		--print( " has number" )
+		local draw = u_drawmgr.create( v )
+		assert( draw )
+		u_drawmgr:add( draw )
+	end
+
+	local sql2 = string.format( "select * from u_new_draw where srecvtime = ( select srecvtime from u_new_draw where uid = %s and drawtype = 2 ORDER BY srecvtime DESC limit 1 )" , user.csv_id )
+	local t = skynet.call( util.random_db() , "lua" , "command" , "query" , sql2 )
+
+	for i , v in ipairs( t ) do
+		--print( " has number" )
+		local draw = u_drawmgr.create( v )
+		assert( draw )
+		u_drawmgr:add( draw )
+	end
+
+	user.u_drawmgr = u_drawmgr
+end	
+
+local function load_u_email( user )
+	assert( nil == user.u_emailmgr )
+
+	local u_emailmgr = require "models/u_emailmgr"
+	local r = skynet.call( util.random_db() , "lua", "command" , "select" , "u_new_email", { { uid = user.csv_id , isdel = 0 } } )
+	print( "sizeof r is ************************************************************" , #r )
+	for i , v in ipairs( r ) do
+		local a = u_emailmgr.create( v )
+		u_emailmgr:add( a )
+	end
+	print( "u_emailmgr:get_count" , u_emailmgr:get_count() )
+	if u_emailmgr:get_count() > u_emailmgr.__MAXEMAILNUM then
+		print( "sysdelemail is called *********************************************" , u_emailmgr:get_count() )
+		u_emailmgr:sysdelemail()
+	end
+
+	user.u_emailmgr = u_emailmgr
 end
+
 
 local function load_u_prop(user)
 	-- body
 	local u_propmgr = require "models/u_propmgr"
 	local addr = util.random_db()
-	local nr = skynet.call(addr, "lua", "command", "select", "u_prop", {{ user_id = user.id }})
+	local nr = skynet.call(addr, "lua", "command", "select", "u_prop", {{ user_id = user.csv_id }})
 	for i,v in ipairs(nr) do
 		local prop = u_propmgr.create( v )
 		u_propmgr:add(prop)
@@ -383,7 +512,7 @@ end
 local function load_u_purchase_goods(user)
 	-- body
 	local u_purchase_goodsmgr = require "models/u_purchase_goodsmgr"
-	local r = skynet.call(util.random_db(), "lua", "command", "select", "u_purchase_goods", {{ user_id = user.id}})
+	local r = skynet.call(util.random_db(), "lua", "command", "select", "u_purchase_goods", {{ user_id = user.csv_id}})
 	for i,v in ipairs(r) do
 		local t = u_purchase_goodsmgr.create(v)
 		u_purchase_goodsmgr:add(t)
@@ -394,7 +523,7 @@ end
 local function load_u_purchase_reward(user)
 	-- body
 	local u_purchase_rewardmgr = require "models/u_purchase_rewardmgr"
-	local r = skynet.call(util.random_db(), "lua", "command", "select", "u_purchase_reward", {{ user_id=user.id}})
+	local r = skynet.call(util.random_db(), "lua", "command", "select", "u_purchase_reward", {{ user_id=user.csv_id}})
 	for i,v in ipairs(r) do
 		local t = u_purchase_rewardmgr.create(v)
 		u_purchase_rewardmgr:add(t)
@@ -405,7 +534,7 @@ end
 local function load_u_recharge_count(user)
 	-- body
 	local u_recharge_countmgr = require "models/u_recharge_countmgr"
-	local r = skynet.call(util.random_db(), "lua", "command", "select", "u_recharge_count", {{ user_id=user.id}})
+	local r = skynet.call(util.random_db(), "lua", "command", "select", "u_recharge_count", {{ user_id=user.csv_id}})
 	assert(r)
 	for i,v in ipairs(r) do
 		local t = u_recharge_countmgr.create(v)
@@ -417,14 +546,11 @@ end
 local function load_u_recharge_record(user)
 	-- body
 	local u_recharge_recordmgr = require "models/u_recharge_recordmgr"
-	local r = skynet.call(util.random_db(), "lua", "command", "select", "u_recharge_record", {{ user_id=user.id}})
+	local r = skynet.call(util.random_db(), "lua", "command", "select", "u_recharge_record", {{ user_id=user.csv_id}})
 	assert(r)
 	for i,v in ipairs(r) do
 		local t = u_recharge_recordmgr.create(v)
 		u_recharge_recordmgr:add(t)
-	end
-	for k,v in pairs(u_recharge_recordmgr) do
-		print(k,v)
 	end
 	user.u_recharge_recordmgr = u_recharge_recordmgr
 end
@@ -432,7 +558,7 @@ end
 local function load_u_recharge_reward(user)
 	-- body
 	local u_recharge_rewardmgr = require "models/u_recharge_rewardmgr"
-	local r = skynet.call(util.random_db(), "lua", "command", "select", "u_recharge_reward", {{ user_id=user.id}})
+	local r = skynet.call(util.random_db(), "lua", "command", "select", "u_recharge_reward", {{ user_id=user.csv_id}})
 	assert(r)
 	for i,v in ipairs(r) do
 		local t = u_recharge_rewardmgr.create(v)
@@ -444,7 +570,7 @@ end
 local function load_u_recharge_vip_reward(user)
 	-- body
 	local u_recharge_vip_rewardmgr = require "models/u_recharge_vip_rewardmgr"
-	local r = skynet.call(util.random_db(), "lua", "command", "select", "u_recharge_vip_reward", {{ user_id=user.id}})
+	local r = skynet.call(util.random_db(), "lua", "command", "select", "u_recharge_vip_reward", {{ user_id=user.csv_id}})
 	assert(r)
 	for i,v in ipairs(r) do
 		local t = u_recharge_vip_rewardmgr.create(v)
@@ -457,15 +583,36 @@ local function load_u_role(user)
 	-- body
 	local u_rolemgr = require "models/u_rolemgr"
 	local addr = util.random_db()
-	local nr = skynet.call(addr, "lua", "command", "select", "u_role", {{ user_id = user.id }})
+	local nr = skynet.call(addr, "lua", "command", "select", "u_role", {{ user_id = user.csv_id }})
 	for i,v in ipairs(nr) do
 		local role = u_rolemgr.create( v )
-		for k,v in pairs(role) do
-			print(k,v)
-		end
 		u_rolemgr:add(role)
 	end
 	user.u_rolemgr = u_rolemgr
+end
+
+local function load_u_journal(user)
+	-- body
+	local u_journalmgr = require "models/u_journalmgr"
+	local addr = util.random_db()
+	local r = skynet.call(addr, "lua", "command", "select", "u_journal", {{ user_id = user.csv_id}})
+	for i,v in ipairs(r) do
+		local t = u_journalmgr.create(v)
+		u_journalmgr:add(t)
+	end
+	user.u_journalmgr = u_journalmgr
+end
+
+local function load_u_goods(user)
+	-- body
+	local u_goodsmgr = require "models/u_goodsmgr"
+	local addr = util.random_db()
+	local r = skynet.call(addr, "lua", "command", "select", "u_goods", {{ user_id = user.csv_id}})
+	for i,v in ipairs(r) do
+		local t = u_goodsmgr.create(v)
+		u_goodsmgr:add(t)
+	end
+	user.u_goodsmgr = u_goodsmgr
 end
 
 function loader.load_game()
@@ -477,15 +624,27 @@ function loader.load_game()
 		load_g_checkin()
 		load_g_checkin_total()
 		load_g_equipment()
+		load_g_equipment_enhance()
 		load_g_daily_task()
 		load_g_goods()
 		load_g_goods_refresh_cost()
 		load_g_kungfu()
+		load_g_drawcost()
+		load_g_mainreward()
+		load_g_subreward()
 		load_g_prop()
 		load_g_recharge()
+		--load_g_lilian_invitation()
+		--load_g_lilian_level()
+		--load_g_lilian_event()
+		--load_g_lilian_quanguan()
+		
+		load_g_randomval()
 		load_g_recharge_vip_reward()
 		load_g_role()
+		load_g_role_star()
 		load_g_shop()
+		load_g_user_level()
 		load_g_uid()
 	end
 	skynet.fork(f)
@@ -514,6 +673,7 @@ function loader.load_user(user)
 	load_u_cgold( user )
 	load_u_email( user )
 	load_u_kungfu(user)
+	load_u_draw( user )
 	load_u_prop(user)
 	load_u_role(user)
 	load_u_purchase_goods(user)
@@ -521,7 +681,18 @@ function loader.load_user(user)
 	load_u_recharge_count(user)
 	load_u_recharge_record(user)
 	load_u_recharge_vip_reward(user)
+	load_u_journal(user)
+	load_u_goods(user)
 	return user
+end
+
+function loader.clear(user)
+	-- body
+	for k,v in pairs(user) do
+		if string.match(k, "^u_%w+mgr$") then
+			v:clear()
+		end
+	end
 end
 
 return loader

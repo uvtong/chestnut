@@ -3,9 +3,10 @@ local util = require "util"
 
 local _M = {}
 _M.__data = {}
+_M.__data1 = {}
 _M.__count = 0
 
-local _Meta = { csv_id=0, star=0, upgrade_star_prop_csv_id=0 }
+local _Meta = { csv_id=0, star=0, name=0, us_prop_csv_id=0 }
 
 _Meta.__tname = "g_role"
 
@@ -42,10 +43,14 @@ function _Meta:__serialize()
 	local r = {}
 	for k,v in pairs(_Meta) do
 		if not string.match(k, "^__*") then
-			r[k] = self[k]
+			r[k] = assert(self[k])
 		end
 	end
 	return r
+end
+
+function _M:clear()
+	self.__data = {}
 end
 
 function _M.create( P )
@@ -61,6 +66,7 @@ end
 function _M:add( u )
 	assert(u)
 	self.__data[tostring(u.csv_id)] = u
+	self.__data1[tostring(u.us_prop_csv_id)] = u
 	self.__count = self.__count + 1
 end
 
@@ -71,7 +77,23 @@ end
 
 function _M:delete_by_csv_id(csv_id)
 	-- body
+	local r = assert(self.__data[tostring(csv_id)])
 	self.__data[tostring(csv_id)] = nil
+	self.__data1[tostring(r.us_prop_csv_id)] = nil
+	self.__count = self.__count - 1
+end
+
+function _M:get_by_us_prop_csv_id(csv_id)
+	-- body
+	return self.__data1[tostring(csv_id)]
+end
+
+function _M:delete_by_us_prop_csv_id(csv_id)
+	-- body
+	local r = assert(self.__data1[tostring(csv_id)])
+	self.__data[tostring(r.csv_id)] = nil
+	self.__data1[tostring(csv_id)] = nil
+	self.__count = self.__count - 1
 end
 
 function _M:get_count()

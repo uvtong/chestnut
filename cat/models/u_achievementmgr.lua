@@ -48,6 +48,25 @@ function _Meta:__serialize()
 	return r
 end
 
+function _M.insert_db( values )
+	assert(type(values) == "table" )
+	local total = {}
+	for i,v in ipairs(values) do
+		local t = {}
+		for kk,vv in pairs(v) do
+			if not string.match(kk, "^__*") then
+				t[kk] = vv
+			end
+		end
+		table.insert(total, t)
+	end
+	skynet.send( util.random_db() , "lua" , "command" , "insert_all" , _Meta.__tname , total )
+end 
+
+function _M:clear()
+	self.__data = {}
+end
+
 function _M.create( P )
 	assert(P)
 	local u = _Meta.__new()
@@ -61,44 +80,19 @@ end
 
 function _M:add( u )
 	assert(u)
-	self.__data[tostring(u.csv_id)] = u
+	self.__data[tostring(u.type)] = u
 	self.__count = self.__count + 1
-end
-
-function _M:get_by_csv_id(csv_id)
-	-- body
-	return self.__data[tostring(csv_id)]
-end
-
-function _M:delete_by_csv_id(csv_id)
-	-- body
-	assert(self.__data[tostring(csv_id)])
-	self.__data[tostring(csv_id)] = nil
-	self.__count = self.__count - 1
 end
 
 function _M:get_by_type(type)
 	-- body
-	local r = {}
-	local idx = 1
-	for k,v in pairs(self.__data) do
-		if v.type == type then
-			r[idx] = v
-			idx = idx + 1
-		end
-	end
-	return r
+	return self.__data[tostring(type)]
 end
 
 function _M:delete_by_type(type)
 	-- body
-	for k,v in pairs(self.__data) do
-		if v.type == type then
-			self.__data[k] = nil
-			self.__count = self.__count - 1
-			return
-		end
-	end
+	self.__data[tostring(type)] = nil
+	self.__count = self.__count - 1
 end
 
 function _M:get_count()

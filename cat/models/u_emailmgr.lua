@@ -2,11 +2,10 @@ local skynet = require "skynet"
 local util = require "util"
 local const = require "const"
 
-local MAXEMAILNUM = 50
-
 local _M = {}
 _M.__data = {}
 _M.__count = 0
+_M.__MAXEMAILNUM = 50
 
 local _Meta = { csv_id = 0 , uid=0, type=0, title=0, content = 0 , acctime = 0 , deltime = 0 , isread = 0 , isdel = 0 , itemsn1 = 0 , itemnum1 = 0 , 
 			itemsn2 = 0 , itemnum2 = 0 ,itemsn3 = 0 , itemnum3 = 0 ,itemsn4 = 0 , itemnum4 = 0 ,itemsn5 = 0 , itemnum5 = 0 , iconid = 0 , isreward = 0 }
@@ -43,7 +42,6 @@ end
 
 function _Meta:__getallitem()
 	local item_list = {}
-	print( "********************___getallitem is called" )
 	for i = 1 , 5 do
 		local id = "itemsn" .. i
 		local num = "itemnum" .. i
@@ -60,12 +58,27 @@ function _Meta:__getallitem()
 	return item_list	
 end
 
+function _M.insert_db( values )
+	assert(type(values) == "table" )
+	local total = {}
+	for i,v in ipairs(values) do
+		local t = {}
+		for kk,vv in pairs(v) do
+			if not string.match(kk, "^__*") then
+				t[kk] = vv
+			end
+		end
+		table.insert(total, t)
+	end
+	skynet.send( util.random_db() , "lua" , "command" , "insert_all" , _Meta.__tname , total )
+end 
+
 function _M.create( P )
 	assert(P)
 	local u = _Meta.__new()
 	for k , v in pairs( _Meta ) do
 		if not string.match( k, "^__*" ) then
-			print( k , v , P[k])
+			--print( k , v , P[k])
 			u[ k ] = assert( P[ k ] )
 		end
 	end
@@ -74,7 +87,7 @@ end
 
 function _M:add( u )
 	assert(u)
-	self.__data[tostring(u.csv_id)] = u
+	self.__data[ tostring( u.csv_id ) ] = u
 	self.__count = self.__count + 1
 end
 	
@@ -88,29 +101,28 @@ function _M:delete_by_csv_id(csv_id)
 	self.__data[tostring(csv_id)] = nil
 	self.__count = self.__count - 1
 end 
-    
-function _M:get_all_emails()
-	for k , v in pairs( self.__data ) do
-		print( k , v )
-	end
-	return self.__data
-end 
 	
 function _M:get_count()
 	-- body
 	return self.__count
 end 
+
+function _M:clear()
+	self.__data = {}
+end
 	
 function _M:recvemail( tvals )
 	assert( tvals )
-	if self.__count >= MAXEMAILNUM then
-		self:sysdelemail()
-	end
 
 	local newemail = self.create( tvals )
 	assert( newemail )
-	self:_add( newemail )
+	self:add( newemail )
 	newemail:__insert_db()
+
+	if self.__count >= self.__MAXEMAILNUM then
+		print( "**************************************************************self.sysdelemail is called" )
+		self:sysdelemail()
+	end
 
 	print("add email succe in recvemail\n")
 	return newemail
@@ -121,54 +133,64 @@ function _M:sysdelemail()
 	local readunrewarded = {}
 	local unread = {}
 	
-	local i = 1
-	for k ,  v in pairs( self.__data ) do
-		if i == 1 then 
-			print( type( k ) , type( v ) )
-			i = 2
-		end	
-			
-		if true == v.isread then
-			if true == v.isreward then
+	for k , v in pairs( self.__data ) do
+		if 1 == v.isread then
+			if 1 == v.isreward then
 				table.insert( readrewarded , v.csv_id )
 			else
 				table.insert( readunrewarded , v.csv_id )
 			end
 		else
-			table.insert( unread , { v.csv_id , v.acctime } )
+			local tmp = {}
+			tmp.csv_id = v.csv_id
+			tmp.acctime = v.acctime
+			table.insert( unread , tmp )
 		end 
 	end	
   --delete read and getrewarded first  
 
 	for _ , v in ipairs( readrewarded ) do
-		self.__data[ tostring( v.csv_id ) ] = nil 
+		local tmp =	self.__data[ tostring( v ) ] 
+		tmp.isdel = 1
+		tmp:__update_db( { "isdel" } )
+		self.__data[ tostring( v ) ] = nil
+		
 		self.__count = self.__count - 1
 	end
 
-	if self.__count <= MAXEMAILNUM then
+	if self.__count <= self.__MAXEMAILNUM then
 		return
 	end
   -- if still more than MAXEMAILNUMM then delete read , unrewarded 	
 	for _ , v in ipairs( readunrewarded ) do
-		self.__data[ tostring( v.csv_id ) ] = nil
-		self.__count = self.__count - 1 
-	end
-	
-	if self.__count <= MAXEMAILNUM then
-		return
-	end
- 	
- 	-- last delete the earlist unread emails  
-	table.sort( unread , function ( a , b )  
-			return ( a.acctime < b.acctime )
-		end )
-	
-	local diff = self.__count - MAXEMAILNUM
-
-	for i = 1 , diff do
-		self.__data[ tostring( unread[ i ].csv_id ) ] = nil
+		local tmp =	self.__data[ tostring( v ) ] 
+		tmp.isdel = 1
+		tmp:__update_db( { "isdel" } )
+		self.__data[ tostring( v ) ] = nil
+		
 		self.__count = self.__count - 1
 	end
+	
+	if self.__count <= self.__MAXEMAILNUM then
+		return
+	end
+ 	-- last delete the earlist unread emails  
+	table.sort( unread , function ( ta , tb ) return  ta.acctime < tb.acctime end )
+
+	local diff = self.__count - self.__MAXEMAILNUM
+ 	print( "sizeof diff is ****************************************" , diff , #unread )
+ 	
+ 	local tmp = {}
+	for i = 1 , diff do
+		tmp = self.__data[ tostring( unread[ i ].csv_id ) ]
+		assert( tmp )
+		tmp.isdel = 1
+		tmp:__update_db( { "isdel" } )
+		self.__data[ tostring( unread[ i ].csv_id ) ] = nil
+
+		self.__count = self.__count - 1
+	end
+	print( "sizeof unread is ****************************************" , self.__count )
 end	
 	
 return _M

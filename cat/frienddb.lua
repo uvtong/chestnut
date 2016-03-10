@@ -1,39 +1,63 @@
 package.path = "./../cat/?.lua;" .. package.path
-local dbop = require "dbop"
 
 local frienddb = {}
 	
 local db
 local cache
+local function tupdate( tname , content , condition )
 	
+	assert( tname , content , condition )
+	local ret = {}
+	
+	table.insert( ret , string.format("update %s SET " , tname ) )
+	local index = 1
+	for k , v in pairs( content ) do
+		if index > 1 then
+			table.insert( ret , ',' )
+		end
+
+		if type( v ) == "string" then
+			table.insert( ret , string.format( "%s = '%s' " , k , v ) )
+		else
+			table.insert( ret , string.format( "%s = %s " , k , v ) )
+		end	
+		index = index + 1
+	end
+	
+	table.insert( ret , " where " )
+	local index = 1
+	for k , v in pairs( condition ) do
+		if index > 1 then
+			table.insert( ret , " and " )
+		end
+		if type( v ) == "string" then
+			table.insert( ret , string.format( "%s = '%s'" , k , v ) )
+		else
+			table.insert( ret , string.format( "%s = %s" , k , v ) )	
+		end   
+		index = index + 1
+	end
+	
+	return table.concat( ret )
+end
+
 function frienddb:select_friendidlist( t )
 	assert( t )
-	local sql = string.format( "select friendid , recvtime , heartamount , sendtime from u_friend where uid = %s and isdel = 0 " , t.uid )
+	local sql = string.format( "select friendid , recvtime , heartamount , sendtime  from u_friend where uid = %s and isdel = 0 " , t.uid )
 
 	print( sql )
 	local r = db:query( sql )
 	print("select friend idlist over")
-	for k , v in pairs( r ) do
-		print( d , v , v.friendid )
-	end
 	return r
 end	
 			
 function frienddb:select_loadavaliblefriendids( t )
 	assert( t )
 	
-	local sql = string.format( "select id from users where id != %s and level > %s and level < %s" , t.uid , t.level - 10 , t.level + 10 )
+	local sql = string.format( "select csv_id from users where csv_id != %s and level > %s and level < %s" , t.uid , t.level - 10 , t.level + 10 )
 	print( sql )
 	
 	local r = db:query( sql )
-	
-	if r then
-		for k , v in pairs( r ) do
-			print( k , v )
-		end
-	else
-		print( "no result in select_loadavaliblefriendids" )
-	end
 	
 	return r
 end	
@@ -53,7 +77,7 @@ end
 function frienddb:update_msg( msg )
 	assert( msg )
 
-	local sql = dbop.tupdate( msg.tname , msg.content , msg.condition )
+	local sql = tupdate( msg.tname , msg.content , msg.condition )
 
 	print( sql )
 
@@ -87,7 +111,7 @@ end
 	
 function frienddb:select_usermsg( t )
 	assert( t )
-	local sql = string.format( "select id , uname , uviplevel , level , sign , ifonline , combat , onlinetime , iconid from users where id = %s" , t.uid )
+	local sql = string.format( "select csv_id , uname , uviplevel , level , sign , ifonline , combat , onlinetime , iconid from users where csv_id = %s" , t.uid )
 	print( sql )
     
 	local r = db:query( sql )
@@ -113,7 +137,7 @@ end
 function frienddb:delete_friend( t )
 	assert( t )
     
-    local sql = dbop.tupdate( t.tname , t.content , t.condition )	
+    local sql = tupdate( t.tname , t.content , t.condition )	
 	print( sql )
 
 	db:query( sql )
@@ -134,7 +158,7 @@ end
     
 function frienddb:update_friend( t )
 	assert( t )
-	local sql = dbop.tupdate( t.tname , t.content , t.condition )
+	local sql = tupdate( t.tname , t.content , t.condition )
 	print( sql )
 
 	db:query( sql )

@@ -26,13 +26,24 @@ local _Meta = { csv_id=0,
 				iconid=0, 
 				is_valid=0, 
 				recharge_rmb=0, 
-				goods_refresh_count=0, 
 				recharge_diamond=0, 
 				uvip_progress=0, 
 				checkin_num=0, 
 				checkin_reward_num=0, 
 				exercise_level=0, 
-				cgold_level=0 }
+				cgold_level=0,
+				gold_max=0,
+				exp_max=0,
+				equipment_enhance_success_rate_up_p=0,
+				store_refresh_count_max=0,
+				prop_refresh=0,
+				arena_frozen_time=0,
+				purchase_hp_count=0,
+				gain_gold_up_p=0,
+				gain_exp_up_p=0,
+				purchase_hp_count_max=0,
+				SCHOOL_reset_count_max=0,
+				SCHOOL_reset_count=0 }
 
 _Meta.__tname = "users"
 
@@ -54,7 +65,7 @@ function _Meta:__update_db(t)
 	for i,v in ipairs(t) do
 		columns[tostring(v)] = self[tostring(v)]
 	end
-	skynet.send(util.random_db(), "lua", "command", "update", self.__tname, {{ id = self.id }}, columns)
+	skynet.send(util.random_db(), "lua", "command", "update", self.__tname, {{ csv_id = self.csv_id }}, columns)
 end
 
 function _Meta:__serialize()
@@ -80,11 +91,9 @@ function _M.create( P )
 	local u = _Meta.__new()
 	for k,v in pairs(_Meta) do
 		if not string.match(k, "^__*") then
-			print(k)
 			u[k] = assert(P[k])
 		end
 	end
-	u.id = P.id
 	return u
 end	
 
@@ -105,6 +114,10 @@ function _M:delete_by_csv_id(csv_id)
 	u.is_valid = 0
 	u:__update_db({"is_valid"})
 	assert(false)
+end
+
+function _M:clear()
+	self.__data = {}
 end
 
 function _M:get_count()

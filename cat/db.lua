@@ -2,12 +2,9 @@ package.path = "./../cat/?.lua;" .. package.path
 local skynet = require "skynet"
 local mysql = require "mysql"
 local redis = require "redis"
-local csvreader = require "csvReader"
 local util = require "util"
-local dbop = require "dbop"
-local emaildb = require "emaildb"
+
 local frienddb = require "frienddb"
-local drawdb = require "drawdb"
 
 local db
 local cache 
@@ -78,39 +75,24 @@ end
 
 function QUERY:insert( table_name, columns )
 	-- body
-
 	local sql = util.insert(table_name, columns)
+<<<<<<< HEAD
 	-- skynet.fork(function (db, sql)
 	-- 	-- body
 	db:query(sql)
 	-- end, db, sql)
 	-- print("*******************************", sql)
+=======
+	db:query(sql)
+>>>>>>> 5ad4d03636a23a0e25f303b254b6126c1b8145e6
 end
 
-function QUERY:signup( condition )
-	-- body
-	local sql = util.select("users", condition)
-	local r = db:query(sql)
-	return r
-end	
-	
-function QUERY:update_onlinestate( t )
-	assert( t )
-
-	local sql = dbop.tupdate( t.tname , t.content , t.condition )
-	print( sql )
-
+function QUERY:insert_all( table_name , tcolumns )
+	local sql = util.insert_all( table_name , tcolumns )
 	db:query( sql )
-	print( "update online state over in db" )
-end	
-	
-function QUERY:insert_skill( ... )
-	-- body
-	local t = { ... }
-	sql = tinsert( t )
-	db:query( sql )
-end	
-	
+end
+
+-- friend	
 function QUERY:select_user( condition, columns )
 	-- body
 	-- userid, uaccount, upassword
@@ -119,65 +101,6 @@ function QUERY:select_user( condition, columns )
 	--cache:get()
 	return r[1]
 end 	
-
-function QUERY:select_rolebyroleid( )
-end	
-	
-function QUERY:select_rolebyuid( tvals )
-	local sql = tselect( tvals ) --string.format( "select * from role where uid = %s" , uid )
-	local r = db:query( sql )
-	return r
-end	
-	
-function QUERY:update_roleby_roleid( tvals )
-	local sql = tupdate( tvals )
-	local r = db:query( sql )
-	return true
-end	
-
-function QUERY:select_roles( condition )
-	-- body
-	local sql = util.select("roles", condition)
-	return db:query(sql)
-end
-
-function QUERY:select_props( condition )
-	-- body
-	local sql = util.select("props", condition)
-	return db:query(sql)
-end
-
-function QUERY:update_prop( user_id, csv_id, num )
-	local sql = util.update("props", {{ user_id = user_id, csv_id = csv_id}}, { num = num })
-	db:query(sql)
-end
-
-function QUERY:select_all_achi( type, min, max )
-	-- body
-	local sql = string.format("select * from achievement where type = \"%s\" level > %d and level < %d", type, min, max)
-	local r = db:query(sql)
-	return r
-end
-
-function QUERY:select_achievements( condition )
-	-- body
-	local sql = util.select("achievements", condition)
-	return db:query(sql)
-end	
-	
-function QUERY:update_achi( user_id, csv_id, finished )
-	assert(finished <= 100)
-	local sql = string.format("update achievements set finished = %d where csv_id = %d", csv_id)
-	local r = db:query(sql)
-	return r
-end	
-
-function QUERY:insert_prop( user_id, csv_id, num )
-	-- body
-	local columns = {user_id = user_id, csv_id = csv_id, num = num}
-	local sql = util.insert("props", columns)
-	db:query(sql)
-end
 
 function QUERY:getrandomval( drawtype )
 	assert( drawtype )
@@ -217,15 +140,9 @@ function CMD:command( subcmd, ... )
     if nil ~= QUERY[subcmd] then
     	f = assert(QUERY[ subcmd ])
 		return f(QUERY, ... )
-	elseif nil ~= emaildb[ subcmd ] then	
-		f = assert( emaildb[ subcmd ] )
-		return f(emaildb, ...)
 	elseif nil ~= frienddb[ subcmd ] then
 		f = assert( frienddb[ subcmd ] )
 		return f(frienddb, ...)
-	elseif nil ~= drawdb[ subcmd ] then
-		f = assert( drawdb[ subcmd ] )
-		return f(drawdb, ...) 
 	else
 		print(subcmd)
 		assert( f )
@@ -291,11 +208,6 @@ skynet.start( function ()
 	}
 	cache = connect_redis( conf )
 
-	emaildb.getvalue( db , cache )
 	frienddb.getvalue( db , cache )
-	drawdb.getvalue( db , cache )
-
-	--skynet.call( ".channel" , "lua" , "get_db_cache" , emaildb )
-
-	print("emaildb.getvalue is called\n")
+	
 end)

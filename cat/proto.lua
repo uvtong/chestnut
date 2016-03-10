@@ -8,39 +8,17 @@ proto.c2s = sprotoparser.parse [[.package {
 }
 
 .role {
-    id 0 : integer
-    wake_level 1 : integer
-    level 2 : integer
-    combat 3 : integer
-    defense 4 : integer
-    critical_hit 5 : integer
-    skill 6 : integer
-    c_equipment 7 : integer
-    c_dress 8 : integer
-    c_kungfu 9 : integer
-}
-
-.user {
-    uname 0 : string 
-    uviplevel 1 : integer
-    uexp 2 : integer
-    config_sound 3 : boolean
-    config_music 4 : boolean
-    avatar 5 : integer
-    sign 6 : string
-    c_role_id 7 : integer
-    rolelist 8 : *role
-    gold 9 : integer
-    diamond 10 : integer
-    recharge_total 11 : integer
-    recharge_vip 12 : integer
-    recharge_progress 13 : integer
-    recharge_diamond 14 : integer
+    csv_id 0 : integer
+    is_possessed 1 : boolean
+    star 2 : integer
+    u_us_prop_num 3 : integer
 }
 
 .prop {
     csv_id 0 : integer
     num 1 : integer
+    star 2 : integer
+    u_us_prop_num 3 : integer
 }
 
 .achi {
@@ -65,8 +43,7 @@ proto.c2s = sprotoparser.parse [[.package {
 		isreward 5 : boolean
 		title 6 : string
 		content 7 : string
-		error 8 : integer
-		
+		errorcode 8 : integer
 		attachs 9 : *attach
 }
 
@@ -124,7 +101,7 @@ proto.c2s = sprotoparser.parse [[.package {
     g_prop_csv_id 3 : integer
     g_prop_num 4 : integer
     inventory 5 : integer
-    countdown 6 : string
+    countdown 6 : integer
 }
  
 .goodsbuy
@@ -168,6 +145,7 @@ proto.c2s = sprotoparser.parse [[.package {
 {      
     propid 0 : integer
     propnum 1 : integer
+    proptype 2 : integer
 }  
 
 .recharge_vip_reward 
@@ -175,12 +153,63 @@ proto.c2s = sprotoparser.parse [[.package {
     vip 0 : integer
     props 1 : *prop
     collected 2 : boolean
+    purchased 3 : boolean
 }
 
 .equipment {
     csv_id 0 : integer
-    type 1 : integer
-    level 2 : integer
+    level 1 : integer
+    combat 2 : integer
+    defense 3 : integer
+    critical_hit 4 : integer
+    king 5 : integer
+    critical_hit_probability 6 : integer
+    combat_probability 7 : integer
+    defense_probability 8 : integer
+    king_probability 9 : integer
+    enhance_success_rate 10 : integer
+}
+
+.kungfu_content
+ {
+    csv_id 1 : integer
+    k_level 2 : integer
+    k_type 3 : integer
+    k_sp_num 4 : integer 
+ }
+ 
+ .kungfu_pos_and_id
+{
+    position 0 : integer
+    k_csv_id 1 : integer
+}
+
+.kungfu_role_list
+{
+    r_csv_id 0 : integer    
+    pos_list 1 : *kungfu_pos_and_id
+} 
+
+.user {
+    uname 0 : string 
+    uviplevel 1 : integer
+    uexp 2 : integer
+    config_sound 3 : boolean
+    config_music 4 : boolean
+    avatar 5 : integer
+    sign 6 : string
+    c_role_id 7 : integer
+    rolelist 8 : *role
+    gold 9 : integer
+    diamond 10 : integer
+    recharge_total 11 : integer
+    recharge_vip 12 : integer
+    recharge_progress 13 : integer
+    recharge_diamond 14 : integer
+    love 15 : integer
+    equipment_list 16 : *equipment
+    kungfu_list 17 : *kungfu_content
+    level 18 : integer
 }
 
 handshake 1 {
@@ -192,7 +221,7 @@ handshake 1 {
     }
 }
 
-role 2 {
+role_info 2 {
     request {
         role_id 0 : integer
     }
@@ -319,9 +348,10 @@ friend_list 15
 {
 	response {
 		ok 0 : boolean
-		error 1 : integer
+		errorcode 1 : integer
 		msg 2 : string
 		friendlist  3 : *subuser
+        today_left_heart 4 : integer
 	}
 }
 
@@ -329,7 +359,7 @@ applied_list 16
 {
 	response {
 		ok 0 : boolean
-		error 1 : integer
+		errorcode 1 : integer
 		msg 2 : string
 		friendlist  3 : *subuser
 	}
@@ -339,7 +369,7 @@ otherfriend_list  17
 {
 	response {
 		ok 0 : boolean
-		error 1 : integer
+		errorcode 1 : integer
 		msg 2 : string
 		friendlist  3 : *subuser
 	}
@@ -352,7 +382,7 @@ findfriend 18
 	}
 	response {
 		ok 0 : boolean
-		error 1 : integer
+		errorcode 1 : integer
 		msg 2 : string
 		friend 3 : *subuser
 	}
@@ -388,7 +418,7 @@ deletefriend 22
     }
     response {
         ok 0 : boolean
-        error 1 : integer
+        errorcode 1 : integer
         msg 2 : string
     }
 }	 
@@ -401,7 +431,7 @@ recvheart 23
     }   
     response {
         ok 0 : boolean
-        error 1 : integer
+        errorcode 1 : integer
         msg 2 : string
     } 
 }		
@@ -414,7 +444,7 @@ sendheart 24
     }   
     response {
        ok 0 : boolean
-       error 1 : integer
+       errorcode 1 : integer
        msg 2 : string
     }	
 }
@@ -456,6 +486,8 @@ shop_all 29 {
         errorcode 0 : integer
         msg 1 : string
         l 2 : *goods
+        goods_refresh_count 3 : integer
+        store_refresh_count_max 4 : integer
     }
 }
 
@@ -467,6 +499,9 @@ shop_purchase 30 {
         errorcode 0 : integer
         msg 1 : string
         l 2 : *prop
+        ll 3 : *goods
+        goods_refresh_count 4 : integer
+        store_refresh_count_max 5 : integer
     }
 }
 
@@ -478,6 +513,8 @@ shop_refresh 31 {
         errorcode 0 : integer
         msg 1 : string
         l 2 : *goods
+        goods_refresh_count 3 : integer
+        store_refresh_count_max 4 : integer
     }
 }
 
@@ -515,26 +552,14 @@ recharge_purchase 35 {
         errorcode 0 : integer
         msg 1 : string
         l 2 : *prop
+        u 3 : user
     }
 }
 
 recharge_collect 36 {
-    request {
-        reward_id 0 : integer
-    }
-    response {
-        errorcode 0 : integer
-        msg 1 : string
-        u 2 : user
-    }
 }
 
 recharge_reward 37 {
-    response {
-        errorcode 0 : integer
-        msg 1 : string
-        l 2 : *recharge_reward_item
-    }
 }
 
 draw 38
@@ -552,7 +577,7 @@ applydraw 39
     }
     response {
         ok 0 : boolean
-        error 1 : integer
+        errorcode 1 : integer
         msg 2 : string
         list 3 : *drawrewardlist
         lefttime 4 : integer
@@ -603,7 +628,7 @@ checkin 43
 {
     response {
         ok 0 : boolean
-        error 1 : integer
+        errorcode 1 : integer
         msg 2 : string  
     }
  }
@@ -616,7 +641,7 @@ checkin 43
     }
     response {
         ok 0 : boolean
-        error 1 : integer
+        errorcode 1 : integer
         msg 2 : string      
     }
  }
@@ -639,7 +664,7 @@ exercise 46
     }
     response {
         ok 0 : boolean
-        error 1 : integer
+        errorcode 1 : integer
         msg 2 : string
         lefttime 3 : integer
     }
@@ -663,7 +688,7 @@ exercise 46
     }
     response {
         ok 0 : boolean
-        error 1 : integer
+        errorcode 1 : integer
         msg 2 : string
         lefttime 3 : integer
     }
@@ -676,6 +701,7 @@ exercise 46
     response {
         errorcode 0 : integer
         msg 1 : string
+        e 2 : equipment
     }
 }
 
@@ -684,6 +710,103 @@ equipment_all 51 {
         errorcode 0 : integer
         msg 1 : string
         l 2 : *equipment
+    }
+}
+
+role_all 52 {
+    response {
+        errorcode 0 : integer
+        msg 1 : string
+        l 2 : *role
+        combat 3 : integer
+        defense 4 : integer
+        critical_hit 5 : integer
+        blessing 6 : integer
+    }
+}
+
+role_recruit 53 {
+    request {
+        csv_id 0 : integer
+    }
+    response {
+        errorcode 0 : integer
+        msg 1 : string
+        r 2 : role
+    }
+}
+
+role_battle 54 {
+    request {
+        csv_id 0 : integer
+    }
+    response {
+        errorcode 0 : integer
+        msg 1 : string
+    }
+}
+
+kungfu 55
+{
+	response
+	{
+		k_list 0 : *kungfu_content
+        role_kid_list 1 : *kungfu_role_list
+	}
+}
+ 
+ kungfu_levelup 56
+ {
+	request
+	{
+		csv_id 0 : integer
+		k_level 1 : integer
+		k_type 2 : integer
+        amount 3 : integer
+	}
+	response
+	{
+		ok 0 : boolean
+		errorcode 1 : integer
+		msg 2 : string
+	}
+ }
+ 
+kungfu_chose 57
+{
+	request
+	{
+		r_csv_id 0 : integer
+		idlist 1 : *kungfu_pos_and_id
+	}
+}
+
+user_sign 58 {
+	request {	
+		sign 0 : string
+	}
+	response {
+		errorcode 0 : integer
+		msg 1 : string
+	}
+}
+
+user_random_name 59 {
+	response {
+		errorcode 0 : integer
+		msg 1 : string
+		name 2 : string
+	}
+}
+
+recharge_vip_reward_purchase 60 {
+    request {
+        vip 0 : integer
+    }
+    response {
+        errorcode 0 : integer
+        msg 1 : string
+        l 2 : *prop
     }
 }
 
@@ -711,7 +834,7 @@ mail 2 {
     }
     response {
         ok 0 : boolean 
-        error 1 : integer
+        errorcode 1 : integer
         msg 2 : string
     }
 }

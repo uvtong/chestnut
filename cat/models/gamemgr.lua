@@ -11,6 +11,10 @@ function _Meta.new()
  	return t
 end 
 
+function _M:clear()
+	self.__data = {}
+end
+
 function _M.create( P )
 	assert(_M.__count < 1)
 	local u = _Meta.new()

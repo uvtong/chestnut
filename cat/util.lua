@@ -5,7 +5,6 @@ local util = {}
 function util.random_db()
 	-- body
 	local r = math.random(1, 5)
-	r = 1
 	local addr = skynet.localname(string.format(".db%d", math.floor(r))) 
 	return addr
 end
@@ -116,7 +115,7 @@ function util.select( table_name, condition, columns )
 	else
 		assert(false)
 	end
-	local sql = string.format("select %s from %s", columns_str, table_name) .. condition_str
+	local sql = string.format("select %s from %s", columns_str, table_name) .. condition_str .. ";"
 	print_sql(sql)
 	return sql
 end
@@ -143,7 +142,7 @@ function util.update( table_name, condition, columns )
 	if #condition_str > 0 then	
 		condition_str = " where " .. condition_str
 	end
-	local sql = string.format("update %s ", table_name) .. columns_str .. condition_str
+	local sql = string.format("update %s ", table_name) .. columns_str .. condition_str .. ";"
 	print_sql(sql)
 	return sql
 end
@@ -162,10 +161,59 @@ function util.insert( table_name, columns )
 	end
 	columns_str = string.gsub(columns_str, "(.*)%,%s$", "%1)")
 	values_str = string.gsub(values_str, "(.*)%,%s$", "%1)")
-	local sql = string.format("insert into %s ", table_name) .. columns_str .. " values " .. values_str
+	local sql = string.format("insert into %s ", table_name) .. columns_str .. " values " .. values_str .. ";"
 	print_sql(sql)
 	return sql
 end
+	
+function util.insert_all( table_name , tcolumns )
+	assert( table_name and tcolumns )
+	local f = assert( tcolumns[1] )
+	assert( f )
+	local columns_str = "("
+
+	for k,v in pairs(f) do
+
+		columns_str = columns_str .. k .. ", "	
+	end	
+	columns_str = string.gsub(columns_str, "(.*)%,%s$", "%1)")
+	local tmp = {}
+	local counter = 0
+	
+	for sk , sv in ipairs( tcolumns ) do
+		local count = 0
+		local values_str = {}
+		table.insert( values_str , "(" )
+		for k,v in pairs( sv ) do
+			--print( v )
+			--values_str = "("
+			if type( v ) == "string" then
+				v = "\'" .. v .. "\'"
+			end
+			if count >= 1 then
+				table.insert( values_str , "," )
+			end 
+			table.insert( values_str , v )
+			count = count + 1
+			--values_str = values_str .. v .. ", "
+			--print( values_str )
+		end
+		table.insert( values_str , ")" )
+		local value = table.concat( values_str )
+		--print( "values_str is " , value )
+	
+		value = string.gsub(value, "(.*)%,%s$", "%1)")
+		if counter >= 1 then
+			table.insert( tmp , " , " )
+		end
+		counter = counter + 1
+		table.insert( tmp , value )
+	end
+	table.insert( tmp , ";" )
+	local sql = string.format( "insert into %s " , table_name ) .. columns_str .. " values " .. table.concat( tmp ) 
+	print_sql(sql)
+	return sql
+end 
 
 function util.send_package(pack)
 	local package = string.pack(">s2", pack)
@@ -188,6 +236,7 @@ function util.guid(game, csv_id)
 	if not r then
 		local t = {csv_id = csv_id, entropy=1}
 		local h = game.g_uidmgr.create(t)
+		game.g_uidmgr:add(h)
 		h:__insert_db()
 		return t.entropy
 	else
@@ -196,6 +245,30 @@ function util.guid(game, csv_id)
 		return r.entropy
 	end
 	-- return os.time()
+end
+
+function util.parse_text(src, parten, D)
+	-- body
+	-- src = "1000*10*10*10*10*10"
+	-- D = 2
+	-- parten = "(%d+%*%d+%*%d+%*?)"
+	local xparten = ""
+	string.gsub(parten, "(%%%w%+)%%%*", function (s)
+		-- body
+		xparten = xparten .. "(" .. s .. ")" .. "%*"
+	end)
+	xparten = xparten .. "?"
+	local r = {}
+	string.gsub(src, parten, function (s)
+		-- body
+		local t = {}
+		for i=1,D do
+			local x = string.gsub(s, xparten, string.format("%%%d", i))
+			table.insert(t, assert(tonumber(x)))
+		end
+		table.insert(r, t)
+	end)
+	return r
 end
 
 return util

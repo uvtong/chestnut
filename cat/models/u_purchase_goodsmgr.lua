@@ -16,6 +16,10 @@ function _Meta.__new()
  	return t
 end 
 
+function _M:clear()
+	self.__data = {}
+end
+
 function _Meta:__insert_db()
 	-- body
 	local t = {}
@@ -53,7 +57,6 @@ function _M.create( P )
 	local u = _Meta.__new()
 	for k,v in pairs(_Meta) do
 		if not string.match(k, "^__*") then
-			print("jklajflajfla", k)
 			u[k] = assert(P[k])
 		end
 	end

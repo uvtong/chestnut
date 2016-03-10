@@ -22,8 +22,10 @@ function VIEW.index()
 		-- body
 		-- local query = self.query
 		print( "view index is called" )
-		skynet.send(".channel", "lua", "send_email_to_all" , { type = 2 , title = "hello" , content = "world" , itemsn1 = 10001 , itemnum1 = 4 , iconid = 10001 } )
+		--for i = 1 , 100 do
 
+			skynet.send(".channel", "lua", "send_email_to_group" , { type = 1 , title = "hello" , content = "world" , itemsn1 = 1 , itemnum1 = 1000000 , itemsn2 = 2 , itemnum2 = 1000000 , itemsn3 = 3 , itemnum3 = 1000000 , iconid = 10001 }  , { { csv_id = 90 } } )
+		--end
 		local func = template.compile( path( "index.html" ) )
 		local r = func { message = "hello, world."}
 		return r

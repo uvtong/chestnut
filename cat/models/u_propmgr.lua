@@ -6,7 +6,14 @@ local _M = {}
 _M.__data = {}
 _M.__count = 0
 
-local _Meta = { user_id=0, csv_id=0, num=0, sub_type=0, level=0, pram1=0, pram2=0, use_type=0}
+local _Meta = { user_id=0, 
+				csv_id=0, 
+				num=0, 
+				sub_type=0, 
+				level=0, 
+				pram1=0, 
+				pram2=0, 
+				use_type=0}
 _Meta.__tname = "u_prop"
 
 function _Meta.__new()
@@ -48,6 +55,25 @@ function _Meta:__serialize()
 	return r
 end
 
+function _M.insert_db( values )
+	assert(type(values) == "table" )
+	local total = {}
+	for i,v in ipairs(values) do
+		local t = {}
+		for kk,vv in pairs(v) do
+			if not string.match(kk, "^__*") then
+				t[kk] = vv
+			end
+		end
+		table.insert(total, t)
+	end
+	skynet.send( util.random_db() , "lua" , "command" , "insert_all" , _Meta.__tname , total )
+end 
+
+function _M:clear()
+	self.__data = {}
+end
+
 function _M.create(P)
 	assert(P)
 	local u = _Meta.__new()
@@ -56,28 +82,6 @@ function _M.create(P)
 			u[k] = assert(P[k])
 		end
 	end
-	return u
-end	
-
-function _M.create_gold(user, num)
-	-- body
-	assert(user)
-	local u = _Meta.__new()
-	u.user_id = user.csv_id
-	u.csv_id = const.GOLD
-	u.num = num
-	u.name = "gold"
-	return u
-end
-
-function _M.create_diamond(user, num)
-	-- body
-	assert(user)
-	local u = _Meta.__new()
-	u.user_id = user.csv_id
-	u.csv_id = const.DIAMOND
-	u.num = num
-	u.name = "diamond"
 	return u
 end
 
@@ -100,22 +104,6 @@ end
 function _M:get_count()
 	-- body
 	return self.__count
-end
-
-function _M:update_num(user, csv_id, num)
-	-- body
-	local prop = user.u_propmgr:get_by_csvid(csv_id)
-	if prop then
-		prop.num = prop.num + num
-		prop:__update_db({"num"})
-	else
-		local p = game.g_propmgr:get_by_csv_id(csv_id)
-		p.user_id = user.id
-		p.num = num
-		local prop = user.u_propmgr.create(p)
-		user.u_propmgr:add(prop)
-		prop:__insert_db()
-	end
 end
 
 return _M

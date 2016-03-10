@@ -5,7 +5,7 @@ local _M = {}
 _M.__data = {}
 _M.__count = 0
 
-local _Meta = { csv_id=0, currency_type=0, currency_num=0, g_prop_csv_id=0, g_prop_num=0, inventory_init=0, inventory=0, cd=0, st=0, countdown=0}
+local _Meta = { csv_id=0, currency_type=0, currency_num=0, g_prop_csv_id=0, g_prop_num=0, inventory_init=0, cd=0}
 
 _Meta.__tname = "g_goods"
 
@@ -46,6 +46,10 @@ function _Meta:__serialize()
 		end
 	end
 	return r
+end
+
+function _M:clear()
+	self.__data = {}
 end
 
 function _M.create( P )

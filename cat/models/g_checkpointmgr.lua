@@ -4,9 +4,23 @@ local util = require "util"
 local _M = {}
 _M.__data = {}
 _M.__count = 0
-_M.__tname = "g_checkpoint"
 
-local _Meta = { csv_id=0}
+local _Meta = { csv_id=0, 
+				chapter=0, 
+				combat=0, 
+				level=0, 
+				name=0, 
+				checkpoint=0, 
+				type=0, 
+				cd=0, 
+				gain_gold=0, 
+				gain_exp=0,
+				drop=0,
+				reward=0,
+				monster_csv_id1=0,
+				monster_csv_id2=0,
+				monster_csv_id2=0 }
+_Meta.__tname = "g_checkpoint"
 
 function _Meta.__new()
  	-- body
@@ -20,7 +34,7 @@ function _Meta:__insert_db()
 	local t = {}
 	for k,v in pairs(self) do
 		if not string.match(k, "^__*") then
-			t[k] = self[k]
+			t[k] = assert(self[k])
 		end
 	end
 	skynet.send(util.random_db(), "lua", "command", "insert", self.__tname, t)
@@ -45,6 +59,10 @@ function _Meta:__serialize()
 		end
 	end
 	return r
+end
+
+function _M:clear()
+	self.__data = {}
 end
 
 function _M.create( P )

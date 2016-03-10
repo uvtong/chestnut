@@ -1,7 +1,8 @@
 local cgold_request = {}
 local dc = require "datacenter"
 local util = require "util"
-	
+local errorcode = require "errorcode"
+
 local send_package
 local send_request
 	
@@ -13,7 +14,6 @@ local client_fd
 local game
 local user
 local dc
-local cgold_mgr
 local record_date = {}
 
 local time_first
@@ -21,7 +21,7 @@ local time_second
 local time_third
 local cgold_time
 local ifcgold = 0 -- judge if can cgold , 0 cannot , 1 can
-local ERROR = { WAI_GUA = 1 , NOT_ENOUGH_MONEY = 2 }
+local errorcode = { WAI_GUA = 1 , NOT_ENOUGH_MONEY = 2 }
 
 local function send_package(pack)
 	local package = string.pack(">s2", pack)
@@ -50,13 +50,12 @@ function REQUEST:login(u)
 	assert( u )
 	print( "**********************************cgoldrequest_login " )
 	user = u
-	cgold_mgr = user.u_cgoldmgr
-	assert( cgold_mgr )
-	print( game.g_daily_taskmgr:get_count() )
+	
+	--print( game.g_daily_taskmgr:get_count() )
 	local t = game.g_daily_taskmgr:get_one() -- may be changed
 	assert( t )
 	record_date = Split( t.update_time , "|" )
-	print( record_date[ 1 ] , record_date[ 2 ] , record_date[ 3 ] )
+	--print( record_date[ 1 ] , record_date[ 2 ] , record_date[ 3 ] )
 	time_first = tonumber( string.sub( record_date[ 1 ] , 1 , 2 ) )
 	time_second = tonumber( string.sub( record_date[ 2 ] , 1 , 2 ) )
 
@@ -67,7 +66,7 @@ function REQUEST:login(u)
 		time_third = tonumber( string.sub( record_date[ 3 ] , 1 , 2 ) )
 	end 
 
-	print( time_first , time_second , time_third )
+	--print( time_first , time_second , time_third )
 end		
 	
 -- msg: **ifcgold_t * 1 can check , --0 can not cgold**
@@ -90,7 +89,7 @@ local function get_cgold_reward( t )
 	print( "basic_reward " , t.basic_reward )
 	local r = Split( t.basic_reward , "," )
 	assert( r )
-	print( t.level_up , t.levelup_reward )
+	--print( t.level_up , t.levelup_reward )
 	local sub = Split( r[ 1 ] , "*" )
 	assert( sub )
 	tmp.propid = tonumber( sub[ 1 ] )
@@ -110,9 +109,9 @@ local function add_to_prop( t )
 			prop.num = prop.num + v.amount
 			prop:__update_db({"num"})
 		else
-			print( "propid is " , v.propid )
+			--print( "propid is " , v.propid )
 			local p = game.g_propmgr:get_by_csv_id( v.propid )
-			p.user_id = user.id
+			p.user_id = user.csv_id
 			p.num = v.amount
 			local prop = user.u_propmgr.create(p)
 			user.u_propmgr:add(prop)
@@ -191,7 +190,7 @@ function REQUEST:c_gold()
 	print( "*-------------------------* cgold is called")
 
 	local ret = {}
-	local tcgold = cgold_mgr:get_cgold()
+	local tcgold = user.u_cgoldmgr:get_cgold()
 
 	if not tcgold then
 		print( "***********************not exist tcgold" )
@@ -230,29 +229,27 @@ function REQUEST:c_gold_once()
 	local time = os.time()
 	local notexist = false
 
-	local tcgold = cgold_mgr:get_cgold()
+	local tcgold = user.u_cgoldmgr:get_cgold()
 	if not tcgold then
 		notexist = true
 		tcgold = {}
 	end 
-	for k , v in pairs( self ) do
-		print( k , v )
-	end
+	
 	print( ifcgold , self , self.c_gold_type ,  self.c_gold_level , user.cgold_level )
 	if 0 == ifcgold or self.c_gold_level ~= user.cgold_level then
 		ret.ok = false
 		ret.msg = "you wai gua"
 		--should logout
 	else 	
-		tcgold.user_id = user.id
+		tcgold.user_id = user.csv_id
 		tcgold.cgold_time = time
 		tcgold.cgold_type = self.c_gold_type
 		tcgold.time_length = cgold_time
 			
 		if notexist then
-			tcgold = cgold_mgr.create( tcgold )
+			tcgold = user.u_cgoldmgr.create( tcgold )
 			assert( tcgold )
-			cgold_mgr:add( tcgold )
+			user.u_cgoldmgr:add( tcgold )
 		end 
 
 		tcgold:__insert_db()
@@ -261,8 +258,8 @@ function REQUEST:c_gold_once()
 		local prop = user.u_propmgr:get_by_csv_id( t.cost_id )
 		if not prop or prop.num < t.cost_amount then
 			ret.ok = false
-			ret.error = 2
-			ret.msg = "not enough money"
+			ret.errorcode = errorcode[ 16 ].code
+			ret.msg = errorcode[ 16 ].msg
 		else
 			print( "************************************can cgold reward" )
 			ifcgold = 0
@@ -277,7 +274,7 @@ function REQUEST:c_gold_once()
 			
 			ret.ok = true 
 			local sta , lefttime = judge_time_quantum( time , tcgold.time_length )
-			print( sta , lefttime )
+			--print( sta , lefttime )
 			ret.lefttime = lefttime 
 		end 
 	end 	

@@ -6,18 +6,22 @@ local dc
 local friendmgr 	
 local sendpackage
 local sendrequest
+local errorcode = require "errorcode"
 	 		  	
 function friendrequest:friend_list()
 	print( "friedlist is called ^^^^^^^^^^^^^^^^^^^")
-	local list = friendmgr:apply_friendlist()
+	local list, heartamount = friendmgr:apply_friendlist()
 	local ret = {}
-	ret.friendlist = {}
-	if list then
+	ret.friendlist = list
+	--[[if list then
 		for k , v in pairs( list ) do
 			table.insert( ret.friendlist , v )
 		end
-	end
-	print("send friendlist ")
+	end--]]
+	ret.errorcode = errorcode[ 1 ].code
+	ret.msg = errorcode[ 1 ].msg
+	print("send friendlist " , heartamount )
+	ret.today_left_heart = heartamount
 	return ret
 end	
 	
@@ -26,12 +30,14 @@ function friendrequest:applied_list()
 	
 	local list = friendmgr:apply_appliedlist()
 	local ret = {}
-	ret.friendlist = {}
-	if list then
+	ret.friendlist = list
+	--[[if list then
 		for k , v in pairs( list ) do
 			table.insert( ret.friendlist , v )
 		end
-	end
+	end--]]
+	ret.errorcode = errorcode[ 1 ].code
+	ret.msg = errorcode[ 1 ].msg
 
 	return ret
 end	
@@ -41,13 +47,14 @@ function friendrequest:otherfriend_list()
 	
 	local list = friendmgr:apply_otherfriendlist()
 	local ret = {}
-	ret.friendlist = {}
-	if list then
+	ret.friendlist = list
+	--[[if list then
 		for k , v in pairs( list ) do
 			table.insert( ret.friendlist , v )
 		end
-	end
-	
+	end--]]
+	ret.errorcode = errorcode[ 1 ].code
+	ret.msg = errorcode[ 1 ].msg
 	return ret
 end 	
 		
@@ -68,26 +75,14 @@ function friendrequest:recvheart()
 	print( "recvheart is called in request^^^^^^^^^^^^^^^^^^^" )
 
 	local ret = friendmgr:recvheart( self.hl , self.totalamount )
-	if ret then
-		return ret
-	else
-		local ret = {}
-		ret.ok = true
-		return ret
-	end	
+	return ret
 end		
 		
 function friendrequest:sendheart()
 	print( "sendheart is called in request ^^^^^^^^^^^^^^^^^^^" )
 	--print( self.hl.totalamount )
 	local ret = friendmgr:sendheart( self.hl , self.totalamount )
-	if ret then
-		return ret
-	else
-		local ret = {}
-		ret.ok = true
-		return ret
-	end
+	return ret
 end	
 	
 function friendrequest:findfriend()
@@ -99,14 +94,7 @@ end
 function friendrequest:deletefriend()
 	print( "delete friend is called ^^^^^^^^^^^^^^^^^^^" )
 
-	local ret = {}
-	local r = friendmgr:deletefriend( self.friendid )
-	if true == r then
-		ret.ok = true
-	else
-		ret.ok = false
-	end
-
+	local ret = friendmgr:deletefriend( self.friendid )
 	return ret
 end		
 		

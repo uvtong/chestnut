@@ -1,6 +1,7 @@
 local new_drawrequestrequest = {}
 local dc = require "datacenter"
 local util = require "util"
+local skynet = require "skynet"
 	
 local send_package
 local send_request
@@ -13,332 +14,422 @@ local client_fd
 local game
 local user
 local dc
-local new_drawrequest_mgr
-local record_date = {}
+local draw_mgr
 
-local time_first
-local time_second
-local time_third
-local new_drawrequest
-local ifnew_drawrequest = 0 -- judge if can new_drawrequest , 0 cannot , 1 can
+local DAY = 24 * 60 * 60
+local drawtype = { FRIEND = 1 , ONETIME = 2 , TENTIME = 3 }
+local UPDATETIME = 17
+local PROPTYPE = { PROP = 0 , ROLE_SP = 1 }
 
 local function send_package(pack)
 	local package = string.pack(">s2", pack)
 	socket.write(client_fd, package)
 end		
-	
-local function Split(szFullString, szSeparator)  
-	local nFindStartIndex = 1  
-	local nSplitIndex = 1  
-	local nSplitArray = {}  
-	while true do  
-   		local nFindLastIndex = string.find(szFullString, szSeparator, nFindStartIndex)  
-   		if not nFindLastIndex then  
-    		nSplitArray[nSplitIndex] = string.sub(szFullString, nFindStartIndex, string.len(szFullString))  
-    		break  
-   		end  
-   		nSplitArray[nSplitIndex] = string.sub(szFullString, nFindStartIndex, nFindLastIndex - 1)  
-   		nFindStartIndex = nFindLastIndex + string.len(szSeparator)  
-   		nSplitIndex = nSplitIndex + 1  
-	end  
-	return nSplitArray  
-end 
 
-function REQUEST:login(u)
+function REQUEST:login( u )
 	-- body
 	assert( u )
 	print( "**********************************new_drawrequestrequest_login " )
 	user = u
-	new_drawrequest_mgr = user.u_drawmgr
-	assert( new_drawrequest_mgr )
+	draw_mgr = user.u_drawmgr
+	assert( draw_mgr )
 end		
-	
--- msg: **ifnew_drawrequest_t * 1 can check , --0 can not new_drawrequest**
-local function get_g_new_drawrequest( type )
-	assert( type )
-	print( "type is " , type )
-	local t = game.g_daily_taskmgr:get_by_type( type )
-	assert( t )
-
-	return t
-end	
-
-
-						
-local function get_new_drawrequest_reward( t )
-	assert( t )
-	print( "****************************get_new_drawrequest_reward" )
-	local ret = {}
-	local tmp = {}
-	print( "basic_reward " , t.basic_reward )
-	local r = Split( t.basic_reward , "," )
-	assert( r )
-	print( t.level_up , t.levelup_reward )
-	local sub = Split( r[ 1 ] , "*" )
-	assert( sub )
-	tmp.propid = tonumber( sub[ 1 ] )
-	tmp.amount = tonumber( sub[ 2 ] ) + t.level_up * t.levelup_reward 
-
-	table.insert( ret , tmp )
-
-	return ret
-end	
-		
-local function add_to_prop( t )
-	assert( t )
-
-	for k , v in ipairs( t ) do
-		local prop = user.u_propmgr:get_by_csv_id( v.propid )
-		if prop then
-			prop.num = prop.num + v.amount
-			prop:__update_db({"num"})
-		else
-			print( "propid is " , v.propid )
-			local p = game.g_propmgr:get_by_csv_id( v.propid )
-			p.user_id = user.id
-			p.num = v.amount
-			local prop = user.u_propmgr.create(p)
-			user.u_propmgr:add(prop)
-			prop:__insert_db()
-		end
-	end		
-end			
-		
-local function judge_time_quantum( time , lastlength ) -- msg: judge which time_quantum does last_new_drawrequest_time in 
-	--[[ 
-		lastlength is the update_time_qauntum in g_new_drawrequest 2 or 3
-		
-		time < first stage = 0 
-		first <= time < second , stage = 1
-		second <= time < third , stage = 2
-		third <= time < forth , stage = 3
-	--]]
-
-	assert( time and lastlength )
-	local stage
-	local lefttime	
-
-	local date = os.date( "%Y%m%d" , os.time() )
-	print( "date is " , date )
-	local year = string.sub( date , 1 , 4 )
-	local month = string.sub( date , 5 , 6 )
-	local day = string.sub( date , 7 , 8 )
-
-	local first = os.time( { year = year , month = month , day = day , hour = 0 , min = 0 , sec = 0 } )
-	local second = os.time( { year = year , month = month , day = day , hour = time_first , min = 0 , sec = 0 } )
-	local third 
-	local forth
-
-	--[[ judge lasttime belongs to which time quantum --]]
-	print( "new_drawrequest_time is " , lastlength , new_drawrequest_time )
-	if lastlength ~= new_drawrequest_time then -- if update_time in g_new_drawrequest changed , the default is can new_drawrequest
-		stage = 0 
-		lefttime = 0
-	else 
-		if time < first then
-			stage = 0
-			lefttime = 0
-		elseif first <= time and time < second then
-			stage = 1
-			lefttime = second - time
-		else
-			if 2 == new_drawrequest_time then
-				third = os.time( { year = year , month = month , day = day  , hour = time_second - 1 , min = 59 , sec = 59 } )
-				stage = 2				
-				lefttime = third - time + 1
-			elseif 3 == new_drawrequest_time then
-				third = os.time( { year = year , month = month , day = day , hour = time_second , min = 0 , sec = 0 } )
-				forth = os.time( { year = year , month = month , day = day , hour = time_third - 1 , min = 59 , sec = 59 } )
+			
+local function getsettime()
+	local date = os.time()
+	local year = tonumber( os.date( "%Y" , date ) )
+	local month = tonumber( os.date( "%m" , date ) )
+	local day = tonumber( os.date( "%d" , date ) )
+	local hightime = { year = year , month = month , day = day , hour = UPDATETIME , min = 0 , sec = 0 }
+	local hour = tonumber( os.date( "%H" , date ) )
+	local settime
+	if 0 <= hour and hour < UPDATETIME then
+		settime = os.time( hightime ) - 60 * 60 * 24
+	else    
+		settime = os.time( hightime )
+	end			
 				
-				if second <= time and time < third then
-					stage = 2
-					lefttime = third - time + 1
-				else
-					stage = 3
-					print( time_second , forth , time , forth - time )
-					lefttime = forth - time
-				end	
-			else
-				assert( nil )
-			end
-		end
-	end	
+	return settime
+end				
+		        
+local function add_to_prop( t )
+	assert( t )  
+    print( "add_to_prop is called" )
+	for k , v in ipairs( t ) do
+		if t.proptype == PROPTYPE.ROLE_SP then
+			print( "get a role" )
+			local g_role = game.g_rolemgr:get_by_us_prop_csv_id( v.propid )
+			assert( g_role )
 
-	assert( stage and lefttime )
-	return stage , lefttime 
-end 	
-		
+			local u_role = user.u_rolemgr:get_by_csv_id( g_role.csv_id )
+			if u_role then
+           		local prop = user.u_propmgr:get_by_csv_id( v.propid )
+   				if prop then
+   					prop.num = prop.num + v.amount
+   					prop:__update_db( { "num" } )
+   				else 
+   					print( "propid is " , v.propid )
+   					local p = game.g_propmgr:get_by_csv_id( v.propid )
+   					assert( p )
+   					p.user_id = user.csv_id
+   					p.num = v.amount
+   					local prop = user.u_propmgr.create( p )
+   					user.u_propmgr:add( prop )
+   					prop:__insert_db()
+   				end 	      
+			else 		
+				local g_role_star = game.g_role_starmgr:get_by_csv_id(assert( u_role.csv_id ) * 1000 + assert( u_role.star ) )
+				for k,v in pairs( g_role_star ) do
+					g_role[k] = v
+				end
+				g_role.user_id = assert( user.csv_id )
+				g_role.k_csv_id1 = 0
+				g_role.k_csv_id2 = 0
+				g_role.k_csv_id3 = 0
+				g_role.k_csv_id4 = 0
+				g_role.k_csv_id5 = 0
+				g_role.k_csv_id6 = 0
+				g_role.k_csv_id7 = 0
+				g_role = u_rolemgr.create( g_role )
+				g_role:__insert_db()
+			end 
+		else     
+			local prop = user.u_propmgr:get_by_csv_id( v.propid )
+   			if prop then
+   				prop.num = prop.num + v.amount
+   				prop:__update_db( { "num" } )
+   			else 
+   				print( "propid is " , v.propid )
+   				local p = game.g_propmgr:get_by_csv_id( v.propid )
+   				assert( p )
+   				p.user_id = user.csv_id
+   				p.num = v.amount
+   				local prop = user.u_propmgr.create( p )
+   				user.u_propmgr:add( prop )
+   				prop:__insert_db()
+   			end 
+   		end     
+   	end			
+end				
+   	 	    	
 function REQUEST:draw()
-	-- body
-	print( "*-------------------------* draw is called")
+   	-- body		
+   	print( "applydraw is called in drawmgr" )
+   	local ret = {}
+   	ret.list = {}
+   			
+   	local tfrienddraw = draw_mgr:get_by_type( drawtype.FRIEND )
+   		
+   	local settime = getsettime()
+   		
+   	local v = {}
+   	if not tfrienddraw or ( tfrienddraw.srecvtime < settime - 60 * 60 * 24 ) or ( tfrienddraw.srecvtime < settime  and os.time() > settime ) then
+   		print( "tfrienddraw is nil " , tfrienddraw )
+   		v.drawtype = drawtype.FRIEND
+   		v.drawnum = 0
+   		isfriend = true
+   	else 
+   		print( "can not friend draw " , tfrienddraw.srecvtime )
+   		v.drawtype = drawtype.FRIEND
+   		v.drawnum = 1
+   		isfriend = false
+   	end 
 
-	assert( u )
-	user = u
-
-	print( "applydraw is called in drawmgr" )
-	local ret = {}
-	ret.list = {}
+   	table.insert( ret.list , v )
 	
-	local t = {}
-	t.uid = user.id
-	t.drawtype = drawtype.FRIEND
-	local r = drawmgr:_db_select_frienddraw( t )
-	local settime = getsettime()
-	
-	local v = {}
-	if type( r ) == "table" or ( r < settime - 60 * 60 * 24 ) or ( r < settime  and os.time() > settime ) then
-		v.drawtype = drawtype.FRIEND
-		v.drawnum = 0
-		isfriend = true
-	else 
-		v.drawtype = drawtype.FRIEND
-		v.drawnum = 1
-		isfriend = false
-	end 
-
-	table.insert( ret.list , v )
-
-	t.drawtype = drawtype.ONETIME
-
-	local r = drawmgr:_db_select_onetimedraw( t ) -- if free == 1
-	if type( r ) == "table" then
-		print( "r == nil" )
-		 t.drawnum = 0
-		 t.lefttime = 0
+   	local t = {}
+   	local tonetime = draw_mgr:get_by_type( drawtype.ONETIME )
+   	if not tonetime then
+   		print( "has not draw_onetime yet" )
+   		t.drawnum = 0
+		t.lefttime = 0
 	else
-		--local left = MAXDRAWNUM - r.drawnum 
 		print( "find the onetime draw" )
 		t.drawtype = drawtype.ONETIME
-		--t.drawnum = ( r.drawnum == MAXDRAWNUM ) and  or left
-		local drawcost = csvReader.getcont( "drawcost" )
-		local line = getline_byid( drawcost , tostring( drawtype.ONETIME * 1000 ) )   --drawcost[tostring( id * 1000 )]
+		local line = game.g_drawcostmgr:get_by_csv_id( drawtype.ONETIME * 1000 )	
 		assert( line )
+		
 		local nowtime = os.time() 
-		if nowtime >= ( r +  tonumber( line.cdtime ) ) then
-			print( nowtime , r , line.cdtime )
-			print( "nowtime >= ..." )
+		if nowtime >= ( tonetime.srecvtime + line.cdtime ) then
 			t.lefttime = 0
+			t.drawnum = 1
 		else
-			print( nowtime , r , line.cdtime )
-			print( "nowtime < ..." )
-			t.lefttime = r + tonumber( line.cdtime ) - os.time() -- nowtime - srecvtime
+			t.lefttime = tonetime.srecvtime + line.cdtime - nowtime -- nowtime - srecvtime
 		end
 	end	
 	table.insert( ret.list , t )			
 	          
 	return ret
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-	local ret = {}
-	ret.list = {}
-
-	local tdraw = drawmgr:get_by_type( 1 )
-
-	if not tdraw then
-		print( "***********************not exist tnew_drawrequest" )
-		ret.ifnew_drawrequest = true
-		ret.lefttime = 0
-		ret.new_drawrequest_level = 0
-		ifnew_drawrequest = 1
-	else 	
-		print( "***********************exist tnew_drawrequest" )
-		local time = os.time()
-		local laststage = judge_time_quantum( tnew_drawrequest.new_drawrequest_time , tnew_drawrequest.time_length )
-		local newstage , lefttime = judge_time_quantum( time , tnew_drawrequest.time_length )
-			
-		if 0 == laststage or newstage ~= laststage then
-			ret.ifnew_drawrequest = true
-			ret.lefttime = 0
-			ret.new_drawrequest_level = user.new_drawrequest_level
-			ifnew_drawrequest = 1
-		else
-			ret.ifnew_drawrequest = false
-			ret.lefttime = lefttime
-			ret.new_drawrequest_level = user.new_drawrequest_level
-			ifnew_drawrequest = 0
-		end 
-	end     
-
-	return ret
 end			
-			
-function REQUEST:new_drawrequest_once()
-	print( "*-----------------------------* new_drawrequest_day is called" )
+		
+local ERROR = { WAI_GUA = 1 , NOT_ENOUGH_MONEY = 2 }
+		
+local function splitsubreward_bytype( typeid )
+	assert( typeid )
 
-	local ret = {}
-	local time = os.time()
-	local notexist = false
+	local sublist = {}
+	for k , v in pairs( game.g_mainrewardmgr.__data ) do
+		if v.csv_id == typeid then
+			print( "********************************** find" )
+			table.insert( sublist , v )
+		end
+	end
 
-	local tnew_drawrequest = new_drawrequest_mgr:get_new_drawrequest()
-	if not tnew_drawrequest then
-		notexist = true
-		tnew_drawrequest = {}
+	print( "splitsubreward_bytype i called" )
+	return sublist
+end	
+	
+local function getgroupid( list , val )
+	assert( val and list )
+
+	local len = #list
+	local sub = list[len].probid
+	print( len , val , #list )
+	for i = len , 1 , -1 do
+		if sub < val  then
+			i = i - 1
+			sub = sub + list[i].probid
+		else    
+			return list[i].groupid
+		end 		
 	end 
-	print( "esercise_level is *********************" ,  self.new_drawrequest_level )
-	if 0 == ifnew_drawrequest or self.new_drawrequest_level ~= user.new_drawrequest_level then
+end 	
+		
+local function getpropidlist( dtype )
+	print( "get[rp[od is called" )
+	assert( dtype )
+	local propidlist = {}
+	propidlist.list = {}
+			
+	local sublist = splitsubreward_bytype( dtype * 1000 )
+	assert( sublist )
+
+	if drawtype.TENTIME == dtype then
+		print( "dtype id in getpropidlis is " .. dtype )
+		local trn = skynet.call( ".randomdraw" , "lua" , "command" , "draw" , { drawtype = dtype }  )
+		assert( trn )
+
+		for k , v in ipairs( trn ) do
+			local id = getgroupid( sublist , v )
+			print( "reward groupid is " , id )
+
+			local r = game.g_subrewardmgr:get_by_csv_id( id )
+			assert( r )
+			print( r.propid , r.propnum )
+			table.insert( propidlist.list , { propid = r.propid , amount = r.propnum } )
+		end                                                                            
+	else                                                                                                    
+		print( "dtype id in getpropidlis is " .. dtype )
+		local rn = skynet.call( ".randomdraw" , "lua" , "command" , "draw" , { drawtype = dtype } )
+		assert( rn )
+         
+		local id = getgroupid( sublist , rn )
+		print( "groupid is >>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>" .. id )
+		local r = game.g_subrewardmgr:get_by_csv_id( id )
+		assert( r )
+		table.insert( propidlist.list , { propid = r.propid , amount = r.propnum , proptype = r.proptype } )
+	end		
+        
+	assert( propidlist )
+	propidlist.ok = true
+    	
+    add_to_prop( propidlist.list )
+	print( "get propidlist successfully" )
+	return propidlist
+end				
+			
+local function frienddraw()
+	local proplist = {}
+
+	if false == isfriend then
+		proplist.ok = false
+		proplist.errorcode = ERROR.WAI_GUA
+		return proplist
+	end 
+
+	local line = game.g_drawcostmgr:get_by_csv_id( drawtype.FRIEND * 1000 )	
+	assert( line )
+
+	local prop = user.u_propmgr:get_by_csv_id( line.cointype )
+	print( "***************************line.cointype is " , line.cointype )
+
+	local tfriend = draw_mgr:get_by_type( drawtype.FRIEND )
+
+	if not prop or prop.num < line.price then
+		print( "money is less then price" )
+		local ret = {}
 		ret.ok = false
-		ret.msg = "you wai gua"
-		--should logout
-	else 	
-		tnew_drawrequest.user_id = user.id
-		tnew_drawrequest.new_drawrequest_time = time
-		tnew_drawrequest.new_drawrequest_type = self.new_drawrequest_type
-		tnew_drawrequest.time_length = new_drawrequest_time
-			
-		if notexist then
-			tnew_drawrequest = new_drawrequest_mgr.create( tnew_drawrequest )
-			assert( tnew_drawrequest )
-			new_drawrequest_mgr:add( tnew_drawrequest )
-		end 
+		ret.errorcode = ERROR.NOT_ENOUGH_MONEY
+		ret.msg = "not enough money"
 
-		tnew_drawrequest:__insert_db()
+		return ret
+	else
+		print( "money is enough in frienddraw" )
+		local date = os.time()
 
-		local t = get_g_new_drawrequest( self.daily_type * 10 + self.new_drawrequest_type )
-		local prop = user.u_propmgr:get_by_csv_id( t.cost_id )
-		if not prop or prop.num < t.cost_amount then
-			ret.ok = false
-			ret.error = 2
-			ret.msg = "not enough money"
+		if not tfriend then
+			tfriend = {}
+			tfriend.uid = user.csv_id
+			tfriend.drawtype = drawtype.FRIEND 
+			tfriend.srecvtime = date
+			tfriend.propid = 0
+			tfriend.amount = 0
+			tfriend.iffree = 1
+
+			tfriend = draw_mgr.create( tfriend )
+			assert( tfriend )
+			draw_mgr:add( tfriend )	
 		else
-			print( "************************************can new_drawrequest reward" )
-			ifnew_drawrequest = 0
+			tfriend.srecvtime = date
+		end
 
-			prop.num = prop.num - t.cost_amount
-			prop:__update_db( { "num" } )
 
+		print( "line price is " , line.price )
+		prop.num = prop.num - line.price
+		proplist = getpropidlist( drawtype.FRIEND )
+
+		prop:__update_db( { "num" } )
+		isfriend = false
+		
+		tfriend:__insert_db()
+
+		print( "update prop successfully in tentimedraw" )
+	end	
+		
+	return proplist
+end 	
+		
+local function onetimedraw( iffree )
+	        
+	local proplist = {}
+
+	local tonetime = draw_mgr:get_by_type( drawtype.ONETIME )    
+	
+	local date = os.time()
+
+	if true == iffree then
+		print( "for free**********************************" )
+		if not tonetime then
+			tonetime = {}
+			tonetime.uid = user.csv_id
+			tonetime.drawtype = drawtype.ONETIME
+			tonetime.srecvtime = date
+			tonetime.propid = 0;
+			tonetime.amount = 0;
+			tonetime.iffree = 0;
+
+			tonetime = draw_mgr.create( tonetime )
+			assert( tonetime )
+			draw_mgr:add( tonetime )
+		else
+			local line = game.g_drawcostmgr:get_by_csv_id( drawtype.ONETIME * 1000 )	
+			assert( line )
+
+			if date < ( tonetime.srecvtime + line.cdtime ) then
+				proplist.ok = false
+				proplist.errorcode = ERROR.WAI_GUA
 			
-			add_to_prop( get_new_drawrequest_reward( t ) )	
-			user.new_drawrequest_level = user.new_drawrequest_level + t.level_up
-			user:__update_db( { "new_drawrequest_level" } )
-			
-			ret.ok = true 
-			local sta , lefttime = judge_time_quantum( time , tnew_drawrequest.time_length )
-			print( sta , lefttime )
-			ret.lefttime = lefttime 
+				return proplist
+			end
+
+			tonetime.srecvtime = date
 		end 
+
+		tonetime:__insert_db()
+
+		proplist = getpropidlist( drawtype.ONETIME )
+		assert( proplist )
+
+		print( "get for free successfully" )
+		proplist.lefttime = DAY
+
+		return proplist
+	else	
+		print( "not free**********************************" )
+		local t = {}
+		local line = game.g_drawcostmgr:get_by_csv_id( drawtype.ONETIME * 1000 )
+		assert( line )
+            
+    	local prop = user.u_propmgr:get_by_csv_id( line.cointype )
+
+		if not prop or prop.num < line.price then
+			local ret = {}
+			ret.ok = false
+			ret.errorcode = ERROR.NOT_ENOUGH_MONEY
+			ret.msg = "not enough money"
+			
+			return ret
+		else
+			print( "update prop is called in" )
+
+			prop.num = prop.num - line.price
+			proplist = getpropidlist( drawtype.ONETIME )
+			
+			print( "*******************" , now , recvtime , recvtime + day - date )
+
+			if date > recvtime + day then
+				print( " >>>>>>>>" )
+				proplist.lefttime = 0
+			else
+				print( "<<<<<<<<" )
+				proplist.lefttime = recvtime + day - now
+			end 
+			print("**********************")
+			prop:__update_db( { "num" } )
+			
+			print( "update prop successfully in tentimedraw" )
+		end	
+	end
+	return proplist
+end 	
+		
+local function tentimedraw()
+	local proplist = {}
+
+	local line = game.g_drawcostmgr:get_by_csv_id( drawtype.TENTIME * 1000 )
+	assert( line )
+
+    local prop = user.u_propmgr:get_by_csv_id( line.cointype )
+
+	if not prop or prop.num < line.price then
+		print( "not enough money in tentime" )
+		local ret = {}
+		ret.ok = false
+		ret.errorcode = ERROR.NOT_ENOUGH_MONEY
+		ret.msg = "not enough money"
+
+		return ret
+	else 
+		print( "insert drawmsg over" )
+
+		prop.num = prop.num - line.price
+		prop:__update_db( { "num" } )
+
+		proplist = getpropidlist( drawtype.TENTIME )		
+	end 
+
+	print( "ten time draw is over" )
+
+	return proplist
+end 	
+						
+function REQUEST:applydraw()
+	print( "applydraw is called ******************" , self.drawtype )
+
+	print( self.drawtype , self.iffree )
+	local ret = {}
+
+	if self.drawtype == drawtype.FRIEND then
+		ret = frienddraw()
+	elseif self.drawtype == drawtype.ONETIME then
+		ret = onetimedraw( self.iffree )
+	else
+		ret = tentimedraw()
 	end 	
 
-	return ret
-end					
-			
+	return assert( ret )
+end		
+
 function RESPONSE:abc()
 	-- body	
 end			
