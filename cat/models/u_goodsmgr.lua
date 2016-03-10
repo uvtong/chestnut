@@ -34,7 +34,7 @@ function _Meta:__update_db(t)
 	for i,v in ipairs(t) do
 		columns[tostring(v)] = self[tostring(v)]
 	end
-	skynet.send(util.random_db(), "lua", "command", "update", self.__tname, {{ csv_id=assert(self.csv_id) }}, columns)
+	skynet.send(util.random_db(), "lua", "command", "update", self.__tname, {{ user_id=self.user_id, csv_id=assert(self.csv_id)}}, columns)
 end
 
 function _Meta:__serialize()
@@ -46,10 +46,6 @@ function _Meta:__serialize()
 		end
 	end
 	return r
-end
-
-function _M:clear()
-	self.__data = {}
 end
 
 function _M.insert_db( values )
@@ -83,7 +79,7 @@ function _M:add( u )
 	self.__data[tostring(u.csv_id)] = u
 	self.__count = self.__count + 1
 end
-	
+
 function _M:get_by_csv_id(csv_id)
 	-- body
 	return self.__data[tostring(csv_id)]
@@ -99,6 +95,11 @@ end
 function _M:get_count()
 	-- body
 	return self.__count
+end
+
+function _M:clear()
+	self.__data = {}
+	self.__count = 0
 end
 
 return _M

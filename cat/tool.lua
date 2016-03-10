@@ -103,6 +103,7 @@ end
 
 function _M:clear()
 	self.__data = {}
+	self.__count = 0
 end
 
 return _M

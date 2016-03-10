@@ -607,7 +607,7 @@ local function load_u_goods(user)
 	-- body
 	local u_goodsmgr = require "models/u_goodsmgr"
 	local addr = util.random_db()
-	local r = skynet.call(addr, "lua", "command", "select", "u_goodsmgr", {{ user_id = user.csv_id}})
+	local r = skynet.call(addr, "lua", "command", "select", "u_goods", {{ user_id = user.csv_id}})
 	for i,v in ipairs(r) do
 		local t = u_goodsmgr.create(v)
 		u_goodsmgr:add(t)
@@ -694,4 +694,5 @@ function loader.clear(user)
 		end
 	end
 end
+
 return loader
