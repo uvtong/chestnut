@@ -76,15 +76,7 @@ end
 function QUERY:insert( table_name, columns )
 	-- body
 	local sql = util.insert(table_name, columns)
-<<<<<<< HEAD
-	-- skynet.fork(function (db, sql)
-	-- 	-- body
 	db:query(sql)
-	-- end, db, sql)
-	-- print("*******************************", sql)
-=======
-	db:query(sql)
->>>>>>> 5ad4d03636a23a0e25f303b254b6126c1b8145e6
 end
 
 function QUERY:insert_all( table_name , tcolumns )
