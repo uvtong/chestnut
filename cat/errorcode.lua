@@ -35,10 +35,16 @@ errorcode[26] = { code = 26, msg = "your achievement reward don't collected"}
 errorcode[51] = { code = 51 , msg = "kongfu not exist" }
 errorcode[52] = { code = 52 , msg = "kungfu level not match" }
 --friend
-errorcode[ 53 ] = { code = 53 , msg = "you wai gua" }
-errorcode[ 54 ] = { code = 54 , msg = "checkin already" } 
+errorcode[ 61 ] = { code = 61 , msg = "you wai gua" }
+errorcode[ 62 ] = { code = 62 , msg = "checkin already" } 
+errorcode[ 63 ] = { code = 63 , msg = "can not apply yourself" }
+errorcode[ 64 ] = { code = 64 , msg = "no such user" }
+errorcode[ 65 ] = { code = 65 , msg = "can not add yourself" }
+errorcode[ 66 ] = { code = 66 , msg = "already friend" }
+errorcode[ 67 ] = { code = 67 , msg = "in the appliedlist" }
+
 --checkin
-errorcode[ 55 ] = { code = 55 , msg = "donot match the server totalmount" }
-errorcode[ 56 ] = { code = 56 , msg = "can not checkin_reward" }
+errorcode[ 71 ] = { code = 71 , msg = "donot match the server totalmount" }
+errorcode[ 72 ] = { code = 72 , msg = "can not checkin_reward" }
 
 return errorcode
