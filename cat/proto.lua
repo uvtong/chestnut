@@ -762,6 +762,7 @@ kungfu 55
 		csv_id 0 : integer
 		k_level 1 : integer
 		k_type 2 : integer
+        amount 3 : integer
 	}
 	response
 	{

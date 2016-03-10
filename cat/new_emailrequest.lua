@@ -15,7 +15,6 @@ local dc
 
 local game
 local user
-local emailmgr
 
 local MAXEMAILNUM = 50
 
@@ -28,10 +27,6 @@ function REQUEST:login(u)
 	-- body
 	assert( u )
 	user = u
-	for k,v in pairs(u.u_emailmgr.__data) do
-		print(k,v)
-	end
-	emailmgr = user.u_emailmgr
 end
 
 function REQUEST:mails()
@@ -39,7 +34,7 @@ function REQUEST:mails()
 		
 	ret.mail_list = {}
 
-	local emailbox = emailmgr:get_all_emails()
+	local emailbox =user.u_emailmgr:get_all_emails()
 	assert( emailbox )
 	local counter = 0
 	print( "emailbox num is *************************" , #emailbox )
@@ -70,12 +65,12 @@ end
 function REQUEST:mail_read()
 	print( "****************************email_read is called" )
 
-	local emailbox = emailmgr:get_all_emails()
+	local emailbox =user.u_emailmgr:get_all_emails()
 	assert( emailbox )
 
 	for k , v in pairs( self.mail_id ) do
 		print ( k , v , v.id )
-		local e = emailmgr:get_by_csv_id( v.id )
+		local e =user.u_emailmgr:get_by_csv_id( v.id )
 		assert( e )
 
 		e.isread = 1
@@ -86,12 +81,12 @@ end
 function REQUEST:mail_delete()
 	print( "****************************email_delete is called" )
 
-	local emailbox = emailmgr:get_all_emails()
+	local emailbox =user.u_emailmgr:get_all_emails()
 	assert( emailbox )
 
 	for k , v in pairs( self.mail_id ) do
 		print ( k , v , v.id )
-		local e = emailmgr:get_by_csv_id( v.id )
+		local e =user.u_emailmgr:get_by_csv_id( v.id )
 		assert( e )
 		
 		e.isdel = 1
@@ -103,11 +98,11 @@ end
 function REQUEST:mail_getreward()
 	print( "****************************get_reward is called" )
 
-	local emailbox = emailmgr:get_all_emails()
+	local emailbox =user.u_emailmgr:get_all_emails()
 	assert( emailbox )
 
 	for k , v in pairs( self.mail_id ) do		
-		local e = emailmgr:get_by_csv_id( v.id )
+		local e =user.u_emailmgr:get_by_csv_id( v.id )
 		assert( e )
 		if 0 == e.isreward then 	
 			local items = e:__getallitem()
@@ -130,7 +125,7 @@ function REQUEST:mail_getreward()
 			if ( 1 == e.type ) then
 				e.isdel = 1
 				e:__update_db( { "isdel" } )
-				emailmgr:delete_by_csv_id( e.csv_id )
+				user.u_emailmgr:delete_by_csv_id( e.csv_id )
 			else
 				e.isreward = 1
 				e:__update_db( { "isreward" } )
@@ -143,7 +138,7 @@ function new_emailrequest:newemail( tval , ... ) -- get a email to group
 	assert( tval )
 	print( "*********************************************REQUEST:newemail" )
 
-	local v = emailmgr:recvemail( tval )
+	local v =user.u_emailmgr:recvemail( tval )
 	assert( v )
 
 	--[[local ret = {}
@@ -170,7 +165,7 @@ function SUBSCRIBE:email( tvals , ... ) -- get email from channl , a email to al
 	tvals.csv_id = util.u_guid( user.csv_id, game, const.UEMAILENTROPY )
 	tvals.uid = user.csv_id
 	print( "*********************************email csv_id is " , tvals.csv_id )
-	local v = emailmgr:recvemail( tvals )
+	local v =user.u_emailmgr:recvemail( tvals )
 	assert( v )
 
 	--[[local ret = {}

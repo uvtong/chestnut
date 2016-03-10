@@ -438,7 +438,7 @@ function REQUEST:signup()
 		u_propmgr.insert_db(l)
 		
 		local newemail = { 
-						   type = 2 , title = "new user email" , 
+						   type = 1 , title = "new user email" , 
 						   content = "Welcome to the game" , 
 						   itemsn1 = 1 , itemnum1 = 10000 , 
 						   itemsn2 = 2 , itemnum2 = 10000 , 

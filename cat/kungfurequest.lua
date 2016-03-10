@@ -16,7 +16,6 @@ local KUNGFU_NUM = 7 -- ZAN DING
 local game
 local user
 local dc
-local kungfu_mgr
 
 local function send_package(pack)
 	local package = string.pack(">s2", pack)
@@ -29,8 +28,7 @@ function REQUEST:login( u )
 	print( "**********************************kungfurequest_login " )
 	user = u
 	
-	kungfu_mgr = user.u_kungfumgr
-	assert( kungfu_mgr )
+	assert(user.u_kungfumgr )
 end		
 		
 local function get_g_kungfu_by_skill_type_and_level( skill_type , level )
@@ -50,7 +48,7 @@ function REQUEST:kungfu()
 	ret.k_list = {}
 	ret.role_kid_list = {}
 	
-	for k , v in pairs( kungfu_mgr.__data ) do
+	for k , v in pairs(user.u_kungfumgr.__data ) do
 		local tmp = {}
 		
 		local tprop = user.u_propmgr:get_by_csv_id( v.sp_id )
@@ -100,7 +98,7 @@ function REQUEST:kungfu_levelup()
 	local tprop_prop = user.u_propmgr:get_by_csv_id( g_tk.prop_csv_id )
 	local tprop_currency = user.u_propmgr:get_by_csv_id( g_tk.currency_type )
 
-	local tkungfu = kungfu_mgr:get_by_type( self.csv_id ) 
+	local tkungfu =user.u_kungfumgr:get_by_type( self.csv_id ) 
 	print( g_tk.prop_csv_id , tprop_prop.num , g_tk.prop_num , tprop_currency.num , g_tk.currency_num )
 	if not tprop_prop or tprop_prop.num < g_tk.prop_num or not tprop_currency or tprop_currency.num < g_tk.currency_num then
 		print( " not enough money" )
@@ -118,7 +116,7 @@ function REQUEST:kungfu_levelup()
 			tkungfu.level = self.k_level
 			tkungfu.type = self.k_type
 			tkungfu.sp_id = g_tk.prop_csv_id			
-			tkungfu = kungfu_mgr.create( tkungfu )
+			tkungfu =user.u_kungfumgr.create( tkungfu )
  			
 			assert( tkungfu )
 			kungfu_mgr:add( tkungfu )
@@ -126,7 +124,7 @@ function REQUEST:kungfu_levelup()
 			tkungfu:__insert_db()
 		else				  		
 			print( "_______________________________________________________")
-			--local tmp = kungfu_mgr:get_by_type( self.k_type )
+			--local tmp =user.u_kungfumgr:get_by_type( self.k_type )
 			print( tkungfu.level + 1 , self.k_level )
 			if tkungfu.level + 1 ~= self.k_level then
 				print( "not match" )
