@@ -40,7 +40,7 @@ local RESPONSE = {}
 local SUBSCRIBE = {}
 local client_fd
 
-local game
+local game -- addr
 local user
 	  
 local function send_package(pack)
@@ -58,7 +58,7 @@ local function push_achievement(achievement)
 	send_package(send_request("finish_achi", ret))
 end
 
-local function raise_achievement(type, user, game)
+local function raise_achievement(type, user)
 	-- body
 	if type == "combat" then
 	elseif type == const.A_T_GOLD then -- 2
@@ -81,7 +81,7 @@ local function raise_achievement(type, user, game)
 					local k1 = string.gsub(a.unlock_next_csv_id, "(%d*)%*(%d*)", "%1")
 					local k2 = string.gsub(a.unlock_next_csv_id, "(%d*)%*(%d*)", "%2")
 					
-					local a1 = game.g_achievementmgr:get_by_csv_id(k1)
+					local a1 = skynet.call(game, "lua", "query_g_achievement", k1)
 					a1.user_id = user.csv_id
 					a1.finished = 100
 					a1.is_unlock = 1
@@ -1861,7 +1861,7 @@ function REQUEST:quit()
 end
 
 local function request(name, args, response)
-    local f = nil
+    local f
     if REQUEST[name] ~= nil then
     	f = assert(REQUEST[name])
     elseif nil ~= friendrequest[ name ] then
@@ -1971,9 +1971,7 @@ function CMD.friend( subcmd, ... )
 	-- body
 	local f = assert(friendrequest[subcmd])
 	local r =  f(friendrequest, ...)
-
-	if r ~= nil then
-		print( "r os  sdddddddddddddddddddddddddddddddddddddddm nil" )
+	if r then
 		return r
 	end
 end
@@ -1982,6 +1980,11 @@ function CMD.newemail( subcmd , ... )
 	local f = assert( new_emailrequest[ subcmd ] )
 	f( new_emailrequest , ... )
 end
+
+skynet.init(function ()
+	-- body
+	game = skynet.uniqueservice("game")
+end)
 
 skynet.start(function()
 	skynet.dispatch("lua", function(_,_, command, ...)
