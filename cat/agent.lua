@@ -969,7 +969,7 @@ function REQUEST:shop_all()
 		local tmp = assert(user.u_goodsmgr:get_by_csv_id(v.csv_id))
 		if tmp.inventory == 0 then
 			local now = os.time()
-			local countdown = os.difftime(now, v.st)
+			local countdown = os.difftime(now, tmp.st)
 			if countdown > v.cd then
 				tmp.inventory = v.inventory_init
 				tmp.countdown = v.countdown
