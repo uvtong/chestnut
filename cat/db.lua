@@ -202,7 +202,4 @@ skynet.start( function ()
 
 	frienddb.getvalue( db , cache )
 	
-	--skynet.call( ".channel" , "lua" , "get_db_cache" , emaildb )
-
-	print("emaildb.getvalue is called\n")
 end)
