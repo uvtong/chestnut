@@ -61,10 +61,12 @@ function REQUEST:kungfu()
 		tmp.k_sp_num = tprop.num
 		print( v.csv_id , v.level , v.type )
 		table.insert( ret.k_list , tmp )
-	end		  	
+	end	
+	local counter = 0	  	
 	print( "length of is *****************" , #( user.u_rolemgr.__data ) )
 	for k , v in pairs( user.u_rolemgr.__data ) do
 		print( "in the kungfu" )
+		counter = counter + 1
 		local tmp = {}
 		
 		tmp.pos_list = {}	
@@ -83,7 +85,7 @@ function REQUEST:kungfu()
 		end
  		table.insert( ret.role_kid_list , tmp )
 	end				
-
+	print( "***********************************************counter in kungfu" , counter )
 	return ret
 end		
 				
@@ -119,7 +121,7 @@ function REQUEST:kungfu_levelup()
 			tkungfu =user.u_kungfumgr.create( tkungfu )
  			
 			assert( tkungfu )
-			kungfu_mgr:add( tkungfu )
+			user.u_kungfumgr:add( tkungfu )
                               
 			tkungfu:__insert_db()
 		else				  		

@@ -1,7 +1,8 @@
 package.path = "./../cat/?.lua;" .. package.path
 	
 local skynet = require "skynet"
-	
+local errorcode = require "errorcode"	
+
 local friendmgr = {}
 friendmgr._data = { friendlist = {} , applylist = {} , appliedlist = {} , avaliblelist = {} }
 	
@@ -498,16 +499,17 @@ end
 		 	
 function friendmgr:applyfriend( friendlist )
 	assert( friendlist )
-    		
+	local ret = {}
+    
 	for k , v in pairs( friendlist ) do
 		local isfind = false
+		print( v.friendid )
 		if v.friendid == user.csv_id then
 			print( "can not apply youself" )
 
-			local ret = {}
 			ret.ok = false
-			ret.error = 1
-			ret.msg = "can not apply yourself"
+			ret.errorcode = errorcode[63].code
+			ret.msg =  errorcode[63].msg  --"can not apply yourself"
         	
 			return ret
 		end	
@@ -547,8 +549,18 @@ function friendmgr:applyfriend( friendlist )
 				friendmgr:_db_insertmsg( nm )
 				print( "insert a new msg to db" )
 			end
+
+			ret.errorcode = errorcode[ 1 ].code
+			ret.msg = errorcode[ 1 ].msg
+			print( "apply end******************************" )
+			return ret
 		end	
 	end		
+
+	ret.errorcode = errorcode[ 70 ].code
+	ret.msg = errorcode[ 70 ].msg
+
+	return ret
 end			
 
 function friendmgr:_db_insert_newfriend( uid , friendid )
@@ -580,7 +592,7 @@ function friendmgr:recvfriend( friendlist )
 	assert( friendlist )
 
 	for k , v in pairs( friendlist ) do
-		print( "**************************************** " , v.signtime )
+		print( "**************************************** " , v.signtime , v.friendid)
 		local r = friendmgr:_db_loadfriend( v.friendid )
    		assert( r )
    		print("redvtive friend " .. v.friendid)
@@ -667,7 +679,7 @@ end
 
 function friendmgr:deletefriend( friendid )
 	assert( friendid )
-
+	local ret = {}
 	local tmp = {}
 	for sk , sv in pairs( friendmgr._data.friendlist ) do
 		if sv.friendid ~= friendid then
@@ -710,25 +722,27 @@ function friendmgr:deletefriend( friendid )
 		print( "insert a new msg to db and update a msg" )
 	end	
 
-	return true
+	ret.errorcode = errorcode[ 1 ].code
+	ret.msg = errorcode[ 1 ].msg
+	return ret
 end			
 	
 function friendmgr:findfriend( id )
 	assert( id )
 	local ret = {}
-
+	print( id )
 	local r = friendmgr:_db_loadfriend( id )
 	if nil == r[1] then
 		ret.ok = false
-		ret.error = 1
-		ret.msg = "no such user"
+		ret.errorcode = errorcode[ 64 ].code
+		ret.msg = errorcode[ 64 ].msg  --"no such user"
 		
 		return ret 
 	else
 		if id == user.csv_id then
 			ret.ok = false
-			ret.error = 2
-			ret.msg = "can not add yourself"
+			ret.errorcode = errorcode[ 65 ].code
+			ret.msg = errorcode[ 65 ].msg   --"can not add yourself"
 			
 			return ret 
 		end	
@@ -736,8 +750,8 @@ function friendmgr:findfriend( id )
 		for k , v in pairs( friendmgr._data.friendlist ) do
 			if v.friendid == id then
 				ret.ok = false
-				ret.error = 3
-				ret.msg = "already friend"
+				ret.errorcode = errorcode[ 66 ].code
+				ret.msg = errorcode[ 66 ].msg  --"already friend"
 
 				return ret
 			end
@@ -746,8 +760,8 @@ function friendmgr:findfriend( id )
 		for k , v in pairs( friendmgr._data.appliedlist ) do
 			if v.fromid == id then
 				ret.ok = false
-				ret.error = 4
-				ret.msg = "in the appliedlist "
+				ret.errorcode = errorcode[ 67 ].code
+				ret.msg = errorcode[ 67 ].msg  --"in the appliedlist "
 
 				return ret
 			end
@@ -757,17 +771,22 @@ function friendmgr:findfriend( id )
 	local f = friendmgr:_createfriend( r[ 1 ] )
 	assert( f )
 	ret.ok = true
+	ret.errorcode = errorcode[ 1 ].code
+	ret.msg = errorcode[ 1 ].msg
 	ret.friend = {}
+	print( "**************************************************findfriend " , f.id )
 	table.insert( ret.friend , f )
 	return ret
 end			
 			
 function friendmgr:recvheart( heartlist , totalamount )
 	assert( heartlist and totalamount )
+	local ret = {}
+
 	if recvheartnum + totalamount > MAXHEARTNUM then
-		local ret = {}
 		ret.ok = false
-		ret.msg = "too much heart"
+		ret.errorcode = errorcode[ 69 ].code
+		ret.msg = errorcode[ 69 ].msg
 		return ret
 	end		
 
@@ -831,18 +850,22 @@ function friendmgr:recvheart( heartlist , totalamount )
 
 	prop:__update_db( {"num"} )
 
+	ret.errorcode = errorcode[ 69 ].code
+	ret.msg = errorcode[ 69 ].msg
 end			
 		
 function friendmgr:sendheart( heartlist , totalamount ) 
 	assert( heartlist )
 	print(	"heartamount = " .. totalamount )
+
+	local ret = {}
 	local prop = user.u_propmgr:get_by_csv_id( SENDTYPE )
 	--assert( total )
 	--print( "total num is " .. total.num )
 	if nil == prop or prop.num - totalamount < 0 then -- not enough heart then return error
-		local ret = {}
 		ret.ok = false
-		ret.msg = "not enough heart"
+		ret.errorcode = errorcode[ 68 ].code
+		ret.msg = errorcode[ 68 ].msg
 
 		return ret
 	end  
@@ -889,6 +912,8 @@ function friendmgr:sendheart( heartlist , totalamount )
 	end	
 	prop:__update_db( {"num"} )
 
+	ret.errorcode = errorcode[ 1 ].code
+	ret.msg = errorcode[ 1 ].msg
 end		
 			
 function friendmgr:agent_request_handle( msg )
@@ -898,6 +923,7 @@ function friendmgr:agent_request_handle( msg )
 	--local ret.friendmsg = {}
 	if msg.type == msgtype.APPLY then
 		friendmgr:_db_insertmsg( msg )
+		print( "******************************************msgtype.APPLY" , msg.fromid )
 		table.insert( friendmgr._data.appliedlist , { fromid = msg.fromid , srecvtime = msg.srecvtime } )
 
 	elseif msg.type == msgtype.DELETE then
@@ -919,6 +945,7 @@ function friendmgr:agent_request_handle( msg )
 		--TODO
 	elseif msg.type == msgtype.ACCEPT then
 		friendmgr:_db_insertmsg( msg )
+		print( "insert successfully in msgtype.ACCEPT" )
 		friendmgr:_db_insert_newfriend( user.csv_id , msg.fromid )
 		table.insert( friendmgr._data.friendlist , { friendid = msg.fromid , recvtime = 0 , heartamount = 0 , sendtime = 0 } )
 		local tmp = {}
@@ -943,7 +970,7 @@ function friendmgr:agent_request_handle( msg )
 		--return ret	
 	elseif msg.type == msgtype.REFUSE then 
 		friendmgr:_db_insertmsg( msg )
-
+		print( "insert successfully in msgtype.REFUSE" )
 		local tmp = {}
 		for k , v in pairs( friendmgr._data.applylist ) do
 			if msg.fromid ~= v then
@@ -963,6 +990,7 @@ function friendmgr:agent_request_handle( msg )
 	elseif msg.type == msgtype.SENDHEART then
 		
 		friendmgr:_db_insertmsg( msg )
+		print( "insert successfully in msgtype.SENDHEART" )
 
 		for k , v in ipairs( friendmgr._data.friendlist ) do
 			if v.friendid == msg.fromid then
@@ -995,7 +1023,7 @@ function friendmgr:agent_friendmsg()
 	print( "get online user msg !!!!!!!!!!!!!!!!!!" )
 	local r = {}
 	
-	r.id = user.csv_id
+	r.csv_id = user.csv_id
 	r.name = user.uname
 	r.level = user.level
 	r.viplevel = user.uviplevel
