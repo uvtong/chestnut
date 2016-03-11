@@ -9,7 +9,7 @@ skynet.start(function()
 	skynet.uniqueservice("protoloader")
 	local console = skynet.newservice("console")
 	skynet.newservice("debug_console",8000)
-	for i=1,5 do
+	for i=1,2 do
 		local db = skynet.newservice("db")
 		skynet.name(string.format(".db%d", i), db)
 	end

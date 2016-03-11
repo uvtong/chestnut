@@ -149,6 +149,28 @@ function CMD.query_g_kungfu(pk)
 	end
 end
 
+function CMD.query_g_mainreward(pk)
+	-- body
+	if type(pk) == "number" then
+		return game.g_mainrewardmgr:get_by_csv_id(pk)
+	elseif type(pk) == "nil" then
+		return game.g_mainrewardmgr.__data
+	else
+		assert(false)
+	end
+end
+
+function CMD.query_g_monster()
+	-- body
+	if type(pk) == "number" then
+		return game.g_monstermgr:get_by_csv_id(pk)
+	elseif type(pk) == "nil" then
+		return game.g_monstermgr.__data
+	else
+		assert(false)
+	end
+end
+
 function CMD.query_g_prop(pk)
 	-- body
 	if type(pk) == "number" then
@@ -215,6 +237,17 @@ function CMD.query_g_role_star(pk)
 	end
 end
 
+function CMD.query_g_subreward()
+	-- body
+	if type(pk) == "number" then
+		return game.g_subrewardmgr:get_by_csv_id(pk)
+	elseif type(pk) == "nil" then
+		return game.g_subrewardmgr.__data
+	else
+		assert(false)
+	end
+end
+
 function CMD.g_user_level(pk)
 	-- body
 	if type(pk) == "number" then
@@ -239,12 +272,10 @@ end
 
 skynet.start(function()
 	skynet.dispatch("lua", function(_,_, command, ...)
-		print("*(8)game", command)
 		local f = CMD[command]
 		local result = f(...)
 		if result then
 			skynet.ret(skynet.pack(result))
 		end
 	end)
-	skynet.register ".game"
 end)

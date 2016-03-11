@@ -782,18 +782,6 @@ function REQUEST:use_prop()
 						local prop = get_prop(v[1])
 						prop.num = prop.num + assert(v[2])
 						prop:__update_db({"num"})
-						table.
-						if prop then
-							prop.num = prop.num + v[2]
-							prop:__update_db({"num"})
-							table.insert(l, prop)
-						else
-							prop = skynet.call(game, "lua", "quer") assert(game.g_propmgr:get_by_csv_id(v[1]))
-							prop.user_id = user.csv_id
-							prop.num = assert(v[2])
-							prop:__insert_db()
-							table.insert(l, prop)
-						end
 					end
 				end
 			elseif assert(prop.use_type) == 4 then
