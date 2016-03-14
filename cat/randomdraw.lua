@@ -60,4 +60,5 @@ skynet.start( function ()
 	skynet.register ".randomdraw"
         
 	load_g_randomval()
+
 end)    

@@ -549,7 +549,7 @@ function REQUEST:login()
 		user.ifonline = 1
 		user.onlinetime = onlinetime
 		user:__update_db({"ifonline", "onlinetime"})
-		user.friendmgr = friendmgr:loadfriend( user , dc )
+		user.friendmgr = friendmgr:loadfriend( user , dc , game )
 		friendrequest.getvalue( user , send_package , send_request )
 
 		ret.errorcode = errorcode[1].code
@@ -1953,7 +1953,7 @@ function CMD.start(conf)
 	game = loader.load_game()
 	
 	for i,v in ipairs(M) do
-		v.start(conf, send_request, game)
+		v.start(conf.client, send_request, game)
 	end
 end	
 	   
