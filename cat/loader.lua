@@ -690,6 +690,7 @@ function loader.clear(user)
 	-- body
 	for k,v in pairs(user) do
 		if string.match(k, "^u_%w+mgr$") then
+			print(k)
 			v:clear()
 		end
 	end

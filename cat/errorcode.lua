@@ -26,8 +26,8 @@ errorcode[23] = { code = 23, msg = "equipment enhance, do not exceed the level o
 errorcode[24] = { code = 24, msg = "equipment enhance failture."}
 errorcode[25] = { code = 25, msg = "your vip gift has purchased"}
 errorcode[26] = { code = 26, msg = "your achievement reward don't collected"}
-
-
+errorcode[27] = { code = 27, msg = "from the client data is wrong."}
+errorcode[28] = { code = 28, msg = "props unavailable."}
 
 
 
