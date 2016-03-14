@@ -30,8 +30,10 @@ function Queue.enqueue(Q, E)
 			return true
 		end
 	else
-		assert(false)
-		return false
+		Q.__size = Q.__size * 2
+		Q.__data[Q.tial] = E
+		Q.__tail = Q.tial + 1
+		return true
 	end
 end
 

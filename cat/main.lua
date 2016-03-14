@@ -9,12 +9,12 @@ skynet.start(function()
 	skynet.uniqueservice("protoloader")
 	local console = skynet.newservice("console")
 	skynet.newservice("debug_console",8000)
-	for i=1,2 do
+	for i=1,5 do
 		local db = skynet.newservice("db")
 		skynet.name(string.format(".db%d", i), db)
 	end
 
-	skynet.uniqueservice("game")
+	local game = skynet.uniqueservice("game")
    	skynet.newservice("channel")
 	skynet.newservice("randomdraw")
 
@@ -27,7 +27,7 @@ skynet.start(function()
 	})
 	print("Watchdog listen on ", 8888)
 
-	skynet.send(".game", "lua", "start")
+	skynet.send(game, "lua", "start")
 	
 	skynet.exit()
 end)

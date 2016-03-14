@@ -171,7 +171,7 @@ local function query_mysql()
 		if sql then
 			db:query(sql)
 		end
-		skynet.sleep(50)
+		skynet.sleep(5)
 	end
 end
 
