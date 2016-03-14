@@ -632,20 +632,16 @@ checkin 43
     }
  }
 
- checkin_aday 44
+checkin_aday 44
 {
     response {
         errorcode 0 : integer
         msg 1 : string  
     }
- }
+}
  
- checkin_reward 45
+ get_checkin_reward 45
  {
-    request {
-        totalamount 0 : integer
-        rewardnum 1 : integer
-    }
     response {
         errorcode 0 : integer
         msg 1 : string      
@@ -664,9 +660,7 @@ exercise 46
  exercise_once 47
  {
     request {
-        daily_type 0 : integer
         exercise_type 1 : integer
-        exercise_level 2 : integer
     }
     response {
         errorcode 0 : integer
@@ -687,9 +681,7 @@ exercise 46
  c_gold_once 49
  {
     request {
-        daily_type 0 : integer
         c_gold_type 1 : integer
-        c_gold_level 2 : integer
     }
     response {
         errorcode 0 : integer

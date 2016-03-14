@@ -343,7 +343,7 @@ function friendmgr:apply_friendlist()
    			if nil == v.sendtime or 0 == v.sendtime or ( v.sendtime < settime and os.time() > settime ) then
    				tmp.heart = true
    			else                                                                                                                                                                                                                                                            
-   				tmp.heart = false
+   				tmp.heart = true
    			end
    			tmp.signtime = v.recvtime -- '0' represents that i never sent heart to others , and used for sendheart and recvheart
    			print( "tmp.signtime is **************************" , tmp.signtime )
