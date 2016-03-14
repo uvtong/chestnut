@@ -582,7 +582,7 @@ function REQUEST:login()
 		user.ifonline = 1
 		user.onlinetime = onlinetime
 		user:__update_db({"ifonline", "onlinetime"})
-		user.friendmgr = friendmgr:loadfriend( user , dc )
+		user.friendmgr = friendmgr:loadfriend( user , dc , game )
 		friendrequest.getvalue( user , send_package , send_request )
 
 		ret.errorcode = errorcode[1].code

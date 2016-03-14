@@ -23,7 +23,6 @@ function VIEW.index()
 		-- local query = self.query
 		print( "view index is called" )
 		--for i = 1 , 100 do
-
 			skynet.send(".channel", "lua", "send_email_to_group" , { type = 2 , title = "hello" , content = "world" , itemsn1 = 10022 , itemnum1 = 500 , itemsn2 = 20001 , itemnum2 = 500 , itemsn3 = 20003 , itemnum3 = 500 , iconid = 10001 }  , { { csv_id = 152 } } )
 		--end
 		local func = template.compile( path( "index.html" ) )

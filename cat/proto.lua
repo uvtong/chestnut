@@ -231,7 +231,7 @@ role_info 2 {
 
 mails 3 {
   response {
-    ok 0 : boolean
+    errorcode 0 : integer
 	msg 1 : string 
 	mail_list 2 : *mail	
   }
@@ -323,12 +323,20 @@ mail_read 12 {
 	request {
         mail_id 0 : *idlist
     }
+    response {
+        errorcode 0 : integer
+        msg 1 : string
+    }
 }
 
 mail_delete 13 {
 	request { 
 		mail_id 0 : *idlist
 	}
+    response {
+        errorcode 0 : integer
+        msg 1 : string
+    }
 }
 
 mail_getreward 14 {
@@ -336,6 +344,10 @@ mail_getreward 14 {
 		mail_id 0 : *idlist
 		type 1 : integer
 	}
+    response {
+        errorcode 0 : integer
+        msg 1 : string
+    }
 } 
 
 friend_list 15 {
@@ -403,9 +415,8 @@ deletefriend 22 {
         type 2 : integer
     }
     response {
-        ok 0 : boolean
-        errorcode 1 : integer
-        msg 2 : string
+        errorcode 0 : integer
+        msg 1 : string
     }
 }	 
 	
@@ -415,9 +426,8 @@ recvheart 23 {
         totalamount 1 : integer
     }   
     response {
-        ok 0 : boolean
-        errorcode 1 : integer
-        msg 2 : string
+        errorcode 0 : integer
+        msg 1 : string
     } 
 }		
 		
@@ -427,9 +437,8 @@ sendheart 24 {
 	   totalamount 1 : integer
     }   
     response {
-       ok 0 : boolean
-       errorcode 1 : integer
-       msg 2 : string
+       errorcode 0 : integer
+       msg 1 : string
     }	
 }
 
@@ -558,11 +567,10 @@ applydraw 39 {
         iffree 1 : boolean  
     }
     response {
-        ok 0 : boolean
-        errorcode 1 : integer
-        msg 2 : string
-        list 3 : *drawrewardlist
-        lefttime 4 : integer
+        errorcode 0 : integer
+        msg 1 : string
+        list 2 : *drawrewardlist
+        lefttime 3 : integer
     }
 }
  
@@ -605,23 +613,23 @@ checkin 43 {
     }
 }
 
-checkin_aday 44 {
+checkin_aday 44
+{
     response {
-        ok 0 : boolean
-        errorcode 1 : integer
-        msg 2 : string  
+        errorcode 0 : integer
+        msg 1 : string  
     }
 }
  
+
 checkin_reward 45 {
     request {
         totalamount 0 : integer
         rewardnum 1 : integer
     }
     response {
-        ok 0 : boolean
-        errorcode 1 : integer
-        msg 2 : string      
+        errorcode 0 : integer
+        msg 1 : string      
     }
 }
 
@@ -635,15 +643,12 @@ exercise 46 {
  
 exercise_once 47 {
     request {
-        daily_type 0 : integer
         exercise_type 1 : integer
-        exercise_level 2 : integer
     }
     response {
-        ok 0 : boolean
-        errorcode 1 : integer
-        msg 2 : string
-        lefttime 3 : integer
+        errorcode 0 : integer
+        msg 1 : string
+        lefttime 2 : integer
     }
 }
  
@@ -657,15 +662,12 @@ c_gold 48 {
  
 c_gold_once 49 {
     request {
-        daily_type 0 : integer
         c_gold_type 1 : integer
-        c_gold_level 2 : integer
     }
     response {
-        ok 0 : boolean
-        errorcode 1 : integer
-        msg 2 : string
-        lefttime 3 : integer
+        errorcode 0 : integer
+        msg 1 : string
+        lefttime 2 : integer
     }
 }
 
@@ -739,9 +741,8 @@ kungfu_levelup 56 {
 	}
 	response
 	{
-		ok 0 : boolean
-		errorcode 1 : integer
-		msg 2 : string
+		errorcode 0 : integer
+		msg 1 : string
 	}
 }
  
@@ -805,9 +806,8 @@ mail 2 {
         msg 3 : string   
     }
     response {
-        ok 0 : boolean 
-        errorcode 1 : integer
-        msg 2 : string
+        errorcode 0 : integer
+        msg 1 : string
     }
 }
 
