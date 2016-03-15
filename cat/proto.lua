@@ -17,8 +17,6 @@ proto.c2s = sprotoparser.parse [[.package {
 .prop {
     csv_id 0 : integer
     num 1 : integer
-    star 2 : integer
-    u_us_prop_num 3 : integer
 }
 
 .achi {
@@ -30,21 +28,22 @@ proto.c2s = sprotoparser.parse [[.package {
 
 .attach
 {
-            itemsn 0 : integer
-            itemnum 1 : integer
+    itemsn 0 : integer
+    itemnum 1 : integer
 }
+
 .mail
 {	
-		emailid 0 : integer
-		type 1 : integer
-		iconid 2 : integer
-		acctime 3 : string
-		isread 4 : boolean
-		isreward 5 : boolean
-		title 6 : string
-		content 7 : string
-		errorcode 8 : integer
-		attachs 9 : *attach
+	emailid 0 : integer
+	type 1 : integer
+	iconid 2 : integer
+	acctime 3 : string
+	isread 4 : boolean
+	isreward 5 : boolean
+	title 6 : string
+	content 7 : string
+	errorcode 8 : integer
+	attachs 9 : *attach
 }
 
 .idlist
@@ -171,21 +170,19 @@ proto.c2s = sprotoparser.parse [[.package {
 }
 
 .kungfu_content
- {
+{
     csv_id 1 : integer
     k_level 2 : integer
     k_type 3 : integer
     k_sp_num 4 : integer 
- }
+}
  
- .kungfu_pos_and_id
-{
+.kungfu_pos_and_id {
     position 0 : integer
     k_csv_id 1 : integer
 }
 
-.kungfu_role_list
-{
+.kungfu_role_list {
     r_csv_id 0 : integer    
     pos_list 1 : *kungfu_pos_and_id
 } 
@@ -234,7 +231,7 @@ role_info 2 {
 
 mails 3 {
   response {
-    ok 0 : boolean
+    errorcode 0 : integer
 	msg 1 : string 
 	mail_list 2 : *mail	
   }
@@ -322,30 +319,38 @@ achievement 11 {
     }
 } 	 
 
-mail_read 12
-{
-	request { 
+mail_read 12 {
+	request {
         mail_id 0 : *idlist
+    }
+    response {
+        errorcode 0 : integer
+        msg 1 : string
     }
 }
 
-mail_delete 13
-{
+mail_delete 13 {
 	request { 
 		mail_id 0 : *idlist
 	}
+    response {
+        errorcode 0 : integer
+        msg 1 : string
+    }
 }
 
-mail_getreward 14
-{
+mail_getreward 14 {
 	request { 
 		mail_id 0 : *idlist
 		type 1 : integer
 	}
+    response {
+        errorcode 0 : integer
+        msg 1 : string
+    }
 } 
 
-friend_list 15
-{
+friend_list 15 {
 	response {
 		ok 0 : boolean
 		errorcode 1 : integer
@@ -355,8 +360,7 @@ friend_list 15
 	}
 }
 
-applied_list 16
-{
+applied_list 16 {
 	response {
 		ok 0 : boolean
 		errorcode 1 : integer
@@ -365,8 +369,7 @@ applied_list 16
 	}
 }
 
-otherfriend_list  17
-{
+otherfriend_list  17 {
 	response {
 		ok 0 : boolean
 		errorcode 1 : integer
@@ -375,8 +378,7 @@ otherfriend_list  17
 	}
 }
 
-findfriend 18
-{
+findfriend 18 {
 	request {
 		id 0 : integer
 	}
@@ -388,64 +390,55 @@ findfriend 18
 	}
 }
 
-applyfriend 19
-{
+applyfriend 19 {
 	request {
 		friendlist 0 : *friendidlist
 	}
 }
  
-recvfriend 20
-{
+recvfriend 20 {
 	request {
 		friendlist 0 : *friendidlist
 	}
 }
 
-refusefriend 21
-{
+refusefriend 21 {
 	request {
 		friendlist 0 : *friendidlist
 	}
 }
 
-deletefriend 22
-{	
+deletefriend 22 {
 	request {
         signtime 0 : integer
         friendid 1 : integer
         type 2 : integer
     }
     response {
-        ok 0 : boolean
-        errorcode 1 : integer
-        msg 2 : string
+        errorcode 0 : integer
+        msg 1 : string
     }
 }	 
 	
-recvheart 23
-{   
+recvheart 23 {
 	 request {
         hl 0 : *heartlist
         totalamount 1 : integer
     }   
     response {
-        ok 0 : boolean
-        errorcode 1 : integer
-        msg 2 : string
+        errorcode 0 : integer
+        msg 1 : string
     } 
 }		
 		
-sendheart 24
-{
+sendheart 24 {
 	request {
         hl 0 : *heartlist
 	   totalamount 1 : integer
     }   
     response {
-       ok 0 : boolean
-       errorcode 1 : integer
-       msg 2 : string
+       errorcode 0 : integer
+       msg 1 : string
     }	
 }
 
@@ -562,29 +555,26 @@ recharge_collect 36 {
 recharge_reward 37 {
 }
 
-draw 38
-{      
+draw 38 { 
     response {
         list 0 : *drawlist
     }
 }  
 
-applydraw 39
- {
+applydraw 39 {
     request {
         drawtype 0 : integer
         iffree 1 : boolean  
     }
     response {
-        ok 0 : boolean
-        errorcode 1 : integer
-        msg 2 : string
-        list 3 : *drawrewardlist
-        lefttime 4 : integer
+        errorcode 0 : integer
+        msg 1 : string
+        list 2 : *drawrewardlist
+        lefttime 3 : integer
     }
- }
+}
  
- achievement_reward_collect 40 {
+achievement_reward_collect 40 {
     request {
         csv_id 0 : integer
     }
@@ -614,87 +604,74 @@ recharge_vip_reward_collect 42 {
     }
 }
 
-checkin 43
- {
+checkin 43 {
     response {
         totalamount 0 : integer
         monthamount 1 : integer
         ifcheckin_t 2 : boolean
         rewardnum 3 : integer
     }
- }
+}
 
- checkin_aday 44
+checkin_aday 44
 {
     response {
-        ok 0 : boolean
-        errorcode 1 : integer
-        msg 2 : string  
+        errorcode 0 : integer
+        msg 1 : string  
     }
- }
+}
  
- checkin_reward 45
- {
+
+checkin_reward 45 {
     request {
         totalamount 0 : integer
         rewardnum 1 : integer
     }
     response {
-        ok 0 : boolean
-        errorcode 1 : integer
-        msg 2 : string      
+        errorcode 0 : integer
+        msg 1 : string      
     }
- }
+}
 
-exercise 46
- {
+exercise 46 {
     response {
         ifexercise 0 : boolean
         lefttime 1 : integer
         exercise_level 2 : integer
     }
- }
+}
  
- exercise_once 47
- {
+exercise_once 47 {
     request {
-        daily_type 0 : integer
         exercise_type 1 : integer
-        exercise_level 2 : integer
     }
     response {
-        ok 0 : boolean
-        errorcode 1 : integer
-        msg 2 : string
-        lefttime 3 : integer
+        errorcode 0 : integer
+        msg 1 : string
+        lefttime 2 : integer
     }
- }
+}
  
- c_gold 48 
- {
+c_gold 48 {
     response {
         ifc_gold 0 : boolean
         lefttime 1 : integer
         c_gold_level 2 :  integer
     }
- }
+}
  
- c_gold_once 49
- {
+c_gold_once 49 {
     request {
-        daily_type 0 : integer
         c_gold_type 1 : integer
-        c_gold_level 2 : integer
     }
     response {
-        ok 0 : boolean
-        errorcode 1 : integer
-        msg 2 : string
-        lefttime 3 : integer
+        errorcode 0 : integer
+        msg 1 : string
+        lefttime 2 : integer
     }
- }
+}
 
- equipment_enhance 50 {
+equipment_enhance 50 {
     request {
         csv_id 0 : integer
     }
@@ -746,8 +723,7 @@ role_battle 54 {
     }
 }
 
-kungfu 55
-{
+kungfu 55 {
 	response
 	{
 		k_list 0 : *kungfu_content
@@ -755,8 +731,7 @@ kungfu 55
 	}
 }
  
- kungfu_levelup 56
- {
+kungfu_levelup 56 {
 	request
 	{
 		csv_id 0 : integer
@@ -766,14 +741,12 @@ kungfu 55
 	}
 	response
 	{
-		ok 0 : boolean
-		errorcode 1 : integer
-		msg 2 : string
+		errorcode 0 : integer
+		msg 1 : string
 	}
- }
+}
  
-kungfu_chose 57
-{
+kungfu_chose 57 {
 	request
 	{
 		r_csv_id 0 : integer
@@ -833,9 +806,8 @@ mail 2 {
         msg 3 : string   
     }
     response {
-        ok 0 : boolean 
-        errorcode 1 : integer
-        msg 2 : string
+        errorcode 0 : integer
+        msg 1 : string
     }
 }
 
