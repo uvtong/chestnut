@@ -67,6 +67,10 @@ function _M.insert_db( values )
 	skynet.send( util.random_db() , "lua" , "command" , "insert_all" , _Meta.__tname , total )
 end 
 
+function _M:update_db()
+	-- body
+end
+
 function _M.create( P )
 	assert(P)
 	local u = _Meta.__new()
@@ -80,6 +84,7 @@ end
 
 function _M:add( u )
 	assert(u)
+	assert(self.__data[tostring(u.csv_id)] == nil)
 	self.__data[tostring(u.csv_id)] = u
 	self.__count = self.__count + 1
 end

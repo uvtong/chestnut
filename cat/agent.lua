@@ -1985,6 +1985,10 @@ function CMD.newemail( subcmd , ... )
 	f( new_emailrequest , ... )
 end
 
+local function update()
+	-- body
+end
+
 skynet.init(function ()
 	-- body
 	game = skynet.uniqueservice("game")

@@ -63,8 +63,11 @@ function _M.insert_db( values )
 	skynet.send( util.random_db() , "lua" , "command" , "insert_all" , _Meta.__tname , total )
 end 
 
-function _M:clear()
-	self.__data = {}
+function _M:update_db()
+	-- body
+	for k,v in pairs(self.__data) do
+		print(k,v)
+	end
 end
 
 function _M.create( P )
@@ -82,6 +85,10 @@ function _M:add( u )
 	assert(u)
 	self.__data[tostring(u.type)] = u
 	self.__count = self.__count + 1
+end
+
+function _M:clear()
+	self.__data = {}
 end
 
 function _M:get_by_type(type)
