@@ -43,7 +43,8 @@ local _Meta = { csv_id=0,
 				gain_exp_up_p=0,
 				purchase_hp_count_max=0,
 				SCHOOL_reset_count_max=0,
-				SCHOOL_reset_count=0 }
+				SCHOOL_reset_count=0,
+				signup_time=0 }
 
 _Meta.__tname = "users"
 
