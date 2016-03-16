@@ -85,7 +85,7 @@ end
 local function print_sql( sql )
 	-- body
 	assert(type("sql") == "string")
-	print("\\**" .. sql .. "**\\")
+	skynet.error("\\**" .. sql .. "**\\")
 end
 
 function util.select( table_name, condition, columns )
