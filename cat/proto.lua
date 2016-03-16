@@ -643,7 +643,9 @@ exercise 46 {
  
 exercise_once 47 {
     request {
+        daily_type 0 : integer
         exercise_type 1 : integer
+        exercise_level 2 : integer
     }
     response {
         errorcode 0 : integer
@@ -662,7 +664,9 @@ c_gold 48 {
  
 c_gold_once 49 {
     request {
+        daily_type 0 : integer
         c_gold_type 1 : integer
+        c_gold_level 2 : integer
     }
     response {
         errorcode 0 : integer
