@@ -8,6 +8,8 @@ local util = require "util"
 local _M = {}
 _M.__data = {}
 _M.__count = 0
+_M.__user_id = 0
+_M.__tname = "%s"
 
 local _Meta = %s
 
@@ -33,12 +35,12 @@ end
 
 function _Meta:__update_db(t)
 	-- body
-	assert(type(t) == "table")
-	local columns = {}
-	for i,v in ipairs(t) do
-		columns[tostring(v)] = self[tostring(v)]
-	end
-	skynet.send(util.random_db(), "lua", "command", "update", self.__tname, {{ csv_id=assert(self.csv_id) }}, columns)
+	-- assert(type(t) == "table")
+	-- local columns = {}
+	-- for i,v in ipairs(t) do
+	-- 	columns[tostring(v)] = self[tostring(v)]
+	-- end
+	-- skynet.send(util.random_db(), "lua", "command", "update", self.__tname, {{ user_id=self.user_id, csv_id=self.csv_id }}, columns)
 end
 
 function _Meta:__serialize()
@@ -87,6 +89,7 @@ function _M:add( u )
 	assert(self.__data[tostring(u.csv_id)] == nil)
 	self.__data[tostring(u.csv_id)] = u
 	self.__count = self.__count + 1
+	send.__update_count[tostring(u.csv_id)] = 0
 end
 	
 function _M:get_by_csv_id(csv_id)
@@ -99,6 +102,7 @@ function _M:delete_by_csv_id(csv_id)
 	assert(self.__data[tostring(csv_id)])
 	self.__data[tostring(csv_id)] = nil
 	self.__count = self.__count - 1
+	self.__update_count[tostring(u.csv_id)] = 0
 end
 
 function _M:get_count()
@@ -111,9 +115,16 @@ function _M:clear()
 	self.__count = 0
 end
 
+function _M:update_db()
+	-- body
+	local columns = { "finished", "reward_collected", "is_unlock"}
+	local condition = { {user_id = self.__user_id}, {csv_id = {}}}
+	skynet.send(util.random_db(), "lua", "command", "update_all", _Meta.__tname, condition, columns, self.__data)
+end
+
 return _M
 
-]], P, tname)
+]], tname, P, tname)
 
 
 addr:write(s)

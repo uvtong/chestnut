@@ -5,6 +5,8 @@ local const = require "const"
 local _M = {}
 _M.__data = {}
 _M.__count = 0
+_M.__user_id = 0
+_M.__tname = "u_prop"
 
 local _Meta = { user_id=0, 
 				csv_id=0, 
@@ -36,12 +38,12 @@ end
 
 function _Meta:__update_db(t)
 	-- body
-	assert(type(t) == "table")
-	local columns = {}
-	for i,v in ipairs(t) do
-		columns[tostring(v)] = self[tostring(v)]
-	end
-	skynet.send(util.random_db(), "lua", "command", "update", self.__tname, {{ user_id = self.user_id,  csv_id = self.csv_id}}, columns)
+	-- assert(type(t) == "table")
+	-- local columns = {}
+	-- for i,v in ipairs(t) do
+	-- 	columns[tostring(v)] = self[tostring(v)]
+	-- end
+	-- skynet.send(util.random_db(), "lua", "command", "update", self.__tname, {{ user_id = self.user_id,  csv_id = self.csv_id}}, columns)
 end
 
 function _Meta:__serialize()
@@ -69,10 +71,6 @@ function _M.insert_db( values )
 	end
 	skynet.send( util.random_db() , "lua" , "command" , "insert_all" , _Meta.__tname , total )
 end 
-
-function _M:clear()
-	self.__data = {}
-end
 
 function _M.create(P)
 	assert(P)
@@ -104,6 +102,17 @@ end
 function _M:get_count()
 	-- body
 	return self.__count
+end
+
+function _M:clear()
+	self.__data = {}
+end
+
+function _M:update_db()
+	-- body
+	local columns = { "num" }
+	local condition = { {user_id = self.__user_id}, {csv_id = {}}}
+	skynet.send(util.random_db(), "lua", "command", "update_all", _Meta.__tname, condition, columns, self.__data)
 end
 
 return _M
