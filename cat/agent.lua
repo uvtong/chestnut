@@ -369,7 +369,7 @@ function REQUEST:achievement_reward_collect()
 	if a and a.finished == 100 and a.reward_collected == 0 then
 		a.reward_collected = 1
 		a:__update_db({"reward_collected"})
-		local a_src = 1 skynet.call(game, "lua", "query_g_achievement", a.csv_id)
+		local a_src = skynet.call(game, "lua", "query_g_achievement", a.csv_id)
 		if a_src.type == 2 then
 			local csv_id1 = string.gsub(a_src.reward, "(%d*)%*(%d*)", "%1")
 			local num1 = string.gsub(a_src.reward, "(%d*)%*(%d*)", "%2")
@@ -1695,7 +1695,7 @@ function REQUEST:role_recruit()
 	end
 	assert(self.csv_id)
 	assert(user.u_rolemgr:get_by_csv_id(self.csv_id) == nil)
-	local role = game.g_rolemgr:get_by_csv_id(self.csv_id)
+	local role = skynet.call(game, "lua", "query_g_role", self.csv_id)
 	local us = skynet.call(game, "lua", "query_g_role_star", role.csv_id*1000 + role.star)
 	local prop = user.u_propmgr:get_by_csv_id(role.us_prop_csv_id)
 	if prop and prop.num >= assert(us.us_prop_num) then
@@ -1739,8 +1739,7 @@ function REQUEST:role_battle()
 		ret.msg = errorcode[2].msg
 		return ret
 	end
-	assert(self.csv_id)
-	assert(user.u_propmgr:get_by_csv_id(self.csv_id))
+	assert(user.u_rolemgr:get_by_csv_id(self.csv_id))
 	user.c_role_id = self.csv_id
 	ret.errorcode = errorcode[1].code
 	ret.msg = errorcode[1].msg
@@ -1821,7 +1820,7 @@ function REQUEST:recharge_vip_reward_purchase()
  					prop:__update_db({"num"})
  					table.insert(l, { csv_id=prop.csv_id, num=prop.num})
  				else
- 					prop = assert(game.g_propmgr:get_by_csv_id(v[1]))
+ 					prop = skynet.call(game, "lua", "query_g_prop", v[1])
  					prop.user_id = user.csv_id
  					prop.num = assert(v[2])
  					prop = user.u_propmgr.create(prop)
@@ -1855,7 +1854,7 @@ function REQUEST:recharge_vip_reward_purchase()
  				prop:__update_db({"num"})
  				table.insert(l, { csv_id=prop.csv_id, num=prop.num})
  			else
-				prop = assert(game.g_propmgr:get_by_csv_id(v[1]))
+				prop = skynet.call(game, "lua", "query_g_prop", v[1])
 				prop.user_id = user.csv_id
 				prop.num = assert(v[2])
 				prop = user.u_propmgr.create(prop)
@@ -1885,6 +1884,7 @@ function REQUEST:quit()
 end
 
 local function request(name, args, response)
+	skynet.error(string.format("request: %s", name))
     local f = nil
     if REQUEST[name] ~= nil then
     	f = assert(REQUEST[name])
@@ -1901,6 +1901,7 @@ local function request(name, args, response)
     assert(f)
     local ok, result = pcall(f, args)
     if not ok then
+    	skynet.error(result)
     	if response then
     		local ret = {
     			errorcode = errorcode[29].code,
@@ -1909,7 +1910,6 @@ local function request(name, args, response)
     		return response(ret)
     	end
     end
-    print("**********************************", name)
     if name == "login" then
     	if result.errorcode == errorcode[1].code then
     		for k,v in pairs(M) do
@@ -1919,7 +1919,6 @@ local function request(name, args, response)
     		end
     	end
     end
-    print(ok, result)
     if response then
     	return response(result)
     end               

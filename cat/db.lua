@@ -178,7 +178,7 @@ local function query_mysql()
 			local rest = db:query(sql)
 			print("query result=", dump( res ))
 		end
-		skynet.sleep(5)
+		skynet.sleep(100)
 	end
 end
 
