@@ -1,4 +1,5 @@
 package.path = "./../cat/?.lua;" .. package.path
+package.cpath = "./../cat/luaclib/?.so;" .. package.cpath
 local skynet = require "skynet"
 require "skynet.manager"
 local netpack = require "netpack"
@@ -12,6 +13,7 @@ local loader = require "loader"
 local errorcode = require "errorcode"
 local const = require "const"
 local config = require "config"
+local tptr = require "tablepointer"
 
 local friendrequest = require "friendrequest"
 local friendmgr = require "friendmgr"
@@ -40,8 +42,9 @@ local RESPONSE = {}
 local SUBSCRIBE = {}
 local client_fd
 
-local game -- addr
+local game
 local user
+local G
 	  
 local function send_package(pack)
 	local package = string.pack(">s2", pack)
@@ -80,6 +83,7 @@ local function raise_achievement(type, user)
 				if string.match(a.unlock_next_csv_id, "%d*%*%d*") then
 					local k1 = string.gsub(a.unlock_next_csv_id, "(%d*)%*(%d*)", "%1")
 					local k2 = string.gsub(a.unlock_next_csv_id, "(%d*)%*(%d*)", "%2")
+					
 					local a1 = skynet.call(game, "lua", "query_g_achievement", tonumber(k1))
 					a1.user_id = user.csv_id
 					a1.finished = 100
@@ -373,9 +377,6 @@ end
     
 function REQUEST:signup()
 	-- body
-	-- 0. success
-	-- 1. account > 8
-	-- 2. account already exists.
 	local ret = {}
 	if #self.account == 0 or #self.password == 0 then
 		ret.errorcode = errorcode[12].code
@@ -582,7 +583,7 @@ function REQUEST:login()
 		user.ifonline = 1
 		user.onlinetime = onlinetime
 		user:__update_db({"ifonline", "onlinetime"})
-		user.friendmgr = friendmgr:loadfriend( user , dc , game )
+		user.friendmgr = friendmgr:loadfriend( user , dc )
 		friendrequest.getvalue( user , send_package , send_request )
 
 		ret.errorcode = errorcode[1].code
@@ -1865,7 +1866,7 @@ function REQUEST:quit()
 end
 
 local function request(name, args, response)
-    local f
+    local f = nil
     if REQUEST[name] ~= nil then
     	f = assert(REQUEST[name])
     elseif nil ~= friendrequest[ name ] then
@@ -1879,10 +1880,19 @@ local function request(name, args, response)
     	end
     end
     assert(f)
-    local r = f(args)
+    local ok, result = pcall(f, args)
+    if not ok then
+    	if response then
+    		local ret = {
+    			errorcode = errorcode[29].code,
+    			msg = errorcode[29].msg
+    		}
+    		response(ret)
+    	end
+    end
     print("**********************************", name)
     if name == "login" then
-    	if r.errorcode == errorcode[1].code then
+    	if result.errorcode == errorcode[1].code then
     		for k,v in pairs(M) do
     			if v.REQUEST then
     				v.REQUEST[name](v.REQUEST, user)
@@ -1890,8 +1900,9 @@ local function request(name, args, response)
     		end
     	end
     end
+    print(ok, result)
     if response then
-    	return response(r)
+    	return response(result)
     end               
 end      
 
@@ -1954,14 +1965,30 @@ function CMD.start(conf)
 	client_fd = fd
 	skynet.call(gate, "lua", "forward", fd)
 
+	-- local ptr = skynet.call(game, "lua", "ptr")
+	-- tptr.createtable(ptr)
+	-- G = ptr
+	-- for _,k,v in tptr.pairs(G) do
+	-- 	print(k, v)
+	-- 	-- tptr.createtable(v)
+	-- 	-- assert(v.__data ~= "table")
+	-- 	-- ptr = tptr.topointer(v)
+	-- 	-- tptr.createtable(ptr)
+	-- 	-- for _,k,v in tptr.pairs(ptr) do
+	-- 	-- 	print(k,v)
+	-- 	-- end
+	-- end
+
 	local t = loader.load_game()
 	for i,v in ipairs(M) do
 		v.start(conf, send_request, t)
 	end
+	
 end	
 	   
 function CMD.disconnect()
 	-- todo: do something before exit
+	print("##############################disconnect")
 	if user then
 		user.ifonline = 0
 		user:__update_db({"ifonline"})
@@ -1984,6 +2011,28 @@ function CMD.newemail( subcmd , ... )
 	f( new_emailrequest , ... )
 end
 
+local function update_db()
+	-- body
+	while true do
+		if user then
+			for k,v in pairs(user) do
+				if string.match(k, "^u_%w+mgr$") then
+					v:update_db()
+				end
+			end
+			user:__update_db({"uname", "uaccount", "upassword", "uviplevel", "config_sound", "config_music", 
+				"avatar", "sign", "c_role_id", "ifonline", "level", 
+				"combat", "defense", "critical_hit", "blessing", "modify_uname_count", "onlinetime", 
+				"iconid", "is_valid", "recharge_rmb", "recharge_diamond", "uvip_progress", 
+				"checkin_num", "checkin_reward_num", "exercise_level", "cgold_level", "gold_max",
+				"exp_max", "equipment_enhance_success_rate_up_p", "store_refresh_count_max",
+				"prop_refresh", "arena_frozen_time", "purchase_hp_count", "gain_gold_up_p", "gain_exp_up_p",
+				"purchase_hp_count_max", "SCHOOL_reset_count_max", "SCHOOL_reset_count",})
+		end
+		skynet.sleep(100 * 60) -- 1ti == 0.01s
+	end
+end
+
 skynet.init(function ()
 	-- body
 	game = skynet.uniqueservice("game")
@@ -1998,4 +2047,5 @@ skynet.start(function()
 			skynet.ret(skynet.pack(result))
 		end
 	end)
+	skynet.fork(update_db)
 end)
