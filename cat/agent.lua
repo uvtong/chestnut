@@ -51,6 +51,25 @@ local function send_package(pack)
 	socket.write(client_fd, package)
 end
 
+local function flush_db()
+	-- body
+	if user then
+		for k,v in pairs(user) do
+			if string.match(k, "^u_%w+mgr$") then
+				v:update_db()
+			end
+		end
+		user:__update_db({"uname", "uaccount", "upassword", "uviplevel", "config_sound", "config_music", 
+			"avatar", "sign", "c_role_id", "ifonline", "level", 
+			"combat", "defense", "critical_hit", "blessing", "modify_uname_count", "onlinetime", 
+			"iconid", "is_valid", "recharge_rmb", "recharge_diamond", "uvip_progress", 
+			"checkin_num", "checkin_reward_num", "exercise_level", "cgold_level", "gold_max",
+			"exp_max", "equipment_enhance_success_rate_up_p", "store_refresh_count_max",
+			"prop_refresh", "arena_frozen_time", "purchase_hp_count", "gain_gold_up_p", "gain_exp_up_p",
+			"purchase_hp_count_max", "SCHOOL_reset_count_max", "SCHOOL_reset_count",})
+	end
+end
+
 local function push_achievement(achievement)
 	-- body
 	ret = {}
@@ -630,6 +649,7 @@ function REQUEST:logout()
 		return ret
 	end
 	assert(user)
+	flush_db()
 	loader.clear( user )
 	user.ifonline = 0
 	user:__update_db({"ifonline"})
@@ -920,8 +940,7 @@ function REQUEST:user_upgrade()
 		return ret
 	end
 	assert(user)
-	assert(game.g_user_levelmgr)
-	local L = game.g_user_levelmgr:get_by_level(user.level + 1)
+	local L = skynet.call(game, "lua", "query_g_user_level", user.level + 1)
 	local prop = user.u_propmgr:get_by_csv_id(const.EXP)
 	if prop.num >= tonumber(L.exp) then
 		prop.num = prop.num - L.exp
@@ -933,7 +952,7 @@ function REQUEST:user_upgrade()
 		user.blessing = L.skill              -- blessing.
 		user.gold_max = assert(L.gold_max)
 		user.exp_max = assert(L.exp_max)
-		user:__update_db({ "level", "combat", "defense", "critical_hit", "blessing", "gold_max", "exp_max"})
+		-- user:__update_db({ "level", "combat", "defense", "critical_hit", "blessing", "gold_max", "exp_max"})
 		ret.errorcode = errorcode[1].code
 		ret.msg = errorcode[1].msg
 		return ret
@@ -1887,7 +1906,7 @@ local function request(name, args, response)
     			errorcode = errorcode[29].code,
     			msg = errorcode[29].msg
     		}
-    		response(ret)
+    		return response(ret)
     	end
     end
     print("**********************************", name)
@@ -1988,12 +2007,17 @@ end
 	   
 function CMD.disconnect()
 	-- todo: do something before exit
-	print("##############################disconnect")
+	local str = string.format("client %d disconnect, ", client_fd)
+	flush_db()
 	if user then
+		str = str .. str.format("user %d will quit", user.csv_id)
 		user.ifonline = 0
 		user:__update_db({"ifonline"})
 		dc.set( user.csv_id , nil )
+	else
+		str = str .. "user has quit."
 	end
+	skynet.error(str)
 	skynet.exit()
 end	
 
@@ -2014,21 +2038,7 @@ end
 local function update_db()
 	-- body
 	while true do
-		if user then
-			for k,v in pairs(user) do
-				if string.match(k, "^u_%w+mgr$") then
-					v:update_db()
-				end
-			end
-			user:__update_db({"uname", "uaccount", "upassword", "uviplevel", "config_sound", "config_music", 
-				"avatar", "sign", "c_role_id", "ifonline", "level", 
-				"combat", "defense", "critical_hit", "blessing", "modify_uname_count", "onlinetime", 
-				"iconid", "is_valid", "recharge_rmb", "recharge_diamond", "uvip_progress", 
-				"checkin_num", "checkin_reward_num", "exercise_level", "cgold_level", "gold_max",
-				"exp_max", "equipment_enhance_success_rate_up_p", "store_refresh_count_max",
-				"prop_refresh", "arena_frozen_time", "purchase_hp_count", "gain_gold_up_p", "gain_exp_up_p",
-				"purchase_hp_count_max", "SCHOOL_reset_count_max", "SCHOOL_reset_count",})
-		end
+		flush_db()
 		skynet.sleep(100 * 60) -- 1ti == 0.01s
 	end
 end
