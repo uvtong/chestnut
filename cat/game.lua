@@ -1,8 +1,10 @@
-package.path = "./../cat/?.lua;" .. package.path
+package.path = "./../cat/?.lua;./../cat/lualib/?.lua;" .. package.path
+package.cpath = "./../cat/luaclib/?.so;" .. package.cpath
 local skynet = require "skynet"
 require "skynet.manager"
 local util = require "util"
 local loader = require "loader"
+local tptr = require "tablepointer"
 local game
 
 local CMD = {}
@@ -11,6 +13,11 @@ function CMD.start()
  	-- body
  	game = loader.load_game()
 end 
+
+function CMD.ptr()
+	-- body
+	return tptr.topointer(game)
+end
 
 function CMD.query(table_name, pk)
 	-- body

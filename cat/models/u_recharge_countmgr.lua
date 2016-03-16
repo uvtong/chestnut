@@ -4,6 +4,7 @@ local util = require "util"
 local _M = {}
 _M.__data = {}
 _M.__count = 0
+_M.__user_id = 0
 
 local _Meta = { user_id=0, csv_id=0, count=0 }
 
@@ -86,5 +87,15 @@ function _M:get_count()
 	return self.__count
 end
 
-return _M
+function _M:clear()
+	self.__data = {}
+end
 
+function _M:update_db()
+	-- body
+	local columns = { "count"}
+	local condition = { {user_id = self.__user_id}, {csv_id = {}}}
+	skynet.send(util.random_db(), "lua", "command", "update_all", _Meta.__tname, condition, columns, self.__data)
+end
+
+return _M

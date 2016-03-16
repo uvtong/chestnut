@@ -29,12 +29,12 @@ end
 
 function _Meta:__update_db(t)
 	-- body
-	assert(type(t) == "table")
-	local columns = {}
-	for i,v in ipairs(t) do
-		columns[tostring(v)] = self[tostring(v)]
-	end
-	skynet.send(util.random_db(), "lua", "command", "update", self.__tname, {{ user_id=self.user_id, date=assert(self.date) }}, columns)
+	-- assert(type(t) == "table")
+	-- local columns = {}
+	-- for i,v in ipairs(t) do
+	-- 	columns[tostring(v)] = self[tostring(v)]
+	-- end
+	-- skynet.send(util.random_db(), "lua", "command", "update", self.__tname, {{ user_id=self.user_id, date=assert(self.date) }}, columns)
 end
 
 function _Meta:__serialize()
@@ -74,10 +74,6 @@ function _M.create( P )
 	return u
 end	
 
-function _M:clear()
-	self.__data = {}
-end
-
 function _M:add( u )
 	assert(u)
 	self.__data[tostring(u.date)] = u
@@ -99,6 +95,17 @@ end
 function _M:get_count()
 	-- body
 	return self.__count
+end
+
+function _M:clear()
+	self.__data = {}
+end
+
+function _M:update_db()
+	-- body
+	local columns = { "goods_refresh_count", "goods_refresh_reset_count"}
+	local condition = { {user_id = self.__user_id}, {date = {}}}
+	skynet.send(util.random_db(), "lua", "command", "update_all", _Meta.__tname, condition, columns, self.__data)
 end
 
 return _M

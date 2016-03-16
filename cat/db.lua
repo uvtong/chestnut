@@ -88,6 +88,12 @@ function QUERY:insert_all( table_name , tcolumns )
 	-- db:query( sql )
 end
 
+function QUERY:update_all( table_name, condition, columns, data )
+	-- body
+	local sql = util.update_all(table_name, condition, columns, data)
+	Queue.enqueue(Q, sql)
+end
+
 -- friend	
 function QUERY:select_user( condition, columns )
 	-- body
@@ -169,7 +175,8 @@ local function query_mysql()
 	while true do
 		local sql = Queue.dequeue(Q) 
 		if sql then
-			db:query(sql)
+			local rest = db:query(sql)
+			print("query result=", dump( res ))
 		end
 		skynet.sleep(5)
 	end
@@ -214,8 +221,9 @@ skynet.start( function ()
 		db = 0
 	}
 	cache = connect_redis( conf )
-	Q = Queue.new(128)
-
+	
 	frienddb.getvalue( db , cache )
+
+	Q = Queue.new(128)
 	skynet.fork(query_mysql)
 end)

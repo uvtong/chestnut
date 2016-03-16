@@ -87,6 +87,13 @@ function _Meta.__new()
  	return t
 end 
 
+function _M:update_db()
+	-- body
+	local columns = { "finished", "reward_collected", "is_unlock"}
+	local condition = { {user_id = self.__user_id}, {csv_id = {}}}
+	skynet.send(util.random_db(), "lua", "command", "update_all", _Meta.__tname, condition, columns, self.__data)
+end
+
 function _M.create( P )
 	assert(P)
 	local u = _Meta.__new()
