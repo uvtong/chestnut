@@ -4,6 +4,8 @@ local util = require "util"
 local _M = {}
 _M.__data = {}
 _M.__count = 0
+_M.__user_id = 0
+_M.__tname = "u_equipment"
 
 local _Meta = { user_id=0, 
 				csv_id=0, 
