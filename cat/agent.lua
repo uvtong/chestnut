@@ -2026,7 +2026,7 @@ function CMD.start(conf)
 
 	local t = loader.load_game()
 	for i,v in ipairs(M) do
-		v.start(conf, send_request, t)
+		v.start(fd, send_request, t)
 	end
 	
 end	
