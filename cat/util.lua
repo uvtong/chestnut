@@ -226,7 +226,7 @@ function util.update_all( table_name, condition, columns, data )
 		for i,vv in ipairs(columns) do
 			local t = string.format(" %s = case %s", vv, k)
 			for kkk,vvv in pairs(data) do
-				assert(type(vvv[k]) == "number")
+				assert(type(vvv[k]) == "number", string.format("normal, this key is csv_id and number type, but table %s is %s, %s", table_name, type(vvv[k]), k))
 				if type(vvv[vv]) == "number" then
 					t = t .. string.format(" when %d then %d", vvv[k], vvv[vv])
 				elseif type(vvv[vv]) == "string" then
@@ -244,13 +244,16 @@ function util.update_all( table_name, condition, columns, data )
 			t = t .. string.format("%d, ", vv[k])
 		end
 		t = string.gsub(t, "(.*)%,%s$", "%1)")
-		condition_str = condition_str .. t .. " and "
+		condition_str = condition_str .. t
 	end
 	print(columns_str)
 	columns_str = string.gsub(columns_str, "(.*)%,$", "%1 ")
 	local t = ""
-	for k,v in pairs(condition[1]) do
-		t = t .. string.format("%s = %d", k, v)
+	if type(condition[1]) == "table" then
+		for k,v in pairs(condition[1]) do
+			t = t .. string.format("%s = %d", k, v)
+		end
+		t = " and " .. t
 	end
 	condition_str = condition_str .. t
 	local sql = string.format("update %s ", table_name) .. columns_str .. condition_str .. ";"

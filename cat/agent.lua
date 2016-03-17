@@ -408,10 +408,11 @@ function REQUEST:signup()
 	if #r == 0 then
 		local level = skynet.call(game, "lua", "query_g_user_level", 1)
 		local vip = skynet.call(game, "lua", "query_g_recharge_vip_reward", 0)
+		-- create an user
 		local t = { csv_id= skynet.call(game, "lua", "guid", const.UENTROPY),
 				uname="nihao",
-				uaccount=assert(self.account), 
-				upassword=assert(self.password), 
+				uaccount=self.account, 
+				upassword=self.password,
 				uviplevel=0,
 				config_sound=1, 
 				config_music=1, 
@@ -453,6 +454,7 @@ function REQUEST:signup()
 		local u = usersmgr.create(t)
 		u:__insert_db()
 
+		-- create
 		local u_equipmentmgr = require "models/u_equipmentmgr"
 		local l = {}
 		local r = skynet.call(game, "lua", "query_g_equipment")
@@ -566,16 +568,21 @@ function REQUEST:signup()
 end 
     
 function REQUEST:login()
+	assert((#self.account > 1 and #self.password > 1), string.format("from client account:%s, password:%s incorrect.", self.account, self.password))
 	local ret = {}
 	if user then
-		user.ifonline = 0
-		user:__update_db({"ifonline"})
-		dc.set(user.csv_id, nil)
-		loader.clear(user)
-		user = nil
+		if user.uaccount == self.account and user.upassword == self.password then
+			ret.errorcode  = errorcode[14].code
+			ret.msg = errorcode[14].msg
+			return ret
+		else
+			user.ifonline = 0
+			flush_db()
+			dc.set(user.csv_id, nil)
+			loader.clear(user)
+			user = nil
+		end
 	end
-	assert(self.account and	self.password)
-	assert(#self.password > 1)
 	local condition = {{ uaccount = self.account, upassword = self.password }}
 	local addr = util.random_db()
 	local r = skynet.call(addr, "lua", "command", "select", "users", condition)
@@ -587,23 +594,24 @@ function REQUEST:login()
 		local usersmgr = require "models/usersmgr"
 		user = usersmgr.create(r[1])
 		if dc.get(user.csv_id) then
+			skynet.error("user %d is logged in the agent %d", user.csv_id, dc.get(user.csv_id).addr)
 			user = nil
 			ret.errorcode = errorcode[14].code
 			ret.msg = errorcode[14].msg
 			return ret
 		end
 
+		dc.set(user.csv_id, { client_fd=client_fd, addr=skynet.self()})
 		loader.load_user(user)
 		subscribe()
 		skynet.fork(subscribe)
 
-		dc.set(user.csv_id, { client_fd=client_fd, addr=skynet.self()})
 		local onlinetime = os.time()
 		user.ifonline = 1
 		user.onlinetime = onlinetime
 		user:__update_db({"ifonline", "onlinetime"})
 		user.friendmgr = friendmgr:loadfriend( user , dc )
-		friendrequest.getvalue( user , send_package , send_request )
+		friendrequest.getvalue(user, send_package, send_request)
 
 		ret.errorcode = errorcode[1].code
 		ret.msg = errorcode[1].msg
@@ -637,6 +645,8 @@ function REQUEST:login()
 		end
 		ret.rolelist = l
 		return ret
+	else
+		assert(false)
 	end 
 end	
 
@@ -1430,7 +1440,7 @@ function REQUEST:recharge_purchase()
 									"gain_gold_up_p",
 									"gain_gold_up_p"})
 			else
-				user.uvip_progress = progress * 100
+				user.uvip_progress = math.floor(progress * 100)
 				user:__update_db({"uvip_progress"})
 				break
 			end
@@ -1438,6 +1448,23 @@ function REQUEST:recharge_purchase()
 	end
 	ret.errorcode = errorcode[1].code
 	ret.msg = errorcode[1].msg
+	ret.u = {
+		uname = user.uname,
+    	uviplevel = user.uviplevel,
+    	uexp = user.uexp,
+    	config_sound = (user.config_sound == 1) and true or false,
+    	config_music = (user.config_music == 1) and true or false,
+    	avatar = user.avatar,
+    	sign = user.sign,
+    	c_role_id = user.c_role_id,
+    	gold = user.u_propmgr:get_by_csv_id(const.GOLD).num,
+    	diamond = user.u_propmgr:get_by_csv_id(const.DIAMOND).num,
+    	recharge_total = user.recharge_rmb,
+    	recharge_progress = user.uvip_progress,
+    	recharge_diamond = user.recharge_diamond,
+    	love = user.u_propmgr:get_by_csv_id(const.LOVE).num,
+    	level = user.level
+	}
 	return ret
 end
 

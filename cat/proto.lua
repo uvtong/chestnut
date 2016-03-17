@@ -544,8 +544,7 @@ recharge_purchase 35 {
     response {
         errorcode 0 : integer
         msg 1 : string
-        l 2 : *prop
-        u 3 : user
+        u 2 : user
     }
 }
 
