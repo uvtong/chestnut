@@ -117,7 +117,7 @@ function util.select( table_name, condition, columns )
 		assert(false)
 	end
 	local sql = string.format("select %s from %s", columns_str, table_name) .. condition_str .. ";"
-	print_sql(sql)
+	-- print_sql(sql)
 	return sql
 end
 
@@ -144,7 +144,7 @@ function util.update( table_name, condition, columns )
 		condition_str = " where " .. condition_str
 	end
 	local sql = string.format("update %s ", table_name) .. columns_str .. condition_str .. ";"
-	print_sql(sql)
+	-- print_sql(sql)
 	return sql
 end
 
@@ -163,7 +163,7 @@ function util.insert( table_name, columns )
 	columns_str = string.gsub(columns_str, "(.*)%,%s$", "%1)")
 	values_str = string.gsub(values_str, "(.*)%,%s$", "%1)")
 	local sql = string.format("insert into %s ", table_name) .. columns_str .. " values " .. values_str .. ";"
-	print_sql(sql)
+	-- print_sql(sql)
 	return sql
 end
 	
@@ -212,7 +212,7 @@ function util.insert_all( table_name , tcolumns )
 	end
 	table.insert( tmp , ";" )
 	local sql = string.format("insert into %s ", table_name) .. columns_str .. " values " .. table.concat( tmp ) 
-	print_sql(sql)
+	-- print_sql(sql)
 	return sql
 end 
 
@@ -230,7 +230,7 @@ function util.update_all( table_name, condition, columns, data )
 				if type(vvv[vv]) == "number" then
 					t = t .. string.format(" when %d then %d", vvv[k], vvv[vv])
 				elseif type(vvv[vv]) == "string" then
-					t = t .. string.format(" when %d then %s", vvv[k], vvv[vv])
+					t = t .. string.format(" when %d then \"%s\"", vvv[k], vvv[vv])
 				else
 					error(string.format("don't support types. in %s", table_name))
 				end
@@ -257,7 +257,7 @@ function util.update_all( table_name, condition, columns, data )
 	end
 	condition_str = condition_str .. t
 	local sql = string.format("update %s ", table_name) .. columns_str .. condition_str .. ";"
-	print_sql(sql)
+	-- print_sql(sql)
 	return sql
 end
 

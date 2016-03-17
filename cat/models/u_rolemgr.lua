@@ -34,10 +34,6 @@ function _Meta.__new()
  	return t
 end 
 
-function _M:clear()
-	self.__data = {}
-end
-
 function _Meta:__insert_db()
 	-- body
 	local t = {}
@@ -106,11 +102,18 @@ end
 
 function _M:update_db()
 	-- body
-	-- local columns = { "name", "star", "us_prop_csv_id", "us_prop_num", "sharp", "skill_csv_id", "gather_buffer_id", 
-	-- 			"battle_buffer_id", "k_csv_id1", "k_csv_id2", "k_csv_id3", "k_csv_id4", "k_csv_id5", 
-	-- 			"k_csv_id6", "k_csv_id7"}
-	-- local condition = { {user_id = self.__user_id}, {csv_id = {}}}
-	-- skynet.send(util.random_db(), "lua", "command", "update_all", _Meta.__tname, condition, columns, self.__data)
+	if self.__count > 0 then
+		local columns = { "name", "star", "us_prop_csv_id", "us_prop_num", "sharp", "skill_csv_id", "gather_buffer_id", 
+					"battle_buffer_id", "k_csv_id1", "k_csv_id2", "k_csv_id3", "k_csv_id4", "k_csv_id5", 
+					"k_csv_id6", "k_csv_id7"}
+		local condition = { {user_id = self.__user_id}, {csv_id = {}}}
+		skynet.send(util.random_db(), "lua", "command", "update_all", _Meta.__tname, condition, columns, self.__data)
+	end
+end
+
+function _M:clear()
+	self.__data = {}
+	self.__count = 0
 end
 
 return _M

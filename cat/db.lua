@@ -71,7 +71,7 @@ end
 function QUERY:update( table_name, condition, columns )
 	-- body
 	local sql = util.update(table_name, condition, columns)
-	Queue.enqueue(Q, sql)
+	Queue.enqueue(Q, { table_name=table_name, sql=sql})
 	-- db:query(sql)
 end
 
@@ -85,13 +85,13 @@ end
 function QUERY:insert_all( table_name , tcolumns )
 	local sql = util.insert_all( table_name , tcolumns )
 	-- Queue.enqueue(Q, sql)
-	db:query( sql )
+	db:query(sql)
 end
 
 function QUERY:update_all( table_name, condition, columns, data )
 	-- body
 	local sql = util.update_all(table_name, condition, columns, data)
-	Queue.enqueue(Q, sql)
+	Queue.enqueue(Q, { table_name=table_name, sql=sql})
 end
 
 -- friend	
@@ -173,10 +173,10 @@ end
 local function query_mysql()
 	-- body
 	while true do
-		local sql = Queue.dequeue(Q) 
-		if sql then
-			local res = db:query(sql)
-			print("query result=", dump(res))
+		local r = Queue.dequeue(Q) 
+		if r then
+			local res = db:query(r.sql)
+			print(string.format("query %s result=", r.table_name), dump(res))
 		end
 		skynet.sleep(100)
 	end
