@@ -175,8 +175,8 @@ local function query_mysql()
 	while true do
 		local sql = Queue.dequeue(Q) 
 		if sql then
-			local rest = db:query(sql)
-			print("query result=", dump( res ))
+			local res = db:query(sql)
+			print("query result=", dump(res))
 		end
 		skynet.sleep(100)
 	end

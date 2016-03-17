@@ -28,18 +28,14 @@ function _Meta:__insert_db()
 	skynet.send(util.random_db(), "lua", "command", "insert", self.__tname, t)
 end
 
-function _M:clear()
-	self.__data = {}
-end
-
 function _Meta:__update_db(t)
 	-- body
-	assert(type(t) == "table")
-	local columns = {}
-	for i,v in ipairs(t) do
-		columns[tostring(v)] = self[tostring(v)]
-	end
-	skynet.send(util.random_db(), "lua", "command", "update", self.__tname, {{ id = self.id }}, columns)
+	-- assert(type(t) == "table")
+	-- local columns = {}
+	-- for i,v in ipairs(t) do
+	-- 	columns[tostring(v)] = self[tostring(v)]
+	-- end
+	-- skynet.send(util.random_db(), "lua", "command", "update", self.__tname, {{ id = self.id }}, columns)
 end
 
 function _Meta:__serialize()
@@ -51,13 +47,6 @@ function _Meta:__serialize()
 		end
 	end
 	return r
-end
-
-function _M:update_db()
-	-- body
-	-- local columns = { "finished", "reward_collected", "is_unlock"}
-	-- local condition = { {user_id = self.__user_id}, {csv_id = {}}}
-	-- skynet.send(util.random_db(), "lua", "command", "update_all", _Meta.__tname, condition, columns, self.__data)
 end
 
 function _M.create( P )
@@ -96,6 +85,13 @@ end
 
 function _M:clear()
 	self.__data = {}
+end
+
+function _M:update_db()
+	-- body
+	-- local columns = { "finished", "reward_collected", "is_unlock"}
+	-- local condition = { {user_id = self.__user_id}, {csv_id = {}}}
+	-- skynet.send(util.random_db(), "lua", "command", "update_all", _Meta.__tname, condition, columns, self.__data)
 end
 
 return _M
