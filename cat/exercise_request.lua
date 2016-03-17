@@ -254,9 +254,9 @@ local function add_to_prop( t )
 			prop:__insert_db()
 		end
 
-		if v.propid == const.A_T_GOLD or v.propid == const.A_T_EXP then
+		--[[if v.propid == const.A_T_GOLD or v.propid == const.A_T_EXP then
 			raise_achievement( v.propid , user )
-		end
+		end--]]
 	end		
 end			
 		

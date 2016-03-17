@@ -217,9 +217,9 @@ local function add_to_prop( t )
    					prop:__insert_db()
    				end 	      
 
-   				if v.propid == const.A_T_EXP or v.propid == const.A_T_GOLD then
+   				--[[if v.propid == const.A_T_EXP or v.propid == const.A_T_GOLD then
    					raise_achievement( v.propid , user )
-   				end
+   				end--]]
 
 			else 		
 				local g_role_star = game.g_role_starmgr:get_by_csv_id(assert( u_role.csv_id ) * 1000 + assert( u_role.star ) )
@@ -253,9 +253,9 @@ local function add_to_prop( t )
    				prop:__insert_db()
    			end 
 
-   			if v.propid == const.A_T_EXP or v.propid == const.A_T_GOLD then
+   			--[[if v.propid == const.A_T_EXP or v.propid == const.A_T_GOLD then
    				raise_achievement( v.propid , user )
-   			end
+   			end--]]
    		end     
    	end			
 end				

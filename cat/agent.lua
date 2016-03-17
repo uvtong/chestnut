@@ -566,7 +566,16 @@ function REQUEST:signup()
 		return ret
 	end
 end 
-    
+    	
+local function get_public_email()
+	local r = skynet.call( ".channel" , "lua" , "agent_get_public_email" , user.csv_id , user.pemail_csv_id , user.signup_time )
+	assert( r )
+
+	
+		
+end    	
+	
+	
 function REQUEST:login()
 	assert((#self.account > 1 and #self.password > 1), string.format("from client account:%s, password:%s incorrect.", self.account, self.password))
 	local ret = {}
