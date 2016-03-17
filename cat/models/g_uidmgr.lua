@@ -86,5 +86,12 @@ function _M:get_count()
 	return self.__count
 end
 
+function _M:update_db()
+	-- body
+	local columns = { "entropy" }
+	local condition = { 1, {csv_id = {}}}
+	skynet.send(util.random_db(), "lua", "command", "update_all", _Meta.__tname, condition, columns, self.__data)
+end
+
 return _M
 

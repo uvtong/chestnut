@@ -11,5 +11,5 @@ const.A_T_EXP = 3
 const.UENTROPY = 1
 const.UEMAILENTROPY = 2
 
-const.H_VIP = 5
+const.H_VIP = 6
 return const
