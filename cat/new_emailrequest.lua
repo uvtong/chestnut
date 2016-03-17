@@ -256,12 +256,12 @@ function REQUEST:mail_getreward()
 				else
 					local p = game.g_propmgr:get_by_csv_id( v.itemsn )
 					p.user_id = user.csv_id
-					p.num = v.itemnum 
+					p.num = v.itemnum
 					local prop = user.u_propmgr.create( p )
 					user.u_propmgr:add( prop )
 					prop:__insert_db()
 				end
-
+				
 				--[[if v.itemsn == const.A_T_GOLD or v.itemsn == const.A_T_EXP then
 					raise_achievement( v.itemsn , user )
 				end--]]
@@ -310,9 +310,9 @@ function new_emailrequest:newemail( tval , ... ) -- get a email to group
 end 
 		
 function new_emailrequest:public_email( tvals , user )
-	
-	
-	
+
+
+
 end 
 	
 function SUBSCRIBE:email( tvals , ... ) -- get email from channl , a email to all users 
