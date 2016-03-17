@@ -13,28 +13,48 @@ local game
 local channel
 local u_client_id = {} -- if
 local R = {}
-
+	
 local CMD = {}		
 local SEND_TYPE = { TO_ALL = 1 , TO_GROUP = 2 } 
-
+	
 function CMD:agent_start( user_id, addr )
 	--[[u_client_id.user_id = user_id
 	u_client_id.addr = addr 
-	
+			
 	assert(channel.channel)--]]
 	return channel.channel
 end			
 			
-local function get_public_email_index( pemail_csv_id , signup_time )
+local function get_public_email_index( pemail_csv_id )
+	assert( pemail_csv_id )
 
-end
+	local b = 1 
+	local e = public_emailmgr:get_count()
+	local mid 
 
+	while b <= e do
+		mid = math.floor( ( b + e ) / 2 )
+
+		local tmp = public_emailmgr.__data[ mid ]
+		assert( tmp )
+
+		if tmp.acctime == pemail_csv_id then
+			
+		end 
+
+	end      
+
+end 
+	
 function CMD:agent_get_public_email( ucsv_id , pemail_csv_id , signup_time )
 	assert( ucsv_id and pemail_csv_id and signup_time )
-end
 
 
-function CMD:send_public_email( tvals )
+
+end 
+		
+	
+function CMD:send_public_email_to_all( tvals )
 	print( "channel send_email_to_all is called" )
 
 	assert( tvals )
@@ -58,7 +78,7 @@ function CMD:send_public_email( tvals )
 
 	tvals.csv_id = skynet.call( ".game" , "lua" , "guid" , const.PUBLIC_EMAILENTROPY )
 	assert( tvals.csv_id )
-	
+		
 	channel:publish( "email" , tvals )
 
 	tvals = public_emailmgr.create( tvals )
@@ -68,7 +88,7 @@ function CMD:send_public_email( tvals )
 	--[[local sql = "select csv_id from users where ifonline = 0" -- in users , csv_id now is "uid".
 	local r = skynet.call( util.random_db() , "lua" , "command" , "query" , sql )
 	print( "sizeof r = " , #r )
-		
+			
 	print( "begin to insert" )
 	local tmp = {}
 	for _ , v in ipairs( r ) do
@@ -79,7 +99,7 @@ function CMD:send_public_email( tvals )
 		--ne:__insert_db()
 		table.insert( tmp , ne )	
 	end 
-
+	
 	u_emailmgr.insert_db( tmp )--]]
 end 	
 		
