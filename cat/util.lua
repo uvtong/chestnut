@@ -163,7 +163,7 @@ function util.insert( table_name, columns )
 	columns_str = string.gsub(columns_str, "(.*)%,%s$", "%1)")
 	values_str = string.gsub(values_str, "(.*)%,%s$", "%1)")
 	local sql = string.format("insert into %s ", table_name) .. columns_str .. " values " .. values_str .. ";"
-	-- print_sql(sql)
+	print_sql(sql)
 	return sql
 end
 	
@@ -286,6 +286,7 @@ function util.guid(game, csv_id)
 		h:__insert_db()
 		return t.entropy
 	else
+		print("**********************************", r.entropy)
 		r.entropy = r.entropy + 1
 		r:__update_db({"entropy"})
 		return r.entropy

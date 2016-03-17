@@ -403,7 +403,8 @@ function REQUEST:signup()
 		return ret
 	end
 	local condition = {{ uaccount = self.account}}
-	local addr = util.random_db()
+	-- local addr = util.random_db()
+	local addr = ".db2"
 	local r = skynet.call(addr, "lua", "command", "select", "users", condition)
 	if #r == 0 then
 		local level = skynet.call(game, "lua", "query_g_user_level", 1)
@@ -570,11 +571,7 @@ end
 local function get_public_email()
 	local r = skynet.call( ".channel" , "lua" , "agent_get_public_email" , user.csv_id , user.pemail_csv_id , user.signup_time )
 	assert( r )
-
-	
-		
 end    	
-	
 	
 function REQUEST:login()
 	assert((#self.account > 1 and #self.password > 1), string.format("from client account:%s, password:%s incorrect.", self.account, self.password))
@@ -1017,6 +1014,9 @@ function REQUEST:shop_all()
 			tmp = user.u_goodsmgr.create(v)
 			user.u_goodsmgr:add(tmp)
 			tmp:__insert_db()
+		end
+		for kk,vv in pairs(tmp) do
+			v[kk] = vv
 		end
 		table.insert(ll, v)
 	end
