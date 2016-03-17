@@ -171,7 +171,6 @@ function REQUEST:kungfu_chose()
 	local t = user.u_rolemgr:get_by_csv_id( self.r_csv_id )
 	assert( t )
 
-
 	for i = 1 , KUNGFU_NUM do
 		local k_csv_id = "k_csv_id" .. i
 		t[ k_csv_id ] = 0	
@@ -183,6 +182,10 @@ function REQUEST:kungfu_chose()
 	end
 
 	t:__update_db( { "k_csv_id1" , "k_csv_id2" , "k_csv_id3" , "k_csv_id4" , "k_csv_id5" , "k_csv_id6" , "k_csv_id7" } )
+
+	ret.errorcode = errorcode[ 1 ].code			
+	ret.msg = errorcode[ 1 ].msg
+	return ret
 end			
 			
 function RESPONSE:abc()

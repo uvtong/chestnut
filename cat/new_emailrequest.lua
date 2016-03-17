@@ -3,6 +3,7 @@ local util = require "util"
 local const = require "const"
 local socket = require "socket"
 local skynet = require "skynet"
+local errorcode = require "errorcode"
 local send_package
 local send_request
 
@@ -192,7 +193,9 @@ function REQUEST:mails()
 
 		table.insert( ret.mail_list , tmp )
 	end 
- 	
+	
+ 	ret.errorcode = errorcode[ 1 ].code
+	ret.msg = errorcode[ 1 ].msg
 	print( "mails is called already" , counter )
 
 	return ret
@@ -253,15 +256,15 @@ function REQUEST:mail_getreward()
 				else
 					local p = game.g_propmgr:get_by_csv_id( v.itemsn )
 					p.user_id = user.csv_id
-					p.num = v.itemnum 
+					p.num = v.itemnum
 					local prop = user.u_propmgr.create( p )
 					user.u_propmgr:add( prop )
 					prop:__insert_db()
 				end
-
-				if v.itemsn == const.A_T_GOLD or v.itemsn == const.A_T_EXP then
+				
+				--[[if v.itemsn == const.A_T_GOLD or v.itemsn == const.A_T_EXP then
 					raise_achievement( v.itemsn , user )
-				end
+				end--]]
 			end
 
 			if ( 1 == e.type ) then
@@ -306,10 +309,17 @@ function new_emailrequest:newemail( tval , ... ) -- get a email to group
 	send_package( send_request( "newemail" ,  ret ) )--]]
 end 
 		
+function new_emailrequest:public_email( tvals , user )
+
+
+
+end 
+	
 function SUBSCRIBE:email( tvals , ... ) -- get email from channl , a email to all users 
 	assert( tvals )
 	print( " ***********************************SUBSCRIBE:email " )
-	tvals.csv_id = util.u_guid( user.csv_id, game, const.UEMAILENTROPY )
+	tvals.csv_id = skynet.call( ".game" , "lua" , "u_guid" , const.UEMAILENTROPY )
+
 	tvals.uid = user.csv_id
 	print( "*********************************email csv_id is " , tvals.csv_id )
 	local v =user.u_emailmgr:recvemail( tvals )

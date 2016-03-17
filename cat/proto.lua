@@ -642,7 +642,9 @@ exercise 46 {
  
 exercise_once 47 {
     request {
+        daily_type 0 : integer
         exercise_type 1 : integer
+        exercise_level 2 : integer
     }
     response {
         errorcode 0 : integer
@@ -661,7 +663,9 @@ c_gold 48 {
  
 c_gold_once 49 {
     request {
+        daily_type 0 : integer
         c_gold_type 1 : integer
+        c_gold_level 2 : integer
     }
     response {
         errorcode 0 : integer
@@ -742,6 +746,7 @@ kungfu_levelup 56 {
 	{
 		errorcode 0 : integer
 		msg 1 : string
+        amount 2 : integer
 	}
 }
  
@@ -751,6 +756,10 @@ kungfu_chose 57 {
 		r_csv_id 0 : integer
 		idlist 1 : *kungfu_pos_and_id
 	}
+    response {
+        errorcode 0 : integer
+        msg 1 : string
+    }
 }
 
 user_sign 58 {
