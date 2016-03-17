@@ -7,6 +7,7 @@ local loader = require "loader"
 local const = require "const"
 local dc = require "datacenter"
 local u_emailmgr = require "models/u_emailmgr"	
+local public_emailmgr = require "models/public_emailmgr"
 
 local game
 local channel
@@ -19,14 +20,72 @@ local SEND_TYPE = { TO_ALL = 1 , TO_GROUP = 2 }
 function CMD:agent_start( user_id, addr )
 	--[[u_client_id.user_id = user_id
 	u_client_id.addr = addr 
-
+	
 	assert(channel.channel)--]]
 	return channel.channel
 end			
 			
-function CMD:send_email_to_all( tvals )
+local function get_public_email_index( pemail_csv_id , signup_time )
+
+end
+
+function CMD:agent_get_public_email( ucsv_id , pemail_csv_id , signup_time )
+	assert( ucsv_id and pemail_csv_id and signup_time )
+end
+
+
+function CMD:send_public_email( tvals )
 	print( "channel send_email_to_all is called" )
 
+	assert( tvals )
+
+	tvals.acctime = os.time() -- an integer
+	tvals.isread = 0
+	tvals.isreward = 0
+	tvals.isdel = 0
+	tvals.deltime = 0
+	for i = 1 , 5 do
+		local id = "itemsn" .. i
+		local num = "itemnum" .. i
+		print( id , tvals[id] , num , tvals[num] )
+		if nil == tvals[id] then
+			assert( tvals[num] == nil )
+					
+			tvals[id] = 0
+			tvals[num] = 0
+		end 
+	end     
+
+	tvals.csv_id = skynet.call( ".game" , "lua" , "guid" , const.PUBLIC_EMAILENTROPY )
+	assert( tvals.csv_id )
+	
+	channel:publish( "email" , tvals )
+
+	tvals = public_emailmgr.create( tvals )
+	assert( tvals )
+	public_emailmgr:add( tvals )
+
+	--[[local sql = "select csv_id from users where ifonline = 0" -- in users , csv_id now is "uid".
+	local r = skynet.call( util.random_db() , "lua" , "command" , "query" , sql )
+	print( "sizeof r = " , #r )
+		
+	print( "begin to insert" )
+	local tmp = {}
+	for _ , v in ipairs( r ) do
+		tvals.csv_id =  skynet.call(game, "lua" , "u_guid" , v.csv_id , const.UEMAILENTROPY ) --util.u_guid( v.csv_id , game, const.UEMAILENTROPY ) 
+		tvals.uid = v.csv_id
+		local ne = u_emailmgr.create( tvals )
+		--assert( ne )
+		--ne:__insert_db()
+		table.insert( tmp , ne )	
+	end 
+
+	u_emailmgr.insert_db( tmp )--]]
+end 	
+		
+function CMD:send_email_to_all( tvals )
+	print( "channel send_email_to_all is called" )
+	
 	assert( tvals )
 
 	tvals.acctime = os.time() -- an integer
@@ -63,8 +122,8 @@ function CMD:send_email_to_all( tvals )
 	end 
 
 	u_emailmgr.insert_db( tmp )
-end 	
-		
+end 
+
 function CMD:send_email_to_group( tval , tucsv_id )
 	assert( tval and tucsv_id )
 	print( "send to group is called" )
@@ -173,6 +232,16 @@ end --]]
 	
 -- end
 
+local function load_public_email()
+	-- body
+	
+	local r = skynet.call( util.random_db() , "lua", "command" , "select" , "public_email" )
+	for i , v in ipairs ( r ) do
+		local t = public_emailmgr.create( v )
+		public_emailmgr:add( t )
+	end
+end
+
 skynet.init(function ()
 	-- body
 	game = skynet.uniqueservice("game")
@@ -190,6 +259,8 @@ skynet.start( function ()
 			skynet.ret( skynet.pack( result ) )
 		end
 	end)
+	load_public_email()
+
 	channel = mc.new()
 	skynet.register ".channel"
 	

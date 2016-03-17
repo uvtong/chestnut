@@ -3,6 +3,7 @@ local util = require "util"
 local const = require "const"
 local socket = require "socket"
 local skynet = require "skynet"
+local errorcode = require "errorcode"
 local send_package
 local send_request
 
