@@ -192,7 +192,9 @@ function REQUEST:mails()
 
 		table.insert( ret.mail_list , tmp )
 	end 
- 	
+	
+ 	ret.errorcode = errorcode[ 1 ].code
+	ret.msg = errorcode[ 1 ].msg
 	print( "mails is called already" , counter )
 
 	return ret
