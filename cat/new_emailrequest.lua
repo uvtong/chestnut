@@ -312,7 +312,7 @@ end
 function SUBSCRIBE:email( tvals , ... ) -- get email from channl , a email to all users 
 	assert( tvals )
 	print( " ***********************************SUBSCRIBE:email " )
-	tvals.csv_id = util.u_guid( user.csv_id, game, const.UEMAILENTROPY )
+	tvals.csv_id = skynet.call( ".game" , "lua" , "u_guid" , const.PUBLIC_EMAILENTROPY )
 	tvals.uid = user.csv_id
 	print( "*********************************email csv_id is " , tvals.csv_id )
 	local v =user.u_emailmgr:recvemail( tvals )
