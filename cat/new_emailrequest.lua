@@ -262,9 +262,9 @@ function REQUEST:mail_getreward()
 					prop:__insert_db()
 				end
 
-				if v.itemsn == const.A_T_GOLD or v.itemsn == const.A_T_EXP then
+				--[[if v.itemsn == const.A_T_GOLD or v.itemsn == const.A_T_EXP then
 					raise_achievement( v.itemsn , user )
-				end
+				end--]]
 			end
 
 			if ( 1 == e.type ) then
