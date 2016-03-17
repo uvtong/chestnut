@@ -747,6 +747,7 @@ kungfu_levelup 56 {
 	{
 		errorcode 0 : integer
 		msg 1 : string
+        amount 2 : integer
 	}
 }
  
@@ -756,6 +757,10 @@ kungfu_chose 57 {
 		r_csv_id 0 : integer
 		idlist 1 : *kungfu_pos_and_id
 	}
+    response {
+        errorcode 0 : integer
+        msg 1 : string
+    }
 }
 
 user_sign 58 {
