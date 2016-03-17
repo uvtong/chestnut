@@ -30,6 +30,8 @@
 
 -- package.path = ""
 
+-- 123456
+
 local Q = require "lualib/queue"
 local que = Q.new(32)
 
