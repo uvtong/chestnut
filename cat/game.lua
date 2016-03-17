@@ -383,6 +383,16 @@ function CMD.guid(csv_id)
 	return util.guid(game, csv_id)
 end
 
+local function update_db()
+	-- body
+	while true do
+		if game then
+			game.g_uidmgr:update_db()
+		end
+		skynet.sleep(100 * 60 * 10) -- 1ti == 0.01s
+	end
+end
+
 skynet.start(function()
 	skynet.dispatch("lua", function(_,_, command, ...)
 		print("called", command)
@@ -392,4 +402,5 @@ skynet.start(function()
 			skynet.ret(skynet.pack(result))
 		end
 	end)
+	skynet.fork(update_db)
 end)
