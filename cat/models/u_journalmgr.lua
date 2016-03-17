@@ -105,9 +105,11 @@ end
 
 function _M:update_db()
 	-- body
-	local columns = { "goods_refresh_count", "goods_refresh_reset_count"}
-	local condition = { {user_id = self.__user_id}, {date = {}}}
-	skynet.send(util.random_db(), "lua", "command", "update_all", _Meta.__tname, condition, columns, self.__data)
+	if self.__count > 0 then
+		local columns = { "goods_refresh_count", "goods_refresh_reset_count"}
+		local condition = { {user_id = self.__user_id}, {date = {}}}
+		skynet.send(util.random_db(), "lua", "command", "update_all", _Meta.__tname, condition, columns, self.__data)
+	end
 end
 
 return _M

@@ -4,6 +4,7 @@ local util = require "util"
 local _M = {}
 _M.__data = {}
 _M.__count = 0
+_M.__tname = "g_uid"
 
 local _Meta = { csv_id=0, entropy=0}
 
