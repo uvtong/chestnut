@@ -25,8 +25,8 @@ function CMD:agent_start( user_id, addr )
 	return channel.channel
 end			
 			
-local function get_public_email_index( pemail_csv_id )
-	assert( pemail_csv_id )
+local function get_public_email_index( signup_time )
+	assert( signup_time )
 
 	local b = 1 
 	local e = public_emailmgr:get_count()
@@ -38,22 +38,50 @@ local function get_public_email_index( pemail_csv_id )
 		local tmp = public_emailmgr.__data[ mid ]
 		assert( tmp )
 
-		if tmp.acctime == pemail_csv_id then
-			
+		if tmp.acctime == signup_time then
+			return true , mid
 		end 
 
+		if signup_time < tmp.acctime then
+			e = mid - 1
+		else
+			b = mid + 1
+		end 
 	end      
 
-end 
-	
+	return false , mid
+end 		
+		
 function CMD:agent_get_public_email( ucsv_id , pemail_csv_id , signup_time )
 	assert( ucsv_id and pemail_csv_id and signup_time )
+	local counter
+	local sign 
+	local len = public_emailmgr:get_count()
 
+	if 0 == pemail_csv_id then
+		sign , counter = get_public_email_index( signup_time )
+		if not sign and counter >= len then
+			counter = len + 1
+		end  
+	else   
+		counter = counter + 1
+	end 
 
+	local t = {}
+	for i = counter , len do
+		local tmp = public_emailmgr.__data[ i ]
+		assert( tmp )
 
-end 
+		tmp.pemail_csv_id = tmp.csv_id -- record public email id
+
+		tmp.csv_id = skynet.call( ".game" , "lua" , "u_guid" , ucsv_id , const.PUBLIC_EMAILENTROPY ) -- change pemail_csv_id into user's email csv_id
+					
+		table.insert( t , tmp )
+	end 
+
+	return t
+end 	
 		
-	
 function CMD:send_public_email_to_all( tvals )
 	print( "channel send_email_to_all is called" )
 
