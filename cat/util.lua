@@ -117,7 +117,7 @@ function util.select( table_name, condition, columns )
 		assert(false)
 	end
 	local sql = string.format("select %s from %s", columns_str, table_name) .. condition_str .. ";"
-	-- print_sql(sql)
+	print_sql(sql)
 	return sql
 end
 
@@ -144,7 +144,7 @@ function util.update( table_name, condition, columns )
 		condition_str = " where " .. condition_str
 	end
 	local sql = string.format("update %s ", table_name) .. columns_str .. condition_str .. ";"
-	-- print_sql(sql)
+	print_sql(sql)
 	return sql
 end
 
@@ -212,7 +212,7 @@ function util.insert_all( table_name , tcolumns )
 	end
 	table.insert( tmp , ";" )
 	local sql = string.format("insert into %s ", table_name) .. columns_str .. " values " .. table.concat( tmp ) 
-	-- print_sql(sql)
+	print_sql(sql)
 	return sql
 end 
 
@@ -257,7 +257,7 @@ function util.update_all( table_name, condition, columns, data )
 	end
 	condition_str = condition_str .. t
 	local sql = string.format("update %s ", table_name) .. columns_str .. condition_str .. ";"
-	-- print_sql(sql)
+	print_sql(sql)
 	return sql
 end
 

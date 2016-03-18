@@ -84,7 +84,8 @@ function QUERY:update( table_name, condition, columns, priority)
 	
 	if c_priority > priority then
 		c_priority = priority
-		skynet.yield() -- 
+		-- skynet.yield() -- 
+		skynet.wakeup(priority_queue[c_priority].co)
 	end
 	
 	-- db:query(sql)
@@ -104,7 +105,8 @@ function QUERY:insert( table_name, columns, priority)
 	
 	if c_priority > priority then
 		c_priority = priority
-		skynet.yield() -- 
+		-- skynet.yield() -- 
+		skynet.wakeup(priority_queue[c_priority].co)
 	end
 	-- Queue.enqueue(Q, sql)
 	-- db:query(sql)
@@ -123,8 +125,8 @@ function QUERY:insert_all( table_name , tcolumns, priority)
 	
 	if c_priority > priority then
 		c_priority = priority
-		skynet.yield() -- 
-		skynet.wakeup
+		-- skynet.yield() -- 
+		skynet.wakeup(priority_queue[c_priority].co)
 	end
 
 	-- Queue.enqueue(Q, sql)
@@ -145,7 +147,8 @@ function QUERY:update_all( table_name, condition, columns, data, priority)
 	
 	if c_priority > priority then
 		c_priority = priority
-		skynet.yield() -- 
+		-- skynet.yield() -- 
+		skynet.wakeup(priority_queue[priority].co)
 	end
 
 	-- Queue.enqueue(Q, { table_name=table_name, sql=sql})
@@ -230,36 +233,55 @@ end
 local function query_mysql1()
 	-- body
 	while true do
+		if c_priority ~= const.DB_PRIORITY_1 then
+			skynet.wait()
+		end
 		local r = Queue.dequeue(Q1) 
 		if r then
 			local res = db:query(r.sql)
 			print(string.format("query %s result=", r.table_name), dump(res))
+		else
+			if c_priority < const.DB_PRIORITY_2 then
+				print("abc*********s")
+				c_priority = c_priority + 1
+				skynet.wait()
+			end
 		end
-		skynet.sleep(100)
 	end
 end
 
 local function query_mysql2()
 	-- body
 	while true do
+		if c_priority ~= const.DB_PRIORITY_2 then
+			skynet.wait()
+		end
 		local r = Queue.dequeue(Q2) 
 		if r then
 			local res = db:query(r.sql)
 			print(string.format("query %s result=", r.table_name), dump(res))
+		else
+			if c_priority < const.DB_PRIORITY_3 then
+				c_priority = c_priority + 1
+				skynet.wait()
+			end
 		end
-		skynet.sleep(100)
+		skynet.sleep(100)  -- 1s
 	end
 end
 
 local function query_mysql3()
 	-- body
 	while true do
+		if c_priority ~= const.DB_PRIORITY_3 then
+			skynet.wait()
+		end
 		local r = Queue.dequeue(Q3) 
 		if r then
 			local res = db:query(r.sql)
 			print(string.format("query %s result=", r.table_name), dump(res))
 		end
-		skynet.sleep(100)
+		skynet.sleep(100 * 5) -- 5s
 	end
 end
 

@@ -74,11 +74,11 @@ function _M.insert_db( values )
 	skynet.send( util.random_db() , "lua" , "command" , "insert_all" , _Meta.__tname , total )
 end 
 
-function _M:update_db()
+function _M:update_db(priority)
 	-- body
 	local columns = { "isread", "isdel", "isreward"}
 	local condition = { {uid = self.__user_id}, {csv_id = {}}}
-	skynet.send(util.random_db(), "lua", "command", "update_all", _Meta.__tname, condition, columns, self.__data)
+	skynet.send(util.random_db(), "lua", "command", "update_all", _Meta.__tname, condition, columns, self.__data, priority)
 end
 
 function _M.create( P )

@@ -100,6 +100,11 @@ function _M:get_count()
 	return self.__count
 end
 
+function _M:clear()
+	self.__data = {}
+	self.__count = 0
+end
+
 function _M:update_db()
 	-- body
 	if self.__count > 0 then
@@ -109,11 +114,6 @@ function _M:update_db()
 		local condition = { {user_id = self.__user_id}, {csv_id = {}}}
 		skynet.send(util.random_db(), "lua", "command", "update_all", _Meta.__tname, condition, columns, self.__data)
 	end
-end
-
-function _M:clear()
-	self.__data = {}
-	self.__count = 0
 end
 
 return _M

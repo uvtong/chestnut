@@ -51,12 +51,12 @@ local function send_package(pack)
 	socket.write(client_fd, package)
 end
 
-local function flush_db()
+local function flush_db(priority)
 	-- body
 	if user then
 		for k,v in pairs(user) do
 			if string.match(k, "^u_%w+mgr$") then
-				v:update_db()
+				v:update_db(priority)
 			end
 		end
 		user:__update_db({"uaccount", "upassword", "uviplevel", "config_sound", "config_music", 
@@ -66,7 +66,7 @@ local function flush_db()
 			"checkin_num", "checkin_reward_num", "exercise_level", "cgold_level", "gold_max",
 			"exp_max", "equipment_enhance_success_rate_up_p", "store_refresh_count_max",
 			"prop_refresh", "arena_frozen_time", "purchase_hp_count", "gain_gold_up_p", "gain_exp_up_p",
-			"purchase_hp_count_max", "SCHOOL_reset_count_max", "SCHOOL_reset_count"})
+			"purchase_hp_count_max", "SCHOOL_reset_count_max", "SCHOOL_reset_count"}, priority)
 	end
 end
 
