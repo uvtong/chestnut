@@ -907,7 +907,7 @@ function REQUEST:user()
 		table.insert(ret.user.equipment_list, v)
 	end
 	ret.user.kungfu_list = {}
-	for k,v in pairs(user.u_kungfu_list.__data) do
+	for k,v in pairs(user.u_kungfumgr.__data) do
 		table.insert(ret.user.kungfu_list, v)
 	end
 	ret.user.rolelist = {}
