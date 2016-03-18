@@ -10,7 +10,7 @@ const.A_T_EXP = 3
 
 const.UENTROPY = 1
 const.UEMAILENTROPY = 2
-const.PUBLIC.EMAILENTROPY = 3
+const.PUBLIC_EMAILENTROPY = 3
 
 const.H_VIP = 6
 return const
