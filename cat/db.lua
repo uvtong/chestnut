@@ -4,12 +4,14 @@ local mysql = require "mysql"
 local redis = require "redis"
 local util = require "util"
 local Queue = require "queue"
+local const = require "const"
 
 local frienddb = require "frienddb"
 
 local db
 local cache 
-local Q
+local priority_queue = {}
+local c_priority = const.DB_PRIORITY_1
 
 local function dump(obj)
     local getIndent, quoteStr, wrapKey, wrapVal, dumpObj
@@ -68,30 +70,85 @@ function QUERY:select( table_name, condition, columns)
 	return db:query(sql)
 end
 
-function QUERY:update( table_name, condition, columns )
+function QUERY:update( table_name, condition, columns, priority)
 	-- body
+	assert(priority, "you must provide priority")
 	local sql = util.update(table_name, condition, columns)
-	Queue.enqueue(Q, { table_name=table_name, sql=sql})
+	if priority == const.DB_PRIORITY_1 then
+		Queue.enqueue(priority_queue[priority].Q, { table_name=table_name, sql=sql})
+	elseif priority == const.DB_PRIORITY_2 then
+		Queue.enqueue(priority_queue[priority].Q, { table_name=table_name, sql=sql})
+	elseif priority == const.DB_PRIORITY_3 then
+		Queue.enqueue(priority_queue[priority].Q, { table_name=table_name, sql=sql})
+	end
+	
+	if c_priority > priority then
+		c_priority = priority
+		skynet.yield() -- 
+	end
+	
 	-- db:query(sql)
 end
 
-function QUERY:insert( table_name, columns )
+function QUERY:insert( table_name, columns, priority)
 	-- body
+	assert(priority, "you must provide priority")
 	local sql = util.insert(table_name, columns)
+	if priority == const.DB_PRIORITY_1 then
+		Queue.enqueue(priority_queue[priority].Q, { table_name=table_name, sql=sql})
+	elseif priority == const.DB_PRIORITY_2 then
+		Queue.enqueue(priority_queue[priority].Q, { table_name=table_name, sql=sql})
+	elseif priority == const.DB_PRIORITY_3 then
+		Queue.enqueue(priority_queue[priority].Q, { table_name=table_name, sql=sql})
+	end
+	
+	if c_priority > priority then
+		c_priority = priority
+		skynet.yield() -- 
+	end
 	-- Queue.enqueue(Q, sql)
-	db:query(sql)
+	-- db:query(sql)
 end
 
-function QUERY:insert_all( table_name , tcolumns )
+function QUERY:insert_all( table_name , tcolumns, priority)
+	assert(priority, "you must provide priority")
 	local sql = util.insert_all( table_name , tcolumns )
+	if priority == const.DB_PRIORITY_1 then
+		Queue.enqueue(priority_queue[priority].Q, { table_name=table_name, sql=sql})
+	elseif priority == const.DB_PRIORITY_2 then
+		Queue.enqueue(priority_queue[priority].Q, { table_name=table_name, sql=sql})
+	elseif priority == const.DB_PRIORITY_3 then
+		Queue.enqueue(priority_queue[priority].Q, { table_name=table_name, sql=sql})
+	end
+	
+	if c_priority > priority then
+		c_priority = priority
+		skynet.yield() -- 
+		skynet.wakeup
+	end
+
 	-- Queue.enqueue(Q, sql)
-	db:query(sql)
+	-- db:query(sql)
 end
 
-function QUERY:update_all( table_name, condition, columns, data )
+function QUERY:update_all( table_name, condition, columns, data, priority)
 	-- body
+	assert(priority, "you must provide priority")
 	local sql = util.update_all(table_name, condition, columns, data)
-	Queue.enqueue(Q, { table_name=table_name, sql=sql})
+	if priority == const.DB_PRIORITY_1 then
+		Queue.enqueue(priority_queue[priority].Q, { table_name=table_name, sql=sql})
+	elseif priority == const.DB_PRIORITY_2 then
+		Queue.enqueue(priority_queue[priority].Q, { table_name=table_name, sql=sql})
+	elseif priority == const.DB_PRIORITY_3 then
+		Queue.enqueue(priority_queue[priority].Q, { table_name=table_name, sql=sql})
+	end
+	
+	if c_priority > priority then
+		c_priority = priority
+		skynet.yield() -- 
+	end
+
+	-- Queue.enqueue(Q, { table_name=table_name, sql=sql})
 end
 
 -- friend	
@@ -170,10 +227,34 @@ function connect_mysql( ... )
 	return db
 end
 
-local function query_mysql()
+local function query_mysql1()
 	-- body
 	while true do
-		local r = Queue.dequeue(Q) 
+		local r = Queue.dequeue(Q1) 
+		if r then
+			local res = db:query(r.sql)
+			print(string.format("query %s result=", r.table_name), dump(res))
+		end
+		skynet.sleep(100)
+	end
+end
+
+local function query_mysql2()
+	-- body
+	while true do
+		local r = Queue.dequeue(Q2) 
+		if r then
+			local res = db:query(r.sql)
+			print(string.format("query %s result=", r.table_name), dump(res))
+		end
+		skynet.sleep(100)
+	end
+end
+
+local function query_mysql3()
+	-- body
+	while true do
+		local r = Queue.dequeue(Q3) 
 		if r then
 			local res = db:query(r.sql)
 			print(string.format("query %s result=", r.table_name), dump(res))
@@ -224,6 +305,16 @@ skynet.start( function ()
 	
 	frienddb.getvalue( db , cache )
 
-	Q = Queue.new(128)
-	skynet.fork(query_mysql)
+	Q1 = Queue.new(128)
+	Q2 = Queue.new(128)
+	Q3 = Queue.new(128)
+
+	co1 = skynet.fork(query_mysql1)
+	co2 = skynet.fork(query_mysql2)
+	co3 = skynet.fork(query_mysql3)
+
+	priority_queue[const.DB_PRIORITY_1] = { Q = Q1, co = co1}
+	priority_queue[const.DB_PRIORITY_2] = { Q = Q2, co = co2}
+	priority_queue[const.DB_PRIORITY_3] = { Q = Q3, co = co3}
+
 end)

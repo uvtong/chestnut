@@ -969,7 +969,7 @@ function REQUEST:user_upgrade()
 	local user_level_max
 	local ptr = skynet.call(game, "lua", "query_g_config")
 	tptr.createtable(ptr)
-	for _,k,v in pairs(ptr) do
+	for _,k,v in tptr.pairs(ptr) do
 		if k == "user_level_max" then
 			user_level_max = v
 			break
@@ -979,27 +979,28 @@ function REQUEST:user_upgrade()
 		ret.errorcode = errorcode[30].code
 		ret.msg = errorcode[30].msg
 		return ret
-	end
-	local L = skynet.call(game, "lua", "query_g_user_level", user.level + 1)
-	local prop = user.u_propmgr:get_by_csv_id(const.EXP)
-	if prop.num >= tonumber(L.exp) then
-		prop.num = prop.num - L.exp
-		prop:__update_db({"num"})
-		user.level = L.level
-		user.combat = L.combat
-		user.defense = L.defense
-		user.critical_hit = L.critical_hit
-		user.blessing = L.skill              -- blessing.
-		user.gold_max = assert(L.gold_max)
-		user.exp_max = assert(L.exp_max)
-		-- user:__update_db({ "level", "combat", "defense", "critical_hit", "blessing", "gold_max", "exp_max"})
-		ret.errorcode = errorcode[1].code
-		ret.msg = errorcode[1].msg
-		return ret
 	else
-		ret.errorcode = errorcode[19].code
-		ret.msg	= errorcode[19].msg
-		return ret
+		local L = skynet.call(game, "lua", "query_g_user_level", user.level + 1)
+		local prop = user.u_propmgr:get_by_csv_id(const.EXP)
+		if prop.num >= tonumber(L.exp) then
+			prop.num = prop.num - L.exp
+			prop:__update_db({"num"})
+			user.level = L.level
+			user.combat = L.combat
+			user.defense = L.defense
+			user.critical_hit = L.critical_hit
+			user.blessing = L.skill              -- blessing.
+			user.gold_max = assert(L.gold_max)
+			user.exp_max = assert(L.exp_max)
+			-- user:__update_db({ "level", "combat", "defense", "critical_hit", "blessing", "gold_max", "exp_max"})
+			ret.errorcode = errorcode[1].code
+			ret.msg = errorcode[1].msg
+			return ret
+		else
+			ret.errorcode = errorcode[19].code
+			ret.msg	= errorcode[19].msg
+			return ret
+		end
 	end
 end
 
@@ -1441,8 +1442,18 @@ function REQUEST:recharge_purchase()
 		rr:__insert_db()
 
 		-----------------------------
+		local user_vip_max
+		local ptr = skynet.call(game, "lua", "query_g_config")
+		tptr.createtable(ptr)
+		for _,k,v in tptr.pairs(ptr) do
+			if k == "user_vip_max" then
+				user_vip_max = v
+				break
+			end
+		end
+		assert(user_vip_max)
 		repeat
-			if user.uviplevel >= const.H_VIP then
+			if user.uviplevel >= user_vip_max then
 				break
 			end
 			local condition = skynet.call(game, "lua", "query_g_recharge_vip_reward", user.uviplevel + 1)

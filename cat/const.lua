@@ -12,5 +12,8 @@ const.UENTROPY = 1
 const.UEMAILENTROPY = 2
 const.PUBLIC_EMAILENTROPY = 3
 
-const.H_VIP = 6
+const.DB_PRIORITY_1 = 1
+const.DB_PRIORITY_2 = 1
+const.DB_PRIORITY_3 = 1
+
 return const
