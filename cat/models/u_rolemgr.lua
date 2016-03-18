@@ -105,14 +105,14 @@ function _M:clear()
 	self.__count = 0
 end
 
-function _M:update_db()
+function _M:update_db(priority)
 	-- body
 	if self.__count > 0 then
 		local columns = { "name", "star", "us_prop_csv_id", "us_prop_num", "sharp", "skill_csv_id", "gather_buffer_id", 
 					"battle_buffer_id", "k_csv_id1", "k_csv_id2", "k_csv_id3", "k_csv_id4", "k_csv_id5", 
 					"k_csv_id6", "k_csv_id7"}
 		local condition = { {user_id = self.__user_id}, {csv_id = {}}}
-		skynet.send(util.random_db(), "lua", "command", "update_all", _Meta.__tname, condition, columns, self.__data)
+		skynet.send(util.random_db(), "lua", "command", "update_all", _Meta.__tname, condition, columns, self.__data, priority)
 	end
 end
 

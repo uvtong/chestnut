@@ -190,23 +190,23 @@ proto.c2s = sprotoparser.parse [[.package {
 .user {
     uname 0 : string 
     uviplevel 1 : integer
-    uexp 2 : integer
-    config_sound 3 : boolean
-    config_music 4 : boolean
-    avatar 5 : integer
-    sign 6 : string
-    c_role_id 7 : integer
-    rolelist 8 : *role
+    config_sound 2 : boolean
+    config_music 3 : boolean
+    avatar 4 : integer
+    sign 5 : string
+    c_role_id 6 : integer
+    level 7 : integer
+    uexp 8 : integer
     gold 9 : integer
     diamond 10 : integer
-    recharge_total 11 : integer
-    recharge_vip 12 : integer
-    recharge_progress 13 : integer
-    recharge_diamond 14 : integer
-    love 15 : integer
+    love 11 : integer
+    recharge_total 12 : integer
+    recharge_vip 13 : integer
+    recharge_progress 14 : integer
+    recharge_diamond 15 : integer
     equipment_list 16 : *equipment
     kungfu_list 17 : *kungfu_content
-    level 18 : integer
+    rolelist 18 : *role
 }
 
 handshake 1 {

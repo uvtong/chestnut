@@ -5,6 +5,7 @@ require "skynet.manager"
 local util = require "util"
 local loader = require "loader"
 local tptr = require "tablepointer"
+local const = require "const"
 local game
 
 local CMD = {}
@@ -394,9 +395,10 @@ local function update_db()
 	-- body
 	while true do
 		if game then
-			game.g_uidmgr:update_db()
+			print("*****************************************g_uidmgr:update_db")
+			game.g_uidmgr:update_db(const.DB_PRIORITY_2)
 		end
-		skynet.sleep(100 * 60 * 10) -- 1ti == 0.01s
+		skynet.sleep(100 * 60) -- 1ti == 0.01s
 	end
 end
 

@@ -5,8 +5,9 @@ local util = {}
 function util.random_db()
 	-- body
 	-- local r = math.random(1, 5)
-	local r = 1
-	local addr = skynet.localname(string.format(".db%d", math.floor(r))) 
+	-- local r = 1
+	-- local addr = skynet.localname(string.format(".db%d", math.floor(r))) 
+	local addr = ".db"
 	return addr
 end
 

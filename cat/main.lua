@@ -9,11 +9,13 @@ skynet.start(function()
 	skynet.uniqueservice("protoloader")
 	local console = skynet.newservice("console")
 	skynet.newservice("debug_console",8000)
-	for i=1,5 do
-		local db = skynet.newservice("db")
-		skynet.name(string.format(".db%d", i), db)
-	end
+	-- for i=1,5 do
+	-- 	local db = skynet.newservice("db")
+	-- 	skynet.name(string.format(".db%d", i), db)
+	-- end
 
+	local db = skynet.uniqueservice("db")
+	skynet.name(".db", db)
 	local game = skynet.uniqueservice("game")
    	skynet.newservice("channel")
 	skynet.newservice("randomdraw")

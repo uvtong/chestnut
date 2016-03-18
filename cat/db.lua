@@ -72,7 +72,7 @@ end
 
 function QUERY:update( table_name, condition, columns, priority)
 	-- body
-	assert(priority, "you must provide priority")
+	assert(priority and priority >= const.DB_PRIORITY_1 and priority <= const.DB_PRIORITY_3, string.format("when query %s you must provide priority", table_name))
 	local sql = util.update(table_name, condition, columns)
 	if priority == const.DB_PRIORITY_1 then
 		Queue.enqueue(priority_queue[priority].Q, { table_name=table_name, sql=sql})
@@ -80,10 +80,13 @@ function QUERY:update( table_name, condition, columns, priority)
 		Queue.enqueue(priority_queue[priority].Q, { table_name=table_name, sql=sql})
 	elseif priority == const.DB_PRIORITY_3 then
 		Queue.enqueue(priority_queue[priority].Q, { table_name=table_name, sql=sql})
+	else
+		assert(false)
 	end
 	
 	if c_priority > priority then
 		c_priority = priority
+		print(c_priority)
 		-- skynet.yield() -- 
 		skynet.wakeup(priority_queue[c_priority].co)
 	end
@@ -93,7 +96,7 @@ end
 
 function QUERY:insert( table_name, columns, priority)
 	-- body
-	assert(priority, "you must provide priority")
+	assert(priority and priority >= const.DB_PRIORITY_1 and priority <= const.DB_PRIORITY_3, string.format("when query %s you must provide priority", table_name))
 	local sql = util.insert(table_name, columns)
 	if priority == const.DB_PRIORITY_1 then
 		Queue.enqueue(priority_queue[priority].Q, { table_name=table_name, sql=sql})
@@ -113,7 +116,7 @@ function QUERY:insert( table_name, columns, priority)
 end
 
 function QUERY:insert_all( table_name , tcolumns, priority)
-	assert(priority, "you must provide priority")
+	assert(priority and priority >= const.DB_PRIORITY_1 and priority <= const.DB_PRIORITY_3, string.format("when query %s you must provide priority", table_name))
 	local sql = util.insert_all( table_name , tcolumns )
 	if priority == const.DB_PRIORITY_1 then
 		Queue.enqueue(priority_queue[priority].Q, { table_name=table_name, sql=sql})
@@ -122,20 +125,18 @@ function QUERY:insert_all( table_name , tcolumns, priority)
 	elseif priority == const.DB_PRIORITY_3 then
 		Queue.enqueue(priority_queue[priority].Q, { table_name=table_name, sql=sql})
 	end
-	
 	if c_priority > priority then
 		c_priority = priority
 		-- skynet.yield() -- 
 		skynet.wakeup(priority_queue[c_priority].co)
 	end
-
 	-- Queue.enqueue(Q, sql)
 	-- db:query(sql)
 end
 
 function QUERY:update_all( table_name, condition, columns, data, priority)
 	-- body
-	assert(priority, "you must provide priority")
+	assert(priority and priority >= const.DB_PRIORITY_1 and priority <= const.DB_PRIORITY_3, string.format("when query %s you must provide priority", table_name))
 	local sql = util.update_all(table_name, condition, columns, data)
 	if priority == const.DB_PRIORITY_1 then
 		Queue.enqueue(priority_queue[priority].Q, { table_name=table_name, sql=sql})
@@ -242,9 +243,11 @@ local function query_mysql1()
 			print(string.format("query %s result=", r.table_name), dump(res))
 		else
 			if c_priority < const.DB_PRIORITY_2 then
-				print("abc*********s")
+				print("Q1 begin")
 				c_priority = c_priority + 1
+				local co = priority_queue[c_priority].co
 				skynet.wait()
+				print("Q1 end")
 			end
 		end
 	end
@@ -262,8 +265,11 @@ local function query_mysql2()
 			print(string.format("query %s result=", r.table_name), dump(res))
 		else
 			if c_priority < const.DB_PRIORITY_3 then
+				print("Q2 begin")
 				c_priority = c_priority + 1
+				local co = priority_queue[c_priority].co
 				skynet.wait()
+				print("Q2 end")
 			end
 		end
 		skynet.sleep(100)  -- 1s
@@ -280,8 +286,13 @@ local function query_mysql3()
 		if r then
 			local res = db:query(r.sql)
 			print(string.format("query %s result=", r.table_name), dump(res))
+		else
+			-- skynet.yield()
+			skynet.wait()
 		end
+		print("Q3 begin")
 		skynet.sleep(100 * 5) -- 5s
+		print("Q3 end")
 	end
 end
 

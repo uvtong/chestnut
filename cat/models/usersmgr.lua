@@ -59,14 +59,15 @@ function _Meta:__insert_db()
 	skynet.send(util.random_db(), "lua", "command", "insert", self.__tname, t)
 end
 
-function _Meta:__update_db(t)
+function _Meta:__update_db(t, priority)
 	-- body
+	assert(priority)
 	assert(type(t) == "table")
 	local columns = {}
 	for i,v in ipairs(t) do
 		columns[tostring(v)] = self[tostring(v)]
 	end
-	skynet.send(util.random_db(), "lua", "command", "update", self.__tname, {{ csv_id = self.csv_id }}, columns)
+	skynet.send(util.random_db(), "lua", "command", "update", self.__tname, {{ csv_id = self.csv_id }}, columns, priority)
 end
 
 function _Meta:__serialize()

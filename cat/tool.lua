@@ -33,14 +33,14 @@ function _Meta:__insert_db()
 	skynet.send(util.random_db(), "lua", "command", "insert", self.__tname, t)
 end
 
-function _Meta:__update_db(t)
+function _Meta:__update_db(t, priority)
 	-- body
 	-- assert(type(t) == "table")
 	-- local columns = {}
 	-- for i,v in ipairs(t) do
 	-- 	columns[tostring(v)] = self[tostring(v)]
 	-- end
-	-- skynet.send(util.random_db(), "lua", "command", "update", self.__tname, {{ user_id=self.user_id, csv_id=self.csv_id }}, columns)
+	-- skynet.send(util.random_db(), "lua", "command", "update", self.__tname, {{ user_id=self.user_id, csv_id=self.csv_id }}, columns, priority)
 end
 
 function _M.insert_db( values )
@@ -98,12 +98,12 @@ function _M:clear()
 	self.__count = 0
 end
 
-function _M:update_db()
+function _M:update_db(priority)
 	-- body
 	if self.__count > 0 then
 		local columns = { "finished", "reward_collected", "is_unlock"}
 		local condition = { {user_id = self.__user_id}, {csv_id = {}}}
-		skynet.send(util.random_db(), "lua", "command", "update_all", _Meta.__tname, condition, columns, self.__data)
+		skynet.send(util.random_db(), "lua", "command", "update_all", _Meta.__tname, condition, columns, self.__data, priority)
 	end
 end
 

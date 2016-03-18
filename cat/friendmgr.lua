@@ -83,7 +83,8 @@ end
 	
 local function randomaddr()
 	local r = math.random( 1 , 5 )
-	local addr = skynet.localname( string.format( ".db%d", math.floor( r ) ) )
+	-- local addr = skynet.localname( string.format( ".db%d", math.floor( r ) ) )
+	local addr = ".db"
 	--print("addr is " .. addr )
 	assert( addr , "randomaddr failed\n" )
 

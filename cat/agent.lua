@@ -576,7 +576,7 @@ local function get_public_email()
 		assert( v and v.pemail_csv_id )
 		
 		user.pemail_csv_id = v.pemail_csv_id
-		user:__update_db( { "pemail_csv_id" } )
+		user:__update_db( { "pemail_csv_id" }, const.DB_PRIORITY_2)
 
 		v.pemail_csv_id = nil
 		new_emailrequest:public_email( v , user )
@@ -593,7 +593,7 @@ function REQUEST:login()
 			return ret
 		else
 			user.ifonline = 0
-			flush_db()
+			flush_db(const.DB_PRIORITY_1)
 			dc.set(user.csv_id, nil)
 			loader.clear(user)
 			user = nil
@@ -625,7 +625,7 @@ function REQUEST:login()
 		local onlinetime = os.time()
 		user.ifonline = 1
 		user.onlinetime = onlinetime
-		user:__update_db({"ifonline", "onlinetime"})
+		user:__update_db({"ifonline", "onlinetime"}, const.DB_PRIORITY_2)
 		user.friendmgr = friendmgr:loadfriend( user , dc )
 		friendrequest.getvalue(user, send_package, send_request)
 
@@ -675,10 +675,10 @@ function REQUEST:logout()
 		return ret
 	end
 	assert(user)
-	flush_db()
+	flush_db(const.DB_PRIORITY_1)
 	loader.clear( user )
 	user.ifonline = 0
-	user:__update_db({"ifonline"})
+	user:__update_db({"ifonline"}, const.DB_PRIORITY_1)
 	dc.set(user.csv_id , nil)
 	user = nil
 	ret.errorcode = errorcode[1].code
@@ -888,20 +888,32 @@ function REQUEST:user()
 	ret.user = {
 		uname = user.uname,
     	uviplevel = user.uviplevel,
-    	uexp = user.uexp,
-    	config_sound = user.config_sound and true or false,
-    	config_music = user.config_music and true or false,
+    	config_sound = (user.config_sound == 1) and true or false,
+    	config_music = (user.config_music == 1) and true or false,
     	avatar = user.avatar,
     	sign = user.sign,
     	c_role_id = user.c_role_id,
+    	level = user.level,
     	recharge_total = user.recharge_rmb,
     	recharge_diamond = user.recharge_diamond,
     	recharge_progress = user.uvip_progress,
-    	level = user.level
+    	uexp = assert(user.u_propmgr:get_by_csv_id(const.EXP)).num,
+    	gold = assert(user.u_propmgr:get_by_csv_id(const.GOLD)).num,
+    	diamond = assert(user.u_propmgr:get_by_csv_id(const.DIAMOND)).num,
+    	love = assert(user.u_propmgr:get_by_csv_id(const.LOVE)).num,
 	}
-	ret.user.uexp = assert(user.u_propmgr:get_by_csv_id(const.EXP)).num
-	ret.user.gold = assert(user.u_propmgr:get_by_csv_id(const.GOLD)).num
-	ret.user.diamond = assert(user.u_propmgr:get_by_csv_id(const.DIAMOND)).num
+	ret.user.equipment_list = {}
+	for k,v in pairs(user.u_equipmentmgr.__data) do
+		table.insert(ret.user.equipment_list, v)
+	end
+	ret.user.kungfu_list = {}
+	for k,v in pairs(user.u_kungfu_list.__data) do
+		table.insert(ret.user.kungfu_list, v)
+	end
+	ret.user.rolelist = {}
+	for k,v in pairs(user.u_rolemgr.__data) do
+		table.insert(ret.user.rolelist, v)
+	end
 	return ret
 end
 
@@ -938,7 +950,7 @@ function REQUEST:user_modify_name()
 			prop:__update_db({"num"})
 			user.uname = self.name
 			user.modify_uname_count = user.modify_uname_count + 1
-			user:__update_db({"modify_uname_count", "uname"})
+			user:__update_db({"modify_uname_count", "uname"}, const.DB_PRIORITY_2)
 			ret.errorcode = errorcode[1].code
 			ret.msg = errorcode[1].msg
 			return ret
@@ -950,7 +962,7 @@ function REQUEST:user_modify_name()
 	else
 		user.uname = self.name
 		user.modify_uname_count = user.modify_uname_count + 1
-		user:__update_db({"modify_uname_count", "uname"})
+		user:__update_db({"modify_uname_count", "uname"}, const.DB_PRIORITY_2)
 		ret.errorcode = errorcode[1].code
 		ret.msg = errorcode[1].msg
 		return ret
@@ -1419,7 +1431,7 @@ function REQUEST:recharge_purchase()
 		assert(user.recharge_diamond)
 		user.recharge_rmb = user.recharge_rmb + goods.rmb * v.num
 		user.recharge_diamond = user.recharge_diamond + goods.diamond * v.num
-		user:__update_db({"recharge_rmb", "recharge_diamond"})
+		user:__update_db({"recharge_rmb", "recharge_diamond"}, const.DB_PRIORITY_2)
 		local rc = user.u_recharge_countmgr:get_by_csv_id(v.csv_id)
 		if rc then
 			rc.count = rc.count + 1
@@ -1480,10 +1492,10 @@ function REQUEST:recharge_purchase()
 									"prop_refresh", 
 									"arena_frozen_time",
 									"gain_gold_up_p",
-									"gain_gold_up_p"})
+									"gain_gold_up_p"}, const.DB_PRIORITY_2)
 			else
 				user.uvip_progress = math.floor(progress * 100)
-				user:__update_db({"uvip_progress"})
+				user:__update_db({"uvip_progress"}, const.DB_PRIORITY_2)
 				break
 			end
 		until false
@@ -1826,7 +1838,7 @@ function REQUEST:user_sign()
 	end
 	assert(user)
 	user.sign = self.sign
-	user:__update_db({"sign"})
+	user:__update_db({"sign"}, const.DB_PRIORITY_2)
 	ret.errorcode = errorcode[1].code
 	ret.msg = errorcode[1].msg
 	return ret
@@ -2075,11 +2087,11 @@ end
 function CMD.disconnect()
 	-- todo: do something before exit
 	local str = string.format("client %d disconnect, ", client_fd)
-	flush_db()
+	flush_db(const.DB_PRIORITY_1)
 	if user then
 		str = str .. str.format("user %d will quit", user.csv_id)
 		user.ifonline = 0
-		user:__update_db({"ifonline"})
+		user:__update_db({"ifonline"}, const.DB_PRIORITY_2)
 		dc.set( user.csv_id , nil )
 	else
 		str = str .. "user has quit."
@@ -2105,7 +2117,7 @@ end
 local function update_db()
 	-- body
 	while true do
-		flush_db()
+		-- flush_db(const.DB_PRIORITY_3)
 		skynet.sleep(100 * 60) -- 1ti == 0.01s
 	end
 end
