@@ -956,6 +956,20 @@ function REQUEST:user_upgrade()
 		return ret
 	end
 	assert(user)
+	local user_level_max
+	local ptr = skynet.call(game, "lua", "query_g_config")
+	tptr.createtable(ptr)
+	for _,k,v in pairs(ptr) do
+		if k == "user_level_max" then
+			user_level_max = v
+			break
+		end
+	end
+	if user.level + 1 >= user_level_max then
+		ret.errorcode = errorcode[30].code
+		ret.msg = errorcode[30].msg
+		return ret
+	end
 	local L = skynet.call(game, "lua", "query_g_user_level", user.level + 1)
 	local prop = user.u_propmgr:get_by_csv_id(const.EXP)
 	if prop.num >= tonumber(L.exp) then
@@ -1934,29 +1948,27 @@ local function request(name, args, response)
     	end
     end
     assert(f)
+    assert(response)
     local ok, result = pcall(f, args)
     if not ok then
     	skynet.error(result)
-    	if response then
-    		local ret = {
-    			errorcode = errorcode[29].code,
-    			msg = errorcode[29].msg
-    		}
-    		return response(ret)
-    	end
+		local ret = {
+			errorcode = errorcode[29].code,
+			msg = errorcode[29].msg
+		}
+		return response(ret)
+    else
+	    if name == "login" then
+	    	if result.errorcode == errorcode[1].code then
+	    		for k,v in pairs(M) do
+	    			if v.REQUEST then
+	    				v.REQUEST[name](v.REQUEST, user)
+	    			end
+	    		end
+	    	end
+	    end
+	    return response(result)
     end
-    if name == "login" then
-    	if result.errorcode == errorcode[1].code then
-    		for k,v in pairs(M) do
-    			if v.REQUEST then
-    				v.REQUEST[name](v.REQUEST, user)
-    			end
-    		end
-    	end
-    end
-    if response then
-    	return response(result)
-    end               
 end      
 
 function RESPONSE:finish_achi( ... )

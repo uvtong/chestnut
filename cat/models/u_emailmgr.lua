@@ -86,7 +86,7 @@ function _M.create( P )
 	local u = _Meta.__new()
 	for k , v in pairs( _Meta ) do
 		if not string.match( k, "^__*" ) then
-			--print( k , v , P[k])
+			print( k , v , P[k])
 			u[ k ] = assert( P[ k ] )
 		end
 	end
@@ -121,7 +121,9 @@ end
 	
 function _M:recvemail( tvals )
 	assert( tvals )
-
+	for k  , v in pairs( tvals ) do
+		print( k , v )
+	end
 	local newemail = self.create( tvals )
 	assert( newemail )
 	self:add( newemail )

@@ -3,6 +3,7 @@ local skynet = require "skynet"
 require "skynet.manager"
 local util = require "util"
 local json = require "json"
+local errorcode = require "errorcode"
 local template = require "resty.template"
 template.caching(true)
 template.precompile("index.html")
@@ -21,9 +22,7 @@ function VIEW.index()
 	function R:__get()
 		-- body
 		-- local query = self.query
-		print( "view index is called" )
 		--for i = 1 , 100 do
-			skynet.send(".channel", "lua", "send_email_to_group" , { type = 2 , title = "hello" , content = "world" , itemsn1 = 10022 , itemnum1 = 500 , itemsn2 = 20001 , itemnum2 = 500 , itemsn3 = 20003 , itemnum3 = 500 , iconid = 10001 }  , { { csv_id = 212 } } )
 		--end
 		local func = template.compile( path( "index.html" ) )
 		local r = func { message = "hello, world."}
@@ -93,20 +92,40 @@ function VIEW.email()
 		-- body
 		-- local query = self.query
 		local func = template.compile(path("email.html"))
-		return func { message = "fill in the blank text."}
+		return func { message = "EMAIL"}
 	end
 	function R:__post()
 		-- body
 		-- local body = self.body
 		for k,v in pairs(self.body) do
-			print(k,v)
+			print(k,v, type(v))
 		end
+		local send_type = tonumber(self.body["send_type"])
 		local c = {}
-		c["head"] = self.body["txt1"]
-		c["content"] = self.body["txt2"]
-		-- skynet.send(".channel", "lua", "cmd", c)
-
-		return "send succss."
+		c["type"] = tonumber(self.body["type"])  -- 1 or 2
+		c["title"] = self.body["title"]
+		c["content"] = self.body["content"]
+		c["itemsn1"] = tonumber(self.body["itemsn1"])
+		c["itemnum1"] = tonumber(self.body["itemnum1"])
+		c["itemsn2"] = tonumber(self.body["itemsn2"])
+		c["itemnum2"] = tonumber(self.body["itemnum2"])
+		c["itemsn3"] = tonumber(self.body["itemsn3"])
+		c["itemnum3"] = assert(tonumber(self.body["itemnum3"]))
+		c["iconid"] = assert(tonumber(self.body["iconid"]))
+		local receiver = tonumber(self.body["receiver"])
+		if send_type == 1 then
+			skynet.send(".channel", "lua", "send_email_to_group", c, {{ uid = receiver }})
+			local ret = {}
+			ret.errorcode = errorcode[1].code
+			ret.msg = errorcode[1].msg
+			return json.encode(ret)
+		elseif send_type == 2 then
+			skynet.send(".channel", "lua", "send_email_to_all", c)
+			local ret = {}
+			ret.errorcode = errorcode[1].code
+			ret.msg = errorcode[1].msg
+			return json.encode(ret)
+		end
 	end
 	function R:__file()
 		-- body

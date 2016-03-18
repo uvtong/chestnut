@@ -43,17 +43,6 @@ function _Meta:__update_db(t)
 	-- skynet.send(util.random_db(), "lua", "command", "update", self.__tname, {{ user_id=self.user_id, csv_id=self.csv_id }}, columns)
 end
 
-function _Meta:__serialize()
-	-- body
-	local r = {}
-	for k,v in pairs(_Meta) do
-		if not string.match(k, "^__*") then
-			r[k] = assert(self[k])
-		end
-	end
-	return r
-end
-
 function _M.insert_db( values )
 	assert(type(values) == "table" )
 	local total = {}
@@ -68,10 +57,6 @@ function _M.insert_db( values )
 	end
 	skynet.send( util.random_db() , "lua" , "command" , "insert_all" , _Meta.__tname , total )
 end 
-
-function _M:update_db()
-	-- body
-end
 
 function _M.create( P )
 	assert(P)
@@ -89,7 +74,6 @@ function _M:add( u )
 	assert(self.__data[tostring(u.csv_id)] == nil)
 	self.__data[tostring(u.csv_id)] = u
 	self.__count = self.__count + 1
-	send.__update_count[tostring(u.csv_id)] = 0
 end
 	
 function _M:get_by_csv_id(csv_id)
@@ -102,7 +86,6 @@ function _M:delete_by_csv_id(csv_id)
 	assert(self.__data[tostring(csv_id)])
 	self.__data[tostring(csv_id)] = nil
 	self.__count = self.__count - 1
-	self.__update_count[tostring(u.csv_id)] = 0
 end
 
 function _M:get_count()

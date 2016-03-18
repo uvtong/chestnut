@@ -329,6 +329,18 @@ local function load_g_uid()
 	game.g_uidmgr = g_uidmgr
 end
 
+local function load_g_config()
+	-- body
+	assert(game.g_configmgr == nil)
+	local g_configmgr = require "models/g_configmgr"
+	local r = skynet.call(util.random_db(), "lua", "command", "select", "g_config")
+	for i,v in ipairs(r) do
+		local t = g_configmgr.create(v)
+		g_configmgr:add(t)
+	end
+	game.g_configmgr = g_configmgr
+end
+
 local function load_u_achievement(user)
 	-- body
 	local u_achievementmgr = require "models/u_achievementmgr"
@@ -661,6 +673,7 @@ function loader.load_game()
 		load_g_shop()
 		load_g_user_level()
 		load_g_uid()
+		load_g_config()
 	end
 	skynet.fork(f)
 	return game

@@ -372,6 +372,13 @@ function CMD.query_g_user_level(pk)
 	end
 end
 
+function CMD.query_g_config()
+	-- body
+	local r = game.g_configmgr:get_by_csv_id(1)
+	local ptr = tptr.topointer(r)
+	return ptr
+end
+
 function CMD.u_guid(user_id, csv_id)
 	-- body
 	print(user_id, csv_id)
