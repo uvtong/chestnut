@@ -310,9 +310,13 @@ function new_emailrequest:newemail( tval , ... ) -- get a email to group
 end 
 		
 function new_emailrequest:public_email( tvals , user )
+	assert( tvals and user )
 
-
-
+	tvals.uid = user.csv_id
+	print( "*********************************email is " , tvals.csv_id )
+	local v = user.u_emailmgr:recvemail( tvals )
+	assert( v )
+	
 end 
 	
 function SUBSCRIBE:email( tvals , ... ) -- get email from channl , a email to all users 
