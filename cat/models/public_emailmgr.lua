@@ -4,11 +4,11 @@ local util = require "util"
 local _M = {}
 _M.__data = {}
 _M.__count = 0
-_M.__user_id = 0
 
-local _Meta = { user_id=0, distribute_time=0, g_goods_csv_id=0, g_goods_num=0, c_type=0, c_vip=0, collected=0}
+local _Meta = { csv_id = 0 , type=0, title=0, content = 0 , acctime = 0 , deltime = 0 , isread = 0 , isdel = 0 , itemsn1 = 0 , itemnum1 = 0 , 
+			itemsn2 = 0 , itemnum2 = 0 ,itemsn3 = 0 , itemnum3 = 0 ,itemsn4 = 0 , itemnum4 = 0 ,itemsn5 = 0 , itemnum5 = 0 , iconid = 0 , isreward = 0 }
 
-_Meta.__tname = "u_purchase_reward"
+_Meta.__tname = "public_email"
 
 function _Meta.__new()
  	-- body
@@ -17,16 +17,12 @@ function _Meta.__new()
  	return t
 end 
 
-function _M:clear()
-	self.__data = {}
-end
-
 function _Meta:__insert_db()
 	-- body
 	local t = {}
-	for k,v in pairs(self) do
+	for k,v in pairs(_Meta) do
 		if not string.match(k, "^__*") then
-			t[k] = self[k]
+			t[k] = assert(self[k])
 		end
 	end
 	skynet.send(util.random_db(), "lua", "command", "insert", self.__tname, t)
@@ -34,12 +30,13 @@ end
 
 function _Meta:__update_db(t)
 	-- body
-	-- assert(type(t) == "table")
-	-- local columns = {}
-	-- for i,v in ipairs(t) do
-	-- 	columns[tostring(v)] = self[tostring(v)]
-	-- end
-	-- skynet.send(util.random_db(), "lua", "command", "update", self.__tname, {{ id = self.id }}, columns)
+
+	assert(type(t) == "table")
+	local columns = {}
+	for i,v in ipairs(t) do
+	columns[tostring(v)] = self[tostring(v)]
+	end
+	skynet.send(util.random_db(), "lua", "command", "update", self.__tname, {{ id = self.id }}, columns)
 end
 
 function _Meta:__serialize()
@@ -52,6 +49,21 @@ function _Meta:__serialize()
 	end
 	return r
 end
+
+function _M.insert_db( values )
+	assert(type(values) == "table" )
+	local total = {}
+	for i,v in ipairs(values) do
+		local t = {}
+		for kk,vv in pairs(v) do
+			if not string.match(kk, "^__*") then
+				t[kk] = vv
+			end
+		end
+		table.insert(total, t)
+	end
+	skynet.send( util.random_db() , "lua" , "command" , "insert_all" , _Meta.__tname , total )
+end 
 
 function _M.create( P )
 	assert(P)
@@ -66,10 +78,10 @@ end
 
 function _M:add( u )
 	assert(u)
-	self.__data[tostring(u.csv_id)] = u
+	table.insert( self.__data , u )
 	self.__count = self.__count + 1
-end
-
+end 
+	
 function _M:get_by_csv_id(csv_id)
 	-- body
 	return self.__data[tostring(csv_id)]
@@ -88,8 +100,8 @@ function _M:get_count()
 end
 
 function _M:clear()
-	-- body
 	self.__data = {}
+	self.__count = 0
 end
 
 function _M:update_db()
@@ -100,3 +112,4 @@ function _M:update_db()
 end
 
 return _M
+

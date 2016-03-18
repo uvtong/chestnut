@@ -4,6 +4,8 @@ local util = require "util"
 local _M = {}
 _M.__data = {}
 _M.__count = 0
+_M.__user_id = 0
+_M.__tname = "u_goods"
 
 local _Meta = { user_id=0, csv_id=0, inventory=0, countdown=0, st=0}
 
@@ -29,12 +31,12 @@ end
 
 function _Meta:__update_db(t)
 	-- body
-	assert(type(t) == "table")
-	local columns = {}
-	for i,v in ipairs(t) do
-		columns[tostring(v)] = self[tostring(v)]
-	end
-	skynet.send(util.random_db(), "lua", "command", "update", self.__tname, {{ user_id=self.user_id, csv_id=assert(self.csv_id)}}, columns)
+	-- assert(type(t) == "table")
+	-- local columns = {}
+	-- for i,v in ipairs(t) do
+	-- 	columns[tostring(v)] = self[tostring(v)]
+	-- end
+	-- skynet.send(util.random_db(), "lua", "command", "update", self.__tname, {{ user_id=self.user_id, csv_id=assert(self.csv_id)}}, columns)
 end
 
 function _Meta:__serialize()
@@ -100,6 +102,13 @@ end
 function _M:clear()
 	self.__data = {}
 	self.__count = 0
+end
+
+function _M:update_db()
+	-- body
+	local columns = { "inventory", "countdown", "st"}
+	local condition = { {user_id = self.__user_id}, {csv_id = {}}}
+	skynet.send(util.random_db(), "lua", "command", "update_all", _Meta.__tname, condition, columns, self.__data)
 end
 
 return _M

@@ -6,6 +6,7 @@ local _M = {}
 _M.__data = {}
 _M.__count = 0
 _M.__MAXEMAILNUM = 50
+_M.__user_id = 0
 
 local _Meta = { csv_id = 0 , uid=0, type=0, title=0, content = 0 , acctime = 0 , deltime = 0 , isread = 0 , isdel = 0 , itemsn1 = 0 , itemnum1 = 0 , 
 			itemsn2 = 0 , itemnum2 = 0 ,itemsn3 = 0 , itemnum3 = 0 ,itemsn4 = 0 , itemnum4 = 0 ,itemsn5 = 0 , itemnum5 = 0 , iconid = 0 , isreward = 0 }
@@ -32,12 +33,12 @@ end
 
 function _Meta:__update_db(t)
 	-- body
-	assert(type(t) == "table")
-	local columns = {}
-	for i,v in ipairs(t) do
-		columns[tostring(v)] = self[tostring(v)]
-	end
-	skynet.send(util.random_db(), "lua", "command", "update", self.__tname, { { csv_id = self.csv_id , uid = self.uid } }, columns)
+	-- assert(type(t) == "table")
+	-- local columns = {}
+	-- for i,v in ipairs(t) do
+	-- 	columns[tostring(v)] = self[tostring(v)]
+	-- end
+	-- skynet.send(util.random_db(), "lua", "command", "update", self.__tname, { { csv_id = self.csv_id , uid = self.uid } }, columns)
 end
 
 function _Meta:__getallitem()
@@ -73,12 +74,19 @@ function _M.insert_db( values )
 	skynet.send( util.random_db() , "lua" , "command" , "insert_all" , _Meta.__tname , total )
 end 
 
+function _M:update_db()
+	-- body
+	local columns = { "isread", "isdel", "isreward"}
+	local condition = { {uid = self.__user_id}, {csv_id = {}}}
+	skynet.send(util.random_db(), "lua", "command", "update_all", _Meta.__tname, condition, columns, self.__data)
+end
+
 function _M.create( P )
 	assert(P)
 	local u = _Meta.__new()
 	for k , v in pairs( _Meta ) do
 		if not string.match( k, "^__*" ) then
-			--print( k , v , P[k])
+			print( k , v , P[k])
 			u[ k ] = assert( P[ k ] )
 		end
 	end
@@ -113,7 +121,9 @@ end
 	
 function _M:recvemail( tvals )
 	assert( tvals )
-
+	for k  , v in pairs( tvals ) do
+		print( k , v )
+	end
 	local newemail = self.create( tvals )
 	assert( newemail )
 	self:add( newemail )

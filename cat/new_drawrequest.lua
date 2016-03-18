@@ -2,6 +2,9 @@ local new_drawrequestrequest = {}
 local dc = require "datacenter"
 local util = require "util"
 local skynet = require "skynet"
+local const = require "const"
+local socket = require "socket"
+local errorcode = require "errorcode"
 	
 local send_package
 local send_request
@@ -35,6 +38,142 @@ function REQUEST:login( u )
 	assert( draw_mgr )
 end		
 			
+local function push_achievement(achievement)
+	-- body
+	ret = {}
+	ret.which = {
+		csv_id = achievement.csv_id,
+		finished = achievement.finished
+	}
+	send_package(send_request("finish_achi", ret))
+end
+
+local function raise_achievement(type, user)
+	-- body
+	if type == "combat" then
+	elseif type == const.A_T_GOLD then -- 2
+		repeat
+			local a = assert(user.u_achievementmgr:get_by_type(const.A_T_GOLD))
+			if a.is_valid == 0 then
+				break
+			end
+			local gold = user.u_propmgr:get_by_csv_id(const.GOLD) -- abain prop by type (type -- csv_id -- prop.id)		
+			local progress = gold.num / a.c_num
+			if progress >= 1 then -- success
+				a.finished = 100
+				a.reward_collected = 0			
+				-- insert achievement rc	
+				local rc = user.u_achievement_rcmgr.create(a)
+				user.u_achievement_rcmgr:add(rc)
+				rc:__insert_db()
+
+				if string.match(a.unlock_next_csv_id, "%d*%*%d*") then
+					local k1 = string.gsub(a.unlock_next_csv_id, "(%d*)%*(%d*)", "%1")
+					local k2 = string.gsub(a.unlock_next_csv_id, "(%d*)%*(%d*)", "%2")
+					
+					local a1 = skynet.call(game, "lua", "query_g_achievement", k1)
+					a1.user_id = user.csv_id
+					a1.finished = 100
+					a1.is_unlock = 1
+					a1.reward_collected = 0
+					a1 = user.u_achievement_rcmgr.create(a1)
+					user.u_achievement_rcmgr:add(a1)
+					a1:__insert_db()
+
+					if tonumber(k2) == 0 then
+						a.is_valid = 0
+						a:__update_db({"is_valid"})	
+						break
+					else
+						local ga = assert(game.g_achievementmgr:get_by_csv_id(k2))
+						a.csv_id = ga.csv_id
+						a.finished = 0
+						a.c_num = ga.c_num
+						a.unlock_next_csv_id = ga.unlock_next_csv_id
+						-- a.is_unlock = 1
+						a:__update_db({"csv_id", "finished", "c_num", "unlock_next_csv_id", "is_valid"})	
+					end
+				else
+					local ga = assert(game.g_achievementmgr:get_by_csv_id(a.unlock_next_csv_id))
+					a.csv_id = ga.csv_id
+					a.finished = 0
+					a.c_num = ga.c_num
+					a.unlock_next_csv_id = ga.unlock_next_csv_id
+					a.is_unlock = 1
+					a:__update_db({"csv_id", "finished", "c_num", "unlock_next_csv_id", "is_unlock"})	
+				end
+			else
+				a.finished = progress * 100
+				a.finished = math.floor(a.finished)
+				a:__update_db({"finished"})
+				break
+			end
+		until false
+	elseif type == const.A_T_EXP then
+		repeat
+			local a = assert(user.u_achievementmgr:get_by_type(type))
+			if a.is_valid == 0 then
+				break
+			end
+			local prop = user.u_propmgr:get_by_csv_id(const.EXP) -- abain prop by type (type -- csv_id -- prop.id)		
+			local progress = prop.num / a.c_num
+			if progress >= 1 then -- success
+				a.finished = 100
+				a.reward_collected = 0
+				push_achievement(a)
+				
+				-- insert achievement rc	
+				local rc = user.u_achievement_rcmgr.create(a)
+				user.u_achievement_rcmgr:add(rc)
+				rc:__insert_db()
+
+				if string.match(a.unlock_next_csv_id, "%d*%*%d*") then
+					local k1 = string.gsub(a.unlock_next_csv_id, "(%d*)%*(%d*)", "%1")
+					local k2 = string.gsub(a.unlock_next_csv_id, "(%d*)%*(%d*)", "%2")
+					
+					local a1 = game.g_achievementmgr:get_by_csv_id(k1)
+					a1.user_id = user.csv_id
+					a1.finished = 100
+					a1.is_unlock = 1
+					a1.reward_collected = 0
+					a1 = user.u_achievement_rcmgr.create(a1)
+					user.u_achievement_rcmgr:add(a1)
+					a1:__insert_db()
+
+					if tonumber(k2) == 0 then
+						a.is_valid = 0
+						a:__update_db({"is_valid"})	
+						break
+					else
+						local ga = assert(game.g_achievementmgr:get_by_csv_id(k2))
+						a.csv_id = ga.csv_id
+						a.finished = 0
+						a.c_num = ga.c_num
+						a.unlock_next_csv_id = ga.unlock_next_csv_id
+						-- a.is_unlock = 1
+						a:__update_db({"csv_id", "finished", "c_num", "unlock_next_csv_id", "is_valid"})	
+					end
+
+				else
+					local ga = assert(game.g_achievementmgr:get_by_csv_id(a.unlock_next_csv_id))
+					a.csv_id = ga.csv_id
+					a.finished = 0
+					a.c_num = ga.c_num
+					a.unlock_next_csv_id = ga.unlock_next_csv_id
+					a.is_unlock = 1
+					a:__update_db({"csv_id", "finished", "c_num", "unlock_next_csv_id", "is_unlock"})	
+				end
+			else
+				a.finished = progress * 100
+				a.finished = math.floor(a.finished)
+				a:__update_db({"finished"})
+				break
+			end
+		until false
+	elseif type == "level" then
+	end
+end
+
 local function getsettime()
 	local date = os.time()
 	local year = tonumber( os.date( "%Y" , date ) )
@@ -77,6 +216,11 @@ local function add_to_prop( t )
    					user.u_propmgr:add( prop )
    					prop:__insert_db()
    				end 	      
+
+   				--[[if v.propid == const.A_T_EXP or v.propid == const.A_T_GOLD then
+   					raise_achievement( v.propid , user )
+   				end--]]
+
 			else 		
 				local g_role_star = game.g_role_starmgr:get_by_csv_id(assert( u_role.csv_id ) * 1000 + assert( u_role.star ) )
 				for k,v in pairs( g_role_star ) do
@@ -108,6 +252,10 @@ local function add_to_prop( t )
    				user.u_propmgr:add( prop )
    				prop:__insert_db()
    			end 
+
+   			--[[if v.propid == const.A_T_EXP or v.propid == const.A_T_GOLD then
+   				raise_achievement( v.propid , user )
+   			end--]]
    		end     
    	end			
 end				
@@ -231,8 +379,7 @@ local function getpropidlist( dtype )
 	end		
         
 	assert( propidlist )
-	propidlist.ok = true
-    	
+	
     add_to_prop( propidlist.list )
 	print( "get propidlist successfully" )
 	return propidlist
@@ -242,8 +389,9 @@ local function frienddraw()
 	local proplist = {}
 
 	if false == isfriend then
-		proplist.ok = false
-		proplist.errorcode = ERROR.WAI_GUA
+		proplist.errorcode = errorcode[ 61 ].code
+		proplist.msg = errorcode[ 61 ].msg
+
 		return proplist
 	end 
 
@@ -258,9 +406,8 @@ local function frienddraw()
 	if not prop or prop.num < line.price then
 		print( "money is less then price" )
 		local ret = {}
-		ret.ok = false
-		ret.errorcode = ERROR.NOT_ENOUGH_MONEY
-		ret.msg = "not enough money"
+		ret.errorcode = errorcode[ 16 ].code
+		ret.msg = errorcode[ 16 ].msg
 
 		return ret
 	else
@@ -295,7 +442,9 @@ local function frienddraw()
 
 		print( "update prop successfully in tentimedraw" )
 	end	
-		
+	proplist.errorcode = errorcode[ 1 ].code
+	proplist.msg = errorcode[ 1 ].msg	
+
 	return proplist
 end 	
 		
@@ -326,8 +475,8 @@ local function onetimedraw( iffree )
 			assert( line )
 
 			if date < ( tonetime.srecvtime + line.cdtime ) then
-				proplist.ok = false
-				proplist.errorcode = ERROR.WAI_GUA
+				proplist.errorcode = errorcode[ 61 ].code
+				proplist.msg = errorcode[ 61 ].msg
 			
 				return proplist
 			end
@@ -342,6 +491,8 @@ local function onetimedraw( iffree )
 
 		print( "get for free successfully" )
 		proplist.lefttime = DAY
+		proplist.errorcode = errorcode[ 1 ].code
+		proplist.msg = errorcode[ 1 ].msg 
 
 		return proplist
 	else	
@@ -354,9 +505,8 @@ local function onetimedraw( iffree )
 
 		if not prop or prop.num < line.price then
 			local ret = {}
-			ret.ok = false
-			ret.errorcode = ERROR.NOT_ENOUGH_MONEY
-			ret.msg = "not enough money"
+			ret.errorcode = errorcode[ 16 ].code
+			ret.msg = errorcode[ 16 ].msg
 			
 			return ret
 		else
@@ -365,14 +515,14 @@ local function onetimedraw( iffree )
 			prop.num = prop.num - line.price
 			proplist = getpropidlist( drawtype.ONETIME )
 			
-			print( "*******************" , now , recvtime , recvtime + day - date )
+			print( "*******************" , date , tonetime.srecvtime, tonetime.srecvtime + DAY - date )
 
-			if date > recvtime + day then
+			if date > tonetime.srecvtime + DAY then
 				print( " >>>>>>>>" )
 				proplist.lefttime = 0
 			else
 				print( "<<<<<<<<" )
-				proplist.lefttime = recvtime + day - now
+				proplist.lefttime = tonetime.srecvtime + DAY - date
 			end 
 			print("**********************")
 			prop:__update_db( { "num" } )
@@ -380,6 +530,9 @@ local function onetimedraw( iffree )
 			print( "update prop successfully in tentimedraw" )
 		end	
 	end
+	proplist.errorcode = errorcode[ 1 ].code
+	proplist.msg = errorcode[ 1 ].msg
+
 	return proplist
 end 	
 		
@@ -394,9 +547,8 @@ local function tentimedraw()
 	if not prop or prop.num < line.price then
 		print( "not enough money in tentime" )
 		local ret = {}
-		ret.ok = false
-		ret.errorcode = ERROR.NOT_ENOUGH_MONEY
-		ret.msg = "not enough money"
+		ret.errorcode = errorcode[ 16 ].code
+		ret.msg = errorcode[ 16 ].msg
 
 		return ret
 	else 
@@ -409,6 +561,8 @@ local function tentimedraw()
 	end 
 
 	print( "ten time draw is over" )
+	proplist.errorcode = errorcode[ 1 ].code
+	proplist.msg = errorcode[ 1 ].msg
 
 	return proplist
 end 	

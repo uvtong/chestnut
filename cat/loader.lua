@@ -329,6 +329,18 @@ local function load_g_uid()
 	game.g_uidmgr = g_uidmgr
 end
 
+local function load_g_config()
+	-- body
+	assert(game.g_configmgr == nil)
+	local g_configmgr = require "models/g_configmgr"
+	local r = skynet.call(util.random_db(), "lua", "command", "select", "g_config")
+	for i,v in ipairs(r) do
+		local t = g_configmgr.create(v)
+		g_configmgr:add(t)
+	end
+	game.g_configmgr = g_configmgr
+end
+
 local function load_u_achievement(user)
 	-- body
 	local u_achievementmgr = require "models/u_achievementmgr"
@@ -338,6 +350,7 @@ local function load_u_achievement(user)
 		local a = u_achievementmgr.create(v)
 		u_achievementmgr:add(a)
 	end
+	u_achievementmgr.__user_id = user.csv_id
 	user.u_achievementmgr = u_achievementmgr
 end
 
@@ -350,6 +363,7 @@ local function load_u_achievement_rc(user)
 		local a = u_achievement_rcmgr.create(v)
 		u_achievement_rcmgr:add(a)
 	end
+	u_achievement_rcmgr.__user_id = user.csv_id
 	user.u_achievement_rcmgr = u_achievement_rcmgr
 end
 
@@ -365,6 +379,7 @@ local function load_u_checkin(user)
 		local a = u_checkinmgr.create( v )
 		u_checkinmgr:add( a )
 	end
+	u_checkinmgr.__user_id = user.csv_id
 	user.u_checkinmgr = u_checkinmgr
 end
 
@@ -378,6 +393,7 @@ local function load_u_checkin_month( user )
 		local a = u_checkin_monthmgr.create( v )
 		u_checkin_monthmgr:add( a )
 	end
+	u_checkin_monthmgr.__user_id = user.csv_id
 	user.u_checkin_monthmgr = u_checkin_monthmgr
 end
 
@@ -391,7 +407,7 @@ local function load_u_exercise( user )
 		local a = u_exercise_mgr.create( v )
 		u_exercise_mgr:add( a )
 	end
-
+	u_exercise_mgr.user_id = user.csv_id
 	user.u_exercise_mgr = u_exercise_mgr
 end
 
@@ -405,7 +421,7 @@ local function load_u_cgold( user )
 		local a = u_cgoldmgr.create( v )
 		u_cgoldmgr:add( a )
 	end
-
+	u_cgoldmgr.user_id = user.csv_id
 	user.u_cgoldmgr = u_cgoldmgr
 end
 
@@ -421,6 +437,7 @@ local function load_u_checkpoint(user)
 		local a = u_checkpointmgr.create(v)
 		u_checkpointmgr:add(a)
 	end
+	u_checkpointmgr.__user_id = user.csv_id
 	user.u_checkpointmgr = u_checkpointmgr
 end
 
@@ -434,6 +451,7 @@ local function load_u_equipment(user)
 		local a = u_equipmentmgr.create(v)
 		u_equipmentmgr:add(a)
 	end
+	u_equipmentmgr.__user_id = user.csv_id
 	user.u_equipmentmgr = u_equipmentmgr
 end 
 	
@@ -447,6 +465,7 @@ local function load_u_kungfu(user)
 		local a = u_kungfumgr.create(v)
 		u_kungfumgr:add(a)
 	end
+	u_kungfumgr.__user_id = user.csv_id
 	user.u_kungfumgr = u_kungfumgr
 end 
 	
@@ -473,7 +492,7 @@ local function load_u_draw( user )
 		assert( draw )
 		u_drawmgr:add( draw )
 	end
-
+	u_drawmgr.__user_id = user.csv_id
 	user.u_drawmgr = u_drawmgr
 end	
 
@@ -492,7 +511,7 @@ local function load_u_email( user )
 		print( "sysdelemail is called *********************************************" , u_emailmgr:get_count() )
 		u_emailmgr:sysdelemail()
 	end
-
+	u_emailmgr.__user_id = user.csv_id
 	user.u_emailmgr = u_emailmgr
 end
 
@@ -506,6 +525,7 @@ local function load_u_prop(user)
 		local prop = u_propmgr.create( v )
 		u_propmgr:add(prop)
 	end
+	u_propmgr.__user_id = user.csv_id
 	user.u_propmgr = u_propmgr
 end
 
@@ -517,6 +537,7 @@ local function load_u_purchase_goods(user)
 		local t = u_purchase_goodsmgr.create(v)
 		u_purchase_goodsmgr:add(t)
 	end
+	u_purchase_goodsmgr.__user_id = user.csv_id
 	user.u_purchase_goodsmgr = u_purchase_goodsmgr
 end
 
@@ -528,6 +549,7 @@ local function load_u_purchase_reward(user)
 		local t = u_purchase_rewardmgr.create(v)
 		u_purchase_rewardmgr:add(t)
 	end
+	u_purchase_rewardmgr.__user_id = user.csv_id
 	user.u_purchase_rewardmgr = u_purchase_rewardmgr
 end
 
@@ -564,6 +586,7 @@ local function load_u_recharge_reward(user)
 		local t = u_recharge_rewardmgr.create(v)
 		u_recharge_rewardmgr:add(t)
 	end
+	u_recharge_rewardmgr.__user_id = user.csv_id
 	user.u_recharge_rewardmgr = u_recharge_rewardmgr
 end
 
@@ -576,6 +599,7 @@ local function load_u_recharge_vip_reward(user)
 		local t = u_recharge_vip_rewardmgr.create(v)
 		u_recharge_vip_rewardmgr:add(t)
 	end
+	u_recharge_vip_rewardmgr.__user_id = user.csv_id
 	user.u_recharge_vip_rewardmgr = u_recharge_vip_rewardmgr
 end
 
@@ -588,6 +612,7 @@ local function load_u_role(user)
 		local role = u_rolemgr.create( v )
 		u_rolemgr:add(role)
 	end
+	u_rolemgr.__user_id = user.csv_id
 	user.u_rolemgr = u_rolemgr
 end
 
@@ -600,6 +625,7 @@ local function load_u_journal(user)
 		local t = u_journalmgr.create(v)
 		u_journalmgr:add(t)
 	end
+	u_journalmgr.__user_id = user.csv_id
 	user.u_journalmgr = u_journalmgr
 end
 
@@ -612,6 +638,7 @@ local function load_u_goods(user)
 		local t = u_goodsmgr.create(v)
 		u_goodsmgr:add(t)
 	end
+	u_goodsmgr.__user_id = user.csv_id
 	user.u_goodsmgr = u_goodsmgr
 end
 
@@ -646,6 +673,7 @@ function loader.load_game()
 		load_g_shop()
 		load_g_user_level()
 		load_g_uid()
+		load_g_config()
 	end
 	skynet.fork(f)
 	return game
@@ -690,6 +718,7 @@ function loader.clear(user)
 	-- body
 	for k,v in pairs(user) do
 		if string.match(k, "^u_%w+mgr$") then
+			print(k)
 			v:clear()
 		end
 	end

@@ -48,8 +48,15 @@ function _Meta:__serialize()
 	return r
 end
 
-function _M:clear()
-	self.__data = {}
+function _M.insert_db(l)
+	-- body
+end
+
+function _M:update_db()
+	-- body
+	for k,v in pairs(self.__data) do
+		print(k,v)
+	end
 end
 
 function _M.create( P )
@@ -68,7 +75,11 @@ function _M:add( u )
 	self.__data[tostring(u.csv_id)] = u
 	self.__count = self.__count + 1
 end
-	
+
+function _M:clear()
+	self.__data = {}
+end
+
 function _M:get_by_csv_id(csv_id)
 	-- body
 	return self.__data[tostring(csv_id)]

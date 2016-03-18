@@ -43,7 +43,8 @@ local _Meta = { csv_id=0,
 				gain_exp_up_p=0,
 				purchase_hp_count_max=0,
 				SCHOOL_reset_count_max=0,
-				SCHOOL_reset_count=0 }
+				SCHOOL_reset_count=0,
+				signup_time=0 }
 
 _Meta.__tname = "users"
 
@@ -85,6 +86,13 @@ function _Meta.__new()
  	setmetatable( t, { __index = _Meta } )
  	return t
 end 
+
+function _M:update_db()
+	-- body
+	local columns = { "finished", "reward_collected", "is_unlock"}
+	local condition = { {user_id = self.__user_id}, {csv_id = {}}}
+	skynet.send(util.random_db(), "lua", "command", "update_all", _Meta.__tname, condition, columns, self.__data)
+end
 
 function _M.create( P )
 	assert(P)

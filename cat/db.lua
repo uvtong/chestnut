@@ -1,13 +1,15 @@
-package.path = "./../cat/?.lua;" .. package.path
+package.path = "./../cat/?.lua;./../cat/lualib/?.lua;" .. package.path
 local skynet = require "skynet"
 local mysql = require "mysql"
 local redis = require "redis"
 local util = require "util"
+local Queue = require "queue"
 
 local frienddb = require "frienddb"
 
 local db
 local cache 
+local Q
 
 local function dump(obj)
     local getIndent, quoteStr, wrapKey, wrapVal, dumpObj
@@ -63,25 +65,33 @@ end
 function QUERY:select( table_name, condition, columns)
 	-- body
 	local sql = util.select(table_name, condition, columns)
-	-- return db:query(sql, condition)
 	return db:query(sql)
 end
 
 function QUERY:update( table_name, condition, columns )
 	-- body
 	local sql = util.update(table_name, condition, columns)
-	db:query(sql)
+	Queue.enqueue(Q, { table_name=table_name, sql=sql})
+	-- db:query(sql)
 end
 
 function QUERY:insert( table_name, columns )
 	-- body
 	local sql = util.insert(table_name, columns)
+	-- Queue.enqueue(Q, sql)
 	db:query(sql)
 end
 
 function QUERY:insert_all( table_name , tcolumns )
 	local sql = util.insert_all( table_name , tcolumns )
-	db:query( sql )
+	-- Queue.enqueue(Q, sql)
+	db:query(sql)
+end
+
+function QUERY:update_all( table_name, condition, columns, data )
+	-- body
+	local sql = util.update_all(table_name, condition, columns, data)
+	Queue.enqueue(Q, { table_name=table_name, sql=sql})
 end
 
 -- friend	
@@ -160,6 +170,18 @@ function connect_mysql( ... )
 	return db
 end
 
+local function query_mysql()
+	-- body
+	while true do
+		local r = Queue.dequeue(Q) 
+		if r then
+			local res = db:query(r.sql)
+			print(string.format("query %s result=", r.table_name), dump(res))
+		end
+		skynet.sleep(100)
+	end
+end
+
 local
 function watching(conf)
 	local w = redis.watch( conf )
@@ -199,7 +221,9 @@ skynet.start( function ()
 		db = 0
 	}
 	cache = connect_redis( conf )
-
-	frienddb.getvalue( db , cache )
 	
+	frienddb.getvalue( db , cache )
+
+	Q = Queue.new(128)
+	skynet.fork(query_mysql)
 end)

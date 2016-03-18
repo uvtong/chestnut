@@ -4,7 +4,8 @@ local util = {}
 
 function util.random_db()
 	-- body
-	local r = math.random(1, 5)
+	-- local r = math.random(1, 5)
+	local r = 1
 	local addr = skynet.localname(string.format(".db%d", math.floor(r))) 
 	return addr
 end
@@ -84,7 +85,7 @@ end
 local function print_sql( sql )
 	-- body
 	assert(type("sql") == "string")
-	print("\\**" .. sql .. "**\\")
+	skynet.error("\\**" .. sql .. "**\\")
 end
 
 function util.select( table_name, condition, columns )
@@ -116,7 +117,7 @@ function util.select( table_name, condition, columns )
 		assert(false)
 	end
 	local sql = string.format("select %s from %s", columns_str, table_name) .. condition_str .. ";"
-	print_sql(sql)
+	-- print_sql(sql)
 	return sql
 end
 
@@ -143,7 +144,7 @@ function util.update( table_name, condition, columns )
 		condition_str = " where " .. condition_str
 	end
 	local sql = string.format("update %s ", table_name) .. columns_str .. condition_str .. ";"
-	print_sql(sql)
+	-- print_sql(sql)
 	return sql
 end
 
@@ -210,10 +211,55 @@ function util.insert_all( table_name , tcolumns )
 		table.insert( tmp , value )
 	end
 	table.insert( tmp , ";" )
-	local sql = string.format( "insert into %s " , table_name ) .. columns_str .. " values " .. table.concat( tmp ) 
-	print_sql(sql)
+	local sql = string.format("insert into %s ", table_name) .. columns_str .. " values " .. table.concat( tmp ) 
+	-- print_sql(sql)
 	return sql
 end 
+
+function util.update_all( table_name, condition, columns, data )
+	-- body
+	assert(type(table_name) == "string")
+	local condition_str = "where"
+	local columns_str = "set"
+	assert(type(columns) == "table")
+	for k,v in pairs(condition[2]) do
+		for i,vv in ipairs(columns) do
+			local t = string.format(" %s = case %s", vv, k)
+			for kkk,vvv in pairs(data) do
+				assert(type(vvv[k]) == "number", string.format("normal, this key is csv_id and number type, but table %s is %s, %s", table_name, type(vvv[k]), k))
+				if type(vvv[vv]) == "number" then
+					t = t .. string.format(" when %d then %d", vvv[k], vvv[vv])
+				elseif type(vvv[vv]) == "string" then
+					t = t .. string.format(" when %d then \"%s\"", vvv[k], vvv[vv])
+				else
+					error(string.format("don't support types. in %s", table_name))
+				end
+			end
+			t = t .. " end,"
+			columns_str = columns_str .. t
+		end
+		local t = string.format(" %s in (", k)
+		for kk,vv in pairs(data) do
+			assert(type(vv[k]) == "number")
+			t = t .. string.format("%d, ", vv[k])
+		end
+		t = string.gsub(t, "(.*)%,%s$", "%1)")
+		condition_str = condition_str .. t
+	end
+	print(columns_str)
+	columns_str = string.gsub(columns_str, "(.*)%,$", "%1 ")
+	local t = ""
+	if type(condition[1]) == "table" then
+		for k,v in pairs(condition[1]) do
+			t = t .. string.format("%s = %d", k, v)
+		end
+		t = " and " .. t
+	end
+	condition_str = condition_str .. t
+	local sql = string.format("update %s ", table_name) .. columns_str .. condition_str .. ";"
+	-- print_sql(sql)
+	return sql
+end
 
 function util.send_package(pack)
 	local package = string.pack(">s2", pack)
@@ -240,11 +286,11 @@ function util.guid(game, csv_id)
 		h:__insert_db()
 		return t.entropy
 	else
+		print("**********************************", r.entropy)
 		r.entropy = r.entropy + 1
 		r:__update_db({"entropy"})
 		return r.entropy
 	end
-	-- return os.time()
 end
 
 function util.parse_text(src, parten, D)

@@ -4,6 +4,7 @@ local util = require "util"
 local _M = {}
 _M.__data = {}
 _M.__count = 0
+_M.__tname = "g_uid"
 
 local _Meta = { csv_id=0, entropy=0}
 
@@ -84,6 +85,13 @@ end
 function _M:get_count()
 	-- body
 	return self.__count
+end
+
+function _M:update_db()
+	-- body
+	local columns = { "entropy" }
+	local condition = { 1, {csv_id = {}}}
+	skynet.send(util.random_db(), "lua", "command", "update_all", _Meta.__tname, condition, columns, self.__data)
 end
 
 return _M

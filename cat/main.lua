@@ -14,7 +14,7 @@ skynet.start(function()
 		skynet.name(string.format(".db%d", i), db)
 	end
 
-	skynet.uniqueservice("game")
+	local game = skynet.uniqueservice("game")
    	skynet.newservice("channel")
 	skynet.newservice("randomdraw")
 
@@ -27,7 +27,7 @@ skynet.start(function()
 	})
 	print("Watchdog listen on ", 8888)
 
-	skynet.send(".game", "lua", "start")
+	skynet.send(game, "lua", "start")
 	
 	skynet.exit()
 end)

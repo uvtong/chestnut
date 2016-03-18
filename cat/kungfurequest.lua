@@ -104,7 +104,6 @@ function REQUEST:kungfu_levelup()
 	print( g_tk.prop_csv_id , tprop_prop.num , g_tk.prop_num , tprop_currency.num , g_tk.currency_num )
 	if not tprop_prop or tprop_prop.num < g_tk.prop_num or not tprop_currency or tprop_currency.num < g_tk.currency_num then
 		print( " not enough money" )
-		ret.ok = false
 		ret.errorcode = errorcode[ 3 ].code
 		ret.msg = errorcode[ 3 ].msg
 		return ret
@@ -130,7 +129,6 @@ function REQUEST:kungfu_levelup()
 			print( tkungfu.level + 1 , self.k_level )
 			if tkungfu.level + 1 ~= self.k_level then
 				print( "not match" )
-				ret.ok = false
 				ret.errorcode = errorcode[ 52 ].code --  ERROR.LEVEL_NOT_MATCH
 				ret.msg = errorcode[ 52 ].msg
 				
@@ -160,9 +158,8 @@ function REQUEST:kungfu_levelup()
 		end 
 	end 	
 
-	ret.ok = true
 	ret.errorcode = errorcode[ 1 ].code			
-			
+	ret.msg = errorcode[ 1 ].msg
 	return ret
 end				
 			
@@ -173,7 +170,6 @@ function REQUEST:kungfu_chose()
 	local ret = {}
 	local t = user.u_rolemgr:get_by_csv_id( self.r_csv_id )
 	assert( t )
-
 
 	for i = 1 , KUNGFU_NUM do
 		local k_csv_id = "k_csv_id" .. i
@@ -186,6 +182,10 @@ function REQUEST:kungfu_chose()
 	end
 
 	t:__update_db( { "k_csv_id1" , "k_csv_id2" , "k_csv_id3" , "k_csv_id4" , "k_csv_id5" , "k_csv_id6" , "k_csv_id7" } )
+
+	ret.errorcode = errorcode[ 1 ].code			
+	ret.msg = errorcode[ 1 ].msg
+	return ret
 end			
 			
 function RESPONSE:abc()
