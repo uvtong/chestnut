@@ -78,8 +78,8 @@ end
 function QUERY:insert( table_name, columns )
 	-- body
 	local sql = util.insert(table_name, columns)
-	-- Queue.enqueue(Q, sql)
-	db:query(sql)
+	Queue.enqueue(Q, sql)
+	-- db:query(sql)
 end
 
 function QUERY:insert_all( table_name , tcolumns )
