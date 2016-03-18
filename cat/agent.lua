@@ -403,7 +403,8 @@ function REQUEST:signup()
 		return ret
 	end
 	local condition = {{ uaccount = self.account}}
-	local addr = util.random_db()
+	-- local addr = util.random_db()
+	local addr = ".db2"
 	local r = skynet.call(addr, "lua", "command", "select", "users", condition)
 	if #r == 0 then
 		local level = skynet.call(game, "lua", "query_g_user_level", 1)
@@ -930,9 +931,9 @@ function REQUEST:user_modify_name()
 		ret.msg	= errorcode[2].msg
 		return ret
 	end
-	if user.modify_uname_count > 1 then
+	if user.modify_uname_count >= 1 then
 		local prop = user.u_propmgr:get_by_csv_id(const.DIAMOND)
-		if prop.num > 100 then
+		if prop.num >= 100 then
 			prop.num = prop.num - 100
 			prop:__update_db({"num"})
 			user.uname = self.name
@@ -1022,9 +1023,10 @@ function REQUEST:shop_all()
 			v.st = 0
 			tmp = user.u_goodsmgr.create(v)
 			user.u_goodsmgr:add(tmp)
+			tmp:__insert_db()
 		end
-		for k,vv in pairs(tmp) do
-			v[k] = vv
+		for kk,vv in pairs(tmp) do
+			v[kk] = vv
 		end
 		table.insert(ll, v)
 	end
