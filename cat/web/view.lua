@@ -120,7 +120,8 @@ function VIEW.email()
 			ret.msg = errorcode[1].msg
 			return json.encode(ret)
 		elseif send_type == 2 then
-			skynet.send(".channel", "lua", "send_email_to_all", c)
+			-- assert(false)
+			skynet.send(".channel", "lua", "send_public_email_to_all", c)
 			local ret = {}
 			ret.errorcode = errorcode[1].code
 			ret.msg = errorcode[1].msg
