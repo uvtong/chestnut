@@ -287,9 +287,7 @@ function util.guid(game, csv_id)
 		h:__insert_db()
 		return t.entropy
 	else
-		print("**********************************", r.entropy)
 		r.entropy = r.entropy + 1
-		r:__update_db({"entropy"})
 		return r.entropy
 	end
 end
