@@ -792,6 +792,13 @@ recharge_vip_reward_purchase 60 {
 }
 
 xilian 61 {
+    request {
+        is_locked1 0 : integer
+        is_locked2 1 : integer
+        is_locked3 2 : integer
+        is_locked4 3 : integer
+        is_locked5 4 : integer
+    }
     response {
         errorcode 0 : integer
         msg 1 : string
@@ -815,16 +822,6 @@ xilian_ok 62 {
     response {
         errorcode 0 : integer
         msg 1 : msg
-    }
-}
-
-xilian_lock 63 {
-    request {
-        position 0 : integer
-    }
-    response {
-        errorcode 0 : integer
-        msg 1 : string
     }
 }
 
