@@ -791,6 +791,43 @@ recharge_vip_reward_purchase 60 {
     }
 }
 
+xilian 61 {
+    response {
+        errorcode 0 : integer
+        msg 1 : string
+        property_id1 2 : integer
+        value1 3 : integer
+        property_id2 4 : integer
+        value2 5 : integer
+        property_id3 6 : integer
+        value3 7 : integer
+        property_id4 8 : integer
+        value4 9 : integer
+        property_id5 10 : integer
+        value5 11 : integer
+    }
+}
+
+xilian_ok 62 {
+    request {
+        ok 0 : boolean
+    }
+    response {
+        errorcode 0 : integer
+        msg 1 : msg
+    }
+}
+
+xilian_lock 63 {
+    request {
+        position 0 : integer
+    }
+    response {
+        errorcode 0 : integer
+        msg 1 : string
+    }
+}
+
 ]]
 
 proto.s2c = sprotoparser.parse [[

@@ -403,8 +403,7 @@ function REQUEST:signup()
 		return ret
 	end
 	local condition = {{ uaccount = self.account}}
-	-- local addr = util.random_db()
-	local addr = ".db2"
+	local addr = util.random_db()
 	local r = skynet.call(addr, "lua", "command", "select", "users", condition)
 	if #r == 0 then
 		local level = skynet.call(game, "lua", "query_g_user_level", 1)
