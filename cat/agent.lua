@@ -647,6 +647,8 @@ function REQUEST:login()
 		ret.u.uexp = assert(user.u_propmgr:get_by_csv_id(const.EXP)).num
 		ret.u.gold = assert(user.u_propmgr:get_by_csv_id(const.GOLD)).num
 		ret.u.diamond = assert(user.u_propmgr:get_by_csv_id(const.DIAMOND)).num
+		--load public email from channel public_emailmgr
+		--get_public_email()
 		-- all roles
 		local l = {}
 		for k,v in pairs(user.u_rolemgr.__data) do

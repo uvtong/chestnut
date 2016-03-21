@@ -60,7 +60,7 @@ function CMD:agent_get_public_email( ucsv_id , pemail_csv_id , signup_time )
 
 	if 0 == pemail_csv_id then
 		sign , counter = get_public_email_index( signup_time )
-		if not sign and counter >= len then
+		if sign or ( not sign and counter >= len ) then
 			counter = len + 1
 		end  
 	else   
@@ -103,7 +103,7 @@ function CMD:send_public_email_to_all( tvals )
 			tvals[num] = 0
 		end 
 	end     
-
+		
 	tvals.csv_id = skynet.call( ".game" , "lua" , "guid" , const.PUBLIC_EMAILENTROPY )
 	assert( tvals.csv_id )
 		
