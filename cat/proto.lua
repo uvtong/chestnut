@@ -12,6 +12,16 @@ proto.c2s = sprotoparser.parse [[.package {
     is_possessed 1 : boolean
     star 2 : integer
     u_us_prop_num 3 : integer
+    property_id1 4 : integer
+    value1 5 : integer
+    property_id2 6 : integer
+    value2 7 : integer
+    property_id3 8 : integer
+    value3 9 : integer
+    property_id4 10 : integer
+    value4 11 : integer
+    property_id5 12 : integer
+    value5 13 : integer
 }
 
 .prop {
