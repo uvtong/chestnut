@@ -406,6 +406,10 @@ function CMD.query_g_property_pool(pk)
 			error "there are insufficient data"
 		end
 	elseif type(pk) == "nil" then
+		assert(game.g_property_poolmgr:get_count() > 0)
+		for k,v in pairs(game.g_property_poolmgr.__data) do
+			print(k,v)
+		end
 		return game.g_property_poolmgr.__data
 	else
 		assert(false)
@@ -486,8 +490,8 @@ local function update_db()
 	-- body
 	while true do
 		if game then
-			game.g_uidmgr:update_db(const.DB_PRIORITY_3)
-			game.g_randomvalmgr:update_db(const.DB_PRIORITY_3)
+			game.g_uidmgr:update_db(const.DB_PRIORITY_1)
+			game.g_randomvalmgr:update_db(const.DB_PRIORITY_1)
 		end
 		skynet.sleep(100 * 60) -- 1ti == 0.01s
 	end
@@ -503,6 +507,5 @@ skynet.start(function()
 		end
 	end)
 	skynet.fork(update_db)
-
 	skynet.register ".game"
 end)

@@ -357,7 +357,7 @@ local function load_g_property_pool()
 	-- body
 	assert(game.g_property_poolmgr == nil)
 	local g_property_poolmgr = require "models/g_property_poolmgr"
-	local r = skynet.call(util.random_db(), "lua", "command", "select", "g_property_poolmgr")
+	local r = skynet.call(util.random_db(), "lua", "command", "select", "g_property_pool")
 	for i,v in ipairs(r) do
 		local t = g_property_poolmgr.create(v)
 		g_property_poolmgr:add(t)
@@ -709,9 +709,9 @@ function loader.load_game()
 		load_g_user_level()
 		load_g_uid()
 		load_g_config()
-		--load_g_xilian_cost()
-		--load_g_property_pool()
-		--load_g_property_pool_second()
+		load_g_xilian_cost()
+		load_g_property_pool()
+		load_g_property_pool_second()
 	end
 	skynet.fork(f)
 	return game
