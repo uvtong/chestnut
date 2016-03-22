@@ -282,7 +282,7 @@ function REQUEST:draw()
    		v.drawnum = 1
    		isfriend = false
    	end 
-
+   	
    	table.insert( ret.list , v )
 	
    	local t = {}
