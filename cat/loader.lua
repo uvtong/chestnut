@@ -341,6 +341,42 @@ local function load_g_config()
 	game.g_configmgr = g_configmgr
 end
 
+local function load_g_xilian_cost()
+	-- body
+	assert(game.g_xilian_costmgr == nil)
+	local g_xilian_costmgr = require "models/g_xilian_costmgr"
+	local r = skynet.call(util.random_db(), "lua", "command", "select", "g_xilian_cost")
+	for i,v in ipairs(r) do
+		local t = g_xilian_costmgr.create(v)
+		g_xilian_costmgr:add(t)
+	end
+	game.g_xilian_costmgr = g_xilian_costmgr
+end
+
+local function load_g_property_pool()
+	-- body
+	assert(game.g_property_poolmgr == nil)
+	local g_property_poolmgr = require "models/g_property_poolmgr"
+	local r = skynet.call(util.random_db(), "lua", "command", "select", "g_property_poolmgr")
+	for i,v in ipairs(r) do
+		local t = g_property_poolmgr.create(v)
+		g_property_poolmgr:add(t)
+	end
+	game.g_property_poolmgr = g_property_poolmgr
+end
+
+local function load_g_property_pool_second()
+	-- body
+	assert(game.g_property_pool_secondmgr == nil)
+	local g_property_pool_secondmgr = require "models/g_property_pool_secondmgr"
+	local r = skynet.call(util.random_db(), "lua", "command", "select", "g_property_pool_second")
+	for i,v in ipairs(r) do
+		local t = g_property_pool_secondmgr.create(v)
+		g_property_pool_secondmgr:add(t)
+	end
+	game.g_property_pool_secondmgr = g_property_pool_secondmgr
+end
+
 local function load_u_achievement(user)
 	-- body
 	local u_achievementmgr = require "models/u_achievementmgr"
@@ -665,7 +701,6 @@ function loader.load_game()
 		--load_g_lilian_level()
 		--load_g_lilian_event()
 		--load_g_lilian_quanguan()
-		
 		load_g_randomval()
 		load_g_recharge_vip_reward()
 		load_g_role()
@@ -674,6 +709,9 @@ function loader.load_game()
 		load_g_user_level()
 		load_g_uid()
 		load_g_config()
+		load_g_xilian_cost()
+		load_g_property_pool()
+		load_g_property_pool_second()
 	end
 	skynet.fork(f)
 	return game

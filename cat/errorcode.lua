@@ -30,7 +30,7 @@ errorcode[27] = { code = 27, msg = "from the client data is wrong."}
 errorcode[28] = { code = 28, msg = "props unavailable."}
 errorcode[29] = { code = 29, msg = "exception"}
 errorcode[30] = { code = 30, msg = "more then user level max value."}
-
+errorcode[31] = { code = 31, msg = "not enough money"}
 
 --kungfu
 errorcode[51] = { code = 51 , msg = "kongfu not exist" }
