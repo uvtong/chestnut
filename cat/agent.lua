@@ -633,7 +633,7 @@ function REQUEST:signup()
 				pemail_csv_id = 0 }
 		local usersmgr = require "models/usersmgr"
 		local u = usersmgr.create(t)
-		u:__insert_db(const.DB_PRIORITY_2)
+		u:__insert_db(const.DB_PRIORITY_1)
 
 		-- create
 		local u_equipmentmgr = require "models/u_equipmentmgr"
@@ -645,7 +645,7 @@ function REQUEST:signup()
 			local equip = u_equipmentmgr.create(equip)
 			table.insert(l, equip)
 		end
-		u_equipmentmgr.insert_db(l)
+		u_equipmentmgr.insert_db(l, const.DB_PRIORITY_1)
 
 		l = {}
 		local u_propmgr = require "models/u_propmgr"
@@ -672,7 +672,7 @@ function REQUEST:signup()
 		prop.num = 100     
 		prop = u_propmgr.create(prop)
 		table.insert(l, prop)
-		u_propmgr.insert_db(l)
+		u_propmgr.insert_db(l, const.DB_PRIORITY_1)
 		
 		local newemail = { 
 						   type = 1 , title = "new user email" , 
@@ -738,7 +738,7 @@ function REQUEST:signup()
 		a.is_valid = 1
 		a = u_achievementmgr.create(a)
 		table.insert(l, a)
-		u_achievementmgr.insert_db(l)
+		u_achievementmgr.insert_db(l, const.DB_PRIORITY_1)
 
 		local u_goodsmgr = require "models/u_goodsmgr"
 		local r = skynet.call(game, "lua", "query_g_goods")
@@ -748,7 +748,7 @@ function REQUEST:signup()
 			local a = u_goodsmgr.create(t)
 			table.insert(l, a)
 		end
-		u_goodsmgr.insert_db(l)
+		u_goodsmgr.insert_db(l, const.DB_PRIORITY_1)
 
 		ret.errorcode = errorcode[1].code
 		ret.msg	= errorcode[1].msg

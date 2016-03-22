@@ -197,7 +197,7 @@ function CMD:send_email_to_group( tval , tucsv_id )
 
 	for _ , v in ipairs( tucsv_id ) do
 		print( v.uid)
-		tval.csv_id = skynet.call(".game", "lua" , "u_guid" , v.uid , const.UEMAILENTROPY )
+		tval.csv_id = skynet.call(".game", "lua" , "u_guid" , v.uid, const.UEMAILENTROPY )
 		tval.uid = v.uid
 		
 		print("********************************eamil", tval.uid)

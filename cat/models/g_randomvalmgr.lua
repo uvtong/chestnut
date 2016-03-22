@@ -105,9 +105,11 @@ end
 function _M:update_db(priority)
 	-- body
 	assert(priority)
-	local columns = { "val"}
-	local condition = { {user_id = 0}, {id = {}}}
-	skynet.send(util.random_db(), "lua", "command", "update_all", _Meta.__tname, condition, columns, self.__data, priority)
+	if self.__count > 0 then
+		local columns = { "val"}
+		local condition = { {user_id = 0}, {id = {}}}
+		skynet.send(util.random_db(), "lua", "command", "update_all", _Meta.__tname, condition, columns, self.__data, priority)
+	end
 end
 
 return _M

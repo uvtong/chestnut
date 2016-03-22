@@ -447,15 +447,39 @@ function CMD.query_g_randomval(pk)
 		assert(false)
 	end
 end
+
+local function guid(game, csv_id)
+	-- body
+	local r = game.g_uidmgr:get_by_csv_id(csv_id)
+	if not r then
+		local t = { csv_id=csv_id, entropy=1}
+		t = game.g_uidmgr.create(t)
+		game.g_uidmgr:add(t)
+		t:__insert_db(const.DB_PRIORITY_2)
+		return t.entropy
+	else
+		r.entropy = tonumber(r.entropy) + 1
+		return r.entropy
+	end
+end
+
+local function u_guid(user_id, game, csv_id)
+	-- body
+	local e = user_id * 10000 + csv_id
+	return util.guid(game, e)
+end
+
 function CMD.u_guid(user_id, csv_id)
 	-- body
-	print(user_id, csv_id)
-	return util.u_guid(user_id, game, csv_id)
+	assert(user_id)
+	assert(csv_id)
+	return u_guid(user_id, game, csv_id)
 end
 
 function CMD.guid(csv_id)
 	-- body
-	return util.guid(game, csv_id)
+	assert(csv_id)
+	return guid(game, csv_id)
 end
 
 local function update_db()
