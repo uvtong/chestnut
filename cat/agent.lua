@@ -272,6 +272,187 @@ local function store_refresh_reset_count()
 	end
 end
 
+local function xilian(t)
+	-- body
+	assert(type(t) == "table")
+	local ret = {}
+	local role = user.u_rolemgr:get_by_csv_id(t.role_id)
+	local property_pool = skynet.call(game, "lua", "query_g_property_pool")
+	local last = 0
+	local sum = 0
+	for k,v in pairs(property_pool) do
+		v.min = last
+		sum = sum + v.probability
+		v.max = sum
+	end
+	local n = 0
+	if t.is_locked1 then
+		n = n + 1
+		ret.property_id1 = role.property_id1
+		ret.value1 = role.value1
+	else
+		local property_pool_id
+		local rand = math.random(0, sum)
+		for k,v in pairs(property_pool) do
+			if rand > v.min and rand < v.max then
+				property_pool_id = v.property_pool_id
+				break
+			end
+		end
+		assert(property_pool_id)
+		
+		local last1 = 0
+		local sum1 = 0
+		local second = skynet.call(game, "lua", "query_g_property_pool_second", 0, property_pool_id)
+		for i,v in ipairs(second) do
+			v.min = last1
+			sum1 = sum1 + v.probability
+			v.max = sum1
+		end
+		rand = math.random(0, sum1)
+		for i,v in ipairs(second) do
+			if rand > v.min and rand < v.max then
+				ret.property_id1 = v.property_id
+				ret.value1 = v.value
+				break
+			end
+		end
+	end
+
+	if t.is_locked2 then
+		n = n + 1
+		ret.property_id2 = role.property_id2
+		ret.value2 = role.value2
+	else
+		local property_pool_id
+		local rand = math.random(0, sum)
+		for k,v in pairs(property_pool) do
+			if rand > v.min and rand < v.max then
+				property_pool_id = v.property_pool_id
+				break
+			end
+		end
+		assert(property_pool_id)
+		
+		local last1 = 0
+		local sum1 = 0
+		local second = skynet.call(game, "lua", "query_g_property_pool_second", 0, property_pool_id)
+		for i,v in ipairs(second) do
+			v.min = last1
+			sum1 = sum1 + v.probability
+			v.max = sum1
+		end
+		rand = math.random(0, sum1)
+		for i,v in ipairs(second) do
+			if rand > v.min and rand < v.max then
+				ret.property_id2 = v.property_id
+				ret.value2 = v.value
+				break
+			end
+		end
+	end
+
+	if t.is_locked3 then
+		n = n + 1
+		ret.property_id3 = role.property_id3
+		ret.value3 = role.value3
+	else
+		local property_pool_id
+		local rand = math.random(0, sum)
+		for k,v in pairs(property_pool) do
+			if rand > v.min and rand < v.max then
+				property_pool_id = v.property_pool_id
+				break
+			end
+		end
+		assert(property_pool_id)
+		
+		local last1 = 0
+		local sum1 = 0
+		local second = skynet.call(game, "lua", "query_g_property_pool_second", 0, property_pool_id)
+		for i,v in ipairs(second) do
+			v.min = last1
+			sum1 = sum1 + v.probability
+			v.max = sum1
+		end
+		rand = math.random(0, sum1)
+		for i,v in ipairs(second) do
+			if rand > v.min and rand < v.max then
+				ret.property_id3 = v.property_id
+				ret.value3 = v.value
+				break
+			end
+		end
+	end
+
+	if t.is_locked4 then
+		n = n + 1
+		ret.property_id4 = role.property_id4
+		ret.value4 = role.value4
+	else
+		local property_pool_id
+		local rand = math.random(0, sum)
+		for k,v in pairs(property_pool) do
+			if rand > v.min and rand < v.max then
+				property_pool_id = v.property_pool_id
+				break
+			end
+		end
+		assert(property_pool_id)
+		
+		local last1 = 0
+		local sum1 = 0
+		local second = skynet.call(game, "lua", "query_g_property_pool_second", 0, property_pool_id)
+		for i,v in ipairs(second) do
+			v.min = last1
+			sum1 = sum1 + v.probability
+			v.max = sum1
+		end
+		rand = math.random(0, sum1)
+		for i,v in ipairs(second) do
+			if rand > v.min and rand < v.max then
+				ret.property_id4 = v.property_id
+				ret.value4 = v.value
+				break
+			end
+		end
+	end
+
+	if t.is_locked5 then
+		n = n + 1
+		ret.property_id5 = role.property_id5
+		ret.value5 = role.value5
+	else
+		local property_pool_id
+		local rand = math.random(0, sum)
+		for k,v in pairs(property_pool) do
+			if rand > v.min and rand < v.max then
+				property_pool_id = v.property_pool_id
+				break
+			end
+		end
+		assert(property_pool_id)
+		
+		local last1 = 0
+		local sum1 = 0
+		local second = skynet.call(game, "lua", "query_g_property_pool_second", 0, property_pool_id)
+		for i,v in ipairs(second) do
+			v.min = last1
+			sum1 = sum1 + v.probability
+			v.max = sum1
+		end
+		rand = math.random(0, sum1)
+		for i,v in ipairs(second) do
+			if rand > v.min and rand < v.max then
+				ret.property_id5 = v.property_id
+				ret.value5 = v.value
+				break
+			end
+		end
+	end
+	return n, ret
+end
+
 local function subscribe( )
 	-- body
 	local c = skynet.call(".channel", "lua", "agent_start", user.csv_id, skynet.self())
@@ -298,8 +479,6 @@ end
 
 function REQUEST:achievement()
 	-- body
-	-- 1 not online
-	-- 2
 	local ret = {}
 	if not user then
 		ret.errorcode = errorcode[2].code
@@ -412,7 +591,7 @@ function REQUEST:signup()
 		local t = { csv_id= skynet.call(game, "lua", "guid", const.UENTROPY),
 				uname="nihao",
 				uaccount=self.account, 
-				upassword=self.password,
+				upassword=self.passwor-d,
 				uviplevel=0,
 				config_sound=1, 
 				config_music=1, 
@@ -524,7 +703,19 @@ function REQUEST:signup()
 		role.k_csv_id6 = 0
 		role.k_csv_id7 = 0
 		role = u_rolemgr.create(role)
-		role:__insert_db()
+		local n, r = xilian({is_locked1=false, is_locked2=false, is_locked3=false, is_locked4=false, is_locked5=false})
+		role.property_id1 = r.property_id1
+		role.value1 = r.value1
+		role.property_id2 = r.property_id2
+		role.value2 = r.value2
+		role.property_id3 = r.property_id3
+		role.value3 = r.value3
+		role.property_id4 = r.property_id4
+		role.value4 = r.value4
+		role.property_id5 = r.property_id5
+		role.value5 = r.value5
+		role:__insert_db(const.DB_PRIORITY_1)
+
 
 		-- achievement
 		l = {}
@@ -1954,6 +2145,88 @@ function REQUEST:recharge_vip_reward_purchase()
  		return ret
  	end
 end
+
+function REQUEST:xilian()
+	-- body
+	assert(self)
+	local ret = {}
+	local n, r = xilian(self)
+	if n > 0 then
+		local xilian_cost = skynet.call(game, "lua", "query_g_xilian_cost", n)
+		local prop = user.u_propmgr:get_by_csv_id(xilian_cost.currency_type)
+		if prop.num >= xilian_cost.currency_num then
+			prop.num = prop.num - xilian_cost.currency_num
+		else
+			ret.errorcode = errorcode[16].code
+			ret.msg = errorcode[16].msg
+			return ret
+		end
+		
+	end
+	local role = user.u_rolemgr:get_by_csv_id(t.role_id)
+	-- if type(role.backup) ~= "table" then
+	-- 	role.backup = {}
+	-- end
+	role.backup = r
+	ret.errorcode = errorcode[1].code
+	ret.msg = errorcode[1].msg
+	for k,v in pairs(r) do
+		ret[k] = v
+	end
+	return ret
+end
+
+function REQUEST:xilian_ok()
+	-- body
+	local ret = {}
+	if self.ok then
+		local role = user.u_rolemgr:get_by_csv_id(t.role_id)
+		assert(role.backup)
+		role.property_id1 = role.backup.property_id1
+		role.value1 = role.backup.value1
+		role.property_id2 = role.backup.property_id2
+		role.value2 = role.backup.value2
+		role.property_id3 = role.backup.property_id3
+		role.value3 = role.backup.value3
+		role.property_id4 = role.backup.property_id4
+		role.value4 = role.backup.value4
+		role.property_id5 = role.backup.property_id5
+		role.value5 = role.backup.value5
+		ret.errorcode = errorcode[1].code
+		ret.msg = errorcode[1].msg
+		return ret
+	end
+	ret.errorcode = errorcode[1].code
+	ret.msg = errorcode[1].msg
+	return ret
+end
+
+xilian 61 {
+    request {
+        is_locked1 0 : integer
+        is_locked2 1 : integer
+        is_locked3 2 : integer
+        is_locked4 3 : integer
+        is_locked5 4 : integer
+    }
+    response {
+        errorcode 0 : integer
+        msg 1 : string
+        property_id1 2 : integer
+        value1 3 : integer
+        property_id2 4 : integer
+        value2 5 : integer
+        property_id3 6 : integer
+        value3 7 : integer
+        property_id4 8 : integer
+        value4 9 : integer
+        property_id5 10 : integer
+        value5 11 : integer
+    }
+}
+
+xilian_ok 62 {
+   
 
 function REQUEST:handshake()
 	print("Welcome to skynet, I will send heartbeat every 5 sec." )

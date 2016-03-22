@@ -803,11 +803,12 @@ recharge_vip_reward_purchase 60 {
 
 xilian 61 {
     request {
-        is_locked1 0 : integer
-        is_locked2 1 : integer
-        is_locked3 2 : integer
-        is_locked4 3 : integer
-        is_locked5 4 : integer
+        role_id 0 : integer
+        is_locked1 1 : integer
+        is_locked2 2 : integer
+        is_locked3 3 : integer
+        is_locked4 4 : integer
+        is_locked5 5 : integer
     }
     response {
         errorcode 0 : integer
@@ -827,7 +828,8 @@ xilian 61 {
 
 xilian_ok 62 {
     request {
-        ok 0 : boolean
+        role_id 0 : integer
+        ok 1 : boolean
     }
     response {
         errorcode 0 : integer
