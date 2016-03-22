@@ -439,6 +439,14 @@ function CMD.query_g_property_pool_second(pk, T)
 	end
 end
 
+function CMD.query_g_randomval(pk)
+	-- body
+	if type(pk) == "number" then
+		return assert(game.g_randomvalmgr:get_by_id(pk))
+	else
+		assert(false)
+	end
+end
 function CMD.u_guid(user_id, csv_id)
 	-- body
 	print(user_id, csv_id)
@@ -454,8 +462,8 @@ local function update_db()
 	-- body
 	while true do
 		if game then
-			print("*****************************************g_uidmgr:update_db")
-			game.g_uidmgr:update_db(const.DB_PRIORITY_2)
+			game.g_uidmgr:update_db(const.DB_PRIORITY_3)
+			game.g_randomvalmgr:update_db(const.DB_PRIORITY_3)
 		end
 		skynet.sleep(100 * 60) -- 1ti == 0.01s
 	end
