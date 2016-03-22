@@ -678,10 +678,9 @@ function REQUEST:signup()
 						   content = "Welcome to the game" , 
 						   itemsn1 = 1 , itemnum1 = 10000 , 
 						   itemsn2 = 2 , itemnum2 = 10000 , 
-						   itemsn3 = 3 , itemnum3 = 10000 , 
-						   iconid = 10001 
+						   itemsn3 = 3 , itemnum3 = 10000
 						}  
-		-- skynet.send(".channel", "lua", "send_email_to_group" , newemail ,  { { csv_id = u.csv_id } } )
+		-- skynet.send(".channel", "lua", "send_email_to_group" , newemail ,  { { uid = u.csv_id } } )
 		-- local u_kungfumgr = require "models/u_kungfumgr"
 		-- local kungfu = game.g_kungfumgr:get_by_csv_id(1001)
 		-- kungfu.user_id = assert(u.csv_id)
