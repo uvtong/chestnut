@@ -16,25 +16,27 @@ function _Meta.__new()
  	return t
 end 
 
-function _Meta:__insert_db()
+function _Meta:__insert_db( priority )
 	-- body
-	-- local t = {}
-	-- for k,v in pairs( _Meta ) do
-	-- 	if not string.match(k, "^__*") then
-	-- 		t[ k ] = assert( self[ k ] )
-	-- 	end
-	-- end
-	-- skynet.send( util.random_db() , "lua" , "command" , "insert" , self.__tname , t )
+
+	local t = {}
+	for k,v in pairs( _Meta ) do
+		if not string.match(k, "^__*") then
+			t[ k ] = assert( self[ k ] )
+		end
+	end
+	skynet.send( util.random_db() , "lua" , "command" , "insert" , self.__tname , t , priority )
 end
 
 function _Meta:__update_db( t )
 	-- body
-	-- assert( type( t ) == "table" )
-	-- local columns = {}
-	-- for i,v in ipairs( t ) do
-	-- 	columns[ tostring( v ) ] = self[ tostring( v ) ]
-	-- end
-	-- skynet.send( util.random_db(), "lua", "command", "update", self.__tname, { { id = assert( self.id ) } } , columns )
+
+	--assert( type( t ) == "table" )
+	--local columns = {}
+	--for i,v in ipairs( t ) do
+	--	columns[ tostring( v ) ] = self[ tostring( v ) ]
+	--end
+	--skynet.send( util.random_db(), "lua", "command", "update", self.__tname, { { id = assert( self.id ) } } , columns )
 end
 
 function _Meta:__serialize()

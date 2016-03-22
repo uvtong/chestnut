@@ -709,9 +709,9 @@ function loader.load_game()
 		load_g_user_level()
 		load_g_uid()
 		load_g_config()
-		load_g_xilian_cost()
-		load_g_property_pool()
-		load_g_property_pool_second()
+		--load_g_xilian_cost()
+		--load_g_property_pool()
+		--load_g_property_pool_second()
 	end
 	skynet.fork(f)
 	return game

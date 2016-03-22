@@ -145,7 +145,6 @@ function VIEW.email()
 		c["itemnum2"] = tonumber(self.body["itemnum2"])
 		c["itemsn3"] = tonumber(self.body["itemsn3"])
 		c["itemnum3"] = assert(tonumber(self.body["itemnum3"]))
-		c["iconid"] = assert(tonumber(self.body["iconid"]))
 		local receiver = tonumber(self.body["receiver"])
 		if send_type == 1 then
 			skynet.send(".channel", "lua", "send_email_to_group", c, {{ uid = receiver }})
