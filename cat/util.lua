@@ -248,7 +248,6 @@ function util.update_all( table_name, condition, columns, data )
 		t = string.gsub(t, "(.*)%,%s$", "%1)")
 		condition_str = condition_str .. t
 	end
-	print(columns_str)
 	columns_str = string.gsub(columns_str, "(.*)%,$", "%1 ")
 	local t = ""
 	if type(condition[1]) == "table" then

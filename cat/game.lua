@@ -490,8 +490,8 @@ local function update_db()
 	-- body
 	while true do
 		if game then
-			game.g_uidmgr:update_db(const.DB_PRIORITY_1)
-			game.g_randomvalmgr:update_db(const.DB_PRIORITY_1)
+			game.g_uidmgr:update_db(const.DB_PRIORITY_3)
+			game.g_randomvalmgr:update_db(const.DB_PRIORITY_3)
 		end
 		skynet.sleep(100 * 60) -- 1ti == 0.01s
 	end
