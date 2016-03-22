@@ -375,6 +375,10 @@ local function getpropidlist( dtype )
 		print( "groupid is >>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>" .. id )
 		local r = game.g_subrewardmgr:get_by_csv_id( id )
 		assert( r )
+		for k , v in pairs( r ) do
+			print( k , v )
+		end
+		print( "r.proptype is **********************************" , r.proptype )
 		table.insert( propidlist.list , { propid = r.propid , amount = r.propnum , proptype = r.proptype } )
 	end		
         
