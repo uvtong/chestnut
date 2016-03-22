@@ -23,7 +23,17 @@ local _Meta = { user_id=0,
 				k_csv_id4=0, 
 				k_csv_id5=0, 
 				k_csv_id6=0, 
-				k_csv_id7=0}
+				k_csv_id7=0,
+				property_id1=0,
+				value1=0,
+				property_id2=0,
+				value2=0,
+				property_id3=0,
+				value3=0,
+				property_id4=0,
+				value4=0,
+				property_id5=0,
+				value5=0}
 
 _Meta.__tname = "u_role"
 

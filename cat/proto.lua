@@ -12,6 +12,16 @@ proto.c2s = sprotoparser.parse [[.package {
     is_possessed 1 : boolean
     star 2 : integer
     u_us_prop_num 3 : integer
+    property_id1 4 : integer
+    value1 5 : integer
+    property_id2 6 : integer
+    value2 7 : integer
+    property_id3 8 : integer
+    value3 9 : integer
+    property_id4 10 : integer
+    value4 11 : integer
+    property_id5 12 : integer
+    value5 13 : integer
 }
 
 .prop {
@@ -788,6 +798,42 @@ recharge_vip_reward_purchase 60 {
         errorcode 0 : integer
         msg 1 : string
         l 2 : *prop
+    }
+}
+
+xilian 61 {
+    request {
+        role_id 0 : integer
+        is_locked1 1 : integer
+        is_locked2 2 : integer
+        is_locked3 3 : integer
+        is_locked4 4 : integer
+        is_locked5 5 : integer
+    }
+    response {
+        errorcode 0 : integer
+        msg 1 : string
+        property_id1 2 : integer
+        value1 3 : integer
+        property_id2 4 : integer
+        value2 5 : integer
+        property_id3 6 : integer
+        value3 7 : integer
+        property_id4 8 : integer
+        value4 9 : integer
+        property_id5 10 : integer
+        value5 11 : integer
+    }
+}
+
+xilian_ok 62 {
+    request {
+        role_id 0 : integer
+        ok 1 : boolean
+    }
+    response {
+        errorcode 0 : integer
+        msg 1 : msg
     }
 }
 

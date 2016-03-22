@@ -380,6 +380,65 @@ function CMD.query_g_config()
 	return ptr
 end
 
+function CMD.query_g_xilian_cost(pk)
+	-- body
+	if type(pk) == "number" then
+		local r = game.g_xilian_costmgr:get_by_csv_id(pk)
+		if r then
+			return r
+		else
+			error "there are insufficient data"
+		end
+	elseif type(pk) == "nil" then
+		return game.g_xilian_costmgr.__data
+	else
+		assert(false)
+	end
+end
+
+function CMD.query_g_property_pool(pk)
+	-- body
+	if type(pk) == "number" then
+		local r = game.g_property_poolmgr:get_by_csv_id(pk)
+		if r then
+			return r
+		else
+			error "there are insufficient data"
+		end
+	elseif type(pk) == "nil" then
+		return game.g_property_poolmgr.__data
+	else
+		assert(false)
+	end
+end
+
+function CMD.query_g_property_pool_second(pk, T)
+	-- body
+	if type(pk) == "number" then
+		if pk > 0 then
+			local r = game.g_property_pool_secondmgr:get_by_csv_id(pk)
+			if r then
+				return r
+			else
+				error "there are insufficient data"
+			end
+		else
+			assert(type(T) == "number")
+			local second = {}
+			for k,v in pairs(game.g_property_pool_secondmgr.__data) do
+				if v.property_pool_id == T then
+					table.insert(second, v)
+				end
+			end
+			return second
+		end
+	elseif type(pk) == "nil" then
+		return game.g_property_pool_secondmgr.__data
+	else
+		assert(false)
+	end
+end
+
 function CMD.u_guid(user_id, csv_id)
 	-- body
 	print(user_id, csv_id)
