@@ -197,7 +197,7 @@ function CMD:send_email_to_group( tval , tucsv_id )
 
 	for _ , v in ipairs( tucsv_id ) do
 		assert(v.uid)
-		tval.csv_id = skynet.call(".game", "lua" , "u_guid" , tonumber(v.uid), const.UEMAILENTROPY )
+		tval.csv_id = skynet.call(".game", "lua" , "u_guid" , v.uid, const.UEMAILENTROPY )
 		tval.uid = v.uid
 		
 		print("********************************eamil", tval.uid)
@@ -213,6 +213,8 @@ function CMD:send_email_to_group( tval , tucsv_id )
 			ne:__insert_db( const.DB_PRIORITY_2 )
 		end	
 	end 	
+
+	assert( false )
 end 		
 		
 --[[function CMD:hello( tval , ... )

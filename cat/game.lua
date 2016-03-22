@@ -470,7 +470,7 @@ end
 local function u_guid(user_id, game, csv_id)
 	-- body
 	local e = user_id * 10000 + csv_id
-	return util.guid(game, e)
+	return guid(game, e)
 end
 
 function CMD.u_guid(user_id, csv_id)
