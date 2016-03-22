@@ -5,8 +5,7 @@ local _M = {}
 _M.__data = {}
 _M.__count = 0
 _M.__user_id = 0
-
-_M.__update_fields = { type=0, finished=0, c_num=0, unlock_next_csv_id=0, is_unlock=0, is_valid=0}
+_M.__tname = "u_achievement"
 
 local _Meta = { user_id=0, csv_id=0, type=0, finished=0, c_num=0, unlock_next_csv_id=0, is_unlock=0, is_valid=0}
 

@@ -53,6 +53,7 @@ end
 
 local function flush_db(priority)
 	-- body
+	assert(priority)
 	if user then
 		for k,v in pairs(user) do
 			if string.match(k, "^u_%w+mgr$") then
