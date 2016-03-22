@@ -72,7 +72,6 @@ local function flush_db(priority)
 		if cm then
 			cm:__update_db({"checkin_month"}, priority)
 		end
-		
 	end
 end
 
@@ -290,9 +289,6 @@ local function xilian(role, t)
 		sum = sum + v.probability
 		v.max = sum
 	end
-	for k,v in pairs(t) do
-		print(k,v)
-	end
 	local n = 0
 	if t.is_locked1 then
 		n = n + 1
@@ -312,13 +308,6 @@ local function xilian(role, t)
 		local last1 = 0
 		local sum1 = 0
 		local second = skynet.call(game, "lua", "query_g_property_pool_second", 0, property_pool_id)
-		for k,v in pairs(second) do
-			print(k,v)
-			print("***************************")
-			for kk,vv in pairs(v) do
-				print(k,v)
-			end
-		end
 		for i,v in ipairs(second) do
 			v.min = last1
 			sum1 = sum1 + v.probability
@@ -373,9 +362,9 @@ local function xilian(role, t)
 		ret.value3 = role.value3
 	else
 		local property_pool_id
-		local rand = math.random(0, sum)
+		local rand = math.random(0, sum-1)
 		for k,v in pairs(property_pool) do
-			if rand > v.min and rand < v.max then
+			if rand >= v.min and rand < v.max then
 				property_pool_id = v.property_pool_id
 				break
 			end
@@ -1864,7 +1853,7 @@ function REQUEST:equipment_enhance()
 	else
 		assert(currency.num >= ee.currency_num)
 		local r = math.random(0, 100)
-		if r < e.enhance_success_rate + (e.enhance_success_rate * user.equipment_enhance_success_rate_up_p) then
+		if r < e.enhance_success_rate + (e.enhance_success_rate * user.equipment_enhance_success_rate_up_p/100) then
 			currency.num = currency.num - ee.currency_num
 			assert(currency.num > 0)
 			currency:__update_db({"num"})
@@ -1995,6 +1984,18 @@ function REQUEST:role_recruit()
 		role.k_csv_id5 = 0
 		role.k_csv_id6 = 0
 		role.k_csv_id7 = 0
+		local n, r = xilian(role, {role_id=role.csv_id, is_locked1=false, is_locked2=false, is_locked3=false, is_locked4=false, is_locked5=false})
+		assert(n == 0, string.format("%d locked.", n))
+		role.property_id1 = r.property_id1
+		role.value1 = r.value1
+		role.property_id2 = r.property_id2
+		role.value2 = r.value2
+		role.property_id3 = r.property_id3
+		role.value3 = r.value3
+		role.property_id4 = r.property_id4
+		role.value4 = r.value4
+		role.property_id5 = r.property_id5
+		role.value5 = r.value5
 		role = user.u_rolemgr.create(role)
 		user.u_rolemgr:add(role)
 		role:__insert_db(const.DB_PRIORITY_2)
@@ -2173,17 +2174,23 @@ function REQUEST:xilian()
 	xilian_role_id = self.role_id
 	local role = user.u_rolemgr:get_by_csv_id(self.role_id)
 	local n, r = xilian(role, self)
-	if n > 0 then
-		local xilian_cost = skynet.call(game, "lua", "query_g_xilian_cost", n)
-		local prop = user.u_propmgr:get_by_csv_id(xilian_cost.currency_type)
-		if prop.num >= xilian_cost.currency_num then
-			prop.num = prop.num - xilian_cost.currency_num
-		else
-			ret.errorcode = errorcode[16].code
-			ret.msg = errorcode[16].msg
+	assert(n >= 0)
+	local xilian_cost = skynet.call(game, "lua", "query_g_xilian_cost", n)
+	assert(type(xilian_cost.cost) == "string")
+	local C = util.parse_text(xilian_cost.cost, "(%d+%*%d+%*?)", 2)
+	for i,v in ipairs(C) do
+		local prop = user.u_propmgr:get_by_csv_id(v[1])
+		if prop.num < tonumber(v[2]) then
+			ret.errorcode = errorcode[31].code
+			ret.msg = errorcode[31].msg	
 			return ret
 		end
 	end
+	for i,v in ipairs(C) do
+		local prop = user.u_propmgr:get_by_csv_id(v[1])
+		prop.num = prop.num - tonumber(v[2])
+	end
+	
 	xilian_lock = 1
 	-- if type(role.backup) ~= "table" then
 	-- 	role.backup = {}

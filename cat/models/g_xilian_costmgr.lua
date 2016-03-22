@@ -7,7 +7,7 @@ _M.__count = 0
 _M.__user_id = 0
 _M.__tname = "g_xilian_cost"
 
-local _Meta = { csv_id=0, currency_type=0, currency_num=0}
+local _Meta = { csv_id=0, cost=0}
 
 _Meta.__tname = "g_xilian_cost"
 
@@ -98,12 +98,12 @@ end
 
 function _M:update_db(priority)
 	-- body
-	assert(priority)
-	if self.__count > 0 then
-		local columns = { "finished", "reward_collected", "is_unlock"}
-		local condition = { {user_id = self.__user_id}, {csv_id = {}}}
-		skynet.send(util.random_db(), "lua", "command", "update_all", _Meta.__tname, condition, columns, self.__data, priority)
-	end
+	-- assert(priority)
+	-- if self.__count > 0 then
+	-- 	local columns = { "finished", "reward_collected", "is_unlock"}
+	-- 	local condition = { {user_id = self.__user_id}, {csv_id = {}}}
+	-- 	skynet.send(util.random_db(), "lua", "command", "update_all", _Meta.__tname, condition, columns, self.__data, priority)
+	-- end
 end
 
 return _M
