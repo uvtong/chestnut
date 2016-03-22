@@ -87,7 +87,7 @@ end
 local function print_sql( sql )
 	-- body
 	assert(type("sql") == "string")
-	skynet.error("\\**" .. sql .. "**\\")
+	-- skynet.error("\\**" .. sql .. "**\\")
 end
 
 function util.select( table_name, condition, columns )
@@ -277,7 +277,7 @@ function util.parse_text(src, parten, D)
 	-- src = "1000*10*10*10*10*10"
 	-- D = 2
 	-- parten = "(%d+%*%d+%*%d+%*?)"
-	print( "src , parten , D is " , src , parten , D )
+	-- print( "src , parten , D is " , src , parten , D )
 	assert( src and parten and D )
 	local xparten = ""
 	string.gsub(parten, "(%%%w%+)%%%*", function (s)
