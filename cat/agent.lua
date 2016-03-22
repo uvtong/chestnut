@@ -68,7 +68,11 @@ local function flush_db(priority)
 			"exp_max", "equipment_enhance_success_rate_up_p", "store_refresh_count_max",
 			"prop_refresh", "arena_frozen_time", "purchase_hp_count", "gain_gold_up_p", "gain_exp_up_p",
 			"purchase_hp_count_max", "SCHOOL_reset_count_max", "SCHOOL_reset_count"}, priority)
-		user.u_checkin_monthmgr:get_checkin_month():__update_db({"checkin_month"})
+		local cm = user.u_checkin_monthmgr:get_checkin_month()
+		if cm then
+			cm:__update_db({"checkin_month"}, priority)
+		end
+		
 	end
 end
 
@@ -290,7 +294,7 @@ local function xilian(role, t)
 		print(k,v)
 	end
 	local n = 0
-	if t.is_locked1 == 1 then
+	if t.is_locked1 then
 		n = n + 1
 		ret.property_id1 = role.property_id1
 		ret.value1 = role.value1
@@ -330,7 +334,7 @@ local function xilian(role, t)
 		end
 	end
 
-	if t.is_locked2 == 1 then
+	if t.is_locked2 then
 		n = n + 1
 		ret.property_id2 = role.property_id2
 		ret.value2 = role.value2
@@ -363,7 +367,7 @@ local function xilian(role, t)
 		end
 	end
 
-	if t.is_locked3 == 1 then
+	if t.is_locked3 then
 		n = n + 1
 		ret.property_id3 = role.property_id3
 		ret.value3 = role.value3
@@ -396,7 +400,7 @@ local function xilian(role, t)
 		end
 	end
 
-	if t.is_locked4 == 1 then
+	if t.is_locked4 then
 		n = n + 1
 		ret.property_id4 = role.property_id4
 		ret.value4 = role.value4
@@ -429,7 +433,7 @@ local function xilian(role, t)
 		end
 	end
 
-	if t.is_locked5 == 1 then
+	if t.is_locked5 then
 		n = n + 1
 		ret.property_id5 = role.property_id5
 		ret.value5 = role.value5
