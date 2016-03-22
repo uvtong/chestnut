@@ -27,6 +27,7 @@ end
 
 function _Meta:__insert_db( priority )
 	-- body
+	assert(priority)
 	local t = {}
 	for k,v in pairs(_Meta) do
 		if not string.match(k, "^__*") then
@@ -57,7 +58,8 @@ function _Meta:__serialize()
 	return r
 end
 
-function _M.insert_db( values )
+function _M.insert_db( values, priority)
+	assert(priority)
 	assert(type(values) == "table" )
 	local total = {}
 	for i,v in ipairs(values) do
@@ -69,7 +71,7 @@ function _M.insert_db( values )
 		end
 		table.insert(total, t)
 	end
-	skynet.send( util.random_db() , "lua" , "command" , "insert_all" , _Meta.__tname , total )
+	skynet.send( util.random_db() , "lua" , "command" , "insert_all" , _Meta.__tname , total, priority)
 end 
 
 function _M.create(P)
@@ -111,6 +113,7 @@ end
 
 function _M:update_db(priority)
 	-- body
+	assert(priority)
 	if self.__count > 0 then
 		local columns = { "num" }
 		local condition = { {user_id = self.__user_id}, {csv_id = {}}}

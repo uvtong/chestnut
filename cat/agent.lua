@@ -2203,34 +2203,7 @@ function REQUEST:xilian_ok()
 	ret.errorcode = errorcode[1].code
 	ret.msg = errorcode[1].msg
 	return ret
-end
-
-xilian 61 {
-    request {
-        is_locked1 0 : integer
-        is_locked2 1 : integer
-        is_locked3 2 : integer
-        is_locked4 3 : integer
-        is_locked5 4 : integer
-    }
-    response {
-        errorcode 0 : integer
-        msg 1 : string
-        property_id1 2 : integer
-        value1 3 : integer
-        property_id2 4 : integer
-        value2 5 : integer
-        property_id3 6 : integer
-        value3 7 : integer
-        property_id4 8 : integer
-        value4 9 : integer
-        property_id5 10 : integer
-        value5 11 : integer
-    }
-}
-
-xilian_ok 62 {
-   
+end   
 
 function REQUEST:handshake()
 	print("Welcome to skynet, I will send heartbeat every 5 sec." )

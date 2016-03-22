@@ -20,6 +20,7 @@ end
 
 function _Meta:__insert_db( priority )
 	-- body
+	assert(priority)
 	local t = {}
 	for k,v in pairs(_Meta) do
 		if not string.match(k, "^__*") then
@@ -87,10 +88,12 @@ end
 
 function _M:clear()
 	self.__data = {}
+	self.__count = 0
 end
 
 function _M:update_db(priority)
 	-- body
+	assert(priority)
 	if self.__count > 0 then
 		local columns = { "level", "sp_id" }
 		local condition = { {user_id = self.__user_id}, {csv_id = {}}}

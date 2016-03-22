@@ -833,7 +833,7 @@ xilian_ok 62 {
     }
     response {
         errorcode 0 : integer
-        msg 1 : msg
+        msg 1 : string
     }
 }
 

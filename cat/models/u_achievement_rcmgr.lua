@@ -17,15 +17,16 @@ function _Meta.__new()
  	return t
 end 
 
-function _Meta:__insert_db()
+function _Meta:__insert_db(priority)
 	-- body
+	assert(priority)
 	local t = {}
 	for k,v in pairs(self) do
 		if not string.match(k, "^__*") then
 			t[k] = assert(self[k])
 		end
 	end
-	skynet.send(util.random_db(), "lua", "command", "insert", self.__tname, t)
+	skynet.send(util.random_db(), "lua", "command", "insert", self.__tname, t, priority)
 end
 
 function _Meta:__update_db(t)
@@ -47,10 +48,6 @@ function _Meta:__serialize()
 		end
 	end
 	return r
-end
-
-function _M:clear()
-	self.__data = {}
 end
 
 function _M:update_db()
@@ -84,12 +81,19 @@ end
 
 function _M:delete_by_csv_id(csv_id)
 	-- body
+	assert(self.__data[tostring(csv_id)])
 	self.__data[tostring(csv_id)] = nil
+	self.__count = self.__count - 1
 end
 
 function _M:get_count()
 	-- body
 	return self.__count
+end
+
+function _M:clear()
+	self.__data = {}
+	self.__count = 0
 end
 
 return _M

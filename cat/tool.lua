@@ -13,8 +13,6 @@ _M.__tname = "%s"
 
 local _Meta = %s
 
-_Meta.__tname = "%s"
-
 function _Meta.__new()
  	-- body
  	local t = {}
@@ -31,7 +29,7 @@ function _Meta:__insert_db(priority)
 			t[k] = assert(self[k])
 		end
 	end
-	skynet.send(util.random_db(), "lua", "command", "insert", self.__tname, t, priority)
+	skynet.send(util.random_db(), "lua", "command", "insert", _M.__tname, t, priority)
 end
 
 function _Meta:__update_db(t, priority)
@@ -41,7 +39,7 @@ function _Meta:__update_db(t, priority)
 	-- for i,v in ipairs(t) do
 	-- 	columns[tostring(v)] = self[tostring(v)]
 	-- end
-	-- skynet.send(util.random_db(), "lua", "command", "update", self.__tname, {{ user_id=self.user_id, csv_id=self.csv_id }}, columns, priority)
+	-- skynet.send(util.random_db(), "lua", "command", "update", _M.__tname, {{ user_id=self.user_id, csv_id=self.csv_id }}, columns, priority)
 end
 
 function _M.insert_db(values, priority)
@@ -57,7 +55,7 @@ function _M.insert_db(values, priority)
 		end
 		table.insert(total, t)
 	end
-	skynet.send(util.random_db(), "lua", "command", "insert_all", _Meta.__tname, total, priority)
+	skynet.send(util.random_db(), "lua", "command", "insert_all", _M.__tname, total, priority)
 end 
 
 function _M.create( P )
@@ -106,7 +104,7 @@ function _M:update_db(priority)
 	if self.__count > 0 then
 		local columns = { "finished", "reward_collected", "is_unlock"}
 		local condition = { {user_id = self.__user_id}, {csv_id = {}}}
-		skynet.send(util.random_db(), "lua", "command", "update_all", _Meta.__tname, condition, columns, self.__data, priority)
+		skynet.send(util.random_db(), "lua", "command", "update_all", _M.__tname, condition, columns, self.__data, priority)
 	end
 end
 

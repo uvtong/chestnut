@@ -51,7 +51,7 @@ _Meta.__tname = "users"
 
 function _Meta:__insert_db( priority )
 	-- body
-	assert(false)
+	assert(priority)
 	local t = {}
 	for k,v in pairs(_Meta) do
 		if not string.match(k, "^__*") then
@@ -90,11 +90,12 @@ function _Meta.__new()
  	return t
 end 
 
-function _M:update_db()
+function _M:update_db(priority)
 	-- body
-	local columns = { "finished", "reward_collected", "is_unlock"}
-	local condition = { {user_id = self.__user_id}, {csv_id = {}}}
-	skynet.send(util.random_db(), "lua", "command", "update_all", _Meta.__tname, condition, columns, self.__data)
+	-- assert(priority)
+	-- local columns = { "finished", "reward_collected", "is_unlock"}
+	-- local condition = { {user_id = self.__user_id}, {csv_id = {}}}
+	-- skynet.send(util.random_db(), "lua", "command", "update_all", _Meta.__tname, condition, columns, self.__data)
 end
 
 function _M.create( P )
@@ -127,13 +128,14 @@ function _M:delete_by_csv_id(csv_id)
 	assert(false)
 end
 
-function _M:clear()
-	self.__data = {}
-end
-
 function _M:get_count()
 	-- body
 	return self.__count
+end
+
+function _M:clear()
+	self.__data = {}
+	self.__count = 0
 end
 
 return _M
