@@ -22,6 +22,7 @@ end
 
 function _Meta:__insert_db( priority )
 	-- body
+	assert(priority)
 	local t = {}
 	for k,v in pairs(self) do
 		if not string.match(k, "^__*") then
@@ -76,6 +77,7 @@ end
 
 function _M:update_db(priority)
 	-- body
+	assert(priority)
 	local columns = { "isread", "isdel", "isreward"}
 	local condition = { {uid = self.__user_id}, {csv_id = {}}}
 	skynet.send(util.random_db(), "lua", "command", "update_all", _Meta.__tname, condition, columns, self.__data, priority)
@@ -116,6 +118,7 @@ end
 
 function _M:clear()
 	self.__data = {}
+	self.__count = 0
 end
 	
 function _M:recvemail( tvals )
@@ -163,7 +166,6 @@ function _M:sysdelemail()
 		tmp.isdel = 1
 		tmp:__update_db( { "isdel" } )
 		self.__data[ tostring( v ) ] = nil
-		
 		self.__count = self.__count - 1
 	end
 

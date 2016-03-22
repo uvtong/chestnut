@@ -17,8 +17,9 @@ function _Meta.__new()
  	return t
 end 
 
-function _Meta:__insert_db( priority )
+function _Meta:__insert_db(priority)
 	-- body
+	assert(priority)
 	local t = {}
 	for k,v in pairs(self) do
 		if not string.match(k, "^__*") then
@@ -86,13 +87,14 @@ function _M:delete_cgold()
 	self.__count = self.__count - 1
 end
 
-function _M:clear()
-	self.__data = {}
-end
-
 function _M:get_count()
 	-- body
 	return self.__count
+end
+
+function _M:clear()
+	self.__data = {}
+	self.__count = 0
 end
 
 return _M

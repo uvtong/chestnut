@@ -5,37 +5,11 @@ local _M = {}
 _M.__data = {}
 _M.__count = 0
 _M.__user_id = 0
-_M.__tname = "u_role"
+_M.__tname = "g_property_pool_second"
 
-local _Meta = { user_id=0, 
-				csv_id=0, 
-				name=0, 
-				star=0, 
-				us_prop_csv_id=0, 
-				us_prop_num=0, 
-				sharp=0, 
-				skill_csv_id=0, 
-				gather_buffer_id=0, 
-				battle_buffer_id=0,
-				k_csv_id1=0, 
-				k_csv_id2=0, 
-				k_csv_id3=0, 
-				k_csv_id4=0, 
-				k_csv_id5=0, 
-				k_csv_id6=0, 
-				k_csv_id7=0,
-				property_id1=0,
-				value1=0,
-				property_id2=0,
-				value2=0,
-				property_id3=0,
-				value3=0,
-				property_id4=0,
-				value4=0,
-				property_id5=0,
-				value5=0}
+local _Meta = { csv_id=0, property_pool_id=0, probability=0, property_id=0, value=0}
 
-_Meta.__tname = "u_role"
+_Meta.__tname = "g_property_pool_second"
 
 function _Meta.__new()
  	-- body
@@ -48,34 +22,39 @@ function _Meta:__insert_db(priority)
 	-- body
 	assert(priority)
 	local t = {}
-	for k,v in pairs(self) do
+	for k,v in pairs(_Meta) do
 		if not string.match(k, "^__*") then
-			t[k] = self[k]
+			t[k] = assert(self[k])
 		end
 	end
 	skynet.send(util.random_db(), "lua", "command", "insert", self.__tname, t, priority)
 end
 
-function _Meta:__update_db(t)
+function _Meta:__update_db(t, priority)
 	-- body
 	-- assert(type(t) == "table")
 	-- local columns = {}
 	-- for i,v in ipairs(t) do
 	-- 	columns[tostring(v)] = self[tostring(v)]
 	-- end
-	-- skynet.send(util.random_db(), "lua", "command", "update", self.__tname, {{ user_id = self.user_id, csv_id=self.csv_id }}, columns)
+	-- skynet.send(util.random_db(), "lua", "command", "update", self.__tname, {{ user_id=self.user_id, csv_id=self.csv_id }}, columns, priority)
 end
 
-function _Meta:__serialize()
-	-- body
-	local r = {}
-	for k,v in pairs(_Meta) do
-		if not string.match(k, "^__*") then
-			r[k] = self[k]
+function _M.insert_db(values, priority)
+	assert(priority)
+	assert(type(values) == "table" )
+	local total = {}
+	for i,v in ipairs(values) do
+		local t = {}
+		for kk,vv in pairs(v) do
+			if not string.match(kk, "^__*") then
+				t[kk] = vv
+			end
 		end
+		table.insert(total, t)
 	end
-	return r
-end
+	skynet.send(util.random_db(), "lua", "command", "insert_all", _Meta.__tname, total, priority)
+end 
 
 function _M.create( P )
 	assert(P)
@@ -86,14 +65,15 @@ function _M.create( P )
 		end
 	end
 	return u
-end
+end	
 
-function _M:add(u)
+function _M:add( u )
 	assert(u)
+	assert(self.__data[tostring(u.csv_id)] == nil)
 	self.__data[tostring(u.csv_id)] = u
 	self.__count = self.__count + 1
 end
-
+	
 function _M:get_by_csv_id(csv_id)
 	-- body
 	return self.__data[tostring(csv_id)]
@@ -118,13 +98,13 @@ end
 
 function _M:update_db(priority)
 	-- body
+	assert(priority)
 	if self.__count > 0 then
-		local columns = { "name", "star", "us_prop_csv_id", "us_prop_num", "sharp", "skill_csv_id", "gather_buffer_id", 
-					"battle_buffer_id", "k_csv_id1", "k_csv_id2", "k_csv_id3", "k_csv_id4", "k_csv_id5", 
-					"k_csv_id6", "k_csv_id7"}
+		local columns = { "finished", "reward_collected", "is_unlock"}
 		local condition = { {user_id = self.__user_id}, {csv_id = {}}}
 		skynet.send(util.random_db(), "lua", "command", "update_all", _Meta.__tname, condition, columns, self.__data, priority)
 	end
 end
 
 return _M
+

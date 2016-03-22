@@ -31,15 +31,16 @@ function _Meta.__new()
  	return t
 end 
 
-function _Meta:__insert_db()
+function _Meta:__insert_db(priority)
 	-- body
+	assert(priority)
 	local t = {}
 	for k,v in pairs(_Meta) do
 		if not string.match(k, "^__*") then
 			t[k] = self[k]
 		end
 	end
-	skynet.send(util.random_db(), "lua", "command", "insert", self.__tname, t)
+	skynet.send(util.random_db(), "lua", "command", "insert", self.__tname, t, priority)
 end
 
 function _Meta:__update_db(t)
@@ -63,7 +64,8 @@ function _Meta:__serialize()
 	return r
 end
 
-function _M.insert_db( values )
+function _M.insert_db(values, priority)
+	assert(priority)
 	assert(type(values) == "table" )
 	local total = {}
 	for i,v in ipairs(values) do
@@ -75,12 +77,8 @@ function _M.insert_db( values )
 		end
 		table.insert(total, t)
 	end
-	skynet.send(util.random_db() , "lua" , "command" , "insert_all" , _Meta.__tname , total)
+	skynet.send(util.random_db() , "lua" , "command" , "insert_all" , _Meta.__tname , total, priority)
 end 
-
-function _M:clear()
-	self.__data = {}
-end
 
 function _M.create( P )
 	assert(P)
@@ -116,8 +114,14 @@ function _M:get_count()
 	return self.__count
 end
 
+function _M:clear()
+	self.__data = {}
+	self.__count = 0
+end
+
 function _M:update_db(priority)
 	-- body
+	assert(priority)
 	local columns = { "level", "combat", "defense", "critical_hit", "king", "critical_hit_probability", "combat_probability", 
 				"defense_probability", "king_probability", "enhance_success_rate", "currency_type", "currency_num"}
 	local condition = { {user_id = self.__user_id}, {csv_id = {}}}

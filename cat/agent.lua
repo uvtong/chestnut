@@ -53,6 +53,7 @@ end
 
 local function flush_db(priority)
 	-- body
+	assert(priority)
 	if user then
 		for k,v in pairs(user) do
 			if string.match(k, "^u_%w+mgr$") then
@@ -591,7 +592,7 @@ function REQUEST:signup()
 		local t = { csv_id= skynet.call(game, "lua", "guid", const.UENTROPY),
 				uname="nihao",
 				uaccount=self.account, 
-				upassword=self.passwor-d,
+				upassword=self.password,
 				uviplevel=0,
 				config_sound=1, 
 				config_music=1, 

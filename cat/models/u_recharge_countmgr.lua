@@ -22,15 +22,16 @@ function _M:clear()
 	self.__data = {}
 end
 
-function _Meta:__insert_db()
+function _Meta:__insert_db(priority)
 	-- body
+	assert(priority)
 	local t = {}
 	for k,v in pairs(self) do
 		if not string.match(k, "^__*") then
 			t[k] = assert(self[k])
 		end
 	end
-	skynet.send(util.random_db(), "lua", "command", "insert", self.__tname, t)
+	skynet.send(util.random_db(), "lua", "command", "insert", self.__tname, t, priority)
 end
 
 function _Meta:__update_db(t)
@@ -67,6 +68,7 @@ end
 
 function _M:add( u )
 	assert(u)
+	assert(self.__data[tostring(u.csv_id)] == nil)
 	self.__data[tostring(u.csv_id)] = u
 	self.__count = self.__count + 1
 end
@@ -90,14 +92,16 @@ end
 
 function _M:clear()
 	self.__data = {}
+	self.__count = 0
 end
 
-function _M:update_db()
+function _M:update_db(priority)
 	-- body
+	assert(priority)
 	if self.__count > 0 then
 		local columns = { "count"}
 		local condition = { {user_id = self.__user_id}, {csv_id = {}}}
-		skynet.send(util.random_db(), "lua", "command", "update_all", _Meta.__tname, condition, columns, self.__data)
+		skynet.send(util.random_db(), "lua", "command", "update_all", _Meta.__tname, condition, columns, self.__data, priority)
 	end
 end
 

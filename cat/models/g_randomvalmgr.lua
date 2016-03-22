@@ -18,6 +18,7 @@ end
 
 function _Meta:__insert_db( priority )
 	-- body
+
 	local t = {}
 	for k,v in pairs( _Meta ) do
 		if not string.match(k, "^__*") then
@@ -29,6 +30,7 @@ end
 
 function _Meta:__update_db( t )
 	-- body
+
 	--assert( type( t ) == "table" )
 	--local columns = {}
 	--for i,v in ipairs( t ) do
@@ -46,10 +48,6 @@ function _Meta:__serialize()
 		end
 	end
 	return r
-end
-
-function _M:clear()
-	self.__data = {}
 end
 
 function _M.insert_db( values )
@@ -99,6 +97,19 @@ end
 function _M:get_count()
 	-- body
 	return self.__count
+end
+
+function _M:clear()
+	self.__data = {}
+	self.__count = 0
+end
+
+function _M:update_db(priority)
+	-- body
+	assert(priority)
+	local columns = { "val"}
+	local condition = { {user_id = 0}, {id = {}}}
+	skynet.send(util.random_db(), "lua", "command", "update_all", _Meta.__tname, condition, columns, self.__data, priority)
 end
 
 return _M

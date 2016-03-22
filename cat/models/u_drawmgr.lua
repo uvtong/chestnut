@@ -19,6 +19,7 @@ end
     
 function _Meta:__insert_db( priority )
 	-- body
+	assert(priority)
 	local t = {}
 	for k,v in pairs(_Meta) do
 		if not string.match(k, "^__*") then
@@ -80,6 +81,7 @@ end
 
 function _M:clear()
 	self.__data = {}
+	self.__count = 0
 end
 
 function _M:delete_by_type( drawtype )
