@@ -9,7 +9,7 @@ _M.__MAXEMAILNUM = 50
 _M.__user_id = 0
 
 local _Meta = { csv_id = 0 , uid=0, type=0, title=0, content = 0 , acctime = 0 , deltime = 0 , isread = 0 , isdel = 0 , itemsn1 = 0 , itemnum1 = 0 , 
-			itemsn2 = 0 , itemnum2 = 0 ,itemsn3 = 0 , itemnum3 = 0 ,itemsn4 = 0 , itemnum4 = 0 ,itemsn5 = 0 , itemnum5 = 0 , iconid = 0 , isreward = 0 }
+			itemsn2 = 0 , itemnum2 = 0 ,itemsn3 = 0 , itemnum3 = 0 ,itemsn4 = 0 , itemnum4 = 0 ,itemsn5 = 0 , itemnum5 = 0 , isreward = 0 }
 
 _Meta.__tname = "u_new_email"
 
@@ -20,7 +20,7 @@ function _Meta.__new()
  	return t
 end 
 
-function _Meta:__insert_db()
+function _Meta:__insert_db( priority )
 	-- body
 	local t = {}
 	for k,v in pairs(self) do
@@ -28,7 +28,7 @@ function _Meta:__insert_db()
 			t[k] = self[k]
 		end
 	end
-	skynet.send(util.random_db(), "lua", "command", "insert", self.__tname, t)
+	skynet.send(util.random_db(), "lua", "command", "insert", self.__tname, t , priority)
 end
 
 function _Meta:__update_db(t)
@@ -86,7 +86,6 @@ function _M.create( P )
 	local u = _Meta.__new()
 	for k , v in pairs( _Meta ) do
 		if not string.match( k, "^__*" ) then
-			print( k , v , P[k])
 			u[ k ] = assert( P[ k ] )
 		end
 	end
@@ -127,7 +126,7 @@ function _M:recvemail( tvals )
 	local newemail = self.create( tvals )
 	assert( newemail )
 	self:add( newemail )
-	newemail:__insert_db()
+	newemail:__insert_db( const.DB_PRIORITY_2 )
 
 	if self.__count >= self.__MAXEMAILNUM then
 		print( "**************************************************************self.sysdelemail is called" )

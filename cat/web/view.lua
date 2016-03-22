@@ -5,6 +5,8 @@ local util = require "util"
 local json = require "json"
 local errorcode = require "errorcode"
 local template = require "resty.template"
+local csvreader = require "csvReader"
+
 template.caching(true)
 template.precompile("index.html")
 
@@ -41,6 +43,41 @@ function VIEW.index()
 	return R
 end
 
+local function Split(szFullString, szSeparator)  
+		local nFindStartIndex = 1  
+		local nSplitIndex = 1  
+		local counter = 1
+		local counter2 = 0
+		local title = {}
+		local tstrcont = {}
+
+		while true do  
+   			local nFindLastIndex = string.find(szFullString, szSeparator, nFindStartIndex)  
+   			local t  = string.sub(szFullString, nFindStartIndex, nFindLastIndex - 1)  
+   			if t == "" then
+   				break
+   			end
+   			if 1 == counter then
+   				title = csvreader.parseline( csvreader.getStrRowContent( t ) )
+   				assert( title )
+   				counter = counter + 1 
+   			else
+   				counter2 = counter2 + 1
+   				local line = csvreader.parseline( csvreader.getStrRowContent( t ) )
+   				
+   				local newline = {}
+   				for i = 1 , #title do
+        			title[i] = string.gsub( title[i] , "^%s*(.-)%s*$" , "%1" )
+        			newline[ title[ i ] ] = line[ i ]
+		        end
+
+		        table.insert( tstrcont , newline )
+   			end 
+   			nFindStartIndex = nFindLastIndex + string.len(szSeparator)
+		end  	
+		return tstrcont
+	end
+
 function VIEW.user()
 	-- body
 	local R = {}
@@ -50,15 +87,15 @@ function VIEW.user()
 		local func = template.compile(path("user.html"))
 		local r = func()
 		return r	
-	end
+	end         
 	function R:__post()
-		-- body
+		-- body 
 		-- local body = self.body
-	end
+	end 		
+				
 	function R:__file()
 		-- body
-		-- local file = self.file
-	end
+	end 
 	return R
 end
 
@@ -97,9 +134,6 @@ function VIEW.email()
 	function R:__post()
 		-- body
 		-- local body = self.body
-		for k,v in pairs(self.body) do
-			print(k,v, type(v))
-		end
 		local send_type = tonumber(self.body["send_type"])
 		local c = {}
 		c["type"] = tonumber(self.body["type"])  -- 1 or 2
@@ -131,7 +165,42 @@ function VIEW.email()
 	function R:__file()
 		-- body
 		-- local file = self.file
-		print(self.file)
+		local file = self.file
+		assert( csvreader and file )
+		print("filecont is  " , file )
+
+		local cont = Split( file , "\r\n" )
+		assert( cont )
+
+		for k , v in ipairs( cont ) do
+			local ne = {}
+			ne.type = tonumber( v.email_type )
+			print()
+			ne.title = v.title
+			ne.content = v.content
+			local titem = util.parse_text( v.reward , "(%d+%*%d+%*?)" , 2 )
+
+			assert( titem )
+			local i = 1
+			for sk , sv in ipairs( titem ) do
+
+				local itemsn = "itemsn" .. i
+				local itemnum = "itemnum" .. i
+
+				ne[ itemsn ] = tonumber( sv[ 1 ] )
+				ne[ itemnum ] = tonumber( sv[ 2 ] )
+				print( ne[ itemsn ] , ne[ itemnum ])
+				i = i + 1
+			end 
+
+			skynet.send(".channel", "lua", "send_email_to_group", ne , { { uid = assert( tonumber( v.csv_id ) ) } } )
+		end
+
+		local ret = {}
+		ret.errorcode = errorcode[1].code
+		ret.msg = errorcode[1].msg
+
+		return json.encode(ret)
 	end
 	return R
 end

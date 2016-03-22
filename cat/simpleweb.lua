@@ -96,7 +96,7 @@ local function parse_header( header, body )
 			return "post", parse(body)
 		elseif t == "multipart/form-data" then
 			local idx = string.find(c, "=")
-			local boundary = string.sub(s, idx+1)
+			local boundary = string.sub(c, idx+1)
 		 	return "file", parse_file(header, boundary, body)
 		else
 		 	assert(false)

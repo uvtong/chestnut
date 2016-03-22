@@ -404,7 +404,7 @@ function REQUEST:signup()
 	end
 	local condition = {{ uaccount = self.account}}
 	-- local addr = util.random_db()
-	local addr = ".db2"
+	local addr = util.random_db()
 	local r = skynet.call(addr, "lua", "command", "select", "users", condition)
 	if #r == 0 then
 		local level = skynet.call(game, "lua", "query_g_user_level", 1)
@@ -450,10 +450,11 @@ function REQUEST:signup()
 				purchase_hp_count_max=assert(vip.purchase_hp_count_max),
 				SCHOOL_reset_count_max=assert(vip.SCHOOL_reset_count_max),
 				SCHOOL_reset_count=0,
-				signup_time=os.time() }
+				signup_time=os.time() ,
+				pemail_csv_id = 0 }
 		local usersmgr = require "models/usersmgr"
 		local u = usersmgr.create(t)
-		u:__insert_db()
+		u:__insert_db(const.DB_PRIORITY_2)
 
 		-- create
 		local u_equipmentmgr = require "models/u_equipmentmgr"
@@ -648,7 +649,7 @@ function REQUEST:login()
 		ret.u.gold = assert(user.u_propmgr:get_by_csv_id(const.GOLD)).num
 		ret.u.diamond = assert(user.u_propmgr:get_by_csv_id(const.DIAMOND)).num
 		--load public email from channel public_emailmgr
-		--get_public_email()
+		get_public_email()
 		-- all roles
 		local l = {}
 		for k,v in pairs(user.u_rolemgr.__data) do

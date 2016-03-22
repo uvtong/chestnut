@@ -122,7 +122,7 @@ function REQUEST:kungfu_levelup()
 			assert( tkungfu )
 			user.u_kungfumgr:add( tkungfu )
                               
-			tkungfu:__insert_db()
+			tkungfu:__insert_db( const.DB_PRIORITY_2 )
 		else				  		
 			print( "_______________________________________________________")
 			--local tmp =user.u_kungfumgr:get_by_type( self.k_type )
