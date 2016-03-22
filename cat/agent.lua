@@ -1932,9 +1932,19 @@ function REQUEST:role_all()
 	local l = {}
 	local r = skynet.call(game, "lua", "query_g_role")
 	for k,v in pairs(r) do
+		local role = user.u_rolemgr:get_by_csv_id(v.csv_id)
+		if role then
+			role.is_possessed = true
+		else
+			role = v
+			role.is_possessed = false
+		end
+		local prop = user.u_propmgr:get_by_csv_id(r.us_prop_csv_id)
+		role.u_us_prop_num = prop and prop.num or 0
+
 		local role = {}
 		role.csv_id = v.csv_id
-		local r = user.u_rolemgr:get_by_csv_id(v.csv_id)
+		
 		if r then
 			role.is_possessed = true
 			role.star = r.star
