@@ -208,13 +208,13 @@ function CMD:send_email_to_group( tval , tucsv_id )
 		if t then 
 			skynet.send( t.addr , "lua" , "newemail" , "newemail" , tval )
 		else
+			print( "get a new useremail**************************" )
 			local ne = u_emailmgr.create( tval )
 			assert( ne )
 			ne:__insert_db( const.DB_PRIORITY_2 )
 		end	
 	end 	
 
-	assert( false )
 end 		
 		
 --[[function CMD:hello( tval , ... )

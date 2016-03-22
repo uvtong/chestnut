@@ -29,6 +29,7 @@ function _Meta:__insert_db( priority )
 			t[k] = self[k]
 		end
 	end
+
 	skynet.send(util.random_db(), "lua", "command", "insert", self.__tname, t , priority)
 end
 
