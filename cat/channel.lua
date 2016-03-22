@@ -189,7 +189,6 @@ function CMD:send_email_to_group( tval , tucsv_id )
 		local num = "itemnum" .. i
 		if nil == tval[id] then
 			assert( tval[num] == nil )
-			
 			tval[id] = 0
 			tval[num] = 0
 		end
@@ -199,19 +198,16 @@ function CMD:send_email_to_group( tval , tucsv_id )
 		assert(v.uid)
 		tval.csv_id = skynet.call(".game", "lua" , "u_guid" , v.uid, const.UEMAILENTROPY )
 		tval.uid = v.uid
-		
 		print("********************************eamil", tval.uid)
-			
 		local t = dc.get( v.uid )
-
 		--[[ id user online then send directly , else insert into db --]]
 		if t then 
 			skynet.send( t.addr , "lua" , "newemail" , "newemail" , tval )
 		else
 			print( "get a new useremail**************************" )
+
 			local ne = u_emailmgr.create( tval )
-			assert( ne )
-			ne:__insert_db( const.DB_PRIORITY_2 )
+			ne:__insert_db( const.DB_PRIORITY_2)
 		end	
 	end 	
 

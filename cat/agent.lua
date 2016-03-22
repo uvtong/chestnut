@@ -98,7 +98,7 @@ local function raise_achievement(type, user)
 				-- insert achievement rc	
 				local rc = user.u_achievement_rcmgr.create(a)
 				user.u_achievement_rcmgr:add(rc)
-				rc:__insert_db()
+				rc:__insert_db(const.DB_PRIORITY_2)
 
 				if string.match(a.unlock_next_csv_id, "%d*%*%d*") then
 					local k1 = string.gsub(a.unlock_next_csv_id, "(%d*)%*(%d*)", "%1")
@@ -111,7 +111,7 @@ local function raise_achievement(type, user)
 					a1.reward_collected = 0
 					a1 = user.u_achievement_rcmgr.create(a1)
 					user.u_achievement_rcmgr:add(a1)
-					a1:__insert_db()
+					a1:__insert_db(const.DB_PRIORITY_2)
 
 					if tonumber(k2) == 0 then
 						a.is_valid = 0
@@ -158,7 +158,7 @@ local function raise_achievement(type, user)
 				-- insert achievement rc	
 				local rc = user.u_achievement_rcmgr.create(a)
 				user.u_achievement_rcmgr:add(rc)
-				rc:__insert_db()
+				rc:__insert_db(const.DB_PRIORITY_2)
 
 				if string.match(a.unlock_next_csv_id, "%d*%*%d*") then
 					local k1 = string.gsub(a.unlock_next_csv_id, "(%d*)%*(%d*)", "%1")
@@ -171,7 +171,7 @@ local function raise_achievement(type, user)
 					a1.reward_collected = 0
 					a1 = user.u_achievement_rcmgr.create(a1)
 					user.u_achievement_rcmgr:add(a1)
-					a1:__insert_db()
+					a1:__insert_db(const.DB_PRIORITY_2)
 
 					if tonumber(k2) == 0 then
 						a.is_valid = 0
@@ -218,7 +218,7 @@ local function get_journal()
 		t = { user_id=user.csv_id, date=sec, goods_refresh_count=0, goods_refresh_reset_count=0}
 		j = user.u_journalmgr.create(t)
 		user.u_journalmgr:add(j)
-		j:__insert_db()
+		j:__insert_db(const.DB_PRIORITY_1)
 		return j
 	end
 end
@@ -235,7 +235,7 @@ local function get_prop(csv_id)
 		p.num = 0
 		p = user.u_propmgr.create(p)
 		user.u_propmgr:add(p)
-		p:__insert_db()
+		p:__insert_db(const.DB_PRIORITY_2)
 		return p
 	end
 end
@@ -253,7 +253,7 @@ local function get_goods(csv_id)
 		p.st = 0
 		p = user.u_goodsmgr.create(p)
 		user.u_goodsmgr:add(p)
-		p:__insert_db()
+		p:__insert_db(const.DB_PRIORITY_2)
 	end
 end
 
@@ -561,7 +561,7 @@ function REQUEST:achievement_reward_collect()
 				prop.user_id = user.csv_id
 				prop.num = num1
 				prop = user.u_propmgr.create(prop)
-				prop:__insert_db()
+				prop:__insert_db(const.DB_PRIORITY_2)
 			end
 		end
 		ret.errorcode = errorcode[1].code
@@ -1241,7 +1241,7 @@ function REQUEST:shop_all()
 			v.st = 0
 			tmp = user.u_goodsmgr.create(v)
 			user.u_goodsmgr:add(tmp)
-			tmp:__insert_db()
+			tmp:__insert_db(const.DB_PRIORITY_2)
 		end
 		for kk,vv in pairs(tmp) do
 			v[kk] = vv
@@ -1634,7 +1634,7 @@ function REQUEST:recharge_purchase()
 		else
 			rc = user.u_recharge_countmgr.create({user_id=user.csv_id, csv_id=v.csv_id, count=1})
 			user.u_recharge_countmgr:add(rc)
-			rc:__insert_db()
+			rc:__insert_db(const.DB_PRIORITY_2)
 			local diamond = user.u_propmgr:get_by_csv_id(const.DIAMOND)
 			diamond.num = diamond.num + (assert(goods.diamond) + assert(goods.first)) * v.num
 			diamond:__update_db({"num"})
@@ -1642,7 +1642,7 @@ function REQUEST:recharge_purchase()
 		local t = {user_id=assert(user.csv_id), csv_id=assert(v.csv_id), num=assert(v.num), dt=os.time()}
 		rr = user.u_recharge_recordmgr.create(t)
 		user.u_recharge_recordmgr:add(rr)
-		rr:__insert_db()
+		rr:__insert_db(const.DB_PRIORITY_2)
 
 		-----------------------------
 		local user_vip_max
@@ -1787,7 +1787,7 @@ function REQUEST:recharge_vip_reward_collect()
 					prop.num = assert(v[2])
 					prop = user.u_propmgr.create(prop)
 					user.u_propmgr:add(prop)
-					prop:__insert_db()
+					prop:__insert_db(const.DB_PRIORITY_2)
 				end
 			end
 			rc.collected = 1
@@ -1809,7 +1809,7 @@ function REQUEST:recharge_vip_reward_collect()
 		local t = {user_id=user.csv_id, vip=self.vip, collected=1, purchased=0}	
 		rc = user.u_recharge_vip_rewardmgr.create(t)
 		user.u_recharge_vip_rewardmgr:add(rc)
-		rc:__insert_db()
+		rc:__insert_db(const.DB_PRIORITY_2)
 		ret.errorcode = errorcode[1].code
 		ret.msg = errorcode[1].msg
 		ret.vip = user.uviplevel
@@ -1932,20 +1932,15 @@ function REQUEST:role_all()
 	local l = {}
 	local r = skynet.call(game, "lua", "query_g_role")
 	for k,v in pairs(r) do
-		local role = {}
-		role.csv_id = v.csv_id
-		local r = user.u_rolemgr:get_by_csv_id(v.csv_id)
-		if r then
+		local role = user.u_rolemgr:get_by_csv_id(v.csv_id)
+		if role then
 			role.is_possessed = true
-			role.star = r.star
-			local prop = user.u_propmgr:get_by_csv_id(r.us_prop_csv_id)
-			role.u_us_prop_num = prop and prop.num or 0
 		else
+			role = v
 			role.is_possessed = false
-			role.star = v.star
-			local prop = user.u_propmgr:get_by_csv_id(v.us_prop_csv_id)
-			role.u_us_prop_num = prop and prop.num or 0
 		end
+		local prop = user.u_propmgr:get_by_csv_id(role.us_prop_csv_id)
+		role.u_us_prop_num = prop and prop.num or 0
 		table.insert(l, role)
 	end
 	ret.errorcode = errorcode[1].code
@@ -1987,7 +1982,7 @@ function REQUEST:role_recruit()
 		role.k_csv_id7 = 0
 		role = user.u_rolemgr.create(role)
 		user.u_rolemgr:add(role)
-		role:__insert_db()
+		role:__insert_db(const.DB_PRIORITY_2)
 		ret.errorcode = errorcode[1].code
 		ret.msg = errorcode[1].msg
 		ret.r = {
@@ -2098,7 +2093,7 @@ function REQUEST:recharge_vip_reward_purchase()
  					prop.num = assert(v[2])
  					prop = user.u_propmgr.create(prop)
  					user.u_propmgr:add(prop)
- 					prop:__insert_db()
+ 					prop:__insert_db(const.DB_PRIORITY_2)
  					table.insert(l, { csv_id=prop.csv_id, num=prop.num})
  				end
  			end
@@ -2132,14 +2127,14 @@ function REQUEST:recharge_vip_reward_purchase()
 				prop.num = assert(v[2])
 				prop = user.u_propmgr.create(prop)
 				user.u_propmgr:add(prop)
-				prop:__insert_db()
+				prop:__insert_db(const.DB_PRIORITY_2)
 				table.insert(l, { csv_id=prop.csv_id, num=prop.num})
  			end
  		end
  		local t = { user_id=user.csv_id, vip=self.vip, collected=0, purchased=1}
  		rc = user.u_recharge_vip_rewardmgr.create(t)
  		user.u_recharge_vip_rewardmgr:add(rc)
- 		rc:__insert_db()
+ 		rc:__insert_db(const.DB_PRIORITY_2)
  		ret.errorcode = errorcode[1].code
  		ret.msg = errorcode[1].msg
  		ret.l = l
