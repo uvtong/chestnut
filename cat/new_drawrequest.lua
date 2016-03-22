@@ -37,7 +37,7 @@ function REQUEST:login( u )
 	draw_mgr = user.u_drawmgr
 	assert( draw_mgr )
 end		
-			
+		
 local function push_achievement(achievement)
 	-- body
 	ret = {}
