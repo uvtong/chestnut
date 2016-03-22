@@ -277,7 +277,7 @@ local function add_to_prop( t )
 			p.num = v.amount
 			local prop = user.u_propmgr.create(p)
 			user.u_propmgr:add(prop)
-			prop:__insert_db()
+			prop:__insert_db( const.DB_PRIORITY_2 )
 		end
 
 		--[[if v.propid == const.A_T_GOLD or v.propid == const.A_T_EXP then
@@ -418,17 +418,16 @@ function REQUEST:checkin_aday()
 			tcheckin_month = user.u_checkin_monthmgr.create( tcheckin_month )
 			assert( tcheckin_month )
 			user.u_checkin_monthmgr:add( tcheckin_month )
-			tcheckin_month:__insert_db()
+			tcheckin_month:__insert_db( const.DB_PRIORITY_2 )
 		else
 			tcheckin_month.checkin_month = tcheckin_month.checkin_month + 1
 			tcheckin_month:__update_db( { "checkin_month" } )	
 		end
 
 		print( tcheckin.u_checkin_time )
-		tcheckin:__insert_db()
+		tcheckin:__insert_db( const.DB_PRIORITY_2 )
 
 		user.checkin_num  = user.checkin_num + 1
-		user:__update_db( { "checkin_num" } )
 		
 		print( "*********************************user_checkin_num " , user.checkin_num )
 		local t = get_g_checkin_by_csv_id( time , tcheckin_month.checkin_month )
@@ -462,7 +461,6 @@ function REQUEST:checkin_reward()
 		else
 			print( "******************************************checkin_reward" )
 			user.checkin_reward_num = user.checkin_reward_num + 1
-			user:__update_db( { "checkin_reward_num" } )
 						
 			add_to_prop( get_accumulate_reward( t ) )
 

@@ -259,7 +259,7 @@ function REQUEST:mail_getreward()
 					p.num = v.itemnum
 					local prop = user.u_propmgr.create( p )
 					user.u_propmgr:add( prop )
-					prop:__insert_db()
+					prop:__insert_db( const.DB_PRIORITY_2 )
 				end
 				
 				--[[if v.itemsn == const.A_T_GOLD or v.itemsn == const.A_T_EXP then
@@ -322,7 +322,8 @@ end
 function SUBSCRIBE:email( tvals , ... ) -- get email from channl , a email to all users 
 	assert( tvals )
 	print( " ***********************************SUBSCRIBE:email " )
-	tvals.csv_id = skynet.call( ".game" , "lua" , "u_guid" , const.UEMAILENTROPY )
+	user.public_email = tvals.csv_id
+	tvals.csv_id = skynet.call( ".game" , "lua" , "u_guid" , user.csv_id , const.UEMAILENTROPY )
 
 	tvals.uid = user.csv_id
 	print( "*********************************email csv_id is " , tvals.csv_id )

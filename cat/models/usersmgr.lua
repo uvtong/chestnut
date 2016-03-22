@@ -44,19 +44,21 @@ local _Meta = { csv_id=0,
 				purchase_hp_count_max=0,
 				SCHOOL_reset_count_max=0,
 				SCHOOL_reset_count=0,
-				signup_time=0 }
+				signup_time=0 ,
+				pemail_csv_id = 0 }
 
 _Meta.__tname = "users"
 
-function _Meta:__insert_db()
+function _Meta:__insert_db( priority )
 	-- body
+	assert(false)
 	local t = {}
 	for k,v in pairs(_Meta) do
 		if not string.match(k, "^__*") then
 			t[k] = self[k]
 		end
 	end
-	skynet.send(util.random_db(), "lua", "command", "insert", self.__tname, t)
+	skynet.send(util.random_db(), "lua", "command", "insert", self.__tname, t , priority)
 end
 
 function _Meta:__update_db(t, priority)

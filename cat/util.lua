@@ -1,6 +1,7 @@
 local skynet = require "skynet"
 require "skynet.manager"
 local util = {}
+local const = require "const"
 
 function util.random_db()
 	-- body
@@ -273,6 +274,7 @@ end
 
 function util.u_guid(user_id, game, csv_id)
 	-- body
+	assert( user_id and game and csv_id )
 	local e = user_id * 10000 + csv_id
 	return util.guid(game, e)
 end
@@ -284,7 +286,7 @@ function util.guid(game, csv_id)
 		local t = {csv_id = csv_id, entropy=1}
 		local h = game.g_uidmgr.create(t)
 		game.g_uidmgr:add(h)
-		h:__insert_db()
+		h:__insert_db(const.DB_PRIORITY_2)
 		return t.entropy
 	else
 		r.entropy = r.entropy + 1
@@ -297,6 +299,8 @@ function util.parse_text(src, parten, D)
 	-- src = "1000*10*10*10*10*10"
 	-- D = 2
 	-- parten = "(%d+%*%d+%*%d+%*?)"
+	print( "src , parten , D is " , src , parten , D )
+	assert( src and parten and D )
 	local xparten = ""
 	string.gsub(parten, "(%%%w%+)%%%*", function (s)
 		-- body

@@ -1,22 +1,15 @@
 local skynet = require "skynet"
 local util = require "util"
-local const = require "const"
 
 local _M = {}
 _M.__data = {}
 _M.__count = 0
 _M.__user_id = 0
-_M.__tname = "u_prop"
+_M.__tname = "g_xilian_cost"
 
-local _Meta = { user_id=0, 
-				csv_id=0, 
-				num=0, 
-				sub_type=0, 
-				level=0, 
-				pram1=0, 
-				pram2=0, 
-				use_type=0}
-_Meta.__tname = "u_prop"
+local _Meta = { csv_id=0, currency_type=0, currency_num=0}
+
+_Meta.__tname = "g_xilian_cost"
 
 function _Meta.__new()
  	-- body
@@ -25,39 +18,30 @@ function _Meta.__new()
  	return t
 end 
 
-function _Meta:__insert_db( priority )
+function _Meta:__insert_db(priority)
 	-- body
+	assert(priority)
 	local t = {}
 	for k,v in pairs(_Meta) do
 		if not string.match(k, "^__*") then
 			t[k] = assert(self[k])
 		end
 	end
-	skynet.send(util.random_db(), "lua", "command", "insert", self.__tname, t , priority)
+	skynet.send(util.random_db(), "lua", "command", "insert", self.__tname, t, priority)
 end
 
-function _Meta:__update_db(t)
+function _Meta:__update_db(t, priority)
 	-- body
 	-- assert(type(t) == "table")
 	-- local columns = {}
 	-- for i,v in ipairs(t) do
 	-- 	columns[tostring(v)] = self[tostring(v)]
 	-- end
-	-- skynet.send(util.random_db(), "lua", "command", "update", self.__tname, {{ user_id = self.user_id,  csv_id = self.csv_id}}, columns)
+	-- skynet.send(util.random_db(), "lua", "command", "update", self.__tname, {{ user_id=self.user_id, csv_id=self.csv_id }}, columns, priority)
 end
 
-function _Meta:__serialize()
-	-- body
-	local r = {}
-	for k,v in pairs(_Meta) do
-		if not string.match(k, "^__*") then
-			r[k] = assert(self[k])
-		end
-	end
-	return r
-end
-
-function _M.insert_db( values )
+function _M.insert_db(values, priority)
+	assert(priority)
 	assert(type(values) == "table" )
 	local total = {}
 	for i,v in ipairs(values) do
@@ -69,10 +53,10 @@ function _M.insert_db( values )
 		end
 		table.insert(total, t)
 	end
-	skynet.send( util.random_db() , "lua" , "command" , "insert_all" , _Meta.__tname , total )
+	skynet.send(util.random_db(), "lua", "command", "insert_all", _Meta.__tname, total, priority)
 end 
 
-function _M.create(P)
+function _M.create( P )
 	assert(P)
 	local u = _Meta.__new()
 	for k,v in pairs(_Meta) do
@@ -81,14 +65,15 @@ function _M.create(P)
 		end
 	end
 	return u
-end
+end	
 
 function _M:add( u )
 	assert(u)
+	assert(self.__data[tostring(u.csv_id)] == nil)
 	self.__data[tostring(u.csv_id)] = u
 	self.__count = self.__count + 1
 end
-
+	
 function _M:get_by_csv_id(csv_id)
 	-- body
 	return self.__data[tostring(csv_id)]
@@ -96,7 +81,9 @@ end
 
 function _M:delete_by_csv_id(csv_id)
 	-- body
+	assert(self.__data[tostring(csv_id)])
 	self.__data[tostring(csv_id)] = nil
+	self.__count = self.__count - 1
 end
 
 function _M:get_count()
@@ -111,11 +98,13 @@ end
 
 function _M:update_db(priority)
 	-- body
+	assert(priority)
 	if self.__count > 0 then
-		local columns = { "num" }
+		local columns = { "finished", "reward_collected", "is_unlock"}
 		local condition = { {user_id = self.__user_id}, {csv_id = {}}}
 		skynet.send(util.random_db(), "lua", "command", "update_all", _Meta.__tname, condition, columns, self.__data, priority)
 	end
 end
 
 return _M
+

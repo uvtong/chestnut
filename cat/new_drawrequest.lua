@@ -214,7 +214,7 @@ local function add_to_prop( t )
    					p.num = v.amount
    					local prop = user.u_propmgr.create( p )
    					user.u_propmgr:add( prop )
-   					prop:__insert_db()
+   					prop:__insert_db( const.DB_PRIORITY_2 )
    				end 	      
 
    				--[[if v.propid == const.A_T_EXP or v.propid == const.A_T_GOLD then
@@ -235,7 +235,7 @@ local function add_to_prop( t )
 				g_role.k_csv_id6 = 0
 				g_role.k_csv_id7 = 0
 				g_role = u_rolemgr.create( g_role )
-				g_role:__insert_db()
+				g_role:__insert_db( const.DB_PRIORITY_2 )
 			end 
 		else     
 			local prop = user.u_propmgr:get_by_csv_id( v.propid )
@@ -250,7 +250,7 @@ local function add_to_prop( t )
    				p.num = v.amount
    				local prop = user.u_propmgr.create( p )
    				user.u_propmgr:add( prop )
-   				prop:__insert_db()
+   				prop:__insert_db( const.DB_PRIORITY_2 )
    			end 
 
    			--[[if v.propid == const.A_T_EXP or v.propid == const.A_T_GOLD then
@@ -438,7 +438,7 @@ local function frienddraw()
 		prop:__update_db( { "num" } )
 		isfriend = false
 		
-		tfriend:__insert_db()
+		tfriend:__insert_db( const.DB_PRIORITY_2 )
 
 		print( "update prop successfully in tentimedraw" )
 	end	
@@ -484,7 +484,7 @@ local function onetimedraw( iffree )
 			tonetime.srecvtime = date
 		end 
 
-		tonetime:__insert_db()
+		tonetime:__insert_db( const.DB_PRIORITY_2 )
 
 		proplist = getpropidlist( drawtype.ONETIME )
 		assert( proplist )

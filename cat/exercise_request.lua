@@ -251,7 +251,7 @@ local function add_to_prop( t )
 			p.num = v.amount
 			local prop = user.u_propmgr.create(p)
 			user.u_propmgr:add(prop)
-			prop:__insert_db()
+			prop:__insert_db( const.DB_PRIORITY_2 )
 		end
 
 		--[[if v.propid == const.A_T_GOLD or v.propid == const.A_T_EXP then
@@ -388,7 +388,7 @@ function REQUEST:exercise_once()
 			user.u_exercise_mgr:add( texercise )
 		end 
 
-		texercise:__insert_db()
+		texercise:__insert_db( const.DB_PRIORITY_2 )
 
 		local t = get_g_exercise( self.daily_type * 10 + self.exercise_type )
 		local prop = user.u_propmgr:get_by_csv_id( t.cost_id )
@@ -405,7 +405,6 @@ function REQUEST:exercise_once()
 			
 			add_to_prop( get_exercise_reward( t ) )	
 			user.exercise_level = user.exercise_level + t.level_up
-			user:__update_db( { "exercise_level" } )
 			
 			ret.errorcode = errorcode[ 1 ].code
 			ret.msg = errorcode[ 1 ].msg 

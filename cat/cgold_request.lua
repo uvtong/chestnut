@@ -242,7 +242,7 @@ local function add_to_prop( t )
 			p.num = v.amount
 			local prop = user.u_propmgr.create(p)
 			user.u_propmgr:add(prop)
-			prop:__insert_db()
+			prop:__insert_db( const.DB_PRIORITY_2 )
 		end
 
 		--[[if v.propid == const.A_T_GOLD or v.propid == const.A_T_EXP then
@@ -383,7 +383,7 @@ function REQUEST:c_gold_once()
 			user.u_cgoldmgr:add( tcgold )
 		end 
 
-		tcgold:__insert_db()
+		tcgold:__insert_db( const.DB_PRIORITY_2 )
 
 		local t = get_g_cgold( self.daily_type * 10 + self.c_gold_type )
 		local prop = user.u_propmgr:get_by_csv_id( t.cost_id )
@@ -401,7 +401,6 @@ function REQUEST:c_gold_once()
 			
 			add_to_prop( get_cgold_reward( t ) )	
 			user.cgold_level = user.cgold_level + t.level_up
-			user:__update_db( { "cgold_level" } )
 			
 			ret.errorcode = errorcode[ 1 ].code
 			ret.msg = errorcode[ 1 ].msg 
