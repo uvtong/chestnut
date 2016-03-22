@@ -269,7 +269,7 @@ function REQUEST:mail_getreward()
 
 			if ( 1 == e.type ) then
 				e.isdel = 1
-				e:__update_db( { "isdel" } )
+				e:__update_db( { "isdel" } , const.DB_PRIORITY_2 )
 				user.u_emailmgr:delete_by_csv_id( e.csv_id )
 			else
 				e.isreward = 1
