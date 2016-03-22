@@ -68,6 +68,11 @@ local function flush_db(priority)
 			"exp_max", "equipment_enhance_success_rate_up_p", "store_refresh_count_max",
 			"prop_refresh", "arena_frozen_time", "purchase_hp_count", "gain_gold_up_p", "gain_exp_up_p",
 			"purchase_hp_count_max", "SCHOOL_reset_count_max", "SCHOOL_reset_count"}, priority)
+		local cm = user.u_checkin_monthmgr:get_checkin_month()
+		if cm then
+			cm:__update_db({"checkin_month"}, priority)
+		end
+		
 	end
 end
 
@@ -284,6 +289,9 @@ local function xilian(role, t)
 		v.min = last
 		sum = sum + v.probability
 		v.max = sum
+	end
+	for k,v in pairs(t) do
+		print(k,v)
 	end
 	local n = 0
 	if t.is_locked1 then
