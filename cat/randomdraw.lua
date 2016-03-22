@@ -9,7 +9,7 @@ function CMD.draw( val )
 	assert( val )
 	local r
 	--local addr = randomaddr()
-	local trandom = skynet.call(".game", "lua", "query_g_randomval")     
+	local trandom = skynet.call(".game", "lua", "query_g_randomval" , val.drawtype)     
 	if val.drawtype == 3 then
 		r = {}
 		for i = 1 , 10 do

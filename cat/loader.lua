@@ -280,6 +280,18 @@ local function load_g_drawcost()
 	game.g_drawcostmgr = g_drawcostmgr
 end
 
+local function load_g_draw_role()
+	assert( nil == game.g_draw_rolemgr )
+
+	local g_draw_rolemgr = require "models/g_draw_rolemgr"
+	local r = skynet.call(util.random_db() , "lua" , "command" , "select" , "g_draw_role")
+	for i , v in ipairs( r ) do
+		local t = g_draw_rolemgr.create( v )
+		g_draw_rolemgr:add( t )
+	end
+	game.g_draw_rolemgr = g_draw_rolemgr
+end
+
 local function load_g_mainreward()
 	assert( nil == game.g_mainrewardmgr )
 
@@ -709,6 +721,7 @@ function loader.load_game()
 		load_g_user_level()
 		load_g_uid()
 		load_g_config()
+		load_g_draw_role()
 		load_g_xilian_cost()
 		load_g_property_pool()
 		load_g_property_pool_second()
