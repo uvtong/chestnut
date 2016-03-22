@@ -67,18 +67,18 @@ function CMD:agent_get_public_email( ucsv_id , pemail_csv_id , signup_time )
 		end  
 	else   
 		counter = pemail_csv_id + 1
-	end 
+	end  
 	print( "sign and counter and len is **********************" , sign , counter , len )
 	local t = {}
 	for i = counter , len do
 		print( "i is " , i )
 		local tmp = public_emailmgr.__data[ i ]
 		assert( tmp )
-
+         
 		tmp.pemail_csv_id = tmp.csv_id -- record public email id
-
-		tmp.csv_id = skynet.call( ".game" , "lua" , "u_guid" , ucsv_id , const.PUBLIC_EMAILENTROPY ) -- change pemail_csv_id into user's email csv_id
-					
+         
+		tmp.csv_id = skynet.call( ".game" , "lua" , "u_guid" , ucsv_id , const.UEMAILENTROPY ) -- change pemail_csv_id into user's email csv_id
+		print( "tmp.csv_id is **********************************" , tmp.csv_id )
 		table.insert( t , tmp )
 	end 
 	return t

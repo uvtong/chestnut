@@ -2204,7 +2204,7 @@ function REQUEST:xilian_ok()
 	return ret
 end
 
-xilian 61 {
+--[[xilian 61 {
     request {
         is_locked1 0 : integer
         is_locked2 1 : integer
@@ -2229,7 +2229,7 @@ xilian 61 {
 }
 
 xilian_ok 62 {
-   
+   --]]
 
 function REQUEST:handshake()
 	print("Welcome to skynet, I will send heartbeat every 5 sec." )

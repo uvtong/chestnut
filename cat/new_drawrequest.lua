@@ -364,7 +364,7 @@ local function getpropidlist( dtype )
 			local r = game.g_subrewardmgr:get_by_csv_id( id )
 			assert( r )
 			print( r.propid , r.propnum )
-			table.insert( propidlist.list , { propid = r.propid , amount = r.propnum } )
+			table.insert( propidlist.list , { propid = r.propid , amount = r.propnum , proptype = r.proptype } )
 		end                                                                            
 	else                                                                                                    
 		print( "dtype id in getpropidlis is " .. dtype )
