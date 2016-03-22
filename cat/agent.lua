@@ -304,6 +304,13 @@ local function xilian(role, t)
 		local last1 = 0
 		local sum1 = 0
 		local second = skynet.call(game, "lua", "query_g_property_pool_second", 0, property_pool_id)
+		for k,v in pairs(second) do
+			print(k,v)
+			print("***************************")
+			for kk,vv in pairs(v) do
+				print(k,v)
+			end
+		end
 		for i,v in ipairs(second) do
 			v.min = last1
 			sum1 = sum1 + v.probability
@@ -680,7 +687,7 @@ function REQUEST:signup()
 						   itemsn2 = 2 , itemnum2 = 10000 , 
 						   itemsn3 = 3 , itemnum3 = 10000
 						}  
-		skynet.send(".channel", "lua", "send_email_to_group" , newemail ,  { { uid = u.csv_id } } )
+		skynet.send(".channel", "lua", "send_email_to_group", newemail,  { { uid = u.csv_id } })
 		-- local u_kungfumgr = require "models/u_kungfumgr"
 		-- local kungfu = game.g_kungfumgr:get_by_csv_id(1001)
 		-- kungfu.user_id = assert(u.csv_id)
@@ -2142,8 +2149,12 @@ function REQUEST:recharge_vip_reward_purchase()
  	end
 end
 
+local xilian_lock = 0
+local xilian_role_id = 0
+
 function REQUEST:xilian()
 	-- body
+	xilian_lock = 0
 	local ret = {}
 	if not user then
 		ret.errorcode = errorcode[2].code
@@ -2151,8 +2162,9 @@ function REQUEST:xilian()
  		return ret
 	end
 	assert(self)
+	xilian_role_id = self.role_id
 	local role = user.u_rolemgr:get_by_csv_id(self.role_id)
-	local n, r = xilian(self)
+	local n, r = xilian(role, self)
 	if n > 0 then
 		local xilian_cost = skynet.call(game, "lua", "query_g_xilian_cost", n)
 		local prop = user.u_propmgr:get_by_csv_id(xilian_cost.currency_type)
@@ -2163,9 +2175,8 @@ function REQUEST:xilian()
 			ret.msg = errorcode[16].msg
 			return ret
 		end
-		
 	end
-	local role = user.u_rolemgr:get_by_csv_id(t.role_id)
+	xilian_lock = 1
 	-- if type(role.backup) ~= "table" then
 	-- 	role.backup = {}
 	-- end
@@ -2181,8 +2192,21 @@ end
 function REQUEST:xilian_ok()
 	-- body
 	local ret = {}
+	if not user then
+ 		ret.errorcode = errorcode[2].code
+ 		ret.msg = errorcode[2].msg
+ 		return ret
+ 	end
+ 	if xilian_lock ~= 1 then
+ 		ret.errorcode = errorcode[32].code
+ 		ret.msg = errorcode[32].msg
+ 		return ret
+ 	else
+ 		xilian_lock = 1
+ 	end
 	if self.ok then
-		local role = user.u_rolemgr:get_by_csv_id(t.role_id)
+		assert(self.role_id == xilian_role_id, "must be equip")
+		local role = user.u_rolemgr:get_by_csv_id(self.role_id)
 		assert(role.backup)
 		role.property_id1 = role.backup.property_id1
 		role.value1 = role.backup.value1
@@ -2364,7 +2388,7 @@ end
 local function update_db()
 	-- body
 	while true do
-		-- flush_db(const.DB_PRIORITY_3)
+		flush_db(const.DB_PRIORITY_3)
 		skynet.sleep(100 * 60) -- 1ti == 0.01s
 	end
 end
