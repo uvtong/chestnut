@@ -452,7 +452,7 @@ function CMD.query_g_randomval(pk)
 	end
 end
 
-local function guid(game, csv_id)
+local function guid(csv_id)
 	-- body
 	local r = game.g_uidmgr:get_by_csv_id(csv_id)
 	if not r then
@@ -467,23 +467,23 @@ local function guid(game, csv_id)
 	end
 end
 
-local function u_guid(user_id, game, csv_id)
+local function u_guid(user_id, csv_id)
 	-- body
-	local e = user_id * 10000 + csv_id
-	return guid(game, e)
+	csv_id = user_id * 10000 + csv_id
+	return guid(csv_id)
 end
 
 function CMD.u_guid(user_id, csv_id)
 	-- body
-	assert(user_id)
-	assert(csv_id)
-	return u_guid(user_id, game, csv_id)
+	assert(type(user_id) == "number" and user_id > 0)
+	assert(type(csv_id) == "number" and csv_id > 0)
+	return u_guid(user_id, csv_id)
 end
 
 function CMD.guid(csv_id)
 	-- body
-	assert(csv_id)
-	return guid(game, csv_id)
+	assert(type(csv_id) == "number" and csv_id > 0)
+	return guid(csv_id)
 end
 
 local function update_db()
