@@ -277,20 +277,20 @@ function REQUEST:mail_getreward()
 			end
 		end
 	end 
-
+	
 	ret.errorcode = errorcode[ 1 ].code
 	ret.msg = errorcode[ 1 ].msg
-
+	
 	return ret
 end 
 	
 function new_emailrequest:newemail( tval , ... ) -- get a email to group
 	assert( tval )
 	print( "*********************************************REQUEST:newemail" )
-
-	local v =user.u_emailmgr:recvemail( tval )
+	
+	local v = user.u_emailmgr:recvemail( tval )
 	assert( v )
-
+	
 	--[[local ret = {}
 	ret.mail = {}
 	local tmp = {}

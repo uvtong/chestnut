@@ -199,7 +199,7 @@ function CMD:send_email_to_group( tval , tucsv_id )
 		assert(v.uid)
 		tval.csv_id = skynet.call(".game", "lua" , "u_guid" , v.uid, const.UEMAILENTROPY )
 		tval.uid = v.uid
-		print("********************************eamil", tval.uid)
+		print("********************************eamil", tval.csv_id)
 		local t = dc.get( v.uid )
 		--[[ id user online then send directly , else insert into db --]]
 		if t then 
