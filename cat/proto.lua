@@ -692,6 +692,8 @@ equipment_enhance 50 {
         errorcode 0 : integer
         msg 1 : string
         e 2 : equipment
+        is_valid 3 : boolean
+        effect 4 : integer
     }
 }
 
