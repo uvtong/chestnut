@@ -59,9 +59,10 @@ function CMD:agent_get_public_email( ucsv_id , pemail_csv_id , signup_time )
 	local counter = 1
 	local sign 
 	local len = public_emailmgr:get_count()
-	print( "counter is and len is " , counter , sign )
+	print( "counter is and len is " , counter , len )
 	if 0 == pemail_csv_id then
 		sign , counter = get_public_email_index( signup_time )
+		print( sign , counter )
 		if sign or ( not sign and counter >= len ) then
 			counter = len + 1
 		end  
