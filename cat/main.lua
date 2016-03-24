@@ -14,6 +14,7 @@ skynet.start(function()
 	-- 	skynet.name(string.format(".db%d", i), db)
 	-- end
 
+	skynet.newservice("simpledb")
 	local db = skynet.uniqueservice("db")
 	skynet.name(".db", db)
 	local game = skynet.uniqueservice("game")

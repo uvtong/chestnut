@@ -44,8 +44,10 @@ local _Meta = { csv_id=0,
 				purchase_hp_count_max=0,
 				SCHOOL_reset_count_max=0,
 				SCHOOL_reset_count=0,
-				signup_time=0 ,
-				pemail_csv_id = 0 }
+				signup_time=0,
+				pemail_csv_id=0,
+				take_diamonds=0,
+				draw_number=0 }
 
 _Meta.__tname = "users"
 
@@ -72,31 +74,12 @@ function _Meta:__update_db(t, priority)
 	skynet.send(util.random_db(), "lua", "command", "update", self.__tname, {{ csv_id = self.csv_id }}, columns, priority)
 end
 
-function _Meta:__serialize()
-	-- body
-	local r = {}
-	for k,v in pairs(_Meta) do
-		if not string.match(k, "^__*") then
-			r[k] = self[k]
-		end
-	end
-	return r
-end
-
 function _Meta.__new()
  	-- body
  	local t = {}
  	setmetatable( t, { __index = _Meta } )
  	return t
 end 
-
-function _M:update_db(priority)
-	-- body
-	-- assert(priority)
-	-- local columns = { "finished", "reward_collected", "is_unlock"}
-	-- local condition = { {user_id = self.__user_id}, {csv_id = {}}}
-	-- skynet.send(util.random_db(), "lua", "command", "update_all", _Meta.__tname, condition, columns, self.__data)
-end
 
 function _M.create( P )
 	assert(P)
@@ -122,10 +105,10 @@ end
 
 function _M:delete_by_csv_id(csv_id)
 	-- body
-	local u = assert(self.__data[tostring(csv_id)])
-	u.is_valid = 0
-	u:__update_db({"is_valid"})
-	assert(false)
+	-- local u = assert(self.__data[tostring(csv_id)])
+	-- u.is_valid = 0
+	-- u:__update_db({"is_valid"})
+	-- assert(false)
 end
 
 function _M:get_count()
@@ -136,6 +119,14 @@ end
 function _M:clear()
 	self.__data = {}
 	self.__count = 0
+end
+
+function _M:update_db(priority)
+	-- body
+	-- assert(priority)
+	-- local columns = { "finished", "reward_collected", "is_unlock"}
+	-- local condition = { {user_id = self.__user_id}, {csv_id = {}}}
+	-- skynet.send(util.random_db(), "lua", "command", "update_all", _Meta.__tname, condition, columns, self.__data)
 end
 
 return _M

@@ -3,6 +3,7 @@ require "skynet.manager"	-- import skynet.register
 local db = {}
 db[1] = 1
 db[12] = 12
+db["goods_refresh_reset_h"] = 18
 
 local command = {}
 

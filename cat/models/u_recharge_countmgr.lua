@@ -68,7 +68,7 @@ end
 
 function _M:add( u )
 	assert(u)
-	assert(self.__data[tostring(u.csv_id)] == nil)
+	-- assert(self.__data[tostring(u.csv_id)] == nil)
 	self.__data[tostring(u.csv_id)] = u
 	self.__count = self.__count + 1
 end
