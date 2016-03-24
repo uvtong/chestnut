@@ -15,5 +15,5 @@ const.PUBLIC_EMAILENTROPY = 3
 const.DB_PRIORITY_1 = 1
 const.DB_PRIORITY_2 = 2
 const.DB_PRIORITY_3 = 3
-
+const.DB_DELTA = 6000 -- 100 * 60 1ti = 0.01s
 return const
