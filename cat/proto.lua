@@ -590,7 +590,7 @@ achievement_reward_collect 40 {
     response {
         errorcode 0 : integer
         msg 1 : string
-        a 2 : achi
+        next 2 : achi
     }
 }
 
