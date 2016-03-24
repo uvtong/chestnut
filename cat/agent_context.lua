@@ -70,7 +70,7 @@ function _M:raise_achievement(T)
 			self:push_achievement(a)
 
 			local rc = self.user.u_achievement_rcmgr.create(tmp)
-			self.user.u_achievement_rcmgr:add(a)
+			self.user.u_achievement_rcmgr:add(rc)
 			rc:__insert_db(const.DB_PRIORITY_2)
 
 			assert(type(a.unlock_next_csv_id), string.format("%s", type(a.unlock_next_csv_id)))

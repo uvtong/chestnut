@@ -359,7 +359,7 @@ function REQUEST:achievement()
 	local l = {}
 	for i=1,const.ACHIEVEMENT_T_SUM do
 		local flag = false
-		for j=1,10 do
+		for j=1,11 do
 			local T = i + 1
 			local idx = i * 1000 + j
 			local a = user.u_achievement_rcmgr:get_by_csv_id(idx)
@@ -422,6 +422,26 @@ function REQUEST:achievement_reward_collect()
 				prop = user.u_propmgr.create(prop)
 				prop:__insert_db(const.DB_PRIORITY_2)
 			end
+		end
+		local next = user.u_achievement_rcmgr:get_by_csv_id(a_src.unlock_next_csv_id)
+		if next then
+			ret.next = {}
+			for k,v in pairs(next) do
+				ret.next[k] = v
+			end
+			ret.next.reward_collected = (next.reward_collected == 1) and true or false
+			ret.next.is_unlock = (next.is_unlock == 1) and true or false
+		else
+			next = user.u_achievementmgr:get_by_type(a_src.type)
+			if a_src.unlock_next_csv_id ~= 0 then
+				assert(next.csv_id == a_src.unlock_next_csv_id, string.format("%d, %d", next.csv_id, a_src.unlock_next_csv_id))
+			end
+			ret.next = {}
+			for k,v in pairs(next) do
+				ret.next[k] = v
+			end
+			ret.next.reward_collected = false
+			ret.next.is_unlock = true
 		end
 		ret.errorcode = errorcode[1].code
 		ret.msg = errorcode[1].msg
