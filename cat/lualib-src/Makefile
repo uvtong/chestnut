@@ -1,9 +1,11 @@
-SRC = test.c
+TXT := "hello world"
 
-test:test.o
-	cc -o test test.o
+.PHONY: all test
 
-test.o:test.c
-	cc -c test.c
+all: TXT := "nihao"
 
+all: TXT := "meiyou" test
+
+test:
+	echo $(TXT)
 
