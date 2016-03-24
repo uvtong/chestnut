@@ -1,0 +1,434 @@
+[:01000001] LAUNCH catlogger user
+[:01000002] LAUNCH snlua bootstrap
+[:01000003] LAUNCH snlua launcher
+[:01000004] LAUNCH snlua cmaster
+[:01000004] master listen socket 127.0.0.1:2013
+[:01000005] LAUNCH snlua cslave
+[:01000005] slave connect to master 127.0.0.1:2013
+[:01000004] connect from 127.0.0.1:41632 4
+[:01000006] LAUNCH harbor 1 16777221
+[:01000004] Harbor 1 (fd=4) report 127.0.0.1:2526
+[:01000005] Waiting for 0 harbors
+[:01000005] Shakehand ready
+[:01000007] LAUNCH snlua datacenterd
+[:01000008] LAUNCH snlua service_mgr
+[:01000009] LAUNCH snlua main
+[:0100000a] LAUNCH snlua protoloader
+[:0100000b] LAUNCH snlua console
+[:0100000c] LAUNCH snlua debug_console 8000
+[:0100000c] Start debug console at 127.0.0.1 8000
+[:0100000d] LAUNCH snlua simpledb
+[:0100000e] LAUNCH snlua db
+[:0100000f] LAUNCH snlua game
+[:01000010] LAUNCH snlua channel
+[:01000011] LAUNCH snlua multicastd
+[:01000012] LAUNCH snlua randomdraw
+[:01000013] LAUNCH snlua watchdog
+[:01000014] LAUNCH snlua gate
+[:01000014] Listen on 0.0.0.0:8888
+[:01000009] KILL self
+[:01000002] KILL self
+[:0100000f] lua call [100000e to :100000f : 3 msgsz = 11963] error : [31m./lualib/skynet.lua:521: ./lualib/skynet.lua:155: ./../cat/models/g_achievementmgr.lua:67: assertion failed!
+stack traceback:
+	[C]: in function 'assert'
+	./../cat/models/g_achievementmgr.lua:67: in function 'models/g_achievementmgr.create'
+	./../cat/loader.lua:14: in upvalue 'load_g_achievement'
+	./../cat/loader.lua:707: in upvalue 'func'
+	./lualib/skynet.lua:457: in upvalue 'f'
+	./lualib/skynet.lua:104: in function <./lualib/skynet.lua:103>
+stack traceback:
+	[C]: in function 'assert'
+	./lualib/skynet.lua:521: in function 'skynet.manager.dispatch_message'[0m
+[:0100000f] lua call [0 to :100000f : 2 msgsz = 0] error : [31m./lualib/skynet.lua:521: ./lualib/skynet.lua:155: ./../cat/game.lua:507: attempt to index a nil value (field 'g_uidmgr')
+stack traceback:
+	./../cat/game.lua:507: in upvalue 'func'
+	./lualib/skynet.lua:457: in upvalue 'f'
+	./lualib/skynet.lua:104: in function <./lualib/skynet.lua:103>
+stack traceback:
+	[C]: in function 'assert'
+	./lualib/skynet.lua:521: in function 'skynet.manager.dispatch_message'[0m
+[:01000013] New client from : 192.168.1.230:62021
+[:01000015] LAUNCH snlua agent
+[:01000015] lua call [1000008 to :1000015 : 3 msgsz = 5] error : [31m./lualib/skynet.lua:521: ./lualib/skynet.lua:155: ./../cat/agent.lua:2242: attempt to call a nil value (global 'flush_db')
+stack traceback:
+	./../cat/agent.lua:2242: in upvalue 'func'
+	./lualib/skynet.lua:457: in upvalue 'f'
+	./lualib/skynet.lua:104: in function <./lualib/skynet.lua:103>
+stack traceback:
+	[C]: in function 'assert'
+	./lualib/skynet.lua:521: in function 'skynet.dispatch_message'[0m
+[:01000015] lua call [1000014 to :1000015 : 4 msgsz = 0] error : [31m./lualib/skynet.lua:521: ./lualib/skynet.lua:155: ./../cat/agent.lua:2197: attempt to index a boolean value (upvalue 'context')
+stack traceback:
+	./../cat/agent.lua:2197: in local 'f'
+	./../cat/agent.lua:2256: in upvalue 'f'
+	./lualib/skynet.lua:109: in function <./lualib/skynet.lua:103>
+stack traceback:
+	[C]: in function 'assert'
+	./lualib/skynet.lua:521: in function 'skynet.dispatch_message'[0m
+[:01000013] lua call [1000015 to :1000013 : 5 msgsz = 0] error : [31m./lualib/skynet.lua:521: ./lualib/skynet.lua:155: ./lualib/skynet.lua:380: call failed
+stack traceback:
+	[C]: in function 'error'
+	./lualib/skynet.lua:380: in upvalue 'yield_call'
+	./lualib/skynet.lua:391: in function 'skynet.call'
+	./../cat/watchdog.lua:12: in local 'f'
+	./../cat/watchdog.lua:55: in upvalue 'f'
+	./lualib/skynet.lua:109: in function <./lualib/skynet.lua:103>
+stack traceback:
+	[C]: in function 'assert'
+	./lualib/skynet.lua:521: in function 'skynet.dispatch_message'[0m
+[:01000015] request: login
+[:01000015] lua call [1000014 to :1000015 : 0 msgsz = 0] error : [31m./lualib/skynet.lua:521: ./lualib/skynet.lua:155: ./../cat/agent.lua:2173: attempt to call a nil value (global 'send_package')
+stack traceback:
+	./../cat/agent.lua:2173: in upvalue 'f'
+	./lualib/skynet.lua:104: in function <./lualib/skynet.lua:103>
+stack traceback:
+	[C]: in function 'assert'
+	./lualib/skynet.lua:521: in function 'skynet.dispatch_message'[0m
+[:01000015] ./../cat/models/usersmgr.lua:108: assertion failed!
+[:01000015] lua call [100000e to :1000015 : 5 msgsz = 685] error : [31m./lualib/skynet.lua:521: ./lualib/skynet.lua:155: ./../cat/agent.lua:2167: attempt to call a nil value (global 'send_package')
+stack traceback:
+	./../cat/agent.lua:2167: in upvalue 'f'
+	./lualib/skynet.lua:104: in function <./lualib/skynet.lua:103>
+stack traceback:
+	[C]: in function 'assert'
+	./lualib/skynet.lua:521: in function 'skynet.dispatch_message'[0m
+[:01000015] lua call [1000014 to :1000015 : 0 msgsz = 0] error : [31m./lualib/skynet.lua:521: ./lualib/skynet.lua:155: ./../cat/agent.lua:2173: attempt to call a nil value (global 'send_package')
+stack traceback:
+	./../cat/agent.lua:2173: in upvalue 'f'
+	./lualib/skynet.lua:104: in function <./lualib/skynet.lua:103>
+stack traceback:
+	[C]: in function 'assert'
+	./lualib/skynet.lua:521: in function 'skynet.dispatch_message'[0m
+[:01000015] lua call [1000014 to :1000015 : 0 msgsz = 0] error : [31m./lualib/skynet.lua:521: ./lualib/skynet.lua:155: ./../cat/agent.lua:2173: attempt to call a nil value (global 'send_package')
+stack traceback:
+	./../cat/agent.lua:2173: in upvalue 'f'
+	./lualib/skynet.lua:104: in function <./lualib/skynet.lua:103>
+stack traceback:
+	[C]: in function 'assert'
+	./lualib/skynet.lua:521: in function 'skynet.dispatch_message'[0m
+[:01000015] lua call [1000014 to :1000015 : 0 msgsz = 0] error : [31m./lualib/skynet.lua:521: ./lualib/skynet.lua:155: ./../cat/agent.lua:2173: attempt to call a nil value (global 'send_package')
+stack traceback:
+	./../cat/agent.lua:2173: in upvalue 'f'
+	./lualib/skynet.lua:104: in function <./lualib/skynet.lua:103>
+stack traceback:
+	[C]: in function 'assert'
+	./lualib/skynet.lua:521: in function 'skynet.dispatch_message'[0m
+[:01000015] lua call [1000014 to :1000015 : 0 msgsz = 0] error : [31m./lualib/skynet.lua:521: ./lualib/skynet.lua:155: ./../cat/agent.lua:2173: attempt to call a nil value (global 'send_package')
+stack traceback:
+	./../cat/agent.lua:2173: in upvalue 'f'
+	./lualib/skynet.lua:104: in function <./lualib/skynet.lua:103>
+stack traceback:
+	[C]: in function 'assert'
+	./lualib/skynet.lua:521: in function 'skynet.dispatch_message'[0m
+[:01000015] lua call [1000014 to :1000015 : 0 msgsz = 0] error : [31m./lualib/skynet.lua:521: ./lualib/skynet.lua:155: ./../cat/agent.lua:2173: attempt to call a nil value (global 'send_package')
+stack traceback:
+	./../cat/agent.lua:2173: in upvalue 'f'
+	./lualib/skynet.lua:104: in function <./lualib/skynet.lua:103>
+stack traceback:
+	[C]: in function 'assert'
+	./lualib/skynet.lua:521: in function 'skynet.dispatch_message'[0m
+[:01000015] lua call [1000014 to :1000015 : 0 msgsz = 0] error : [31m./lualib/skynet.lua:521: ./lualib/skynet.lua:155: ./../cat/agent.lua:2173: attempt to call a nil value (global 'send_package')
+stack traceback:
+	./../cat/agent.lua:2173: in upvalue 'f'
+	./lualib/skynet.lua:104: in function <./lualib/skynet.lua:103>
+stack traceback:
+	[C]: in function 'assert'
+	./lualib/skynet.lua:521: in function 'skynet.dispatch_message'[0m
+[:01000015] lua call [1000014 to :1000015 : 0 msgsz = 0] error : [31m./lualib/skynet.lua:521: ./lualib/skynet.lua:155: ./../cat/agent.lua:2173: attempt to call a nil value (global 'send_package')
+stack traceback:
+	./../cat/agent.lua:2173: in upvalue 'f'
+	./lualib/skynet.lua:104: in function <./lualib/skynet.lua:103>
+stack traceback:
+	[C]: in function 'assert'
+	./lualib/skynet.lua:521: in function 'skynet.dispatch_message'[0m
+[:01000015] lua call [1000014 to :1000015 : 0 msgsz = 0] error : [31m./lualib/skynet.lua:521: ./lualib/skynet.lua:155: ./../cat/agent.lua:2173: attempt to call a nil value (global 'send_package')
+stack traceback:
+	./../cat/agent.lua:2173: in upvalue 'f'
+	./lualib/skynet.lua:104: in function <./lualib/skynet.lua:103>
+stack traceback:
+	[C]: in function 'assert'
+	./lualib/skynet.lua:521: in function 'skynet.dispatch_message'[0m
+[:01000013] New client from : 192.168.1.230:62325
+[:01000016] LAUNCH snlua agent
+[:01000016] lua call [1000008 to :1000016 : 3 msgsz = 5] error : [31m./lualib/skynet.lua:521: ./lualib/skynet.lua:155: ./../cat/agent.lua:2242: attempt to call a nil value (global 'flush_db')
+stack traceback:
+	./../cat/agent.lua:2242: in upvalue 'func'
+	./lualib/skynet.lua:457: in upvalue 'f'
+	./lualib/skynet.lua:104: in function <./lualib/skynet.lua:103>
+stack traceback:
+	[C]: in function 'assert'
+	./lualib/skynet.lua:521: in function 'skynet.dispatch_message'[0m
+[:01000016] lua call [1000014 to :1000016 : 4 msgsz = 0] error : [31m./lualib/skynet.lua:521: ./lualib/skynet.lua:155: ./../cat/agent.lua:2197: attempt to index a boolean value (upvalue 'context')
+stack traceback:
+	./../cat/agent.lua:2197: in local 'f'
+	./../cat/agent.lua:2256: in upvalue 'f'
+	./lualib/skynet.lua:109: in function <./lualib/skynet.lua:103>
+stack traceback:
+	[C]: in function 'assert'
+	./lualib/skynet.lua:521: in function 'skynet.dispatch_message'[0m
+[:01000013] lua call [1000016 to :1000013 : 7 msgsz = 0] error : [31m./lualib/skynet.lua:521: ./lualib/skynet.lua:155: ./lualib/skynet.lua:380: call failed
+stack traceback:
+	[C]: in function 'error'
+	./lualib/skynet.lua:380: in upvalue 'yield_call'
+	./lualib/skynet.lua:391: in function 'skynet.call'
+	./../cat/watchdog.lua:12: in local 'f'
+	./../cat/watchdog.lua:55: in upvalue 'f'
+	./lualib/skynet.lua:109: in function <./lualib/skynet.lua:103>
+stack traceback:
+	[C]: in function 'assert'
+	./lualib/skynet.lua:521: in function 'skynet.dispatch_message'[0m
+[:01000016] request: login
+[:01000016] lua call [1000014 to :1000016 : 0 msgsz = 0] error : [31m./lualib/skynet.lua:521: ./lualib/skynet.lua:155: ./../cat/agent.lua:2173: attempt to call a nil value (global 'send_package')
+stack traceback:
+	./../cat/agent.lua:2173: in upvalue 'f'
+	./lualib/skynet.lua:104: in function <./lualib/skynet.lua:103>
+stack traceback:
+	[C]: in function 'assert'
+	./lualib/skynet.lua:521: in function 'skynet.dispatch_message'[0m
+[:01000016] ./../cat/models/usersmgr.lua:108: assertion failed!
+[:01000016] lua call [100000e to :1000016 : 5 msgsz = 685] error : [31m./lualib/skynet.lua:521: ./lualib/skynet.lua:155: ./../cat/agent.lua:2167: attempt to call a nil value (global 'send_package')
+stack traceback:
+	./../cat/agent.lua:2167: in upvalue 'f'
+	./lualib/skynet.lua:104: in function <./lualib/skynet.lua:103>
+stack traceback:
+	[C]: in function 'assert'
+	./lualib/skynet.lua:521: in function 'skynet.dispatch_message'[0m
+[:01000016] lua call [1000014 to :1000016 : 0 msgsz = 0] error : [31m./lualib/skynet.lua:521: ./lualib/skynet.lua:155: ./../cat/agent.lua:2173: attempt to call a nil value (global 'send_package')
+stack traceback:
+	./../cat/agent.lua:2173: in upvalue 'f'
+	./lualib/skynet.lua:104: in function <./lualib/skynet.lua:103>
+stack traceback:
+	[C]: in function 'assert'
+	./lualib/skynet.lua:521: in function 'skynet.dispatch_message'[0m
+[:01000015] lua call [1000013 to :1000015 : 0 msgsz = 11] error : [31m./lualib/skynet.lua:521: ./lualib/skynet.lua:155: ./../cat/agent.lua:2212: attempt to call a nil value (global 'flush_db')
+stack traceback:
+	./../cat/agent.lua:2212: in local 'f'
+	./../cat/agent.lua:2256: in upvalue 'f'
+	./lualib/skynet.lua:104: in function <./lualib/skynet.lua:103>
+stack traceback:
+	[C]: in function 'assert'
+	./lualib/skynet.lua:521: in function 'skynet.dispatch_message'[0m
+[:01000016] lua call [1000014 to :1000016 : 0 msgsz = 0] error : [31m./lualib/skynet.lua:521: ./lualib/skynet.lua:155: ./../cat/agent.lua:2173: attempt to call a nil value (global 'send_package')
+stack traceback:
+	./../cat/agent.lua:2173: in upvalue 'f'
+	./lualib/skynet.lua:104: in function <./lualib/skynet.lua:103>
+stack traceback:
+	[C]: in function 'assert'
+	./lualib/skynet.lua:521: in function 'skynet.dispatch_message'[0m
+[:01000016] lua call [1000014 to :1000016 : 0 msgsz = 0] error : [31m./lualib/skynet.lua:521: ./lualib/skynet.lua:155: ./../cat/agent.lua:2173: attempt to call a nil value (global 'send_package')
+stack traceback:
+	./../cat/agent.lua:2173: in upvalue 'f'
+	./lualib/skynet.lua:104: in function <./lualib/skynet.lua:103>
+stack traceback:
+	[C]: in function 'assert'
+	./lualib/skynet.lua:521: in function 'skynet.dispatch_message'[0m
+[:01000016] lua call [1000014 to :1000016 : 0 msgsz = 0] error : [31m./lualib/skynet.lua:521: ./lualib/skynet.lua:155: ./../cat/agent.lua:2173: attempt to call a nil value (global 'send_package')
+stack traceback:
+	./../cat/agent.lua:2173: in upvalue 'f'
+	./lualib/skynet.lua:104: in function <./lualib/skynet.lua:103>
+stack traceback:
+	[C]: in function 'assert'
+	./lualib/skynet.lua:521: in function 'skynet.dispatch_message'[0m
+[:01000016] lua call [1000014 to :1000016 : 0 msgsz = 0] error : [31m./lualib/skynet.lua:521: ./lualib/skynet.lua:155: ./../cat/agent.lua:2173: attempt to call a nil value (global 'send_package')
+stack traceback:
+	./../cat/agent.lua:2173: in upvalue 'f'
+	./lualib/skynet.lua:104: in function <./lualib/skynet.lua:103>
+stack traceback:
+	[C]: in function 'assert'
+	./lualib/skynet.lua:521: in function 'skynet.dispatch_message'[0m
+[:01000016] lua call [1000014 to :1000016 : 0 msgsz = 0] error : [31m./lualib/skynet.lua:521: ./lualib/skynet.lua:155: ./../cat/agent.lua:2173: attempt to call a nil value (global 'send_package')
+stack traceback:
+	./../cat/agent.lua:2173: in upvalue 'f'
+	./lualib/skynet.lua:104: in function <./lualib/skynet.lua:103>
+stack traceback:
+	[C]: in function 'assert'
+	./lualib/skynet.lua:521: in function 'skynet.dispatch_message'[0m
+[:01000016] lua call [1000014 to :1000016 : 0 msgsz = 0] error : [31m./lualib/skynet.lua:521: ./lualib/skynet.lua:155: ./../cat/agent.lua:2173: attempt to call a nil value (global 'send_package')
+stack traceback:
+	./../cat/agent.lua:2173: in upvalue 'f'
+	./lualib/skynet.lua:104: in function <./lualib/skynet.lua:103>
+stack traceback:
+	[C]: in function 'assert'
+	./lualib/skynet.lua:521: in function 'skynet.dispatch_message'[0m
+[:01000016] lua call [1000014 to :1000016 : 0 msgsz = 0] error : [31m./lualib/skynet.lua:521: ./lualib/skynet.lua:155: ./../cat/agent.lua:2173: attempt to call a nil value (global 'send_package')
+stack traceback:
+	./../cat/agent.lua:2173: in upvalue 'f'
+	./lualib/skynet.lua:104: in function <./lualib/skynet.lua:103>
+stack traceback:
+	[C]: in function 'assert'
+	./lualib/skynet.lua:521: in function 'skynet.dispatch_message'[0m
+[:01000013] New client from : 192.168.1.230:62561
+[:01000017] LAUNCH snlua agent
+[:01000017] lua call [1000008 to :1000017 : 3 msgsz = 5] error : [31m./lualib/skynet.lua:521: ./lualib/skynet.lua:155: ./../cat/agent.lua:2242: attempt to call a nil value (global 'flush_db')
+stack traceback:
+	./../cat/agent.lua:2242: in upvalue 'func'
+	./lualib/skynet.lua:457: in upvalue 'f'
+	./lualib/skynet.lua:104: in function <./lualib/skynet.lua:103>
+stack traceback:
+	[C]: in function 'assert'
+	./lualib/skynet.lua:521: in function 'skynet.dispatch_message'[0m
+[:01000017] lua call [1000014 to :1000017 : 4 msgsz = 0] error : [31m./lualib/skynet.lua:521: ./lualib/skynet.lua:155: ./../cat/agent.lua:2197: attempt to index a boolean value (upvalue 'context')
+stack traceback:
+	./../cat/agent.lua:2197: in local 'f'
+	./../cat/agent.lua:2256: in upvalue 'f'
+	./lualib/skynet.lua:109: in function <./lualib/skynet.lua:103>
+stack traceback:
+	[C]: in function 'assert'
+	./lualib/skynet.lua:521: in function 'skynet.dispatch_message'[0m
+[:01000013] lua call [1000017 to :1000013 : 10 msgsz = 0] error : [31m./lualib/skynet.lua:521: ./lualib/skynet.lua:155: ./lualib/skynet.lua:380: call failed
+stack traceback:
+	[C]: in function 'error'
+	./lualib/skynet.lua:380: in upvalue 'yield_call'
+	./lualib/skynet.lua:391: in function 'skynet.call'
+	./../cat/watchdog.lua:12: in local 'f'
+	./../cat/watchdog.lua:55: in upvalue 'f'
+	./lualib/skynet.lua:109: in function <./lualib/skynet.lua:103>
+stack traceback:
+	[C]: in function 'assert'
+	./lualib/skynet.lua:521: in function 'skynet.dispatch_message'[0m
+[:01000017] request: login
+[:01000017] lua call [1000014 to :1000017 : 0 msgsz = 0] error : [31m./lualib/skynet.lua:521: ./lualib/skynet.lua:155: ./../cat/agent.lua:2173: attempt to call a nil value (global 'send_package')
+stack traceback:
+	./../cat/agent.lua:2173: in upvalue 'f'
+	./lualib/skynet.lua:104: in function <./lualib/skynet.lua:103>
+stack traceback:
+	[C]: in function 'assert'
+	./lualib/skynet.lua:521: in function 'skynet.dispatch_message'[0m
+[:01000017] ./../cat/models/usersmgr.lua:108: assertion failed!
+[:01000017] lua call [100000e to :1000017 : 5 msgsz = 685] error : [31m./lualib/skynet.lua:521: ./lualib/skynet.lua:155: ./../cat/agent.lua:2167: attempt to call a nil value (global 'send_package')
+stack traceback:
+	./../cat/agent.lua:2167: in upvalue 'f'
+	./lualib/skynet.lua:104: in function <./lualib/skynet.lua:103>
+stack traceback:
+	[C]: in function 'assert'
+	./lualib/skynet.lua:521: in function 'skynet.dispatch_message'[0m
+[:01000017] lua call [1000014 to :1000017 : 0 msgsz = 0] error : [31m./lualib/skynet.lua:521: ./lualib/skynet.lua:155: ./../cat/agent.lua:2173: attempt to call a nil value (global 'send_package')
+stack traceback:
+	./../cat/agent.lua:2173: in upvalue 'f'
+	./lualib/skynet.lua:104: in function <./lualib/skynet.lua:103>
+stack traceback:
+	[C]: in function 'assert'
+	./lualib/skynet.lua:521: in function 'skynet.dispatch_message'[0m
+[:01000017] lua call [1000014 to :1000017 : 0 msgsz = 0] error : [31m./lualib/skynet.lua:521: ./lualib/skynet.lua:155: ./../cat/agent.lua:2173: attempt to call a nil value (global 'send_package')
+stack traceback:
+	./../cat/agent.lua:2173: in upvalue 'f'
+	./lualib/skynet.lua:104: in function <./lualib/skynet.lua:103>
+stack traceback:
+	[C]: in function 'assert'
+	./lualib/skynet.lua:521: in function 'skynet.dispatch_message'[0m
+[:01000016] lua call [1000013 to :1000016 : 0 msgsz = 11] error : [31m./lualib/skynet.lua:521: ./lualib/skynet.lua:155: ./../cat/agent.lua:2212: attempt to call a nil value (global 'flush_db')
+stack traceback:
+	./../cat/agent.lua:2212: in local 'f'
+	./../cat/agent.lua:2256: in upvalue 'f'
+	./lualib/skynet.lua:104: in function <./lualib/skynet.lua:103>
+stack traceback:
+	[C]: in function 'assert'
+	./lualib/skynet.lua:521: in function 'skynet.dispatch_message'[0m
+[:01000017] lua call [1000014 to :1000017 : 0 msgsz = 0] error : [31m./lualib/skynet.lua:521: ./lualib/skynet.lua:155: ./../cat/agent.lua:2173: attempt to call a nil value (global 'send_package')
+stack traceback:
+	./../cat/agent.lua:2173: in upvalue 'f'
+	./lualib/skynet.lua:104: in function <./lualib/skynet.lua:103>
+stack traceback:
+	[C]: in function 'assert'
+	./lualib/skynet.lua:521: in function 'skynet.dispatch_message'[0m
+[:01000017] lua call [1000014 to :1000017 : 0 msgsz = 0] error : [31m./lualib/skynet.lua:521: ./lualib/skynet.lua:155: ./../cat/agent.lua:2173: attempt to call a nil value (global 'send_package')
+stack traceback:
+	./../cat/agent.lua:2173: in upvalue 'f'
+	./lualib/skynet.lua:104: in function <./lualib/skynet.lua:103>
+stack traceback:
+	[C]: in function 'assert'
+	./lualib/skynet.lua:521: in function 'skynet.dispatch_message'[0m
+[:01000017] lua call [1000014 to :1000017 : 0 msgsz = 0] error : [31m./lualib/skynet.lua:521: ./lualib/skynet.lua:155: ./../cat/agent.lua:2173: attempt to call a nil value (global 'send_package')
+stack traceback:
+	./../cat/agent.lua:2173: in upvalue 'f'
+	./lualib/skynet.lua:104: in function <./lualib/skynet.lua:103>
+stack traceback:
+	[C]: in function 'assert'
+	./lualib/skynet.lua:521: in function 'skynet.dispatch_message'[0m
+[:01000017] lua call [1000014 to :1000017 : 0 msgsz = 0] error : [31m./lualib/skynet.lua:521: ./lualib/skynet.lua:155: ./../cat/agent.lua:2173: attempt to call a nil value (global 'send_package')
+stack traceback:
+	./../cat/agent.lua:2173: in upvalue 'f'
+	./lualib/skynet.lua:104: in function <./lualib/skynet.lua:103>
+stack traceback:
+	[C]: in function 'assert'
+	./lualib/skynet.lua:521: in function 'skynet.dispatch_message'[0m
+[:01000017] lua call [1000014 to :1000017 : 0 msgsz = 0] error : [31m./lualib/skynet.lua:521: ./lualib/skynet.lua:155: ./../cat/agent.lua:2173: attempt to call a nil value (global 'send_package')
+stack traceback:
+	./../cat/agent.lua:2173: in upvalue 'f'
+	./lualib/skynet.lua:104: in function <./lualib/skynet.lua:103>
+stack traceback:
+	[C]: in function 'assert'
+	./lualib/skynet.lua:521: in function 'skynet.dispatch_message'[0m
+[:01000017] lua call [1000014 to :1000017 : 0 msgsz = 0] error : [31m./lualib/skynet.lua:521: ./lualib/skynet.lua:155: ./../cat/agent.lua:2173: attempt to call a nil value (global 'send_package')
+stack traceback:
+	./../cat/agent.lua:2173: in upvalue 'f'
+	./lualib/skynet.lua:104: in function <./lualib/skynet.lua:103>
+stack traceback:
+	[C]: in function 'assert'
+	./lualib/skynet.lua:521: in function 'skynet.dispatch_message'[0m
+[:01000013] New client from : 192.168.1.230:62798
+[:01000018] LAUNCH snlua agent
+[:01000018] lua call [1000008 to :1000018 : 3 msgsz = 5] error : [31m./lualib/skynet.lua:521: ./lualib/skynet.lua:155: ./../cat/agent.lua:2242: attempt to call a nil value (global 'flush_db')
+stack traceback:
+	./../cat/agent.lua:2242: in upvalue 'func'
+	./lualib/skynet.lua:457: in upvalue 'f'
+	./lualib/skynet.lua:104: in function <./lualib/skynet.lua:103>
+stack traceback:
+	[C]: in function 'assert'
+	./lualib/skynet.lua:521: in function 'skynet.dispatch_message'[0m
+[:01000018] lua call [1000014 to :1000018 : 4 msgsz = 0] error : [31m./lualib/skynet.lua:521: ./lualib/skynet.lua:155: ./../cat/agent.lua:2197: attempt to index a boolean value (upvalue 'context')
+stack traceback:
+	./../cat/agent.lua:2197: in local 'f'
+	./../cat/agent.lua:2256: in upvalue 'f'
+	./lualib/skynet.lua:109: in function <./lualib/skynet.lua:103>
+stack traceback:
+	[C]: in function 'assert'
+	./lualib/skynet.lua:521: in function 'skynet.dispatch_message'[0m
+[:01000013] lua call [1000018 to :1000013 : 13 msgsz = 0] error : [31m./lualib/skynet.lua:521: ./lualib/skynet.lua:155: ./lualib/skynet.lua:380: call failed
+stack traceback:
+	[C]: in function 'error'
+	./lualib/skynet.lua:380: in upvalue 'yield_call'
+	./lualib/skynet.lua:391: in function 'skynet.call'
+	./../cat/watchdog.lua:12: in local 'f'
+	./../cat/watchdog.lua:55: in upvalue 'f'
+	./lualib/skynet.lua:109: in function <./lualib/skynet.lua:103>
+stack traceback:
+	[C]: in function 'assert'
+	./lualib/skynet.lua:521: in function 'skynet.dispatch_message'[0m
+[:01000018] request: login
+[:01000018] lua call [1000014 to :1000018 : 0 msgsz = 0] error : [31m./lualib/skynet.lua:521: ./lualib/skynet.lua:155: ./../cat/agent.lua:2173: attempt to call a nil value (global 'send_package')
+stack traceback:
+	./../cat/agent.lua:2173: in upvalue 'f'
+	./lualib/skynet.lua:104: in function <./lualib/skynet.lua:103>
+stack traceback:
+	[C]: in function 'assert'
+	./lualib/skynet.lua:521: in function 'skynet.dispatch_message'[0m
+[:01000018] ./../cat/models/usersmgr.lua:108: assertion failed!
+[:01000018] lua call [100000e to :1000018 : 5 msgsz = 685] error : [31m./lualib/skynet.lua:521: ./lualib/skynet.lua:155: ./../cat/agent.lua:2167: attempt to call a nil value (global 'send_package')
+stack traceback:
+	./../cat/agent.lua:2167: in upvalue 'f'
+	./lualib/skynet.lua:104: in function <./lualib/skynet.lua:103>
+stack traceback:
+	[C]: in function 'assert'
+	./lualib/skynet.lua:521: in function 'skynet.dispatch_message'[0m
+[:01000018] lua call [1000014 to :1000018 : 0 msgsz = 0] error : [31m./lualib/skynet.lua:521: ./lualib/skynet.lua:155: ./../cat/agent.lua:2173: attempt to call a nil value (global 'send_package')
+stack traceback:
+	./../cat/agent.lua:2173: in upvalue 'f'
+	./lualib/skynet.lua:104: in function <./lualib/skynet.lua:103>
+stack traceback:
+	[C]: in function 'assert'
+	./lualib/skynet.lua:521: in function 'skynet.dispatch_message'[0m
+[:01000018] lua call [1000014 to :1000018 : 0 msgsz = 0] error : [31m./lualib/skynet.lua:521: ./lualib/skynet.lua:155: ./../cat/agent.lua:2173: attempt to call a nil value (global 'send_package')
+stack traceback:
+	./../cat/agent.lua:2173: in upvalue 'f'
+	./lualib/skynet.lua:104: in function <./lualib/skynet.lua:103>
+stack traceback:
+	[C]: in function 'assert'
+	./lualib/skynet.lua:521: in function 'skynet.dispatch_message'[0m
+[:01000018] lua call [1000014 to :1000018 : 0 msgsz = 0] error : [31m./lualib/skynet.lua:521: ./lualib/skynet.lua:155: ./../cat/agent.lua:2173: attempt to call a nil value (global 'send_package')
+stack traceback:
+	./../cat/agent.lua:2173: in upvalue 'f'
+	./lualib/skynet.lua:104: in function <./lualib/skynet.lua:103>
+stack traceback:
+	[C]: in function 'assert'
+	./lualib/skynet.lua:521: in function 'skynet.dispatch_message'[0m
