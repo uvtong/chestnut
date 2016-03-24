@@ -400,6 +400,18 @@ local function load_g_property_pool_second()
 	game.g_property_pool_secondmgr = g_property_pool_secondmgr
 end
 
+local function load_g_equipment_effect()
+	-- body
+	assert(game.g_equipment_effectmgr == nil)
+	local g_equipment_effectmgr = require "models/g_equipment_effectmgr"
+	local r = skynet.call(util.random_db(), "lua", "command", "select", "g_equipment_effect")
+	for i,v in ipairs(r) do
+		local t = g_equipment_effectmgr.create(v)
+		g_equipment_effectmgr:add(t)
+	end
+	game.g_equipment_effectmgr = g_equipment_effectmgr
+end
+
 local function load_u_achievement(user)
 	-- body
 	local u_achievementmgr = require "models/u_achievementmgr"
@@ -483,8 +495,6 @@ local function load_u_cgold( user )
 	u_cgoldmgr.user_id = user.csv_id
 	user.u_cgoldmgr = u_cgoldmgr
 end
-
-
 
 local function load_u_checkpoint(user)
 	-- body
@@ -742,7 +752,21 @@ function loader.load_game()
 		load_g_xilian_cost()
 		load_g_property_pool()
 		load_g_property_pool_second()
+<<<<<<< HEAD
 		load_g_role_effect()
+=======
+		load_g_equipment_effect()
+	end
+	skynet.fork(f)
+	return game
+end
+
+function loader.load_channel_game()
+	-- body
+	local f = function ()
+		-- body
+		load_g_uid()
+>>>>>>> 31003afac69ce357143373a5c55b5983114214dc
 	end
 	skynet.fork(f)
 	return game
