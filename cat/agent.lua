@@ -56,7 +56,11 @@ local function flush_db(priority)
 	assert(priority)
 	if user then
 		for k,v in pairs(user) do
-			if string.match(k, "^u_%w+mgr$") then
+			if k == "u_achievement_rcmgr" then
+				print("abckd****")
+			end
+			if string.match(k, "^u_[%w_]+mgr$") then
+				print(k)
 				v:update_db(priority)
 			end
 		end

@@ -5,6 +5,7 @@ local _M = {}
 _M.__data = {}
 _M.__count = 0
 _M.__user_id = 0
+_M.__tname = "u_achievement_rc"
 
 local _Meta = { user_id=0, csv_id=0, finished=0, reward_collected=0, is_unlock=0}
 
