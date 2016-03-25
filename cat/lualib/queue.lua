@@ -31,8 +31,8 @@ function Queue.enqueue(Q, E)
 		end
 	else
 		Q.__size = Q.__size * 2
-		Q.__data[Q.tial] = E
-		Q.__tail = Q.tial + 1
+		Q.__data[Q.__tail] = E
+		Q.__tail = Q.__tail + 1
 		return true
 	end
 end

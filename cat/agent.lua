@@ -12,8 +12,8 @@ local util = require "util"
 local loader = require "loader"
 local errorcode = require "errorcode"
 local const = require "const"
-local config = require "config"
 local tptr = require "tablepointer"
+local context = require "agent_context"
 
 local friendrequest = require "friendrequest"
 local friendmgr = require "friendmgr"
@@ -44,9 +44,9 @@ local client_fd
 
 local game
 local user
-local G
-	  
+
 local function send_package(pack)
+	-- body
 	local package = string.pack(">s2", pack)
 	socket.write(client_fd, package)
 end
@@ -68,141 +68,10 @@ local function flush_db(priority)
 			"exp_max", "equipment_enhance_success_rate_up_p", "store_refresh_count_max",
 			"prop_refresh", "arena_frozen_time", "purchase_hp_count", "gain_gold_up_p", "gain_exp_up_p",
 			"purchase_hp_count_max", "SCHOOL_reset_count_max", "SCHOOL_reset_count"}, priority)
-	end
-end
-
-local function push_achievement(achievement)
-	-- body
-	ret = {}
-	ret.which = {
-		csv_id = achievement.csv_id,
-		finished = achievement.finished
-	}
-	send_package(send_request("finish_achi", ret))
-end
-
-local function raise_achievement(type, user)
-	-- body
-	if type == "combat" then
-	elseif type == const.A_T_GOLD then -- 2
-		repeat
-			local a = assert(user.u_achievementmgr:get_by_type(const.A_T_GOLD))
-			if a.is_valid == 0 then
-				break
-			end
-			local gold = user.u_propmgr:get_by_csv_id(const.GOLD) -- abain prop by type (type -- csv_id -- prop.id)		
-			local progress = gold.num / a.c_num
-			if progress >= 1 then -- success
-				a.finished = 100
-				a.reward_collected = 0			
-				-- insert achievement rc	
-				local rc = user.u_achievement_rcmgr.create(a)
-				user.u_achievement_rcmgr:add(rc)
-				rc:__insert_db()
-
-				if string.match(a.unlock_next_csv_id, "%d*%*%d*") then
-					local k1 = string.gsub(a.unlock_next_csv_id, "(%d*)%*(%d*)", "%1")
-					local k2 = string.gsub(a.unlock_next_csv_id, "(%d*)%*(%d*)", "%2")
-					
-					local a1 = skynet.call(game, "lua", "query_g_achievement", tonumber(k1))
-					a1.user_id = user.csv_id
-					a1.finished = 100
-					a1.is_unlock = 1
-					a1.reward_collected = 0
-					a1 = user.u_achievement_rcmgr.create(a1)
-					user.u_achievement_rcmgr:add(a1)
-					a1:__insert_db()
-
-					if tonumber(k2) == 0 then
-						a.is_valid = 0
-						a:__update_db({"is_valid"})	
-						break
-					else
-						local ga = skynet.call(game, "lua", "query_g_achievement", tonumber(k2))
-						a.csv_id = ga.csv_id
-						a.finished = 0
-						a.c_num = ga.c_num
-						a.unlock_next_csv_id = ga.unlock_next_csv_id
-						-- a.is_unlock = 1
-						a:__update_db({"csv_id", "finished", "c_num", "unlock_next_csv_id", "is_valid"})	
-					end
-				else
-					local ga = skynet.call(game, "lua", "query_g_achievement", tonumber(a.unlock_next_csv_id))
-					a.csv_id = ga.csv_id
-					a.finished = 0
-					a.c_num = ga.c_num
-					a.unlock_next_csv_id = ga.unlock_next_csv_id
-					a.is_unlock = 1
-					a:__update_db({"csv_id", "finished", "c_num", "unlock_next_csv_id", "is_unlock"})	
-				end
-			else
-				a.finished = progress * 100
-				a.finished = math.floor(a.finished)
-				a:__update_db({"finished"})
-				break
-			end
-		until false
-	elseif type == const.A_T_EXP then
-		repeat
-			local a = assert(user.u_achievementmgr:get_by_type(type))
-			if a.is_valid == 0 then
-				break
-			end
-			local prop = user.u_propmgr:get_by_csv_id(const.EXP) -- abain prop by type (type -- csv_id -- prop.id)		
-			local progress = prop.num / a.c_num
-			if progress >= 1 then -- success
-				a.finished = 100
-				a.reward_collected = 0
-				push_achievement(a)
-				
-				-- insert achievement rc	
-				local rc = user.u_achievement_rcmgr.create(a)
-				user.u_achievement_rcmgr:add(rc)
-				rc:__insert_db()
-
-				if string.match(a.unlock_next_csv_id, "%d*%*%d*") then
-					local k1 = string.gsub(a.unlock_next_csv_id, "(%d*)%*(%d*)", "%1")
-					local k2 = string.gsub(a.unlock_next_csv_id, "(%d*)%*(%d*)", "%2")
-					
-					local a1 = skynet.call(game, "lua", "query_g_achievement", tonumber(k1))
-					a1.user_id = user.csv_id
-					a1.finished = 100
-					a1.is_unlock = 1
-					a1.reward_collected = 0
-					a1 = user.u_achievement_rcmgr.create(a1)
-					user.u_achievement_rcmgr:add(a1)
-					a1:__insert_db()
-
-					if tonumber(k2) == 0 then
-						a.is_valid = 0
-						a:__update_db({"is_valid"})	
-						break
-					else
-						local ga = skynet.call(game, "lua", "query_g_achievement", tonumber(k2))
-						a.csv_id = ga.csv_id
-						a.finished = 0
-						a.c_num = ga.c_num
-						a.unlock_next_csv_id = ga.unlock_next_csv_id
-						-- a.is_unlock = 1
-						a:__update_db({"csv_id", "finished", "c_num", "unlock_next_csv_id", "is_valid"})	
-					end
-				else
-					local ga = skynet.call(game, "lua", "query_g_achievement", tonumber(a.unlock_next_csv_id))
-					a.csv_id = ga.csv_id
-					a.finished = 0
-					a.c_num = ga.c_num
-					a.unlock_next_csv_id = ga.unlock_next_csv_id
-					a.is_unlock = 1
-					a:__update_db({"csv_id", "finished", "c_num", "unlock_next_csv_id", "is_unlock"})	
-				end
-			else
-				a.finished = progress * 100
-				a.finished = math.floor(a.finished)
-				a:__update_db({"finished"})
-				break
-			end
-		until false
-	elseif type == "level" then
+		local cm = user.u_checkin_monthmgr:get_checkin_month()
+		if cm then
+			cm:__update_db({"checkin_month"}, priority)
+		end
 	end
 end
 
@@ -218,7 +87,7 @@ local function get_journal()
 		t = { user_id=user.csv_id, date=sec, goods_refresh_count=0, goods_refresh_reset_count=0}
 		j = user.u_journalmgr.create(t)
 		user.u_journalmgr:add(j)
-		j:__insert_db()
+		j:__insert_db(const.DB_PRIORITY_1)
 		return j
 	end
 end
@@ -235,7 +104,7 @@ local function get_prop(csv_id)
 		p.num = 0
 		p = user.u_propmgr.create(p)
 		user.u_propmgr:add(p)
-		p:__insert_db()
+		p:__insert_db(const.DB_PRIORITY_2)
 		return p
 	end
 end
@@ -253,7 +122,7 @@ local function get_goods(csv_id)
 		p.st = 0
 		p = user.u_goodsmgr.create(p)
 		user.u_goodsmgr:add(p)
-		p:__insert_db()
+		p:__insert_db(const.DB_PRIORITY_2)
 	end
 end
 
@@ -265,7 +134,8 @@ local function store_refresh_reset_count()
 		local hour = os.date("%H")
 		local min = os.date("%M")
 		local sec = os.date("%S")
-		if tonumber(hour) > config.goods_refresh_reset_h then
+		local goods_refresh_reset_h = skynet.call("SIMPLEDB", "lua", "GET", "goods_refresh_reset_h")
+		if tonumber(hour) > goods_refresh_reset_h then
 			j.goods_refresh_count = 0
 			j.goods_refresh_reset_count = 1
 			j:__update_db({"goods_refresh_count", "goods_refresh_reset_count"})
@@ -358,9 +228,9 @@ local function xilian(role, t)
 		ret.value3 = role.value3
 	else
 		local property_pool_id
-		local rand = math.random(0, sum)
+		local rand = math.random(0, sum-1)
 		for k,v in pairs(property_pool) do
-			if rand > v.min and rand < v.max then
+			if rand >= v.min and rand < v.max then
 				property_pool_id = v.property_pool_id
 				break
 			end
@@ -486,45 +356,34 @@ function REQUEST:achievement()
 		return ret
 	end
 	assert(user)
-	local function decorate(v, a)
-		-- body
-		local cur = assert(user.u_achievementmgr:get_by_type(v.type))
-		if cur then
-			if cur.is_valid == 1 then
-				if cur.csv_id > v.csv_id then
-					local r = assert(user.u_achievement_rcmgr:get_by_csv_id(v.csv_id))
-					a.finished = r.finished
-					a.reward_collected = (r.reward_collected == 1) and true or false
-					a.is_unlock = true
-				elseif cur.csv_id == v.csv_id then
-					a.finished = cur.finished
-					a.reward_collected = false
-					a.is_unlock = true
-				else
-					assert(cur.csv_id < v.csv_id)
-					a.finished = 0
-					a.reward_collected = false
-					a.is_unlock = false
-				end
-			elseif cur.is_valid == 0 then
-				local r = assert(user.u_achievement_rcmgr:get_by_csv_id(v.csv_id))
-				a.finished = r.finished
-				a.reward_collected = (r.reward_collected == 1) and true or false
-				a.is_unlock = true
-			else
-				assert(false)
-			end
-		else
-		end
-		return a
-	end
 	local l = {}
-	local r = skynet.call(game, "lua", "query_g_achievement")
-	for k,v in pairs(r) do
-		local a = {}
-		a.csv_id = v.csv_id
-		decorate(v, a)
-		table.insert(l, a)
+	for i=1,const.ACHIEVEMENT_T_SUM do
+		local flag = false
+		for j=1,11 do
+			local T = i + 1
+			local idx = i * 1000 + j
+			local a = user.u_achievement_rcmgr:get_by_csv_id(idx)
+			if a then
+				if a.reward_collected ~= 1 then
+					flag = true
+				end
+			else
+				a = assert(user.u_achievementmgr:get_by_type(T))
+				assert(a.csv_id == idx, string.format("T: %d, idx: %d", T, idx))
+				flag = true
+			end
+			if flag then
+				local tmp = {}
+				for k,v in pairs(a) do
+					tmp[k] =v
+				end
+				tmp.reward_collected = false
+				tmp.is_unlock = true
+				table.insert(l, tmp)
+				break
+			end
+		end
+		assert(flag)
 	end
 	ret.errorcode = errorcode[1].code
     ret.msg = errorcode[1].msg
@@ -561,8 +420,28 @@ function REQUEST:achievement_reward_collect()
 				prop.user_id = user.csv_id
 				prop.num = num1
 				prop = user.u_propmgr.create(prop)
-				prop:__insert_db()
+				prop:__insert_db(const.DB_PRIORITY_2)
 			end
+		end
+		local next = user.u_achievement_rcmgr:get_by_csv_id(a_src.unlock_next_csv_id)
+		if next then
+			ret.next = {}
+			for k,v in pairs(next) do
+				ret.next[k] = v
+			end
+			ret.next.reward_collected = (next.reward_collected == 1) and true or false
+			ret.next.is_unlock = (next.is_unlock == 1) and true or false
+		else
+			next = user.u_achievementmgr:get_by_type(a_src.type)
+			if a_src.unlock_next_csv_id ~= 0 then
+				assert(next.csv_id == a_src.unlock_next_csv_id, string.format("%d, %d", next.csv_id, a_src.unlock_next_csv_id))
+			end
+			ret.next = {}
+			for k,v in pairs(next) do
+				ret.next[k] = v
+			end
+			ret.next.reward_collected = false
+			ret.next.is_unlock = true
 		end
 		ret.errorcode = errorcode[1].code
 		ret.msg = errorcode[1].msg
@@ -629,7 +508,9 @@ function REQUEST:signup()
 				SCHOOL_reset_count_max=assert(vip.SCHOOL_reset_count_max),
 				SCHOOL_reset_count=0,
 				signup_time=os.time() ,
-				pemail_csv_id = 0 }
+				pemail_csv_id = 0,
+				take_diamonds=0,
+				draw_number=0 }
 		local usersmgr = require "models/usersmgr"
 		local u = usersmgr.create(t)
 		u:__insert_db(const.DB_PRIORITY_1)
@@ -680,7 +561,7 @@ function REQUEST:signup()
 						   itemsn2 = 2 , itemnum2 = 10000 , 
 						   itemsn3 = 3 , itemnum3 = 10000
 						}  
-		-- skynet.send(".channel", "lua", "send_email_to_group" , newemail ,  { { uid = u.csv_id } } )
+		skynet.send(".channel", "lua", "send_email_to_group", newemail,  { { uid = u.csv_id } })
 		-- local u_kungfumgr = require "models/u_kungfumgr"
 		-- local kungfu = game.g_kungfumgr:get_by_csv_id(1001)
 		-- kungfu.user_id = assert(u.csv_id)
@@ -717,26 +598,20 @@ function REQUEST:signup()
 		role = u_rolemgr.create(role)
 		role:__insert_db(const.DB_PRIORITY_1)
 
-		-- achievement
 		l = {}
 		local u_achievementmgr = require "models/u_achievementmgr"
-		local a = skynet.call(game, "lua", "query_g_achievement", 1001)
-		a.user_id = u.csv_id
-		a.finished = 0
-		a.reward_collected = 0
-		a.is_unlock = 1
-		a.is_valid = 1
-		a = u_achievementmgr.create(a)
-		table.insert(l, a)
-		a = skynet.call(game, "lua", "query_g_achievement", 2001)
-		a.user_id = u.csv_id
-		a.finished = 0
-		a.reward_collected = 0
-		a.is_unlock = 1
-		a.is_valid = 1
-		a = u_achievementmgr.create(a)
-		table.insert(l, a)
-		u_achievementmgr.insert_db(l, const.DB_PRIORITY_1)
+		for i=1,8 do
+			local csv_id = i * 1000 + 1
+			local a = skynet.call(game, "lua", "query_g_achievement", csv_id)
+			a.user_id = u.csv_id
+			a.finished = 0
+			a.reward_collected = 0
+			a.is_unlock = 1
+			a.is_valid = 1
+			a = u_achievementmgr.create(a)	
+			table.insert(l, a)
+ 		end
+ 		u_achievementmgr.insert_db(l, const.DB_PRIORITY_1)
 
 		local u_goodsmgr = require "models/u_goodsmgr"
 		local r = skynet.call(game, "lua", "query_g_goods")
@@ -811,6 +686,7 @@ function REQUEST:login()
 		loader.load_user(user)
 		subscribe()
 		skynet.fork(subscribe)
+		context.user = user
 
 		local onlinetime = os.time()
 		user.ifonline = 1
@@ -1002,13 +878,13 @@ function REQUEST:use_prop()
 			e.num = e.num + (tonumber(prop.pram1) * num)
 			e:__update_db({"num"})
 			table.insert(l, e)
-			raise_achievement(const.A_T_EXP, user)
+			context:raise_achievement(const.ACHIEVEMENT_T_3)
 		elseif assert(prop.use_type) == 2 then -- gold
 			local g = user.u_propmgr:get_by_csv_id(const.GOLD)
 			g.num = g.num + (tonumber(prop.pram1) * num)
 			g:__update_db({"num"})
 			table.insert(l, g)
-			raise_achievement(const.A_T_GOLD, user)
+			context:raise_achievement(const.ACHIEVEMENT_T_2)
 		elseif assert(prop.use_type) == 3 then
 			local r = util.parse_text(prop.pram1, "(%d+%*%d+%*?)", 2)
 			print("length of r", #r)
@@ -1018,13 +894,13 @@ function REQUEST:use_prop()
 					prop.num = prop.num + (v[2] * num)
 					prop:__update_db({"num"})
 					table.insert(l, prop)
-					raise_achievement(const.A_T_GOLD, user)
+					context:raise_achievement(const.ACHIEVEMENT_T_2)
 				elseif v[1] == const.EXP then
 					local prop = user.u_propmgr:get_by_csv_id(v[1])
 					prop.num = prop.num + (v[2] * num)
 					prop:__update_db({"num"})
 					table.insert(l, prop)
-					raise_achievement(const.A_T_EXP, user)
+					context:raise_achievement(const.ACHIEVEMENT_T_3)
 				else
 					local prop = get_prop(v[1])
 					prop.num = prop.num + (v[2] * num)
@@ -1241,7 +1117,7 @@ function REQUEST:shop_all()
 			v.st = 0
 			tmp = user.u_goodsmgr.create(v)
 			user.u_goodsmgr:add(tmp)
-			tmp:__insert_db()
+			tmp:__insert_db(const.DB_PRIORITY_2)
 		end
 		for kk,vv in pairs(tmp) do
 			v[kk] = vv
@@ -1634,7 +1510,7 @@ function REQUEST:recharge_purchase()
 		else
 			rc = user.u_recharge_countmgr.create({user_id=user.csv_id, csv_id=v.csv_id, count=1})
 			user.u_recharge_countmgr:add(rc)
-			rc:__insert_db()
+			rc:__insert_db(const.DB_PRIORITY_2)
 			local diamond = user.u_propmgr:get_by_csv_id(const.DIAMOND)
 			diamond.num = diamond.num + (assert(goods.diamond) + assert(goods.first)) * v.num
 			diamond:__update_db({"num"})
@@ -1642,7 +1518,7 @@ function REQUEST:recharge_purchase()
 		local t = {user_id=assert(user.csv_id), csv_id=assert(v.csv_id), num=assert(v.num), dt=os.time()}
 		rr = user.u_recharge_recordmgr.create(t)
 		user.u_recharge_recordmgr:add(rr)
-		rr:__insert_db()
+		rr:__insert_db(const.DB_PRIORITY_2)
 
 		-----------------------------
 		local user_vip_max
@@ -1696,7 +1572,7 @@ function REQUEST:recharge_purchase()
 	ret.u = {
 		uname = user.uname,
     	uviplevel = user.uviplevel,
-    	uexp = user.uexp,
+    	uexp = user.u_propmgr:get_by_csv_id(const.EXP).num,
     	config_sound = (user.config_sound == 1) and true or false,
     	config_music = (user.config_music == 1) and true or false,
     	avatar = user.avatar,
@@ -1782,12 +1658,12 @@ function REQUEST:recharge_vip_reward_collect()
 					prop.num = prop.num + assert(v[2])
 					prop:__update_db({"num"})
 				else
-					prop = assert(game.g_propmgr:get_by_csv_id(v[1]))
+					prop = skynet.call(game, "lua", "query_g_prop", v[1])
 					prop.user_id = user.csv_id
 					prop.num = assert(v[2])
 					prop = user.u_propmgr.create(prop)
 					user.u_propmgr:add(prop)
-					prop:__insert_db()
+					prop:__insert_db(const.DB_PRIORITY_2)
 				end
 			end
 			rc.collected = 1
@@ -1809,7 +1685,7 @@ function REQUEST:recharge_vip_reward_collect()
 		local t = {user_id=user.csv_id, vip=self.vip, collected=1, purchased=0}	
 		rc = user.u_recharge_vip_rewardmgr.create(t)
 		user.u_recharge_vip_rewardmgr:add(rc)
-		rc:__insert_db()
+		rc:__insert_db(const.DB_PRIORITY_2)
 		ret.errorcode = errorcode[1].code
 		ret.msg = errorcode[1].msg
 		ret.vip = user.uviplevel
@@ -1849,23 +1725,15 @@ function REQUEST:equipment_enhance()
 	else
 		assert(currency.num >= ee.currency_num)
 		local r = math.random(0, 100)
-		if r < e.enhance_success_rate + (e.enhance_success_rate * user.equipment_enhance_success_rate_up_p) then
+		if r < e.enhance_success_rate + (e.enhance_success_rate * user.equipment_enhance_success_rate_up_p/100) then
 			currency.num = currency.num - ee.currency_num
 			assert(currency.num > 0)
 			currency:__update_db({"num"})
-			e.level = ee.level
-			e.combat = ee.combat
-			e.defense = ee.defense
-			e.critical_hit = ee.critical_hit
-			e.king = ee.king
-			e.combat_probability = ee.combat_probability
-			e.critical_hit_probability = ee.critical_hit_probability
-			e.defense_probability = ee.defense_probability
-			e.king_probability = ee.king_probability
-			e.enhance_success_rate = ee.enhance_success_rate
-			e.currency_type = ee.currency_type
-			e.currency_num = ee.currency_num
-			e:__update_db({"level", "combat", "defense", "critical_hit", "king", "combat_probability", "defense_probability", "critical_hit_probability", "king_probability", "enhance_success_rate", "currency_type", "currency_num"})
+			for k,v in pairs(e) do
+				if ee[k] then
+					e[k] = ee[kk]
+				end
+			end	
 			ret.errorcode = errorcode[1].code
 			ret.msg = errorcode[1].msg
 			ret.e = {}
@@ -1880,7 +1748,16 @@ function REQUEST:equipment_enhance()
 			ret.e.critical_hit_probability = assert(e.critical_hit_probability)
 			ret.e.defense_probability = assert(e.defense_probability)
 			ret.e.enhance_success_rate = assert(e.enhance_success_rate)
-			return ret
+			if e.csv_id == 4 and e.level % 10 == 0 then
+				local equip_effect = skynet.call(game, "lua", "query_g_equipment_effect", e.level)
+				ret.is_valid = true
+				ret.effect = equip_effect.effect
+				return ret
+			else
+				ret.is_valid = false
+				ret.effect = 0
+				return ret
+			end
 		else
 			ret.errorcode = errorcode[24].code
 			ret.msg = errorcode[24].msg
@@ -1932,20 +1809,15 @@ function REQUEST:role_all()
 	local l = {}
 	local r = skynet.call(game, "lua", "query_g_role")
 	for k,v in pairs(r) do
-		local role = {}
-		role.csv_id = v.csv_id
-		local r = user.u_rolemgr:get_by_csv_id(v.csv_id)
-		if r then
+		local role = user.u_rolemgr:get_by_csv_id(v.csv_id)
+		if role then
 			role.is_possessed = true
-			role.star = r.star
-			local prop = user.u_propmgr:get_by_csv_id(r.us_prop_csv_id)
-			role.u_us_prop_num = prop and prop.num or 0
 		else
+			role = v
 			role.is_possessed = false
-			role.star = v.star
-			local prop = user.u_propmgr:get_by_csv_id(v.us_prop_csv_id)
-			role.u_us_prop_num = prop and prop.num or 0
 		end
+		local prop = user.u_propmgr:get_by_csv_id(role.us_prop_csv_id)
+		role.u_us_prop_num = prop and prop.num or 0
 		table.insert(l, role)
 	end
 	ret.errorcode = errorcode[1].code
@@ -1985,9 +1857,21 @@ function REQUEST:role_recruit()
 		role.k_csv_id5 = 0
 		role.k_csv_id6 = 0
 		role.k_csv_id7 = 0
+		local n, r = xilian(role, {role_id=role.csv_id, is_locked1=false, is_locked2=false, is_locked3=false, is_locked4=false, is_locked5=false})
+		assert(n == 0, string.format("%d locked.", n))
+		role.property_id1 = r.property_id1
+		role.value1 = r.value1
+		role.property_id2 = r.property_id2
+		role.value2 = r.value2
+		role.property_id3 = r.property_id3
+		role.value3 = r.value3
+		role.property_id4 = r.property_id4
+		role.value4 = r.value4
+		role.property_id5 = r.property_id5
+		role.value5 = r.value5
 		role = user.u_rolemgr.create(role)
 		user.u_rolemgr:add(role)
-		role:__insert_db()
+		role:__insert_db(const.DB_PRIORITY_2)
 		ret.errorcode = errorcode[1].code
 		ret.msg = errorcode[1].msg
 		ret.r = {
@@ -2098,7 +1982,7 @@ function REQUEST:recharge_vip_reward_purchase()
  					prop.num = assert(v[2])
  					prop = user.u_propmgr.create(prop)
  					user.u_propmgr:add(prop)
- 					prop:__insert_db()
+ 					prop:__insert_db(const.DB_PRIORITY_2)
  					table.insert(l, { csv_id=prop.csv_id, num=prop.num})
  				end
  			end
@@ -2132,14 +2016,14 @@ function REQUEST:recharge_vip_reward_purchase()
 				prop.num = assert(v[2])
 				prop = user.u_propmgr.create(prop)
 				user.u_propmgr:add(prop)
-				prop:__insert_db()
+				prop:__insert_db(const.DB_PRIORITY_2)
 				table.insert(l, { csv_id=prop.csv_id, num=prop.num})
  			end
  		end
  		local t = { user_id=user.csv_id, vip=self.vip, collected=0, purchased=1}
  		rc = user.u_recharge_vip_rewardmgr.create(t)
  		user.u_recharge_vip_rewardmgr:add(rc)
- 		rc:__insert_db()
+ 		rc:__insert_db(const.DB_PRIORITY_2)
  		ret.errorcode = errorcode[1].code
  		ret.msg = errorcode[1].msg
  		ret.l = l
@@ -2147,8 +2031,12 @@ function REQUEST:recharge_vip_reward_purchase()
  	end
 end
 
+local xilian_lock = 0
+local xilian_role_id = 0
+
 function REQUEST:xilian()
 	-- body
+	xilian_lock = 0
 	local ret = {}
 	if not user then
 		ret.errorcode = errorcode[2].code
@@ -2156,21 +2044,27 @@ function REQUEST:xilian()
  		return ret
 	end
 	assert(self)
+	xilian_role_id = self.role_id
 	local role = user.u_rolemgr:get_by_csv_id(self.role_id)
-	local n, r = xilian(self)
-	if n > 0 then
-		local xilian_cost = skynet.call(game, "lua", "query_g_xilian_cost", n)
-		local prop = user.u_propmgr:get_by_csv_id(xilian_cost.currency_type)
-		if prop.num >= xilian_cost.currency_num then
-			prop.num = prop.num - xilian_cost.currency_num
-		else
-			ret.errorcode = errorcode[16].code
-			ret.msg = errorcode[16].msg
+	local n, r = xilian(role, self)
+	assert(n >= 0)
+	local xilian_cost = skynet.call(game, "lua", "query_g_xilian_cost", n)
+	assert(type(xilian_cost.cost) == "string")
+	local C = util.parse_text(xilian_cost.cost, "(%d+%*%d+%*?)", 2)
+	for i,v in ipairs(C) do
+		local prop = user.u_propmgr:get_by_csv_id(v[1])
+		if prop.num < tonumber(v[2]) then
+			ret.errorcode = errorcode[31].code
+			ret.msg = errorcode[31].msg	
 			return ret
 		end
-		
 	end
-	local role = user.u_rolemgr:get_by_csv_id(t.role_id)
+	for i,v in ipairs(C) do
+		local prop = user.u_propmgr:get_by_csv_id(v[1])
+		prop.num = prop.num - tonumber(v[2])
+	end
+	
+	xilian_lock = 1
 	-- if type(role.backup) ~= "table" then
 	-- 	role.backup = {}
 	-- end
@@ -2186,8 +2080,21 @@ end
 function REQUEST:xilian_ok()
 	-- body
 	local ret = {}
+	if not user then
+ 		ret.errorcode = errorcode[2].code
+ 		ret.msg = errorcode[2].msg
+ 		return ret
+ 	end
+ 	if xilian_lock ~= 1 then
+ 		ret.errorcode = errorcode[32].code
+ 		ret.msg = errorcode[32].msg
+ 		return ret
+ 	else
+ 		xilian_lock = 1
+ 	end
 	if self.ok then
-		local role = user.u_rolemgr:get_by_csv_id(t.role_id)
+		assert(self.role_id == xilian_role_id, "must be equip")
+		local role = user.u_rolemgr:get_by_csv_id(self.role_id)
 		assert(role.backup)
 		role.property_id1 = role.backup.property_id1
 		role.value1 = role.backup.value1
@@ -2315,19 +2222,10 @@ function CMD.start(conf)
 	client_fd = fd
 	skynet.call(gate, "lua", "forward", fd)
 
-	-- local ptr = skynet.call(game, "lua", "ptr")
-	-- tptr.createtable(ptr)
-	-- G = ptr
-	-- for _,k,v in tptr.pairs(G) do
-	-- 	print(k, v)
-	-- 	-- tptr.createtable(v)
-	-- 	-- assert(v.__data ~= "table")
-	-- 	-- ptr = tptr.topointer(v)
-	-- 	-- tptr.createtable(ptr)
-	-- 	-- for _,k,v in tptr.pairs(ptr) do
-	-- 	-- 	print(k,v)
-	-- 	-- end
-	-- end
+	context.WATCHDOG = WATCHDOG
+	context.host = host
+	context.send_request = send_request
+	context.game = game
 
 	local t = loader.load_game()
 	for i,v in ipairs(M) do
@@ -2369,7 +2267,7 @@ end
 local function update_db()
 	-- body
 	while true do
-		-- flush_db(const.DB_PRIORITY_3)
+		flush_db(const.DB_PRIORITY_3)
 		skynet.sleep(100 * 60) -- 1ti == 0.01s
 	end
 end

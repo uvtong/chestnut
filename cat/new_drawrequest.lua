@@ -37,7 +37,7 @@ function REQUEST:login( u )
 	draw_mgr = user.u_drawmgr
 	assert( draw_mgr )
 end		
-			
+		
 local function push_achievement(achievement)
 	-- body
 	ret = {}
@@ -316,9 +316,8 @@ local function splitsubreward_bytype( typeid )
 	assert( typeid )
 
 	local sublist = {}
-	for k , v in pairs( game.g_mainrewardmgr.__data ) do
+	for k , v in ipairs( game.g_mainrewardmgr.__data ) do
 		if v.csv_id == typeid then
-			print( "********************************** find" )
 			table.insert( sublist , v )
 		end
 	end
@@ -331,14 +330,14 @@ local function getgroupid( list , val )
 	assert( val and list )
 
 	local len = #list
-	local sub = list[len].probid
-	print( len , val , #list )
-	for i = len , 1 , -1 do
+	local sub = 0 --list[len].probid
+	print( len , val , #list , sub )
+	for i = len , 0 , -1 do
 		if sub < val  then
-			i = i - 1
 			sub = sub + list[i].probid
 		else    
-			return list[i].groupid
+			print( "group is ************************" , list[ i + 1 ].groupid )
+			return list[i + 1].groupid
 		end 		
 	end 
 end 	
@@ -354,7 +353,7 @@ local function getpropidlist( dtype )
 
 	if drawtype.TENTIME == dtype then
 		print( "dtype id in getpropidlis is " .. dtype )
-		local trn = skynet.call( ".randomdraw" , "lua" , "command" , "draw" , { drawtype = dtype }  )
+		local trn = skynet.call( ".randomdraw" , "lua" , "draw" , { drawtype = dtype }  )
 		assert( trn )
 
 		for k , v in ipairs( trn ) do
@@ -368,13 +367,17 @@ local function getpropidlist( dtype )
 		end                                                                            
 	else                                                                                                    
 		print( "dtype id in getpropidlis is " .. dtype )
-		local rn = skynet.call( ".randomdraw" , "lua" , "command" , "draw" , { drawtype = dtype } )
+		local rn = skynet.call( ".randomdraw" , "lua" , "draw" , { drawtype = dtype } )
 		assert( rn )
          
 		local id = getgroupid( sublist , rn )
 		print( "groupid is >>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>" .. id )
 		local r = game.g_subrewardmgr:get_by_csv_id( id )
 		assert( r )
+		for k , v in pairs( r ) do
+			print( k , v )
+		end
+		print( "r.proptype is **********************************" , r.proptype )
 		table.insert( propidlist.list , { propid = r.propid , amount = r.propnum , proptype = r.proptype } )
 	end		
         

@@ -41,6 +41,12 @@ function CMD.query_g_achievement(pk)
 	elseif type(pk) == "nil" then
 		return game.g_achievementmgr.__data
 	else
+		print(pk)
+		if type(pk) == "table" then
+			for k,v in pairs(pk) do
+				print(k,v)
+			end
+		end
 		assert(false)
 	end
 end
@@ -443,16 +449,26 @@ function CMD.query_g_property_pool_second(pk, T)
 	end
 end
 
-function CMD.query_g_randomval(pk)
+function CMD.query_g_randomval()
+	-- body
+	return assert(game.g_randomvalmgr.__data)
+end
+
+function CMD.query_g_equipment_effect(pk)
 	-- body
 	if type(pk) == "number" then
-		return assert(game.g_randomvalmgr:get_by_id(pk))
+		local r = game.query_g_equipment_effectmgr:get_by_level(pk)
+		if r then
+			return r
+		else
+			error "there are insufficient data"
+		end
 	else
 		assert(false)
 	end
 end
 
-local function guid(game, csv_id)
+local function guid(csv_id)
 	-- body
 	local r = game.g_uidmgr:get_by_csv_id(csv_id)
 	if not r then
@@ -467,31 +483,31 @@ local function guid(game, csv_id)
 	end
 end
 
-local function u_guid(user_id, game, csv_id)
+local function u_guid(user_id, csv_id)
 	-- body
-	local e = user_id * 10000 + csv_id
-	return util.guid(game, e)
+	csv_id = user_id * 10000 + csv_id
+	return guid(csv_id)
 end
 
 function CMD.u_guid(user_id, csv_id)
 	-- body
-	assert(user_id)
-	assert(csv_id)
-	return u_guid(user_id, game, csv_id)
+	assert(type(user_id) == "number" and user_id > 0)
+	assert(type(csv_id) == "number" and csv_id > 0)
+	return u_guid(user_id, csv_id)
 end
 
 function CMD.guid(csv_id)
 	-- body
-	assert(csv_id)
-	return guid(game, csv_id)
+	assert(type(csv_id) == "number" and csv_id > 0)
+	return guid(csv_id)
 end
 
 local function update_db()
 	-- body
 	while true do
 		if game then
-			game.g_uidmgr:update_db(const.DB_PRIORITY_1)
-			game.g_randomvalmgr:update_db(const.DB_PRIORITY_1)
+			game.g_uidmgr:update_db(const.DB_PRIORITY_3)
+			game.g_randomvalmgr:update_db(const.DB_PRIORITY_3)
 		end
 		skynet.sleep(100 * 60) -- 1ti == 0.01s
 	end

@@ -50,7 +50,7 @@ function _Meta:__serialize()
 	return r
 end
 
-function _M.insert_db( values, priority )
+function _M.insert_db(values, priority )
 	assert(priority)
 	assert(type(values) == "table" )
 	local total = {}
@@ -68,8 +68,9 @@ end
 
 function _M:update_db(priority)
 	-- body
-	local columns = { "type", "finished", "c_num", "unlock_next_csv_id", "is_unlock", "is_valid"}
-	local condition = { {user_id = self.__user_id}, {csv_id = {}}}
+	assert(priority)
+	local columns = { "csv_id", "finished", "c_num", "unlock_next_csv_id"}
+	local condition = { {user_id = self.__user_id}, {type = {}}}
 	skynet.send(util.random_db(), "lua", "command", "update_all", _Meta.__tname, condition, columns, self.__data, priority)
 end
 
@@ -91,6 +92,7 @@ end
 
 function _M:add( u )
 	assert(u)
+	assert(self.__data[tostring(u.type)] == nil)
 	self.__data[tostring(u.type)] = u
 	self.__count = self.__count + 1
 end

@@ -590,6 +590,7 @@ achievement_reward_collect 40 {
     response {
         errorcode 0 : integer
         msg 1 : string
+        next 2 : achi
     }
 }
 
@@ -692,6 +693,8 @@ equipment_enhance 50 {
         errorcode 0 : integer
         msg 1 : string
         e 2 : equipment
+        is_valid 3 : boolean
+        effect 4 : integer
     }
 }
 
@@ -804,11 +807,11 @@ recharge_vip_reward_purchase 60 {
 xilian 61 {
     request {
         role_id 0 : integer
-        is_locked1 1 : integer
-        is_locked2 2 : integer
-        is_locked3 3 : integer
-        is_locked4 4 : integer
-        is_locked5 5 : integer
+        is_locked1 1 : boolean
+        is_locked2 2 : boolean
+        is_locked3 3 : boolean
+        is_locked4 4 : boolean
+        is_locked5 5 : boolean
     }
     response {
         errorcode 0 : integer

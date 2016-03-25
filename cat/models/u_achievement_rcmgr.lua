@@ -50,13 +50,6 @@ function _Meta:__serialize()
 	return r
 end
 
-function _M:update_db()
-	-- body
-	-- local columns = { "finished", "reward_collected", "is_unlock"}
-	-- local condition = { {user_id = self.__user_id}, {csv_id = {}}}
-	-- skynet.send(util.random_db(), "lua", "command", "update_all", _Meta.__tname, condition, columns, self.__data)
-end
-
 function _M.create( P )
 	assert(P)
 	local u = _Meta.__new()
@@ -94,6 +87,15 @@ end
 function _M:clear()
 	self.__data = {}
 	self.__count = 0
+end
+
+function _M:update_db(priority)
+	-- body
+	assert(false)
+	assert(priority)
+	local columns = { "reward_collected"}
+	local condition = { {user_id = self.__user_id}, {csv_id = {}}}
+	skynet.send(util.random_db(), "lua", "command", "update_all", _Meta.__tname, condition, columns, self.__data, priority)
 end
 
 return _M

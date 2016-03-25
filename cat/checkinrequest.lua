@@ -351,7 +351,7 @@ function REQUEST:checkin()
 
 			if changed then
 				tcheckin_month.checkin_month = 0
-				tcheckin_month:__update_db( { "checkin_month" } )
+				--tcheckin_month:__update_db( { "checkin_month" } , const.DB_PRIORITY_2 )
 			end	
 		end -- msg "UPDATE month_checkin each month"
 		
@@ -421,7 +421,7 @@ function REQUEST:checkin_aday()
 			tcheckin_month:__insert_db( const.DB_PRIORITY_2 )
 		else
 			tcheckin_month.checkin_month = tcheckin_month.checkin_month + 1
-			tcheckin_month:__update_db( { "checkin_month" } )	
+			--tcheckin_month:__update_db( { "checkin_month" } )	
 		end
 
 		print( tcheckin.u_checkin_time )

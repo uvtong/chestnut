@@ -86,7 +86,6 @@ function QUERY:update( table_name, condition, columns, priority)
 	
 	if c_priority > priority then
 		c_priority = priority
-		print(c_priority)
 		-- skynet.yield() -- 
 		skynet.wakeup(priority_queue[c_priority].co)
 	end
@@ -246,7 +245,8 @@ local function query_mysql1()
 				print("Q1 begin")
 				c_priority = c_priority + 1
 				local co = priority_queue[c_priority].co
-				skynet.wait()
+				skynet.wakeup(co)
+				-- skynet.wait()
 				print("Q1 end")
 			end
 		end
@@ -268,7 +268,8 @@ local function query_mysql2()
 				print("Q2 begin")
 				c_priority = c_priority + 1
 				local co = priority_queue[c_priority].co
-				skynet.wait()
+				skynet.wakeup(co)
+				-- skynet.wait()
 				print("Q2 end")
 			end
 		end

@@ -269,7 +269,7 @@ function REQUEST:mail_getreward()
 
 			if ( 1 == e.type ) then
 				e.isdel = 1
-				e:__update_db( { "isdel" } )
+				e:__update_db( { "isdel" } , const.DB_PRIORITY_2 )
 				user.u_emailmgr:delete_by_csv_id( e.csv_id )
 			else
 				e.isreward = 1
@@ -277,20 +277,20 @@ function REQUEST:mail_getreward()
 			end
 		end
 	end 
-
+	
 	ret.errorcode = errorcode[ 1 ].code
 	ret.msg = errorcode[ 1 ].msg
-
+	
 	return ret
 end 
 	
 function new_emailrequest:newemail( tval , ... ) -- get a email to group
 	assert( tval )
 	print( "*********************************************REQUEST:newemail" )
-
-	local v =user.u_emailmgr:recvemail( tval )
+	
+	local v = user.u_emailmgr:recvemail( tval )
 	assert( v )
-
+	
 	--[[local ret = {}
 	ret.mail = {}
 	local tmp = {}

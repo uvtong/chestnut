@@ -41,6 +41,17 @@ local function load_g_effct()
 	game.g_effctmgr = g_effctmgr
 end
 
+local function load_g_role_effect()
+	assert( nil == game.g_role_effectmgr )
+	local g_role_effectmgr = require "models/g_role_effectmgr"
+	local r = skynet.call( util.random_db() , "lua" , "command" , "select" , "g_role_effect" )
+	for i,v in ipairs(r) do
+		local t = g_role_effectmgr.create(v)
+		g_role_effectmgr:add(t)
+	end
+	game.g_role_effectmgr = g_role_effectmgr
+end	
+
 local function load_g_equipment()
 	-- body
 	assert(game.g_equipmentmgr == nil)
@@ -325,7 +336,7 @@ local function load_g_randomval()
 		local t = g_randomvalmgr.create( v )
 		g_randomvalmgr:add( t )
 	end
-
+	print( "load randomval successfully" )
 	game.g_randomvalmgr = g_randomvalmgr
 end
 
@@ -387,6 +398,18 @@ local function load_g_property_pool_second()
 		g_property_pool_secondmgr:add(t)
 	end
 	game.g_property_pool_secondmgr = g_property_pool_secondmgr
+end
+
+local function load_g_equipment_effect()
+	-- body
+	assert(game.g_equipment_effectmgr == nil)
+	local g_equipment_effectmgr = require "models/g_equipment_effectmgr"
+	local r = skynet.call(util.random_db(), "lua", "command", "select", "g_equipment_effect")
+	for i,v in ipairs(r) do
+		local t = g_equipment_effectmgr.create(v)
+		g_equipment_effectmgr:add(t)
+	end
+	game.g_equipment_effectmgr = g_equipment_effectmgr
 end
 
 local function load_u_achievement(user)
@@ -472,8 +495,6 @@ local function load_u_cgold( user )
 	u_cgoldmgr.user_id = user.csv_id
 	user.u_cgoldmgr = u_cgoldmgr
 end
-
-
 
 local function load_u_checkpoint(user)
 	-- body
@@ -690,6 +711,12 @@ local function load_u_goods(user)
 	user.u_goodsmgr = u_goodsmgr
 end
 
+function loader.load_randomval()
+	-- body
+	load_g_randomval()
+	return game
+end
+
 function loader.load_game()
 	-- body
 	local f = function ()
@@ -725,20 +752,13 @@ function loader.load_game()
 		load_g_xilian_cost()
 		load_g_property_pool()
 		load_g_property_pool_second()
+		load_g_role_effect()
+		load_g_equipment_effect()
 	end
 	skynet.fork(f)
 	return game
 end
 
-function loader.load_channel_game()
-	-- body
-	local f = function ()
-		-- body
-		load_g_uid()
-	end
-	skynet.fork(f)
-	return game
-end
 
 function loader.load_user(user)
 	-- body
