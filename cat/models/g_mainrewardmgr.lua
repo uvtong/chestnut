@@ -65,13 +65,13 @@ end
 
 function _M:add( u )
 	assert(u)
-	self.__data[tostring(u.groupid)] = u
+	table.insert( self.__data , u )
 	self.__count = self.__count + 1
 end
 	
 function _M:get_by_csv_id(csv_id)
 	-- body
-	return self.__data[tostring(csv_id)]
+	return self.__data[csv_id]
 end
 
 function _M:delete_by_csv_id(csv_id)

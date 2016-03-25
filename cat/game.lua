@@ -449,13 +449,9 @@ function CMD.query_g_property_pool_second(pk, T)
 	end
 end
 
-function CMD.query_g_randomval(pk)
+function CMD.query_g_randomval()
 	-- body
-	if type(pk) == "number" then
-		return assert(game.g_randomvalmgr:get_by_id(pk))
-	else
-		assert(false)
-	end
+	return assert(game.g_randomvalmgr.__data)
 end
 
 function CMD.query_g_equipment_effect(pk)

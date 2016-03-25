@@ -2,6 +2,7 @@ package.path = "./../cat/?.lua;" .. package.path
 	
 local skynet = require "skynet"
 local errorcode = require "errorcode"	
+local util = require "util"
 
 local friendmgr = {}
 friendmgr._data = { friendlist = {} , applylist = {} , appliedlist = {} , avaliblelist = {} }
@@ -129,12 +130,14 @@ function friendmgr:_db_loadfriend_idlist( uid )
 	return result
 end	
 	
-function friendmgr:_db_loadavaliblefriend_idlist( uid , level )
-	assert( level )
+function friendmgr:_db_loadavaliblefriend_idlist( uid , lowlevel , uplevel , lastday )
+	assert( uid and lowlevel and uplevel and lastday )
 	local addr = randomaddr()
 	assert( addr )
     local t = {}
-    t.level = level
+    t.lowlevel = lowlevel
+    t.uplevel = uplevel
+    t.lastday = lastday
     t.uid = uid
 
 	local r = skynet.call( addr , "lua" , "command" , "select_loadavaliblefriendids" , t )
@@ -196,21 +199,59 @@ function friendmgr:_db_updatefriend( t )
 
 	print( "update friend successfully" )
 end	
-	
+		
 function friendmgr:loadfriend( u , datacenter , g )
 	user = u
     dc = datacenter
     game = g
-	
+			
 	friendmgr._data.friendlist = friendmgr:_db_loadfriend_idlist( user.csv_id )
 	--[[for i = 1 , #friendmgr._data.friendlist do
 		friendmgr._data.friendlist[i] = friendmgr._data.friendlist[i]
 	end--]]
-	friendmgr._data.avaliblelist = friendmgr:_db_loadavaliblefriend_idlist( user.csv_id , user.level )
+
+	local i = 1
+	local step = 20
+	local lastday = os.time() - 24 * 60 * 60
+	local ok = false
+	-- select friend on different condition
+	while i <= 3 do
+		friendmgr._data.avaliblelist = friendmgr:_db_loadavaliblefriend_idlist( user.csv_id , user.level - step , user.level + step , lastday )
+		print( "avaliblelist is *********************************" , #friendmgr._data.avaliblelist )
+		if #friendmgr._data.avaliblelist < 10 then
+			friendmgr._data.avaliblelist = {}
+			step = step + 10
+		else 
+			ok = true
+			break
+		end 
+
+		i = i + 1
+	end        
+
+	if not ok then
+		step = 20
+		i = 1
+
+		while i <= 3 do
+			friendmgr._data.avaliblelist = friendmgr:_db_loadavaliblefriend_idlist( user.csv_id , user.level - step , user.level + step , 0 )
+			print( "avaliblelist2 is *********************************" , #friendmgr._data.avaliblelist )
+			if #friendmgr._data.avaliblelist < 10 then
+				friendmgr._data.avaliblelist = {}
+				step = step + 10
+			else 
+				break
+			end
+			
+			i = i + 1
+		end 
+	end     
+
 	for i = 1 , #friendmgr._data.avaliblelist do
 	--print( friendmgr._data.avaliblelist[i] , friendmgr._data.avaliblelist[i].csv_id)
 		friendmgr._data.avaliblelist[i] = friendmgr._data.avaliblelist[i].csv_id
 	end	
+		
 	friendmgr._data.appliedlist = friendmgr:_db_applied_idlist( user.csv_id , msgtype.APPLY )
 	--[[for i = 1 , #friendmgr._data.appliedlist do
 		friendmgr._data.appliedlist[i] = friendmgr._data.appliedlist[i]
@@ -218,16 +259,16 @@ function friendmgr:loadfriend( u , datacenter , g )
 	friendmgr._data.applylist = friendmgr:_db_apply_idlist( user.csv_id , msgtype.APPLY )
 	for i = 1 , #friendmgr._data.applylist do
 		friendmgr._data.applylist[i] = friendmgr._data.applylist[i].toid
-	end
+	end 
 	--TODO get applied list
 	print( "load all idlist over" )
 
 	if nil == #friendmgr._data.friendlist then
 	   	print( "no friend in friendidlist , dbloadfriend\n" )
-	end
+	end 
     if #friendmgr._data.avaliblelist == nil then
 		print(" avalible is no ")
-	end
+	end 
 	if #friendmgr._data.avaliblelist < MAXFRIENDNUM then
 	   	print( "avalible friends num < 10" )
 	end		
@@ -235,7 +276,7 @@ function friendmgr:loadfriend( u , datacenter , g )
 
    	return friendmgr
 end			
-
+	
 function friendmgr:_db_get_recvheart( lowtime , hightime , uid )
 	assert( lowtime , hightime )
 
@@ -295,6 +336,13 @@ local function gettodayheart()
 	return heart
 end		
 		
+--local function count_fightpower()
+--	local total_combat = 0
+--	total_combat = user.combat
+--end 
+	
+
+
 function friendmgr:apply_friendlist()
 	recvheartnum = gettodayheart()
 	print( "recvheartnum is " .. recvheartnum )
@@ -328,6 +376,7 @@ function friendmgr:apply_friendlist()
    				local r = friendmgr:_db_loadfriend( v.friendid )
    				assert( r )
    				tmp = r[1]
+   				tmp.combat = util.get_total_combat( nil , tmp.csv_id )
    			end
 
    			tmp.receive = receive
@@ -344,7 +393,7 @@ function friendmgr:apply_friendlist()
    			if nil == v.sendtime or 0 == v.sendtime or ( v.sendtime < settime and os.time() > settime ) then
    				tmp.heart = true
    			else                                                                                                                                                                                                                                                            
-   				tmp.heart = true
+   				tmp.heart = false
    			end
    			tmp.signtime = v.recvtime -- '0' represents that i never sent heart to others , and used for sendheart and recvheart
    			print( "tmp.signtime is **************************" , tmp.signtime )
@@ -354,7 +403,7 @@ function friendmgr:apply_friendlist()
 			table.insert( fl , f )
 
    			print( "build a friend successfully" )
-   			
+
    		end	
    		print( MAXHEARTNUM ,  MAXHEARTNUM - recvheartnum , recvheartnum )
    		return fl , ( MAXHEARTNUM - recvheartnum ) -- today_heart is the heart amount user gets today
@@ -400,6 +449,7 @@ function friendmgr:apply_appliedlist()
    				local r = friendmgr:_db_loadfriend( v.fromid )
    				assert( r )
    				tmp = r[1]
+   				tmp.combat = util.get_total_combat( nil , tmp.csv_id )
    			end
 
     		tmp.signtime = v.srecvtime
@@ -490,6 +540,7 @@ function friendmgr:apply_otherfriendlist()
    			local r = friendmgr:_db_loadfriend( v )
    			assert( r )
    			tmp = r[1]
+   			tmp.combat = util.get_total_combat( nil , tmp.csv_id )
    		end
 
 		local n = friendmgr:_createfriend( tmp )
@@ -734,40 +785,50 @@ function friendmgr:findfriend( id )
 	assert( id )
 	local ret = {}
 	print( id )
-	local r = friendmgr:_db_loadfriend( id )
-	if nil == r[1] then
-		ret.errorcode = errorcode[ 64 ].code
-		ret.msg = errorcode[ 64 ].msg  --"no such user"
+
+	local r 
+
+	local t = dc.get( id )
+
+	if t then -- if online
+		print( "online" )
+		r = skynet.call( t.addr , "lua" , "friend" , "agent_friendmsg")
+		assert( r )
+	else      --not online
+		print( "not online" )
+   		local tmp = friendmgr:_db_loadfriend( v.friendid )
+   		assert( tmp )
+   		r = tmp[ 1 ]
+   		r.combat = util.get_total_combat( nil , r.csv_id )
+   	end
+
+	
+	if id == user.csv_id then
+		ret.errorcode = errorcode[ 65 ].code
+		ret.msg = errorcode[ 65 ].msg   --"can not add yourself"
 		
 		return ret 
-	else
-		if id == user.csv_id then
-			ret.errorcode = errorcode[ 65 ].code
-			ret.msg = errorcode[ 65 ].msg   --"can not add yourself"
-			
-			return ret 
-		end	
-
-		for k , v in pairs( friendmgr._data.friendlist ) do
-			if v.friendid == id then
-				ret.errorcode = errorcode[ 66 ].code
-				ret.msg = errorcode[ 66 ].msg  --"already friend"
-
-				return ret
-			end
-		end
-
-		for k , v in pairs( friendmgr._data.appliedlist ) do
-			if v.fromid == id then
-				ret.errorcode = errorcode[ 67 ].code
-				ret.msg = errorcode[ 67 ].msg  --"in the appliedlist "
-
-				return ret
-			end
-		end
 	end	
 
-	local f = friendmgr:_createfriend( r[ 1 ] )
+	for k , v in pairs( friendmgr._data.friendlist ) do
+		if v.friendid == id then
+			ret.errorcode = errorcode[ 66 ].code
+			ret.msg = errorcode[ 66 ].msg  --"already friend"
+
+			return ret
+		end
+	end
+
+	for k , v in pairs( friendmgr._data.appliedlist ) do
+		if v.fromid == id then
+			ret.errorcode = errorcode[ 67 ].code
+			ret.msg = errorcode[ 67 ].msg  --"in the appliedlist "
+
+			return ret
+		end
+	end
+	
+	local f = friendmgr:_createfriend( r )
 	assert( f )
 	ret.errorcode = errorcode[ 1 ].code
 	ret.msg = errorcode[ 1 ].msg
@@ -1034,7 +1095,7 @@ function friendmgr:agent_friendmsg()
 	r.viplevel = user.uviplevel
 	r.iconid = user.iconid
 	r.sign = user.sign
-	r.combat = user.combat
+	r.combat = util.get_total_combat( user , _ )
 	r.online_time = os.date( "%Y%m%d%H%M%S" , user.onlinetime) --user.onlinetime
 	r.ifonline = true
 
