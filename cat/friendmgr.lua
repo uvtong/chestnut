@@ -376,7 +376,9 @@ function friendmgr:apply_friendlist()
    				local r = friendmgr:_db_loadfriend( v.friendid )
    				assert( r )
    				tmp = r[1]
-   				tmp.combat = util.get_total_property( nil , tmp.csv_id , "combat" , { 1 , 5 } )
+   				local t = util.get_total_property( nil , tmp.csv_id )
+   				assert( t )
+   				tmp.combat = t[ 1 ]
    			end
 
    			tmp.receive = receive
@@ -449,7 +451,9 @@ function friendmgr:apply_appliedlist()
    				local r = friendmgr:_db_loadfriend( v.fromid )
    				assert( r )
    				tmp = r[1]
-   				tmp.combat = util.get_total_property( nil , tmp.csv_id , "combat" , { 1 , 5 } )
+   				local t = util.get_total_property( nil , tmp.csv_id )
+   				assert( t )
+   				tmp.combat = t[ 1 ]
    			end
 
     		tmp.signtime = v.srecvtime
@@ -540,7 +544,9 @@ function friendmgr:apply_otherfriendlist()
    			local r = friendmgr:_db_loadfriend( v )
    			assert( r )
    			tmp = r[1]
-   			tmp.combat = util.get_total_property( nil , tmp.csv_id , "combat" , { 1 , 5 } )
+   			local t = util.get_total_property( nil , tmp.csv_id )
+   			assert( t )
+   			tmp.combat = t[ 1 ]
    		end
 
 		local n = friendmgr:_createfriend( tmp )
@@ -799,8 +805,10 @@ function friendmgr:findfriend( id )
    		local tmp = friendmgr:_db_loadfriend( v.friendid )
    		assert( tmp )
    		r = tmp[ 1 ]
-   		r.combat = util.get_total_property( nil , tmp.csv_id , "combat" , { 1 , 5 } )
-   	end
+   		local t = util.get_total_property( nil , tmp.csv_id )
+   		assert( t )
+   		r.combat = t[ 1 ]
+   	end 
 
 	
 	if id == user.csv_id then
@@ -1088,14 +1096,15 @@ end
 function friendmgr:agent_friendmsg()
 	print( "get online user msg !!!!!!!!!!!!!!!!!!" )
 	local r = {}
-	
+	local tmp = util.get_total_property( user , _ )
+	assert( tmp )
 	r.csv_id = user.csv_id
 	r.name = user.uname
 	r.level = user.level
 	r.viplevel = user.uviplevel
 	r.iconid = user.iconid
 	r.sign = user.sign
-	r.combat = util.get_total_property( user , _ , "combat" , { 1 , 5 } )
+	r.combat = tmp[ 1 ]
 	r.online_time = os.date( "%Y%m%d%H%M%S" , user.onlinetime) --user.onlinetime
 	r.ifonline = true
 
