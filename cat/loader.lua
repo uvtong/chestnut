@@ -752,25 +752,13 @@ function loader.load_game()
 		load_g_xilian_cost()
 		load_g_property_pool()
 		load_g_property_pool_second()
-<<<<<<< HEAD
 		load_g_role_effect()
-=======
 		load_g_equipment_effect()
 	end
 	skynet.fork(f)
 	return game
 end
 
-function loader.load_channel_game()
-	-- body
-	local f = function ()
-		-- body
-		load_g_uid()
->>>>>>> 31003afac69ce357143373a5c55b5983114214dc
-	end
-	skynet.fork(f)
-	return game
-end
 
 function loader.load_user(user)
 	-- body
