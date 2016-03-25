@@ -376,7 +376,7 @@ function friendmgr:apply_friendlist()
    				local r = friendmgr:_db_loadfriend( v.friendid )
    				assert( r )
    				tmp = r[1]
-   				tmp.combat = util.get_total_combat( nil , tmp.csv_id )
+   				tmp.combat = util.get_total_property( nil , tmp.csv_id , "combat" , { 1 , 5 } )
    			end
 
    			tmp.receive = receive
@@ -449,7 +449,7 @@ function friendmgr:apply_appliedlist()
    				local r = friendmgr:_db_loadfriend( v.fromid )
    				assert( r )
    				tmp = r[1]
-   				tmp.combat = util.get_total_combat( nil , tmp.csv_id )
+   				tmp.combat = util.get_total_property( nil , tmp.csv_id , "combat" , { 1 , 5 } )
    			end
 
     		tmp.signtime = v.srecvtime
@@ -540,7 +540,7 @@ function friendmgr:apply_otherfriendlist()
    			local r = friendmgr:_db_loadfriend( v )
    			assert( r )
    			tmp = r[1]
-   			tmp.combat = util.get_total_combat( nil , tmp.csv_id )
+   			tmp.combat = util.get_total_property( nil , tmp.csv_id , "combat" , { 1 , 5 } )
    		end
 
 		local n = friendmgr:_createfriend( tmp )
@@ -799,7 +799,7 @@ function friendmgr:findfriend( id )
    		local tmp = friendmgr:_db_loadfriend( v.friendid )
    		assert( tmp )
    		r = tmp[ 1 ]
-   		r.combat = util.get_total_combat( nil , r.csv_id )
+   		r.combat = util.get_total_property( nil , tmp.csv_id , "combat" , { 1 , 5 } )
    	end
 
 	
@@ -1095,7 +1095,7 @@ function friendmgr:agent_friendmsg()
 	r.viplevel = user.uviplevel
 	r.iconid = user.iconid
 	r.sign = user.sign
-	r.combat = util.get_total_combat( user , _ )
+	r.combat = util.get_total_property( user , _ , "combat" , { 1 , 5 } )
 	r.online_time = os.date( "%Y%m%d%H%M%S" , user.onlinetime) --user.onlinetime
 	r.ifonline = true
 

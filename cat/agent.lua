@@ -510,7 +510,8 @@ function REQUEST:signup()
 				signup_time=os.time() ,
 				pemail_csv_id = 0,
 				take_diamonds=0,
-				draw_number=0 }
+				draw_number=0 ,
+				ifxilian = 0 }
 		local usersmgr = require "models/usersmgr"
 		local u = usersmgr.create(t)
 		u:__insert_db(const.DB_PRIORITY_1)
