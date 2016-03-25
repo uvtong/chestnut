@@ -56,11 +56,7 @@ local function flush_db(priority)
 	assert(priority)
 	if user then
 		for k,v in pairs(user) do
-			if k == "u_achievement_rcmgr" then
-				print("abckd****")
-			end
 			if string.match(k, "^u_[%w_]+mgr$") then
-				print(k)
 				v:update_db(priority)
 			end
 		end
@@ -71,7 +67,8 @@ local function flush_db(priority)
 			"checkin_num", "checkin_reward_num", "exercise_level", "cgold_level", "gold_max",
 			"exp_max", "equipment_enhance_success_rate_up_p", "store_refresh_count_max",
 			"prop_refresh", "arena_frozen_time", "purchase_hp_count", "gain_gold_up_p", "gain_exp_up_p",
-			"purchase_hp_count_max", "SCHOOL_reset_count_max", "SCHOOL_reset_count"}, priority)
+			"purchase_hp_count_max", "SCHOOL_reset_count_max", "SCHOOL_reset_count", "pemail_csv_id", "take_diamonds",
+			"draw_number", "ifxilian"}, priority)
 		local cm = user.u_checkin_monthmgr:get_checkin_month()
 		if cm then
 			cm:__update_db({"checkin_month"}, priority)
@@ -1051,12 +1048,14 @@ function REQUEST:user_upgrade()
 	end
 	assert(user)
 	local user_level_max
+	local xilian_begain_level
 	local ptr = skynet.call(game, "lua", "query_g_config")
 	tptr.createtable(ptr)
 	for _,k,v in tptr.pairs(ptr) do
 		if k == "user_level_max" then
 			user_level_max = v
-			break
+		elseif k == "xilian_begain_level" then
+			xilian_begain_level = v
 		end
 	end
 	if user.level + 1 >= user_level_max then
@@ -1068,7 +1067,6 @@ function REQUEST:user_upgrade()
 		local prop = user.u_propmgr:get_by_csv_id(const.EXP)
 		if prop.num >= tonumber(L.exp) then
 			prop.num = prop.num - L.exp
-			prop:__update_db({"num"})
 			user.level = L.level
 			user.combat = L.combat
 			user.defense = L.defense
@@ -1076,7 +1074,9 @@ function REQUEST:user_upgrade()
 			user.blessing = L.skill              -- blessing.
 			user.gold_max = assert(L.gold_max)
 			user.exp_max = assert(L.exp_max)
-			-- user:__update_db({ "level", "combat", "defense", "critical_hit", "blessing", "gold_max", "exp_max"})
+			if user.level >= xilian_begain_level then
+				user.ifxilian = 1
+			end
 			ret.errorcode = errorcode[1].code
 			ret.msg = errorcode[1].msg
 			return ret
@@ -1360,7 +1360,6 @@ function REQUEST:shop_purchase()
 			if ug.inventory == 0 then
 				local now = os.time()
 				local walk = os.difftime(now, ug.st)
-				print("************abcd", now, ug.st, countdown)
 				if walk > gg.cd then
 					ug.inventory =gg.inventory_init
 					ug.countdown = 0
@@ -1405,7 +1404,8 @@ function REQUEST:shop_purchase()
 				end
 			elseif ug.inventory == 99 then
 				currency.num = currency.num - diamond
-				currency:__update_db({"num"})
+				user.take_diamonds = user.take_diamonds + diamond
+				context:raise_achievement(const.ACHIEVEMENT_T_4)
 				local prop = get_prop(gg.g_prop_csv_id)
 				prop.num = prop.num + (gg.g_prop_num * self.g[1].goods_num)
 				prop:__update_db({"num"})
@@ -2235,8 +2235,7 @@ function CMD.start(conf)
 	local t = loader.load_game()
 	for i,v in ipairs(M) do
 		v.start(fd, send_request, t)
-	end
-	
+	end	
 end	
 	   
 function CMD.disconnect()
