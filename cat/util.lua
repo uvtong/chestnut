@@ -269,8 +269,8 @@ end
 
 function util.RSHash()
 	-- body
-end
-
+end     
+		
 function util.parse_text(src, parten, D)
 	-- body
 	-- src = "1000*10*10*10*10*10"
@@ -297,11 +297,8 @@ function util.parse_text(src, parten, D)
 	return r
 end 		
 			
-local function collect_info_from_g_role_effect( bufferid , tpropid )
-	assert( bufferid and tpropid )
-
-	local t = { 0 , 0 }
-	local gk
+local function collect_info_from_g_role_effect( bufferid , ttotal )
+	assert( bufferid and ttotal )
 
 	gre = skynet.call( ".game" , "lua" , "query_g_role_effect" , bufferid )
 	assert( gre )
@@ -311,26 +308,22 @@ local function collect_info_from_g_role_effect( bufferid , tpropid )
 		local property_id = "property_id" .. i
 		local value = "value" .. i
 
-		if tpropid[ 1 ] == gre[ property_id ] then
-			t[ 1 ] = t[ 1 ] + gre[ value ]                       -- value			
-		elseif tpropid[ 2 ] == gre[ property_id ] then
-			t[ 2 ] = t[ 2 ] + gre[ value ]                       -- percent %		
-		end 
-
+		local index = gre[ property_id ] 
+		assert( index )
+		print( index , gre[ value ] )
+		if 0 ~= index then
+			ttotal[ index ] = ttotal[ index ] + gre[ value ]
+		end
 		i = i + 1
 	end		
-
-	return t
 end			
 	--[[ if online ( user , nil , propertyname ) , if not online ( nil , uid , propertyname )                  ]]
-function util.get_total_property( user , uid , propertyname , tpropertytype )   -- zhijie ti sheng zhan dou li gu ding zhi hai mei you ,  
-	assert( propertyname and tpropertytype )
-
+function util.get_total_property( user , uid )   -- zhijie ti sheng zhan dou li gu ding zhi hai mei you ,  
 	local uequip
 	local role 
 	local roles
 	local u
- 	
+ 		
  	local tmpname = propertyname
 
 	if user then
@@ -338,7 +331,7 @@ function util.get_total_property( user , uid , propertyname , tpropertytype )   
 		role = user.u_rolemgr:get_by_csv_id( user.c_role_id )	
 		roles = user.u_rolemgr.__data
 		u = user
-	else
+	else    
 		local sql = string.format( "select * from u_equipment where user_id = %s " , uid )
 		uequip = skynet.call( util.random_db() , "lua" , "command" , "query" , sql )
 		assert( uequip )
@@ -346,12 +339,12 @@ function util.get_total_property( user , uid , propertyname , tpropertytype )   
  		print( sql )
  		roles = skynet.call( util.random_db() , "lua" , "command" , "query" , sql )
  		assert( roles )
-	
+		
  		if "king" == propertyname then
  			tmpname = "blessing"
  		end
 
- 		sql = string.format( "select c_role_id , %s , ifxilian from users where csv_id = %s " , tmpname , uid )
+ 		sql = string.format( "select c_role_id , combat , defense , critical_hit , blessing , ifxilian from users where csv_id = %s " , uid )
 		print( sql )
 		local tmp = skynet.call( util.random_db() , "lua" , "command" , "query" , sql )
 
@@ -369,22 +362,23 @@ function util.get_total_property( user , uid , propertyname , tpropertytype )   
  		assert( role )
 	end 
 
-	--fixed 
-	local total = u[ tmpname ]
-	local total_percent = 0
+	----all equipment combat
+	local ttotal = { 0 , 0 , 0 , 0 , 0 , 0 , 0 , 0 }
+	local tproperty = { "combat" , "defense" , "critical_hit" , "king" }
 
-	--all equipment combat
-	local probability = propertyname .. "_probability"
-	print( "property is ***************************************" , probability )
-	for k , v in pairs( uequip ) do
-		total = total + v[ propertyname ]
-		total_percent = total_percent + v[ probability ]
-	end		
+	for k , v in ipairs( tproperty ) do
+		local probability = v .. "_probability"
+		print( "property is ***************************************" , probability )
+		for kk , vv in pairs( uequip ) do
+			if 0 ~= vv[ v ] then 
+				ttotal[ k ] = ttotal[ k ] + vv[ v ]
+				ttotal[ k  + 4 ] = ttotal[ k + 4 ] + vv[ probability ]
+			end
+		end		
+	end     
 
 	-- role battle combat
-	local r = collect_info_from_g_role_effect( role.battle_buffer_id , tpropertytype )
-	total = total + assert( r[ 1 ] )
-	total_percent = total_percent + assert( r[ 2 ] )
+	collect_info_from_g_role_effect( role.battle_buffer_id , ttotal )
 
 	-- xilian combat
 	if 1 == u.ifxilian then
@@ -392,16 +386,14 @@ function util.get_total_property( user , uid , propertyname , tpropertytype )   
 		while i <= 5 do
 			local property_id = "property_id" .. i
 			local value = "value" .. i
-
-			if tpropertytype[ 1 ] == role[ property_id ] then
-				total = total + role[ value ]
-			elseif tpropertytype[ 2 ] == role[ property_id ] then
-	 			total_percent = total_percent + role[ value ]
+			local index = role[ property_id ]
+			if 0 ~= index then
+				ttotal[ index ] = ttotal[ index ] + role[ value ]
 			end
 
 			i = i + 1
-		end
-	end
+		end 
+	end     
 
 	--kungfu combat
 	local i = 1
@@ -413,11 +405,7 @@ function util.get_total_property( user , uid , propertyname , tpropertytype )   
 			local gk = skynet.call( ".game" , "lua" , "query_g_kungfu" , ik_csv_id )
 			assert( gk )
 
-			-- 1 combat , 5 combat%
-			local r = collect_info_from_g_role_effect( gk.buff_id , tpropertytype )
-			assert( r )
-			total = total + assert( r[ 1 ] )
-			total_percent = total_percent + assert( r[ 2 ] )
+			collect_info_from_g_role_effect( gk.buff_id , ttotal )
 		end 
 
 		i = i + 1 
@@ -425,15 +413,24 @@ function util.get_total_property( user , uid , propertyname , tpropertytype )   
 
 	--rolecollect combat
 	for k , v in pairs( roles ) do
-		local r = collect_info_from_g_role_effect( v.gather_buffer_id , tpropertytype )
-		total = total + assert( r[ 1 ] )
-		total_percent = total_percent + assert( r[ 2 ] )
+		collect_info_from_g_role_effect( v.gather_buffer_id , ttotal )
 	end
 
-	local final = total * ( 1 + ( total_percent / 100 ) )
-	print( "final combat and percent is ************" , total , total_percent , final )
+	ttotal[ 1 ] = ttotal[ 1 ] + u.combat
+	ttotal[ 2 ] = ttotal[ 2 ] + u.defense
+	ttotal[ 3 ] = ttotal[ 3 ] + u.critical_hit
+	ttotal[ 4 ] = ttotal[ 4 ] + u.blessing
 
-	return math.floor( final )
+	local result = { }
+	local i = 1
+	while i <= 4 do
+		table.insert( result , math.floor( ( ttotal[ i ] * ( 1 + ttotal[ i + 4 ] / 100 ) ) ) )
+		i = i + 1
+	end	  
+
+	print( "final combat and percent is ************" , result[ 1 ] , result[ 2 ] , result[ 3 ] , result[ 4 ] )
+
+	return result
 end  			
 			
 return util 
