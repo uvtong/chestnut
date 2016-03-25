@@ -342,4 +342,6 @@ function _M:add_love(num)
 	prop.num = prop.num + num
 end
 
+function _M:add_draw_num(drawtype)
+end
 return _M

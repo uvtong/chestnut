@@ -5,6 +5,7 @@ local skynet = require "skynet"
 local const = require "const"
 local socket = require "socket"
 local errorcode = require "errorcode"
+local context = require "agent_context"
 	
 local send_package
 local send_request
@@ -584,6 +585,9 @@ function REQUEST:applydraw()
 		ret = tentimedraw()
 	end 	
 
+	if 1 == ret.errorcode then
+		context:add_draw_num( self.drawtype )
+	end
 	return assert( ret )
 end		
 

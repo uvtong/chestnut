@@ -362,7 +362,7 @@ function util.get_total_property( user , uid )   -- zhijie ti sheng zhan dou li 
  		assert( role )
 	end 
 
-	----all equipment combat
+	----all equipment property
 	local ttotal = { 0 , 0 , 0 , 0 , 0 , 0 , 0 , 0 }
 	local tproperty = { "combat" , "defense" , "critical_hit" , "king" }
 
@@ -377,10 +377,10 @@ function util.get_total_property( user , uid )   -- zhijie ti sheng zhan dou li 
 		end		
 	end     
 
-	-- role battle combat
+	-- role battle property
 	collect_info_from_g_role_effect( role.battle_buffer_id , ttotal )
 
-	-- xilian combat
+	-- xilian property
 	if 1 == u.ifxilian then
 		local i = 1 
 		while i <= 5 do
@@ -395,7 +395,7 @@ function util.get_total_property( user , uid )   -- zhijie ti sheng zhan dou li 
 		end 
 	end     
 
-	--kungfu combat
+	--kungfu property
 	local i = 1
 	while i <= 7 do 
 		local sk_csv_id = "k_csv_id" .. i
@@ -411,11 +411,11 @@ function util.get_total_property( user , uid )   -- zhijie ti sheng zhan dou li 
 		i = i + 1 
 	end     
 
-	--rolecollect combat
+	--rolecollect property
 	for k , v in pairs( roles ) do
 		collect_info_from_g_role_effect( v.gather_buffer_id , ttotal )
 	end
-
+	--basic property
 	ttotal[ 1 ] = ttotal[ 1 ] + u.combat
 	ttotal[ 2 ] = ttotal[ 2 ] + u.defense
 	ttotal[ 3 ] = ttotal[ 3 ] + u.critical_hit
