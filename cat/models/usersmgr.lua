@@ -47,7 +47,8 @@ local _Meta = { csv_id=0,
 				signup_time=0,
 				pemail_csv_id=0,
 				take_diamonds=0,
-				draw_number=0 }
+				draw_number=0 ,
+				ifxilian = 0 }
 
 _Meta.__tname = "users"
 

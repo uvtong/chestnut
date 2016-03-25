@@ -322,35 +322,45 @@ local function collect_info_from_g_role_effect( bufferid , tpropid )
 
 	return t
 end			
-	
-function util.get_total_combat( user , uid )   -- zhijie ti sheng zhan dou li gu ding zhi hai mei you 
+	--[[ if online ( user , nil , propertyname ) , if not online ( nil , uid , propertyname )                  ]]
+function util.get_total_property( user , uid , propertyname , tpropertytype )   -- zhijie ti sheng zhan dou li gu ding zhi hai mei you ,  
+	assert( propertyname and tpropertytype )
+
 	local uequip
 	local role 
 	local roles
-	local tmp
+	local u
+ 	
+ 	local tmpname = propertyname
 
 	if user then
 		uequip = assert( user.u_equipmentmgr.__data )
 		role = user.u_rolemgr:get_by_csv_id( user.c_role_id )	
 		roles = user.u_rolemgr.__data
+		u = user
 	else
 		local sql = string.format( "select * from u_equipment where user_id = %s " , uid )
 		uequip = skynet.call( util.random_db() , "lua" , "command" , "query" , sql )
 		assert( uequip )
-		sql = ""
  		sql = string.format( "select * from u_role where user_id = %s " , uid )
  		print( sql )
  		roles = skynet.call( util.random_db() , "lua" , "command" , "query" , sql )
  		assert( roles )
+	
+ 		if "king" == propertyname then
+ 			tmpname = "blessing"
+ 		end
 
- 		sql = ""
- 		sql = string.format( "select c_role_id , combat from users where csv_id = %s " , uid )
+ 		sql = string.format( "select c_role_id , %s , ifxilian from users where csv_id = %s " , tmpname , uid )
 		print( sql )
-		tmp = skynet.call( util.random_db() , "lua" , "command" , "query" , sql )
-		assert( tmp )
+		local tmp = skynet.call( util.random_db() , "lua" , "command" , "query" , sql )
+
+		u = tmp[ 1 ]
+		assert( u )
+
  		for k , v in pairs( roles ) do
- 			print( k , v , v.csv_id , tmp[ 1 ].c_role_id )
- 			if v.csv_id == tmp[1].c_role_id then
+ 			print( k , v , v.csv_id , u.c_role_id )
+ 			if v.csv_id == u.c_role_id then
  				role = v
  				print( "find the role ********************************" )
  				break
@@ -360,33 +370,37 @@ function util.get_total_combat( user , uid )   -- zhijie ti sheng zhan dou li gu
 	end 
 
 	--fixed 
-	local total_combat = user and user.combat or tmp[ 1 ].combat
-	local total_combat_percent = 0
+	local total = u[ tmpname ]
+	local total_percent = 0
 
 	--all equipment combat
+	local probability = propertyname .. "_probability"
+	print( "property is ***************************************" , probability )
 	for k , v in pairs( uequip ) do
-		total_combat = total_combat + v.combat
-		total_combat_percent = total_combat_percent + v.combat_probability
+		total = total + v[ propertyname ]
+		total_percent = total_percent + v[ probability ]
 	end		
 
 	-- role battle combat
-	local r = collect_info_from_g_role_effect( role.battle_buffer_id , { 1 , 5 } )
-	total_combat = total_combat + assert( r[ 1 ] )
-	total_combat_percent = total_combat_percent + assert( r[ 2 ] )
+	local r = collect_info_from_g_role_effect( role.battle_buffer_id , tpropertytype )
+	total = total + assert( r[ 1 ] )
+	total_percent = total_percent + assert( r[ 2 ] )
 
 	-- xilian combat
-	local i = 1 
-	while i <= 5 do
-		local property_id = "property_id" .. i
-		local value = "value" .. i
+	if 1 == u.ifxilian then
+		local i = 1 
+		while i <= 5 do
+			local property_id = "property_id" .. i
+			local value = "value" .. i
 
-		if 1 == role[ property_id ] then
-			total_combat = total_combat + role[ value ]
-		elseif 5 == role[ property_id ] then
-		 	total_combat_percent = total_combat_percent + role[ value ]
+			if tpropertytype[ 1 ] == role[ property_id ] then
+				total = total + role[ value ]
+			elseif tpropertytype[ 2 ] == role[ property_id ] then
+	 			total_percent = total_percent + role[ value ]
+			end
+
+			i = i + 1
 		end
-
-		i = i + 1
 	end
 
 	--kungfu combat
@@ -400,10 +414,10 @@ function util.get_total_combat( user , uid )   -- zhijie ti sheng zhan dou li gu
 			assert( gk )
 
 			-- 1 combat , 5 combat%
-			local r = collect_info_from_g_role_effect( gk.buff_id , { 1 , 5 } )
+			local r = collect_info_from_g_role_effect( gk.buff_id , tpropertytype )
 			assert( r )
-			total_combat = total_combat + assert( r[ 1 ] )
-			total_combat_percent = total_combat_percent + assert( r[ 2 ] )
+			total = total + assert( r[ 1 ] )
+			total_percent = total_percent + assert( r[ 2 ] )
 		end 
 
 		i = i + 1 
@@ -411,13 +425,13 @@ function util.get_total_combat( user , uid )   -- zhijie ti sheng zhan dou li gu
 
 	--rolecollect combat
 	for k , v in pairs( roles ) do
-		local r = collect_info_from_g_role_effect( v.gather_buffer_id , { 1 , 5 } )
-		total_combat = total_combat + assert( r[ 1 ] )
-		total_combat_percent = total_combat_percent + assert( r[ 2 ] )
+		local r = collect_info_from_g_role_effect( v.gather_buffer_id , tpropertytype )
+		total = total + assert( r[ 1 ] )
+		total_percent = total_percent + assert( r[ 2 ] )
 	end
 
-	local final = total_combat * ( 1 + ( total_combat_percent / 100 ) )
-	print( "final combat and percent is ************" , total_combat , total_combat_percent , final )
+	local final = total * ( 1 + ( total_percent / 100 ) )
+	print( "final combat and percent is ************" , total , total_percent , final )
 
 	return math.floor( final )
 end  			
