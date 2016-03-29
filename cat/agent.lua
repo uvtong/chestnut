@@ -525,9 +525,12 @@ function REQUEST:signup()
 				take_diamonds=0,
 				draw_number=0 ,
 				ifxilian = 0,              -- 
-				chapter=1,                 -- checkpoint progress 1
+				cp_chapter=1,                 -- checkpoint progress 1
 				hanging_starttime=0,       -- 
-				hanging_checkpoint=0  }
+				hanging_checkpoint=0,
+				cp_battle_id=0,
+				cp_battle_enter_starttime=0,
+				cp_battle_chapter=0  }
 		local usersmgr = require "models/usersmgr"
 		local u = usersmgr.create(t)
 		u:__insert_db(const.DB_PRIORITY_1)
