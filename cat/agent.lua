@@ -2264,7 +2264,7 @@ function REQUEST:checkpoint_battle()
 			end
 		elseif r.type == 2 then
 			if r.checkpoint + 1 == cp_chapter.type2_max then
-			end
+			end 
 		end
 		elseif r.type == 2 then
 		end

@@ -220,6 +220,13 @@ proto.c2s = sprotoparser.parse [[
     rolelist 18 : *role
 }
 
+.checkpoint_chapter {
+	chapter 2 : integer
+	chapter_type0 3 : integer
+	chapter_type1 4 : integer
+	chapter_type2 5 : integer		
+}
+
 handshake 1 {
     request {
         secret 0 : string
@@ -845,10 +852,7 @@ checkpoint_c_chapter 63 {
 	response {
 		errorcode 0 : integer
 		msg 1 : string
-		chapter 2 : integer
-		chapter_type0 3 : integer
-		chapter_type1 4 : integer
-		chapter_type2 5 : integer		
+		l 2 : *checkpoint_chapter
 	}
 }
 
@@ -868,7 +872,7 @@ checkpoint_battle 65 {
     response {
         errorcode 0 : integer
         msg 1 : string
-        reward 2 : prop
+        reward 2 : *prop
     }
 }
 
@@ -880,6 +884,7 @@ checkpoint_hanging_choose 66 {
         errorcode 0 : integer
         msg 1 : integer
         passed 2 : integer
+        cd 3 : integer
     }
 }
 
