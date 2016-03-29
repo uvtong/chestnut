@@ -53,7 +53,8 @@ local _Meta = { csv_id=0,
 				hanging_starttime=0,
 				hanging_checkpoint=0,
 				cp_battle_id=0,
-				cp_battle_enter_starttime=0 }
+				cp_battle_enter_starttime=0,
+				cp_battle_chapter=0 }
 
 _Meta.__tname = "users"
 

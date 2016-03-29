@@ -722,6 +722,8 @@ function REQUEST:login()
 		user:__update_db({"ifonline", "onlinetime"}, const.DB_PRIORITY_2)
 		user.friendmgr = friendmgr:loadfriend( user , dc )
 		friendrequest.getvalue(user, send_package, send_request)
+		--load public email from channel public_emailmgr
+		get_public_email()
 
 		ret.errorcode = errorcode[1].code
 		ret.msg = errorcode[1].msg
@@ -733,29 +735,28 @@ function REQUEST:login()
 			avatar = user.avatar,
 			sign = user.sign,
 			c_role_id = user.c_role_id,
-			recharge_total = user.recharge_rmb,
+			level = user.level,
+			recharge_rmb = user.recharge_rmb,
     		recharge_diamond = user.recharge_diamond,
-    		recharge_progress = user.uvip_progress,
-    		level = assert(user.level)
+    		uvip_progress = user.uvip_progress,
+    		hanging_checkpoint = user.hanging_checkpoint,
 		}
 		ret.u.uexp = assert(user.u_propmgr:get_by_csv_id(const.EXP)).num
 		ret.u.gold = assert(user.u_propmgr:get_by_csv_id(const.GOLD)).num
 		ret.u.diamond = assert(user.u_propmgr:get_by_csv_id(const.DIAMOND)).num
-		--load public email from channel public_emailmgr
-		get_public_email()
-		-- all roles
-		local l = {}
-		for k,v in pairs(user.u_rolemgr.__data) do
-			local prop = user.u_propmgr:get_by_csv_id(v.us_prop_csv_id)
-			local r = {
-				csv_id = v.csv_id,
-				is_possessed = true,
-				star = v.star,
-				u_us_prop_num = prop and prop.num or 0
-			}
-			table.insert(l, r)
+		ret.u.love = user.u_propmgr:get_by_csv_id(const.love).num
+		ret.u.equipment_list = {}
+		for k,v in pairs(user.u_equipmentmgr.__data) do
+			table.insert(ret.user.equipment_list, v)
 		end
-		ret.rolelist = l
+		ret.u.kungfu_list = {}
+		for k,v in pairs(user.u_kungfumgr.__data) do
+			table.insert(ret.user.kungfu_list, v)
+		end
+		ret.u.rolelist = {}
+		for k,v in pairs(user.u_rolemgr.__data) do
+			table.insert(ret.user.rolelist, v)
+		end
 		return ret
 	else
 		assert(false)
@@ -989,9 +990,9 @@ function REQUEST:user()
     	sign = user.sign,
     	c_role_id = user.c_role_id,
     	level = user.level,
-    	recharge_total = user.recharge_rmb,
+    	recharge_rmb = user.recharge_rmb,
     	recharge_diamond = user.recharge_diamond,
-    	recharge_progress = user.uvip_progress,
+    	uvip_progress = user.uvip_progress,
     	uexp = assert(user.u_propmgr:get_by_csv_id(const.EXP)).num,
     	gold = assert(user.u_propmgr:get_by_csv_id(const.GOLD)).num,
     	diamond = assert(user.u_propmgr:get_by_csv_id(const.DIAMOND)).num,
