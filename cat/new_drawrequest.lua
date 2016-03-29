@@ -195,10 +195,12 @@ end
 local function add_to_prop( t )
 	assert( t )  
     print( "add_to_prop is called" )
+    local g_role
+
 	for k , v in ipairs( t ) do
-		if t.proptype == PROPTYPE.ROLE_SP then
+		if v.proptype == PROPTYPE.ROLE_SP then
 			print( "get a role" )
-			local g_role = game.g_rolemgr:get_by_us_prop_csv_id( v.propid )
+			g_role = game.g_rolemgr:get_by_us_prop_csv_id( v.propid )
 			assert( g_role )
 
 			local u_role = user.u_rolemgr:get_by_csv_id( g_role.csv_id )
@@ -217,13 +219,8 @@ local function add_to_prop( t )
    					user.u_propmgr:add( prop )
    					prop:__insert_db( const.DB_PRIORITY_2 )
    				end 	      
-
-   				--[[if v.propid == const.A_T_EXP or v.propid == const.A_T_GOLD then
-   					raise_achievement( v.propid , user )
-   				end--]]
-
 			else 		
-				local g_role_star = game.g_role_starmgr:get_by_csv_id(assert( u_role.csv_id ) * 1000 + assert( u_role.star ) )
+				local g_role_star = game.g_role_starmgr:get_by_csv_id(assert( g_role.csv_id ) * 1000 + assert( g_role.star ) )
 				for k,v in pairs( g_role_star ) do
 					g_role[k] = v
 				end
@@ -235,7 +232,7 @@ local function add_to_prop( t )
 				g_role.k_csv_id5 = 0
 				g_role.k_csv_id6 = 0
 				g_role.k_csv_id7 = 0
-				g_role = u_rolemgr.create( g_role )
+				g_role = user.u_rolemgr.create( g_role )
 				g_role:__insert_db( const.DB_PRIORITY_2 )
 			end 
 		else     
@@ -363,23 +360,40 @@ local function getpropidlist( dtype )
 
 			local r = game.g_subrewardmgr:get_by_csv_id( id )
 			assert( r )
-			print( r.propid , r.propnum )
-			table.insert( propidlist.list , { propid = r.propid , amount = r.propnum , proptype = r.proptype } )
+			if PROPTYPE.ROLE_SP == r.proptype then
+				print( "propid is " , r.propid )
+				local t = skynet.call( ".game" , "lua" , "query_g_draw_role" , r.propid )
+				assert( t )
+				if r.propnum == t.num then
+					table.insert( propidlist.list , { propid = r.propid , amount = r.propnum , proptype = PROPTYPE.ROLE_SP } )
+				else
+					table.insert( propidlist.list , { propid = r.propid , amount = r.propnum , proptype = PROPTYPE.PROP } )
+				end
+			else
+				table.insert( propidlist.list , { propid = r.propid , amount = r.propnum , proptype = PROPTYPE.PROP } )
+			end
 		end                                                                            
 	else                                                                                                    
 		print( "dtype id in getpropidlis is " .. dtype )
 		local rn = skynet.call( ".randomdraw" , "lua" , "draw" , { drawtype = dtype } )
 		assert( rn )
-         
+        
 		local id = getgroupid( sublist , rn )
 		print( "groupid is >>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>" .. id )
 		local r = game.g_subrewardmgr:get_by_csv_id( id )
 		assert( r )
-		for k , v in pairs( r ) do
-			print( k , v )
+		
+		if PROPTYPE.ROLE_SP == r.proptype then
+			local t = skynet.call( ".game" , "lua" , "g_draw_role" , r.propid )
+			assert( t )
+			if r.propnum == t.num then
+				table.insert( propidlist.list , { propid = r.propid , amount = r.propnum , proptype = PROPTYPE.ROLE_SP } )
+			else
+				table.insert( propidlist.list , { propid = r.propid , amount = r.propnum , proptype = PROPTYPE.PROP } )
+			end
+		else
+			table.insert( propidlist.list , { propid = r.propid , amount = r.propnum , proptype = PROPTYPE.PROP } )
 		end
-		print( "r.proptype is **********************************" , r.proptype )
-		table.insert( propidlist.list , { propid = r.propid , amount = r.propnum , proptype = r.proptype } )
 	end		
         
 	assert( propidlist )

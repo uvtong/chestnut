@@ -878,6 +878,27 @@ finish_achi 3 {
     }
 }
 
+lilian_phy_power 4 {
+    request {
+        phy_power 0 : integer
+    }
+    response {
+        errorcode 0 : integer
+        msg 1 : string
+    }
+}
+
+lilian_result 5 {
+    request {
+        errorcode 0 : integer
+        msg 1 : string
+    }
+    response {
+        errorcode 0 : integer
+        msg 1 : string
+    }
+}
+
 ]]
 
 return proto
