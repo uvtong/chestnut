@@ -406,8 +406,6 @@ end
 
 function REQUEST:achievement_reward_collect()
 	-- body
-	-- 0. success
-	-- 1. offline
 	local ret = {}
 	if not user then
 		ret.errorcode = errorcode[2].code
@@ -419,11 +417,12 @@ function REQUEST:achievement_reward_collect()
 	local a = user.u_achievement_rcmgr:get_by_csv_id(self.csv_id)
 	if a and a.finished == 100 and a.reward_collected == 0 then
 		a.reward_collected = 1
-		a:__update_db({"reward_collected"})
 		local a_src = skynet.call(game, "lua", "query_g_achievement", a.csv_id)
 		if a_src.type == 2 then
 			local csv_id1 = string.gsub(a_src.reward, "(%d*)%*(%d*)", "%1")
 			local num1 = string.gsub(a_src.reward, "(%d*)%*(%d*)", "%2")
+			local prop = get_prop(csv_id1)
+
 			local prop = user.u_propmgr:get_by_csv_id(csv_id1)
 			if prop then
 				prop.num = prop.num + num1
@@ -433,6 +432,7 @@ function REQUEST:achievement_reward_collect()
 				prop.user_id = user.csv_id
 				prop.num = num1
 				prop = user.u_propmgr.create(prop)
+
 				prop:__insert_db(const.DB_PRIORITY_2)
 			end
 		end
@@ -524,7 +524,10 @@ function REQUEST:signup()
 				pemail_csv_id = 0,
 				take_diamonds=0,
 				draw_number=0 ,
-				ifxilian = 0 }
+				ifxilian = 0,              -- 
+				chapter=1,                 -- checkpoint progress 1
+				hanging_starttime=0,       -- 
+				hanging_checkpoint=0  }
 		local usersmgr = require "models/usersmgr"
 		local u = usersmgr.create(t)
 		u:__insert_db(const.DB_PRIORITY_1)
@@ -637,6 +640,17 @@ function REQUEST:signup()
 		end
 		u_goodsmgr.insert_db(l, const.DB_PRIORITY_1)
 
+		local u_checkpointmgr = require "models/u_checkpointmgr"
+		local tmp = {
+			user_id = u.csv_id,
+			chapter = 1,
+			chapter_type0 = 1,       
+			chapter_type1 = 0,
+			chapter_type2 = 0,
+		}
+		local cp = u_checkpointmgr.create(tmp)
+		cp:__insert_db(const.DB_PRIORITY_1)
+	
 		ret.errorcode = errorcode[1].code
 		ret.msg	= errorcode[1].msg
 		return ret
@@ -1900,6 +1914,7 @@ function REQUEST:role_recruit()
 		role = user.u_rolemgr.create(role)
 		user.u_rolemgr:add(role)
 		role:__insert_db(const.DB_PRIORITY_2)
+		context:raise_achievement(const.ACHIEVEMENT_T_5)
 		ret.errorcode = errorcode[1].code
 		ret.msg = errorcode[1].msg
 		ret.r = {
@@ -2142,6 +2157,171 @@ function REQUEST:xilian_ok()
 	ret.msg = errorcode[1].msg
 	return ret
 end   
+
+function REQUEST:checkpoint_c_chapter()
+	-- body
+	local ret = {}
+	if not user then
+		ret.errorcode = errorcode[2].code
+		ret.msg = errorcode[2].msg
+		return ret
+	end
+	local cp = user.u_checkpointmgr:get_by_chapter(user.chapter)
+	ret.errorcode = errorcode[1].code
+	ret.msg = errorcode[1].code
+	ret.chapter = cp.chapter
+	ret.chapter_type0 = cp.chapter_type0
+	ret.chapter_type1 = cp.chapter_type1
+	ret.chapter_type2 = cp.chapter_type2
+	return ret
+end
+
+function REQUEST:checkpoint_hanging()
+	-- body
+	local ret = {}
+	if not user then
+		ret.errorcode = errorcode[2].code
+		ret.msg = errorcode[2].msg
+		return ret
+	end
+	-- enter
+	if self.hanging_checkpoint > 0 then 
+		local r = skynet.call(game, "lua", "query_g_checkpoint", user.hanging_checkpoint)
+		local now = os.time()
+		local diff = now - user.hanging_starttime
+		local n = diff / r.cd
+		local l = {}
+		local prop = user.u_propmgr:get_by_csv_id(const.GOLD)
+		prop.num = prop.num + n
+		table.insert(l, prop)
+		local prop = user.u_propmgr:get_by_csv_id(const.EXP)
+		prop.num = prop.num + n
+		table.insert(l, prop)
+		user.hanging_starttime = user.hanging_starttime + (diff % r.cd)
+		ret.errorcode = errorcode[1].code
+		ret.msg = errorcode[1].msg
+		ret.props = l
+		return ret
+	else
+		ret.errorcode = errorcode[34].code
+		ret.msg = errorcode[34].msg
+		return ret
+	end
+end
+
+-- alone 
+function REQUEST:checkpoint_hanging_choose()
+	-- body
+	local ret = {}
+	if not user then
+		ret.errorcode = errorcode[2].code
+		ret.msg = errorcode[2].msg
+		return ret
+	end
+	assert(self)
+	user.hanging_starttime = os.time()
+	user.hanging_checkpoint = self.csv_id
+	ret.errorcode = errorcode[1].code
+	ret.msg = errorcode[1].msg
+	return ret
+end
+
+function REQUEST:checkpoint_battle()
+	-- body
+	local ret = {}
+	if not user then
+		ret.errorcode = errorcode[2].code
+		ret.msg = errorcode[2].msg
+	end
+	assert(self)
+	if self.result == 1 then
+		local r = skynet.call(game, "lua", "query_g_checkpoint", self.csv_id)
+		local cp = user.u_checkpointmgr:get_by_chapter(r.cp_chapter)
+		if r.type == 0 then
+			assert(cp.chapter_type0 == r.checkpoint)
+		elseif r.type == 1 then
+			assert(cp.chapter_type1 == r.checkpoint)
+		elseif r.type == 2 then
+			assert(cp.chapter_type2 == r.checkpoint)
+		end
+		local r = util.parse_text(r.reward, "(%d+%*%d+%*?)", 2)
+		for i,v in ipairs(r) do
+			local prop = user.u_propmgr:get_by_csv_id(v[1])
+			prop.num = prop.num + v[2]
+		end
+		local cp_rc = user.u_checkpoint_rcmgr:get_by_csv_id(r.csv_id)
+		cp_rc.passed = 1
+		local cp_chapter = skynet.call(game, "lua", "query_g_checkpoint_chapter", r.chapter)
+		if r.type == 0 then
+			if r.checkpoint + 1 == cp_chapter.type0_max then
+				cp.chapter_type0 = r.checkpoint + 1
+				cp.chapter_type0_finished = 1
+			end
+		elseif r.type == 1 then
+			if r.checkpoint + 1 == cp_chapter.type1_max then
+				cp.chapter_type1 = r.checkpoint + 1
+				cp.chapter_type2 = r.checkpoint + 1
+			end
+		elseif r.type == 2 then
+			if r.checkpoint + 1 == cp_chapter.type2_max then
+			end
+		end
+		elseif r.type == 2 then
+		end
+		elseif t.type == 1 then
+		elseif t.type == 2 then
+		end
+		
+		if r.type == 0 then
+			if r.checkpoint + 1 <= cp_rc.type0_max then
+				cp.checkpoint = r.checkpoint + 1
+			else
+
+			end
+		local csv_id = r.chapter * 1000 + r.type * 100 + (r.checkpoint + 1)
+		local next = skynet.call(game, "lua", "query_g_checkpoint", csv_id)
+		if next then
+			local cp = user.u_checkpointmgr:get_by_chapter(r.chapter)
+			if r.type == 0 then
+				cp.chapter_type0 = next.checkpoint
+			elseif r.type == 1 then
+				cp.chapter_type1 = next.checkpoint
+			elseif r.type == 2 then
+				cp.chapter_type2 = next.checkpoint
+			end
+		else
+			if r.type + 1 < 3 then
+				csv_id = r.chapter * 1000 + (r.type+1) * 100 + 1
+				local next = skynet.call(game, "lua", "query_g_checkpoint", csv_id)
+				if next then
+					local cp = user.u_checkpointmgr:get_by_chapter(r.chapter)
+					cp.
+				else
+				end
+			else
+				local cp = user.u_checkpointmgr:get_by_chapter(r.chapter + 1)
+				if cp.chapter_type0 == 0 then
+					cp.chapter_type0 = 1
+				else
+					assert(cp.chapter_type0 > 0)
+					local csv_id = r.chapter * 1000 + r.type * 100 + (r.checkpoint + 1)
+					local next = skynet.call(game, "lua", "query_g_checkpoint", csv_id)
+					if not next then
+						cp.
+				end
+				user.cp_chapter = cp.chapter
+			end
+		end
+
+		ret.errorcode = errorcode[1].code
+		ret.msg = errorcode[1].msg
+		return ret
+	else
+		ret.errorcode = errorcode[33].code
+		ret.msg = errorcode[33].msg
+		return ret
+	end
+end
 
 function REQUEST:handshake()
 	print("Welcome to skynet, I will send heartbeat every 5 sec." )

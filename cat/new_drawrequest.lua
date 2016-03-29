@@ -80,6 +80,7 @@ local function add_to_prop( t )
    				end 	      
 			else 
 				context:role_recruit(u_role.csv_id)
+				context:raise_achievement(const.ACHIEVEMENT_T_5)
 			end 
 		else     
 			local prop = user.u_propmgr:get_by_csv_id( v.propid )

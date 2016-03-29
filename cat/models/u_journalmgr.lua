@@ -83,7 +83,24 @@ function _M:add( u )
 	self.__data[tostring(u.date)] = u
 	self.__count = self.__count + 1
 end
-	
+
+function _M:get_by_today()
+	-- body
+	local t = os.date("*t", os.time())
+	t = { year=t.year, month=t.month, day=t.day}
+	local sec = os.time(t)
+	local j = self:get_by_date(sec)
+	if j then
+		return j
+	else
+		t = { user_id=user.csv_id, date=sec, goods_refresh_count=0, goods_refresh_reset_count=0}
+		j = self.create(t)
+		self:add(j)
+		j:__insert_db(const.DB_PRIORITY_1)
+		return j
+	end
+end
+
 function _M:get_by_date(csv_id)
 	-- body
 	return self.__data[tostring(csv_id)]

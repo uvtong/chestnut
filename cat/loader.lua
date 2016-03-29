@@ -29,6 +29,18 @@ local function load_g_checkpoint()
 	game.g_checkpointmgr = g_checkpointmgr
 end
 
+local function load_g_checkpoint_chapter()
+	-- body
+	assert(game.g_checkpoint_chaptermgr == nil)
+	local g_checkpoint_chaptermgr = require "models/g_checkpoint_chaptermgr"
+	local r = skynet.call(util.random_db(), "lua", "command", "select", "g_checkpoint_chapter")
+	for i,v in ipairs(r) do
+		local t = g_checkpoint_chaptermgr.create(v)
+		g_checkpoint_chaptermgr:add(t)
+	end
+	game.g_checkpoint_chaptermgr = g_checkpoint_chaptermgr
+end
+
 local function load_g_effct()
 	-- body
 	assert(game.g_effctmgr == nil)
@@ -723,6 +735,7 @@ function loader.load_game()
 		-- body
 		load_g_achievement()
 		load_g_checkpoint()
+		load_g_checkpoint_chapter()
 		load_g_checkin()
 		load_g_checkin_total()
 		load_g_equipment()

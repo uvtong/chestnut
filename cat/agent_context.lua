@@ -43,7 +43,7 @@ function _M:raise_achievement(T)
 		elseif T == const.ACHIEVEMENT_T_4 then
 			finished = self.user.take_diamonds
 		elseif T == const.ACHIEVEMENT_T_5 then
-			finished = self.user.u_propmgr:get_count()
+			finished = self.user.u_rolemgr:get_count()
 		elseif T == const.ACHIEVEMENT_T_6 then
 			finished = self.user.u_checkpointmgr:get_by_csv_id(0).chapter
 		elseif T == const.ACHIEVEMENT_T_7 then

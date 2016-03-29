@@ -3,6 +3,7 @@ local dc = require "datacenter"
 local util = require "util"
 local errorcode = require "errorcode"
 local const = require "const"
+local context = require "agent_context"
 
 local send_package
 local send_request
@@ -111,8 +112,7 @@ function REQUEST:kungfu_levelup()
 	else    
 		--print( t , t[ tostring( self.k_csv_id) ] )
 		if not tkungfu then
-			print( "******************************************")
-			local tkungfu = { }
+			local tkungfu = {}
 			tkungfu.user_id = user.csv_id
 			tkungfu.csv_id= self.csv_id
 			tkungfu.level = self.k_level
@@ -122,8 +122,8 @@ function REQUEST:kungfu_levelup()
  			
 			assert( tkungfu )
 			user.u_kungfumgr:add( tkungfu )
-                              
 			tkungfu:__insert_db( const.DB_PRIORITY_2 )
+			context:raise_achievement(const.ACHIEVEMENT_T_9)
 		else				  		
 			print( "_______________________________________________________")
 			--local tmp =user.u_kungfumgr:get_by_type( self.k_type )

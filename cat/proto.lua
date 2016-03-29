@@ -840,6 +840,48 @@ xilian_ok 62 {
     }
 }
 
+checkpoint_c_chapter 63 {
+	response {
+		errorcode 0 : integer
+		msg 1 : string
+		chapter 2 : integer
+		chapter_type0 3 : integer
+		chapter_type1 4 : integer
+		chapter_type2 5 : integer		
+	}
+}
+
+checkpoint_hanging 64 {
+	response {
+		errorcode 0 : integer
+		msg 1 : string
+        props 2 : *prop
+	}
+}
+
+checkpoint_battle 65 {
+    request {
+        csv_id 0 : integer
+        result 1 : integer
+    }
+    response {
+        errorcode 0 : integer
+        msg 1 : string
+        reward 2 : prop
+    }
+}
+
+checkpoint_hanging_choose 66 {
+    request {
+        csv_id 0 : integer
+    }  
+    response {
+        errorcode 0 : integer
+        msg 1 : integer
+        passed 2 : integer
+    }
+}
+
 ]]
 
 proto.s2c = sprotoparser.parse [[

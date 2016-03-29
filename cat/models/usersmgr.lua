@@ -48,7 +48,10 @@ local _Meta = { csv_id=0,
 				pemail_csv_id=0,
 				take_diamonds=0,
 				draw_number=0 ,
-				ifxilian = 0 }
+				ifxilian=0,
+				cp_chapter=0,                 -- checkpoint progress
+				hanging_starttime=0,
+				hanging_checkpoint=0 }
 
 _Meta.__tname = "users"
 
