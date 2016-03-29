@@ -218,13 +218,14 @@ proto.c2s = sprotoparser.parse [[
     equipment_list 16 : *equipment
     kungfu_list 17 : *kungfu_content
     rolelist 18 : *role
+    hanging_checkpoint 19 : integer
 }
 
 .checkpoint_chapter {
-	chapter 2 : integer
-	chapter_type0 3 : integer
-	chapter_type1 4 : integer
-	chapter_type2 5 : integer		
+	chapter 0 : integer
+	chapter_type0 1 : integer
+	chapter_type1 2 : integer
+	chapter_type2 3 : integer		
 }
 
 handshake 1 {
@@ -848,7 +849,7 @@ xilian_ok 62 {
     }
 }
 
-checkpoint_c_chapter 63 {
+checkpoint_chapter 63 {
 	response {
 		errorcode 0 : integer
 		msg 1 : string
@@ -864,10 +865,13 @@ checkpoint_hanging 64 {
 	}
 }
 
-checkpoint_battle 65 {
+checkpoint_battle_exit 65 {
     request {
-        csv_id 0 : integer
-        result 1 : integer
+        chapter 0 : integer
+        type 1 : integer
+        checkpoint 2 : integer
+        csv_id 3 : integer
+        result 4 : integer
     }
     response {
         errorcode 0 : integer
@@ -884,7 +888,20 @@ checkpoint_hanging_choose 66 {
         errorcode 0 : integer
         msg 1 : integer
         passed 2 : integer
-        cd 3 : integer
+    }
+}
+
+checkpoint_battle_enter 67 {
+    request {
+        chapter 0 : integer
+        type 1 : integer
+        checkpoint 2 : integer
+        csv_id 3 : integer
+    }
+    response { 
+        errorcode 0 : integer
+        msg 1 : string
+        cd 2 : integer
     }
 }
 

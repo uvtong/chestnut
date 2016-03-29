@@ -51,7 +51,9 @@ local _Meta = { csv_id=0,
 				ifxilian=0,
 				cp_chapter=0,                 -- checkpoint progress
 				hanging_starttime=0,
-				hanging_checkpoint=0 }
+				hanging_checkpoint=0,
+				cp_battle_id=0,
+				cp_battle_enter_starttime=0 }
 
 _Meta.__tname = "users"
 

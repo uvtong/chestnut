@@ -34,6 +34,7 @@ errorcode[31] = { code = 31, msg = "not enough money"}
 errorcode[32] = { code = 32, msg = "first xilian"}
 errorcode[33] = { code = 33, msg = "failture"}
 errorcode[34] = { code = 34, msg = "no passed checkpoint"}
+errorcode[35] = { code = 35, msg = "checkpoint id error"}
 
 --kungfu
 errorcode[51] = { code = 51 , msg = "kongfu not exist" }

@@ -470,11 +470,15 @@ function CMD.query_g_user_level(pk)
 	end
 end
 
-function CMD.query_g_config()
+function CMD.query_g_config(pk)
 	-- body
-	local r = game.g_configmgr:get_by_csv_id(1)
-	local ptr = tptr.topointer(r)
-	return ptr
+	if type(pk) == "string" then
+		return game.g_configmgr:get_by_csv_id(1)[pk]
+	else
+		local r = game.g_configmgr:get_by_csv_id(1)
+		local ptr = tptr.topointer(r)
+		return ptr
+	end
 end
 
 function CMD.query_g_xilian_cost(pk)

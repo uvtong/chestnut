@@ -2158,7 +2158,7 @@ function REQUEST:xilian_ok()
 	return ret
 end   
 
-function REQUEST:checkpoint_c_chapter()
+function REQUEST:checkpoint_chapter()
 	-- body
 	local ret = {}
 	if not user then
@@ -2166,13 +2166,12 @@ function REQUEST:checkpoint_c_chapter()
 		ret.msg = errorcode[2].msg
 		return ret
 	end
-	local cp = user.u_checkpointmgr:get_by_chapter(user.chapter)
 	ret.errorcode = errorcode[1].code
 	ret.msg = errorcode[1].code
-	ret.chapter = cp.chapter
-	ret.chapter_type0 = cp.chapter_type0
-	ret.chapter_type1 = cp.chapter_type1
-	ret.chapter_type2 = cp.chapter_type2
+	ret.l = {}
+	for k,v in pairs(user.u_checkpointmgr.__data) do
+		table.insert(l, v)
+	end
 	return ret
 end
 
@@ -2226,99 +2225,110 @@ function REQUEST:checkpoint_hanging_choose()
 	return ret
 end
 
-function REQUEST:checkpoint_battle()
+function REQUEST:checkpoint_battle_exit()
 	-- body
 	local ret = {}
 	if not user then
 		ret.errorcode = errorcode[2].code
 		ret.msg = errorcode[2].msg
 	end
-	assert(self)
+	assert(self.chapter <= user.cp_chapter)
 	if self.result == 1 then
 		local r = skynet.call(game, "lua", "query_g_checkpoint", self.csv_id)
-		local cp = user.u_checkpointmgr:get_by_chapter(r.cp_chapter)
-		if r.type == 0 then
-			assert(cp.chapter_type0 == r.checkpoint)
-		elseif r.type == 1 then
-			assert(cp.chapter_type1 == r.checkpoint)
-		elseif r.type == 2 then
-			assert(cp.chapter_type2 == r.checkpoint)
-		end
-		local r = util.parse_text(r.reward, "(%d+%*%d+%*?)", 2)
-		for i,v in ipairs(r) do
+		local cp = user.u_checkpointmgr:get_by_chapter(r.chapter)
+		local cp_chapter = skynet.call(game, "lua", "query_g_checkpoint_chapter", r.chapter)
+		local reward = {}
+		local tmp = util.parse_text(r.reward, "(%d+%*%d+%*?)", 2)
+		for i,v in ipairs(reward) do
 			local prop = user.u_propmgr:get_by_csv_id(v[1])
 			prop.num = prop.num + v[2]
+			table.insert(reward, prop)
 		end
-		local cp_rc = user.u_checkpoint_rcmgr:get_by_csv_id(r.csv_id)
-		cp_rc.passed = 1
-		local cp_chapter = skynet.call(game, "lua", "query_g_checkpoint_chapter", r.chapter)
 		if r.type == 0 then
-			if r.checkpoint + 1 == cp_chapter.type0_max then
-				cp.chapter_type0 = r.checkpoint + 1
-				cp.chapter_type0_finished = 1
+			assert(cp.chapter_type0 == r.checkpoint)
+			if cp.chapter_type0 <= cp_chapter.type0_max then
+				cp.chapter_type0 = cp.chapter_type0 + 1
+			else
+				local cp_chapter_max = skynet.call(game, "lua", "query_g_config", "cp_chapter_max")
+				if r.chapter + 1 <= cp_chapter_max then
+					local next_cp = user.u_checkpointmgr:get_by_chapter(r.chapter + 1)
+					if next_cp.chapter_type0 == 0 then
+						next_cp.chapter_type0 = 1
+						user.cp_chapter = r.chapter + 1
+					end
+				end
+				if cp_chapter.type1_max > 0 then
+					cp.chapter_type1 = 1
+				end
 			end
 		elseif r.type == 1 then
-			if r.checkpoint + 1 == cp_chapter.type1_max then
-				cp.chapter_type1 = r.checkpoint + 1
-				cp.chapter_type2 = r.checkpoint + 1
+			assert(cp.chapter_type1 == r.checkpoint)
+			if cp.chapter_type1 <= cp_chapter.type1_max then
+				cp.chapter_type1 = cp.chapter_type1 + 1
+			else
+				if cp_chapter.type2_max > 0 then
+					cp.chapter_type1 = 1
+				end
 			end
 		elseif r.type == 2 then
-			if r.checkpoint + 1 == cp_chapter.type2_max then
-			end 
-		end
-		elseif r.type == 2 then
-		end
-		elseif t.type == 1 then
-		elseif t.type == 2 then
-		end
-		
-		if r.type == 0 then
-			if r.checkpoint + 1 <= cp_rc.type0_max then
-				cp.checkpoint = r.checkpoint + 1
+			assert(cp.chapter_type2 == r.checkpoint)
+			if cp.chapter_type2 <= cp_chapter.type2_max then
+				cp.chapter_type2 = cp.chapter_type2 + 1
 			else
-
-			end
-		local csv_id = r.chapter * 1000 + r.type * 100 + (r.checkpoint + 1)
-		local next = skynet.call(game, "lua", "query_g_checkpoint", csv_id)
-		if next then
-			local cp = user.u_checkpointmgr:get_by_chapter(r.chapter)
-			if r.type == 0 then
-				cp.chapter_type0 = next.checkpoint
-			elseif r.type == 1 then
-				cp.chapter_type1 = next.checkpoint
-			elseif r.type == 2 then
-				cp.chapter_type2 = next.checkpoint
-			end
-		else
-			if r.type + 1 < 3 then
-				csv_id = r.chapter * 1000 + (r.type+1) * 100 + 1
-				local next = skynet.call(game, "lua", "query_g_checkpoint", csv_id)
-				if next then
-					local cp = user.u_checkpointmgr:get_by_chapter(r.chapter)
-					cp.
-				else
+				local cp_chapter_max = skynet.call(game, "lua", "query_g_config", "cp_chapter_max")
+				if user.cp_battle_chapter < cp_chapter_max then
+					assert(user.cp_battle_chapter < user.cp_chapter)
+					user.cp_battle_chapter = user.cp_battle_chapter + 1
 				end
-			else
-				local cp = user.u_checkpointmgr:get_by_chapter(r.chapter + 1)
-				if cp.chapter_type0 == 0 then
-					cp.chapter_type0 = 1
-				else
-					assert(cp.chapter_type0 > 0)
-					local csv_id = r.chapter * 1000 + r.type * 100 + (r.checkpoint + 1)
-					local next = skynet.call(game, "lua", "query_g_checkpoint", csv_id)
-					if not next then
-						cp.
-				end
-				user.cp_chapter = cp.chapter
 			end
 		end
+		ret.errorcode = errorcode[1].code
+		ret.msg = errorcode[1].msg
+		ret.reward = reward
+		return ret
+	else
+		ret.errorcode = errorcode[1].code
+		ret.msg = errorcode[1].code
+		return ret
+	end
+end
 
+function REQUEST:checkpoint_battle_enter()
+	-- body
+	local ret = {}
+	if not user then
 		ret.errorcode = errorcode[1].code
 		ret.msg = errorcode[1].msg
 		return ret
+	end
+	assert(self.chapter <= user.cp_chapter)
+	local cp = user.u_checkpointmgr:get_by_chapter(self.chapter)
+	if self.type == 0 then
+		assert(self.checkpoint == cp.chapter_type0)
+	elseif self.type == 1 then
+		assert(self.checkpoint == cp.chapter_type1)
+	elseif self.type == 2 then
+		assert(self.checkpoint == cp.chapter_type2)
 	else
-		ret.errorcode = errorcode[33].code
-		ret.msg = errorcode[33].msg
+		assert(false)
+	end
+	if user.cp_battle_id == self.csv_id then
+		local r = skynet.call(game, "lua", "query_g_checkpoint", self.csv_id)
+		local now = os.time()
+		if now - user.cp_battle_enter_starttime >= r.cd then
+			ret.errorcode = errorcode[1].code
+			ret.msg = errorcode[1].msg
+			ret.cd = 0
+			return ret
+		else
+			ret.errorcode = errorcode[1].code
+			ret.msg = errorcode[1].msg
+			ret.cd = now - user.cp_battle_enter_starttime
+			return ret
+		end
+	else
+		ret.errorcode = errorcode[35].code
+		ret.msg = errorcode[35].msg
 		return ret
 	end
 end
