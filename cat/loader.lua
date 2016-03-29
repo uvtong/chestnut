@@ -576,10 +576,10 @@ local function load_u_draw( user )
 	u_drawmgr.__user_id = user.csv_id
 	user.u_drawmgr = u_drawmgr
 end	
-
+	
 local function load_u_email( user )
 	assert( nil == user.u_emailmgr )
-
+	
 	local u_emailmgr = require "models/u_emailmgr"
 	local r = skynet.call( util.random_db() , "lua", "command" , "select" , "u_new_email", { { uid = user.csv_id , isdel = 0 } } )
 	print( "sizeof r is ************************************************************" , #r )
@@ -596,6 +596,15 @@ local function load_u_email( user )
 	user.u_emailmgr = u_emailmgr
 end
 
+local function load_u_lilian(user)
+	assert(user)
+	local u_lilianmgr = require "models/u_lilianmgr"
+	local nr = skynet.call( util.random_db() , "lua" , "command" , "select" , "u_lilian_main" , { { user_id = user.csv_id , iffinished = 0 } } )
+
+	for i , v in ipairs( nr ) do
+		local a = u_
+	end
+end
 
 local function load_u_prop(user)
 	-- body

@@ -266,12 +266,12 @@ end
 function _M:role_recruit(csv_id)
 	-- body
 	assert(csv_id)
-	local role = skynet.call(game, "lua", "query_g_role", csv_id)
-	local us = skynet.call(game, "lua", "query_g_role_star", role.csv_id*1000 + role.star)
-	local prop = user.u_propmgr:get_by_csv_id(role.us_prop_csv_id)
+	local role = skynet.call(".game", "lua", "query_g_role", csv_id)
+	local us = skynet.call(".game", "lua", "query_g_role_star", role.csv_id*1000 + role.star)
+	local prop = self.user.u_propmgr:get_by_csv_id(role.us_prop_csv_id)
 	if prop and prop.num >= assert(us.us_prop_num) then
 		prop.num = prop.num - us.us_prop_num
-		role.user_id = user.csv_id
+		role.user_id = self.user.csv_id
 		for k,v in pairs(us) do
 			role[k] = v
 		end
@@ -307,8 +307,8 @@ function _M:role_recruit(csv_id)
 			role.property_id5 = 0
 			role.value5 = 0
 		end
-		role = user.u_rolemgr.create(role)
-		user.u_rolemgr:add(role)
+		role = self.user.u_rolemgr.create(role)
+		self.user.u_rolemgr:add(role)
 		role:__insert_db(const.DB_PRIORITY_2)
 	end
 end

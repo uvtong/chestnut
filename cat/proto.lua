@@ -2,7 +2,8 @@ local sprotoparser = require "sprotoparser"
 
 local proto = {}
 
-proto.c2s = sprotoparser.parse [[.package {
+proto.c2s = sprotoparser.parse [[
+.package {
 	type 0 : integer
 	session 1 : integer
 }
@@ -913,6 +914,27 @@ mail 2 {
 finish_achi 3 {
     request {
         which 0 : achi
+    }
+    response {
+        errorcode 0 : integer
+        msg 1 : string
+    }
+}
+
+lilian_phy_power 4 {
+    request {
+        phy_power 0 : integer
+    }
+    response {
+        errorcode 0 : integer
+        msg 1 : string
+    }
+}
+
+lilian_result 5 {
+    request {
+        errorcode 0 : integer
+        msg 1 : string
     }
     response {
         errorcode 0 : integer

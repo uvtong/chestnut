@@ -147,6 +147,81 @@ function CMD.query_g_drawcost(pk)
 	end
 end
 
+function CMD.query_g_draw_role(pk)
+	if type(pk) == "number" then
+		local r = game.g_draw_rolemgr:get_by_csv_id(pk)
+		if r then
+			return r
+		else
+			error "there are insufficient data"
+		end
+	elseif type(pk) == "nil" then
+		return game.g_draw_rolemgr.__data
+	else
+		assert(false)
+	end
+end
+
+function CMD.query_g_lilian_event(pk)
+	if type(pk) == "number" then
+		local r = game.g_lilian_eventmgr:get_by_csv_id(pk)
+		if r then
+			return r
+		else
+			error "there are insufficient data"
+		end
+	elseif type(pk) == "nil" then
+		return game.g_lilian_eventmgr.__data
+	else
+		assert(false)
+	end
+end
+
+function CMD.query_g_lilian_invitation(pk)
+	if type(pk) == "number" then
+		local r = game.g_lilian_invitationmgr:get_by_csv_id(pk)
+		if r then
+			return r
+		else
+			error "there are insufficient data"
+		end
+	elseif type(pk) == "nil" then
+		return game.g_lilian_invitationmgr.__data
+	else
+		assert(false)
+	end
+end
+
+function CMD.query_g_lilian_level(pk)
+	if type(pk) == "number" then
+		local r = game.g_lilian_levelmgr:get_by_csv_id(pk)
+		if r then
+			return r
+		else
+			error "there are insufficient data"
+		end
+	elseif type(pk) == "nil" then
+		return game.g_lilian_levelmgr.__data
+	else
+		assert(false)
+	end
+end
+
+function CMD.query_g_lilian_quanguan(pk)
+	if type(pk) == "number" then
+		local r = game.g_lilian_quanguanmgr:get_by_csv_id(pk)
+		if r then
+			return r
+		else
+			error "there are insufficient data"
+		end
+	elseif type(pk) == "nil" then
+		return game.g_lilian_quanguanmgr.__data
+	else
+		assert(false)
+	end
+end
+
 function CMD.query_g_equipment(pk)
 	-- body
 	if type(pk) == "number" then
