@@ -14,6 +14,7 @@ local errorcode = require "errorcode"
 local const = require "const"
 local tptr = require "tablepointer"
 local context = require "agent_context"
+local notification = require "notification"
 
 local friendrequest = require "friendrequest"
 local friendmgr = require "friendmgr"
@@ -44,6 +45,17 @@ local client_fd
 
 local game
 local user
+
+notification.handler = function (event)
+	-- body
+	if event == notification.EGOLD then
+		context:raise_achievement(const.ACHIEVEMENT_T_2)
+	elseif event == notification.EEXP then
+		context:raise_achievement(const.ACHIEVEMENT_T_3)
+	else
+		context:raise_achievement(const.ACHIEVEMENT_T_7)
+	end
+end
 
 local function send_package(pack)
 	-- body
@@ -1077,6 +1089,7 @@ function REQUEST:user_upgrade()
 			if user.level >= xilian_begain_level then
 				user.ifxilian = 1
 			end
+			context:raise_achievement(const.ACHIEVEMENT_T_7)
 			ret.errorcode = errorcode[1].code
 			ret.msg = errorcode[1].msg
 			return ret
@@ -1368,7 +1381,8 @@ function REQUEST:shop_purchase()
 						ug.inventory = ug.inventory - self.g[1].goods_num
 						ug:__update_db({"inventory"})
 						currency.num = currency.num - diamond
-						currency:__update_db({"num"})
+						user.take_diamonds = user.take_diamonds + diamond
+						context:raise_achievement(const.ACHIEVEMENT_T_4)
 						local prop = get_prop(gg.g_prop_csv_id)
 						prop.num = prop.num + (gg.g_prop_num * self.g[1].goods_num)
 						prop:__update_db({"num"})
@@ -1432,10 +1446,10 @@ function REQUEST:shop_purchase()
 						ug:__update_db({"inventory"})	
 					end
 					currency.num = currency.num - diamond
-					currency:__update_db({"num"})
+					user.take_diamonds = user.take_diamonds + diamond
+					context:raise_achievement(const.ACHIEVEMENT_T_4)
 					local prop = get_prop(gg.g_prop_csv_id)
 					prop.num = prop.num + (gg.g_prop_num * self.g[1].goods_num)
-					prop:__update_db({"num"})
 					ret.errorcode = errorcode[1].code
 					ret.msg = errorcode[1].msg
 					ret.l = { prop}
@@ -1828,10 +1842,6 @@ function REQUEST:role_all()
 	ret.errorcode = errorcode[1].code
 	ret.msg = errorcode[1].msg
 	ret.l = l
-	-- ret.combat = 
- --    ret.defense =
- --    ret.critical_hit =
- --    ret.blessing =
     return ret
 end
 
@@ -1862,18 +1872,31 @@ function REQUEST:role_recruit()
 		role.k_csv_id5 = 0
 		role.k_csv_id6 = 0
 		role.k_csv_id7 = 0
-		local n, r = xilian(role, {role_id=role.csv_id, is_locked1=false, is_locked2=false, is_locked3=false, is_locked4=false, is_locked5=false})
-		assert(n == 0, string.format("%d locked.", n))
-		role.property_id1 = r.property_id1
-		role.value1 = r.value1
-		role.property_id2 = r.property_id2
-		role.value2 = r.value2
-		role.property_id3 = r.property_id3
-		role.value3 = r.value3
-		role.property_id4 = r.property_id4
-		role.value4 = r.value4
-		role.property_id5 = r.property_id5
-		role.value5 = r.value5
+		if user.ifxilian == 1 then
+			local n, r = xilian(role, {role_id=role.csv_id, is_locked1=false, is_locked2=false, is_locked3=false, is_locked4=false, is_locked5=false})
+			assert(n == 0, string.format("%d locked.", n))
+			role.property_id1 = r.property_id1
+			role.value1 = r.value1
+			role.property_id2 = r.property_id2
+			role.value2 = r.value2
+			role.property_id3 = r.property_id3
+			role.value3 = r.value3
+			role.property_id4 = r.property_id4
+			role.value4 = r.value4
+			role.property_id5 = r.property_id5
+			role.value5 = r.value5
+		else
+			role.property_id1 = 0
+			role.value1 = 0
+			role.property_id2 = 0
+			role.value2 = 0
+			role.property_id3 = 0
+			role.value3 = 0
+			role.property_id4 = 0
+			role.value4 = 0
+			role.property_id5 = 0
+			role.value5 = 0
+		end
 		role = user.u_rolemgr.create(role)
 		user.u_rolemgr:add(role)
 		role:__insert_db(const.DB_PRIORITY_2)

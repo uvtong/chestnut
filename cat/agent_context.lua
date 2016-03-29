@@ -11,10 +11,6 @@ _M.client_fd = nil
 _M.game = nil
 _M.user = nil
 
-function _M:init( ... )
- 	-- body
-end
-
 function _M:send_package(pack)
 	-- body
 	local package = string.pack(">s2", pack)
@@ -269,13 +265,13 @@ end
 
 function _M:role_recruit(csv_id)
 	-- body
-	assert(user.u_rolemgr:get_by_csv_id(self.csv_id) == nil)
-	local role = skynet.call(self.game, "lua", "query_g_role", csv_id)
-	local us = skynet.call(self.game, "lua", "query_g_role_star", role.csv_id*1000 + role.star)
-	local prop = user.u_propmgr:get_by_csv_id(role.us_prop_csv_id)
+	assert(csv_id)
+	local role = skynet.call(".game", "lua", "query_g_role", csv_id)
+	local us = skynet.call(".game", "lua", "query_g_role_star", role.csv_id*1000 + role.star)
+	local prop = self.user.u_propmgr:get_by_csv_id(role.us_prop_csv_id)
 	if prop and prop.num >= assert(us.us_prop_num) then
 		prop.num = prop.num - us.us_prop_num
-		role.user_id = user.csv_id
+		role.user_id = self.user.csv_id
 		for k,v in pairs(us) do
 			role[k] = v
 		end
@@ -287,7 +283,7 @@ function _M:role_recruit(csv_id)
 		role.k_csv_id6 = 0
 		role.k_csv_id7 = 0
 		if self.user.ifxilian == 1 then
-			local n, r = self:xilian(role, {role_id=role.csv_id, is_locked1=false, is_locked2=false, is_locked3=false, is_locked4=false, is_locked5=false})
+			local n, r = self.xilian(role, {role_id=role.csv_id, is_locked1=false, is_locked2=false, is_locked3=false, is_locked4=false, is_locked5=false})
 			assert(n == 0, string.format("%d locked.", n))
 			role.property_id1 = r.property_id1
 			role.value1 = r.value1
@@ -311,37 +307,10 @@ function _M:role_recruit(csv_id)
 			role.property_id5 = 0
 			role.value5 = 0
 		end
-		role = user.u_rolemgr.create(role)
-		user.u_rolemgr:add(role)
+		role = self.user.u_rolemgr.create(role)
+		self.user.u_rolemgr:add(role)
 		role:__insert_db(const.DB_PRIORITY_2)
-		self:raise_achievement(const.ACHIEVEMENT_T_5)
 	end
 end
 
-function _M:add_gold(num)
-	-- body
-	local prop = self.user.u_propmgr:get_by_csv_id(const.GOLD)
-	prop.num = prop.num + num
-end
-
-function _M:add_diamond(num)
-	-- body
-	local prop = self.user.u_propmgr:get_by_csv_id(const.DIAMOND)
-	prop.num = prop.num + num
-end
-
-function _M:add_exp(num)
-	-- body
-	local prop = self.user.u_propmgr:get_by_csv_id(const.EXP)
-	prop.num = prop.num + num
-end
-
-function _M:add_love(num)
-	-- body
-	local prop = self.user.u_propmgr:get_by_csv_id(const.EXP)
-	prop.num = prop.num + num
-end
-
-function _M:add_draw_num(drawtype)
-end
 return _M

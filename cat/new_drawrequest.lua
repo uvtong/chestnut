@@ -39,142 +39,6 @@ function REQUEST:login( u )
 	assert( draw_mgr )
 end		
 		
-local function push_achievement(achievement)
-	-- body
-	ret = {}
-	ret.which = {
-		csv_id = achievement.csv_id,
-		finished = achievement.finished
-	}
-	send_package(send_request("finish_achi", ret))
-end
-
-local function raise_achievement(type, user)
-	-- body
-	if type == "combat" then
-	elseif type == const.A_T_GOLD then -- 2
-		repeat
-			local a = assert(user.u_achievementmgr:get_by_type(const.A_T_GOLD))
-			if a.is_valid == 0 then
-				break
-			end
-			local gold = user.u_propmgr:get_by_csv_id(const.GOLD) -- abain prop by type (type -- csv_id -- prop.id)		
-			local progress = gold.num / a.c_num
-			if progress >= 1 then -- success
-				a.finished = 100
-				a.reward_collected = 0			
-				-- insert achievement rc	
-				local rc = user.u_achievement_rcmgr.create(a)
-				user.u_achievement_rcmgr:add(rc)
-				rc:__insert_db()
-
-				if string.match(a.unlock_next_csv_id, "%d*%*%d*") then
-					local k1 = string.gsub(a.unlock_next_csv_id, "(%d*)%*(%d*)", "%1")
-					local k2 = string.gsub(a.unlock_next_csv_id, "(%d*)%*(%d*)", "%2")
-					
-					local a1 = skynet.call(game, "lua", "query_g_achievement", k1)
-					a1.user_id = user.csv_id
-					a1.finished = 100
-					a1.is_unlock = 1
-					a1.reward_collected = 0
-					a1 = user.u_achievement_rcmgr.create(a1)
-					user.u_achievement_rcmgr:add(a1)
-					a1:__insert_db()
-
-					if tonumber(k2) == 0 then
-						a.is_valid = 0
-						a:__update_db({"is_valid"})	
-						break
-					else
-						local ga = assert(game.g_achievementmgr:get_by_csv_id(k2))
-						a.csv_id = ga.csv_id
-						a.finished = 0
-						a.c_num = ga.c_num
-						a.unlock_next_csv_id = ga.unlock_next_csv_id
-						-- a.is_unlock = 1
-						a:__update_db({"csv_id", "finished", "c_num", "unlock_next_csv_id", "is_valid"})	
-					end
-				else
-					local ga = assert(game.g_achievementmgr:get_by_csv_id(a.unlock_next_csv_id))
-					a.csv_id = ga.csv_id
-					a.finished = 0
-					a.c_num = ga.c_num
-					a.unlock_next_csv_id = ga.unlock_next_csv_id
-					a.is_unlock = 1
-					a:__update_db({"csv_id", "finished", "c_num", "unlock_next_csv_id", "is_unlock"})	
-				end
-			else
-				a.finished = progress * 100
-				a.finished = math.floor(a.finished)
-				a:__update_db({"finished"})
-				break
-			end
-		until false
-	elseif type == const.A_T_EXP then
-		repeat
-			local a = assert(user.u_achievementmgr:get_by_type(type))
-			if a.is_valid == 0 then
-				break
-			end
-			local prop = user.u_propmgr:get_by_csv_id(const.EXP) -- abain prop by type (type -- csv_id -- prop.id)		
-			local progress = prop.num / a.c_num
-			if progress >= 1 then -- success
-				a.finished = 100
-				a.reward_collected = 0
-				push_achievement(a)
-				
-				-- insert achievement rc	
-				local rc = user.u_achievement_rcmgr.create(a)
-				user.u_achievement_rcmgr:add(rc)
-				rc:__insert_db()
-
-				if string.match(a.unlock_next_csv_id, "%d*%*%d*") then
-					local k1 = string.gsub(a.unlock_next_csv_id, "(%d*)%*(%d*)", "%1")
-					local k2 = string.gsub(a.unlock_next_csv_id, "(%d*)%*(%d*)", "%2")
-					
-					local a1 = game.g_achievementmgr:get_by_csv_id(k1)
-					a1.user_id = user.csv_id
-					a1.finished = 100
-					a1.is_unlock = 1
-					a1.reward_collected = 0
-					a1 = user.u_achievement_rcmgr.create(a1)
-					user.u_achievement_rcmgr:add(a1)
-					a1:__insert_db()
-
-					if tonumber(k2) == 0 then
-						a.is_valid = 0
-						a:__update_db({"is_valid"})	
-						break
-					else
-						local ga = assert(game.g_achievementmgr:get_by_csv_id(k2))
-						a.csv_id = ga.csv_id
-						a.finished = 0
-						a.c_num = ga.c_num
-						a.unlock_next_csv_id = ga.unlock_next_csv_id
-						-- a.is_unlock = 1
-						a:__update_db({"csv_id", "finished", "c_num", "unlock_next_csv_id", "is_valid"})	
-					end
-
-				else
-					local ga = assert(game.g_achievementmgr:get_by_csv_id(a.unlock_next_csv_id))
-					a.csv_id = ga.csv_id
-					a.finished = 0
-					a.c_num = ga.c_num
-					a.unlock_next_csv_id = ga.unlock_next_csv_id
-					a.is_unlock = 1
-					a:__update_db({"csv_id", "finished", "c_num", "unlock_next_csv_id", "is_unlock"})	
-				end
-			else
-				a.finished = progress * 100
-				a.finished = math.floor(a.finished)
-				a:__update_db({"finished"})
-				break
-			end
-		until false
-	elseif type == "level" then
-	end
-end
-
 local function getsettime()
 	local date = os.time()
 	local year = tonumber( os.date( "%Y" , date ) )
@@ -202,7 +66,6 @@ local function add_to_prop( t )
 			print( "get a role" )
 			g_role = game.g_rolemgr:get_by_us_prop_csv_id( v.propid )
 			assert( g_role )
-
 			local u_role = user.u_rolemgr:get_by_csv_id( g_role.csv_id )
 			if u_role then
            		local prop = user.u_propmgr:get_by_csv_id( v.propid )
@@ -210,30 +73,16 @@ local function add_to_prop( t )
    					prop.num = prop.num + v.amount
    					prop:__update_db( { "num" } )
    				else 
-   					print( "propid is " , v.propid )
-   					local p = game.g_propmgr:get_by_csv_id( v.propid )
-   					assert( p )
-   					p.user_id = user.csv_id
-   					p.num = v.amount
-   					local prop = user.u_propmgr.create( p )
+   					print( "no a role" )
+   					prop = skynet.call(".game", "lua", "query_g_prop", v.propid)
+   					prop.user_id = user.csv_id
+   					prop.num = v.amount
+   					local prop = user.u_propmgr.create( prop )
    					user.u_propmgr:add( prop )
    					prop:__insert_db( const.DB_PRIORITY_2 )
    				end 	      
-			else 		
-				local g_role_star = game.g_role_starmgr:get_by_csv_id(assert( g_role.csv_id ) * 1000 + assert( g_role.star ) )
-				for k,v in pairs( g_role_star ) do
-					g_role[k] = v
-				end
-				g_role.user_id = assert( user.csv_id )
-				g_role.k_csv_id1 = 0
-				g_role.k_csv_id2 = 0
-				g_role.k_csv_id3 = 0
-				g_role.k_csv_id4 = 0
-				g_role.k_csv_id5 = 0
-				g_role.k_csv_id6 = 0
-				g_role.k_csv_id7 = 0
-				g_role = user.u_rolemgr.create( g_role )
-				g_role:__insert_db( const.DB_PRIORITY_2 )
+			else 
+				context:role_recruit(g_role.csv_id)
 			end 
 		else     
 			local prop = user.u_propmgr:get_by_csv_id( v.propid )
@@ -250,10 +99,11 @@ local function add_to_prop( t )
    				user.u_propmgr:add( prop )
    				prop:__insert_db( const.DB_PRIORITY_2 )
    			end 
-
-   			--[[if v.propid == const.A_T_EXP or v.propid == const.A_T_GOLD then
-   				raise_achievement( v.propid , user )
-   			end--]]
+   			if v.propid == const.GOLD then
+   				--context:raise_achievement(const.ACHIEVEMENT_T_2)
+   			elseif v.propid == const.EXP then
+   				--c--ontext:raise_achievement(const.ACHIEVEMENT_T_3)
+   			end
    		end     
    	end			
 end				
@@ -365,11 +215,14 @@ local function getpropidlist( dtype )
 				local t = skynet.call( ".game" , "lua" , "query_g_draw_role" , r.propid )
 				assert( t )
 				if r.propnum == t.num then
+					print( "num is and get a tnum" , t.num )
 					table.insert( propidlist.list , { propid = r.propid , amount = r.propnum , proptype = PROPTYPE.ROLE_SP } )
 				else
+					print( "num is and get a tnum" , r.propnum )
 					table.insert( propidlist.list , { propid = r.propid , amount = r.propnum , proptype = PROPTYPE.PROP } )
 				end
 			else
+				print( "do not get a role" )
 				table.insert( propidlist.list , { propid = r.propid , amount = r.propnum , proptype = PROPTYPE.PROP } )
 			end
 		end                                                                            
@@ -586,11 +439,7 @@ local function tentimedraw()
 end 	
 						
 function REQUEST:applydraw()
-	print( "applydraw is called ******************" , self.drawtype )
-
-	print( self.drawtype , self.iffree )
 	local ret = {}
-
 	if self.drawtype == drawtype.FRIEND then
 		ret = frienddraw()
 	elseif self.drawtype == drawtype.ONETIME then
@@ -600,7 +449,12 @@ function REQUEST:applydraw()
 	end 	
 
 	if 1 == ret.errorcode then
-		context:add_draw_num( self.drawtype )
+		if self.drawtype == 3 then
+			user.draw_number = user.draw_number + 10
+		else
+			user.draw_number = user.draw_number + 1
+		end
+		--context:raise_achievement(const.ACHIEVEMENT_T_8)
 	end
 	return assert( ret )
 end		
