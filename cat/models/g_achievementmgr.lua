@@ -5,7 +5,7 @@ local _M = {}
 _M.__data = {}
 _M.__count = 0
 
-local _Meta = { csv_id=0, type=0, c_num=0, reward=0, star=0, unlock_next_csv_id=0, is_init=0}
+local _Meta = { csv_id=0, type=0, c_num=0, reward=0, star=0, unlock_next_csv_id=0}
 
 _Meta.__tname = "g_achievement"
 

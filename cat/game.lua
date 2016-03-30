@@ -41,6 +41,12 @@ function CMD.query_g_achievement(pk)
 	elseif type(pk) == "nil" then
 		return game.g_achievementmgr.__data
 	else
+		print(pk)
+		if type(pk) == "table" then
+			for k,v in pairs(pk) do
+				print(k,v)
+			end
+		end
 		assert(false)
 	end
 end
@@ -443,10 +449,20 @@ function CMD.query_g_property_pool_second(pk, T)
 	end
 end
 
-function CMD.query_g_randomval(pk)
+function CMD.query_g_randomval()
+	-- body
+	return assert(game.g_randomvalmgr.__data)
+end
+
+function CMD.query_g_equipment_effect(pk)
 	-- body
 	if type(pk) == "number" then
-		return assert(game.g_randomvalmgr:get_by_id(pk))
+		local r = game.query_g_equipment_effectmgr:get_by_level(pk)
+		if r then
+			return r
+		else
+			error "there are insufficient data"
+		end
 	else
 		assert(false)
 	end

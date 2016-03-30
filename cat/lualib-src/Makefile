@@ -1,10 +1,15 @@
-TXT := "hello world"
-
 .PHONY: all test
 
-all: TXT := "nihao"
+AA := "haha"
 
-all: TXT := "meiyou" test
+TXT := "nihao"
+
+all: TXT := "shazhu"
+
+
+all: TXT := "shamuzhu"
+
+all: test
 
 test:
 	echo $(TXT)

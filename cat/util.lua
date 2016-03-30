@@ -295,6 +295,132 @@ function util.parse_text(src, parten, D)
 		table.insert(r, t)
 	end)
 	return r
-end
+end 		
+			
+local function collect_info_from_g_role_effect( bufferid , tpropid )
+	assert( bufferid and tpropid )
 
-return util
+	local t = { 0 , 0 }
+	local gk
+
+	gre = skynet.call( ".game" , "lua" , "query_g_role_effect" , bufferid )
+	assert( gre )
+
+	local i = 1
+	while i <= 8 do
+		local property_id = "property_id" .. i
+		local value = "value" .. i
+
+		if tpropid[ 1 ] == gre[ property_id ] then
+			t[ 1 ] = t[ 1 ] + gre[ value ]                       -- value			
+		elseif tpropid[ 2 ] == gre[ property_id ] then
+			t[ 2 ] = t[ 2 ] + gre[ value ]                       -- percent %		
+		end 
+
+		i = i + 1
+	end		
+
+	return t
+end			
+	
+function util.get_total_combat( user , uid )   -- zhijie ti sheng zhan dou li gu ding zhi hai mei you 
+	local uequip
+	local role 
+	local roles
+	local tmp
+
+	if user then
+		uequip = assert( user.u_equipmentmgr.__data )
+		role = user.u_rolemgr:get_by_csv_id( user.c_role_id )	
+		roles = user.u_rolemgr.__data
+	else
+		local sql = string.format( "select * from u_equipment where user_id = %s " , uid )
+		uequip = skynet.call( util.random_db() , "lua" , "command" , "query" , sql )
+		assert( uequip )
+		sql = ""
+ 		sql = string.format( "select * from u_role where user_id = %s " , uid )
+ 		print( sql )
+ 		roles = skynet.call( util.random_db() , "lua" , "command" , "query" , sql )
+ 		assert( roles )
+
+ 		sql = ""
+ 		sql = string.format( "select c_role_id , combat from users where csv_id = %s " , uid )
+		print( sql )
+		tmp = skynet.call( util.random_db() , "lua" , "command" , "query" , sql )
+		assert( tmp )
+ 		for k , v in pairs( roles ) do
+ 			print( k , v , v.csv_id , tmp[ 1 ].c_role_id )
+ 			if v.csv_id == tmp[1].c_role_id then
+ 				role = v
+ 				print( "find the role ********************************" )
+ 				break
+ 			end	
+ 		end
+ 		assert( role )
+	end 
+
+	--fixed 
+	local total_combat = user and user.combat or tmp[ 1 ].combat
+	local total_combat_percent = 0
+
+	--all equipment combat
+	for k , v in pairs( uequip ) do
+		total_combat = total_combat + v.combat
+		total_combat_percent = total_combat_percent + v.combat_probability
+	end		
+
+	-- role battle combat
+	local r = collect_info_from_g_role_effect( role.battle_buffer_id , { 1 , 5 } )
+	total_combat = total_combat + assert( r[ 1 ] )
+	total_combat_percent = total_combat_percent + assert( r[ 2 ] )
+
+	-- xilian combat
+	local i = 1 
+	while i <= 5 do
+		local property_id = "property_id" .. i
+		local value = "value" .. i
+
+		if 1 == role[ property_id ] then
+			total_combat = total_combat + role[ value ]
+		elseif 5 == role[ property_id ] then
+		 	total_combat_percent = total_combat_percent + role[ value ]
+		end
+
+		i = i + 1
+	end
+
+	--kungfu combat
+	local i = 1
+	while i <= 7 do 
+		local sk_csv_id = "k_csv_id" .. i
+		local ik_csv_id = role[ sk_csv_id ]
+
+		if 0 ~= ik_csv_id then
+			local gk = skynet.call( ".game" , "lua" , "query_g_kungfu" , ik_csv_id )
+			assert( gk )
+
+			-- 1 combat , 5 combat%
+			local r = collect_info_from_g_role_effect( gk.buff_id , { 1 , 5 } )
+			assert( r )
+			total_combat = total_combat + assert( r[ 1 ] )
+			total_combat_percent = total_combat_percent + assert( r[ 2 ] )
+		end 
+
+		i = i + 1 
+	end     
+
+	--rolecollect combat
+	for k , v in pairs( roles ) do
+		local r = collect_info_from_g_role_effect( v.gather_buffer_id , { 1 , 5 } )
+		total_combat = total_combat + assert( r[ 1 ] )
+		total_combat_percent = total_combat_percent + assert( r[ 2 ] )
+	end
+
+	local final = total_combat * ( 1 + ( total_combat_percent / 100 ) )
+	print( "final combat and percent is ************" , total_combat , total_combat_percent , final )
+
+	return math.floor( final )
+end  			
+			
+return util 
+	

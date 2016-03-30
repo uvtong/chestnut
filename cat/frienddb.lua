@@ -54,7 +54,7 @@ end
 function frienddb:select_loadavaliblefriendids( t )
 	assert( t )
 	
-	local sql = string.format( "select csv_id from users where csv_id != %s and level > %s and level < %s" , t.uid , t.level - 10 , t.level + 10 )
+	local sql = string.format( "select csv_id from users where csv_id != %s and level > %s and level < %s and onlinetime >= %s" , t.uid , t.lowlevel , t.uplevel , t.lastday )
 	print( sql )
 	
 	local r = db:query( sql )
@@ -154,7 +154,7 @@ function frienddb:select_getheart( t )
 	print( "get heart successfully in db_getheart" )
 
 	return r
-end
+end 
     
 function frienddb:update_friend( t )
 	assert( t )
@@ -164,7 +164,7 @@ function frienddb:update_friend( t )
 	db:query( sql )
 
 	print( "update friend successfully in frienddb" )
-end
+end 
 
 function frienddb.getvalue( d , c )
 	db = d
