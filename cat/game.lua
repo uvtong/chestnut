@@ -99,6 +99,22 @@ function CMD.query_g_checkpoint(pk)
 	end
 end
 
+function CMD.query_g_checkpoint_chapter(pk)
+	-- body
+	if type(pk) == "number" then
+		local r = game.g_checkpoint_chaptermgr:get_by_chapter(pk)
+		if r then
+			return r
+		else
+			error "there are insufficient data"
+		end
+	elseif type(pk) == "nil" then
+		return game.g_checkpoint_chaptermgr.__data
+	else
+		assert(false)
+	end
+end
+
 function CMD.query_g_daily_task(pk)
 	-- body
 	if type(pk) == "number" then
@@ -454,11 +470,15 @@ function CMD.query_g_user_level(pk)
 	end
 end
 
-function CMD.query_g_config()
+function CMD.query_g_config(pk)
 	-- body
-	local r = game.g_configmgr:get_by_csv_id(1)
-	local ptr = tptr.topointer(r)
-	return ptr
+	if type(pk) == "string" then
+		return game.g_configmgr:get_by_csv_id(1)[pk]
+	else
+		local r = game.g_configmgr:get_by_csv_id(1)
+		local ptr = tptr.topointer(r)
+		return ptr
+	end
 end
 
 function CMD.query_g_xilian_cost(pk)

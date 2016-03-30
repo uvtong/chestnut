@@ -2,7 +2,8 @@ local sprotoparser = require "sprotoparser"
 
 local proto = {}
 
-proto.c2s = sprotoparser.parse [[.package {
+proto.c2s = sprotoparser.parse [[
+.package {
 	type 0 : integer
 	session 1 : integer
 }
@@ -36,14 +37,12 @@ proto.c2s = sprotoparser.parse [[.package {
     is_unlock 3 : boolean
 }
 
-.attach
-{
+.attach {
     itemsn 0 : integer
     itemnum 1 : integer
 }
 
-.mail
-{	
+.mail {	
 	emailid 0 : integer
 	type 1 : integer
 	iconid 2 : integer
@@ -56,20 +55,17 @@ proto.c2s = sprotoparser.parse [[.package {
 	attachs 9 : *attach
 }
 
-.idlist
-{
+.idlist {
     id 0 : integer
 }
 
-.friendidlist
-{
+.friendidlist {
     signtime 0 : integer
     friendid 1 : integer
     type 2 : integer
 }
 
-.subuser
-{
+.subuser {
 	id 0 : integer
 	name 1 : string
 	level 2 : integer
@@ -87,15 +83,13 @@ proto.c2s = sprotoparser.parse [[.package {
     heartamount 14 : integer
 }
 
-.apply 
-{
+.apply {
 	signtime 0 : integer
 	friendid 1 : integer
 	type 2 : integer
 }
 
-.heartlist
-{   
+.heartlist {   
     signtime 0 : integer
     amount 1 : integer
     friendid 2 : integer
@@ -113,14 +107,12 @@ proto.c2s = sprotoparser.parse [[.package {
     countdown 6 : integer
 }
  
-.goodsbuy
-{
+.goodsbuy {
     goods_id 0 : integer
     goods_num 1 : integer
 }
 
-.recharge_item
-{
+.recharge_item {
 	csv_id 0 : integer
 	icon_id 1 : integer
 	name 2 : string
@@ -130,35 +122,30 @@ proto.c2s = sprotoparser.parse [[.package {
 	rmb 6 : integer
 }
 
-.recharge_buy
-{
+.recharge_buy {
 	csv_id 0 : integer
 	num 1 : integer
 }
 
-.recharge_reward_item
-{
+.recharge_reward_item {
 	id 0 : integer
 	distribute_dt 1 : string
 	icon_id 2 : integer
 }
 
-.drawlist
-{  
+.drawlist {  
     drawtype 0 : integer
     lefttime 1 : integer
     drawnum 2 : integer
 }
  
-.drawrewardlist
-{      
+.drawrewardlist {
     propid 0 : integer
     propnum 1 : integer
     proptype 2 : integer
 }  
 
-.recharge_vip_reward 
-{
+.recharge_vip_reward {
     vip 0 : integer
     props 1 : *prop
     collected 2 : boolean
@@ -179,8 +166,7 @@ proto.c2s = sprotoparser.parse [[.package {
     enhance_success_rate 10 : integer
 }
 
-.kungfu_content
-{
+.kungfu_content {
     csv_id 1 : integer
     k_level 2 : integer
     k_type 3 : integer
@@ -206,17 +192,25 @@ proto.c2s = sprotoparser.parse [[.package {
     sign 5 : string
     c_role_id 6 : integer
     level 7 : integer
-    uexp 8 : integer
-    gold 9 : integer
-    diamond 10 : integer
-    love 11 : integer
-    recharge_total 12 : integer
-    recharge_vip 13 : integer
-    recharge_progress 14 : integer
-    recharge_diamond 15 : integer
+    recharge_rmb 8 : integer
+    recharge_diamond 9 : integer
+    uvip_progress 10 : integer
+    hanging_checkpoint 11 : integer
+    uexp 12 : integer
+    gold 13 : integer
+    diamond 14 : integer
+    love 15 : integer
     equipment_list 16 : *equipment
     kungfu_list 17 : *kungfu_content
     rolelist 18 : *role
+    cp_chapter 19 : integer
+}
+
+.checkpoint_chapter {
+	chapter 0 : integer
+	chapter_type0 1 : integer
+	chapter_type1 2 : integer
+	chapter_type2 3 : integer		
 }
 
 handshake 1 {
@@ -240,11 +234,11 @@ role_info 2 {
 }
 
 mails 3 {
-  response {
-    errorcode 0 : integer
-	msg 1 : string 
-	mail_list 2 : *mail	
-  }
+    response {
+        errorcode 0 : integer
+	   msg 1 : string 
+	   mail_list 2 : *mail	
+    }
 }
 
 signup 4 {
@@ -837,6 +831,62 @@ xilian_ok 62 {
     response {
         errorcode 0 : integer
         msg 1 : string
+    }
+}
+
+checkpoint_chapter 63 {
+	response {
+		errorcode 0 : integer
+		msg 1 : string
+		l 2 : *checkpoint_chapter
+	}
+}
+
+checkpoint_hanging 64 {
+	response {
+		errorcode 0 : integer
+		msg 1 : string
+        props 2 : *prop
+	}
+}
+
+checkpoint_battle_exit 65 {
+    request {
+        chapter 0 : integer
+        type 1 : integer
+        checkpoint 2 : integer
+        csv_id 3 : integer
+        result 4 : integer
+    }
+    response {
+        errorcode 0 : integer
+        msg 1 : string
+        reward 2 : *prop
+    }
+}
+
+checkpoint_hanging_choose 66 {
+    request {
+        csv_id 0 : integer
+    }  
+    response {
+        errorcode 0 : integer
+        msg 1 : integer
+        passed 2 : integer
+    }
+}
+
+checkpoint_battle_enter 67 {
+    request {
+        chapter 0 : integer
+        type 1 : integer
+        checkpoint 2 : integer
+        csv_id 3 : integer
+    }
+    response { 
+        errorcode 0 : integer
+        msg 1 : string
+        cd 2 : integer
     }
 }
 

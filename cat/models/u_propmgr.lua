@@ -82,6 +82,16 @@ function _M.insert_db( values, priority)
 	skynet.send( util.random_db() , "lua" , "command" , "insert_all" , _Meta.__tname , total, priority)
 end 
 
+-- pk
+function _M.create_with_csv_id(csv_id) 
+	-- body
+	local r = skynet.call(".game", "lua", "query_g_prop", csv_id)
+	assert(r, "there is no corresponding props.")
+	r.user_id = _M.__user_id
+	r.num = 0
+	return _M.create(r)
+end
+
 function _M.create(P)
 	assert(P)
 	local u = _Meta.__new()
@@ -101,7 +111,13 @@ end
 
 function _M:get_by_csv_id(csv_id)
 	-- body
-	return self.__data[tostring(csv_id)]
+	local r = self.__data[tostring(csv_id)]
+	if r then
+		return r
+	else
+		r = self.create_with_csv_id(csv_id)
+		return r
+	end
 end
 
 function _M:delete_by_csv_id(csv_id)

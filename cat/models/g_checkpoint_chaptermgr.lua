@@ -1,7 +1,3 @@
-local tname = tostring(...)
-local addr = io.open("./models/" .. tname .. "mgr.lua", "w")
-local P = "{ user_id=0, csv_id=0, }"
-local s = string.format([[
 local skynet = require "skynet"
 local util = require "util"
 
@@ -9,9 +5,9 @@ local _M = {}
 _M.__data = {}
 _M.__count = 0
 _M.__user_id = 0
-_M.__tname = "%s"
+_M.__tname = "g_checkpoint_chapter"
 
-local _Meta = %s
+local _Meta = { csv_id=0, level=0, type0_max=0, type1_max=0, type2_max=0}
 
 function _Meta.__new()
  	-- body
@@ -80,12 +76,12 @@ function _M:add( u )
 	self.__count = self.__count + 1
 end
 	
-function _M:get_by_csv_id(csv_id)
+function _M:get_by_chapter(csv_id)
 	-- body
 	return self.__data[tostring(csv_id)]
 end
 
-function _M:delete_by_csv_id(csv_id)
+function _M:delete_by_chapter(csv_id)
 	-- body
 	assert(self.__data[tostring(csv_id)])
 	self.__data[tostring(csv_id)] = nil
@@ -104,18 +100,13 @@ end
 
 function _M:update_db(priority)
 	-- body
-	assert(priority)
-	if self.__count > 0 then
-		local columns = { "finished", "reward_collected", "is_unlock"}
-		local condition = { {user_id = self.__user_id}, {csv_id = {}}}
-		skynet.send(util.random_db(), "lua", "command", "update_all", _M.__tname, condition, columns, self.__data, priority)
-	end
+	-- assert(priority)
+	-- if self.__count > 0 then
+	-- 	local columns = { "finished", "reward_collected", "is_unlock"}
+	-- 	local condition = { {user_id = self.__user_id}, {csv_id = {}}}
+	-- 	skynet.send(util.random_db(), "lua", "command", "update_all", _M.__tname, condition, columns, self.__data, priority)
+	-- end
 end
 
 return _M
 
-]], tname, P, tname)
-
-
-addr:write(s)
-addr:close()

@@ -4,3 +4,6 @@
 [submodule "tablepointer"]
 	path = tablepointer
 	url = https://github.com/cloudwu/tablepointer
+[submodule "skynet-client"]
+	path = skynet-client
+	url = https://github.com/mephostopilis/skynet-client

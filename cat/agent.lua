@@ -406,8 +406,6 @@ end
 
 function REQUEST:achievement_reward_collect()
 	-- body
-	-- 0. success
-	-- 1. offline
 	local ret = {}
 	if not user then
 		ret.errorcode = errorcode[2].code
@@ -419,11 +417,12 @@ function REQUEST:achievement_reward_collect()
 	local a = user.u_achievement_rcmgr:get_by_csv_id(self.csv_id)
 	if a and a.finished == 100 and a.reward_collected == 0 then
 		a.reward_collected = 1
-		a:__update_db({"reward_collected"})
 		local a_src = skynet.call(game, "lua", "query_g_achievement", a.csv_id)
 		if a_src.type == 2 then
 			local csv_id1 = string.gsub(a_src.reward, "(%d*)%*(%d*)", "%1")
 			local num1 = string.gsub(a_src.reward, "(%d*)%*(%d*)", "%2")
+			local prop = get_prop(csv_id1)
+
 			local prop = user.u_propmgr:get_by_csv_id(csv_id1)
 			if prop then
 				prop.num = prop.num + num1
@@ -433,6 +432,7 @@ function REQUEST:achievement_reward_collect()
 				prop.user_id = user.csv_id
 				prop.num = num1
 				prop = user.u_propmgr.create(prop)
+
 				prop:__insert_db(const.DB_PRIORITY_2)
 			end
 		end
@@ -524,7 +524,13 @@ function REQUEST:signup()
 				pemail_csv_id = 0,
 				take_diamonds=0,
 				draw_number=0 ,
-				ifxilian = 0 }
+				ifxilian = 0,              -- 
+				cp_chapter=1,                 -- checkpoint progress 1
+				hanging_starttime=0,       -- 
+				hanging_checkpoint=0,
+				cp_battle_id=0,
+				cp_battle_enter_starttime=0,
+				cp_battle_chapter=0  }
 		local usersmgr = require "models/usersmgr"
 		local u = usersmgr.create(t)
 		u:__insert_db(const.DB_PRIORITY_1)
@@ -637,6 +643,17 @@ function REQUEST:signup()
 		end
 		u_goodsmgr.insert_db(l, const.DB_PRIORITY_1)
 
+		local u_checkpointmgr = require "models/u_checkpointmgr"
+		local tmp = {
+			user_id = u.csv_id,
+			chapter = 1,
+			chapter_type0 = 1,       
+			chapter_type1 = 0,
+			chapter_type2 = 0,
+		}
+		local cp = u_checkpointmgr.create(tmp)
+		cp:__insert_db(const.DB_PRIORITY_1)
+	
 		ret.errorcode = errorcode[1].code
 		ret.msg	= errorcode[1].msg
 		return ret
@@ -708,6 +725,8 @@ function REQUEST:login()
 		user:__update_db({"ifonline", "onlinetime"}, const.DB_PRIORITY_2)
 		user.friendmgr = friendmgr:loadfriend( user , dc )
 		friendrequest.getvalue(user, send_package, send_request)
+		--load public email from channel public_emailmgr
+		get_public_email()
 
 		ret.errorcode = errorcode[1].code
 		ret.msg = errorcode[1].msg
@@ -719,29 +738,28 @@ function REQUEST:login()
 			avatar = user.avatar,
 			sign = user.sign,
 			c_role_id = user.c_role_id,
-			recharge_total = user.recharge_rmb,
+			level = user.level,
+			recharge_rmb = user.recharge_rmb,
     		recharge_diamond = user.recharge_diamond,
-    		recharge_progress = user.uvip_progress,
-    		level = assert(user.level)
+    		uvip_progress = user.uvip_progress,
+    		hanging_checkpoint = user.hanging_checkpoint,
 		}
 		ret.u.uexp = assert(user.u_propmgr:get_by_csv_id(const.EXP)).num
 		ret.u.gold = assert(user.u_propmgr:get_by_csv_id(const.GOLD)).num
 		ret.u.diamond = assert(user.u_propmgr:get_by_csv_id(const.DIAMOND)).num
-		--load public email from channel public_emailmgr
-		get_public_email()
-		-- all roles
-		local l = {}
-		for k,v in pairs(user.u_rolemgr.__data) do
-			local prop = user.u_propmgr:get_by_csv_id(v.us_prop_csv_id)
-			local r = {
-				csv_id = v.csv_id,
-				is_possessed = true,
-				star = v.star,
-				u_us_prop_num = prop and prop.num or 0
-			}
-			table.insert(l, r)
+		ret.u.love = user.u_propmgr:get_by_csv_id(const.love).num
+		ret.u.equipment_list = {}
+		for k,v in pairs(user.u_equipmentmgr.__data) do
+			table.insert(ret.user.equipment_list, v)
 		end
-		ret.rolelist = l
+		ret.u.kungfu_list = {}
+		for k,v in pairs(user.u_kungfumgr.__data) do
+			table.insert(ret.user.kungfu_list, v)
+		end
+		ret.u.rolelist = {}
+		for k,v in pairs(user.u_rolemgr.__data) do
+			table.insert(ret.user.rolelist, v)
+		end
 		return ret
 	else
 		assert(false)
@@ -975,9 +993,9 @@ function REQUEST:user()
     	sign = user.sign,
     	c_role_id = user.c_role_id,
     	level = user.level,
-    	recharge_total = user.recharge_rmb,
+    	recharge_rmb = user.recharge_rmb,
     	recharge_diamond = user.recharge_diamond,
-    	recharge_progress = user.uvip_progress,
+    	uvip_progress = user.uvip_progress,
     	uexp = assert(user.u_propmgr:get_by_csv_id(const.EXP)).num,
     	gold = assert(user.u_propmgr:get_by_csv_id(const.GOLD)).num,
     	diamond = assert(user.u_propmgr:get_by_csv_id(const.DIAMOND)).num,
@@ -1900,6 +1918,7 @@ function REQUEST:role_recruit()
 		role = user.u_rolemgr.create(role)
 		user.u_rolemgr:add(role)
 		role:__insert_db(const.DB_PRIORITY_2)
+		context:raise_achievement(const.ACHIEVEMENT_T_5)
 		ret.errorcode = errorcode[1].code
 		ret.msg = errorcode[1].msg
 		ret.r = {
@@ -2142,6 +2161,181 @@ function REQUEST:xilian_ok()
 	ret.msg = errorcode[1].msg
 	return ret
 end   
+
+function REQUEST:checkpoint_chapter()
+	-- body
+	local ret = {}
+	if not user then
+		ret.errorcode = errorcode[2].code
+		ret.msg = errorcode[2].msg
+		return ret
+	end
+	ret.errorcode = errorcode[1].code
+	ret.msg = errorcode[1].code
+	ret.l = {}
+	for k,v in pairs(user.u_checkpointmgr.__data) do
+		table.insert(l, v)
+	end
+	return ret
+end
+
+function REQUEST:checkpoint_hanging()
+	-- body
+	local ret = {}
+	if not user then
+		ret.errorcode = errorcode[2].code
+		ret.msg = errorcode[2].msg
+		return ret
+	end
+	-- enter
+	if self.hanging_checkpoint > 0 then 
+		local r = skynet.call(game, "lua", "query_g_checkpoint", user.hanging_checkpoint)
+		local now = os.time()
+		local diff = now - user.hanging_starttime
+		local n = diff / r.cd
+		local l = {}
+		local prop = user.u_propmgr:get_by_csv_id(const.GOLD)
+		prop.num = prop.num + n
+		table.insert(l, prop)
+		local prop = user.u_propmgr:get_by_csv_id(const.EXP)
+		prop.num = prop.num + n
+		table.insert(l, prop)
+		user.hanging_starttime = user.hanging_starttime + (diff % r.cd)
+		ret.errorcode = errorcode[1].code
+		ret.msg = errorcode[1].msg
+		ret.props = l
+		return ret
+	else
+		ret.errorcode = errorcode[34].code
+		ret.msg = errorcode[34].msg
+		return ret
+	end
+end
+
+-- alone 
+function REQUEST:checkpoint_hanging_choose()
+	-- body
+	local ret = {}
+	if not user then
+		ret.errorcode = errorcode[2].code
+		ret.msg = errorcode[2].msg
+		return ret
+	end
+	assert(self)
+	user.hanging_starttime = os.time()
+	user.hanging_checkpoint = self.csv_id
+	ret.errorcode = errorcode[1].code
+	ret.msg = errorcode[1].msg
+	return ret
+end
+
+function REQUEST:checkpoint_battle_exit()
+	-- body
+	local ret = {}
+	if not user then
+		ret.errorcode = errorcode[2].code
+		ret.msg = errorcode[2].msg
+	end
+	assert(self.chapter <= user.cp_chapter)
+	if self.result == 1 then
+		local r = skynet.call(game, "lua", "query_g_checkpoint", self.csv_id)
+		local cp = user.u_checkpointmgr:get_by_chapter(r.chapter)
+		local cp_chapter = skynet.call(game, "lua", "query_g_checkpoint_chapter", r.chapter)
+		local reward = {}
+		local tmp = util.parse_text(r.reward, "(%d+%*%d+%*?)", 2)
+		for i,v in ipairs(reward) do
+			local prop = user.u_propmgr:get_by_csv_id(v[1])
+			prop.num = prop.num + v[2]
+			table.insert(reward, prop)
+		end
+		if r.type == 0 then
+			assert(cp.chapter_type0 == r.checkpoint)
+			if cp.chapter_type0 <= cp_chapter.type0_max then
+				cp.chapter_type0 = cp.chapter_type0 + 1
+			else
+				local cp_chapter_max = skynet.call(game, "lua", "query_g_config", "cp_chapter_max")
+				if r.chapter + 1 <= cp_chapter_max then
+					local next_cp = user.u_checkpointmgr:get_by_chapter(r.chapter + 1)
+					if next_cp.chapter_type0 == 0 then
+						next_cp.chapter_type0 = 1
+						user.cp_chapter = r.chapter + 1
+					end
+				end
+				if cp_chapter.type1_max > 0 then
+					cp.chapter_type1 = 1
+				end
+			end
+		elseif r.type == 1 then
+			assert(cp.chapter_type1 == r.checkpoint)
+			if cp.chapter_type1 <= cp_chapter.type1_max then
+				cp.chapter_type1 = cp.chapter_type1 + 1
+			else
+				if cp_chapter.type2_max > 0 then
+					cp.chapter_type1 = 1
+				end
+			end
+		elseif r.type == 2 then
+			assert(cp.chapter_type2 == r.checkpoint)
+			if cp.chapter_type2 <= cp_chapter.type2_max then
+				cp.chapter_type2 = cp.chapter_type2 + 1
+			else
+				local cp_chapter_max = skynet.call(game, "lua", "query_g_config", "cp_chapter_max")
+				if user.cp_battle_chapter < cp_chapter_max then
+					assert(user.cp_battle_chapter < user.cp_chapter)
+					user.cp_battle_chapter = user.cp_battle_chapter + 1
+				end
+			end
+		end
+		ret.errorcode = errorcode[1].code
+		ret.msg = errorcode[1].msg
+		ret.reward = reward
+		return ret
+	else
+		ret.errorcode = errorcode[1].code
+		ret.msg = errorcode[1].code
+		return ret
+	end
+end
+
+function REQUEST:checkpoint_battle_enter()
+	-- body
+	local ret = {}
+	if not user then
+		ret.errorcode = errorcode[1].code
+		ret.msg = errorcode[1].msg
+		return ret
+	end
+	assert(self.chapter <= user.cp_chapter)
+	local cp = user.u_checkpointmgr:get_by_chapter(self.chapter)
+	if self.type == 0 then
+		assert(self.checkpoint == cp.chapter_type0)
+	elseif self.type == 1 then
+		assert(self.checkpoint == cp.chapter_type1)
+	elseif self.type == 2 then
+		assert(self.checkpoint == cp.chapter_type2)
+	else
+		assert(false)
+	end
+	if user.cp_battle_id == self.csv_id then
+		local r = skynet.call(game, "lua", "query_g_checkpoint", self.csv_id)
+		local now = os.time()
+		if now - user.cp_battle_enter_starttime >= r.cd then
+			ret.errorcode = errorcode[1].code
+			ret.msg = errorcode[1].msg
+			ret.cd = 0
+			return ret
+		else
+			ret.errorcode = errorcode[1].code
+			ret.msg = errorcode[1].msg
+			ret.cd = now - user.cp_battle_enter_starttime
+			return ret
+		end
+	else
+		ret.errorcode = errorcode[35].code
+		ret.msg = errorcode[35].msg
+		return ret
+	end
+end
 
 function REQUEST:handshake()
 	print("Welcome to skynet, I will send heartbeat every 5 sec." )
