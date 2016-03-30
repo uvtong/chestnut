@@ -1,6 +1,5 @@
 local tname = tostring(...)
 local addr = io.open("./models/" .. tname .. "mgr.lua", "w")
-local P = "{ user_id=0, csv_id=0, }"
 local s = string.format([[
 local skynet = require "skynet"
 local util = require "util"
@@ -8,10 +7,11 @@ local util = require "util"
 local _M = {}
 _M.__data = {}
 _M.__count = 0
+_M.__cap = 0
 _M.__user_id = 0
 _M.__tname = "%s"
 
-local _Meta = %s
+local _Meta = "{ user_id=0, csv_id=0, }"
 
 function _Meta.__new()
  	-- body
@@ -42,6 +42,25 @@ function _Meta:__update_db(t, priority)
 	-- skynet.send(util.random_db(), "lua", "command", "update", _M.__tname, {{ user_id=self.user_id, csv_id=self.csv_id }}, columns, priority)
 end
 
+function _Meta:__get(key)
+	-- body
+	assert(type(key) == "string")
+	assert(_Meta[key])
+	return assert(self[key])
+end
+
+function _Meta:__set(key, value)
+	-- body
+	assert(type(key) == "string")
+	self[key] = value
+	if self[csv_id] == const.GOLD then
+		notification.handler[self.EGOLD](self.EGOLD)
+	elseif self[csv_id] == const.EXP then
+		notification.handler[self.EEXP](self.EGOLD)
+	else
+	end
+end
+
 function _M.insert_db(values, priority)
 	assert(priority)
 	assert(type(values) == "table" )
@@ -58,8 +77,10 @@ function _M.insert_db(values, priority)
 	skynet.send(util.random_db(), "lua", "command", "insert_all", _M.__tname, total, priority)
 end 
 
-function _M.create_default()
-	-- body
+function _M.create_with_csv_id(csv_id)
+ 	-- body
+ 	assert(csv_id, "csv_id ~= nil")
+ 	return _M.create(r)
 end
 
 function _M.create( P )
@@ -97,9 +118,26 @@ function _M:get_count()
 	return self.__count
 end
 
+function _M:get_cap()
+	-- body
+	return self.__cap
+end
+
 function _M:clear()
 	self.__data = {}
 	self.__count = 0
+end
+
+function _M:get(pk, key)
+	-- body
+	local r = self:get_by_csv_id(pk)
+	r:__get(key)
+end
+
+function _M:set(pk, key, value)
+	-- body
+	local r = self:get_by_csv_id(pk)
+	r:__set(key, value)
 end
 
 function _M:update_db(priority)
@@ -114,8 +152,7 @@ end
 
 return _M
 
-]], tname, P, tname)
-
+]], tname)
 
 addr:write(s)
 addr:close()

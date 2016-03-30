@@ -56,6 +56,10 @@ function _M.create_with_chapter(chapter)
 		chapter_type0 = 0,              -- 0 means 0 checkpont no.
 		chapter_type1 = 0,
 		chapter_type2 = 0,
+		chapter_type0_finished=0,
+		chapter_type1_finished=0,
+		chapter_type2_finished=0,
+		finished=0
 	}
 	return _M.create(t)
 end

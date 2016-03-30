@@ -650,6 +650,10 @@ function REQUEST:signup()
 			chapter_type0 = 1,       
 			chapter_type1 = 0,
 			chapter_type2 = 0,
+			chapter_type0_finished=0,
+			chapter_type1_finished=0,
+			chapter_type2_finished=0,
+			finished=0
 		}
 		local cp = u_checkpointmgr.create(tmp)
 		cp:__insert_db(const.DB_PRIORITY_1)
@@ -2363,7 +2367,16 @@ local function request(name, args, response)
     end
     assert(f)
     assert(response)
-    local ok, result = pcall(f, args)
+    local ok
+    local result
+    if false then
+    	assert(false)
+       	ok, result = pcall(f, args)
+    else
+    	assert(true)
+    	ok = true
+    	result = f(args)
+   	end
     if not ok then
     	skynet.error(result)
 		local ret = {

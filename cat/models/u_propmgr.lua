@@ -26,7 +26,7 @@ function _Meta.__new()
  	return t
 end 
 
-function _Meta:__insert_db( priority )
+function _Meta:__insert_db(priority)
 	-- body
 	assert(priority)
 	local t = {}
@@ -51,6 +51,7 @@ end
 function _Meta:__get(key)
 	-- body
 	assert(type(key) == "string")
+	assert(_Meta[key])
 	return assert(self[key])
 end
 
@@ -66,7 +67,7 @@ function _Meta:__set(key, value)
 	end
 end
 
-function _M.insert_db( values, priority)
+function _M.insert_db(values, priority)
 	assert(priority)
 	assert(type(values) == "table" )
 	local total = {}
@@ -85,6 +86,7 @@ end
 -- pk
 function _M.create_with_csv_id(csv_id) 
 	-- body
+	assert(csv_id, "csv_id ~= nil")
 	local r = skynet.call(".game", "lua", "query_g_prop", csv_id)
 	assert(r, "there is no corresponding props.")
 	r.user_id = _M.__user_id
@@ -97,6 +99,7 @@ function _M.create(P)
 	local u = _Meta.__new()
 	for k,v in pairs(_Meta) do
 		if not string.match(k, "^__*") then
+			print(k, P.csv_id)
 			u[k] = assert(P[k])
 		end
 	end
@@ -116,6 +119,8 @@ function _M:get_by_csv_id(csv_id)
 		return r
 	else
 		r = self.create_with_csv_id(csv_id)
+		self:add(r)
+		r:__insert_db(const.DB_PRIORITY_2)
 		return r
 	end
 end
@@ -133,6 +138,18 @@ end
 function _M:clear()
 	self.__data = {}
 	self.__count = 0
+end
+
+function _M:get(pk, key)
+	-- body
+	local r = self:get_by_csv_id(pk)
+	r:__get(key)
+end
+
+function _M:set(pk, key, value)
+	-- body
+	local r = self:get_by_csv_id(pk)
+	r:__set(key, value)
 end
 
 function _M:update_db(priority)
