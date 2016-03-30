@@ -14,6 +14,7 @@ local errorcode = require "errorcode"
 local const = require "const"
 local tptr = require "tablepointer"
 local context = require "agent_context"
+local notification = require "notification"
 
 local friendrequest = require "friendrequest"
 local friendmgr = require "friendmgr"
@@ -45,6 +46,17 @@ local client_fd
 local game
 local user
 
+notification.handler = function (event)
+	-- body
+	if event == notification.EGOLD then
+		context:raise_achievement(const.ACHIEVEMENT_T_2)
+	elseif event == notification.EEXP then
+		context:raise_achievement(const.ACHIEVEMENT_T_3)
+	else
+		context:raise_achievement(const.ACHIEVEMENT_T_7)
+	end
+end
+
 local function send_package(pack)
 	-- body
 	local package = string.pack(">s2", pack)
@@ -56,7 +68,7 @@ local function flush_db(priority)
 	assert(priority)
 	if user then
 		for k,v in pairs(user) do
-			if string.match(k, "^u_%w+mgr$") then
+			if string.match(k, "^u_[%w_]+mgr$") then
 				v:update_db(priority)
 			end
 		end
@@ -67,7 +79,8 @@ local function flush_db(priority)
 			"checkin_num", "checkin_reward_num", "exercise_level", "cgold_level", "gold_max",
 			"exp_max", "equipment_enhance_success_rate_up_p", "store_refresh_count_max",
 			"prop_refresh", "arena_frozen_time", "purchase_hp_count", "gain_gold_up_p", "gain_exp_up_p",
-			"purchase_hp_count_max", "SCHOOL_reset_count_max", "SCHOOL_reset_count"}, priority)
+			"purchase_hp_count_max", "SCHOOL_reset_count_max", "SCHOOL_reset_count", "pemail_csv_id", "take_diamonds",
+			"draw_number", "ifxilian"}, priority)
 		local cm = user.u_checkin_monthmgr:get_checkin_month()
 		if cm then
 			cm:__update_db({"checkin_month"}, priority)
@@ -510,7 +523,8 @@ function REQUEST:signup()
 				signup_time=os.time() ,
 				pemail_csv_id = 0,
 				take_diamonds=0,
-				draw_number=0 }
+				draw_number=0 ,
+				ifxilian = 0 }
 		local usersmgr = require "models/usersmgr"
 		local u = usersmgr.create(t)
 		u:__insert_db(const.DB_PRIORITY_1)
@@ -1046,12 +1060,14 @@ function REQUEST:user_upgrade()
 	end
 	assert(user)
 	local user_level_max
+	local xilian_begain_level
 	local ptr = skynet.call(game, "lua", "query_g_config")
 	tptr.createtable(ptr)
 	for _,k,v in tptr.pairs(ptr) do
 		if k == "user_level_max" then
 			user_level_max = v
-			break
+		elseif k == "xilian_begain_level" then
+			xilian_begain_level = v
 		end
 	end
 	if user.level + 1 >= user_level_max then
@@ -1063,7 +1079,6 @@ function REQUEST:user_upgrade()
 		local prop = user.u_propmgr:get_by_csv_id(const.EXP)
 		if prop.num >= tonumber(L.exp) then
 			prop.num = prop.num - L.exp
-			prop:__update_db({"num"})
 			user.level = L.level
 			user.combat = L.combat
 			user.defense = L.defense
@@ -1071,7 +1086,10 @@ function REQUEST:user_upgrade()
 			user.blessing = L.skill              -- blessing.
 			user.gold_max = assert(L.gold_max)
 			user.exp_max = assert(L.exp_max)
-			-- user:__update_db({ "level", "combat", "defense", "critical_hit", "blessing", "gold_max", "exp_max"})
+			if user.level >= xilian_begain_level then
+				user.ifxilian = 1
+			end
+			context:raise_achievement(const.ACHIEVEMENT_T_7)
 			ret.errorcode = errorcode[1].code
 			ret.msg = errorcode[1].msg
 			return ret
@@ -1355,7 +1373,6 @@ function REQUEST:shop_purchase()
 			if ug.inventory == 0 then
 				local now = os.time()
 				local walk = os.difftime(now, ug.st)
-				print("************abcd", now, ug.st, countdown)
 				if walk > gg.cd then
 					ug.inventory =gg.inventory_init
 					ug.countdown = 0
@@ -1364,7 +1381,8 @@ function REQUEST:shop_purchase()
 						ug.inventory = ug.inventory - self.g[1].goods_num
 						ug:__update_db({"inventory"})
 						currency.num = currency.num - diamond
-						currency:__update_db({"num"})
+						user.take_diamonds = user.take_diamonds + diamond
+						context:raise_achievement(const.ACHIEVEMENT_T_4)
 						local prop = get_prop(gg.g_prop_csv_id)
 						prop.num = prop.num + (gg.g_prop_num * self.g[1].goods_num)
 						prop:__update_db({"num"})
@@ -1400,7 +1418,8 @@ function REQUEST:shop_purchase()
 				end
 			elseif ug.inventory == 99 then
 				currency.num = currency.num - diamond
-				currency:__update_db({"num"})
+				user.take_diamonds = user.take_diamonds + diamond
+				context:raise_achievement(const.ACHIEVEMENT_T_4)
 				local prop = get_prop(gg.g_prop_csv_id)
 				prop.num = prop.num + (gg.g_prop_num * self.g[1].goods_num)
 				prop:__update_db({"num"})
@@ -1427,10 +1446,10 @@ function REQUEST:shop_purchase()
 						ug:__update_db({"inventory"})	
 					end
 					currency.num = currency.num - diamond
-					currency:__update_db({"num"})
+					user.take_diamonds = user.take_diamonds + diamond
+					context:raise_achievement(const.ACHIEVEMENT_T_4)
 					local prop = get_prop(gg.g_prop_csv_id)
 					prop.num = prop.num + (gg.g_prop_num * self.g[1].goods_num)
-					prop:__update_db({"num"})
 					ret.errorcode = errorcode[1].code
 					ret.msg = errorcode[1].msg
 					ret.l = { prop}
@@ -1823,10 +1842,6 @@ function REQUEST:role_all()
 	ret.errorcode = errorcode[1].code
 	ret.msg = errorcode[1].msg
 	ret.l = l
-	-- ret.combat = 
- --    ret.defense =
- --    ret.critical_hit =
- --    ret.blessing =
     return ret
 end
 
@@ -1857,18 +1872,31 @@ function REQUEST:role_recruit()
 		role.k_csv_id5 = 0
 		role.k_csv_id6 = 0
 		role.k_csv_id7 = 0
-		local n, r = xilian(role, {role_id=role.csv_id, is_locked1=false, is_locked2=false, is_locked3=false, is_locked4=false, is_locked5=false})
-		assert(n == 0, string.format("%d locked.", n))
-		role.property_id1 = r.property_id1
-		role.value1 = r.value1
-		role.property_id2 = r.property_id2
-		role.value2 = r.value2
-		role.property_id3 = r.property_id3
-		role.value3 = r.value3
-		role.property_id4 = r.property_id4
-		role.value4 = r.value4
-		role.property_id5 = r.property_id5
-		role.value5 = r.value5
+		if user.ifxilian == 1 then
+			local n, r = xilian(role, {role_id=role.csv_id, is_locked1=false, is_locked2=false, is_locked3=false, is_locked4=false, is_locked5=false})
+			assert(n == 0, string.format("%d locked.", n))
+			role.property_id1 = r.property_id1
+			role.value1 = r.value1
+			role.property_id2 = r.property_id2
+			role.value2 = r.value2
+			role.property_id3 = r.property_id3
+			role.value3 = r.value3
+			role.property_id4 = r.property_id4
+			role.value4 = r.value4
+			role.property_id5 = r.property_id5
+			role.value5 = r.value5
+		else
+			role.property_id1 = 0
+			role.value1 = 0
+			role.property_id2 = 0
+			role.value2 = 0
+			role.property_id3 = 0
+			role.value3 = 0
+			role.property_id4 = 0
+			role.value4 = 0
+			role.property_id5 = 0
+			role.value5 = 0
+		end
 		role = user.u_rolemgr.create(role)
 		user.u_rolemgr:add(role)
 		role:__insert_db(const.DB_PRIORITY_2)
@@ -2230,8 +2258,7 @@ function CMD.start(conf)
 	local t = loader.load_game()
 	for i,v in ipairs(M) do
 		v.start(fd, send_request, t)
-	end
-	
+	end	
 end	
 	   
 function CMD.disconnect()

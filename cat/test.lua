@@ -32,66 +32,79 @@
 
 -- 123456
 
-local Q = require "lualib/queue"
-local que = Q.new(32)
+-- local Q = require "lualib/queue"
+-- local que = Q.new(32)
 
+-- local co_push = coroutine.create (function ()
+-- 	-- body
+-- 	while true do
+-- 		if Q.enqueue(que, "hello") then
+-- 			print "ture"
+-- 		else
+-- 			print "false"
+-- 		end
+-- 		coroutine.yield(500)
+-- 	end
+-- end)
 
+-- local co_pop = coroutine.create(function ()
+-- 	-- body
+-- 	while true do
+-- 		local r = Q.dequeue(que)
+-- 		if r then
+-- 			print(r)
+-- 		else
+-- 			print(r)
+-- 		end
+-- 		coroutine.yield(500)
+-- 	end
+-- end)
 
-local co_push = coroutine.create (function ()
-	-- body
-	while true do
-		if Q.enqueue(que, "hello") then
-			print "ture"
-		else
-			print "false"
-		end
-		coroutine.yield(500)
-	end
-end)
+-- local co = coroutine.create(function ()
+-- 	-- body
+-- 	local last = 0
+-- 	while true do
+-- 		local now = os.time()
+-- 		if now - last > 1 then
+-- 			print("abc")
+-- 			last = now
+-- 			if math.random(1, 2) == 1 then
+-- 				coroutine.resume(co_push)
+-- 			else
+-- 				coroutine.resume(co_pop)
+-- 			end
+-- 		end
+-- 	end
+-- end)
 
-local co_pop = coroutine.create(function ()
-	-- body
-	while true do
-		local r = Q.dequeue(que)
-		if r then
-			print(r)
-		else
-			print(r)
-		end
-		coroutine.yield(500)
-	end
-end)
+-- local moniter = coroutine.create(function ()
+-- 	-- body
+-- 	local last = 0
+-- 	while true do
+-- 		local now = os.time()
+-- 		if now - last > 0.5 then
+-- 			last = now
+-- 			print("********************8", que.__size, que.__head, que.__tail)
+-- 		end
+-- 	end
+-- end)
 
-local co = coroutine.create(function ()
-	-- body
-	local last = 0
-	while true do
-		local now = os.time()
-		if now - last > 1 then
-			print("abc")
-			last = now
-			if math.random(1, 2) == 1 then
-				coroutine.resume(co_push)
-			else
-				coroutine.resume(co_pop)
-			end
-		end
-	end
-end)
+-- coroutine.resume(co_push)
+-- coroutine.resume(co_pop)
+-- coroutine.resume(co)
+-- coroutine.resume(moniter)
 
-local moniter = coroutine.create(function ()
-	-- body
-	local last = 0
-	while true do
-		local now = os.time()
-		if now - last > 0.5 then
-			last = now
-			print("********************8", que.__size, que.__head, que.__tail)
-		end
-	end
-end)
+local x = require "test1"
+local y = require "test1"
 
-coroutine.resume(co_push)
-coroutine.resume(co_pop)
-coroutine.resume(co)
-coroutine.resume(moniter)
+print(x.x)
+print(y.x)
+
+y.x = 2
+
+print(x.x)
+
+x.x = 3
+
+print(y.x)
+

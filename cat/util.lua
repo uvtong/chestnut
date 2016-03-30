@@ -269,8 +269,8 @@ end
 
 function util.RSHash()
 	-- body
-end
-
+end     
+		
 function util.parse_text(src, parten, D)
 	-- body
 	-- src = "1000*10*10*10*10*10"
@@ -297,11 +297,8 @@ function util.parse_text(src, parten, D)
 	return r
 end 		
 			
-local function collect_info_from_g_role_effect( bufferid , tpropid )
-	assert( bufferid and tpropid )
-
-	local t = { 0 , 0 }
-	local gk
+local function collect_info_from_g_role_effect( bufferid , ttotal )
+	assert( bufferid and ttotal )
 
 	gre = skynet.call( ".game" , "lua" , "query_g_role_effect" , bufferid )
 	assert( gre )
@@ -311,46 +308,52 @@ local function collect_info_from_g_role_effect( bufferid , tpropid )
 		local property_id = "property_id" .. i
 		local value = "value" .. i
 
-		if tpropid[ 1 ] == gre[ property_id ] then
-			t[ 1 ] = t[ 1 ] + gre[ value ]                       -- value			
-		elseif tpropid[ 2 ] == gre[ property_id ] then
-			t[ 2 ] = t[ 2 ] + gre[ value ]                       -- percent %		
-		end 
-
+		local index = gre[ property_id ] 
+		assert( index )
+		print( index , gre[ value ] )
+		if 0 ~= index then
+			ttotal[ index ] = ttotal[ index ] + gre[ value ]
+		end
 		i = i + 1
 	end		
-
-	return t
 end			
-	
-function util.get_total_combat( user , uid )   -- zhijie ti sheng zhan dou li gu ding zhi hai mei you 
+	--[[ if online ( user , nil , propertyname ) , if not online ( nil , uid , propertyname )                  ]]
+function util.get_total_property( user , uid )   -- zhijie ti sheng zhan dou li gu ding zhi hai mei you ,  
 	local uequip
 	local role 
 	local roles
-	local tmp
+	local u
+ 		
+ 	local tmpname = propertyname
 
 	if user then
 		uequip = assert( user.u_equipmentmgr.__data )
 		role = user.u_rolemgr:get_by_csv_id( user.c_role_id )	
 		roles = user.u_rolemgr.__data
-	else
+		u = user
+	else    
 		local sql = string.format( "select * from u_equipment where user_id = %s " , uid )
 		uequip = skynet.call( util.random_db() , "lua" , "command" , "query" , sql )
 		assert( uequip )
-		sql = ""
  		sql = string.format( "select * from u_role where user_id = %s " , uid )
  		print( sql )
  		roles = skynet.call( util.random_db() , "lua" , "command" , "query" , sql )
  		assert( roles )
+		
+ 		if "king" == propertyname then
+ 			tmpname = "blessing"
+ 		end
 
- 		sql = ""
- 		sql = string.format( "select c_role_id , combat from users where csv_id = %s " , uid )
+ 		sql = string.format( "select c_role_id , combat , defense , critical_hit , blessing , ifxilian from users where csv_id = %s " , uid )
 		print( sql )
-		tmp = skynet.call( util.random_db() , "lua" , "command" , "query" , sql )
-		assert( tmp )
+		local tmp = skynet.call( util.random_db() , "lua" , "command" , "query" , sql )
+
+		u = tmp[ 1 ]
+		assert( u )
+
  		for k , v in pairs( roles ) do
- 			print( k , v , v.csv_id , tmp[ 1 ].c_role_id )
- 			if v.csv_id == tmp[1].c_role_id then
+ 			print( k , v , v.csv_id , u.c_role_id )
+ 			if v.csv_id == u.c_role_id then
  				role = v
  				print( "find the role ********************************" )
  				break
@@ -359,37 +362,40 @@ function util.get_total_combat( user , uid )   -- zhijie ti sheng zhan dou li gu
  		assert( role )
 	end 
 
-	--fixed 
-	local total_combat = user and user.combat or tmp[ 1 ].combat
-	local total_combat_percent = 0
+	----all equipment property
+	local ttotal = { 0 , 0 , 0 , 0 , 0 , 0 , 0 , 0 }
+	local tproperty = { "combat" , "defense" , "critical_hit" , "king" }
 
-	--all equipment combat
-	for k , v in pairs( uequip ) do
-		total_combat = total_combat + v.combat
-		total_combat_percent = total_combat_percent + v.combat_probability
-	end		
+	for k , v in ipairs( tproperty ) do
+		local probability = v .. "_probability"
+		print( "property is ***************************************" , probability )
+		for kk , vv in pairs( uequip ) do
+			if 0 ~= vv[ v ] then 
+				ttotal[ k ] = ttotal[ k ] + vv[ v ]
+				ttotal[ k  + 4 ] = ttotal[ k + 4 ] + vv[ probability ]
+			end
+		end		
+	end     
 
-	-- role battle combat
-	local r = collect_info_from_g_role_effect( role.battle_buffer_id , { 1 , 5 } )
-	total_combat = total_combat + assert( r[ 1 ] )
-	total_combat_percent = total_combat_percent + assert( r[ 2 ] )
+	-- role battle property
+	collect_info_from_g_role_effect( role.battle_buffer_id , ttotal )
 
-	-- xilian combat
-	local i = 1 
-	while i <= 5 do
-		local property_id = "property_id" .. i
-		local value = "value" .. i
+	-- xilian property
+	if 1 == u.ifxilian then
+		local i = 1 
+		while i <= 5 do
+			local property_id = "property_id" .. i
+			local value = "value" .. i
+			local index = role[ property_id ]
+			if 0 ~= index then
+				ttotal[ index ] = ttotal[ index ] + role[ value ]
+			end
 
-		if 1 == role[ property_id ] then
-			total_combat = total_combat + role[ value ]
-		elseif 5 == role[ property_id ] then
-		 	total_combat_percent = total_combat_percent + role[ value ]
-		end
+			i = i + 1
+		end 
+	end     
 
-		i = i + 1
-	end
-
-	--kungfu combat
+	--kungfu property
 	local i = 1
 	while i <= 7 do 
 		local sk_csv_id = "k_csv_id" .. i
@@ -399,27 +405,32 @@ function util.get_total_combat( user , uid )   -- zhijie ti sheng zhan dou li gu
 			local gk = skynet.call( ".game" , "lua" , "query_g_kungfu" , ik_csv_id )
 			assert( gk )
 
-			-- 1 combat , 5 combat%
-			local r = collect_info_from_g_role_effect( gk.buff_id , { 1 , 5 } )
-			assert( r )
-			total_combat = total_combat + assert( r[ 1 ] )
-			total_combat_percent = total_combat_percent + assert( r[ 2 ] )
+			collect_info_from_g_role_effect( gk.buff_id , ttotal )
 		end 
 
 		i = i + 1 
 	end     
 
-	--rolecollect combat
+	--rolecollect property
 	for k , v in pairs( roles ) do
-		local r = collect_info_from_g_role_effect( v.gather_buffer_id , { 1 , 5 } )
-		total_combat = total_combat + assert( r[ 1 ] )
-		total_combat_percent = total_combat_percent + assert( r[ 2 ] )
+		collect_info_from_g_role_effect( v.gather_buffer_id , ttotal )
 	end
+	--basic property
+	ttotal[ 1 ] = ttotal[ 1 ] + u.combat
+	ttotal[ 2 ] = ttotal[ 2 ] + u.defense
+	ttotal[ 3 ] = ttotal[ 3 ] + u.critical_hit
+	ttotal[ 4 ] = ttotal[ 4 ] + u.blessing
 
-	local final = total_combat * ( 1 + ( total_combat_percent / 100 ) )
-	print( "final combat and percent is ************" , total_combat , total_combat_percent , final )
+	local result = { }
+	local i = 1
+	while i <= 4 do
+		table.insert( result , math.floor( ( ttotal[ i ] * ( 1 + ttotal[ i + 4 ] / 100 ) ) ) )
+		i = i + 1
+	end	  
 
-	return math.floor( final )
+	print( "final combat and percent is ************" , result[ 1 ] , result[ 2 ] , result[ 3 ] , result[ 4 ] )
+
+	return result
 end  			
 			
 return util 

@@ -47,7 +47,8 @@ local _Meta = { csv_id=0,
 				signup_time=0,
 				pemail_csv_id=0,
 				take_diamonds=0,
-				draw_number=0 }
+				draw_number=0 ,
+				ifxilian = 0 }
 
 _Meta.__tname = "users"
 
@@ -72,6 +73,21 @@ function _Meta:__update_db(t, priority)
 		columns[tostring(v)] = self[tostring(v)]
 	end
 	skynet.send(util.random_db(), "lua", "command", "update", self.__tname, {{ csv_id = self.csv_id }}, columns, priority)
+end
+
+function _Meta:__get(key)
+	-- body
+	assert(type(key) == "string")
+	return assert(self[key])
+end
+
+function _Meta:__set(key, value)
+	-- body
+	assert(type(key) == "string")
+	self[key] = value
+	if key == "level" then
+		notification.handler[self.EUSER_LEVEL](self.EUSER_LEVEL)
+	end
 end
 
 function _Meta.__new()

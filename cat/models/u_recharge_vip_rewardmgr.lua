@@ -5,6 +5,7 @@ local _M = {}
 _M.__data = {}
 _M.__count = 0
 _M.__user_id = 0
+_M.__tname = "u_recharge_vip_reward"
 
 local _Meta = { user_id=0, vip=0, collected=0, purchased=0}
 
@@ -89,12 +90,13 @@ function _M:clear()
 	self.__count = 0
 end
 
-function _M:update_db()
+function _M:update_db(priority)
 	-- body
+	assert(priority)
 	if self.__count > 0 then
 		local columns = { "collected", "purchased"}
 		local condition = { {user_id = self.__user_id}, {vip = {}}}
-		skynet.send(util.random_db(), "lua", "command", "update_all", _Meta.__tname, condition, columns, self.__data)
+		skynet.send(util.random_db(), "lua", "command", "update_all", _Meta.__tname, condition, columns, self.__data, priority)
 	end
 end
 

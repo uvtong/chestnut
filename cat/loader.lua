@@ -564,10 +564,10 @@ local function load_u_draw( user )
 	u_drawmgr.__user_id = user.csv_id
 	user.u_drawmgr = u_drawmgr
 end	
-
+	
 local function load_u_email( user )
 	assert( nil == user.u_emailmgr )
-
+	
 	local u_emailmgr = require "models/u_emailmgr"
 	local r = skynet.call( util.random_db() , "lua", "command" , "select" , "u_new_email", { { uid = user.csv_id , isdel = 0 } } )
 	print( "sizeof r is ************************************************************" , #r )
@@ -584,6 +584,15 @@ local function load_u_email( user )
 	user.u_emailmgr = u_emailmgr
 end
 
+local function load_u_lilian(user)
+	assert(user)
+	local u_lilianmgr = require "models/u_lilianmgr"
+	local nr = skynet.call( util.random_db() , "lua" , "command" , "select" , "u_lilian_main" , { { user_id = user.csv_id , iffinished = 0 } } )
+
+	for i , v in ipairs( nr ) do
+		local a = u_
+	end
+end
 
 local function load_u_prop(user)
 	-- body
@@ -752,25 +761,13 @@ function loader.load_game()
 		load_g_xilian_cost()
 		load_g_property_pool()
 		load_g_property_pool_second()
-<<<<<<< HEAD
 		load_g_role_effect()
-=======
 		load_g_equipment_effect()
 	end
 	skynet.fork(f)
 	return game
 end
 
-function loader.load_channel_game()
-	-- body
-	local f = function ()
-		-- body
-		load_g_uid()
->>>>>>> 31003afac69ce357143373a5c55b5983114214dc
-	end
-	skynet.fork(f)
-	return game
-end
 
 function loader.load_user(user)
 	-- body

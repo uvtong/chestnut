@@ -1,6 +1,7 @@
 local skynet = require "skynet"
 local util = require "util"
 local const = require "const"
+local notification = require "notification"
 
 local _M = {}
 _M.__data = {}
@@ -47,15 +48,22 @@ function _Meta:__update_db(t)
 	-- skynet.send(util.random_db(), "lua", "command", "update", self.__tname, {{ user_id = self.user_id,  csv_id = self.csv_id}}, columns)
 end
 
-function _Meta:__serialize()
+function _Meta:__get(key)
 	-- body
-	local r = {}
-	for k,v in pairs(_Meta) do
-		if not string.match(k, "^__*") then
-			r[k] = assert(self[k])
-		end
+	assert(type(key) == "string")
+	return assert(self[key])
+end
+
+function _Meta:__set(key, value)
+	-- body
+	assert(type(key) == "string")
+	self[key] = value
+	if self[csv_id] == const.GOLD then
+		notification.handler[self.EGOLD](self.EGOLD)
+	elseif self[csv_id] == const.EXP then
+		notification.handler[self.EEXP](self.EGOLD)
+	else
 	end
-	return r
 end
 
 function _M.insert_db( values, priority)
