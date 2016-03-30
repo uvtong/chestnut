@@ -11,7 +11,7 @@ local MAXHEARTNUM = 100
 local MAXFRIENDNUM = 10
 local recvheartnum	= 0
 local user
-local updatetime = 17
+local UPDATETIME = 17
 local total = 50 --dai ding
 local dc 
 local game
@@ -301,10 +301,10 @@ local function getsettime()
 	local year = tonumber( os.date( "%Y" , os.time() ) )
 	local month = tonumber( os.date( "%m" , os.time() ) )
 	local day = tonumber( os.date( "%d" , os.time() ) )
-	local hightime = { year = year , month = month , day = day , hour = updatetime , min = 0 , sec = 0 }
+	local hightime = { year = year , month = month , day = day , hour = UPDATETIME , min = 0 , sec = 0 }
 	local hour = tonumber( os.date( "%H" , os.time() ) )
 	local settime
-	if 0 <= hour and hour < updatetime then
+	if 0 <= hour and hour < UPDATETIME then
 		settime = os.time( hightime ) - 60 * 60 * 24
 	else
 		settime = os.time( hightime )

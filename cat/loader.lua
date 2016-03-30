@@ -584,14 +584,32 @@ local function load_u_email( user )
 	user.u_emailmgr = u_emailmgr
 end
 
-local function load_u_lilian(user)
+local function load_u_lilian_main(user)
 	assert(user)
-	local u_lilianmgr = require "models/u_lilianmgr"
+	local u_lilian_mainmgr = require "models/u_lilian_mainmgr"
 	local nr = skynet.call( util.random_db() , "lua" , "command" , "select" , "u_lilian_main" , { { user_id = user.csv_id , iffinished = 0 } } )
 
 	for i , v in ipairs( nr ) do
-		local a = u_
+		local a = u_lilian_mainmgr.create( v )
+		u_lilian_mainmgr:add( a )
 	end
+	
+	u_lilian_mainmgr.__user_id = user.csv_id
+	user.u_lilian_mainmgr = u_lilian_mainmgr
+end
+
+local function load_u_lilian_sub(user)
+	assert(user)
+	local u_lilian_submgr = require "models/u_lilian_submgr"
+	local nr = skynet.call( util.random_db() , "lua" , "command" , "select" , "u_lilian_sub" , { { user_id = user.csv_id , iffinished = 0 } } )
+
+	for i , v in ipairs( nr ) do
+		local a = u_lilian_submgr.create( v )
+		u_lilian_submgr:add( a )
+	end
+
+	u_lilian_submgr.__user_id = user.csv_id
+	user.u_lilian_submgr = u_lilian_submgr
 end
 
 local function load_u_prop(user)
