@@ -9,9 +9,9 @@ _M.__tname = "u_lilian_sub"
 
 local _Meta = { 
 				csv_id = 0 , 
-				start_time = 0 , 
+				first_lilian_time = 0 , 
+				start_time = 0,
 				update_time = 0 , 
-				user_id = 0 , 
 				used_queue_num = 0 , 
 				quanguan_id1 = 0 , 
 				value1 = 0 ,
@@ -69,7 +69,7 @@ function _M.insert_db(values, priority)
 	end
 	skynet.send(util.random_db(), "lua", "command", "insert_all", _M.__tname, total, priority)
 end 
-
+	
 function _M.create( P )
 	assert(P)
 	local u = _Meta.__new()
@@ -80,26 +80,41 @@ function _M.create( P )
 	end
 	return u
 end	
-
+	
 function _M:add( u )
 	assert(u)
-	assert(self.__data[tostring(u.csv_id)] == nil)
-	self.__data[tostring(u.csv_id)] = u
+	table.insert( self.__data , u )
 	self.__count = self.__count + 1
-end
+end 
 	
-function _M:get_by_csv_id(csv_id)
+function _M:get_lilian_sub()
 	-- body
-	return self.__data[tostring(csv_id)]
-end
-
-function _M:delete_by_csv_id(csv_id)
+	return self.__data[1]
+end 
+	
+function _M:delete_lilian_sub()
 	-- body
-	assert(self.__data[tostring(csv_id)])
-	self.__data[tostring(csv_id)] = nil
+	self.__data[1] = nil
 	self.__count = self.__count - 1
-end
+end 
+	
+function _M:get_lilian_num_by_id( quanguan_id )
+	assert( quanguan_id )
 
+	local r = assert( self.__data[1] )
+		
+	for i = 1 , 5 do
+		local squanguan_id = "quanguan_id" .. i
+		local svalue = "value" .. i
+
+		if r[ squanguan_id ] == quanguan_id then
+			return r[ svalue ]
+		end 
+	end 
+
+	return 0
+end  	
+	
 function _M:get_count()
 	-- body
 	return self.__count

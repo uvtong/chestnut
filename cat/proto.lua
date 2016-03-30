@@ -236,6 +236,11 @@ proto.c2s = sprotoparser.parse [[
     iflevel_up 4 : integer
 }   
 
+.quanguan_lilian_num {
+    quanguan_id 0 : integer
+    num 1 : integer
+}   
+
 handshake 1 {
     request {
         secret 0 : string
@@ -921,6 +926,8 @@ get_lilian_info 68 {
         phy_power 3 : integer
         invitation_idlist 4 : *lilian_idlist
         basic_info 5 : *quanguan_basic_info
+        lilian_exp 6 : integer
+        lilian_num_list 7 : *quanguan_lilian_num
     }    
 }       
 

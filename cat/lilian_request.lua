@@ -1,4 +1,4 @@
-local cgold_request = {}
+local lilian_request = {}
 local dc = require "datacenter"
 local util = require "util"
 local errorcode = require "errorcode"
@@ -34,30 +34,13 @@ end
 function REQUEST:login(u)
 	-- body
 	assert( u )
-	print( "**********************************cgoldrequest_login " )
+	print( "**********************************lilianrequest_login " )
 	user = u
 	cs = queue()
 	assert( cs )
 end		
-
-local function f1( ... )
-	-- body
-	send_package()
-	if user.lilian_power < 100  then
-		skynet.timeout(12000, f1)
-	end 
-end 
 	
-local function insc_power(n)
-	-- body
-	user.lilian_power = user.lilian_power + n
-end 
-	
-local function desc_power(n)
-	-- body
-	user.lilian_power = user.lilian_power - n
-end 
-	
+-- recover phy_power
 local function get_phy_power()
 	local r = skyney.call( ".game" , "lua" , "query_g_lilian_level" , user.lilian_level )
 	assert( r )
@@ -65,21 +48,22 @@ local function get_phy_power()
 
 	if r.phy_power > user.phy_power then
 		assert( 0 == user.lilian_submgr.first_cpower_time )
-		local diff = ( date - user.lilian_submgr[ 1 ].first_cpower_time ) / FIXED_STEP	
+		local diff = ( date - user.lilian_submgr.__data[ 1 ].first_lilian_time ) / FIXED_STEP	
 		if user.phy_power + diff > r.phy_power then
 			user.phy_power = r.phy_power
 		else
 			user.phy_power = user.phy_power + diff
-			user.lilian_submgr[ 1 ].first_cpower_time = 0
+			user.lilian_submgr.__data[ 1 ].first_lilian_time = 0
 		end
 	end 			
+	
 	return user.phy_power
 end 
 	
 function REQUEST:get_phy_power()
 	return  assert( get_phy_power() )
 end 
-
+	
 local function add_to_prop( tprop )
 	assert( tprop )
 
@@ -116,7 +100,7 @@ end
 local function get_lilian_reward( quanguan_id , invitation_id )
 	local ret = {}
 	local tmp = {}
-	assert( quanguan_id )
+	assert( quanguan_id and invitation_id )
 	local r = skynet.call( ".game" , "lua" , "query_g_lilian_quqnguan" , quanguan_id )
 	assert( r )
 	-- quanguan reward
@@ -175,28 +159,26 @@ function REQUEST:get_lilian_info()
 	local ret = {}
 	local ret.basic_info = {}
 	local date = os.time()
-    
-    local r = user.u_lilian_submgr.__data[1]
+    	
+    local r = user.u_lilian_submgr:get_lilian_sub()
 
 	--if quanguan can lilian
-	for k , v in ipairs( user.u_lilianmgr.__data ) do
+	for k , v in ipairs( user.u_lilian_mainmgr.__data ) do
 		local tmp = {}
 
 		local date = os.time()
         		
 		tmp.quanguan_id = v.quanguan_id
 		tmp.lilian_num = user.u_lilian_submgr:get_lilian_num_by_id( v.quanguan_id )
-					
+			
 		if date >= v.end_time then
 			tmp.left_cd_time = 0 
 			tmp.if_trigger_event = v.if_trigger_event
 			tmp.invitation_id = v.invitation_id 
 
-			v.iffinished = 1
-			v:__update_db( { "iffinished" } , const.DB_PRIORITY_2 )
-			user.u_lilianmgr:delete_by_csv_id( v.quanguan_id )
 			get_lilian_reward( v.quanguan_id , v.invitation_id )
 
+			--judge if can levelup
 			assert( user.lilian_level ~= 0 )
 			local ll = skynet.call( ".game" , "lua" , "query_g_lilian_level" , user.lilian_level )	
 			assert( ll )	
@@ -213,7 +195,12 @@ function REQUEST:get_lilian_info()
 			end
 
 			tmp.errorcode = errorcode[1].errorcode
-			tmp.msg = errorcode[1].msg 
+			tmp.msg = errorcode[1].msg
+
+			--delete this record
+			v.iffinished = 1
+			v:__update_db( { "iffinished" } , const.DB_PRIORITY_2 )
+			user.u_lilianmgr:delete_by_csv_id( v.quanguan_id ) 
 		else			
 			tmp.left_cd_time = v.end_time - date
 			tmp.errorcode = errorcode[81].errorcode
@@ -222,8 +209,21 @@ function REQUEST:get_lilian_info()
 		table.insert( ret.basic_info , tmp )
 	end 		
 
+	if r then
+		if date >= r.update_time then
+			local settime = getsettime()
+			r.start_time = settime
+			r.update_time = settime + ADAY
+			user.u_lilian_submgr:__reset_quanguan_num()       --set all id and value to 0
+			r.used_queue_num = 0
+		end
+	end
+
+	ret.
+
 	ret.level = user.lilian_level
 	ret.phy_power = get_phy_power()
+	ret.lilian_exp = user.lilian_exp
 	ret.errorcode = errorcode[ 1 ].errorcode
 	ret.msg = errorcode[ 1 ].msg
 
@@ -262,7 +262,7 @@ function REQUEST:start_lilian()
 	local ret = {}	
 
 	local rm = user.u_lilian_mainmgr:get_by_csv_id( self.quanguan_id )
-	local rs = user.u_lilian_submgr:get_by_csv_id( user.csv_id )
+	local rs = user.u_lilian_submgr:get_lilian_sub()
 	local lq = skynet.call( ".game" , "lua" , "query_g_lilian_quanguan" , self.quanguan_id )
 	local fqn = skynet.call( ".game" , "lua" , "query_g_lilian_level" , user.lilian_level )
 	assert( fqn )
@@ -282,12 +282,12 @@ function REQUEST:start_lilian()
 
 			return ret
 		else	
-			
 			if not rs then
 				rs = {}
 				
 				rs.csv_id = user.csv_id
-				rs.start_time = date
+				rs.start_time = settime
+				rs.first_lilian_time = date
 				rs.update_time = settime + ADAY
 				--rs.fixed_queue_num = fqn.queue
 				rs.used_queue_num = 0
@@ -311,11 +311,7 @@ function REQUEST:start_lilian()
 
 					return ret
 				else
-					if date >= rs.update_time then
-						rs.update_time = settime + ADAY
-						user.u_lilian_submgr:__reset_quanguan_num()       --set all id and value to 0
-						rs.used_queue_num = 0
-					end
+					
 					local num = user.u_lilian_submgr:__get_num_by_quanguan_id( self.quanguan_id )
 					if num < lq.day_finish_time then
 						user.u_lilian_submgr:__set_num_by_quanguan_id( self.quanguan_id )
@@ -343,32 +339,36 @@ function REQUEST:start_lilian()
 			user.u_lilian_mainmgr:__add( nr )
 			nr:__insert_db()
 
+			if user.phy_power == 
+
+			user.phy_power = user.phy_power - lq.need_phy_power
+
 		end 		
 	end 			
 end					
 					
 function REQUEST:lilian_get_phy_power()
-
+	if 
 end					
 					
 function REQUEST:lilian_get_reward_list()
 
 end			
 			
-function cgold_request.start(c, s, g, ...)
+function lilian_request.start(c, s, g, ...)
 	-- body	
-	print( "*********************************cgold_start" )
+	print( "*********************************lilian_start" )
 	client_fd = c
 	send_request = s
 	game = g
 end			
 			
-function cgold_request.disconnect()
+function lilian_request.disconnect()
 	-- body	
 end			
 			
-cgold_request.REQUEST = REQUEST
-cgold_request.RESPONSE = RESPONSE
-cgold_request.SUBSCRIBE = SUBSCRIBE
+lilian_request.REQUEST = REQUEST
+lilian_request.RESPONSE = RESPONSE
+lilian_request.SUBSCRIBE = SUBSCRIBE
 		
-return cgold_request
+return lilian_request
