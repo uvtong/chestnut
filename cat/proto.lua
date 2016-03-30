@@ -213,6 +213,29 @@ proto.c2s = sprotoparser.parse [[
 	chapter_type2 3 : integer		
 }
 
+.lilian_idlist {
+    id 0 : integer
+}       
+        
+.quanguan_basic_info {
+    quanguan_id 0 : integer
+    lilian_num 1 : integer
+    left_cd_time 2 : integer
+    errorcode 3 : integer
+    msg 4 : string
+    if_trigger_event 5 : integer
+    invitation_id 6 : integer
+    iflevel_up 7 : integer
+}   
+    
+.lilian_reward_info {
+    errorcode 0 : integer 
+    msg 1 : string
+    if_trigger_event 2 : integer
+    invitation_id 3 : integer
+    iflevel_up 4 : integer
+}   
+
 handshake 1 {
     request {
         secret 0 : string
@@ -887,6 +910,45 @@ checkpoint_battle_enter 67 {
         errorcode 0 : integer
         msg 1 : string
         cd 2 : integer
+    }
+}
+
+get_lilian_info 68 {
+    response {
+        errorcode 0 : integer
+        msg 1 : string
+        level 2 : integer
+        phy_power 3 : integer
+        invitation_idlist 4 : *lilian_idlist
+        basic_info 5 : *quanguan_basic_info
+    }    
+}       
+
+start_lilian 69 {
+    request {
+        quanguan_id 0 : integer
+        invitation_id 1 : integer
+    }
+    response {
+        errorcode 0: integer
+        msg 1 : string
+    }
+}   
+    
+lilian_get_phy_power 70 {
+    response {
+        errorcode 0 : integer
+        msg 1 : string
+        phy_power 2 : integer
+    }
+}
+
+lilian_get_reward_list 71 {
+    request {
+        quanguan_id 0 : integer
+    }
+    response {
+        reward 0 : *lilian_reward_info
     }
 }
 
