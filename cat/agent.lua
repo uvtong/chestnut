@@ -530,7 +530,11 @@ function REQUEST:signup()
 				hanging_checkpoint=0,
 				cp_battle_id=0,
 				cp_battle_enter_starttime=0,
-				cp_battle_chapter=0  }
+				cp_battle_chapter=0 ,
+				lilian_level = 1,
+				lilian_exp = 0,
+				lilian_phy_power = 120
+				}
 		local usersmgr = require "models/usersmgr"
 		local u = usersmgr.create(t)
 		u:__insert_db(const.DB_PRIORITY_1)
