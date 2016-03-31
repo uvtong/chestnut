@@ -613,7 +613,7 @@ end
 local function load_u_lilian_sub(user)
 	assert(user)
 	local u_lilian_submgr = require "models/u_lilian_submgr"
-	local nr = skynet.call( util.random_db() , "lua" , "command" , "select" , "u_lilian_sub" , { { user_id = user.csv_id , iffinished = 0 } } )
+	local nr = skynet.call( util.random_db() , "lua" , "command" , "select" , "u_lilian_sub" , { { user_id = user.csv_id } } )
 
 	for i , v in ipairs( nr ) do
 		local a = u_lilian_submgr.create( v )
@@ -622,6 +622,22 @@ local function load_u_lilian_sub(user)
 
 	u_lilian_submgr.__user_id = user.csv_id
 	user.u_lilian_submgr = u_lilian_submgr
+end
+
+local function load_u_lilian_qg_num()
+	assert(user)
+	local u_lilian_qg_nummgr = require "models/u_lilian_qg_nummgr"
+	local date = os.time()
+	local sql = string.format( "select * from u_lilian_qg_num where user_id = %s and start_time < %s and %s < end_time" , user.csv_id , date )
+	local nr = skynet.call( util.random_db() , "lua" , "command" , "query" , sql )
+
+	for i , v in ipairs( nr ) do
+		local a = u_lilian_qg_nummgr.create( v )
+		u_lilian_qg_nummgr:add( a )
+	end
+
+	u_lilian_qg_nummgr.__user_id = user.csv_id
+	user.u_lilian_qg_nummgr = u_lilian_qg_nummgr
 end
 
 local function load_u_prop(user)
@@ -822,6 +838,9 @@ function loader.load_user(user)
 	load_u_recharge_vip_reward(user)
 	load_u_journal(user)
 	load_u_goods(user)
+	--load_u_lilian_main()
+	--load_u_lilian_sub()
+	--load_u_lilian_qg_num()
 	return user
 end
 
