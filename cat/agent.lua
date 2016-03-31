@@ -529,10 +529,10 @@ function REQUEST:signup()
 				ifxilian = 0,              -- 
 				cp_chapter=1,                 -- checkpoint progress 1
 				cp_hanging_starttime=0,       -- 
-				cp_hanging_id= 1*1000 + 0*100 + 1,
-				cp_battle_id=1*1000+0*100+1,
+				cp_hanging_id=0,
+				cp_battle_id=0,
 				cp_battle_enter_starttime=0,
-				cp_battle_chapter=1,
+				cp_battle_chapter=0,
 				lilian_level = 1,
 				lilian_exp = 0,
 				lilian_phy_power = 120
@@ -652,7 +652,7 @@ function REQUEST:signup()
 		local u_checkpointmgr = require "models/u_checkpointmgr"
 		local tmp = {
 			user_id = u.csv_id,
-			chapter = 1,
+			chapter = u.cp_chapter,
 			chapter_type0 = 1,       
 			chapter_type1 = 0,
 			chapter_type2 = 0,
@@ -752,7 +752,8 @@ function REQUEST:login()
 			recharge_rmb = user.recharge_rmb,
     		recharge_diamond = user.recharge_diamond,
     		uvip_progress = user.uvip_progress,
-    		hanging_checkpoint = user.cp_hanging_id,
+    		cp_hanging_id = user.cp_hanging_id,
+    		cp_chapter = user.cp_chapter,
 		}
 		ret.u.uexp = assert(user.u_propmgr:get_by_csv_id(const.EXP)).num
 		ret.u.gold = assert(user.u_propmgr:get_by_csv_id(const.GOLD)).num
@@ -1006,7 +1007,7 @@ function REQUEST:user()
     	recharge_rmb = user.recharge_rmb,
     	recharge_diamond = user.recharge_diamond,
     	uvip_progress = user.uvip_progress,
-    	hanging_checkpoint = user.cp_hanging_id,
+    	cp_hanging_id = user.cp_hanging_id,
     	uexp = assert(user.u_propmgr:get_by_csv_id(const.EXP)).num,
     	gold = assert(user.u_propmgr:get_by_csv_id(const.GOLD)).num,
     	diamond = assert(user.u_propmgr:get_by_csv_id(const.DIAMOND)).num,
@@ -2233,8 +2234,20 @@ function REQUEST:checkpoint_hanging_choose()
 		return ret
 	end
 	assert(self)
-	user.hanging_starttime = os.time()
-	user.hanging_checkpoint = self.csv_id
+	user.cp_hanging_starttime = os.time()
+	user.cp_hanging_id = assert(self.csv_id)
+	local cp = user.u_checkpointmgr:get_by_csv_id(self.chapter)
+	if self.type == 0 then
+		assert(self.checkpoint == cp.chapter_type0)
+	elseif self.type == 1 then
+		assert(self.checkpoint == cp.chapter_type1)
+	elseif self.type == 2 then
+		assert(self.checkpoint == cp.chapter_type2)
+	else
+		assert(false)
+	end
+	assert(self.chapter*1000+self.type*100+self.checkpoint == self.csv_id)
+	user.cp_battle_id = self.csv_id
 	ret.errorcode = errorcode[1].code
 	ret.msg = errorcode[1].msg
 	return ret
@@ -2318,6 +2331,7 @@ function REQUEST:checkpoint_battle_enter()
 	end
 	assert(self.chapter <= user.cp_chapter)
 	local cp = user.u_checkpointmgr:get_by_chapter(self.chapter)
+	-- must unlocked checkpoint.
 	if self.type == 0 then
 		assert(self.checkpoint == cp.chapter_type0)
 	elseif self.type == 1 then

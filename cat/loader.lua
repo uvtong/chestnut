@@ -522,6 +522,19 @@ local function load_u_checkpoint(user)
 	user.u_checkpointmgr = u_checkpointmgr
 end
 
+local function load_u_checkpoint_rc(user)
+	-- body
+	assert(user.u_checkpoint_rcmgr == nil)
+	local u_checkpoint_rcmgr = require "models/u_checkpoint_rcmgr"
+	local r = skynet.call(util.random_db(), "lua", "command", "select", "u_checkpoint_rc", {{ user_id=user.csv_id}})
+	for i,v in ipairs(r) do
+		local a = u_checkpoint_rcmgr.create(v)
+		u_checkpoint_rcmgr:add(a)
+	end
+	u_checkpoint_rcmgr.__user_id = user.csv_id
+	user.u_checkpoint_rcmgr = u_checkpoint_rcmgr
+end
+
 local function load_u_equipment(user)
 	-- body
 	assert(user.u_equipmentmgr == nil)
