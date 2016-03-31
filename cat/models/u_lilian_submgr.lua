@@ -13,16 +13,6 @@ local _Meta = {
 				start_time = 0,
 				update_time = 0 , 
 				used_queue_num = 0 , 
-				quanguan_id1 = 0 , 
-				value1 = 0 ,
-				quanguan_id2 = 0 , 
-				value2 = 0 ,
-				quanguan_id3 = 0 , 
-				value3 = 0 ,
-				quanguan_id4 = 0 , 
-				value4 = 0 ,
-				quanguan_id5 = 0 , 
-				value5 = 0 , 
 			  }
 
 function _Meta.__new()
