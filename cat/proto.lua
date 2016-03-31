@@ -956,10 +956,14 @@ lilian_get_reward_list 71 {
         quanguan_id 0 : integer
     }
     response {
-        reward 0 : *lilian_reward_info
-    }
+        iffinished 0 : integer
+        if_trigger_event 1 : integer
+        left_cd_time 2 : integer
+        invitation_id 3 : integer
+        iflevel_up 4 : integer
+        errorcode 5 : integer
 }
-
+}
 ]]
 
 proto.s2c = sprotoparser.parse [[

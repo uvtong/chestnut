@@ -12,7 +12,8 @@ local _Meta = { user_id = 0 ,
 				end_time = 0 ,
 				if_trigger_event = 0 ,
 				iffinished = 0,
-				invitation_id = 0
+				invitation_id = 0 ,
+				iflevel_up = 0
 				 }
 
 _Meta.__tname = "u_lilian_main"

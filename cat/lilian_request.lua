@@ -42,7 +42,8 @@ end
 	
 -- recover phy_power
 local function get_phy_power()
-	local r = skyney.call( ".game" , "lua" , "query_g_lilian_level" , user.lilian_level )
+	print( "user.lilian_level" , user.lilian_level ) 
+	local r = skynet.call( ".game" , "lua" , "query_g_lilian_level" , user.lilian_level )
 	assert( r )
 	local date = os.time()
 	local sign = false
@@ -149,6 +150,26 @@ local function getsettime()
 	return settime
 end			
 
+local function deal_finish_lilian( tr )
+	get_lilian_reward( tr.quanguan_id , tr.invitation_id )
+
+	--judge if can levelup
+	assert( user.lilian_level ~= 0 )
+	local ll = skynet.call( ".game" , "lua" , "query_g_lilian_level" , user.lilian_level )	
+	assert( ll )	
+	if user.lilian_exp >= ll.experience then
+		user.lilian_level = user.lilian_level + 1
+		user.lilian_exp = user.lilian_exp - ll.experience
+		tr.iflevel_up = 1
+	end
+	local r = assert( user.u_lilian_submgr.__data[1] )
+	--update used queue num
+	if r.start_time < tr.start_time and tr.start_time < r.update_time then 
+		r.used_queue_num = r.used_queue_num - 1
+	end
+end
+
+
 local LL_OVER = { NOTOVER = 0 , OVER = 1 }
 				
 function REQUEST:get_lilian_info()
@@ -174,28 +195,14 @@ function REQUEST:get_lilian_info()
 			tmp.if_trigger_event = v.if_trigger_event
 			tmp.invitation_id = v.invitation_id 
 
-			get_lilian_reward( v.quanguan_id , v.invitation_id )
-
-			--judge if can levelup
-			assert( user.lilian_level ~= 0 )
-			local ll = skynet.call( ".game" , "lua" , "query_g_lilian_level" , user.lilian_level )	
-			assert( ll )	
-			if user.lilian_exp >= ll.experience then
-				user.lilian_level = user.lilian_level + 1
-				user.lilian_exp = user.lilian_exp - ll.experience
-
-				tmp.iflevel_up = 1
-			end
-
-			--update used queue num
-			if r.start_time < v.start_time and v.start_time < r.update_time then 
-				r.used_queue_num = r.used_queue_num - 1
-			end
-
+			deal_finish_lilian( v )  
+			
+			tmp.iflevel_up = v.iflevel_up
 			tmp.errorcode = errorcode[1].errorcode
 			tmp.msg = errorcode[1].msg
 
 			--delete this record
+
 			v.iffinished = 1
 			v:__update_db( { "iffinished" } , const.DB_PRIORITY_2 )
 			user.u_lilian_mainmgr:delete_by_csv_id( v.quanguan_id ) 
@@ -320,6 +327,7 @@ function REQUEST:start_lilian()
 			nr.invitation_id = self.invitation_id
 			nr.if_trigger_event , nr.end_time = get_total_delay_time( lq , fqn )
 			nr.end_time = nr.end_time + nr.start_time
+			nr.iflevel_up = 0
 
 			nr = user.u_lilian_mainmgr.create( nr )
 			user.u_lilian_mainmgr:__add( nr )
@@ -352,15 +360,46 @@ function REQUEST:start_lilian()
 end					
 				
 function REQUEST:lilian_get_phy_power()
+	local ret = {}
+	local date = os.time()
+
 	local sign , power = get_phy_power()
 	if not sign then
+		ret.left_cd_time = 0
+	else
+		local r = assert( user.u_lilian_submgr.__data[1] )
+		ret.left_cd_time = FIXED_STEP
+		r.first_lilian_time = date
 	end	
 
+	ret.errorcode = errorcode[1].errorcode
+	ret.msg = errorcode[1].msg
+	ret.power = power	
+	return ret
 end					
 	
 function REQUEST:lilian_get_reward_list()
 	assert( self.quanguan_id )
+	local ret = {}
+	local date = os.time()
+
 	local r = user.u_lilian_mainmgr:get_by_csv_id( self.quanguan_id )
+	assert( r )
+	if date >= r.end_time then
+		deal_finish_lilian( r )
+		ret.iffinished = r.iffinished
+		ret.if_trigger_event = r.if_trigger_event
+		ret.left_cd_time = 0
+		ret.invitation_id = r.invitation_id
+		ret.iflevel_up = r.iflevel_up
+		ret.errorcode = errorcode[1].errorcode
+		
+	else
+		ret.errorcode = errorcode[81].errorcode
+		ret.left_cd_time = r.end_time - date
+	end
+
+	return ret
 end			
 			
 function lilian_request.start(c, s, g, ...)
