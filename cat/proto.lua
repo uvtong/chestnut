@@ -195,7 +195,7 @@ proto.c2s = sprotoparser.parse [[
     recharge_rmb 8 : integer
     recharge_diamond 9 : integer
     uvip_progress 10 : integer
-    hanging_checkpoint 11 : integer
+    cp_hanging_id 11 : integer
     uexp 12 : integer
     gold 13 : integer
     diamond 14 : integer
@@ -899,7 +899,7 @@ checkpoint_hanging_choose 66 {
     }  
     response {
         errorcode 0 : integer
-        msg 1 : integer
+        msg 1 : string
         passed 2 : integer
     }
 }
