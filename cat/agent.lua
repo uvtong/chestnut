@@ -656,6 +656,10 @@ function REQUEST:signup()
 			chapter_type0 = 1,       
 			chapter_type1 = 0,
 			chapter_type2 = 0,
+			chapter_type0_finished=0,
+			chapter_type1_finished=0,
+			chapter_type2_finished=0,
+			finished=0
 		}
 		local cp = u_checkpointmgr.create(tmp)
 		cp:__insert_db(const.DB_PRIORITY_1)
@@ -753,18 +757,18 @@ function REQUEST:login()
 		ret.u.uexp = assert(user.u_propmgr:get_by_csv_id(const.EXP)).num
 		ret.u.gold = assert(user.u_propmgr:get_by_csv_id(const.GOLD)).num
 		ret.u.diamond = assert(user.u_propmgr:get_by_csv_id(const.DIAMOND)).num
-		ret.u.love = user.u_propmgr:get_by_csv_id(const.love).num
+		ret.u.love = user.u_propmgr:get_by_csv_id(const.LOVE).num
 		ret.u.equipment_list = {}
 		for k,v in pairs(user.u_equipmentmgr.__data) do
-			table.insert(ret.user.equipment_list, v)
+			table.insert(ret.u.equipment_list, v)
 		end
 		ret.u.kungfu_list = {}
 		for k,v in pairs(user.u_kungfumgr.__data) do
-			table.insert(ret.user.kungfu_list, v)
+			table.insert(ret.u.kungfu_list, v)
 		end
 		ret.u.rolelist = {}
 		for k,v in pairs(user.u_rolemgr.__data) do
-			table.insert(ret.user.rolelist, v)
+			table.insert(ret.u.rolelist, v)
 		end
 		return ret
 	else
@@ -2356,9 +2360,9 @@ local function request(name, args, response)
 	skynet.error(string.format("request: %s", name))
     local f = nil
     if REQUEST[name] ~= nil then
-    	f = assert(REQUEST[name])
+    	f = REQUEST[name]
     elseif nil ~= friendrequest[ name ] then
-    	f = assert( friendrequest[ name ] )
+    	f = friendrequest[ name ]
     else
     	for i,v in ipairs(M) do
     		if v.REQUEST[name] ~= nil then
@@ -2370,15 +2374,8 @@ local function request(name, args, response)
     assert(f)
     assert(response)
     local ok, result = pcall(f, args)
-    if not ok then
-    	skynet.error(result)
-		local ret = {
-			errorcode = errorcode[29].code,
-			msg = errorcode[29].msg
-		}
-		return response(ret)
-    else
-	    if name == "login" then
+    if ok then
+    	if name == "login" then
 	    	if result.errorcode == errorcode[1].code then
 	    		for k,v in pairs(M) do
 	    			if v.REQUEST then
@@ -2388,7 +2385,14 @@ local function request(name, args, response)
 	    	end
 	    end
 	    return response(result)
-    end
+	else
+		skynet.error(result)
+    	local ret = {
+			errorcode = errorcode[29].code,
+			msg = errorcode[29].msg
+		}
+		return response(ret)
+	end
 end      
 
 function RESPONSE:finish_achi( ... )
