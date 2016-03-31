@@ -49,7 +49,7 @@ local function get_phy_power()
 	local sign = false
 
 	if r.phy_power > user.lilian_phy_power then
-		assert( 0 == user.u_lilian_submgr.__data[1].first_lilian_time )
+		
 		local diff = ( date - user.u_lilian_submgr.__data[ 1 ].first_lilian_time ) / FIXED_STEP	
 		if user.lilian_phy_power + diff > r.phy_power then
 			user.lilian_phy_power = r.phy_power
@@ -101,7 +101,7 @@ local function get_lilian_reward( quanguan_id , invitation_id )
 	local ret = {}
 	local tmp = {}
 	assert( quanguan_id and invitation_id )
-	local r = skynet.call( ".game" , "lua" , "query_g_lilian_quqnguan" , quanguan_id )
+	local r = skynet.call( ".game" , "lua" , "query_g_lilian_quanguan" , quanguan_id )
 	assert( r )
 	-- quanguan reward
 	get_part_reward( r.reward , tmp , "(%d+%*%d+%*?)" , 2 )
@@ -198,7 +198,7 @@ function REQUEST:get_lilian_info()
 			deal_finish_lilian( v )  
 			
 			tmp.iflevel_up = v.iflevel_up
-			tmp.errorcode = errorcode[1].errorcode
+			tmp.code = errorcode[1].code
 			tmp.msg = errorcode[1].msg
 
 			--delete this record
@@ -208,7 +208,7 @@ function REQUEST:get_lilian_info()
 			user.u_lilian_mainmgr:delete_by_csv_id( v.quanguan_id ) 
 		else			
 			tmp.left_cd_time = v.end_time - date
-			tmp.errorcode = errorcode[81].errorcode
+			tmp.code = errorcode[81].code
 			tmp.msg = errorcode[81].msg
 		end 		
 		table.insert( ret.basic_info , tmp )
@@ -229,9 +229,11 @@ function REQUEST:get_lilian_info()
 	ret.lilian_num_list = user.u_lilian_qg_nummgr:get_lilian_num_list()
 
 	ret.level = user.lilian_level
-	ret.phy_power = get_phy_power()
+	local _ , p = get_phy_power()
+	ret.phy_power = p
 	ret.lilian_exp = user.lilian_exp
-	ret.errorcode = errorcode[ 1 ].errorcode
+	print( "error is called ********************************" , errorcode[1].code )
+	ret.errorcode = errorcode[ 1 ].code
 	ret.msg = errorcode[ 1 ].msg
 
 	return ret  
@@ -241,27 +243,30 @@ local function get_total_delay_time( lq , fqn )
 	assert( lq and fqn )
 
 	--lilian delay
-	local ld = lq.time * ( fqn.dec_lilian_time / 100 )
+	local ld = lq.time * ( ( 100 - fqn.dec_lilian_time ) / 100 )
 	local ed = 0
-	local iftrigger = false
+	local iftrigger = 0
 
-	local rand_num = math.floor( math.randomseed(tostring(os.time()):reverse():sub(1 , 100 ) ) )
+	local rand_num = math.random( 10000 ) % 100 
+
 	print( "randnom is *************************" , rand_num )
 	if 0 < rand_num and rand_num < lq.trigger_event_prop then
-		local te = util.parse_text( lq.trigger_event , "(%+*?)" , 1 )
+		print( "trigger_event is ************************" , lq.trigger_event )
+		local te = util.parse_text( lq.trigger_event , "(%d+%*?)" , 1 )
 		assert( te )
 
 		for k , v in ipairs( te ) do
-			local t = skynet.call( ".game" , "lua" , "query_g_lilian_event" , v )
+			print( "te v is ****************" , type(v) , v )
+			local t = skynet.call( ".game" , "lua" , "query_g_lilian_event" , tonumber(v[1]) )
 			assert( t )
 
 			ed = ed + t.cd_time
 		end 
-
-		iftrigger = true
+		print( "ed is ************************************" , ed )
+		iftrigger = 1
 	end
 	
-	return iftrigger , math.floor( ld + ed * ( fqn.dec_weikun_time / 100 ) )
+	return iftrigger , math.floor( ld + ed * ( ( 100 - fqn.dec_weikun_time ) / 100 ) )
 end 
 	
 function REQUEST:start_lilian()
@@ -272,19 +277,20 @@ function REQUEST:start_lilian()
 	local rs = user.u_lilian_submgr:get_lilian_sub()
 	local lq = skynet.call( ".game" , "lua" , "query_g_lilian_quanguan" , self.quanguan_id )
 	local fqn = skynet.call( ".game" , "lua" , "query_g_lilian_level" , user.lilian_level )
-	assert( fqn )
+	assert( fqn and lq )
 	
 	local date = os.time()
 	local settime = getsettime()
+	local total_delay_time = 0
 
 	if rm then    
-		ret.errorcode = errorcode[81].errorcode
+		ret.errorcode = errorcode[81].code
 		ret.msg = errorcode[81].msg
 
 		return ret
 	else        		
 		if user.lilian_level < lq.open_level or user.lilian_phy_power < lq.need_phy_power then  -- leck a invitation condigion judge.
-			ret.errorcode = errorcode[82].errorcode
+			ret.errorcode = errorcode[82].code
 			ret.msg = errorcode[82].msg
 
 			return ret
@@ -301,7 +307,7 @@ function REQUEST:start_lilian()
 				rs = user.u_lilian_submgr.create( rs )
 				assert( rs )
 				user.u_lilian_submgr:add( rs )
-				rs:__insert_db()
+				rs:__insert_db( const.DB_PRIORITY_2 )
 			else    
 				if settime > rs.start_time then
 					rs.start_time = settime
@@ -310,56 +316,69 @@ function REQUEST:start_lilian()
 				end
 
 				if rs.used_queue_num >= fqn.queue then
-					ret.errorcode = errorcode[84].errorcode
+					ret.errorcode = errorcode[84].code
 					ret.msg = errorcode[84].msg
 
 					return ret
 				end
 			end     
 
-			--start deal with lilian_main
+			--start deal with lilian_mai 
+			local lilian_num = 0
+
+			local t = user.u_lilian_qg_nummgr:get_by_csv_id( self.quanguan_id )
+			if t and t.start_time == settime then
+				t.num = t.num + 1
+				lilian_num = t.num
+			else
+				local lqgn = {}
+				lqgn.user_id = user.csv_id
+				lqgn.start_time = settime
+				lqgn.end_time = settime + ADAY
+				lqgn.num = 1
+				lqgn.quanguan_id = self.quanguan_id
+				lqgn.csv_id = self.quanguan_id  + lqgn.start_time
+
+				lqgn = user.u_lilian_qg_nummgr.create( lqgn )
+				user.u_lilian_qg_nummgr:add( lqgn )
+				lqgn:__insert_db( const.DB_PRIORITY_2 )
+
+				lilian_num = lqgn.num
+			end 
+
 			local nr = {}
-			nr.csv_id = 0
+			
 			nr.user_id = user.csv_id
 			nr.quanguan_id = self.quanguan_id
 			nr.start_time = date
 			nr.iffinished = 0
 			nr.invitation_id = self.invitation_id
 			nr.if_trigger_event , nr.end_time = get_total_delay_time( lq , fqn )
+			total_delay_time = nr.end_time
 			nr.end_time = nr.end_time + nr.start_time
 			nr.iflevel_up = 0
+			nr.csv_id = self.quanguan_id + nr.start_time + lilian_num
 
 			nr = user.u_lilian_mainmgr.create( nr )
-			user.u_lilian_mainmgr:__add( nr )
-			nr:__insert_db()
+			user.u_lilian_mainmgr:add( nr )
+			nr:__insert_db( const.DB_PRIORITY_2 )
 
 			if user.lilian_phy_power == fqn.phy_power then
 				rs.first_lilian_time = date
-			end 
-
-			local t = user.u_lilian_qg_nummgr:get_by_csv_id( self.quanguan_id )
-			if t and t.start_time == settime then
-				t.num = t.num + 1
-			else
-				local lqgn = {}
-				lqgn.csv_id = self.quanguan_id 
-				lqgn.user_id = user.csv_id
-				lqgn.start_time = settime
-				lqgn.end_time = settime + ADAY
-				lqgn.num = 1
-
-				lqgn = user.u_lilian_qg_nummgr.create( lqgn )
-				user:add( lqgn )
-				lqgn:__insert_db()
-			end 
-
+			end
 			rs.used_queue_num = rs.used_queue_num - 1
 			user.lilian_phy_power = user.lilian_phy_power - lq.need_phy_power
 		end 		
-	end 			
+	end 	
+	ret.errorcode = errorcode[1].code
+	ret.msg = errorcode[1].msg		
+	ret.left_cd_time = total_delay_time
+
+	return ret
 end					
 				
 function REQUEST:lilian_get_phy_power()
+	print( "lilian_get_phy_power is called********************" )
 	local ret = {}
 	local date = os.time()
 
@@ -372,13 +391,14 @@ function REQUEST:lilian_get_phy_power()
 		r.first_lilian_time = date
 	end	
 
-	ret.errorcode = errorcode[1].errorcode
+	ret.errorcode = errorcode[1].code
 	ret.msg = errorcode[1].msg
 	ret.power = power	
 	return ret
-end					
+end	
 	
 function REQUEST:lilian_get_reward_list()
+	print( "lilian_get_reward_list is called **************" )
 	assert( self.quanguan_id )
 	local ret = {}
 	local date = os.time()
@@ -392,10 +412,10 @@ function REQUEST:lilian_get_reward_list()
 		ret.left_cd_time = 0
 		ret.invitation_id = r.invitation_id
 		ret.iflevel_up = r.iflevel_up
-		ret.errorcode = errorcode[1].errorcode
+		ret.errorcode = errorcode[1].code
 		
 	else
-		ret.errorcode = errorcode[81].errorcode
+		ret.errorcode = errorcode[81].code
 		ret.left_cd_time = r.end_time - date
 	end
 

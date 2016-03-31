@@ -152,6 +152,10 @@ end
 
 function util.insert( table_name, columns )
 	-- body
+	print( "tablename and columns is " , table_name , columns )
+	for k , v in pairs( columns ) do
+		print( k , v )
+	end
 	assert(type(columns) == "table")
 	local columns_str = "("
 	local values_str = "("

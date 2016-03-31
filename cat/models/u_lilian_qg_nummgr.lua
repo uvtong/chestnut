@@ -9,11 +9,12 @@ _M.__tname = "u_lilian_qg_num"
 
 local _Meta = { 
 				user_id = 0 ,
-				csv_id = 0 , --quanguan_id
+				csv_id = 0 , --quanguan_id + start_time
 				user_id = 0 ,
 				start_time = 0 ,
 				end_time = 0 ,
-				num = 0				
+				num = 0	,
+				quanguan_id = 0			
 			  }
 
 function _Meta.__new()
@@ -78,20 +79,20 @@ end
 	
 function _M:add( u )
 	assert(u)
-	assert(self.__data[tostring(u.csv_id)] == nil)
-	self.__data[tostring(u.csv_id)] = u
+	assert(self.__data[tostring(u.quanguan_id)] == nil)
+	self.__data[tostring(u.quanguan_id)] = u
 	self.__count = self.__count + 1
 end 
 	
-function _M:get_by_csv_id(csv_id)
+function _M:get_by_csv_id(quanguan_id)
 	-- body
-	return self.__data[tostring(csv_id)]
+	return self.__data[tostring(quanguan_id)]
 end 
 	
-function _M:delete_by_csv_id(csv_id)
+function _M:delete_by_csv_id(quanguan_id)
 	-- body
-	assert(self.__data[tostring(csv_id)])
-	self.__data[tostring(csv_id)] = nil
+	assert(self.__data[tostring(quanguan_id)])
+	self.__data[tostring(quanguan_id)] = nil
 	self.__count = self.__count - 1
 end 
     
@@ -115,7 +116,7 @@ end
 function _M:get_lilian_num_list()
 	local ret = {}
 	for k , v in pairs( self.__data ) do
-		table.insert( ret , { quanguan_id = v.csv_id , num = v.num } )
+		table.insert( ret , { quanguan_id = v.quanguan_id , num = v.num } )
 	end
 
 	return ret
@@ -141,7 +142,7 @@ function _M:update_db(priority)
 	-- body
 	assert(priority)
 	if self.__count > 0 then
-		local columns = { "finished", "reward_collected", "is_unlock"}
+		local columns = { "num" }
 		local condition = { {user_id = self.__user_id}, {csv_id = {}}}
 		skynet.send(util.random_db(), "lua", "command", "update_all", _M.__tname, condition, columns, self.__data, priority)
 	end

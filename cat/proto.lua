@@ -943,6 +943,7 @@ start_lilian 69 {
     response {
         errorcode 0: integer
         msg 1 : string
+        left_cd_time 2 : integer
     }
 }   
     
