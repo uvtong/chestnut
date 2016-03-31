@@ -102,7 +102,7 @@ function _M:get_lilian_num_by_id( quanguan_id )
 	assert( quanguan_id )
 
 	local r = assert( self.__data[1] )
-		
+			
 	for i = 1 , 5 do
 		local squanguan_id = "quanguan_id" .. i
 		local svalue = "value" .. i
@@ -114,7 +114,49 @@ function _M:get_lilian_num_by_id( quanguan_id )
 
 	return 0
 end  	
+		
+function _M:set_num_by_quanguan_id( quanguan_id )
+	assert( quanguan_id )
+
+	local r = assert( self.__data[1] )
+	local i = 1
+	while i <= 5 then
+		local quanguan = "quanguan_id" .. i
+		local value = "value" .. i
+
+		if r[quanguan] == quanguan_id then
+			r[value] = r[value]  + 1
+			break
+		elseif 0 == r[quanguan] then
+			r[value] = 1
+			break
+		else
+			assert( false )
+		end
+
+		i = i + 1
+	end 
+
+	return true
+end 	
+
+function _M:reset_quanguan_num()
+	local r = assert( self.__data[1] )
+	local i = 1
+	while i <= 5 then
+		local quanguan = "quanguan_id" .. i
+		local value = "value" .. i
+
+		if r[quanguan] ~= 0 then
+			r[value] = 0
+		end
+
+		i = i + 1
+	end
 	
+	return true 
+end
+		
 function _M:get_count()
 	-- body
 	return self.__count

@@ -60,10 +60,6 @@ local function get_phy_power()
 	return user.phy_power
 end 
 	
-function REQUEST:get_phy_power()
-	return  assert( get_phy_power() )
-end 
-	
 local function add_to_prop( tprop )
 	assert( tprop )
 
@@ -214,12 +210,12 @@ function REQUEST:get_lilian_info()
 			local settime = getsettime()
 			r.start_time = settime
 			r.update_time = settime + ADAY
-			user.u_lilian_submgr:__reset_quanguan_num()       --set all id and value to 0
+			user.u_lilian_submgr:reset_quanguan_num()       --set all id and value to 0
 			r.used_queue_num = 0
 		end
 	end
 
-	ret.
+	ret.lilian_num_list = user.u_lilian_submgr:get_lilian_num_list()
 
 	ret.level = user.lilian_level
 	ret.phy_power = get_phy_power()
@@ -312,9 +308,9 @@ function REQUEST:start_lilian()
 					return ret
 				else
 					
-					local num = user.u_lilian_submgr:__get_num_by_quanguan_id( self.quanguan_id )
+					local num = user.u_lilian_submgr:get_num_by_quanguan_id( self.quanguan_id )
 					if num < lq.day_finish_time then
-						user.u_lilian_submgr:__set_num_by_quanguan_id( self.quanguan_id )
+						user.u_lilian_submgr:set_num_by_quanguan_id( self.quanguan_id )
 					else
 						ret.errorcode = errorcode[83].errorcode
 						ret.msg = errorcode[83].msg
@@ -339,7 +335,9 @@ function REQUEST:start_lilian()
 			user.u_lilian_mainmgr:__add( nr )
 			nr:__insert_db()
 
-			if user.phy_power == 
+			if user.phy_power == fqn.phy_power then
+				
+			end
 
 			user.phy_power = user.phy_power - lq.need_phy_power
 
@@ -348,10 +346,13 @@ function REQUEST:start_lilian()
 end					
 					
 function REQUEST:lilian_get_phy_power()
-	if 
+	return  assert( get_phy_power() )
 end					
-					
+	
 function REQUEST:lilian_get_reward_list()
+	assert( self.quanguan_id )
+	local r = user.u_lilian_mainmgr:get_by_csv_id( self.quanguan_id )
+
 
 end			
 			
