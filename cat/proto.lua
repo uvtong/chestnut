@@ -895,6 +895,9 @@ checkpoint_battle_exit 65 {
 
 checkpoint_hanging_choose 66 {
     request {
+        chapter 0 : integer
+        type 1 : integer
+        checkpoint 2 : integer
         csv_id 0 : integer
     }  
     response {
