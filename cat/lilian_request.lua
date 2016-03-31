@@ -393,7 +393,7 @@ function REQUEST:lilian_get_reward_list()
 		ret.invitation_id = r.invitation_id
 		ret.iflevel_up = r.iflevel_up
 		ret.errorcode = errorcode[1].errorcode
-		ret.msg = errorcode[1].msg
+		
 	else
 		ret.errorcode = errorcode[81].errorcode
 		ret.left_cd_time = r.end_time - date
