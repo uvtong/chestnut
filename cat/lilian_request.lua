@@ -45,7 +45,8 @@ local function get_phy_power()
 	local r = skyney.call( ".game" , "lua" , "query_g_lilian_level" , user.lilian_level )
 	assert( r )
 	local date = os.time()
-	
+	local sign = false
+
 	if r.phy_power > user.lilian_phy_power then
 		assert( 0 == user.u_lilian_submgr.__data[1].first_lilian_time )
 		local diff = ( date - user.u_lilian_submgr.__data[ 1 ].first_lilian_time ) / FIXED_STEP	
@@ -55,9 +56,11 @@ local function get_phy_power()
 			user.lilian_phy_power = user.lilian_phy_power + diff
 			user.u_lilian_submgr.__data[ 1 ].first_lilian_time = 0
 		end
+
+		sign = true
 	end 			
 	
-	return user.lilian_phy_power
+	return sign , user.lilian_phy_power;
 end 
 	
 local function add_to_prop( tprop )
@@ -153,7 +156,7 @@ function REQUEST:get_lilian_info()
 	print( "*-------------------------* get_lilian_info is called" )
 
 	local ret = {}
-	local ret.basic_info = {}
+	ret.basic_info = {}
 	local date = os.time()
     	
     local r = user.u_lilian_submgr:get_lilian_sub()
@@ -185,7 +188,7 @@ function REQUEST:get_lilian_info()
 			end
 
 			--update used queue num
-			if r.start_time < v.start_time and v.start_time < r.end_time then 
+			if r.start_time < v.start_time and v.start_time < r.update_time then 
 				r.used_queue_num = r.used_queue_num - 1
 			end
 
@@ -209,7 +212,7 @@ function REQUEST:get_lilian_info()
 		--time to update 
 		if r.start_time < settime then
 			r.start_time = settime
-			r.end_time = start_time + ADAY
+			r.update_time = start_time + ADAY
 			r.used_queue_num = 0
 
 			user.u_lilian_qg_nummgr:clear_by_settime( settime )
@@ -295,7 +298,7 @@ function REQUEST:start_lilian()
 			else    
 				if settime > rs.start_time then
 					rs.start_time = settime
-					rs.end_time = rs.start_time + ADAY
+					rs.update_time = rs.start_time + ADAY
 					rs.used_queue_num = 0
 				end
 
@@ -349,14 +352,15 @@ function REQUEST:start_lilian()
 end					
 				
 function REQUEST:lilian_get_phy_power()
-	return  assert( get_phy_power() )
+	local sign , power = get_phy_power()
+	if not sign then
+	end	
+
 end					
 	
 function REQUEST:lilian_get_reward_list()
 	assert( self.quanguan_id )
 	local r = user.u_lilian_mainmgr:get_by_csv_id( self.quanguan_id )
-
-
 end			
 			
 function lilian_request.start(c, s, g, ...)

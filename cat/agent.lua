@@ -25,6 +25,7 @@ local exercise_request = require "exercise_request"
 local cgold_request = require "cgold_request"
 local kungfurequest = require "kungfurequest"
 local new_drawrequest = require "new_drawrequest"
+--local lilian_request = require "lilian_request"
 
 table.insert( M , checkinrequest )
 table.insert( M , exercise_request )
@@ -32,6 +33,7 @@ table.insert( M , cgold_request )
 table.insert( M , new_emailrequest )
 table.insert( M , kungfurequest )
 table.insert( M , new_drawrequest )
+--table.insert( M , lilian_request )
 
 local WATCHDOG
 local host

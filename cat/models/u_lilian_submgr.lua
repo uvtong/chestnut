@@ -120,7 +120,7 @@ function _M:set_num_by_quanguan_id( quanguan_id )
 
 	local r = assert( self.__data[1] )
 	local i = 1
-	while i <= 5 then
+	while i <= 5 do
 		local quanguan = "quanguan_id" .. i
 		local value = "value" .. i
 
@@ -143,7 +143,7 @@ end
 function _M:reset_quanguan_num()
 	local r = assert( self.__data[1] )
 	local i = 1
-	while i <= 5 then
+	while i <= 5 do
 		local quanguan = "quanguan_id" .. i
 		local value = "value" .. i
 

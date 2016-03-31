@@ -624,11 +624,11 @@ local function load_u_lilian_sub(user)
 	user.u_lilian_submgr = u_lilian_submgr
 end
 
-local function load_u_lilian_qg_num()
+local function load_u_lilian_qg_num(user)
 	assert(user)
 	local u_lilian_qg_nummgr = require "models/u_lilian_qg_nummgr"
 	local date = os.time()
-	local sql = string.format( "select * from u_lilian_qg_num where user_id = %s and start_time < %s and %s < end_time" , user.csv_id , date )
+	local sql = string.format( "select * from u_lilian_qg_num where user_id = %s and start_time < %s and %s < end_time" , user.csv_id , date , date)
 	local nr = skynet.call( util.random_db() , "lua" , "command" , "query" , sql )
 
 	for i , v in ipairs( nr ) do
@@ -792,10 +792,10 @@ function loader.load_game()
 		load_g_subreward()
 		load_g_prop()
 		load_g_recharge()
-		--load_g_lilian_invitation()
-		--load_g_lilian_level()
-		--load_g_lilian_event()
-		--load_g_lilian_quanguan()
+		-- load_g_lilian_invitation()
+		-- load_g_lilian_level()
+		-- load_g_lilian_event()
+		-- load_g_lilian_quanguan()
 		load_g_randomval()
 		load_g_recharge_vip_reward()
 		load_g_role()
@@ -838,9 +838,9 @@ function loader.load_user(user)
 	load_u_recharge_vip_reward(user)
 	load_u_journal(user)
 	load_u_goods(user)
-	--load_u_lilian_main()
-	--load_u_lilian_sub()
-	--load_u_lilian_qg_num()
+	--load_u_lilian_main(user)
+	--load_u_lilian_sub(user)
+	--load_u_lilian_qg_num(user)
 	return user
 end
 

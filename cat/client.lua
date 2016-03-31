@@ -153,6 +153,8 @@ while true do
 	if cmd then
 		if cmd == "handshake" then
 			send_request(cmd)
+		elseif cmd == "lilian" then
+			send_request( "get_lilian_info" )
 		elseif cmd == "kungfu" then
 			send_request( cmd )
 		elseif cmd == "klevelup" then
@@ -174,7 +176,7 @@ while true do
 		elseif cmd == "channel" then
 			send_request(cmd)
 		elseif cmd == "login" then
-			send_request("login", { account = "aaaz" , password = "aaaz" })
+			send_request("login", { account = "zzzzx" , password = "zzzzx" })
 		elseif cmd == "signup" then
 			send_request("signup", { account = "hello46" , password = "world2" })
 		elseif cmd == "role_upgrade_star" then

@@ -947,6 +947,7 @@ lilian_get_phy_power 70 {
         errorcode 0 : integer
         msg 1 : string
         phy_power 2 : integer
+        left_cd_time 3 : integer
     }
 }
 
