@@ -754,6 +754,7 @@ function REQUEST:login()
     		uvip_progress = user.uvip_progress,
     		cp_hanging_id = user.cp_hanging_id,
     		cp_chapter = user.cp_chapter,
+    		lilian_level = user.lilian_level
 		}
 		ret.u.uexp = assert(user.u_propmgr:get_by_csv_id(const.EXP)).num
 		ret.u.gold = assert(user.u_propmgr:get_by_csv_id(const.GOLD)).num
@@ -2236,18 +2237,25 @@ function REQUEST:checkpoint_hanging_choose()
 	assert(self)
 	user.cp_hanging_starttime = os.time()
 	user.cp_hanging_id = assert(self.csv_id)
-	local cp = user.u_checkpointmgr:get_by_csv_id(self.chapter)
+	local cp = user.u_checkpointmgr:get_by_chapter(self.chapter)
 	if self.type == 0 then
-		assert(self.checkpoint == cp.chapter_type0)
+		if self.checkpoint == cp.chapter_type0 then
+			assert(self.chapter*1000+self.type*100+self.checkpoint == self.csv_id)
+			user.cp_battle_id = self.csv_id				
+		end
 	elseif self.type == 1 then
-		assert(self.checkpoint == cp.chapter_type1)
+		if self.checkpoint == cp.chapter_type1 then
+			assert(self.chapter*1000+self.type*100+self.checkpoint == self.csv_id)
+			user.cp_battle_id = self.csv_id				
+		end
 	elseif self.type == 2 then
-		assert(self.checkpoint == cp.chapter_type2)
+		if self.checkpoint == cp.chapter_type2 then
+			assert(self.chapter*1000+self.type*100+self.checkpoint == self.csv_id)
+			user.cp_battle_id = self.csv_id	
+		end
 	else
 		assert(false)
 	end
-	assert(self.chapter*1000+self.type*100+self.checkpoint == self.csv_id)
-	user.cp_battle_id = self.csv_id
 	ret.errorcode = errorcode[1].code
 	ret.msg = errorcode[1].msg
 	return ret
@@ -2342,18 +2350,28 @@ function REQUEST:checkpoint_battle_enter()
 		assert(false)
 	end
 	if user.cp_battle_id == self.csv_id then
-		local r = skynet.call(game, "lua", "query_g_checkpoint", self.csv_id)
-		local now = os.time()
-		if now - user.cp_battle_enter_starttime >= r.cd then
+		print(self.csv_id)
+		local cp_rc = user.u_checkpoint_rcmgr:get_by_csv_id(self.csv_id)
+		if cp_rc.finished == 1 then
 			ret.errorcode = errorcode[1].code
 			ret.msg = errorcode[1].msg
 			ret.cd = 0
 			return ret
 		else
-			ret.errorcode = errorcode[1].code
-			ret.msg = errorcode[1].msg
-			ret.cd = now - user.cp_battle_enter_starttime
-			return ret
+			local r = skynet.call(game, "lua", "query_g_checkpoint", self.csv_id)
+			local now = os.time()
+			local countdown = now - cp_rc.cd_starttime
+			if countdown >= r.cd then
+				ret.errorcode = errorcode[1].code
+				ret.msg = errorcode[1].msg
+				ret.cd = 0
+				return ret
+			else
+				ret.errorcode = errorcode[1].code
+				ret.msg = errorcode[1].msg
+				ret.cd = countdown
+				return ret
+			end
 		end
 	else
 		ret.errorcode = errorcode[35].code

@@ -1,5 +1,6 @@
 local skynet = require "skynet"
 local util = require "util"
+local const = require "const"
 
 local _M = {}
 _M.__data = {}
@@ -7,7 +8,7 @@ _M.__count = 0
 _M.__user_id = 0
 _M.__tname = "u_checkpoint_rc"
 
-local _Meta = { user_id=0, csv_id=0, passed=0}
+local _Meta = { user_id=0, csv_id=0, passed=0, cd_starttime=0, cd_finished=0}
 
 function _Meta.__new()
  	-- body
@@ -18,7 +19,7 @@ end
 
 function _Meta:__insert_db(priority)
 	-- body
-	assert(priority)
+	assert(priority, "need priority")
 	local t = {}
 	for k,v in pairs(_Meta) do
 		if not string.match(k, "^__*") then
@@ -60,6 +61,8 @@ function _M.create_with_csv_id(csv_id)
 		user_id = _M.__user_id,
 		csv_id = csv_id,
 		passed = 0,
+		cd_starttime=0,
+		cd_finished=0,
 	}
 	return _M.create(tmp)
 end
@@ -90,7 +93,7 @@ function _M:get_by_csv_id(csv_id)
 	else
 		r = self.create_with_csv_id(csv_id)
 		self:add(r)
-		r:__insert_db()
+		r:__insert_db(const.DB_PRIORITY_2)
 		return r
 	end
 end

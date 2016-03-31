@@ -31,38 +31,30 @@ end
 
 function _Meta:__insert_db()
 	-- body
-	local t = {}
-	for k,v in pairs(self) do
-		if not string.match(k, "^__*") then
-			t[k] = assert(self[k])
-		end
-	end
-	skynet.send(util.random_db(), "lua", "command", "insert", self.__tname, t)
+	-- local t = {}
+	-- for k,v in pairs(self) do
+	-- 	if not string.match(k, "^__*") then
+	-- 		t[k] = assert(self[k])
+	-- 	end
+	-- end
+	-- skynet.send(util.random_db(), "lua", "command", "insert", self.__tname, t)
 end
 
 function _Meta:__update_db(t)
 	-- body
-	assert(type(t) == "table")
-	local columns = {}
-	for i,v in ipairs(t) do
-		columns[tostring(v)] = self[tostring(v)]
-	end
-	skynet.send(util.random_db(), "lua", "command", "update", self.__tname, {{ id = self.id }}, columns)
+	-- assert(type(t) == "table")
+	-- local columns = {}
+	-- for i,v in ipairs(t) do
+	-- 	columns[tostring(v)] = self[tostring(v)]
+	-- end
+	-- skynet.send(util.random_db(), "lua", "command", "update", self.__tname, {{ id = self.id }}, columns)
 end
 
-function _Meta:__serialize()
-	-- body
-	local r = {}
-	for k,v in pairs(_Meta) do
-		if not string.match(k, "^__*") then
-			r[k] = self[k]
-		end
-	end
-	return r
-end
+
 
 function _M:clear()
 	self.__data = {}
+	self.__count = 0
 end
 
 function _M.create( P )
@@ -78,27 +70,19 @@ end
 
 function _M:add( u )
 	assert(u)
-	self.__data[tostring(u.id)] = u
+	self.__data[tostring(u.csv_id)] = u
 	self.__count = self.__count + 1
-end
-	
-function _M:delete(id)
-	assert(id)
-	self.__data[tostring(id)] = nil
-end
-
-function _M:get(id)
-	-- body
-	return self.__data[tostring(id)]
 end
 
 function _M:get_by_csv_id(csv_id)
 	-- body
-	for k,v in pairs(self.__data) do
-		if v.csv_id == csv_id then
-			return v
-		end
-	end
+	return self.__data[tostring(csv_id)]
+end
+
+function _M:delete_by_csv_id(csv_id)
+	assert(self.__data[tostring(csv_id)] ~= nil) 
+	self.__data[tostring(id)] = nil
+	self.__count = self.__count - 1
 end
 
 function _M:get_count()
