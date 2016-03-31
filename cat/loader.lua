@@ -596,14 +596,48 @@ local function load_u_email( user )
 	user.u_emailmgr = u_emailmgr
 end
 
-local function load_u_lilian(user)
+local function load_u_lilian_main(user)
 	assert(user)
-	local u_lilianmgr = require "models/u_lilianmgr"
+	local u_lilian_mainmgr = require "models/u_lilian_mainmgr"
 	local nr = skynet.call( util.random_db() , "lua" , "command" , "select" , "u_lilian_main" , { { user_id = user.csv_id , iffinished = 0 } } )
 
 	for i , v in ipairs( nr ) do
-		local a = u_
+		local a = u_lilian_mainmgr.create( v )
+		u_lilian_mainmgr:add( a )
 	end
+	
+	u_lilian_mainmgr.__user_id = user.csv_id
+	user.u_lilian_mainmgr = u_lilian_mainmgr
+end
+
+local function load_u_lilian_sub(user)
+	assert(user)
+	local u_lilian_submgr = require "models/u_lilian_submgr"
+	local nr = skynet.call( util.random_db() , "lua" , "command" , "select" , "u_lilian_sub" , { { user_id = user.csv_id } } )
+
+	for i , v in ipairs( nr ) do
+		local a = u_lilian_submgr.create( v )
+		u_lilian_submgr:add( a )
+	end
+
+	u_lilian_submgr.__user_id = user.csv_id
+	user.u_lilian_submgr = u_lilian_submgr
+end
+
+local function load_u_lilian_qg_num(user)
+	assert(user)
+	local u_lilian_qg_nummgr = require "models/u_lilian_qg_nummgr"
+	local date = os.time()
+	local sql = string.format( "select * from u_lilian_qg_num where user_id = %s and start_time < %s and %s < end_time" , user.csv_id , date , date)
+	local nr = skynet.call( util.random_db() , "lua" , "command" , "query" , sql )
+
+	for i , v in ipairs( nr ) do
+		local a = u_lilian_qg_nummgr.create( v )
+		u_lilian_qg_nummgr:add( a )
+	end
+
+	u_lilian_qg_nummgr.__user_id = user.csv_id
+	user.u_lilian_qg_nummgr = u_lilian_qg_nummgr
 end
 
 local function load_u_prop(user)
@@ -758,10 +792,10 @@ function loader.load_game()
 		load_g_subreward()
 		load_g_prop()
 		load_g_recharge()
-		--load_g_lilian_invitation()
-		--load_g_lilian_level()
-		--load_g_lilian_event()
-		--load_g_lilian_quanguan()
+		-- load_g_lilian_invitation()
+		-- load_g_lilian_level()
+		-- load_g_lilian_event()
+		-- load_g_lilian_quanguan()
 		load_g_randomval()
 		load_g_recharge_vip_reward()
 		load_g_role()
@@ -804,6 +838,9 @@ function loader.load_user(user)
 	load_u_recharge_vip_reward(user)
 	load_u_journal(user)
 	load_u_goods(user)
+	--load_u_lilian_main(user)
+	--load_u_lilian_sub(user)
+	--load_u_lilian_qg_num(user)
 	return user
 end
 

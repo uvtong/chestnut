@@ -25,6 +25,7 @@ local exercise_request = require "exercise_request"
 local cgold_request = require "cgold_request"
 local kungfurequest = require "kungfurequest"
 local new_drawrequest = require "new_drawrequest"
+--local lilian_request = require "lilian_request"
 
 table.insert( M , checkinrequest )
 table.insert( M , exercise_request )
@@ -32,6 +33,7 @@ table.insert( M , cgold_request )
 table.insert( M , new_emailrequest )
 table.insert( M , kungfurequest )
 table.insert( M , new_drawrequest )
+--table.insert( M , lilian_request )
 
 local WATCHDOG
 local host
@@ -530,7 +532,11 @@ function REQUEST:signup()
 				hanging_checkpoint=0,
 				cp_battle_id=0,
 				cp_battle_enter_starttime=0,
-				cp_battle_chapter=0  }
+				cp_battle_chapter=0 ,
+				lilian_level = 1,
+				lilian_exp = 0,
+				lilian_phy_power = 120
+				}
 		local usersmgr = require "models/usersmgr"
 		local u = usersmgr.create(t)
 		u:__insert_db(const.DB_PRIORITY_1)

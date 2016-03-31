@@ -54,7 +54,11 @@ local _Meta = { csv_id=0,
 				hanging_checkpoint=0,
 				cp_battle_id=0,
 				cp_battle_enter_starttime=0,
-				cp_battle_chapter=0 }
+				cp_battle_chapter=0 ,
+				lilian_level ,
+				lilian_exp ,
+				lilian_phy_power
+				}
 
 _Meta.__tname = "users"
 

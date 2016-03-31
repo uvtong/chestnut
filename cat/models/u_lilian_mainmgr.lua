@@ -5,9 +5,17 @@ local _M = {}
 _M.__data = {}
 _M.__count = 0
 
-local _Meta = { user_id=0, csv_id=0, }
+local _Meta = { user_id = 0 , 
+				csv_id = 0 ,
+				quanguan_id = 0 ,
+				start_time = 0 ,
+				end_time = 0 ,
+				if_trigger_event = 0 ,
+				iffinished = 0,
+				invitation_id = 0
+				 }
 
-_Meta.__tname = "u_lilian"
+_Meta.__tname = "u_lilian_main"
 
 function _Meta.__new()
  	-- body
@@ -78,19 +86,19 @@ end
 
 function _M:add( u )
 	assert(u)
-	self.__data[tostring(u.csv_id)] = u
+	self.__data[tostring(u.quanguan_id)] = u
 	self.__count = self.__count + 1
 end
 	
-function _M:get_by_csv_id(csv_id)
+function _M:get_by_csv_id(quanguan_id)
 	-- body
-	return self.__data[tostring(csv_id)]
+	return self.__data[tostring(quanguan_id)]
 end
 
-function _M:delete_by_csv_id(csv_id)
+function _M:delete_by_csv_id(quanguan_id)
 	-- body
-	assert(self.__data[tostring(csv_id)])
-	self.__data[tostring(csv_id)] = nil
+	assert(self.__data[tostring(quanguan_id)])
+	self.__data[tostring(quanguan_id)] = nil
 	self.__count = self.__count - 1
 end
 
