@@ -55,9 +55,9 @@ local _Meta = { csv_id=0,
 				cp_battle_id=0,
 				cp_battle_enter_starttime=0,
 				cp_battle_chapter=0 ,
-				lilian_level ,
-				lilian_exp ,
-				lilian_phy_power
+				lilian_level = 0,
+				lilian_exp = 0,
+				lilian_phy_power = 0
 				}
 
 _Meta.__tname = "users"
@@ -112,6 +112,7 @@ function _M.create( P )
 	local u = _Meta.__new()
 	for k,v in pairs(_Meta) do
 		if not string.match(k, "^__*") then
+			print( k , v , P[k])
 			u[k] = assert(P[k])
 		end
 	end

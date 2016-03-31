@@ -42,7 +42,8 @@ end
 	
 -- recover phy_power
 local function get_phy_power()
-	local r = skyney.call( ".game" , "lua" , "query_g_lilian_level" , user.lilian_level )
+	print( "user.lilian_level" , user.lilian_level ) 
+	local r = skynet.call( ".game" , "lua" , "query_g_lilian_level" , user.lilian_level )
 	assert( r )
 	local date = os.time()
 	local sign = false
