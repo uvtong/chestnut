@@ -155,6 +155,8 @@ while true do
 			send_request(cmd)
 		elseif cmd == "lilian" then
 			send_request( "get_lilian_info" )
+		elseif cmd == "start_lilian" then
+			send_request( "start_lilian" , { quanguan_id = 1 , invitation_id = 50001 } )
 		elseif cmd == "kungfu" then
 			send_request( cmd )
 		elseif cmd == "klevelup" then

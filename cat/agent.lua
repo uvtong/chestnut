@@ -2185,7 +2185,7 @@ function REQUEST:checkpoint_chapter()
 	ret.msg = errorcode[1].code
 	ret.l = {}
 	for k,v in pairs(user.u_checkpointmgr.__data) do
-		table.insert(l, v)
+		table.insert(ret.l, v)
 	end
 	return ret
 end

@@ -229,7 +229,8 @@ function REQUEST:get_lilian_info()
 	ret.lilian_num_list = user.u_lilian_qg_nummgr:get_lilian_num_list()
 
 	ret.level = user.lilian_level
-	ret.phy_power = get_phy_power()
+	local _ , p = get_phy_power()
+	ret.phy_power = p
 	ret.lilian_exp = user.lilian_exp
 	ret.errorcode = errorcode[ 1 ].errorcode
 	ret.msg = errorcode[ 1 ].msg
@@ -241,27 +242,30 @@ local function get_total_delay_time( lq , fqn )
 	assert( lq and fqn )
 
 	--lilian delay
-	local ld = lq.time * ( fqn.dec_lilian_time / 100 )
+	local ld = lq.time * ( ( 100 - fqn.dec_lilian_time ) / 100 )
 	local ed = 0
-	local iftrigger = false
+	local iftrigger = 0
 
-	local rand_num = math.floor( math.randomseed(tostring(os.time()):reverse():sub(1 , 100 ) ) )
+	local rand_num = math.random( 10000 ) % 100 
+
 	print( "randnom is *************************" , rand_num )
 	if 0 < rand_num and rand_num < lq.trigger_event_prop then
-		local te = util.parse_text( lq.trigger_event , "(%+*?)" , 1 )
+		print( "trigger_event is ************************" , lq.trigger_event )
+		local te = util.parse_text( lq.trigger_event , "(%d+%*?)" , 1 )
 		assert( te )
 
 		for k , v in ipairs( te ) do
-			local t = skynet.call( ".game" , "lua" , "query_g_lilian_event" , v )
+			print( "te v is ****************" , type(v) , v )
+			local t = skynet.call( ".game" , "lua" , "query_g_lilian_event" , tonumber(v[1]) )
 			assert( t )
 
 			ed = ed + t.cd_time
 		end 
-
-		iftrigger = true
+		print( "ed is ************************************" , ed )
+		iftrigger = 1
 	end
 	
-	return iftrigger , math.floor( ld + ed * ( fqn.dec_weikun_time / 100 ) )
+	return iftrigger , math.floor( ld + ed * ( ( 100 - fqn.dec_weikun_time ) / 100 ) )
 end 
 	
 function REQUEST:start_lilian()
@@ -301,7 +305,7 @@ function REQUEST:start_lilian()
 				rs = user.u_lilian_submgr.create( rs )
 				assert( rs )
 				user.u_lilian_submgr:add( rs )
-				rs:__insert_db()
+				rs:__insert_db( const.DB_PRIORITY_2 )
 			else    
 				if settime > rs.start_time then
 					rs.start_time = settime
@@ -330,8 +334,8 @@ function REQUEST:start_lilian()
 			nr.iflevel_up = 0
 
 			nr = user.u_lilian_mainmgr.create( nr )
-			user.u_lilian_mainmgr:__add( nr )
-			nr:__insert_db()
+			user.u_lilian_mainmgr:add( nr )
+			nr:__insert_db( const.DB_PRIORITY_2 )
 
 			if user.lilian_phy_power == fqn.phy_power then
 				rs.first_lilian_time = date
@@ -349,14 +353,18 @@ function REQUEST:start_lilian()
 				lqgn.num = 1
 
 				lqgn = user.u_lilian_qg_nummgr.create( lqgn )
-				user:add( lqgn )
-				lqgn:__insert_db()
+				user.u_lilian_qg_nummgr:add( lqgn )
+				lqgn:__insert_db( const.DB_PRIORITY_2 )
 			end 
 
 			rs.used_queue_num = rs.used_queue_num - 1
 			user.lilian_phy_power = user.lilian_phy_power - lq.need_phy_power
 		end 		
-	end 			
+	end 	
+	ret.errorcode = errorcode[1].errorcode
+	ret.msg = errorcode[1].msg		
+
+	return ret
 end					
 				
 function REQUEST:lilian_get_phy_power()
