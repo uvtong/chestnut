@@ -963,7 +963,7 @@ lilian_get_reward_list 71 {
         iflevel_up 4 : integer
         errorcode 5 : integer
 }
-
+}
 ]]
 
 proto.s2c = sprotoparser.parse [[
