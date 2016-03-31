@@ -898,7 +898,7 @@ checkpoint_hanging_choose 66 {
         chapter 0 : integer
         type 1 : integer
         checkpoint 2 : integer
-        csv_id 0 : integer
+        csv_id 3 : integer
     }  
     response {
         errorcode 0 : integer
