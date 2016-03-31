@@ -528,11 +528,11 @@ function REQUEST:signup()
 				draw_number=0 ,
 				ifxilian = 0,              -- 
 				cp_chapter=1,                 -- checkpoint progress 1
-				hanging_starttime=0,       -- 
-				hanging_checkpoint=0,
-				cp_battle_id=0,
+				cp_hanging_starttime=0,       -- 
+				cp_hanging_id= 1*1000 + 0*100 + 1,
+				cp_battle_id=1*1000+0*100+1,
 				cp_battle_enter_starttime=0,
-				cp_battle_chapter=0 ,
+				cp_battle_chapter=1,
 				lilian_level = 1,
 				lilian_exp = 0,
 				lilian_phy_power = 120
@@ -752,7 +752,7 @@ function REQUEST:login()
 			recharge_rmb = user.recharge_rmb,
     		recharge_diamond = user.recharge_diamond,
     		uvip_progress = user.uvip_progress,
-    		hanging_checkpoint = user.hanging_checkpoint,
+    		hanging_checkpoint = user.cp_hanging_id,
 		}
 		ret.u.uexp = assert(user.u_propmgr:get_by_csv_id(const.EXP)).num
 		ret.u.gold = assert(user.u_propmgr:get_by_csv_id(const.GOLD)).num
@@ -1006,6 +1006,7 @@ function REQUEST:user()
     	recharge_rmb = user.recharge_rmb,
     	recharge_diamond = user.recharge_diamond,
     	uvip_progress = user.uvip_progress,
+    	hanging_checkpoint = user.cp_hanging_id,
     	uexp = assert(user.u_propmgr:get_by_csv_id(const.EXP)).num,
     	gold = assert(user.u_propmgr:get_by_csv_id(const.GOLD)).num,
     	diamond = assert(user.u_propmgr:get_by_csv_id(const.DIAMOND)).num,
@@ -2198,8 +2199,8 @@ function REQUEST:checkpoint_hanging()
 		return ret
 	end
 	-- enter
-	if self.hanging_checkpoint > 0 then 
-		local r = skynet.call(game, "lua", "query_g_checkpoint", user.hanging_checkpoint)
+	if user.cp_hanging_id > 0 then 
+		local r = skynet.call(game, "lua", "query_g_checkpoint", user.cp_hanging_id)
 		local now = os.time()
 		local diff = now - user.hanging_starttime
 		local n = diff / r.cd
