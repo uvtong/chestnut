@@ -204,6 +204,7 @@ proto.c2s = sprotoparser.parse [[
     kungfu_list 17 : *kungfu_content
     rolelist 18 : *role
     cp_chapter 19 : integer
+    lilian_level 20 : integer
 }
 
 .checkpoint_chapter {
