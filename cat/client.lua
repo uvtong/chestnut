@@ -153,6 +153,8 @@ while true do
 	if cmd then
 		if cmd == "handshake" then
 			send_request(cmd)
+		elseif cmd == "reward" then
+			send_request( "lilian_get_reward_list" , { quanguan_id = 1}  )
 		elseif cmd == "lilian" then
 			send_request( "get_lilian_info" )
 		elseif cmd == "start_lilian" then

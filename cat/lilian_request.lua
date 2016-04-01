@@ -54,16 +54,16 @@ local function get_phy_power()
 		if user.lilian_phy_power + diff > r.phy_power then
 			user.lilian_phy_power = r.phy_power
 		else
-			user.lilian_phy_power = user.lilian_phy_power + diff
+			user.lilian_phy_power = user.lilian_phy_power + math.floor( diff )
 			user.u_lilian_submgr.__data[ 1 ].first_lilian_time = 0
 		end
 
 		sign = true
 	end 			
-	
+		
 	return sign , user.lilian_phy_power;
-end 
-	
+end 	
+		
 local function add_to_prop( tprop )
 	assert( tprop )
 
@@ -85,7 +85,7 @@ local function add_to_prop( tprop )
 end				
 				
 local function get_part_reward( sr , tmp , format , D )
-	assert( sr and t )
+	assert( sr and tmp and format and D  )
 
 	local qg_reward =  util.parse_text( sr , format , D )
 	for k , v in ipairs( qg_reward ) do
@@ -151,6 +151,7 @@ local function getsettime()
 end			
 
 local function deal_finish_lilian( tr )
+	assert( tr )
 	get_lilian_reward( tr.quanguan_id , tr.invitation_id )
 
 	--judge if can levelup
@@ -162,6 +163,7 @@ local function deal_finish_lilian( tr )
 		user.lilian_exp = user.lilian_exp - ll.experience
 		tr.iflevel_up = 1
 	end
+	print( "*************************************count" , user.u_lilian_submgr:get_count() )
 	local r = assert( user.u_lilian_submgr.__data[1] )
 	--update used queue num
 	if r.start_time < tr.start_time and tr.start_time < r.update_time then 
@@ -183,16 +185,20 @@ function REQUEST:get_lilian_info()
     local r = user.u_lilian_submgr:get_lilian_sub()
 
 	--if quanguan can lilian
-	for k , v in ipairs( user.u_lilian_mainmgr.__data ) do
+	for k , v in pairs( user.u_lilian_mainmgr.__data ) do
 		local tmp = {}
 
 		local date = os.time()
         
 		tmp.quanguan_id = v.quanguan_id
-			
+		print( "date is , v.end_time is " , date , v.end_time , date >= v.end_time )
+		if date >= v.event_end_time then
+			tmp.left_cd_time = 0
+		end
+
 		if date >= v.end_time then
 			tmp.left_cd_time = 0 
-			tmp.if_trigger_event = v.if_trigger_event
+		--	tmp.if_trigger_event = v.if_trigger_event
 			tmp.invitation_id = v.invitation_id 
 
 			deal_finish_lilian( v )  
@@ -358,6 +364,9 @@ function REQUEST:start_lilian()
 			nr.end_time = nr.end_time + nr.start_time
 			nr.iflevel_up = 0
 			nr.csv_id = self.quanguan_id + nr.start_time + lilian_num
+			nr.event_start_time = 0
+			nr.event_end_time = 0
+			if_lilian_finished = 0
 
 			nr = user.u_lilian_mainmgr.create( nr )
 			user.u_lilian_mainmgr:add( nr )
@@ -398,11 +407,14 @@ function REQUEST:lilian_get_phy_power()
 end	
 	
 function REQUEST:lilian_get_reward_list()
-	print( "lilian_get_reward_list is called **************" )
+	print( "lilian_get_reward_list is called **************" , self.quanguan_id )
 	assert( self.quanguan_id )
 	local ret = {}
 	local date = os.time()
 
+	for k , v in pairs( user.u_lilian_mainmgr.__data ) do
+		print( k , v )
+	end
 	local r = user.u_lilian_mainmgr:get_by_csv_id( self.quanguan_id )
 	assert( r )
 	if date >= r.end_time then

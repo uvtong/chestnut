@@ -626,7 +626,7 @@ end
 local function load_u_lilian_sub(user)
 	assert(user)
 	local u_lilian_submgr = require "models/u_lilian_submgr"
-	local nr = skynet.call( util.random_db() , "lua" , "command" , "select" , "u_lilian_sub" , { { user_id = user.csv_id } } )
+	local nr = skynet.call( util.random_db() , "lua" , "command" , "select" , "u_lilian_sub" , { { csv_id = user.csv_id } } )
 
 	for i , v in ipairs( nr ) do
 		local a = u_lilian_submgr.create( v )
