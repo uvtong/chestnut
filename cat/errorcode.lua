@@ -56,9 +56,13 @@ errorcode[ 71 ] = { code = 71 , msg = "donot match the server totalmount" }
 errorcode[ 72 ] = { code = 72 , msg = "can not checkin_reward" }
 					
 --lilian
-errorcode[81] = { code = 81 , msg = "not finished yet" }
+errorcode[81] = { code = 81 , msg = "lilian not finished yet" }
 errorcode[82] = { code = 82 , msg = "condition not meet" }
 errorcode[83] = { code = 83 , msg = "can not lilian anymore in this quanguan" }
 errorcode[84] = { code = 84 , msg = "not enough queue" }
+errorcode[85] = { code = 85 , msg = "event not finished yet" }
+errorcode[86] = { code = 86 , msg = "already get lilian reward" }
+errorcode[87] = { code = 87 , msg = "already get event reward" }
+errorcode[88] = { code = 88 , msg = "wrong reward type" }
 
 return errorcode
