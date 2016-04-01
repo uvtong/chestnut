@@ -967,7 +967,7 @@ lilian_get_reward_list 71 {
         invitation_id 3 : integer
         iflevel_up 4 : integer
         errorcode 5 : integer
-}
+    }
 }
 ]]
 

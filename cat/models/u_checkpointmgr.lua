@@ -1,5 +1,6 @@
 local skynet = require "skynet"
 local util = require "util"
+local const = require "const"
 
 local _M = {}
 _M.__data = {}
@@ -77,7 +78,7 @@ end
 
 function _M:add(u)
 	assert(u)
-	assert(self.__data[tostring(u.chapter)] == nil)
+	assert(self.__data[tostring(u.chapter)] == nil, string.format("%d", u.chapter))
 	self.__data[tostring(u.chapter)] = u
 	self.__count = self.__count + 1
 end

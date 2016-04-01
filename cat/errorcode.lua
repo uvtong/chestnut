@@ -35,6 +35,8 @@ errorcode[32] = { code = 32, msg = "first xilian"}
 errorcode[33] = { code = 33, msg = "failture"}
 errorcode[34] = { code = 34, msg = "no passed checkpoint"}
 errorcode[35] = { code = 35, msg = "checkpoint id error"}
+errorcode[36] = { code = 36, msg = "nothing from client"}
+errorcode[37] = { code = 37, msg = "data from client is wrong."}
 
 --kungfu
 errorcode[51] = { code = 51 , msg = "kongfu not exist" }

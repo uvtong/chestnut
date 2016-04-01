@@ -50,13 +50,12 @@ local _Meta = { csv_id=0,
 				draw_number=0 ,
 				ifxilian=0,
 				cp_chapter=0,                 -- checkpoint progress
-				cp_hanging_starttime=0,
 				cp_hanging_id=0,
 				cp_battle_id=0,
 				cp_battle_chapter=0 ,
 				lilian_level = 0,
 				lilian_exp = 0,
-				lilian_phy_power = 0
+				lilian_phy_power = 0,
 				}
 
 _Meta.__tname = "users"
@@ -73,6 +72,18 @@ function _Meta:__insert_db( priority )
 	skynet.send(util.random_db(), "lua", "command", "insert", self.__tname, t , priority)
 end
 
+function _Meta:__insert_db_wait(priority)
+	-- body
+	assert(priority)
+	local t = {}
+	for k,v in pairs(_Meta) do
+		if not string.match(k, "^__*") then
+			t[k] = self[k]
+		end
+	end
+	return skynet.call(util.random_db(), "lua", "command", "insert_wait", self.__tname, t , priority)
+end
+
 function _Meta:__update_db(t, priority)
 	-- body
 	assert(priority)
@@ -81,7 +92,22 @@ function _Meta:__update_db(t, priority)
 	for i,v in ipairs(t) do
 		columns[tostring(v)] = self[tostring(v)]
 	end
-	skynet.send(util.random_db(), "lua", "command", "update", self.__tname, {{ csv_id = self.csv_id }}, columns, priority)
+	local sql = util.update(self.__tname, {{ csv_id = self.csv_id }}, columns)
+	skynet.send(util.random_db(), "lua", "command", "update_sql", self.__tname, sql, priority)
+end
+
+function _Meta:__update_db_all(priority)
+	-- body
+	assert(priority)
+	local t = {}
+	for k,v in pairs(_Meta) do
+		if not string.match(k, "^__*") then
+			if k ~= "csv_id" then
+				table.insert(t, k)
+			end
+		end
+	end
+	self:__update_db(t, priority)
 end
 
 function _Meta:__get(key)
@@ -111,7 +137,6 @@ function _M.create( P )
 	local u = _Meta.__new()
 	for k,v in pairs(_Meta) do
 		if not string.match(k, "^__*") then
-			print( k , v , P[k])
 			u[k] = assert(P[k])
 		end
 	end

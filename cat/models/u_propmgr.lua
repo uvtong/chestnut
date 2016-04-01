@@ -35,7 +35,8 @@ function _Meta:__insert_db(priority)
 			t[k] = assert(self[k])
 		end
 	end
-	skynet.send(util.random_db(), "lua", "command", "insert", self.__tname, t , priority)
+	local sql = util.insert(self.__tname, t)
+	skynet.send(util.random_db(), "lua", "command", "insert_sql", self.__tname, sql, priority)
 end
 
 function _Meta:__update_db(t)
@@ -80,7 +81,8 @@ function _M.insert_db(values, priority)
 		end
 		table.insert(total, t)
 	end
-	skynet.send( util.random_db() , "lua" , "command" , "insert_all" , _Meta.__tname , total, priority)
+	local sql = util.insert_all(_Meta.__tname, total)
+	skynet.send(util.random_db(), "lua", "command", "insert_all_sql", _M.__tname, sql, priority)
 end 
 
 -- pk
@@ -158,7 +160,8 @@ function _M:update_db(priority)
 	if self.__count > 0 then
 		local columns = { "num" }
 		local condition = { {user_id = self.__user_id}, {csv_id = {}}}
-		skynet.send(util.random_db(), "lua", "command", "update_all", _Meta.__tname, condition, columns, self.__data, priority)
+		local sql = util.update_all(self.__tname, condition, columns, self.__data)
+		skynet.send(util.random_db(), "lua", "command", "update_all_sql", self.__tname, sql, priority)
 	end
 end
 
