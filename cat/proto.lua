@@ -227,6 +227,7 @@ proto.c2s = sprotoparser.parse [[
     if_trigger_event 5 : integer
     invitation_id 6 : integer
     iflevel_up 7 : integer
+
 }   
     
 .lilian_reward_info {
@@ -235,6 +236,9 @@ proto.c2s = sprotoparser.parse [[
     if_trigger_event 2 : integer
     invitation_id 3 : integer
     iflevel_up 4 : integer
+    delay_type 5 : integer
+    if_event_reward 6 : integer
+    if_lilian_reward 7 : integer
 }   
 
 .quanguan_lilian_num {
@@ -959,6 +963,7 @@ lilian_get_phy_power 70 {
 lilian_get_reward_list 71 {
     request {
         quanguan_id 0 : integer
+        reward_type 1 : integer
     }
     response {
         iffinished 0 : integer
@@ -967,7 +972,13 @@ lilian_get_reward_list 71 {
         invitation_id 3 : integer
         iflevel_up 4 : integer
         errorcode 5 : integer
+<<<<<<< HEAD
     }
+=======
+        if_lilian_reward 6 : integer
+        if_event_reward 7 : integer
+}
+>>>>>>> 693f9e254ef36b3a695e60618be7b4691780f581
 }
 ]]
 
