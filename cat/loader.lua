@@ -352,6 +352,18 @@ local function load_g_randomval()
 	game.g_randomvalmgr = g_randomvalmgr
 end
 
+local function  load_g_lilian_phy_power()
+	-- body
+	assert( nil == game.g_lilian_phy_powermgr )
+	local g_lilian_phy_powermgr = require "models/g_lilian_phy_powermgr"
+	local r = skynet.call(util.random_db() , "lua" , "command" , "select" , "g_lilian_phy_power")
+	for i , v in ipairs( r ) do
+		local t = g_lilian_phy_powermgr.create( v )
+		g_lilian_phy_powermgr:add( t )
+	end
+	game.g_lilian_phy_powermgr = g_lilian_phy_powermgr
+end
+
 local function load_g_uid()
 	-- body
 	assert(nil == game.g_uidmgr)
@@ -653,6 +665,24 @@ local function load_u_lilian_qg_num(user)
 	user.u_lilian_qg_nummgr = u_lilian_qg_nummgr
 end
 
+local function load_u_lilian_phy_power(user)
+	assert(user)
+
+	local u_lilian_phy_power = require "models/u_lilian_phy_power"
+	local date = os.time()
+	local sql = string.format( "select * from u_lilian_phy_power where user_id = %s and start_time < %s and %s < end_time" , user.csv_id , date , date)
+	local nr = skynet.call( util.random_db() , "lua" , "command" , "query" , sql )
+
+	for i , v in ipairs( nr ) do
+		local a = u_lilian_phy_powermgr.create( v )
+		u_lilian_qg_phy_powermgr:add( a )
+	end
+
+	u_lilian_qg_phy_powermgr.__user_id = user.csv_id
+	user.u_lilian_phy_powermgr = u_lilian_phy_powermgr
+
+end 
+	
 local function load_u_prop(user)
 	-- body
 	local u_propmgr = require "models/u_propmgr"
@@ -823,6 +853,7 @@ function loader.load_game()
 		load_g_property_pool_second()
 		load_g_role_effect()
 		load_g_equipment_effect()
+		load_g_lilian_phy_power()
 	end
 	skynet.fork(f)
 	return game
@@ -835,7 +866,7 @@ function loader.load_user(user)
 	load_u_achievement_rc(user)
 	load_u_checkin(user)
 	load_u_checkin_month( user )
-	load_u_checkpoint(user)
+	--load_u_checkpoint(user)
 	load_u_checkpoint_rc(user)
 	load_u_equipment(user)
 	load_u_exercise( user)
@@ -855,6 +886,7 @@ function loader.load_user(user)
 	load_u_lilian_main(user)
 	load_u_lilian_sub(user)
 	load_u_lilian_qg_num(user)
+	load_u_lilian_phy_power(user)
 	return user
 end
 

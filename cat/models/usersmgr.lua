@@ -50,7 +50,6 @@ local _Meta = { csv_id=0,
 				draw_number=0 ,
 				ifxilian=0,
 				cp_chapter=0,                 -- checkpoint progress
-				cp_hanging_starttime=0,
 				cp_hanging_id=0,
 				cp_battle_id=0,
 				cp_battle_chapter=0 ,
