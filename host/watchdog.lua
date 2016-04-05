@@ -1,10 +1,46 @@
 local skynet = require "skynet"
+require "skynet.register"
 local netpack = require "netpack"
 
 local CMD = {}
 local SOCKET = {}
+local REQUEST = {}
 local gate
 local agent = {}
+
+function REQUEST:handshake()
+	-- body
+end
+
+skynet.register_protocol {
+	name = "client",
+	id = skynet.PTYPE_CLIENT,
+	unpack = function (msg, sz)
+		if sz > 0 then
+			return host:dispatch(msg, sz)
+		elseif sz == 0 then
+			return "HEARTBEAT"
+		else
+			error "error"
+		end
+	end,
+	dispatch = function (_, _, type, ...)
+		if type == "REQUEST" then
+			local ok, result  = pcall(request, ...)
+			if ok then
+				if result then
+					send_package(result)
+				end
+			else
+				skynet.error(result)
+			end
+		elseif type == "HEARTBEAT" then
+			send_package(send_request "heartbeat")
+		elseif type == "RESPONSE" then
+			pcall(response, ...)
+		end
+	end
+}
 
 function SOCKET.open(fd, addr)
 	skynet.error("New client from : " .. addr)

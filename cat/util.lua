@@ -233,7 +233,7 @@ function util.update_all( table_name, condition, columns, data )
 				elseif type(vvv[vv]) == "string" then
 					t = t .. string.format(" when %d then \"%s\"", vvv[k], vvv[vv])
 				else
-					error(string.format("don't support types. in %s", table_name))
+					error(string.format("don't support types %s fileds %s. in %s", type(vvv[vv]), vv, table_name))
 				end
 			end
 			t = t .. " end,"

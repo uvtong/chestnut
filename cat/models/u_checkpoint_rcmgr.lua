@@ -133,7 +133,7 @@ function _M:update_db(priority)
 	-- body
 	assert(priority)
 	if self.__count > 0 then
-		local columns = { "cd_starttime", "cd_finished"}
+		local columns = { "cd_starttime", "cd_finished", "cd_walk", "hanging_starttime", "hanging_walk", "hanging_drop_starttime", "hanging_drop_walk"}
 		local condition = { {user_id = self.__user_id}, {csv_id = {}}}
 		skynet.send(util.random_db(), "lua", "command", "update_all", _M.__tname, condition, columns, self.__data, priority)
 	end

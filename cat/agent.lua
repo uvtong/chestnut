@@ -2209,9 +2209,9 @@ local function hanging()
 	prop.num = prop.num + (n * r.gain_exp)
 	table.insert(l, prop)
 	-- cac drop
-	walk = now - cp_rc.hanging_drop_starttime + cp_rc.hangint_drop_walk
+	walk = now - cp_rc.hanging_drop_starttime + cp_rc.hanging_drop_walk
 	cp_rc.hanging_drop_starttime = now
-	cp_rc.hangint_drop_walk = (walk % r.cd)
+	cp_rc.hanging_drop_walk = (walk % r.cd)
 	n = walk / 100
 	prop = user.u_propmgr:get_by_csv_id(r.drop)
 	prop.num = prop.num + 1
@@ -2247,44 +2247,45 @@ function REQUEST:checkpoint_hanging()
 	end
 end
 
-local function choose(csv_id)
+local function choose(csv_id, now)
 	-- body
 	-- first resolve last hanging
-	if user.cp_hanging_id == csv_id then
-		error("can't choose last checkpoint.")	
-		ret.errorcode = errorcode[35].code
-		ret.msg = errorcode[35].msg
-		return ret
-	end
+	local ret = {}
 	if user.cp_hanging_id > 0 then
-		local ok, result = pcall(hanging)
-		if not ok then
-			skynet.error(result)
-			ret.errorcode = errorcode[29].code
-			ret.msg = errorcode[29].msg
-			return ret
-		end
-	end
-	-- first resolve last battle
-	if user.cp_battle_id ~= 0 then
-		if user.cp_battle_id == self.csv_id then
-			error("can't choose last checkpoint.")	
+		if user.cp_hanging_id ~= csv_id then
+			local ok, result = pcall(hanging)
+			if not ok then
+				skynet.error(result)
+				ret.errorcode = errorcode[29].code
+				ret.msg = errorcode[29].msg
+				return false, ret
+			end
+		else
 			ret.errorcode = errorcode[35].code
 			ret.msg = errorcode[35].msg
 			return ret
-		else
-			local cp_rc = user.u_checkpoint_rcmgr:get_by_csv_id(user.cp_battle_id) 
+		end
+	else
+		-- reslove this time hanging
+		local cp_rc = user.u_checkpoint_rcmgr:get_by_csv_id(csv_id) 
+		user.cp_hanging_id = csv_id
+		cp_rc.hanging_starttime = now
+		cp_rc.hanging_drop_starttime = now
+	end
+	-- first resolve last battle, coutdown time
+	if user.cp_battle_id > 0 then
+		if user.cp_battle_id ~= csv_id then
+			local cp_rc = user.u_checkpoint_rcmgr:get_by_csv_id(user.cp_battle_id)
 			cp_rc.cd_walk = cp_rc.cd_walk + (now - cp_rc.cd_starttime)
 			cp_rc.cd_starttime = 0
 			user.cp_battle_id = 0
+		else
+			ret.errorcode = errorcode[35].code
+			ret.msg = errorcode[35].msg
+			return ret
 		end
 	end
-	-- reslove this time hanging
-	local now = os.time()
-	local cp_rc = user.u_checkpoint_rcmgr:get_by_csv_id(csv_id) 
-	user.cp_hanging_id = csv_id
-	cp_rc.hanging_starttime = now
-	cp_rc.hanging_drop_starttime = now
+	return true
 end
 
 -- alone 
@@ -2305,14 +2306,7 @@ function REQUEST:checkpoint_hanging_choose()
 	end
 	assert(self)
 	assert(self.chapter*1000+self.type*100+self.checkpoint == self.csv_id)
-	-- cp_chapter_max == max chapter.
-	local cp_chapter_max = skynet.call(game, "lua", "query_g_config", "cp_chapter_max")
-	if self.chapter > cp_chapter_max then   
-		error(string.format("chapter:%d > cp_chapter_max:%d", self.chapter, cp_chapter_max))
-		ret.errorcode = errorcode[35].code
-		ret.msg = errorcode[35].msg
-		return ret
-	end
+	-- must <= cp_chapter
 	if self.chapter > user.cp_chapter then
 		error(string.format("chapter:%d > user.cp_chapter:%d", self.chapter, user.cp_chapter))
 		ret.errorcode = errorcode[35].code
@@ -2330,7 +2324,10 @@ function REQUEST:checkpoint_hanging_choose()
 			ret.msg = errorcode[35].msg
 			return ret
 		else
-			choose(self.csv_id)
+			local ok, result = choose(self.csv_id)
+			if not ok then
+				return result 
+			end
 		end
 	elseif self.type == 1 then
 		if self.checkpoint > cp_chapter.type1_max then
@@ -2339,7 +2336,10 @@ function REQUEST:checkpoint_hanging_choose()
 			ret.msg = errorcode[35].msg
 			return ret
 		else
-			choose(self.csv_id)
+			local ok, result = choose(self.csv_id)
+			if not ok then
+				return result 
+			end
 		end
 	elseif self.type == 2 then
 		if self.checkpoint > cp_chapter.type2_max then
@@ -2348,7 +2348,10 @@ function REQUEST:checkpoint_hanging_choose()
 			ret.msg = errorcode[35].msg
 			return ret
 		else
-			choose(self.csv_id)
+			local ok, result = choose(self.csv_id)
+			if not ok then
+				return result 
+			end
 		end
 	else
 		error("wrong checkpoint type")
@@ -2377,7 +2380,7 @@ function REQUEST:checkpoint_battle_exit()
 		return ret
 	end
 	assert(self.chapter <= user.cp_chapter)
-	if user.cp_battle_id ~= r.csv_id then
+	if user.cp_battle_id ~= self.csv_id then
 		error(string.format("user.cp_battle_id:%d is ", user.cp_battle_id))
 		ret.errorcode = errorcode[35].code
 		ret.msg	= errorcode[35].code
@@ -2560,6 +2563,25 @@ function REQUEST:checkpoint_battle_enter()
 	end
 end
 
+function REQUEST:checkpoint_exit()
+ 	-- body
+ 	local ret = {}
+ 	if not user then
+ 		ret.errorcode = errorcode[2].code
+ 		ret.msg = errorcode[2].msg
+ 		return ret
+ 	end
+ 	if user.cp_battle_id > 0 then
+ 		local cp_rc = user.u_checkpoint_rcmgr:get_by_csv_id(user.cp_battle_id)
+		cp_rc.cd_walk = cp_rc.cd_walk + (now - cp_rc.cd_starttime)
+		cp_rc.cd_starttime = 0
+		user.cp_battle_id = 0
+	end
+	ret.errorcode = errorcode[1].code
+ 	ret.msg = errorcode[1].msg
+	return ret
+end
+
 function REQUEST:handshake()
 	print("Welcome to skynet, I will send heartbeat every 5 sec." )
 	return { msg = "Welcome to skynet, I will send heartbeat every 5 sec." }
@@ -2575,7 +2597,7 @@ local function request(name, args, response)
     if REQUEST[name] ~= nil then
     	f = REQUEST[name]
     elseif nil ~= friendrequest[ name ] then
-    	f = friendrequest[ name ]
+    	f = friendrequest[name]
     else
     	for i,v in ipairs(M) do
     		if v.REQUEST[name] ~= nil then
@@ -2586,26 +2608,17 @@ local function request(name, args, response)
     end
     assert(f)
     assert(response)
-    local ok, result = pcall(f, args)
-    if ok then
-    	if name == "login" then
-	    	if result.errorcode == errorcode[1].code then
-	    		for k,v in pairs(M) do
-	    			if v.REQUEST then
-	    				v.REQUEST[name](v.REQUEST, user)
-	    			end
-	    		end
-	    	end
-	    end
-	    return response(result)
-	else
-		skynet.error(result)
-    	local ret = {
-			errorcode = errorcode[29].code,
-			msg = errorcode[29].msg
-		}
-		return response(ret)
-	end
+    local result = f(args)
+    if name == "login" then
+		if result.errorcode == errorcode[1].code then
+			for k,v in pairs(M) do
+				if v.REQUEST then
+					v.REQUEST[name](v.REQUEST, user)
+				end
+			end
+		end
+	end  
+	return response(result)
 end      
 
 function RESPONSE:finish_achi( ... )

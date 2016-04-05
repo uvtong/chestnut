@@ -972,13 +972,16 @@ lilian_get_reward_list 71 {
         invitation_id 3 : integer
         iflevel_up 4 : integer
         errorcode 5 : integer
-<<<<<<< HEAD
-    }
-=======
         if_lilian_reward 6 : integer
         if_event_reward 7 : integer
+    }
 }
->>>>>>> 693f9e254ef36b3a695e60618be7b4691780f581
+
+checkpoint_exit 72 {
+    response {
+        errorcode 0 : integer
+        msg 1 : string
+    }
 }
 ]]
 
