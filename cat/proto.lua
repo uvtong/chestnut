@@ -933,6 +933,7 @@ get_lilian_info 68 {
         basic_info 5 : *quanguan_basic_info
         lilian_exp 6 : integer
         lilian_num_list 7 : *quanguan_lilian_num
+        purch_phy_power_num 8 : integer
     }    
 }       
 

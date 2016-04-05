@@ -315,6 +315,7 @@ function REQUEST:get_lilian_info()
 	ret.phy_power = p
 	ret.lilian_exp = user.lilian_exp
 	print( "error is called ********************************" , errorcode[1].code )
+	ret.purch_phy_power_num = user.u_lilian_phy_powermgr:get_cout()
 	ret.errorcode = errorcode[ 1 ].code
 	ret.msg = errorcode[ 1 ].msg
 
