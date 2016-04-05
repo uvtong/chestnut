@@ -571,7 +571,7 @@ function REQUEST:lilian_get_reward_list()
 	return ret
 end			
 	
-function REQUEST:purchase_phy_power()
+function REQUEST:lilian_purch_phy_power()
 	local ret = {}
 	local date = os.time()
 	local ifpurch = false

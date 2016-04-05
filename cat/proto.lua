@@ -986,6 +986,13 @@ checkpoint_exit 72 {
     }
 }
 
+lilian_purch_phy_power 73 {
+    response {
+        errorcode 0 : integer
+        msg 1 : string
+    }
+}
+
 ]]
 
 proto.s2c = sprotoparser.parse [[
