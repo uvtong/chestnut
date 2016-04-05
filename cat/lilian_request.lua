@@ -599,8 +599,8 @@ function REQUEST:lilian_purch_phy_power()
 				return ret
 			else
 				if prop.num < t.dioment then
-					ret.errorcode = errorcode[].code
-					ret.msg = errorcode[].msg
+					ret.errorcode = errorcode[16].code
+					ret.msg = errorcode[16].msg
 					
 					return ret
 				else

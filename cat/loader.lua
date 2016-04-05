@@ -668,7 +668,7 @@ end
 local function load_u_lilian_phy_power(user)
 	assert(user)
 
-	local u_lilian_phy_power = require "models/u_lilian_phy_power"
+	local u_lilian_phy_powermgr = require "models/u_lilian_phy_powermgr"
 	local date = os.time()
 	local sql = string.format( "select * from u_lilian_phy_power where user_id = %s and start_time < %s and %s < end_time" , user.csv_id , date , date)
 	local nr = skynet.call( util.random_db() , "lua" , "command" , "query" , sql )
@@ -678,7 +678,7 @@ local function load_u_lilian_phy_power(user)
 		u_lilian_qg_phy_powermgr:add( a )
 	end
 
-	u_lilian_qg_phy_powermgr.__user_id = user.csv_id
+	u_lilian_phy_powermgr.__user_id = user.csv_id
 	user.u_lilian_phy_powermgr = u_lilian_phy_powermgr
 
 end 
