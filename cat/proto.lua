@@ -971,9 +971,19 @@ lilian_get_reward_list 71 {
         errorcode 5 : integer
         if_lilian_reward 6 : integer
         if_event_reward 7 : integer
+
         if_lilian_finished 8 : integer
         reward 9 : *lilian_reward_info
+
+    }
+
 }
+
+checkpoint_exit 72 {
+    response {
+        errorcode 0 : integer
+        msg 1 : string
+    }
 }
 
 ]]

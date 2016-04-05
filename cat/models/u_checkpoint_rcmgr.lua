@@ -8,7 +8,16 @@ _M.__count = 0
 _M.__user_id = 0
 _M.__tname = "u_checkpoint_rc"
 
-local _Meta = { user_id=0, csv_id=0, passed=0, cd_starttime=0, cd_finished=0}
+local _Meta = { user_id=0, 
+				csv_id=0, 
+				passed=0, 
+				cd_starttime=0,
+				cd_finished=0,
+				cd_walk=0,
+				hanging_starttime=0,
+				hanging_walk=0,
+				hanging_drop_starttime=0,
+				hanging_drop_walk=0}
 
 function _Meta.__new()
  	-- body
@@ -63,6 +72,11 @@ function _M.create_with_csv_id(csv_id)
 		passed = 0,
 		cd_starttime=0,
 		cd_finished=0,
+		cd_walk=0,
+		hanging_starttime=0,
+		hanging_walk=0,
+		hanging_drop_starttime=0,
+		hanging_drop_walk=0
 	}
 	return _M.create(tmp)
 end
@@ -117,12 +131,12 @@ end
 
 function _M:update_db(priority)
 	-- body
-	-- assert(priority)
-	-- if self.__count > 0 then
-	-- 	local columns = { "passed"}
-	-- 	local condition = { {user_id = self.__user_id}, {csv_id = {}}}
-	-- 	skynet.send(util.random_db(), "lua", "command", "update_all", _M.__tname, condition, columns, self.__data, priority)
-	-- end
+	assert(priority)
+	if self.__count > 0 then
+		local columns = { "cd_starttime", "cd_finished", "cd_walk", "hanging_starttime", "hanging_walk", "hanging_drop_starttime", "hanging_drop_walk"}
+		local condition = { {user_id = self.__user_id}, {csv_id = {}}}
+		skynet.send(util.random_db(), "lua", "command", "update_all", _M.__tname, condition, columns, self.__data, priority)
+	end
 end
 
 return _M

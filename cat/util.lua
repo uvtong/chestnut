@@ -1,13 +1,10 @@
 local skynet = require "skynet"
 require "skynet.manager"
-local util = {}
 local const = require "const"
+local util = {}
 
 function util.random_db()
 	-- body
-	-- local r = math.random(1, 5)
-	-- local r = 1
-	-- local addr = skynet.localname(string.format(".db%d", math.floor(r))) 
 	local addr = ".db"
 	return addr
 end
@@ -178,9 +175,7 @@ function util.insert_all( table_name , tcolumns )
 	local f = assert( tcolumns[1] )
 	assert( f )
 	local columns_str = "("
-
 	for k,v in pairs(f) do
-
 		columns_str = columns_str .. k .. ", "	
 	end	
 	columns_str = string.gsub(columns_str, "(.*)%,%s$", "%1)")
@@ -238,7 +233,7 @@ function util.update_all( table_name, condition, columns, data )
 				elseif type(vvv[vv]) == "string" then
 					t = t .. string.format(" when %d then \"%s\"", vvv[k], vvv[vv])
 				else
-					error(string.format("don't support types. in %s", table_name))
+					error(string.format("don't support types %s fileds %s. in %s", type(vvv[vv]), vv, table_name))
 				end
 			end
 			t = t .. " end,"
