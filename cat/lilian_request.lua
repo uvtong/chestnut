@@ -483,8 +483,8 @@ function REQUEST:start_lilian()
 end		 			               
 		 		                   
 function REQUEST:lilian_get_phy_power()
-	print( "lilian_get_phy_power is called********************" )
-	local ret = {}                
+	print( "lilian_get_phy_power is called********************" ,user.u_lilian_submgr.__data[1],user.u_lilian_submgr.__data[1].end_lilian_time)
+	local ret = {}               
 	local date = os.time()         
 	if date >= user.u_lilian_submgr.__data[1].end_lilian_time then
 		ret.errorcode = errorcode[1].code
