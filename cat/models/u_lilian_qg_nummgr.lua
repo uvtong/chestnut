@@ -134,6 +134,7 @@ function _M:clear_by_settime( settime )
 end
 
 function _M:clear()
+	print( "clear is called************************************************************" )
 	self.__data = {}
 	self.__count = 0
 end

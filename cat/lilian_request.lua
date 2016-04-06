@@ -474,7 +474,7 @@ function REQUEST:start_lilian()
 		 	print( "start_lilian is called sub**********" , rs.used_queue_num )
 		 	rs:__update_db( { "used_queue_num" } , const.DB_PRIORITY_2 )
 		 	user.lilian_phy_power = user.lilian_phy_power - lq.need_phy_power
-		 	print( "user.lilian_phy_power is **********************************" , user.lilian_phy_power , rs.used_queue_num)
+		 	print( "user.lilian_phy_power is **********************************" , user.lilian_phy_power , rs.used_queue_num , lq.need_phy_power)
 		end 		
 	end  	
 	ret.errorcode = errorcode[1].code
@@ -485,16 +485,18 @@ function REQUEST:start_lilian()
 end		 			               
 		 		                   
 function REQUEST:lilian_get_phy_power()
-	print( "lilian_get_phy_power is called********************" )
+	print(  )
 	local ret = {}                
 	local date = os.time() 
-	local r = u.u_lilian_submgr:get_lilian_sub()
+	local r = user.u_lilian_submgr:get_lilian_sub()
+	print( "lilian_get_phy_power is called********************" , date , r.end_lilian_time )
 	if r then        
-		if date >= .end_lilian_time then
+		if date >= r.end_lilian_time then
 			ret.errorcode = errorcode[1].code
 			local sign , left = get_phy_power(date)
+			print( sign , left )
 			ret.left_cd_time = left
-		else                
+		else
 			ret.errorcode = errorcode[85].code          
 			ret.left_cd_time = r.end_lilian_time - date
 		end  
@@ -503,7 +505,7 @@ function REQUEST:lilian_get_phy_power()
 		ret.left_cd_time = 0		
 	end
 	ret.phy_power = user.lilian_phy_power
-         
+    print( "user.lilian_phy_power is " , user.lilian_phy_power )
 	return ret
 end	     
 	     
@@ -650,7 +652,7 @@ function REQUEST:lilian_purch_phy_power()
 	assert( g )
 
 	local _, left =  get_phy_power(date)
-	
+	print("user.lilian_phy_power + r" ,user.lilian_phy_power , user.lilian_phy_power + r , g.phy_power )
 	if user.lilian_phy_power + r > g.phy_power then
 		user.lilian_phy_power = g.phy_power
 	else
@@ -661,7 +663,7 @@ function REQUEST:lilian_purch_phy_power()
 	ret.msg = errorcode[1].msg
 	ret.phy_power = user.lilian_phy_power
 	ret.left_cd_time = left
-	print( "lilian_purch_phy_power is called**********************************" )
+	print( "lilian_purch_phy_power is called**********************************sdasdasd" , user.lilian_phy_power,ret.phy_power )
 	return ret
 end 	
 			
