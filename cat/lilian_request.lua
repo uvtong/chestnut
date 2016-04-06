@@ -309,17 +309,19 @@ function REQUEST:get_lilian_info()
 		-- 	print( "r.userd_queue_num is " , r.used_queue_num  , finished_num )
 		-- 	assert( r.used_queue_num >= 0 )
 		end
+
+		if date >= r.end_lilian_time then
+			local _ , left = get_phy_power(date)
+			ret.phy_power_left_cd_time = left
+		else
+			ret.phy_power_left_cd_time = r.end_lilian_time - date
+		end 
 	end
 
 	ret.lilian_num_list = user.u_lilian_qg_nummgr:get_lilian_num_list()
 
 	ret.level = user.lilian_level
-	if date >= user.u_lilian_submgr.__data[1].end_lilian_time then
-		local _ , left = get_phy_power(date)
-		ret.phy_power_left_cd_time = left
-	else
-		ret.phy_power_left_cd_time = user.u_lilian_submgr.__data[1].end_lilian_time - date
-	end 
+	
 	ret.phy_power = user.lilian_phy_power
 	ret.lilian_exp = user.lilian_exp
 	print( "error is called ********************************" , errorcode[1].code , user.lilian_phy_power )
@@ -485,16 +487,21 @@ end
 function REQUEST:lilian_get_phy_power()
 	print( "lilian_get_phy_power is called********************" )
 	local ret = {}                
-	local date = os.time()         
-	if date >= user.u_lilian_submgr.__data[1].end_lilian_time then
+	local date = os.time() 
+	local r = u.u_lilian_submgr:get_lilian_sub()
+	if r then        
+		if date >= .end_lilian_time then
+			ret.errorcode = errorcode[1].code
+			local sign , left = get_phy_power(date)
+			ret.left_cd_time = left
+		else                
+			ret.errorcode = errorcode[85].code          
+			ret.left_cd_time = r.end_lilian_time - date
+		end  
+	else
 		ret.errorcode = errorcode[1].code
-		ret.msg = errorcode[1].msg
-		local sign , left = get_phy_power(date)
-		ret.left_cd_time = left
-	else                
-		ret.errorcode = errorcode[85].code          
-		ret.left_cd_time = user.u_lilian_submgr.__data[1].end_lilian_time - date
-	end  
+		ret.left_cd_time = 0		
+	end
 	ret.phy_power = user.lilian_phy_power
          
 	return ret
