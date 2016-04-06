@@ -330,6 +330,21 @@ local function xilian(role, t)
 	return n, ret
 end
 
+local function cp_exit()
+	-- body
+	print("cp_exit*********************************%d", user.cp_battle_id)
+	if user.cp_battle_id > 0 then
+ 		local cp_rc = user.u_checkpoint_rcmgr:get_by_csv_id(user.cp_battle_id)
+ 		if cp_rc.cd_finished == 0 then
+ 			local now = os.time()
+			cp_rc.cd_walk = cp_rc.cd_walk + (now - cp_rc.cd_starttime)
+			cp_rc.cd_starttime = 0
+		end
+		user.cp_battle_id = 0
+		user.cp_battle_chapter = 0
+	end
+end
+
 local function subscribe( )
 	-- body
 	local c = skynet.call(".channel", "lua", "agent_start", user.csv_id, skynet.self())
@@ -775,6 +790,18 @@ function REQUEST:login()
 	end 
 end	
 
+local function __logout()
+	-- body
+	assert(user)
+	cp_exit()
+	flush_db(const.DB_PRIORITY_1)
+	loader.clear( user )
+	user.ifonline = 0
+	user:__update_db({"ifonline"}, const.DB_PRIORITY_1)
+	dc.set(user.csv_id , nil)
+	user = nil
+end
+
 function REQUEST:logout()
 	-- body
 	local ret = {}
@@ -783,13 +810,7 @@ function REQUEST:logout()
 		ret.msg = errorcode[2].msg
 		return ret
 	end
-	assert(user)
-	flush_db(const.DB_PRIORITY_1)
-	loader.clear( user )
-	user.ifonline = 0
-	user:__update_db({"ifonline"}, const.DB_PRIORITY_1)
-	dc.set(user.csv_id , nil)
-	user = nil
+	__logout()
 	ret.errorcode = errorcode[1].code
 	ret.msg = errorcode[1].msg
 	return ret
@@ -2203,10 +2224,10 @@ local function hanging()
 	local n = walk / r.cd
 	local l = {}
 	local prop = user.u_propmgr:get_by_csv_id(const.GOLD)
-	prop.num = prop.num + (n * r.gain_gold)
+	prop.num = math.floor(prop.num + (n * r.gain_gold))
 	table.insert(l, prop)
 	prop = user.u_propmgr:get_by_csv_id(const.EXP)
-	prop.num = prop.num + (n * r.gain_exp)
+	prop.num = math.floor(prop.num + (n * r.gain_exp))
 	table.insert(l, prop)
 	-- cac drop
 	walk = now - cp_rc.hanging_drop_starttime + cp_rc.hanging_drop_walk
@@ -2250,6 +2271,7 @@ end
 local function choose(csv_id, now)
 	-- body
 	-- first resolve last hanging
+	assert(now)
 	local ret = {}
 	if user.cp_hanging_id > 0 then
 		if user.cp_hanging_id ~= csv_id then
@@ -2260,29 +2282,33 @@ local function choose(csv_id, now)
 				ret.msg = errorcode[29].msg
 				return false, ret
 			end
-		else
-			ret.errorcode = errorcode[35].code
-			ret.msg = errorcode[35].msg
-			return ret
+			local cp_rc = user.u_checkpoint_rcmgr:get_by_csv_id(user.cp_hanging_id)
+			cp_rc.hanging_starttime = 0
+			cp_rc.hanging_drop_starttime = 0
+			user.cp_hanging_id = csv_id
 		end
 	else
 		-- reslove this time hanging
-		local cp_rc = user.u_checkpoint_rcmgr:get_by_csv_id(csv_id) 
 		user.cp_hanging_id = csv_id
+		local cp_rc = user.u_checkpoint_rcmgr:get_by_csv_id(csv_id) 
 		cp_rc.hanging_starttime = now
 		cp_rc.hanging_drop_starttime = now
 	end
-	-- first resolve last battle, coutdown time
+
+	-- in the n
 	if user.cp_battle_id > 0 then
 		if user.cp_battle_id ~= csv_id then
 			local cp_rc = user.u_checkpoint_rcmgr:get_by_csv_id(user.cp_battle_id)
-			cp_rc.cd_walk = cp_rc.cd_walk + (now - cp_rc.cd_starttime)
-			cp_rc.cd_starttime = 0
+			if cp_rc.cd_finished == 0 then
+				cp_rc.cd_walk = cp_rc.cd_walk + (now - cp_rc.cd_starttime)
+				cp_rc.cd_starttime = 0
+				local r = skynet.call(game, "lua", "query_g_checkpoint", csv_id)
+				if cp_rc.cd_walk >= r.cd then
+					cp_rc.cd_finished = 1
+				end
+			end	
 			user.cp_battle_id = 0
-		else
-			ret.errorcode = errorcode[35].code
-			ret.msg = errorcode[35].msg
-			return ret
+			user.cp_battle_chapter = 0
 		end
 	end
 	return true
@@ -2292,66 +2318,34 @@ end
 function REQUEST:checkpoint_hanging_choose()
 	-- body
 	local ret = {}
-	if not user then
-		error("user is nil")
-		ret.errorcode = errorcode[2].code
-		ret.msg = errorcode[2].msg
-		return ret
-	end
-	if not self then
-		error("data from client is nil")
-		ret.errorcode = errorcode[36].code
-		ret.msg = errorcode[36].msg
-		return ret
-	end
-	assert(self)
+	assert(user, "user is nil")
 	assert(self.chapter*1000+self.type*100+self.checkpoint == self.csv_id)
 	-- must <= cp_chapter
-	if self.chapter > user.cp_chapter then
-		error(string.format("chapter:%d > user.cp_chapter:%d", self.chapter, user.cp_chapter))
-		ret.errorcode = errorcode[35].code
-		ret.msg = errorcode[35].msg
-		return ret
-	end
+	assert(self.chapter <= user.cp_chapter)
 	-- judge chapter 
 	local now = os.time()
 	local cp = user.u_checkpointmgr:get_by_chapter(self.chapter)
 	local cp_chapter = skynet.call(game, "lua", "query_g_checkpoint_chapter", self.chapter)
 	if self.type == 0 then
-		if self.checkpoint > cp_chapter.type0_max then
-			error(string.format("checkpoint:%d from client > cp_chapter.type0_max:%d", self.checkpoint, cp_chapter.type0_max))
-			ret.errorcode = errorcode[35].code
-			ret.msg = errorcode[35].msg
-			return ret
-		else
-			local ok, result = choose(self.csv_id)
-			if not ok then
-				return result 
-			end
+		assert(self.checkpoint <= cp_chapter.type0_max)
+		assert(self.checkpoint <= cp.chapter_type0)
+		local ok, result = choose(self.csv_id, now)
+		if not ok then
+			return result 
 		end
 	elseif self.type == 1 then
-		if self.checkpoint > cp_chapter.type1_max then
-			error(string.format("checkpoint:%d from client > cp_chapter.type1_max:%d", self.checkpoint, cp_chapter.type1_max))
-			ret.errorcode = errorcode[35].code
-			ret.msg = errorcode[35].msg
-			return ret
-		else
-			local ok, result = choose(self.csv_id)
-			if not ok then
-				return result 
-			end
+		assert(self.checkpoint <= cp_chapter.type1_max, string.format("checkpoint:%d from client > cp_chapter.type1_max:%d", self.checkpoint, cp_chapter.type1_max))
+		assert(self.checkpoint <= cp.chapter_type1)
+		local ok, result = choose(self.csv_id, now)
+		if not ok then
+			return result 
 		end
 	elseif self.type == 2 then
-		if self.checkpoint > cp_chapter.type2_max then
-			error(string.format("checkpoint:%d > cp_chapter.type2_max:%d", self.checkpoint, cp_chapter.type2_max))
-			ret.errorcode = errorcode[35].code
-			ret.msg = errorcode[35].msg
-			return ret
-		else
-			local ok, result = choose(self.csv_id)
-			if not ok then
-				return result 
-			end
+		assert(self.checkpoint <= cp_chapter.type2_max, string.format("checkpoint:%d from client > cp_chapter.type1_max:%d", self.checkpoint, cp_chapter.type2_max))
+		assert(self.checkpoint <= cp.chapter_type2)
+		local ok, result = choose(self.csv_id, now)
+		if not ok then
+			return result 
 		end
 	else
 		error("wrong checkpoint type")
@@ -2367,27 +2361,12 @@ end
 function REQUEST:checkpoint_battle_exit()
 	-- body
 	local ret = {}
-	if not user then
-		error("user is nil")
-		ret.errorcode = errorcode[2].code
-		ret.msg = errorcode[2].msg
-		return ret
-	end
-	if self.chapter > user.cp_chapter then
-		error(string.format("self.chapter:%d > user.cp_chapter:%d", self.chapter, user.cp_chapter))
-		ret.errorcode = errorcode[35].code
-		ret.msg = errorcode[35].msg	
-		return ret
-	end
-	assert(self.chapter <= user.cp_chapter)
-	if user.cp_battle_id ~= self.csv_id then
-		error(string.format("user.cp_battle_id:%d is ", user.cp_battle_id))
-		ret.errorcode = errorcode[35].code
-		ret.msg	= errorcode[35].code
-		return ret
-	end
+	assert(user ~= nil, "user is nil")
+	assert(self.chapter <= user.cp_chapter, string.format("self.chapter:%d > user.cp_chapter:%d", self.chapter, user.cp_chapter))
 	assert(self.chapter == user.cp_battle_chapter)
-	assert(self.csv_id == user.cp_battle_id)
+	assert(self.csv_id == user.cp_battle_id, string.format("user.cp_battle_id:%d is ", user.cp_battle_id))
+	local cp_rc = user.u_checkpoint_rcmgr:get_by_csv_id(self.csv_id)
+	assert(cp_rc.cd_finished == 1)
 	if self.result == 1 then
 		local r = skynet.call(game, "lua", "query_g_checkpoint", self.csv_id)
 		local cp = user.u_checkpointmgr:get_by_chapter(r.chapter)
@@ -2402,12 +2381,6 @@ function REQUEST:checkpoint_battle_exit()
 		end
 		-- unlock next checkpoint
 		if r.type == 0 then
-			if cp.chapter_type0 ~= r.checkpoint then
-				error(string.format("cp.chapter_type0:%d ~= r.checkpoint"))
-				ret.errorcode = errorcode[35].code
-				ret.msg = errorcode[35].msg
-				return ret
-			end
 			assert(cp.chapter_type0 == r.checkpoint)  -- keep progress
 			cp.chapter_type0 = cp.chapter_type0 + 1
 			if cp.chapter_type0 > cp_chapter.type0_max then
@@ -2466,6 +2439,7 @@ function REQUEST:checkpoint_battle_exit()
 		ret.reward = reward
 		return ret
 	else
+		skynet.error("you lose.")
 		ret.errorcode = errorcode[1].code
 		ret.msg = errorcode[1].code
 		return ret
@@ -2475,21 +2449,11 @@ end
 function REQUEST:checkpoint_battle_enter()
 	-- body
 	local ret = {}
-	if not user then
-		error("")
-		ret.errorcode = errorcode[1].code
-		ret.msg = errorcode[1].msg
-		return ret
-	end
-	if not self then
-		error("data from is nil")
-		ret.errorcode = errorcode[35].code
-		ret.msg = errorcode[35].msg
-		return ret
-	end
+	assert(user ~= nil, "user is nil")
 	assert(self.chapter <= user.cp_chapter)
+	assert(self.csv_id == user.cp_hanging_id, string.format("self.csv_id:%d, user.cp_hanging_id:%d", self.csv_id, user.cp_hanging_id))
+	-- check 
 	local cp = user.u_checkpointmgr:get_by_chapter(self.chapter)
-	-- must unlocked checkpoint.
 	if self.type == 0 then
 		assert(self.checkpoint == cp.chapter_type0)
 	elseif self.type == 1 then
@@ -2501,63 +2465,54 @@ function REQUEST:checkpoint_battle_enter()
 		ret.msg = errorcode[35].msg
 		return ret
 	end
+	local now = os.time()
 	if user.cp_battle_id == 0 then
 		user.cp_battle_id = self.csv_id
 		user.cp_battle_chapter = self.chapter
 		local cp_rc = user.u_checkpoint_rcmgr:get_by_csv_id(self.csv_id)
-		local now = os.time()
-		if cp_rc.cd_starttime ~= 0 then
-			error("data is wrong")
-			ret.errorcode = errorcode[29].code
-			ret.msg = error[29].msg
-			return ret
-		else
-			local now = os.time()
-			cp_rc.cd_starttime = now
-			cp_rc.cd_walk = 0
-			local r = skynet.call(game, "lua", "query_g_checkpoint", self.csv_id)
+		assert(cp_rc.cd_starttime == 0)
+		if cp_rc.cd_finished == 1 then
 			ret.errorcode = errorcode[1].code
 			ret.msg = errorcode[1].msg
-			ret.cd = r.cd
 			return ret
-		end
-	else
-		if user.cp_battle_id == self.csv_id then
-			print(self.csv_id)
-			local cp_rc = user.u_checkpoint_rcmgr:get_by_csv_id(self.csv_id)
-			if cp_rc.finished == 1 then
+		else
+			cp_rc.cd_starttime = now
+			local r = skynet.call(game, "lua", "query_g_checkpoint", self.csv_id)
+			if r.cd - cp_rc.cd_walk > 0 then
+				ret.errorcode = errorcode[1].code
+				ret.msg = errorcode[1].msg
+				ret.cd = r.cd - cp_rc.cd_walk
+				return ret
+			else
+				cp_rc.cd_starttime = 0
+				cp_rc.cd_finished = 1
 				ret.errorcode = errorcode[1].code
 				ret.msg = errorcode[1].msg
 				ret.cd = 0
 				return ret
-			else
-				local now = os.time()
-				if cp_rc.cd_starttime == 0 then
-					cp_rc.cd_starttime = now
-				end
-				local r = skynet.call(game, "lua", "query_g_checkpoint", self.csv_id)
-				local walk = now - cp_rc.cd_starttime + cp_rc.cd_walk
-				cp_rc.cd_walk = 0
-				if walk >= r.cd then
-					cp_rc.finished = 1
-					ret.errorcode = errorcode[1].code
-					ret.msg = errorcode[1].msg
-					ret.cd = 0
-					return ret
-				else
-					skynet.timeout((r.cd-walk)*100, function ()
-						-- body
-						cp_rc.finished = 1
-					end)
-					ret.errorcode = errorcode[1].code
-					ret.msg = errorcode[1].msg
-					ret.cd = r.cd - walk
-					return ret
-				end
 			end
+		end
+	else
+		assert(user.cp_battle_id == self.csv_id)
+		assert(user.cp_battle_chapter == self.chapter)
+		local cp_rc = user.u_checkpoint_rcmgr:get_by_csv_id(self.csv_id)
+		assert(cp_rc.cd_starttime > 0, string.format("cd_starttime:%d", cp_rc.cd_starttime))
+		assert(cp_rc.cd_finished == 0)
+		local walk = now - cp_rc.cd_starttime + cp_rc.cd_walk
+		cp_rc.cd_walk = walk
+		cp_rc.cd_starttime = now
+		local r = skynet.call(game, "lua", "query_g_checkpoint", self.csv_id)
+		if r.cd - cp_rc.cd_walk > 0 then
+			ret.errorcode = errorcode[1].code
+			ret.msg = errorcode[1].msg
+			ret.cd = r.cd - cp_rc.cd_walk
+			return ret
 		else
-			ret.errorcode = errorcode[35].code
-			ret.msg = errorcode[35].msg
+			cp_rc.cd_starttime = 0
+			cp_rc.cd_finished = 1
+			ret.errorcode = errorcode[1].code
+			ret.msg = errorcode[1].msg
+			ret.cd = 0
 			return ret
 		end
 	end
@@ -2571,12 +2526,7 @@ function REQUEST:checkpoint_exit()
  		ret.msg = errorcode[2].msg
  		return ret
  	end
- 	if user.cp_battle_id > 0 then
- 		local cp_rc = user.u_checkpoint_rcmgr:get_by_csv_id(user.cp_battle_id)
-		cp_rc.cd_walk = cp_rc.cd_walk + (now - cp_rc.cd_starttime)
-		cp_rc.cd_starttime = 0
-		user.cp_battle_id = 0
-	end
+ 	cp_exit()
 	ret.errorcode = errorcode[1].code
  	ret.msg = errorcode[1].msg
 	return ret
@@ -2608,17 +2558,25 @@ local function request(name, args, response)
     end
     assert(f)
     assert(response)
-    local result = f(args)
-    if name == "login" then
-		if result.errorcode == errorcode[1].code then
-			for k,v in pairs(M) do
-				if v.REQUEST then
-					v.REQUEST[name](v.REQUEST, user)
+    local ok, result = pcall(f, args)
+    if ok then
+	    if name == "login" then
+			if result.errorcode == errorcode[1].code then
+				for k,v in pairs(M) do
+					if v.REQUEST then
+						v.REQUEST[name](v.REQUEST, user)
+					end
 				end
 			end
-		end
-	end  
-	return response(result)
+		end  
+		return response(result)
+	else
+		skynet.error(result)
+		local ret = {}
+		ret.errorcode = errorcode[29].code
+		ret.msg = errorcode[29].msg
+		return response(ret)
+	end
 end      
 
 function RESPONSE:finish_achi( ... )
@@ -2694,12 +2652,9 @@ end
 function CMD.disconnect()
 	-- todo: do something before exit
 	local str = string.format("client %d disconnect, ", client_fd)
-	flush_db(const.DB_PRIORITY_1)
 	if user then
-		str = str .. str.format("user %d will quit", user.csv_id)
-		user.ifonline = 0
-		user:__update_db({"ifonline"}, const.DB_PRIORITY_2)
-		dc.set( user.csv_id , nil )
+		str = str .. string.format("user_id:%d", user.csv_id)
+		__logout()
 	else
 		str = str .. "user has quit."
 	end

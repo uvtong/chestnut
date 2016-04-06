@@ -983,6 +983,21 @@ checkpoint_exit 72 {
         msg 1 : string
     }
 }
+
+app_resume 72 {
+    response {
+        errorcode 0 : integer
+        msg 1 : string
+    }
+}
+
+app_backgroud 73 {
+    response {
+        errorcode 0 : integer
+        msg 1 : string
+    }
+}
+
 ]]
 
 proto.s2c = sprotoparser.parse [[
