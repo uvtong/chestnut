@@ -934,6 +934,7 @@ get_lilian_info 68 {
         lilian_exp 6 : integer
         lilian_num_list 7 : *quanguan_lilian_num
         purch_phy_power_num 8 : integer
+        phy_power_left_cd_time 9 : integer
     }    
 }       
 
@@ -991,6 +992,8 @@ lilian_purch_phy_power 73 {
     response {
         errorcode 0 : integer
         msg 1 : string
+        phy_power 2 : integer
+        left_cd_time 3 : integer
     }
 }
 

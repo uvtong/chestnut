@@ -83,7 +83,7 @@ local function add_to_prop( t )
    				end 	      
 			else 
 
-				context:role_recruit(u_role.csv_id)
+				context:role_recruit(g_role.csv_id)
 				context:raise_achievement(const.ACHIEVEMENT_T_5)
 			end 
 		else     

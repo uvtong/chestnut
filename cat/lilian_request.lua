@@ -10,7 +10,7 @@ local queue = require "skynet.queue"
 local UPDATETIME = 17
 
 local cs
-local FIXED_STEP = 360 --sec
+local FIXED_STEP = 60 --sec
 local ADAY = 24 * 60 * 60
 
 local send_package
@@ -41,27 +41,30 @@ function REQUEST:login(u)
 end		
 	
 -- recover phy_power
-local function get_phy_power()
+local function get_phy_power( date )
 	print( "user.lilian_level" , user.lilian_level ) 
 	local r = skynet.call( ".game" , "lua" , "query_g_lilian_level" , user.lilian_level )
 	assert( r )
-	local date = os.time()
 	local sign = false
+	local left = 0
 
 	if r.phy_power > user.lilian_phy_power then
 		
 		local diff = ( date - user.u_lilian_submgr.__data[ 1 ].first_lilian_time ) / FIXED_STEP	
-		if user.lilian_phy_power + diff >= r.phy_power then
+	    left = ( date - user.u_lilian_submgr.__data[ 1 ].first_lilian_time ) % FIXED_STEP
+
+		if user.lilian_phy_power + math.floor( diff ) >= r.phy_power then
 			user.lilian_phy_power = r.phy_power
 		else
 			user.lilian_phy_power = user.lilian_phy_power + math.floor( diff )
 			user.u_lilian_submgr.__data[ 1 ].first_lilian_time = date
+			user.u_lilian_submgr.__data[1]:__update_db( { "first_lilian_time" } , const.DB_PRIORITY_2 )
 		end
 
 		sign = true
 	end 			
 		
-	return sign , user.lilian_phy_power;
+	return sign , FIXED_STEP - left;
 end 	
 		
 local function add_to_prop( tprop )
@@ -311,11 +314,12 @@ function REQUEST:get_lilian_info()
 	ret.lilian_num_list = user.u_lilian_qg_nummgr:get_lilian_num_list()
 
 	ret.level = user.lilian_level
-	local _ , p = get_phy_power()
-	ret.phy_power = p
+	local _ , left = get_phy_power(date)
+	ret.phy_power = user.lilian_phy_power
+	ret.phy_power_left_cd_time = left
 	ret.lilian_exp = user.lilian_exp
 	print( "error is called ********************************" , errorcode[1].code )
-	ret.purch_phy_power_num = user.u_lilian_phy_powermgr:get_cout()
+	ret.purch_phy_power_num = user.u_lilian_phy_powermgr:get_count()
 	ret.errorcode = errorcode[ 1 ].code
 	ret.msg = errorcode[ 1 ].msg
 
@@ -476,18 +480,19 @@ function REQUEST:lilian_get_phy_power()
 	local ret = {}
 	local date = os.time()
 
-	local sign , power = get_phy_power()
+	local sign , left = get_phy_power(date)
 	if not sign then
 		ret.left_cd_time = 0
 	else
 		local r = assert( user.u_lilian_submgr.__data[1] )
-		ret.left_cd_time = FIXED_STEP
+		ret.left_cd_time = left
 		r.first_lilian_time = date
 	end	
 
 	ret.errorcode = errorcode[1].code
 	ret.msg = errorcode[1].msg
-	ret.power = power	
+	ret.power = user.lilian_phy_power
+
 	return ret
 end	
 	
@@ -550,7 +555,7 @@ function REQUEST:lilian_get_reward_list()
 				deal_finish_event( r )
 				
 				ret.iffinished = 1
-				
+				ret.if_lilian_reward = 1
 				ret.if_event_reward = 0
 				ret.left_cd_time = 0
 				ret.errorcode = errorcode[1].code
@@ -573,6 +578,7 @@ function REQUEST:lilian_get_reward_list()
 end			
 	
 function REQUEST:lilian_purch_phy_power()
+	print( "lilian_purch_phy_power is called *******************************" )
 	local ret = {}
 	local date = os.time()
 	local ifpurch = false
@@ -581,6 +587,8 @@ function REQUEST:lilian_purch_phy_power()
 	local settime = getsettime()
 	local prop = user.u_propmgr:get_by_csv_id( const.DIAMOND )
 	local t = skynet.call( game , "lua" , "query_g_lilian_phy_power" , pn + 1 )
+	local date = os.time()
+
 	assert( r )
 
 	if 0 == pn then
@@ -627,11 +635,22 @@ function REQUEST:lilian_purch_phy_power()
 	prop.num = prop.num - t.dioment	
 	local r = skynet.call( game , "lua" , "query_g_config" , "purch_phy_power" )
 	assert( r )
-	user.lilian_phy_power = user.lilian_phy_power + r
+	local g = skynet.call( ".game" , "lua" , "query_g_lilian_level" , user.lilian_level )
+	assert( g )
+
+	local _, left =  get_phy_power(date)
+	
+	if user.lilian_phy_power + r > g.phy_power then
+		user.lilian_phy_power = g.phy_power
+	else
+		user.lilian_phy_power = user.lilian_phy_power + r
+	end
 
 	ret.errorcode = errorcode[1].code
 	ret.msg = errorcode[1].msg
-
+	ret.phy_power = user.lilian_phy_power
+	ret.left_cd_time = left
+	print( "lilian_purch_phy_power is called**********************************" )
 	return ret
 end 	
 			
