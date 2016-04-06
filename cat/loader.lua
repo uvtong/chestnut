@@ -866,7 +866,7 @@ function loader.load_user(user)
 	load_u_achievement_rc(user)
 	load_u_checkin(user)
 	load_u_checkin_month( user )
-	--load_u_checkpoint(user)
+	load_u_checkpoint(user)
 	load_u_checkpoint_rc(user)
 	load_u_equipment(user)
 	load_u_exercise( user)
@@ -893,7 +893,7 @@ end
 function loader.clear(user)
 	-- body
 	for k,v in pairs(user) do
-		if string.match(k, "^u_%w+mgr$") then
+		if string.match(k, "^u_[%w_]+mgr$") then
 			print(k)
 			v:clear()
 		end
