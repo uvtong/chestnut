@@ -66,5 +66,6 @@ errorcode[85] = { code = 85 , msg = "event not finished yet" }
 errorcode[86] = { code = 86 , msg = "already get lilian reward" }
 errorcode[87] = { code = 87 , msg = "already get event reward" }
 errorcode[88] = { code = 88 , msg = "wrong reward type" }
+errorcode[89] = { code = 89 , msg = "limit purchase num" }
 
 return errorcode

@@ -36,12 +36,12 @@ end
 
 function _Meta:__update_db(t, priority)
 	-- body
-	-- assert(type(t) == "table")
-	-- local columns = {}
-	-- for i,v in ipairs(t) do
-	-- 	columns[tostring(v)] = self[tostring(v)]
-	-- end
-	-- skynet.send(util.random_db(), "lua", "command", "update", _M.__tname, {{ user_id=self.user_id, csv_id=self.csv_id }}, columns, priority)
+	assert(type(t) == "table")
+	local columns = {}
+	for i,v in ipairs(t) do
+		columns[tostring(v)] = self[tostring(v)]
+	end
+	skynet.send(util.random_db(), "lua", "command", "update", _M.__tname, {{ csv_id=self.csv_id }}, columns, priority)
 end
 
 function _M.insert_db(values, priority)
@@ -92,7 +92,7 @@ function _M:get_lilian_num_by_id( quanguan_id )
 	assert( quanguan_id )
 
 	local r = assert( self.__data[1] )
-			
+	
 	for i = 1 , 5 do
 		local squanguan_id = "quanguan_id" .. i
 		local svalue = "value" .. i
@@ -159,10 +159,13 @@ end
 
 function _M:update_db(priority)
 	-- body
+
+	
 	assert(priority)
 	-- if self.__count > 0 then
 	-- 	local columns = { "first_lilian_time" , "start_time" , "update_time" , "used_queue_num" }
 	-- 	local condition = { {user_id = self.__user_id} , {csv_id = {}} }
+
 	-- 	skynet.send(util.random_db(), "lua", "command", "update_all", _M.__tname, condition, columns, self.__data, priority)
 	-- end
 end

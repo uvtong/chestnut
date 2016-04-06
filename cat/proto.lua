@@ -227,23 +227,20 @@ proto.c2s = sprotoparser.parse [[
     if_trigger_event 5 : integer
     invitation_id 6 : integer
     iflevel_up 7 : integer
-
+    delay_type 8 : integer
+    if_event_reward 9 : integer
+    if_lilian_reward 10 : integer
 }   
     
 .lilian_reward_info {
-    errorcode 0 : integer 
-    msg 1 : string
-    if_trigger_event 2 : integer
-    invitation_id 3 : integer
-    iflevel_up 4 : integer
-    delay_type 5 : integer
-    if_event_reward 6 : integer
-    if_lilian_reward 7 : integer
+    propid 1 : integer
+    propnum 2 : integer
 }   
 
 .quanguan_lilian_num {
     quanguan_id 0 : integer
     num 1 : integer
+    reward 2 : *lilian_reward_info
 }   
 
 handshake 1 {
@@ -936,6 +933,8 @@ get_lilian_info 68 {
         basic_info 5 : *quanguan_basic_info
         lilian_exp 6 : integer
         lilian_num_list 7 : *quanguan_lilian_num
+        purch_phy_power_num 8 : integer
+        phy_power_left_cd_time 9 : integer
     }    
 }       
 
@@ -974,7 +973,12 @@ lilian_get_reward_list 71 {
         errorcode 5 : integer
         if_lilian_reward 6 : integer
         if_event_reward 7 : integer
+
+        if_lilian_finished 8 : integer
+        reward 9 : *lilian_reward_info
+
     }
+
 }
 
 checkpoint_exit 72 {
@@ -984,14 +988,23 @@ checkpoint_exit 72 {
     }
 }
 
-app_resume 72 {
+lilian_purch_phy_power 73 {
+    response {
+        errorcode 0 : integer
+        msg 1 : string
+        phy_power 2 : integer
+        left_cd_time 3 : integer
+    }
+}
+
+app_resume 74 {
     response {
         errorcode 0 : integer
         msg 1 : string
     }
 }
 
-app_backgroud 73 {
+app_backgroud 75 {
     response {
         errorcode 0 : integer
         msg 1 : string

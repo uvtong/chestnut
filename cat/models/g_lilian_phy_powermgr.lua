@@ -4,25 +4,11 @@ local util = require "util"
 local _M = {}
 _M.__data = {}
 _M.__count = 0
+_M.__cap = 0
 _M.__user_id = 0
-_M.__tname = "u_equipment"
+_M.__tname = "g_lilian_phy_power"
 
-local _Meta = { user_id=0, 
-				csv_id=0, 
-				level=0, 
-				combat=0, 
-				defense=0, 
-				critical_hit=0, 
-				king=0, 
-				critical_hit_probability=0, 
-				combat_probability=0, 
-				defense_probability=0, 
-				king_probability=0, 
-				enhance_success_rate=0, 
-				currency_type=0, 
-				currency_num=0}
-
-_Meta.__tname = "u_equipment"
+local _Meta = { csv_id=0, dioment = 0}
 
 function _Meta.__new()
  	-- body
@@ -37,31 +23,39 @@ function _Meta:__insert_db(priority)
 	local t = {}
 	for k,v in pairs(_Meta) do
 		if not string.match(k, "^__*") then
-			t[k] = self[k]
+			t[k] = assert(self[k])
 		end
 	end
-	skynet.send(util.random_db(), "lua", "command", "insert", self.__tname, t, priority)
+	skynet.send(util.random_db(), "lua", "command", "insert", _M.__tname, t, priority)
 end
 
-function _Meta:__update_db(t)
+function _Meta:__update_db(t, priority)
 	-- body
 	-- assert(type(t) == "table")
 	-- local columns = {}
 	-- for i,v in ipairs(t) do
 	-- 	columns[tostring(v)] = self[tostring(v)]
 	-- end
-	-- skynet.send(util.random_db(), "lua", "command", "update", self.__tname, {{ user_id=self.user_id, csv_id=self.csv_id }}, columns)
+	-- skynet.send(util.random_db(), "lua", "command", "update", _M.__tname, {{ user_id=self.user_id, csv_id=self.csv_id }}, columns, priority)
 end
 
-function _Meta:__serialize()
+function _Meta:__get(key)
 	-- body
-	local r = {}
-	for k,v in pairs(_Meta) do
-		if not string.match(k, "^__*") then
-			r[k] = self[k]
-		end
+	assert(type(key) == "string")
+	assert(_Meta[key])
+	return assert(self[key])
+end
+
+function _Meta:__set(key, value)
+	-- body
+	assert(type(key) == "string")
+	self[key] = value
+	if self[csv_id] == const.GOLD then
+		notification.handler[self.EGOLD](self.EGOLD)
+	elseif self[csv_id] == const.EXP then
+		notification.handler[self.EEXP](self.EGOLD)
+	else
 	end
-	return r
 end
 
 function _M.insert_db(values, priority)
@@ -77,8 +71,14 @@ function _M.insert_db(values, priority)
 		end
 		table.insert(total, t)
 	end
-	skynet.send(util.random_db() , "lua" , "command" , "insert_all" , _Meta.__tname , total, priority)
+	skynet.send(util.random_db(), "lua", "command", "insert_all", _M.__tname, total, priority)
 end 
+
+function _M.create_with_csv_id(csv_id)
+ 	-- body
+ 	assert(csv_id, "csv_id ~= nil")
+ 	return _M.create(r)
+end
 
 function _M.create( P )
 	assert(P)
@@ -93,10 +93,11 @@ end
 
 function _M:add( u )
 	assert(u)
+	assert(self.__data[tostring(u.csv_id)] == nil)
 	self.__data[tostring(u.csv_id)] = u
 	self.__count = self.__count + 1
 end
-
+	
 function _M:get_by_csv_id(csv_id)
 	-- body
 	return self.__data[tostring(csv_id)]
@@ -114,20 +115,37 @@ function _M:get_count()
 	return self.__count
 end
 
+function _M:get_cap()
+	-- body
+	return self.__cap
+end
+
 function _M:clear()
 	self.__data = {}
 	self.__count = 0
+end
+
+function _M:get(pk, key)
+	-- body
+	local r = self:get_by_csv_id(pk)
+	r:__get(key)
+end
+
+function _M:set(pk, key, value)
+	-- body
+	local r = self:get_by_csv_id(pk)
+	r:__set(key, value)
 end
 
 function _M:update_db(priority)
 	-- body
 	assert(priority)
 	if self.__count > 0 then
-	local columns = { "level", "combat", "defense", "critical_hit", "king", "critical_hit_probability", "combat_probability", 
-				"defense_probability", "king_probability", "enhance_success_rate", "currency_type", "currency_num"}
-	local condition = { {user_id = self.__user_id}, {csv_id = {}}}
-	skynet.send(util.random_db(), "lua", "command", "update_all", _Meta.__tname, condition, columns, self.__data, priority)
+		local columns = { "finished", "reward_collected", "is_unlock"}
+		local condition = { {user_id = self.__user_id}, {csv_id = {}}}
+		skynet.send(util.random_db(), "lua", "command", "update_all", _M.__tname, condition, columns, self.__data, priority)
 	end
 end
 
 return _M
+

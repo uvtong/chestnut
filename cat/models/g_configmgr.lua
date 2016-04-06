@@ -7,7 +7,8 @@ _M.__count = 0
 _M.__user_id = 0
 _M.__tname = "g_config"
 
-local _Meta = { csv_id=0, user_level_max=0, user_vip_max=0, xilian_begain_level=0, cp_chapter_max=0}
+
+local _Meta = { csv_id=0, user_level_max=0, user_vip_max=0, xilian_begain_level=0, cp_chapter_max=0,purch_phy_power =0}
 
 _Meta.__tname = "g_config"
 

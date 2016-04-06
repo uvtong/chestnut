@@ -25,7 +25,7 @@ local exercise_request = require "exercise_request"
 local cgold_request = require "cgold_request"
 local kungfurequest = require "kungfurequest"
 local new_drawrequest = require "new_drawrequest"
---local lilian_request = require "lilian_request"
+local lilian_request = require "lilian_request"
 
 table.insert( M , checkinrequest )
 table.insert( M , exercise_request )
@@ -33,7 +33,7 @@ table.insert( M , cgold_request )
 table.insert( M , new_emailrequest )
 table.insert( M , kungfurequest )
 table.insert( M , new_drawrequest )
---table.insert( M , lilian_request )
+table.insert( M , lilian_request )
 
 local WATCHDOG
 local host
@@ -78,6 +78,10 @@ local function flush_db(priority)
 		local cm = user.u_checkin_monthmgr:get_checkin_month()
 		if cm then
 			cm:__update_db({"checkin_month"}, priority)
+		end
+		local ls = user.u_lilian_submgr:get_lilian_sub()
+		if ls then
+			ls:__update_db( {"first_lilian_time" , "start_time" , "update_time" , "used_queue_num"} , priority )
 		end
 	end
 end
@@ -590,8 +594,17 @@ function REQUEST:signup()
 		prop.num = 100     
 		prop = u_propmgr.create(prop)
 		table.insert(l, prop)
-		u_propmgr.insert_db(l, const.DB_PRIORITY_1)
 		
+		--add invitation
+		prop = skynet.call( game , "lua" , "query_g_prop" , 50007)
+		assert( prop )
+		prop.user_id = u.csv_id
+		prop.num = 100
+		prop = u_propmgr.create(prop)
+		table.insert( l , prop )
+		
+		u_propmgr.insert_db(l, const.DB_PRIORITY_1)
+
 		local newemail = { 
 						   type = 1 , title = "new user email" , 
 						   content = "Welcome to the game" , 

@@ -5,6 +5,8 @@ const.DIAMOND = 1
 const.GOLD = 2
 const.EXP = 3
 const.LOVE = 4
+const.PHY_POWER = 5
+const.INVITATION = 6
 
 -- achievement type
 const.ACHIEVEMENT_T_SUM = 8

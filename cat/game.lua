@@ -470,6 +470,22 @@ function CMD.query_g_user_level(pk)
 	end
 end
 
+function CMD.query_g_lilian_phy_power(pk)
+	assert(pk)
+	if type(pk) == "number" then
+		local r = game.g_xilian_costmgr:get_by_csv_id(pk)
+		if r then
+			return r
+		else
+			error "there are insufficient data"
+		end
+	elseif type(pk) == "nil" then
+		return game.g_xilian_costmgr.__data
+	else
+		assert(false)
+	end
+end
+
 function CMD.query_g_config(pk)
 	-- body
 	if type(pk) == "string" then
