@@ -997,6 +997,20 @@ lilian_purch_phy_power 73 {
     }
 }
 
+app_resume 74 {
+    response {
+        errorcode 0 : integer
+        msg 1 : string
+    }
+}
+
+app_backgroud 75 {
+    response {
+        errorcode 0 : integer
+        msg 1 : string
+    }
+}
+
 ]]
 
 proto.s2c = sprotoparser.parse [[
