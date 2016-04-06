@@ -13,6 +13,7 @@ local _Meta = {
 				start_time = 0,
 				update_time = 0 , 
 				used_queue_num = 0 , 
+				end_lilian_time = 0
 			  }
 
 function _Meta.__new()

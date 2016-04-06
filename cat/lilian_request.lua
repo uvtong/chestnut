@@ -58,7 +58,8 @@ local function get_phy_power( date )
 		else
 			user.lilian_phy_power = user.lilian_phy_power + math.floor( diff )
 			user.u_lilian_submgr.__data[ 1 ].first_lilian_time = date
-			user.u_lilian_submgr.__data[1]:__update_db( { "first_lilian_time" } , const.DB_PRIORITY_2 )
+			user.u_lilian_submgr.__data[1].end_lilian_time = date + FIXED_STEP
+			user.u_lilian_submgr.__data[1]:__update_db( { "first_lilian_time" , "end_lilian_time" } , const.DB_PRIORITY_2 )
 		end
 
 		sign = true
@@ -207,6 +208,7 @@ local function deal_finish_event( tr )
 	--update used queue num
 	if r.start_time < tr.start_time and tr.start_time < r.update_time then 
 		r.used_queue_num = r.used_queue_num + 1
+		print( "finish event is called " , r.used_queue_num )
 		r:__update_db( { "used_queue_num" } , const.DB_PRIORITY_2 )
 	end
 	tr.iffinished = 1
@@ -226,7 +228,6 @@ function REQUEST:get_lilian_info()
 	local date = os.time()
     	
     local r = user.u_lilian_submgr:get_lilian_sub()
-    local finished_num = 0
 	--if quanguan can lilian
 	for k , v in pairs( user.u_lilian_mainmgr.__data ) do
 		local tmp = {}
@@ -274,7 +275,6 @@ function REQUEST:get_lilian_info()
 			end
 
 			if 1 == v.iffinished then
-				finished_num = finished_num + 1
 				v:__update_db( { "iffinished" } , const.DB_PRIORITY_2 )
 				user.u_lilian_mainmgr:delete_by_csv_id( v.quanguan_id )
 			end
@@ -301,24 +301,28 @@ function REQUEST:get_lilian_info()
 			r.used_queue_num = fqn.queue
 			r:__update_db( { "used_queue_num" } , const.DB_PRIORITY_2 )
 			user.u_lilian_qg_nummgr:clear_by_settime( settime )
-		else
-			if 0 ~= finished_num then
-				r.used_queue_num = r.used_queue_num + finished_num
-				r:__update_db( { "used_queue_num" } , const.DB_PRIORITY_2 )
-			end
-			print( "r.userd_queue_num is " , r.used_queue_num  , finished_num )
-			assert( r.used_queue_num >= 0 )
+		-- else
+		-- 	if 0 ~= finished_num then
+		-- 		r.used_queue_num = r.used_queue_num + finished_num
+		-- 		r:__update_db( { "used_queue_num" } , const.DB_PRIORITY_2 )
+		-- 	end
+		-- 	print( "r.userd_queue_num is " , r.used_queue_num  , finished_num )
+		-- 	assert( r.used_queue_num >= 0 )
 		end
 	end
 
 	ret.lilian_num_list = user.u_lilian_qg_nummgr:get_lilian_num_list()
 
 	ret.level = user.lilian_level
-	local _ , left = get_phy_power(date)
+	if date >= user.u_lilian_submgr.__data[1].end_lilian_time then
+		local _ , left = get_phy_power(date)
+		ret.phy_power_left_cd_time = left
+	else
+		ret.phy_power_left_cd_time = user.u_lilian_submgr.__data[1].end_lilian_time - date
+	end 
 	ret.phy_power = user.lilian_phy_power
-	ret.phy_power_left_cd_time = left
 	ret.lilian_exp = user.lilian_exp
-	print( "error is called ********************************" , errorcode[1].code )
+	print( "error is called ********************************" , errorcode[1].code , user.lilian_phy_power )
 	ret.purch_phy_power_num = user.u_lilian_phy_powermgr:get_count()
 	ret.errorcode = errorcode[ 1 ].code
 	ret.msg = errorcode[ 1 ].msg
@@ -391,6 +395,7 @@ function REQUEST:start_lilian()
 				rs.csv_id = user.csv_id
 				rs.start_time = settime
 				rs.first_lilian_time = date
+				rs.end_lilian_time = date + FIXED_STEP
 				rs.update_time = settime + ADAY
 				print( "queue num in level is " , fqn.queue )
 				rs.used_queue_num = fqn.queue
@@ -456,46 +461,45 @@ function REQUEST:start_lilian()
 			nr = user.u_lilian_mainmgr.create( nr )
 			user.u_lilian_mainmgr:add( nr )
 			nr:__insert_db( const.DB_PRIORITY_2 )
-
-			if user.lilian_phy_power == fqn.phy_power then
-				rs.first_lilian_time = date
-			end
-
-			prop.num = prop.num - 1
-			rs.used_queue_num = rs.used_queue_num - 1
-			rs:__update_db( { "used_queue_num" } , const.DB_PRIORITY_2 )
-			user.lilian_phy_power = user.lilian_phy_power - lq.need_phy_power
-			print( "user.lilian_phy_power is **********************************" , user.lilian_phy_power , rs.used_queue_num)
+         
+		 	--get_phy_power(date)
+		 	if date >= rs.end_lilian_time then
+		 		get_phy_power(date)
+		 	end
+         
+		 	prop.num = prop.num - 1
+		 	rs.used_queue_num = rs.used_queue_num - 1
+		 	print( "start_lilian is called sub**********" , rs.used_queue_num )
+		 	rs:__update_db( { "used_queue_num" } , const.DB_PRIORITY_2 )
+		 	user.lilian_phy_power = user.lilian_phy_power - lq.need_phy_power
+		 	print( "user.lilian_phy_power is **********************************" , user.lilian_phy_power , rs.used_queue_num)
 		end 		
-	end 	
+	end  	
 	ret.errorcode = errorcode[1].code
 	ret.msg = errorcode[1].msg		
 	ret.left_cd_time = math.floor( lq.time * ( 1 - fqn.dec_lilian_time / 100 ) )
 	print( "ret.left_cd_time is ********************************" , ret.left_cd_time )
-	return ret
-end					
-				
+	return ret                     
+end		 			               
+		 		                   
 function REQUEST:lilian_get_phy_power()
 	print( "lilian_get_phy_power is called********************" )
-	local ret = {}
-	local date = os.time()
-
-	local sign , left = get_phy_power(date)
-	if not sign then
-		ret.left_cd_time = 0
-	else
-		local r = assert( user.u_lilian_submgr.__data[1] )
+	local ret = {}                
+	local date = os.time()         
+	if date >= user.u_lilian_submgr.__data[1].end_lilian_time then
+		ret.errorcode = errorcode[1].code
+		ret.msg = errorcode[1].msg
+		local sign , left = get_phy_power(date)
 		ret.left_cd_time = left
-		r.first_lilian_time = date
-	end	
-
-	ret.errorcode = errorcode[1].code
-	ret.msg = errorcode[1].msg
-	ret.power = user.lilian_phy_power
-
+	else                
+		ret.errorcode = errorcode[85].code          
+		ret.left_cd_time = user.u_lilian_submgr.__data[1].end_lilian_time - date
+	end  
+	ret.phy_power = user.lilian_phy_power
+         
 	return ret
-end	
-	
+end	     
+	     
 function REQUEST:lilian_get_reward_list()
 	print( "lilian_get_reward_list is called **************" , self.quanguan_id , self.reward_type )
 	assert( self.quanguan_id and self.reward_type )
@@ -503,7 +507,7 @@ function REQUEST:lilian_get_reward_list()
 	local date = os.time()
 	for k , v in pairs( user.u_lilian_mainmgr.__data ) do
 		print( k , v )
-	end 
+	end  
 	local r = user.u_lilian_mainmgr:get_by_csv_id( self.quanguan_id )
 	assert( r )
 	if DELAY_TYPE.LILIAN == self.reward_type then
@@ -583,13 +587,13 @@ function REQUEST:lilian_purch_phy_power()
 	local date = os.time()
 	local ifpurch = false
 
-	local pn = user.u_lilian_phy_powermgr:get_cout()
+	local pn = user.u_lilian_phy_powermgr:get_count()
 	local settime = getsettime()
 	local prop = user.u_propmgr:get_by_csv_id( const.DIAMOND )
-	local t = skynet.call( game , "lua" , "query_g_lilian_phy_power" , pn + 1 )
+	local t = skynet.call( ".game" , "lua" , "query_g_lilian_phy_power" , pn + 1 )
 	local date = os.time()
 
-	assert( r )
+	assert( t )
 
 	if 0 == pn then
 		ifpurch = true
@@ -600,7 +604,7 @@ function REQUEST:lilian_purch_phy_power()
 			user.u_lilian_phy_powermgr:clear()
 			ifpurch = true
 		else    
-			if pn >= user.purchase_hp_count_max then
+			if pn >= 5 then --user.purchase_hp_count_max then
 				ret.errorcode = errorcode[89].code
 				ret.msg = errorcode[89].msg
 
@@ -633,7 +637,7 @@ function REQUEST:lilian_purch_phy_power()
 	p:__insert_db( const.DB_PRIORITY_1 )
 
 	prop.num = prop.num - t.dioment	
-	local r = skynet.call( game , "lua" , "query_g_config" , "purch_phy_power" )
+	local r = skynet.call( ".game" , "lua" , "query_g_config" , "purch_phy_power" )
 	assert( r )
 	local g = skynet.call( ".game" , "lua" , "query_g_lilian_level" , user.lilian_level )
 	assert( g )

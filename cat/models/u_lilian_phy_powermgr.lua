@@ -122,7 +122,7 @@ function _M:clear()
 	end
 end
 
-function _M:getone()
+function _M:get_one()
 	for k , v in pairs( self.__data ) do
 		return v
 	end

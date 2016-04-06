@@ -675,7 +675,7 @@ local function load_u_lilian_phy_power(user)
 
 	for i , v in ipairs( nr ) do
 		local a = u_lilian_phy_powermgr.create( v )
-		u_lilian_qg_phy_powermgr:add( a )
+		u_lilian_phy_powermgr:add( a )
 	end
 
 	u_lilian_phy_powermgr.__user_id = user.csv_id
