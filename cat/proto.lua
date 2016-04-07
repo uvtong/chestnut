@@ -935,6 +935,7 @@ get_lilian_info 68 {
         lilian_num_list 7 : *quanguan_lilian_num
         purch_phy_power_num 8 : integer
         phy_power_left_cd_time 9 : integer
+        eventid 10 : integer
     }    
 }       
 
@@ -969,14 +970,15 @@ lilian_get_reward_list 71 {
         if_trigger_event 1 : integer
         left_cd_time 2 : integer
         invitation_id 3 : integer
-        iflevel_up 4 : integer
+        lilian_level 4 : integer
         errorcode 5 : integer
         if_lilian_reward 6 : integer
         if_event_reward 7 : integer
 
         if_lilian_finished 8 : integer
         reward 9 : *lilian_reward_info
-
+        lilian_exp 10 : integer
+        eventid 11 : integer
     }
 
 }
