@@ -1,17 +1,13 @@
---local msgserver = require "snax.msgserver"
-package.path = package.path .. ";./../crazy/?.lua"
-local msgserver = require "msgserver"
+local msgserver = require "snax.msgserver"
 local crypt = require "crypt"
 local skynet = require "skynet"
 
---local loginservice = tonumber(...)
-local loginservice = tostring(...)
+local loginservice = tonumber(...)
 
 local server = {}
 local users = {}
 local username_map = {}
 local internal_id = 0
-
 
 -- login server disallow multi login, so login_handler never be reentry
 -- call by login server
@@ -26,13 +22,13 @@ function server.login_handler(uid, secret)
 
 	-- you can use a pool to alloc new agent
 	local agent = skynet.newservice "msgagent"
-
 	local u = {
 		username = username,
 		agent = agent,
 		uid = uid,
 		subid = id,
 	}
+
 	-- trash subid (no used)
 	skynet.call(agent, "lua", "login", uid, id, secret)
 
@@ -69,12 +65,6 @@ function server.kick_handler(uid, subid)
 	end
 end
 
--- call by self (when socket connet)
-function server.connect_handler(fd)
-	-- body
-	-- nothing.
-end
-
 -- call by self (when socket disconnect)
 function server.disconnect_handler(username)
 	local u = username_map[username]
@@ -93,6 +83,18 @@ end
 function server.register_handler(name)
 	servername = name
 	skynet.call(loginservice, "lua", "register_gate", servername, skynet.self())
+end
+
+function server.send_request_handler(uid, subid, message)
+	-- body
+	local u = users[uid]
+	assert(u.subid == subid)
+	if u then
+		local ok, result = pcall(msgserver.send_request, u.username, msg)
+		if not ok then
+			skynet.error(result)
+		end
+	end
 end
 
 msgserver.start(server)
