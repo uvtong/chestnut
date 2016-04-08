@@ -81,7 +81,7 @@ local function flush_db(priority)
 		end
 		local ls = user.u_lilian_submgr:get_lilian_sub()
 		if ls then
-			ls:__update_db( {"first_lilian_time" , "start_time" , "update_time" , "used_queue_num"} , priority )
+			ls:__update_db( {"first_lilian_time" , "start_time" , "update_time" , "used_queue_num" , "end_lilian_time" } , priority )
 		end
 	end
 end
