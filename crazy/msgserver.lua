@@ -123,15 +123,29 @@ function server.ip(username)
 	end
 end
 
+function server.send_request(username, message, session)
+	-- body
+	local u = user_online[username]
+	assert(u)
+	assert(connection[u.fd])
+	if u.fd then
+		local size = #message + 4
+		local package = string.pack(">I2", size)..message..string.pack(">I4", session)
+		socketdriver.send(u.fd, package)
+	end
+end
+
 function server.start(conf)
 	local expired_number = conf.expired_number or 128
 
+	-- called by agent
 	local handler = {}
 
 	local CMD = {
 		login = assert(conf.login_handler),
 		logout = assert(conf.logout_handler),
 		kick = assert(conf.kick_handler),
+		send_request_handler = assert(conf.send_request_handler)
 	}
 
 	function handler.command(cmd, source, ...)
@@ -145,7 +159,6 @@ function server.start(conf)
 	end
 
 	function handler.connect(fd, addr)
-		-- 
 		handshake[fd] = addr
 		gateserver.openclient(fd)
 	end
@@ -166,7 +179,6 @@ function server.start(conf)
 
 	-- atomic , no yield
 	local function do_auth(fd, message, addr)
-		print "this do auth."
 		local username, index, hmac = string.match(message, "([^:]*):([^:]*):([^:]*)")
 		local u = user_online[username]
 		if u == nil then
