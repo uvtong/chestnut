@@ -978,9 +978,8 @@ lilian_get_reward_list 71 {
         if_event_reward 7 : integer
 
         if_lilian_finished 8 : integer
-        reward 9 : *lilian_reward_info
-        lilian_exp 10 : integer
-        eventid 11 : integer
+        lilian_exp 9 : integer
+        eventid 10 : integer
     }
 
 }
@@ -1025,6 +1024,15 @@ lilian_inc 76 {
         msg 1 : string
         inc_num 2 : integer
         diamond_num 3 : integer
+        iffinished 4 : integer
+        if_trigger_event 5 : integer
+        left_cd_time 6 : integer
+        invitation_id 7 : integer
+        lilian_level 8 : integer
+        if_lilian_reward 9 : integer
+        if_event_reward 10 : integer
+        lilian_exp 11 : integer
+        eventid 12 : integer
     }
 }
 

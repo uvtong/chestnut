@@ -93,7 +93,6 @@ local function get_phy_power( date )
 			user.u_lilian_submgr.__data[1].end_lilian_time = date + FIXED_STEP
 			user.u_lilian_submgr.__data[1]:__update_db( { "first_lilian_time" , "end_lilian_time" } , const.DB_PRIORITY_2 )
 		end
-
 	end 			
 		
 	return iffull , FIXED_STEP - left;
@@ -223,13 +222,15 @@ local function deal_finish_event( tr )
 	end 
 	tr.iffinished = 1
 	print( "tr.iffiniseed in deal_finish_event is " , tr.iffiniseed )
-			
+		
 end 	
 		
 local function trigger_event( tr )
 	assert( tr )
 	local rand_num = math.random( 10000 ) % 100 
 	local iftrigger = 0
+	local lq = skynet.call( ".game" , "lua" , "query_g_lilian_quanguan" , tr.quanguan_id )
+	assert( lq )	
 
 	print( "randnom is *************************" , rand_num )
 	if 0 <= rand_num and rand_num <= lq.trigger_event_prop then
@@ -245,8 +246,10 @@ local function trigger_event( tr )
 		
 		tr.if_trigger_event = 1
 		tr.eventid = te[random][1]
+		tr:__update_db( { "if_trigger_event" , "eventid" } , const.DB_PRIORITY_2 ) 
 		tr.event_end_time = math.floor( t.cd_time * ( 1 - ll.dec_weikun_time / 100 ) )                --get final eventtime
 		iftrigger = 1
+		print( "trigger a event *******************************************" , tr.eventid )
 	end
 
 	return iftrigger        
@@ -321,9 +324,12 @@ function REQUEST:get_lilian_info()
 				if 0 == IF_TRIGGER_EVENT then
 					sign = trigger_event( v )
 					if sign then            
+
 						tmp.if_trigger_event = 1
                     	tmp.left_cd_time = tmp.event_end_time
 						v.event_end_time = v.event_end_time + date
+						v:__update_db( { "event_end_time" } , const.DB_PRIORITY_2 )
+
 						tmp.delay_type = DELAY_TYPE.EVENT
 					end 	
 				end
@@ -342,9 +348,9 @@ function REQUEST:get_lilian_info()
 				end      
 			else    
 				if date >= v.event_end_time then
-				print( "both finished *******************************" , v.eventid )
 					deal_finish_event( v )
 					IF_TRIGGER_EVENT = 0
+				print( "both finished *******************************" , v.eventid )
 
 					tmp.delay_type = DELAY_TYPE.FINISH
 					tmp.if_event_reward = 1
@@ -621,8 +627,8 @@ function REQUEST:lilian_get_phy_power()
 	return ret        
 end	     			
 	     			
-local function inc_lilian( r )
-	assert( r )		
+local function inc_lilian( r , date )
+	assert( r and date )		
 
 	local ret = {}	
 
@@ -642,7 +648,9 @@ local function inc_lilian( r )
 					IF_TRIGGER_EVENT = 1
 					ret.if_trigger_event = 1
 					ret.left_cd_time = r.event_end_time
-					ret.event_end_time = event_end_time + date
+					r.event_end_time = r.event_end_time + date
+
+					r:__update_db( { "event_end_time" } , const.DB_PRIORITY_2 )
 				end 
 			end 	
 
@@ -732,7 +740,9 @@ function REQUEST:lilian_get_reward_list()
 						IF_TRIGGER_EVENT = 1
 						ret.if_trigger_event = 1
 						ret.left_cd_time = r.event_end_time
-						ret.event_end_time = event_end_time + date
+						r.event_end_time = r.event_end_time + date
+
+						r:__update_db( { "event_end_time" } , const.DB_PRIORITY_2 ) 
 					end 
 				end
 
@@ -871,30 +881,36 @@ function REQUEST:lilian_purch_phy_power()
 	print( "lilian_purch_phy_power is called**********************************sdasdasd" , user.lilian_phy_power , user.purch_lilian_phy_power,ret.phy_power )
 	return ret
 end 
-
+	
 local INC_TYPE = { LILIAN = 1 , EVENT = 2 }
-local CONSUMU_PER_SEC = 5
+local CONSUMU_PER_SEC = 2
+
 function REQUEST:lilian_inc()
 	assert( self.quanguan_id and self.inc_type )
-	print( "lilian_inc is called*****************************" )
+	print( "lilian_inc is called*****************************" , self.quanguan_id , self.inc_type)
 	local ret = {}	
 	local date = os.time()
 	local r = user.u_lilian_mainmgr:get_by_csv_id( self.quanguan_id )
 	assert( r ) 
 	local not_enough_prop = false
 	--cost 	
-	local prop = user.u_propmgr:get_by_csv_id()
+	local prop = user.u_propmgr:get_by_csv_id( const.DIAMOND )
 
 	if self.inc_type == INC_TYPE.LILIAN then
-		local tl = assert( r.enc_time - date > 0 )
-		local totol_consume = tl * CONSUMU_PER_SEC
+		local tl = r.end_time - date
+		assert( tl >= 0 )
+		local total_consume = tl * CONSUMU_PER_SEC
+		print( "in lilian *************************************" , r.end_time , date , r.end_time - date , CONSUMU_PER_SEC , tl, total_consume )
+
 		if not prop or prop.num < total_consume then
 			not_enough_prop = true
 		else
-			ret = inc_lilian( r )
+			ret = inc_lilian( r , date )
 		end 
 	else    
-		local tl = assert( r.event_end_time - date > 0 )
+		print( "in event *************************************" , r.event_end_time , date , r.event_end_time - date )
+		local tl = r.event_end_time - date
+		assert( tl >= 0 )
 		local total_consume = tl * CONSUMU_PER_SEC 
 		if not prop or prop.num < total_consume then
 			not_enough_prop = true
