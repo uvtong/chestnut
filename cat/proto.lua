@@ -1024,6 +1024,7 @@ lilian_inc 76 {
         errorcode 0 : integer
         msg 1 : string
         inc_num 2 : integer
+        diamond_num 3 : integer
     }
 }
 
@@ -1034,6 +1035,7 @@ lilian_reset_quanguan 77 {
     response {
         errorcode 0 : integer
         msg 1 : string
+        diamond_num 2 : integer
     }
 }
 
