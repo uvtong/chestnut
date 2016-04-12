@@ -14,7 +14,8 @@ local _Meta = {
 				start_time = 0 ,
 				end_time = 0 ,
 				num = 0	,
-				quanguan_id = 0			
+				quanguan_id = 0	,
+				reset_num = 0		
 			  }
 
 function _Meta.__new()

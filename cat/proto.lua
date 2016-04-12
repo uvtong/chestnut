@@ -230,6 +230,8 @@ proto.c2s = sprotoparser.parse [[
     delay_type 8 : integer
     if_event_reward 9 : integer
     if_lilian_reward 10 : integer
+    eventid 11 : integer
+
 }   
     
 .lilian_reward_info {
@@ -935,7 +937,7 @@ get_lilian_info 68 {
         lilian_num_list 7 : *quanguan_lilian_num
         purch_phy_power_num 8 : integer
         phy_power_left_cd_time 9 : integer
-        eventid 10 : integer
+        present_phy_power_num 10 : integer
     }    
 }       
 
@@ -1013,6 +1015,29 @@ app_backgroud 75 {
     }
 }
 
+lilian_inc 76 {
+    request {
+        quanguan_id 0 : integer 
+        inc_type 1 : integer
+    }
+    response {
+        errorcode 0 : integer
+        msg 1 : string
+        inc_num 2 : integer
+    }
+}
+
+lilian_reset_quanguan 77 {
+    request {
+        quanguan_id 0 : integer
+    }
+    response {
+        errorcode 0 : integer
+        msg 1 : string
+    }
+}
+
+
 ]]
 
 proto.s2c = sprotoparser.parse [[
@@ -1051,21 +1076,7 @@ finish_achi 3 {
     }
 }
 
-lilian_phy_power 4 {
-    request {
-        phy_power 0 : integer
-    }
-    response {
-        errorcode 0 : integer
-        msg 1 : string
-    }
-}
-
-lilian_result 5 {
-    request {
-        errorcode 0 : integer
-        msg 1 : string
-    }
+lilian_update 4 {
     response {
         errorcode 0 : integer
         msg 1 : string

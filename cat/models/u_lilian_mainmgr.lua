@@ -18,7 +18,8 @@ local _Meta = {
 				event_start_time = 0,
 				event_end_time = 0,
 				if_lilian_finished = 0 ,
-				eventid = 0
+				eventid = 0 ,
+				if_canceled = 0
 			  }
 
 _Meta.__tname = "u_lilian_main"

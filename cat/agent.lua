@@ -545,6 +545,7 @@ function REQUEST:signup()
 				lilian_level = 1,
 				lilian_exp = 0,
 				lilian_phy_power = 120,
+				purch_lilian_phy_power = 0,
 				cp_hanging_drop_starttime=0,
 				}
 		local usersmgr = require "models/usersmgr"
