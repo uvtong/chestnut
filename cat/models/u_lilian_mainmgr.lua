@@ -19,7 +19,8 @@ local _Meta = {
 				event_end_time = 0,
 				if_lilian_finished = 0 ,
 				eventid = 0 ,
-				if_canceled = 0
+				if_canceled = 0 ,
+				if_event_canceled = 0
 			  }
 
 _Meta.__tname = "u_lilian_main"
@@ -122,12 +123,12 @@ end
 
 function _M:update_db(priority)
 	-- body
-	-- assert(priority)
-	-- if self.__count > 0 then
-	-- 	local columns = { "if_lilian_finished" , "iffinished" }
-	-- 	local condition = { { user_id = self.__user_id } , { csv_id = {} } }
-	-- 	skynet.send(util.random_db(), "lua", "command", "update_all", _Meta.__tname, condition, columns, self.__data, priority)
-	-- end
+	assert(priority)
+	if self.__count > 0 then
+		local columns = { "if_lilian_finished" , "iffinished" , "if_trigger_event" , "event_end_time" , "eventid" , "if_canceled" , "if_event_canceled"}
+		local condition = { { user_id = self.__user_id } , { csv_id = {} } }
+		skynet.send(util.random_db(), "lua", "command", "update_all", _Meta.__tname, condition, columns, self.__data, priority)
+	end
 end
 
 return _M

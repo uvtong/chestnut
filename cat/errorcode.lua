@@ -56,7 +56,7 @@ errorcode[ 70 ] = { code = 70 , msg = "can not add this one" }
 --checkin
 errorcode[ 71 ] = { code = 71 , msg = "donot match the server totalmount" }
 errorcode[ 72 ] = { code = 72 , msg = "can not checkin_reward" }
-					
+
 --lilian
 errorcode[81] = { code = 81 , msg = "lilian not finished yet" }
 errorcode[82] = { code = 82 , msg = "condition not meet" }

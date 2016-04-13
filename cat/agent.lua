@@ -497,7 +497,7 @@ function REQUEST:signup()
 				uname="nihao",
 				uaccount=self.account, 
 				upassword=self.password,
-				uviplevel=0,
+				uviplevel=3,
 				config_sound=1, 
 				config_music=1, 
 				avatar=0, 

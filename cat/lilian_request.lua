@@ -73,14 +73,13 @@ end
 	
 -- recover phy_power
 local function get_phy_power( date )
-	print( "user.lilian_level" , user.lilian_level ) 
+	print( "user.lilian_level" , user.lilian_level , user.lilian_phy_power ) 
 	local r = skynet.call( ".game" , "lua" , "query_g_lilian_level" , user.lilian_level )
 	assert( r )
 	local iffull = false
 	local left = 0
 
 	if r.phy_power > user.lilian_phy_power then
-		
 		local diff = ( date - user.u_lilian_submgr.__data[ 1 ].first_lilian_time ) / FIXED_STEP	
 	    left = ( date - user.u_lilian_submgr.__data[ 1 ].first_lilian_time ) % FIXED_STEP
 
@@ -89,12 +88,13 @@ local function get_phy_power( date )
 			iffull = true
 		else
 			user.lilian_phy_power = user.lilian_phy_power + math.floor( diff )
-			user.u_lilian_submgr.__data[ 1 ].first_lilian_time = date
-			user.u_lilian_submgr.__data[1].end_lilian_time = date + FIXED_STEP
-			user.u_lilian_submgr.__data[1]:__update_db( { "first_lilian_time" , "end_lilian_time" } , const.DB_PRIORITY_2 )
 		end
+		user.u_lilian_submgr.__data[ 1 ].first_lilian_time = date
+		user.u_lilian_submgr.__data[1].end_lilian_time = date + FIXED_STEP
+		user.u_lilian_submgr.__data[1]:__update_db( { "first_lilian_time" , "end_lilian_time" } , const.DB_PRIORITY_2 )
+		print( "get_phy_power is ended*************************************" , user.lilian_phy_power , diff , date , user.u_lilian_submgr.__data[ 1 ].first_lilian_time , left )
 	end 			
-		
+
 	return iffull , FIXED_STEP - left;
 end 	
 		
@@ -116,22 +116,39 @@ local function add_to_prop( tprop )
 			prop:__insert_db( const.DB_PRIORITY_2 )
 		end
 		-- TRIGGER ACHIEVEMENT
-	end
+	end      
 end				
 				
 local function get_part_reward( sr , tmp , format , D )
 	assert( sr and tmp and format and D  )
 	print( "get part reward is called" ) 
 	local qg_reward =  util.parse_text( sr , format , D )
+	local ret = {}
+
 	for k , v in ipairs( qg_reward ) do
-		print( k , v , v[1] , v[2])
-		if tmp[tostring(v[1])] then
-			tmp[tostring(v[1])] = tmp[tostring(v[1])] + v[2]
+		print( k , v , v[1] , v[2] )
+		if 3 == D then
+			local random = math.random( 100000 ) % 1000
+			if random > tonumber( v[3] ) then
+				if tmp[tostring( v[1] )] then
+					tmp[tostring( v[1] )] = tmp[tostring( v[1] )] + v[2]
+				else
+					tmp[tostring( v[1] )] = v[2]
+				end
+
+				table.insert( ret , { propid = tonumber( v[1] ) , propnum = tonumber( v[2] ) } )
+			end	
 		else
-			tmp[tostring(v[1])] = v[2]
-		end
-	end 
-end 			
+			if tmp[tostring(v[1])] then
+				tmp[tostring(v[1])] = tmp[tostring(v[1])] + v[2]
+			else
+				tmp[tostring(v[1])] = v[2]
+			end 
+		end 	
+	end 		
+
+	return ret
+end 				
 				
 local function get_lilian_reward( tr )
 	local ret = {}
@@ -140,7 +157,8 @@ local function get_lilian_reward( tr )
 	local r = skynet.call( ".game" , "lua" , "query_g_lilian_quanguan" , tr.quanguan_id )
 	assert( r )
 	-- quanguan reward
-	get_part_reward( r.reward , tmp , "(%d+%*%d+%*?)" , 2 )
+	
+	local reward = get_part_reward( r.reward , tmp , "(%d+%*%d+%*%d+%*?)" , 3 )
 	
 	--quanguan exp_reward
 	user.lilian_exp = user.lilian_exp + r.reward_exp --may trigger level up
@@ -155,11 +173,15 @@ local function get_lilian_reward( tr )
 	end
 
 	add_to_prop( ret )
-end 
-	
+
+	return reward
+end 	
+		
 local function get_event_reward( tr )
 	local ret = {}
 	local tmp = {}
+	local reward = {}
+
 	assert( tr.quanguan_id and tr.invitation_id )
 	print( "get_event_reward is called" )
 	--event reward
@@ -175,7 +197,7 @@ local function get_event_reward( tr )
 		local random = math.random( #te )
 		local t = skynet.call( ".game" , "lua" , "query_g_lilian_event" , te[random][1] )
 		assert( t )
-		get_part_reward( t.reward , tmp , "(%d+%*%d+%*?)" , 2 ) 
+		reward = get_part_reward( t.reward , tmp , "(%d+%*%d+%*%d+%*?)" , 3 ) 
 	end 
 
 	for k , v in pairs( tmp ) do
@@ -183,14 +205,14 @@ local function get_event_reward( tr )
 	end
 
 	add_to_prop( ret )
-end 
-	
 
+	return reward
+end 
 	
 local function deal_finish_lilian( tr )
 	print( "deal finish_lilian is called**************************************" )
 	assert( tr )
-	get_lilian_reward( tr)
+	local reward = get_lilian_reward( tr)
 
 	--judge if can levelup
 	assert( user.lilian_level ~= 0 )
@@ -201,17 +223,15 @@ local function deal_finish_lilian( tr )
 		user.lilian_exp = user.lilian_exp - ll.experience
 		tr.iflevel_up = 1
 	end
-	
-	tr.if_lilian_finished = 1
-	-- if 0 == tr.if_trigger_event	then
-	-- 	tr.iffinished = 1
-	-- end
 
+	tr.if_lilian_finished = 1
+
+	return reward
 end 
-	
+
 local function deal_finish_event( tr )
 	assert( tr )
-	get_event_reward( tr )
+	local reward = get_event_reward( tr )
 
 	local r = assert( user.u_lilian_submgr.__data[1] )
 	--update used queue num
@@ -222,7 +242,8 @@ local function deal_finish_event( tr )
 	end 
 	tr.iffinished = 1
 	print( "tr.iffiniseed in deal_finish_event is " , tr.iffiniseed )
-		
+	
+	return reward
 end 	
 		
 local function trigger_event( tr )
@@ -254,34 +275,6 @@ local function trigger_event( tr )
 
 	return iftrigger        
 end 
-		
---[[local function get_total_delay_time( lq , fqn )
-	assert( lq and fqn )
-
-	--lilian delay
-	local ed = 0
-	local iftrigger = 0
-	local random = 0
-	local eventid = 0
-	local rand_num = math.random( 10000 ) % 100 
-
-	print( "randnom is *************************" , rand_num )
-	if 0 <= rand_num and rand_num <= lq.trigger_event_prop then
-		print( "trigger_event is ************************" , lq.trigger_event )
-	    local te = util.parse_text( lq.trigger_event , "(%d+%*?)" , 1 )
-		assert( te )
-		
-		random = math.random( #te )
-		eventid = te[random][1]
-		local t = skynet.call( ".game" , "lua" , "query_g_lilian_event" , eventid )
-		assert( t )
-		
-		ed = t.cd_time
-		iftrigger = 1
-	end        
-				
-	return iftrigger , math.floor( ed * ( 1 - fqn.dec_weikun_time / 100 ) ) , eventid;
-end --]]
 	
 local LL_OVER = { NOTOVER = 0 , OVER = 1 }
 local DELAY_TYPE = { LILIAN = 1 , EVENT = 2 , FINISH = 3 }
@@ -315,7 +308,7 @@ function REQUEST:get_lilian_info()
 		if date >= v.end_time then
 			print( "if_lilian_reward" , v.if_lilian_finished  , v.if_lilian_finished )
 			if 0 == v.if_lilian_finished then
-				deal_finish_lilian( v ) 
+				tmp.reward = deal_finish_lilian( v ) 
 				
 				tmp.if_lilian_reward = 1
 				tmp.invitation_id = v.invitation_id			
@@ -348,7 +341,7 @@ function REQUEST:get_lilian_info()
 				end      
 			else    
 				if date >= v.event_end_time then
-					deal_finish_event( v )
+					tmp.reward = deal_finish_event( v )
 					IF_TRIGGER_EVENT = 0
 				print( "both finished *******************************" , v.eventid )
 
@@ -366,8 +359,8 @@ function REQUEST:get_lilian_info()
 			end    	    					
 
 			if 1 == v.if_lilian_finished then
-				v:__update_db( { "if_lilian_finished" } , const.DB_PRIORITY_2 )
-				--user.u_lilian_mainmgr:delete_by_csv_id( v.quanguan_id )
+			 	v:__update_db( { "if_lilian_finished" } , const.DB_PRIORITY_2 )
+			-- 	--user.u_lilian_mainmgr:delete_by_csv_id( v.quanguan_id )
 			end    	
 
 			if 1 == v.iffinished then
@@ -567,11 +560,13 @@ function REQUEST:start_lilian()
 			nr.event_start_time = 0
 			nr.if_lilian_finished = 0
 			nr.if_canceled = 0
+			nr.if_event_canceled = 0
+
 			print( "start_time and end_time is " , nr.start_time , nr.end_time  , os.time() )
 			nr = user.u_lilian_mainmgr.create( nr )
 			user.u_lilian_mainmgr:add( nr )
 			nr:__insert_db( const.DB_PRIORITY_2 )
-         	                 
+         	         
 		 	--get_phy_power(date)
 		 	-- if date >= rs.end_lilian_time then
 		 	-- 	get_phy_power(date)
@@ -584,8 +579,8 @@ function REQUEST:start_lilian()
 		 	if user.lilian_phy_power >= lq.need_phy_power then
 		 		user.lilian_phy_power = user.lilian_phy_power - lq.need_phy_power
 		 	else
-		 		user.lilian_phy_power = 0 
 		 		user.purch_lilian_phy_power = user.purch_lilian_phy_power + user.lilian_phy_power - lq.need_phy_power 
+		 		user.lilian_phy_power = 0 
 		 	end
 		 	print( "user.lilian_phy_power is **********************************" , user.lilian_phy_power , rs.used_queue_num , lq.need_phy_power)
 		end 		
@@ -596,7 +591,7 @@ function REQUEST:start_lilian()
 	print( "ret.left_cd_time is ********************************" , ret.left_cd_time )
 	return ret                     
 end		 			              
-	
+
 function REQUEST:lilian_get_phy_power()
 	local ret = {}                
 	local date = os.time() 
@@ -638,7 +633,7 @@ local function inc_lilian( r , date )
 			return ret
 		else    	
 			print( "in lilian_reward********************************", user.lilian_level )
-			deal_finish_lilian( r )
+			ret.reward = deal_finish_lilian( r )
 			ret.if_lilian_finished = r.if_lilian_finished
 
 			local sign = false
@@ -649,13 +644,13 @@ local function inc_lilian( r , date )
 					ret.if_trigger_event = 1
 					ret.left_cd_time = r.event_end_time
 					r.event_end_time = r.event_end_time + date
-
+					print( "inc_lilian**********************************************" , r.event_end_time, ret.left_cd_time )
 					r:__update_db( { "event_end_time" } , const.DB_PRIORITY_2 )
 				end 
 			end 	
 
 			if not sign then
-				local tmp = assert( user.u_lililan_submgr.__data[1] )
+				local tmp = assert( user.u_lilian_submgr.__data[1] )
 				tmp.used_queue_num = tmp.used_queue_num - 1
 				tmp:__update_db( { "used_queue_num" } , const.DB_PRIORITY_2 )
 
@@ -671,10 +666,9 @@ local function inc_lilian( r , date )
 			ret.lilian_exp = user.lilian_exp
 			ret.errorcode = errorcode[1].code
 
-			if 1 == r.if_lilian_finished then
-				r:__update_db( { "if_lilian_finished" } , const.DB_PRIORITY_1 )
-				--user.u_lilian_mainmgr:delete_by_csv_id( r.quanguan_id )
-			end 
+			r.if_canceled = 1
+			r.end_time = date
+			r:__update_db( { "if_lilian_finished" , "if_canceled" , "end_time" } , const.DB_PRIORITY_1 )
 
 			if 1 == r.iffinished then
 				r:__update_db( { "iffinished" } , const.DB_PRIORITY_1 )
@@ -695,17 +689,17 @@ local function inc_event( r )
 		return ret
 	else
 		print( "in event_reward********************************" )
-		deal_finish_event( r )
+		ret.reward = deal_finish_event( r )
 		IF_TRIGGER_EVENT = 0
 		ret.iffinished = 1
 		ret.if_event_reward = 1
 		ret.eventid = r.eventid
 		ret.errorcode = errorcode[1].code
 
-		if 1 == r.iffinished then
-			r:__update_db( { "iffinished" } , const.DB_PRIORITY_2 )
-			user.u_lilian_mainmgr:delete_by_csv_id( r.quanguan_id )
-		end	
+		r.if_event_canceled = 1
+		r:__update_db( { "iffinished" , "if_event_canceled" } , const.DB_PRIORITY_1 )
+		user.u_lilian_mainmgr:delete_by_csv_id( r.quanguan_id )
+
 	end 
 		
 	return ret
@@ -729,7 +723,7 @@ function REQUEST:lilian_get_reward_list()
 		else    
 			if date >= r.end_time then
 				print( "in lilian_reward********************************", user.lilian_level )
-				deal_finish_lilian( r )
+				ret.reward = deal_finish_lilian( r )
 				ret.if_lilian_finished = r.if_lilian_finished
 
 				local sign = false
@@ -742,7 +736,7 @@ function REQUEST:lilian_get_reward_list()
 						ret.left_cd_time = r.event_end_time
 						r.event_end_time = r.event_end_time + date
 
-						r:__update_db( { "event_end_time" } , const.DB_PRIORITY_2 ) 
+						r:__update_db( { "event_end_time" } , const.DB_PRIORITY_1 ) 
 					end 
 				end
 
@@ -784,7 +778,7 @@ function REQUEST:lilian_get_reward_list()
 		else
 			print( "in event_reward********************************" )
 			if date >= r.event_end_time then
-				deal_finish_event( r )
+				ret.reward = deal_finish_event( r )
 				IF_TRIGGER_EVENT = 0
 				ret.iffinished = 1
 				ret.if_event_reward = 1
@@ -796,7 +790,7 @@ function REQUEST:lilian_get_reward_list()
 			end
 
 			if 1 == r.iffinished then
-				r:__update_db( { "iffinished" } , const.DB_PRIORITY_2 )
+				r:__update_db( { "iffinished" } , const.DB_PRIORITY_1 )
 				user.u_lilian_mainmgr:delete_by_csv_id( r.quanguan_id )
 			end	
 		end 
@@ -895,11 +889,11 @@ function REQUEST:lilian_inc()
 	local not_enough_prop = false
 	--cost 	
 	local prop = user.u_propmgr:get_by_csv_id( const.DIAMOND )
-
+	local total_consume = 0
 	if self.inc_type == INC_TYPE.LILIAN then
 		local tl = r.end_time - date
 		assert( tl >= 0 )
-		local total_consume = tl * CONSUMU_PER_SEC
+		total_consume = tl * CONSUMU_PER_SEC
 		print( "in lilian *************************************" , r.end_time , date , r.end_time - date , CONSUMU_PER_SEC , tl, total_consume )
 
 		if not prop or prop.num < total_consume then
@@ -911,7 +905,7 @@ function REQUEST:lilian_inc()
 		print( "in event *************************************" , r.event_end_time , date , r.event_end_time - date )
 		local tl = r.event_end_time - date
 		assert( tl >= 0 )
-		local total_consume = tl * CONSUMU_PER_SEC 
+		total_consume = tl * CONSUMU_PER_SEC 
 		if not prop or prop.num < total_consume then
 			not_enough_prop = true
 		else
@@ -922,10 +916,13 @@ function REQUEST:lilian_inc()
 	if not_enough_prop then
 		ret.errorcode = errorcode[6].code
 		ret.msg = errorcode[6].msg
-	end 
+	else
+		prop.num = prop.num - total_consume
+		ret.diamond_num = prop.num
+	end
 
 	return ret
-end 		
+end
 				
 function REQUEST:lilian_reset_quanguan()
 	assert( self.quanguan_id )
