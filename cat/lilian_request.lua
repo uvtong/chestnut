@@ -307,7 +307,7 @@ function REQUEST:get_lilian_info()
 
     --judge if there is a lilian that triggered a event not finished,only one can trigger event
     for k , v in pairs( user.u_lilian_mainmgr.__data ) do
-    	if 1 == v.if_trigger_event then
+    	if 1 == v.if_trigger_event and date < v.event_end_time then
     		IF_TRIGGER_EVENT = 1
     		break                                               
     	end 	
@@ -328,7 +328,7 @@ function REQUEST:get_lilian_info()
 				tmp.reward = get_reward_lilist( v , 1 )
 				tmp.if_lilian_reward = 1				
 				tmp.invitation_id = v.invitation_id			
-
+				tmp.left_cd_time = 0
 				-- local sign = false
 				-- if 0 == IF_TRIGGER_EVENT then
 				-- 	sign = trigger_event( v )
@@ -724,28 +724,45 @@ local function inc_event( r , date )
 		user.u_lilian_mainmgr:delete_by_csv_id( r.quanguan_id )
 
 	end 
-	
+		
 	return ret
 end 
-
-
-
+	
+	
+	
 function REQUEST:lilian_rewared_list()
-	assert( self.quanguan_id and rtype )
+	assert( self.quanguan_id and self.rtype )
 	local ret = {}
-	local r = user.u_lilian_mainmgr:get_by_csv_id( self.quanguan_id )
-	assert( r ) 
+	local date = os.time()
 
-	ret.reward = get_reward_lilist(r, rtype)
-	if 1 == rtype then
-		ret.invitation_id = r.invitation_id
+	local r = user.u_lilian_mainmgr:get_by_csv_id( self.quanguan_id )
+	assert( r )
+
+	if DELAY_TYPE.LILIAN == self.rtype then
+		if date >= r.end_time then
+			ret.reward = get_reward_lilist(r, rtype)
+			ret.invitation_id = r.invitation_id
+			ret.errorcode = errorcode[1].code
+		else
+			ret.errorcode = errorcode[81].code
+			ret.left_cd_time = r.end_time - date
+		end
+	else DELAY_TYPE.EVENT == self.rtype then
+		if date >= r.event_end_time then
+			ret.reward = get_reward_lilist(r , rtype)
+			IF_TRIGGER_EVENT = 0
+			ret.errorcode = errorcode[1].code
+		else
+			ret.errorcode = errorcode[81].code
+			ret.left_cd_time = r.event_end_time - date
+		end
+	else
+		assert(false)
 	end
-	ret.errorcode = errorcode[1].code
-	ret.msg = errorcode[1].msg
 
 	return ret
 end 
-	
+		
 function REQUEST:lilian_get_reward_list()
 	print( "lilian_get_reward_list is called **************" , self.quanguan_id , self.reward_type )
 	assert( self.quanguan_id and self.reward_type )
@@ -820,7 +837,7 @@ function REQUEST:lilian_get_reward_list()
 			if date >= r.event_end_time then
 				deal_finish_event( r )
 				
-				IF_TRIGGER_EVENT = 0
+				--IF_TRIGGER_EVENT = 0
 				ret.iffinished = 1
 				ret.if_event_reward = 1
 				ret.eventid = r.eventid
