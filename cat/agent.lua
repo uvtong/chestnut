@@ -530,7 +530,7 @@ function REQUEST:signup()
 				purchase_hp_count=0, 
 				gain_gold_up_p=0,
 				gain_exp_up_p=0,
-				purchase_hp_count_max=assert(vip.purchase_hp_count_max),
+				purchase_hp_count_max=4 ,--assert(vip.purchase_hp_count_max),
 				SCHOOL_reset_count_max=assert(vip.SCHOOL_reset_count_max),
 				SCHOOL_reset_count=0,
 				signup_time=os.time() ,
@@ -1633,6 +1633,7 @@ function REQUEST:recharge_purchase()
 				user.arena_frozen_time = user.arena_frozen_time - math.floor(user.arena_frozen_time * (condition.arena_frozen_time_reduction_p/100))
 				user.gain_exp_up_p = assert(condition.gain_exp_up_p)
 				user.gain_gold_up_p = assert(condition.gain_gold_up_p)
+				user.purchase_hp_count_max = assert(condition.purchase_hp_count_max)
 				user:__update_db({	"uviplevel", 
 									"exp_max", 
 									"gold_max", 

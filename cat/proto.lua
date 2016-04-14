@@ -1047,6 +1047,18 @@ lilian_reset_quanguan 77 {
     }
 }
 
+lilian_rewared_list 78 {
+    request {
+        quanguan_id 0 : integer
+        rtype 1 : integer
+    }
+    response {
+        errorcode 0 : integer
+        reward 1 : *lilian_reward_info
+        invitation_id 2 : integer
+    }
+}
+
 
 ]]
 

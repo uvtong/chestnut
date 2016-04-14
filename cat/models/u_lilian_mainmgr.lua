@@ -20,7 +20,11 @@ local _Meta = {
 				if_lilian_finished = 0 ,
 				eventid = 0 ,
 				if_canceled = 0 ,
-				if_event_canceled = 0
+				if_event_canceled = 0,
+				if_lilian_reward = 0,
+				if_event_reward = 0,
+				lilian_reward = 0,
+				event_reward = 0
 			  }
 
 _Meta.__tname = "u_lilian_main"
@@ -86,7 +90,6 @@ function _M.create( P )
 	local u = _Meta.__new()
 	for k,v in pairs(_Meta) do
 		if not string.match(k, "^__*") then
-			print( k , v , P[k] )
 			u[k] = assert(P[k])
 		end
 	end
