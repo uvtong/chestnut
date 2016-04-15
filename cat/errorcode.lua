@@ -68,5 +68,6 @@ errorcode[87] = { code = 87 , msg = "already get event reward" }
 errorcode[88] = { code = 88 , msg = "wrong reward type" }
 errorcode[89] = { code = 89 , msg = "limit purchase num" }
 errorcode[90] = { code = 90 , msg = "can not reset" }
+errorcode[91] = { code = 91 , msg = "speed over time"}
 
 return errorcode

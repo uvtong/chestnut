@@ -242,6 +242,7 @@ proto.c2s = sprotoparser.parse [[
 .quanguan_lilian_num {
     quanguan_id 0 : integer
     num 1 : integer
+    reset_num 2 : integer
 }   
 
 handshake 1 {
@@ -1056,6 +1057,7 @@ lilian_rewared_list 78 {
         errorcode 0 : integer
         reward 1 : *lilian_reward_info
         invitation_id 2 : integer
+        left_cd_time 3 : integer
     }
 }
 

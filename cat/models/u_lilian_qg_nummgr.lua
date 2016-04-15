@@ -117,7 +117,7 @@ end
 function _M:get_lilian_num_list()
 	local ret = {}
 	for k , v in pairs( self.__data ) do
-		table.insert( ret , { quanguan_id = v.quanguan_id , num = v.num } )
+		table.insert( ret , { quanguan_id = v.quanguan_id , num = v.num , reset_num = v.reset_num} )
 	end
 
 	return ret
@@ -144,7 +144,7 @@ function _M:update_db(priority)
 	-- body
 	assert(priority)
 	if self.__count > 0 then
-		local columns = { "num" }
+		local columns = { "num" , "reset_num" }
 		local condition = { {user_id = self.__user_id}, {csv_id = {}}}
 		skynet.send(util.random_db(), "lua", "command", "update_all", _M.__tname, condition, columns, self.__data, priority)
 	end
