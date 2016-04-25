@@ -14,6 +14,8 @@ _M.__tname = "%s"
 
 local _Meta = "{ user_id=0, csv_id=0, }"
 
+_Meta.__check = true
+
 function _Meta.__new()
  	-- body
  	local t = {}
@@ -55,6 +57,11 @@ end
 function _Meta:__set(key, value)
 	-- body
 	assert(type(key) == "string")
+	if self.__check then
+		if self[key] ~= nil then
+			assert(type(value) == type(self[key]))
+		end
+	end
 	self[key] = value
 	if self[csv_id] == const.GOLD then
 		notification.handler[self.EGOLD](self.EGOLD)
@@ -135,7 +142,7 @@ end
 function _M:get(pk, key)
 	-- body
 	local r = self:get_by_csv_id(pk)
-	r:__get(key)
+	return r:__get(key)
 end
 
 function _M:set(pk, key, value)
