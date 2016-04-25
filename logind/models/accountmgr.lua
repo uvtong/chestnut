@@ -1,20 +1,15 @@
-local tname = tostring(...)
-local addr = io.open("./models/" .. tname .. "mgr.lua", "w")
-local s = string.format([[
 local skynet = require "skynet"
 local util = require "util"
 local notification = require "notification"
 
 local _M = {}
 _M.__data = {}
+_M.__data2 = {}
 _M.__count = 0
 _M.__cap = 0
-_M.__user_id = 0
-_M.__tname = "%s"
+_M.__tname = "account"
 
-local _Meta = "{ user_id=0, csv_id=0, }"
-
-_Meta.__check = true
+local _Meta = { csv_id=0, user=0, password=0, signuptime=0}
 
 function _Meta.__new()
  	-- body
@@ -32,8 +27,9 @@ function _Meta:__insert_db(priority)
 			t[k] = assert(self[k])
 		end
 	end
-	local sql = util.insert(self.__tname, t)
-	skynet.send(util.random_db(), "lua", "command", "insert_sql", _M.__tname, sql, priority)
+	local sql = util.insert(_M.__tname, t)
+	print(sql)
+	skynet.send(".signup_db", "lua", "command", "insert_sql", _M.__tname, sql, priority)
 end
 
 function _Meta:__update_db(t, priority)
@@ -57,11 +53,6 @@ end
 function _Meta:__set(key, value)
 	-- body
 	assert(type(key) == "string")
-	if self.__check then
-		if self[key] ~= nil then
-			assert(type(value) == type(self[key]))
-		end
-	end
 	self[key] = value
 	if self[csv_id] == const.GOLD then
 		notification.handler[self.EGOLD](self.EGOLD)
@@ -107,8 +98,10 @@ end
 
 function _M:add( u )
 	assert(u)
-	assert(self.__data[tostring(u.csv_id)] == nil)
+	assert(self.__data[tostring(u.user)] == nil)
+	assert(self.__data2[tostring(u.csv_id)] == nil)
 	self.__data[tostring(u.csv_id)] = u
+	self.__data2[tostring(u.user)] = u
 	self.__count = self.__count + 1
 end
 	
@@ -119,8 +112,22 @@ end
 
 function _M:delete_by_csv_id(csv_id)
 	-- body
-	assert(self.__data[tostring(csv_id)])
-	self.__data[tostring(csv_id)] = nil
+	local u = assert(self.__data[tostring(csv_id)])
+	self.__data[tostring(u.csv_id)] = nil
+	self.__data2[tostring(u.user)] = nil
+	self.__count = self.__count - 1
+end
+
+function _M:get_by_user(csv_id)
+	-- body
+	return self.__data2[tostring(csv_id)]
+end
+
+function _M:delete_by_user(csv_id)
+	-- body
+	local u = assert(self.__data2[tostring(csv_id)])
+	self.__data[tostring(u.csv_id)] = nil
+	self.__data2[tostring(u.user)] = nil
 	self.__count = self.__count - 1
 end
 
@@ -136,6 +143,7 @@ end
 
 function _M:clear()
 	self.__data = {}
+	self.__data2 = {}
 	self.__count = 0
 end
 
@@ -164,7 +172,3 @@ end
 
 return _M
 
-]], tname)
-
-addr:write(s)
-addr:close()

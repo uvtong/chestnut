@@ -59,7 +59,9 @@ function _Meta:__update_db(t , priority)
 	for i,v in ipairs(t) do
 		columns[tostring(v)] = self[tostring(v)]
 	end
-	skynet.send(util.random_db(), "lua", "command", "update", self.__tname, {{ csv_id=assert(self.csv_id) }}, columns , priority)
+	local sql = util.update(self.__tname, {{ user_id =self.user_id, csv_id = self.csv_id }}, columns)
+	skynet.send(util.random_db(), "lua", "command", "update_sql", self.__tname, sql, priority)
+	-- skynet.send(util.random_db(), "lua", "command", "update", self.__tname, {{ csv_id=assert(self.csv_id) }}, columns , priority)
 end
 
 function _Meta:__serialize()

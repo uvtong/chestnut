@@ -1,8 +1,13 @@
-local msgserver = require "snax.msgserver"
+-- local msgserver = require "snax.msgserver"
+package.path = "./../logind/?.lua;" .. package.path
+local msgserver = require "msgserver"
 local crypt = require "crypt"
 local skynet = require "skynet"
 
-local loginservice = tonumber(...)
+local args = {...}
+local loginservice = tonumber(args[1])
+local game = tonumber(args[2])
+local db = tonumber(args[3])
 
 local server = {}
 local users = {}
@@ -19,9 +24,10 @@ function server.login_handler(uid, secret)
 	internal_id = internal_id + 1
 	local id = internal_id	-- don't use internal_id directly
 	local username = msgserver.username(uid, id, servername)
+	print(uid, id, servername)
 
 	-- you can use a pool to alloc new agent
-	local agent = skynet.newservice "msgagent"
+	local agent = skynet.newservice "agent"
 	local u = {
 		username = username,
 		agent = agent,
@@ -30,7 +36,8 @@ function server.login_handler(uid, secret)
 	}
 
 	-- trash subid (no used)
-	skynet.call(agent, "lua", "login", uid, id, secret)
+	local ok = skynet.call(agent, "lua", "login", uid, id, secret, game, db)
+	assert(ok)
 
 	users[uid] = u
 	username_map[username] = u
@@ -81,6 +88,7 @@ end
 
 -- call by self (when gate open)
 function server.register_handler(name)
+	print("***************register_handler")
 	servername = name
 	skynet.call(loginservice, "lua", "register_gate", servername, skynet.self())
 end
@@ -90,11 +98,19 @@ function server.send_request_handler(uid, subid, message)
 	local u = users[uid]
 	assert(u.subid == subid)
 	if u then
+		local username = msgserver.username(uid, id, servername)
+		assert(u.username == username)
 		local ok, result = pcall(msgserver.send_request, u.username, msg)
 		if not ok then
 			skynet.error(result)
 		end
 	end
+end
+
+function server.response_handler(username, msg)
+	-- body
+	local u = username_map[username]
+	skynet.send(u.agent, "client", msg)
 end
 
 msgserver.start(server)

@@ -1,6 +1,3 @@
-local tname = tostring(...)
-local addr = io.open("./models/" .. tname .. "mgr.lua", "w")
-local s = string.format([[
 local skynet = require "skynet"
 local util = require "util"
 local notification = require "notification"
@@ -10,7 +7,7 @@ _M.__data = {}
 _M.__count = 0
 _M.__cap = 0
 _M.__user_id = 0
-_M.__tname = "%s"
+_M.__tname = "uid"
 
 local _Meta = "{ user_id=0, csv_id=0, }"
 
@@ -164,7 +161,3 @@ end
 
 return _M
 
-]], tname)
-
-addr:write(s)
-addr:close()

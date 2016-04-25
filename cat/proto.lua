@@ -250,7 +250,8 @@ handshake 1 {
         secret 0 : string
     }
     response {
-        msg 0  : string
+    	errorcode 0 : integer
+        msg 1 : string
     }
 }
 

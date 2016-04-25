@@ -34,12 +34,27 @@ Protocol:
 		word size (Not include self)
 		string content (size-4)
 		dword session
+		byte tag ('R') (0 & (1 << 2) & (1 << 4))
 
 	Server -> Client : Response
 		word size (Not include self)
 		string content (size-5)
-		byte ok (1 is ok, 0 is error)
+		-- byte ok (1 is ok, 0 is error)
 		dword session
+		byte tag ('Q') (0 & (1 << 2) & (0 << 4))
+
+	Server -> Client : Request
+		word size (Not include self)
+		string content (size-5)
+		dword session (4)
+		byte tag ('R') (0 & (0 << 2) & (1 << 4))
+
+	Client -> Server : Response
+		word size (Not include self)
+		string content (size-5)
+		-- byte ok (1)
+		dword session (4)
+		byte tag ('Q') (0 & (0 << 2) & (0 << 4))
 
 API:
 	server.userid(username)
@@ -83,8 +98,13 @@ skynet.register_protocol {
 }
 
 local user_online = {}
-local handshake = {}
-local connection = {}
+local handshake   = {}
+local connection  = {}
+
+local c2s_req_tag  = (7 & (1 << 2) & (1 << 4))
+local c2s_resp_tag = (7 & (1 << 2) & (0 << 4))
+local s2c_req_tag  = (7 & (0 << 2) & (1 << 4))
+local s2c_resp_tag = (7 & (0 << 2) & (0 << 4))
 
 function server.userid(username)
 	-- base64(uid)@base64(server)#base64(subid)
@@ -113,6 +133,8 @@ function server.login(username, secret)
 		index = 0,
 		username = username,
 		response = {},	-- response cache
+		request_index = 0,
+		request = {}
 	}
 end
 
@@ -125,14 +147,35 @@ end
 
 function server.send_request(username, message, session)
 	-- body
+	assert(type(username) == "string")
+	assert(type(message) == "string")
+	assert(type(session) == "number")
 	local u = user_online[username]
 	assert(u)
-	assert(connection[u.fd])
-	if u.fd then
-		local size = #message + 4
-		local package = string.pack(">I2", size)..message..string.pack(">I4", session)
-		socketdriver.send(u.fd, package)
+	assert(connection[u.fd], "invalid fd")
+	local p = u.request[session]
+	if not p then
+		p = { u.fd}
+		u.request[session] = p
+		local size = #message + 4 + 1
+		local package = string.pack(">I2", size)..message..string.pack(">I4", session)..string.pack("B", tag)
+		p[2] = package
+		p[3] = version
+		p[4] = u.request_index
+	else
+		-- has requeset, not response
+		p[1] = u.fd
+		p[3] = version
+		p[4] = u.request_index
+		if p[2] == nil then
+			return 
+		end
 	end
+	u.request_index = u.request_index + 1
+	if connection[u.fd] then
+		socketdriver.send(p[1], p[2])
+	end
+	
 end
 
 function server.start(conf)
@@ -179,7 +222,12 @@ function server.start(conf)
 
 	-- atomic , no yield
 	local function do_auth(fd, message, addr)
+		print("********************************")
+		for k,v in pairs(user_online) do
+			print(k,v)
+		end
 		local username, index, hmac = string.match(message, "([^:]*):([^:]*):([^:]*)")
+		print(username, index, hmac)
 		local u = user_online[username]
 		if u == nil then
 			return "404 User Not Found"
@@ -250,58 +298,70 @@ function server.start(conf)
 
 	local function do_request(fd, message)
 		local u = assert(connection[fd], "invalid fd")
-		local session = string.unpack(">I4", message, -4)
-		message = message:sub(1,-5)
-		local p = u.response[session]
-		if p then
-			-- session can be reuse in the same connection
-			if p[3] == u.version then
-				local last = u.response[session]
-				u.response[session] = nil
-				p = nil
-				if last[2] == nil then
-					local error_msg = string.format("Conflict session %s", crypt.hexencode(session))
-					skynet.error(error_msg)
-					error(error_msg)
+		print(#message)
+		if #message == 0 then
+			socketdriver.send(fd, string.pack(">s2", ""))
+			return
+		end
+		local tag = string.unpack("B", message, -1, -2)
+		local session = string.unpack(">I4", message, -2, -5)
+		message = message:sub(1,-6)
+		if tag == c2s_req_tag then
+			local p = u.response[session]
+			if p then
+				-- session can be reuse in the same connection
+				if p[3] == u.version then
+					local last = u.response[session]
+					u.response[session] = nil
+					p = nil
+					if last[2] == nil then
+						local error_msg = string.format("Conflict session %s", crypt.hexencode(session))
+						skynet.error(error_msg)
+						error(error_msg)
+					end
 				end
 			end
-		end
 
-		if p == nil then
-			p = { fd }
-			u.response[session] = p
-			local ok, result = pcall(conf.request_handler, u.username, message)
-			-- NOTICE: YIELD here, socket may close.
-			result = result or ""
-			if not ok then
-				skynet.error(result)
-				result = string.pack(">BI4", 0, session)
+			if p == nil then
+				-- new pack
+				p = { fd }
+				u.response[session] = p
+				local ok, result = pcall(conf.request_handler, u.username, message)
+				-- NOTICE: YIELD here, socket may close.
+				result = result or ""
+				if not ok then
+					skynet.error(result)
+					result = string.pack(">BI4", 0, session)
+				else
+					result = result .. string.pack(">BI4", 1, session)
+				end
+
+				p[2] = string.pack(">s2",result)
+				p[3] = u.version
+				p[4] = u.index
 			else
-				result = result .. string.pack(">BI4", 1, session)
+				-- update version/index, change return fd.
+				-- resend response.
+				p[1] = fd
+				p[3] = u.version
+				p[4] = u.index
+				if p[2] == nil then
+					-- already request, but response is not ready
+					return
+				end
 			end
-
-			p[2] = string.pack(">s2",result)
-			p[3] = u.version
-			p[4] = u.index
+			u.index = u.index + 1
+			-- the return fd is p[1] (fd may change by multi request) check connect
+			fd = p[1]
+			if connection[fd] then
+				socketdriver.send(fd, p[2])
+			end
+			p[1] = nil
+			retire_response(u)
 		else
-			-- update version/index, change return fd.
-			-- resend response.
-			p[1] = fd
-			p[3] = u.version
-			p[4] = u.index
-			if p[2] == nil then
-				-- already request, but response is not ready
-				return
-			end
+			assert(tag == s2c_resp_tag)
+			conf.response_handler(u.username, message)
 		end
-		u.index = u.index + 1
-		-- the return fd is p[1] (fd may change by multi request) check connect
-		fd = p[1]
-		if connection[fd] then
-			socketdriver.send(fd, p[2])
-		end
-		p[1] = nil
-		retire_response(u)
 	end
 
 	local function request(fd, msg, sz)
@@ -317,11 +377,14 @@ function server.start(conf)
 	end
 
 	function handler.message(fd, msg, sz)
+		print("*******************************1")
 		local addr = handshake[fd]
 		if addr then
+			print("*******************************2")
 			auth(fd,addr,msg,sz)
 			handshake[fd] = nil
 		else
+			print("*******************************3")
 			request(fd, msg, sz)
 		end
 	end

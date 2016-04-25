@@ -8,6 +8,8 @@ local tptr = require "tablepointer"
 local const = require "const"
 local game
 
+local db = tonumber(...)
+
 local CMD = {}
  
 function CMD.start()

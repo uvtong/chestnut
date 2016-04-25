@@ -35,18 +35,20 @@ table.insert( M , kungfurequest )
 table.insert( M , new_drawrequest )
 table.insert( M , lilian_request )
 
-local WATCHDOG
 local host
 local send_request
-      
+local gate
+local userid, subid
+
 local CMD = {}
 local REQUEST = {}
 local RESPONSE = {}
 local SUBSCRIBE = {}
-local client_fd
+
 local func_gs 
 local table_gs = {}
 
+local db
 local game
 local user
 
@@ -1655,15 +1657,6 @@ function REQUEST:recharge_purchase()
 				user.gain_exp_up_p = assert(condition.gain_exp_up_p)
 				user.gain_gold_up_p = assert(condition.gain_gold_up_p)
 				user.purchase_hp_count_max = assert(condition.purchase_hp_count_max)
-				user:__update_db({	"uviplevel", 
-									"exp_max", 
-									"gold_max", 
-									"equipment_enhance_success_rate_up_p", 
-									"store_refresh_count_max", 
-									"prop_refresh", 
-									"arena_frozen_time",
-									"gain_gold_up_p",
-									"gain_gold_up_p"}, const.DB_PRIORITY_2)
 			else
 				user.uvip_progress = math.floor(progress * 100)
 				user:__update_db({"uvip_progress"}, const.DB_PRIORITY_2)
@@ -2690,47 +2683,6 @@ skynet.register_protocol {
 	end
 }	
 	
-function CMD.start(conf)
-	print("start is called")
-	local fd = conf.client
-	local gate = conf.gate
-	WATCHDOG = conf.watchdog
-	-- slot 1,2 set at main.lua
-	host = sprotoloader.load(1):host "package"
-	send_request = host:attach(sprotoloader.load(2))
-	-- skynet.fork(function()
-	-- 	while true do
-	-- 		send_package(send_request "heartbeat")
-	-- 		skynet.sleep(500)
-	-- 	end
-	-- end)
-	func_gs = generate_session()
-	client_fd = fd
-	skynet.call(gate, "lua", "forward", fd)
-
-	context.WATCHDOG = WATCHDOG
-	context.host = host
-	context.send_request = send_request
-	context.game = game
-
-	local t = loader.load_game()
-	for i,v in ipairs(M) do
-		v.start(fd, send_request, t, func_gs, table_gs)
-	end	
-end	
-	   
-function CMD.disconnect()
-	-- todo: do something before exit
-	local str = string.format("client %d disconnect, ", client_fd)
-	if user then
-		str = str .. string.format("user_id:%d", user.csv_id)
-		__logout()
-	else
-		str = str .. "user has quit."
-	end
-	skynet.error(str)
-	skynet.exit()
-end	
 
 function CMD.friend( subcmd, ... )
 	-- body
@@ -2746,6 +2698,38 @@ function CMD.newemail( subcmd , ... )
 	f( new_emailrequest , ... )
 end
 
+function CMD.login(source, uid, sid, secret, game, db)
+	-- body
+	skynet.error(string.format("%s is login", uid))
+	gate = source
+	userid = uid
+	subid = sid
+	game = game
+	db = db
+
+	return true
+end
+
+local function logout()
+	-- body
+	if gate then
+		skynet.call(gate, "lua", "logout", userid, subid)
+	end
+	skynet.exit()
+end
+
+function CMD.logout(source)
+	-- body
+	assert(false)
+	skynet.error(string.format("%s is logout", userid))
+	logout()
+end
+
+function CMD.afk(source)
+	-- body
+	skynet.error(string.format("AFK"))
+end
+
 local function update_db()
 	-- body
 	while true do
@@ -2754,10 +2738,20 @@ local function update_db()
 	end
 end
 
-skynet.init(function ()
+local function start()
 	-- body
-	game = skynet.uniqueservice("game")
-end)
+	host = sprotoloader.load(1):host "package"
+	send_request = host:attach(sprotoloader.load(2))
+	
+	context.host = host
+	context.send_request = send_request
+	context.game = game
+
+	local t = loader.load_game()
+	for i,v in ipairs(M) do
+		v.start(fd, send_request, t)
+	end	
+end
 
 skynet.start(function()
 	skynet.dispatch("lua", function(_,_, command, ...)
@@ -2769,4 +2763,5 @@ skynet.start(function()
 		end
 	end)
 	skynet.fork(update_db)
+	start()
 end)

@@ -2,11 +2,13 @@ local login = require "snax.loginserver"
 local crypt = require "crypt"
 local skynet = require "skynet"
 
+local address, port = string.match(skynet.getenv("logind"), "([%d.]+)%:(%d+)")
 local server = {
-	host = "127.0.0.1",
-	port = 8001,
+	host = address or "127.0.0.1",
+	port = tonumber(port) or 8002,
 	multilogin = false,	-- disallow multilogin
 	name = "login_master",
+	instance = 8,
 }
 
 local server_list = {}
@@ -19,8 +21,14 @@ function server.auth_handler(token)
 	user = crypt.base64decode(user)
 	server = crypt.base64decode(server)
 	password = crypt.base64decode(password)
-	assert(password == "password", "Invalid password")
-	return server, user
+	-- assert(password == "password", "Invalid password")
+	local ok, uid = skynet.call(".signupd", "lua", "auth", user, password)
+	if ok then
+		return server, uid
+	else
+		error(uid)
+		return server, 0
+	end
 end
 
 function server.login_handler(server, uid, secret)
@@ -34,7 +42,7 @@ function server.login_handler(server, uid, secret)
 	if user_online[uid] then
 		error(string.format("user %s is already online", uid))
 	end
-
+	print(gameserver)
 	local subid = tostring(skynet.call(gameserver, "lua", "login", uid, secret))
 	user_online[uid] = { address = gameserver, subid = subid , server = server}
 	return subid
@@ -43,6 +51,7 @@ end
 local CMD = {}
 
 function CMD.register_gate(server, address)
+	print("************", server, address)
 	server_list[server] = address
 end
 

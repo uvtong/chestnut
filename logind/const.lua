@@ -24,8 +24,4 @@ const.UENTROPY = 1
 const.UEMAILENTROPY = 2
 const.PUBLIC_EMAILENTROPY = 3
 
-const.DB_PRIORITY_1 = 1
-const.DB_PRIORITY_2 = 2
-const.DB_PRIORITY_3 = 3
-
 return const
