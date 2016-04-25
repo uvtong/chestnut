@@ -38,6 +38,9 @@ errorcode[35] = { code = 35, msg = "checkpoint id error"}
 errorcode[36] = { code = 36, msg = "nothing from client"}
 errorcode[37] = { code = 37, msg = "data from client is wrong."}
 
+--email
+errorcode[41] = { code = 41 , msg = "not email in maillist" }
+
 --kungfu
 errorcode[51] = { code = 51 , msg = "kongfu not exist" }
 errorcode[52] = { code = 52 , msg = "kungfu level not match" }

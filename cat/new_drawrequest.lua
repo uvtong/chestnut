@@ -239,7 +239,7 @@ local function getpropidlist( dtype )
 		assert( r )
 		
 		if PROPTYPE.ROLE_SP == r.proptype then
-			local t = skynet.call( ".game" , "lua" , "g_draw_role" , r.propid )
+			local t = skynet.call( ".game" , "lua" , "query_g_draw_role" , r.propid )
 			assert( t )
 			if r.propnum == t.num then
 				table.insert( propidlist.list , { propid = r.propid , amount = r.propnum , proptype = PROPTYPE.ROLE_SP } )
@@ -275,9 +275,8 @@ local function frienddraw()
 	print( "***************************line.cointype is " , line.cointype )
 
 	local tfriend = draw_mgr:get_by_type( drawtype.FRIEND )
-
 	if not prop or prop.num < line.price then
-		print( "money is less then price" )
+		print( "money is less then price" , prop.num, line.price)
 		local ret = {}
 		ret.errorcode = errorcode[ 16 ].code
 		ret.msg = errorcode[ 16 ].msg
@@ -411,21 +410,21 @@ end
 		
 local function tentimedraw()
 	local proplist = {}
-
+		
 	local line = game.g_drawcostmgr:get_by_csv_id( drawtype.TENTIME * 1000 )
 	assert( line )
 
     local prop = user.u_propmgr:get_by_csv_id( line.cointype )
 
 	if not prop or prop.num < line.price then
-		print( "not enough money in tentime" )
+		print( "not enough money in tentime" , prop.num, line.price)
 		local ret = {}
 		ret.errorcode = errorcode[ 16 ].code
 		ret.msg = errorcode[ 16 ].msg
 
 		return ret
 	else 
-		print( "insert drawmsg over" )
+		print( "insert drawmsg over", prop.num, line.price )
 
 		prop.num = prop.num - line.price
 		prop:__update_db( { "num" } )
