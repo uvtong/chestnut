@@ -56,7 +56,7 @@ errorcode[ 70 ] = { code = 70 , msg = "can not add this one" }
 --checkin
 errorcode[ 71 ] = { code = 71 , msg = "donot match the server totalmount" }
 errorcode[ 72 ] = { code = 72 , msg = "can not checkin_reward" }
-					
+
 --lilian
 errorcode[81] = { code = 81 , msg = "lilian not finished yet" }
 errorcode[82] = { code = 82 , msg = "condition not meet" }
@@ -67,5 +67,7 @@ errorcode[86] = { code = 86 , msg = "already get lilian reward" }
 errorcode[87] = { code = 87 , msg = "already get event reward" }
 errorcode[88] = { code = 88 , msg = "wrong reward type" }
 errorcode[89] = { code = 89 , msg = "limit purchase num" }
+errorcode[90] = { code = 90 , msg = "can not reset" }
+errorcode[91] = { code = 91 , msg = "speed over time"}
 
 return errorcode

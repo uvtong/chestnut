@@ -8,7 +8,7 @@ _M.__cap = 0
 _M.__user_id = 0
 _M.__tname = "g_lilian_phy_power"
 
-local _Meta = { csv_id=0, dioment = 0}
+local _Meta = { csv_id=0, dioment = 0 , reset_quanguan_dioment = 0}
 
 function _Meta.__new()
  	-- body

@@ -56,6 +56,7 @@ local _Meta = { csv_id=0,
 				lilian_level = 0,
 				lilian_exp = 0,
 				lilian_phy_power = 0,
+				purch_lilian_phy_power = 0
 				}
 
 _Meta.__tname = "users"

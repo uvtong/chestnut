@@ -498,7 +498,7 @@ function REQUEST:signup()
 				uname="nihao",
 				uaccount=self.account, 
 				upassword=self.password,
-				uviplevel=0,
+				uviplevel=3,
 				config_sound=1, 
 				config_music=1, 
 				avatar=0, 
@@ -531,7 +531,7 @@ function REQUEST:signup()
 				purchase_hp_count=0, 
 				gain_gold_up_p=0,
 				gain_exp_up_p=0,
-				purchase_hp_count_max=assert(vip.purchase_hp_count_max),
+				purchase_hp_count_max=4 ,--assert(vip.purchase_hp_count_max),
 				SCHOOL_reset_count_max=assert(vip.SCHOOL_reset_count_max),
 				SCHOOL_reset_count=0,
 				signup_time=os.time() ,
@@ -546,6 +546,7 @@ function REQUEST:signup()
 				lilian_level = 1,
 				lilian_exp = 0,
 				lilian_phy_power = 120,
+				purch_lilian_phy_power = 0,
 				cp_hanging_drop_starttime=0,
 				}
 		local usersmgr = require "models/usersmgr"
