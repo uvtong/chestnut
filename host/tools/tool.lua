@@ -1,14 +1,18 @@
+local tname = tostring(...)
+local addr = io.open("./../models/" .. tname .. "mgr.lua", "w")
+local s = string.format([[
 local skynet = require "skynet"
 local util = require "util"
+local notification = require "notification"
 
 local _M = {}
 _M.__data = {}
 _M.__count = 0
 _M.__cap = 0
 _M.__user_id = 0
-_M.__tname = "g_lilian_phy_power"
+_M.__tname = "%s"
 
-local _Meta = { csv_id=0, dioment = 0 , reset_quanguan_dioment = 0}
+local _Meta = "{ user_id=0, csv_id=0, }"
 
 function _Meta.__new()
  	-- body
@@ -26,7 +30,8 @@ function _Meta:__insert_db(priority)
 			t[k] = assert(self[k])
 		end
 	end
-	skynet.send(util.random_db(), "lua", "command", "insert", _M.__tname, t, priority)
+	local sql = util.insert(self.__tname, t)
+	skynet.send(util.random_db(), "lua", "command", "insert_sql", _M.__tname, sql, priority)
 end
 
 function _Meta:__update_db(t, priority)
@@ -36,7 +41,8 @@ function _Meta:__update_db(t, priority)
 	-- for i,v in ipairs(t) do
 	-- 	columns[tostring(v)] = self[tostring(v)]
 	-- end
-	-- skynet.send(util.random_db(), "lua", "command", "update", _M.__tname, {{ user_id=self.user_id, csv_id=self.csv_id }}, columns, priority)
+	-- local sql = util.insert(self.__tname, {{ user_id=self.user_id, csv_id=self.csv_id }}, columns)
+	-- skynet.send(util.random_db(), "lua", "command", "update_sql", _M.__tname, sql, priority)
 end
 
 function _Meta:__get(key)
@@ -71,7 +77,8 @@ function _M.insert_db(values, priority)
 		end
 		table.insert(total, t)
 	end
-	skynet.send(util.random_db(), "lua", "command", "insert_all", _M.__tname, total, priority)
+	local sql = util.insert_all(_M.__tname, total)
+	skynet.send(util.random_db(), "lua", "command", "insert_all_sql", _M.__tname, sql, priority)
 end 
 
 function _M.create_with_csv_id(csv_id)
@@ -143,9 +150,14 @@ function _M:update_db(priority)
 	if self.__count > 0 then
 		local columns = { "finished", "reward_collected", "is_unlock"}
 		local condition = { {user_id = self.__user_id}, {csv_id = {}}}
-		skynet.send(util.random_db(), "lua", "command", "update_all", _M.__tname, condition, columns, self.__data, priority)
+		local sql = util.update_all(_M.__tname, condition, columns, self.__data)
+		skynet.send(util.random_db(), "lua", "command", "update_all_sql", _M.__tname, sql, priority)
 	end
 end
 
 return _M
 
+]], tname)
+
+addr:write(s)
+addr:close()

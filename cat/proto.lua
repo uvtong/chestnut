@@ -230,6 +230,8 @@ proto.c2s = sprotoparser.parse [[
     delay_type 8 : integer
     if_event_reward 9 : integer
     if_lilian_reward 10 : integer
+    eventid 11 : integer
+    reward 12 : *lilian_reward_info
 }   
     
 .lilian_reward_info {
@@ -240,7 +242,7 @@ proto.c2s = sprotoparser.parse [[
 .quanguan_lilian_num {
     quanguan_id 0 : integer
     num 1 : integer
-    reward 2 : *lilian_reward_info
+    reset_num 2 : integer
 }   
 
 handshake 1 {
@@ -936,7 +938,7 @@ get_lilian_info 68 {
         lilian_num_list 7 : *quanguan_lilian_num
         purch_phy_power_num 8 : integer
         phy_power_left_cd_time 9 : integer
-        eventid 10 : integer
+        present_phy_power_num 10 : integer
     }    
 }       
 
@@ -977,11 +979,10 @@ lilian_get_reward_list 71 {
         if_event_reward 7 : integer
 
         if_lilian_finished 8 : integer
-        reward 9 : *lilian_reward_info
-        lilian_exp 10 : integer
-        eventid 11 : integer
+        lilian_exp 9 : integer
+        eventid 10 : integer
+        reward 11 : *lilian_reward_info
     }
-
 }
 
 checkpoint_exit 72 {
@@ -1013,6 +1014,54 @@ app_backgroud 75 {
         msg 1 : string
     }
 }
+
+lilian_inc 76 {
+    request {
+        quanguan_id 0 : integer 
+        inc_type 1 : integer
+    }
+    response {
+        errorcode 0 : integer
+        msg 1 : string
+        inc_num 2 : integer
+        diamond_num 3 : integer
+        iffinished 4 : integer
+        if_trigger_event 5 : integer
+        left_cd_time 6 : integer
+        invitation_id 7 : integer
+        lilian_level 8 : integer
+        if_lilian_reward 9 : integer
+        if_event_reward 10 : integer
+        lilian_exp 11 : integer
+        eventid 12 : integer
+        reward 13 : *lilian_reward_info
+    }
+}
+
+lilian_reset_quanguan 77 {
+    request {
+        quanguan_id 0 : integer
+    }
+    response {
+        errorcode 0 : integer
+        msg 1 : string
+        diamond_num 2 : integer
+    }
+}
+
+lilian_rewared_list 78 {
+    request {
+        quanguan_id 0 : integer
+        rtype 1 : integer
+    }
+    response {
+        errorcode 0 : integer
+        reward 1 : *lilian_reward_info
+        invitation_id 2 : integer
+        left_cd_time 3 : integer
+    }
+}
+
 
 ]]
 
@@ -1052,21 +1101,7 @@ finish_achi 3 {
     }
 }
 
-lilian_phy_power 4 {
-    request {
-        phy_power 0 : integer
-    }
-    response {
-        errorcode 0 : integer
-        msg 1 : string
-    }
-}
-
-lilian_result 5 {
-    request {
-        errorcode 0 : integer
-        msg 1 : string
-    }
+lilian_update 4 {
     response {
         errorcode 0 : integer
         msg 1 : string

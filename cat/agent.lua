@@ -45,6 +45,9 @@ local REQUEST = {}
 local RESPONSE = {}
 local SUBSCRIBE = {}
 
+local func_gs 
+local table_gs = {}
+
 local db
 local game
 local user
@@ -60,8 +63,11 @@ notification.handler = function (event)
 	end
 end
 
+local global_response_session = 1
+
 local function send_package(pack)
 	-- body
+
 	local package = string.pack(">s2", pack)
 	socket.write(client_fd, package)
 end
@@ -498,7 +504,7 @@ function REQUEST:signup()
 				uname="nihao",
 				uaccount=self.account, 
 				upassword=self.password,
-				uviplevel=0,
+				uviplevel=3,
 				config_sound=1, 
 				config_music=1, 
 				avatar=0, 
@@ -531,7 +537,7 @@ function REQUEST:signup()
 				purchase_hp_count=0, 
 				gain_gold_up_p=0,
 				gain_exp_up_p=0,
-				purchase_hp_count_max=assert(vip.purchase_hp_count_max),
+				purchase_hp_count_max=4 ,--assert(vip.purchase_hp_count_max),
 				SCHOOL_reset_count_max=assert(vip.SCHOOL_reset_count_max),
 				SCHOOL_reset_count=0,
 				signup_time=os.time() ,
@@ -546,6 +552,7 @@ function REQUEST:signup()
 				lilian_level = 1,
 				lilian_exp = 0,
 				lilian_phy_power = 120,
+				purch_lilian_phy_power = 0,
 				cp_hanging_drop_starttime=0,
 				}
 		local usersmgr = require "models/usersmgr"
@@ -803,13 +810,29 @@ function REQUEST:login()
 		assert(false)
 	end 
 end	
-
+	
+local function print_user(user)
+	assert(user)
+	print( "print_user is called" )
+	for k ,v in pairs(user) do
+		if string.match(k, "^u_[%w_]+mgr$") then
+			local t = {}
+			for sk , sv in pairs(v.__data) do
+				table.insert(t, sk .. "--" .. tostring(sv) )
+			end
+			print(string.format( "%s:%s", k, table.concat(t, ",") ))
+		end
+		print( k , v )		
+	end
+end
+	
 local function __logout()
 	-- body
 	assert(user)
 	cp_exit()
 	flush_db(const.DB_PRIORITY_1)
 	loader.clear( user )
+	print_user(user)
 	user.ifonline = 0
 	user:__update_db({"ifonline"}, const.DB_PRIORITY_1)
 	dc.set(user.csv_id , nil)
@@ -2547,6 +2570,14 @@ function REQUEST:quit()
 	skynet.call(WATCHDOG, "lua", "close", client_fd)
 end
 
+local function generate_session()
+	local session = 0
+	return function () 
+			session = session + 1
+			return session
+		   end 
+end
+
 local function request(name, args, response)
 	skynet.error(string.format("request: %s", name))
     local f = nil
@@ -2591,10 +2622,34 @@ function RESPONSE:finish_achi( ... )
 	skynet.error(self.msg)
 end
 
-local function response(name, args)
+local function response(session, args)
 	-- body
-	local f = assert(RESPONSE[name])
-	f(args)
+	print( "name and args is*******************************" , session )
+	assert( table_gs[tostring(session)], "has not register such session!" )
+	local name = table_gs[tostring(session)]
+	skynet.error(string.format("response: %s", name))
+    local f = nil
+    if RESPONSE[name] ~= nil then
+    	f = RESPONSE[name]
+    elseif nil ~= friendrequest[name] then
+    	f = friendrequest[name]
+    else
+    	for i,v in ipairs(M) do
+    		if v.RESPONSE[name] ~= nil then
+    			f = v.RESPONSE[name]
+    			break
+    		end
+    	end
+    end
+    assert(f)
+    assert(response)
+    local ok, result = pcall(f, args)
+
+    if ok then
+    	table_gs[tostring(session)] = nil
+    else
+    	assert(false, "pcall failed in response!")
+    end
 end
 
 skynet.register_protocol {
@@ -2622,11 +2677,13 @@ skynet.register_protocol {
 		elseif type == "HEARTBEAT" then
 			send_package(send_request "heartbeat")
 		elseif type == "RESPONSE" then
+			print( "************************************************************************ls called" )
 			pcall(response, ...)
 		end
 	end
 }	
 	
+
 function CMD.friend( subcmd, ... )
 	-- body
 	local f = assert(friendrequest[subcmd])
