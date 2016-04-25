@@ -1,8 +1,8 @@
-package.path = "../cat/?.lua;../cat/lualib/?.lua;../cat/luaclib/?.so;" .. package.path
+package.path = "../cat/?.lua;../cat/lualib/?.lua;../cat/luaclib/?.so;../cjson/?.so" .. package.path
 local skynet = require "skynet"
 require "skynet.manager"
 local util = require "util"
-local json = require "json"
+local json = require "cjson"
 local errorcode = require "errorcode"
 local template = require "resty.template"
 local csvreader = require "csvReader"
