@@ -1,5 +1,4 @@
-package.path = "../cat/?.lua;" .. package.path
-local view = require "web.view"
+local view = require "view"
 local urls = {}
 
 urls['^/$'] = assert(view["index"]())

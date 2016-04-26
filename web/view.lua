@@ -1,11 +1,12 @@
-package.path = "../cat/?.lua;../cat/lualib/?.lua;../cat/luaclib/?.so;../cjson/?.so" .. package.path
+package.cpath = "../lua-cjson/?.so;" .. package.cpath
 local skynet = require "skynet"
 require "skynet.manager"
-local util = require "util"
+-- local util = require "util"
 local json = require "cjson"
-local errorcode = require "errorcode"
+-- local errorcode = require "errorcode"
 local template = require "resty.template"
 local csvreader = require "csvReader"
+local db = ".db"
 
 template.caching(true)
 template.precompile("index.html")
@@ -15,7 +16,7 @@ local VIEW = {}
 local function path( filename )
 	-- body
 	assert(type(filename) == "string")
-	return "../cat/web/templates/" .. filename
+	return "../web/templates/" .. filename
 end
 
 function VIEW.index()
@@ -76,7 +77,7 @@ local function Split(szFullString, szSeparator)
    			nFindStartIndex = nFindLastIndex + string.len(szSeparator)
 		end  	
 		return tstrcont
-	end
+end
 
 function VIEW.user()
 	-- body
@@ -210,7 +211,7 @@ function VIEW.props()
 	function R:__get()
 		-- body
 		-- local query = self.query
-		local users = skynet.call(util.random_db(), "lua", "command", "select_and", "users")
+		local users = skynet.call(db, "lua", "command", "select_and", "users")
 		for i,v in ipairs(users) do
 			for kk,vv in pairs(v) do
 				print(kk,vv)
@@ -232,7 +233,7 @@ function VIEW.props()
 			}
 			return json.encode(ret)
 		end
-		local user = skynet.call(util.random_db(), "lua", "command", "select_user", { uaccount = uaccount})
+		local user = skynet.call(db, "lua", "command", "select_user", { uaccount = uaccount})
 		print(user.id, csv_id, num)
 		skynet.send(util.random_db(), "lua", "command", "insert_prop", user.id, csv_id, num)
 		local ret = {
@@ -255,7 +256,7 @@ function VIEW.equipments()
 	function R:__get()
 		-- body
 		-- local query = self.query
-		local users = skynet.call(util.random_db(), "lua", "command", "select_and", "users")
+		local users = skynet.call(db, "lua", "command", "select_and", "users")
 		local func = template.compile(path("equipments.html"))
 		return func { message = "fill in the blank text.", users = users }
 	end
@@ -264,7 +265,7 @@ function VIEW.equipments()
 		-- local body = self.body
 		if self.body["cmd"] == "user" then
 			local uaccount = self.body["uaccount"]
-			local user = skynet.call(util.random_db(), "lua", "command", "select_user", { uaccount = uaccount})
+			local user = skynet.call(db, "lua", "command", "select_user", { uaccount = uaccount})
 			local achievements = skynet.call(util.random_db(), "lua", "command", "select_and", "equipments", { user_id = user.id })
 			local ret = {
 				errorcode = 0,
@@ -273,8 +274,49 @@ function VIEW.equipments()
 			}
 			return json.encode(ret)
 		elseif self.body["cmd"] == "equip" then
-			local user = skynet.call(util.random_db(), "lua", "command", "select_user", { uaccount = uaccount})
-			skynet.send(util.random_db(), "lua", "command", "insert", { user_id = user.id, achievement_id = achievement_id, level = level})
+			local user = skynet.call(db, "lua", "command", "select_user", { uaccount = uaccount})
+			skynet.send(db, "lua", "command", "insert", { user_id = user.id, achievement_id = achievement_id, level = level})
+			local ret = {
+				ok = 1,
+				msg = "send succss."
+			}
+			return json.encode(ret)
+		end
+	end
+	function R:__file()
+		-- body
+		-- local file = self.file
+		print(self.file)
+	end
+	return R
+end
+
+function VIEW.validation()
+	-- body
+	local R = {}
+	function R:__get()
+		-- body
+		-- local query = self.query
+		local users = skynet.call(db, "lua", "command", "select_and", "users")
+		local func = template.compile(path("equipments.html"))
+		return func { message = "fill in the blank text.", users = users }
+	end
+	function R:__post()
+		-- body
+		-- local body = self.body
+		if self.body["cmd"] == "user" then
+			local uaccount = self.body["uaccount"]
+			local user = skynet.call(db, "lua", "command", "select_user", { uaccount = uaccount})
+			local achievements = skynet.call(util.random_db(), "lua", "command", "select_and", "equipments", { user_id = user.id })
+			local ret = {
+				errorcode = 0,
+				msg = "succss",
+				achievements = achievements
+			}
+			return json.encode(ret)
+		elseif self.body["cmd"] == "equip" then
+			local user = skynet.call(db, "lua", "command", "select_user", { uaccount = uaccount})
+			skynet.send(db, "lua", "command", "insert", { user_id = user.id, achievement_id = achievement_id, level = level})
 			local ret = {
 				ok = 1,
 				msg = "send succss."

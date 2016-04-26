@@ -1,6 +1,8 @@
 root        = "./"
 thread      = 8
 logger      = nil
+--logger      = "userlog"
+--logservice  = "snlua"
 logpath     = "."
 harbor      = 1
 address     = "127.0.0.1:2401"

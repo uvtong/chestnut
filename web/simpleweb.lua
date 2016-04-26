@@ -1,10 +1,10 @@
-package.path = "../web/?.lua;" .. package.path
+package.path = "../web/?.lua;../web/lualib/?.lua;../lualib/?.lua;"..package.path
 local skynet = require "skynet"
 local socket = require "socket"
 local httpd = require "http.httpd"
 local sockethelper = require "http.sockethelper"
 local urllib = require "http.url"
-local urls = require "web.urls"
+local urls = require "urls"
 local table = table
 local string = string
 
