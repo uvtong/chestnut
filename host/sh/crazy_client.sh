@@ -3,4 +3,5 @@
 #echo $1
 #echo $2
 cd ./../skynet
-./skynet ./../cat/config
+./3rd/lua/lua ./../host/client.lua
+

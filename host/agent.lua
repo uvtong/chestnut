@@ -1,4 +1,4 @@
-package.path = "../pbc/binding/lua53/?.lua;../host/?.lua;"..package.path
+package.path = "../pbc/binding/lua53/?.lua;../host/lualib/?.lua;"..package.path
 package.cpath = "../pbc/binding/lua53/?.so;"..package.cpath
 local skynet = require "skynet"
 local netpack = require "netpack"

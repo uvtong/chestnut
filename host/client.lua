@@ -1,80 +1,154 @@
-package.cpath = "luaclib/?.so;../host/luaclib/?.so"
-package.path = "lualib/?.lua;../host/?.lua;../host/lualib/?.lua"
+package.cpath = "luaclib/?.so"
+package.path = "lualib/?.lua;../crazy/?.lua"
+
+local socket = require "clientsocket"
+local crypt = require "crypt"
+local proto = require "proto"
+local sproto = require "sproto"
 
 if _VERSION ~= "Lua 5.3" then
 	error "Use lua 5.3"
 end
 
-local socket = require "clientsocket"
-local proto = require "proto"
-local sproto = require "sproto"
-local protobuf = require "protobuf"
-local host = {}
--- local host = sproto.new(proto.s2c):host "package"
--- local request = host:attach(sproto.new(proto.c2s))
+local fd = assert(socket.connect("192.168.1.116", 8001))
 
+local function writeline(fd, text)
+	socket.send(fd, text .. "\n")
+end
 
-local addr = io.open("../host/c2s.pb","rb")
-local buffer = addr:read "*a"
-addr:close()
-protobuf.register(buffer)
-local t = protobuf.decode("google.protobuf.FileDescriptorSet", buffer)
-local c2s_proto = t.file[1]
-print(c2s_proto.name)
-print(c2s_proto.package)
+local function unpack_line(text)
+	local from = text:find("\n", 1, true)
+	if from then
+		return text:sub(1, from-1), text:sub(from+1)
+	end
+	return nil, text
+end
 
-addr = io.open("../host/s2c.pb","rb")
-buffer = addr:read "*a"
-addr:close()
-protobuf.register(buffer)
-t = protobuf.decode("google.protobuf.FileDescriptorSet", buffer)
-local s2c_proto = t.file[1]
-print(s2c_proto.name)
-print(s2c_proto.package)
+local last = ""
 
-function host:dispatch(code)
-	-- body
-	local package = protobuf.decode(c2s_proto.package .. "." .. c2s_proto.message_type[1].name, string.sub(code, 1, 6))
-	if package.type == "REQUEST" then
-		local args = protobuf.decode(c2s_proto.package .. "." .. c2s_proto.message_type[package.tag+1].name, string.sub(code, 7))
-		local function response(msg)
-			-- body
-			local pg = {	
-				tag = package.tag + 1, -- client.
-				type = "RESPONSE",
-				session = package.session,
-			}
-			local pg_encode = protobuf.encode(s2c_proto.package .. "." .. s2c_proto.message_type[1].name, pg)
-			local msg_encode = protobuf.encode(s2c_proto.package .. "." .. s2c_proto.message_type[pg.tag + 1].name, msg)
-			return pg_encode .. msg_encode
+local function unpack_f(f)
+	local function try_recv(fd, last)
+		local result
+		result, last = f(last)
+		if result then
+			return result, last
 		end
-		return package.type, string.gsub(c2s_proto.message_type[package.tag+1].name, "req_(%w*)", "%1"), args, response
-	elseif package.type == "RESPONSE" then
-		local args = protobuf.decode(c2s_proto.package .. "." .. c2s_proto.message_type[package.tag+1].name, string.sub(code, 7))
-		return package.type, string.gsub(c2s_proto.message_type[package.tag+1].name, "resp_(%w*)", "%1"), args
-	else
-		assert(false)
+		local r = socket.recv(fd)
+		if not r then
+			return nil, last
+		end
+		if r == "" then
+			error "Server closed"
+		end
+		return f(last .. r)
+	end
+
+	return function()
+		while true do
+			local result
+			result, last = try_recv(fd, last)
+			if result then
+				return result
+			end
+			socket.usleep(100)
+		end
 	end
 end
 
-local request = function ( tag, args, session )
-	-- body
-	local package = {
-		tag = tag,
-		type = "REQUEST",
-		session = session,
-	}
-	local code = protobuf.encode("c2s.package", package)
-	print(tag+1)
-	local encode = protobuf.encode(c2s_proto.package .. "." .. c2s_proto.message_type[tag+1].name, args)
-	return code .. encode
+local readline = unpack_f(unpack_line)
+-- 0
+--local cha = crypt.base64decode(readline())
+print(readline())
+
+-- 1. get challenge
+local challenge = crypt.base64decode(readline())
+
+-- 2. generate clientkey
+local clientkey = crypt.randomkey()
+
+-- 3. send clientkey to server
+writeline(fd, crypt.base64encode(crypt.dhexchange(clientkey)))
+
+-- 4. achieve secret.
+
+local secret = crypt.dhsecret(crypt.base64decode(readline()), clientkey)
+
+print("sceret is ", crypt.hexencode(secret))
+
+-- 5. check secret.
+local hmac = crypt.hmac64(challenge, secret)
+writeline(fd, crypt.base64encode(hmac))
+
+-- 6. (optionl) readline server
+-- 
+-- writeline(fd, "get_servers")
+-- local proto = [[
+-- 	.server {
+-- 		.node {
+-- 			name 0 : string
+-- 			address 1 : string
+-- 		}
+-- 		nodes 0 : *node
+-- 	}
+-- ]]
+-- local sp = sproto.parse(proto)
+-- local servers = sp:decode("server", readline())
+-- for k,v in pairs(servers) do
+-- 	print(k,v)
+-- end
+--print(readline())
+
+local token = {
+	server = "sample",
+	user = "hello",
+	pass = "password",
+}
+
+local function encode_token(token)
+	return string.format("%s@%s:%s",
+		crypt.base64encode(token.user),
+		crypt.base64encode(token.server),
+		crypt.base64encode(token.pass))
 end
 
-local fd = assert(socket.connect("127.0.0.1", 8888))
+local etoken = crypt.desencode(secret, encode_token(token))
+local b = crypt.base64encode(etoken)
 
-local function send_package(fd, pack)
-	local package = string.pack(">s2", pack)
+-- 7. auth
+writeline(fd, crypt.base64encode(etoken))
+
+local result = readline()
+print(result)
+local code = tonumber(string.sub(result, 1, 3))
+assert(code == 200)
+socket.close(fd)
+
+-- 8. subid
+local subid = crypt.base64decode(string.sub(result, 5))
+
+print("login ok, subid=", subid)
+
+----- connect to game server
+
+local host = sproto.new(proto.s2c):host "package"
+local request = host:attach(sproto.new(proto.c2s))
+
+--local function send_package(fd, pack)
+--	local package = string.pack(">s2", pack)
+--	socket.send(fd, package)
+--end
+
+local function send_request_b(v, session)
+	local size = #v + 4
+	local package = string.pack(">I2", size)..v..string.pack(">I4", session)
 	socket.send(fd, package)
+	return v, session
+end
+
+local function recv_response(v)
+	local size = #v - 5
+	local content, ok, session = string.unpack("c"..tostring(size).."B>I4", v)
+	return ok ~=0 , content, session
 end
 
 local function unpack_package(text)
@@ -90,20 +164,11 @@ local function unpack_package(text)
 	return text:sub(3,2+s), text:sub(3+s)
 end
 
-local function recv_package(last)
-	local result
-	result, last = unpack_package(last)
-	if result then
-		return result, last
-	end
-	local r = socket.recv(fd)
-	if not r then
-		return nil, last
-	end
-	if r == "" then
-		error "Server closed"
-	end
-	return unpack_package(last .. r)
+local readpackage = unpack_f(unpack_package)
+
+local function send_package(fd, pack)
+	local package = string.pack(">s2", pack)
+	socket.send(fd, package)
 end
 
 local session = 0
@@ -111,11 +176,12 @@ local session = 0
 local function send_request(name, args)
 	session = session + 1
 	local str = request(name, args, session)
-	send_package(fd, str)
+	-- str = crypt.desencode(secret, str)
+	-- str = crypt.base64encode(str)
+	--send_package(fd, str)
+	send_request_b(str, session)
 	print("Request:", session)
 end
-
-local last = ""
 
 local function print_request(name, args)
 	print("REQUEST", name)
@@ -144,41 +210,20 @@ local function print_package(t, ...)
 	end
 end
 
-local REQUEST = {}
-
-function REQUEST:finish_achi( ... )
-	-- body
-	local ret = {}
-	ret.errorcode = 0
-	ret.msg = "yes"
-	return ret
-end
-
-local function request(name, args, response)
-    local f = assert(REQUEST[name])
-    local r = f(args)
-    if response then
-    	return response(r)
-    end               
-end      
-
-local function dispatch( type, ... )
-	-- body
-	if type == "REQUEST" then
-		local ok, result  = pcall(request, ...)
-		if ok then
-			print "kaljlfajflajlf"
-			if result then
-				print "kajflajfldajf"
-				send_package(result)
-			end
-		else
-			error(result)
-		end
-	else
-		assert(type == "RESPONSE")
-		print_package(type, ...)
+local function recv_package(last)
+	local result
+	result, last = unpack_package(last)
+	if result then
+		return result, last
 	end
+	local r = socket.recv(fd)
+	if not r then
+		return nil, last
+	end
+	if r == "" then
+		error "Server closed"
+	end
+	return unpack_package(last .. r)
 end
 
 local function dispatch_package()
@@ -188,25 +233,74 @@ local function dispatch_package()
 		if not v then
 			break
 		end
-		dispatch(host:dispatch(v))
+		local ok, content, session = recv_response(v)
+		print(ok, session)
+		if ok then
+			local str = crypt.base64decode(content)
+			str = crypt.desdecode(secret, str)
+			print_package(host:dispatch(str))
+		end
 	end
 end
 
+--local text = "echo"
+local index = 1
+
+print("connect")
+fd = assert(socket.connect("192.168.1.116", 8888))
+last = ""
+
+local handshake = string.format("%s@%s#%s:%d", crypt.base64encode(token.user), crypt.base64encode(token.server),crypt.base64encode(subid) , index)
+local hmac = crypt.hmac64(crypt.hashkey(handshake), secret)
+
+-- send handshake
+send_package(fd, handshake .. ":" .. crypt.base64encode(hmac))
+
+print(readpackage())
+send_request("handshake")
+send_request("set", { what = "hello", value="world" })
 while true do
 	dispatch_package()
 	local cmd = socket.readstdin()
 	if cmd then
-		print("print:", cmd)
-		if cmd == "handshake" then
-			assert(false)
-		elseif cmd == "account" then
-			send_request(1, { account="end1", password="end1"})
-		elseif cmd == "logout" then
-			send_request(15, {})
-		elseif cmd == "enter_room" then
-			send_request(15, {})
+		if cmd == "quit" then
+			send_request("quit")
+		else
+			send_request("get", { what = cmd })
 		end
 	else
 		socket.usleep(100)
 	end
 end
+
+--print(readpackage())
+--print("===>",send_request(text,0))
+-- don't recv response
+-- print("<===",recv_response(readpackage()))
+
+print("disconnect")
+socket.close(fd)
+
+--index = index + 1
+
+--print("connect again")
+--fd = assert(socket.connect("127.0.0.1", 8888))
+--last = ""
+
+--local handshake = string.format("%s@%s#%s:%d", crypt.base64encode(token.user), crypt.base64encode(token.server),crypt.base64encode(subid) , index)
+--local hmac = crypt.hmac64(crypt.hashkey(handshake), secret)
+
+--send_package(fd, handshake .. ":" .. crypt.base64encode(hmac))
+
+
+
+--print(readpackage())
+--print("===>",send_request("fake",0))	-- request again (use last session 0, so the request message is fake)
+--print("===>",send_request("again",1))	-- request again (use new session)
+--print("<===",recv_response(readpackage()))
+--print("<===",recv_response(readpackage()))
+
+
+--print("disconnect")
+--socket.close(fd)
+
