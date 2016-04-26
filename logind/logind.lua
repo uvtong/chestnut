@@ -1,4 +1,4 @@
-local login = require "snax.loginserver"
+local login = require "loginserver"
 local crypt = require "crypt"
 local skynet = require "skynet"
 
@@ -43,9 +43,9 @@ function server.login_handler(server, uid, secret)
 		error(string.format("user %s is already online", uid))
 	end
 	print(gameserver)
-	local subid = tostring(skynet.call(gameserver, "lua", "login", uid, secret))
+	local subid, gated = tostring(skynet.call(gameserver, "lua", "login", uid, secret))
 	user_online[uid] = { address = gameserver, subid = subid , server = server}
-	return subid
+	return subid, gated
 end
 
 local CMD = {}

@@ -9,7 +9,7 @@ local sprotoloader = require "sprotoloader"
 local mc = require "multicast"
 local dc = require "datacenter"
 local util = require "util"
-local loader = require "loader"
+local loader = require "loader" 
 local errorcode = require "errorcode"
 local const = require "const"
 local tptr = require "tablepointer"
@@ -39,10 +39,11 @@ local host
 local send_request
 local gate
 local userid, subid
+local secret
 
-local CMD = {}
-local REQUEST = {}
-local RESPONSE = {}
+local CMD       = {}
+local REQUEST   = {}
+local RESPONSE  = {}
 local SUBSCRIBE = {}
 
 local func_gs 
@@ -2683,8 +2684,7 @@ skynet.register_protocol {
 	end
 }	
 	
-
-function CMD.friend( subcmd, ... )
+function CMD.friend(source, subcmd, ... )
 	-- body
 	local f = assert(friendrequest[subcmd])
 	local r =  f(friendrequest, ...)
@@ -2693,20 +2693,20 @@ function CMD.friend( subcmd, ... )
 	end
 end
 
-function CMD.newemail( subcmd , ... )
+function CMD.newemail(source, subcmd , ... )
 	local f = assert( new_emailrequest[ subcmd ] )
 	f( new_emailrequest , ... )
 end
 
-function CMD.login(source, uid, sid, secret, game, db)
+function CMD.login(source, uid, sid, sct, game, db)
 	-- body
 	skynet.error(string.format("%s is login", uid))
-	gate = source
+	gate   = source
 	userid = uid
-	subid = sid
-	game = game
-	db = db
-
+	subid  = sid
+	secret = sct
+	game   = game
+	db     = db
 	return true
 end
 
@@ -2720,7 +2720,6 @@ end
 
 function CMD.logout(source)
 	-- body
-	assert(false)
 	skynet.error(string.format("%s is logout", userid))
 	logout()
 end
@@ -2754,10 +2753,10 @@ local function start()
 end
 
 skynet.start(function()
-	skynet.dispatch("lua", function(_,_, command, ...)
+	skynet.dispatch("lua", function(_, source, command, ...)
 		print("agent is called" , command)
 		local f = CMD[command]
-		local result = f( ... )
+		local result = f(source, ... )
 		if result then
 			skynet.ret(skynet.pack(result))
 		end

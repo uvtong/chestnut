@@ -9,6 +9,9 @@ local loginservice = tonumber(args[1])
 local game = tonumber(args[2])
 local db = tonumber(args[3])
 
+local servername
+local gated
+
 local server = {}
 local users = {}
 local username_map = {}
@@ -45,7 +48,7 @@ function server.login_handler(uid, secret)
 	msgserver.login(username, secret)
 
 	-- you should return unique subid
-	return id
+	return id, skynet.getenv("gated")
 end
 
 -- call by agent

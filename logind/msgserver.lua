@@ -133,7 +133,6 @@ function server.login(username, secret)
 		index = 0,
 		username = username,
 		response = {},	-- response cache
-		request_index = 0,
 		request = {}
 	}
 end
