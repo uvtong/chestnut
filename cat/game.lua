@@ -636,5 +636,4 @@ skynet.start(function()
 		end
 	end)
 	skynet.fork(update_db)
-	skynet.register ".game"
 end)

@@ -1,5 +1,6 @@
 local s = [[
 local query  = require "query"
+local db_common = require "db_common"
 local assert = assert
 local type   = type
 
@@ -18,7 +19,7 @@ function _M.create(P)
 	local t = { table_name="%s", fields = %s }
 	setmetatable(t, model)
 	for k,v in pairs(t.fields) do
-		t.fields[k].v = assert(P[k])
+		t[k] = assert(P[k])
 	end
 	return t
 end	
@@ -58,11 +59,25 @@ function _M:clear()
 	self.__count = 0
 end
 
+function _M:update_db(priority)
+	-- body
+	assert(priority)
+	if self.__count > 0 then
+		for k,v in pairs(_M.__head) do
+			if k == "user_id" then
+			else
+		end
+		local columns = { "finished", "reward_collected", "is_unlock"}
+		local condition = { {user_id = self.__user_id}, {csv_id = {}}}
+		local sql = util.update_all(_M.__tname, condition, columns, self.__data)
+		skynet.send(util.random_db(), "lua", "command", "update_all_sql", _M.__tname, sql, priority)
+	end
+end
+
 return _M
 ]]
 
-local ss = [[
-local model = {
+local ss = [[local model = {
 	__index = function (t, key)
 		-- body
 		assert(key)
@@ -127,8 +142,7 @@ local model = {
 			query.update(t.table_name, sql, query.DB_PRIORITY_2)
 		end
 	end
-}
-]]
+}]]
 
 function abc()
 	-- body

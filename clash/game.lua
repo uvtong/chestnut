@@ -32,7 +32,6 @@ skynet.start(function()
 			skynet.ret(skynet.pack(r))
 		end
 	end)
-	skynet.register ".game"
 	game = loader.load_game()
 	-- skynet.fork(abc)
 end)

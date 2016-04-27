@@ -155,7 +155,7 @@ end
 
 function _M:add(u)
  	-- body
- 	assert(u)
+ 	assert(u.csv_id)
  	assert(self.__data[u.csv_id] == nil)
  	self.__data[u.csv_id] = u
  	self.__count = self.__count + 1

@@ -54,7 +54,9 @@ skynet.start(function()
 	end
 
 	local game = skynet.newservice("game", db)
-	local gated = skynet.newservice("gated", loginserver, game, db)
+	skynet.name(".game", game)
+
+	local gated = skynet.newservice("gated", loginserver)
 	address, port = string.match(skynet.getenv("gated"), "([%d.]+)%:(%d+)")
 	skynet.call(gated, "lua", "open", { 
 		port = 8888,
