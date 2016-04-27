@@ -1,12 +1,10 @@
 package.cpath = "../lua-cjson/?.so;" .. package.cpath
 local skynet = require "skynet"
 require "skynet.manager"
--- local util = require "util"
 local json = require "cjson"
--- local errorcode = require "errorcode"
 local template = require "resty.template"
 local csvreader = require "csvReader"
-local db = ".db"
+local query = require "query"
 
 template.caching(true)
 template.precompile("index.html")
@@ -294,40 +292,42 @@ end
 function VIEW.validation()
 	-- body
 	local R = {}
-	function R:__get()
-		-- body
-		-- local query = self.query
-		local users = skynet.call(db, "lua", "command", "select_and", "users")
-		local func = template.compile(path("equipments.html"))
-		return func { message = "fill in the blank text.", users = users }
-	end
 	function R:__post()
 		-- body
-		-- local body = self.body
-		if self.body["cmd"] == "user" then
-			local uaccount = self.body["uaccount"]
-			local user = skynet.call(db, "lua", "command", "select_user", { uaccount = uaccount})
-			local achievements = skynet.call(util.random_db(), "lua", "command", "select_and", "equipments", { user_id = user.id })
-			local ret = {
-				errorcode = 0,
-				msg = "succss",
-				achievements = achievements
-			}
-			return json.encode(ret)
-		elseif self.body["cmd"] == "equip" then
-			local user = skynet.call(db, "lua", "command", "select_user", { uaccount = uaccount})
-			skynet.send(db, "lua", "command", "insert", { user_id = user.id, achievement_id = achievement_id, level = level})
-			local ret = {
-				ok = 1,
-				msg = "send succss."
-			}
-			return json.encode(ret)
+		local table_name = self.body["table_name"]
+		local sql = string.format("select * from columns where table_name=\"%s\";", table_name)
+		local r = query.select_sql_wait(table_name, sql, query.DB_PRIORITY_2)
+		local fields = "{\n"
+		local head = "{\n"
+		for i,v in ipairs(r) do
+			local seg = ""..v.COLUMN_NAME.." = {\n"
+			seg = seg .. string.format("\tpk = false,\n")
+			seg = seg .. string.format("\tfk = false,\n")
+			seg = seg .. string.format("\tuq = false,\n")
+			if v.DATA_TYPE == "int" then
+				seg = seg .. string.format("\tt = \"%s\",\n", "number")
+			elseif v.DATA_TYPE == "varchar" or v.DATA_TYPE == "char" then
+				seg = seg .. string.format("\tt = \"%s\",\n", "string")
+			end
+			seg = seg .. "},"
+			head = head .. seg
+
+			seg = seg .. string.format("\tc = 0,\n")
+			fields = fields .. string.format("\t%s = { c = 0, v = nil },\n", v.COLUMN_NAME)
 		end
-	end
-	function R:__file()
-		-- body
-		-- local file = self.file
-		print(self.file)
+		head = head.."}\n"
+		fields = fields.."}\n"
+
+		local s, ss = require("model")()
+		local addr = io.open("./../clash/models/"..table_name.."mgr.lua", "w")
+		local content = string.format(s, table_name, head, ss, table_name, fields)
+		addr:write(content)
+		addr:close()
+		local ret = {
+			ok = 1,
+			msg = "send succss."
+		}
+		return json.encode(ret)
 	end
 	return R
 end

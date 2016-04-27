@@ -270,6 +270,11 @@ function QUERY:update_all( table_name, condition, columns, data, priority)
 	end
 end
 
+function QUERY:select_sql_wait(table_name, sql, priority)
+	-- body
+	return db:query(sql)
+end
+
 function QUERY:update_sql(table_name, sql, priority)
 	-- body
 	assert(priority, string.format("when query %s you must provide priority", table_name))
