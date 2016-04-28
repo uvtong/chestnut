@@ -2562,14 +2562,15 @@ function REQUEST:checkpoint_exit()
 	return ret
 end
 
+function REQUEST:(  )
+	-- body
+end
+
 function REQUEST:handshake()
 	print("Welcome to skynet, I will send heartbeat every 5 sec." )
 	return { msg = "Welcome to skynet, I will send heartbeat every 5 sec." }
 end		
 
-function REQUEST:quit()
-	skynet.call(WATCHDOG, "lua", "close", client_fd)
-end
 
 local function generate_session()
 	local session = 0

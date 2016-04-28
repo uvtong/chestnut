@@ -172,7 +172,7 @@ proto.c2s = sprotoparser.parse [[
     k_type 3 : integer
     k_sp_num 4 : integer 
 }
- 
+
 .kungfu_pos_and_id {
     position 0 : integer
     k_csv_id 1 : integer
@@ -205,6 +205,15 @@ proto.c2s = sprotoparser.parse [[
     rolelist 18 : *role
     cp_chapter 19 : integer
     lilian_level 20 : integer
+    ara_rnk 21 : integer
+}
+
+.suser {
+    csv_id 0 : integer
+    uname 1 : string
+    total_combat 2 : integer
+    ara_rnk 3 : integer
+    iconid 4 : integer
 }
 
 .checkpoint_chapter {
@@ -508,6 +517,8 @@ user 28 {
         errorcode 0 : integer
         msg 1 : string
         user 2 : user
+        ara_leaderboards 3 : *suser
+        ara_rmd_list 4 : *suser
     }
 }
 
@@ -1062,6 +1073,34 @@ lilian_rewared_list 78 {
     }
 }
 
+ara_bat_ovr 79 {
+    response {
+        errorcode 0 : integer
+        msg 1 : string
+        ara_leaderboards 2 : *suser
+        ara_rmd_list 3 : *suser
+    }
+}
+
+ara_bat_clg 80 {
+    request {
+        role_id1 0 : integer
+        role_id2 1 : integer
+        role_id3 2 : integer
+    }
+    response {
+        errorcode 0 : integer
+        msg 1 : string
+    }
+}
+
+ara_rfh 81 {
+    response {
+        errorcode 0 : integer
+        msg 1 : string
+        ara_rmd_list 2 : *suser
+    }
+}
 
 ]]
 
