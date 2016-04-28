@@ -1080,8 +1080,8 @@ ara_bat_ovr 79 {
         ara_points 2 : integer
         ara_win_tms 3 : integer
         ara_lose_tms 4 : integer
-        ara_leaderboards 2 : *suser
-        ara_rmd_list 3 : *suser
+        ara_leaderboards 5 : *suser
+        ara_rmd_list 6 : *suser
     }
 }
 
