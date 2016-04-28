@@ -17,15 +17,16 @@ function _Meta.__new()
  	return t
 end 
     
-function _Meta:__insert_db()
+function _Meta:__insert_db( priority )
 	-- body
+	assert(priority)
 	local t = {}
 	for k,v in pairs(_Meta) do
 		if not string.match(k, "^__*") then
 			t[k] = assert(self[k])
 		end
 	end
-	skynet.send(util.random_db(), "lua", "command", "insert", self.__tname, t )
+	skynet.send(util.random_db(), "lua", "command", "insert", self.__tname, t , priority)
 end 
     
 function _Meta:__update_db(t)
@@ -80,6 +81,7 @@ end
 
 function _M:clear()
 	self.__data = {}
+	self.__count = 0
 end
 
 function _M:delete_by_type( drawtype )

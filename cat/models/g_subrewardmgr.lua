@@ -5,7 +5,7 @@ local _M = {}
 _M.__data = {}
 _M.__count = 0
 
-local _Meta = { csv_id = 0 , propid = 0 , propnum = 0 }
+local _Meta = { csv_id = 0 , propid = 0 , propnum = 0 , proptype = 0 }
 
 _Meta.__tname = "g_subreward"
 

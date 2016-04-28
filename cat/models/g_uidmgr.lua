@@ -17,7 +17,7 @@ function _Meta.__new()
  	return t
 end 
 
-function _Meta:__insert_db()
+function _Meta:__insert_db( priority )
 	-- body
 	local t = {}
 	for k,v in pairs(self) do
@@ -25,17 +25,17 @@ function _Meta:__insert_db()
 			t[k] = self[k]
 		end
 	end
-	skynet.send(util.random_db(), "lua", "command", "insert", self.__tname, t)
+	skynet.send(util.random_db(), "lua", "command", "insert", self.__tname, t , priority )
 end
 
 function _Meta:__update_db(t)
 	-- body
-	assert(type(t) == "table")
-	local columns = {}
-	for i,v in ipairs(t) do
-		columns[tostring(v)] = self[tostring(v)]
-	end
-	skynet.send(util.random_db(), "lua", "command", "update", self.__tname, {{ csv_id=self.csv_id }}, columns)
+	-- assert(type(t) == "table")
+	-- local columns = {}
+	-- for i,v in ipairs(t) do
+	-- 	columns[tostring(v)] = self[tostring(v)]
+	-- end
+	-- skynet.send(util.random_db(), "lua", "command", "update", self.__tname, {{ csv_id=self.csv_id }}, columns)
 end
 
 function _Meta:__serialize()
@@ -87,11 +87,11 @@ function _M:get_count()
 	return self.__count
 end
 
-function _M:update_db()
+function _M:update_db(priority)
 	-- body
 	local columns = { "entropy" }
 	local condition = { 1, {csv_id = {}}}
-	skynet.send(util.random_db(), "lua", "command", "update_all", _Meta.__tname, condition, columns, self.__data)
+	skynet.send(util.random_db(), "lua", "command", "update_all", _Meta.__tname, condition, columns, self.__data, priority)
 end
 
 return _M

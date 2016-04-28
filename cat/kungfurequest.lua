@@ -2,6 +2,8 @@ local kungfurequest = {}
 local dc = require "datacenter"
 local util = require "util"
 local errorcode = require "errorcode"
+local const = require "const"
+local context = require "agent_context"
 
 local send_package
 local send_request
@@ -110,8 +112,7 @@ function REQUEST:kungfu_levelup()
 	else    
 		--print( t , t[ tostring( self.k_csv_id) ] )
 		if not tkungfu then
-			print( "******************************************")
-			local tkungfu = { }
+			local tkungfu = {}
 			tkungfu.user_id = user.csv_id
 			tkungfu.csv_id= self.csv_id
 			tkungfu.level = self.k_level
@@ -121,8 +122,8 @@ function REQUEST:kungfu_levelup()
  			
 			assert( tkungfu )
 			user.u_kungfumgr:add( tkungfu )
-                              
-			tkungfu:__insert_db()
+			tkungfu:__insert_db( const.DB_PRIORITY_2 )
+			context:raise_achievement(const.ACHIEVEMENT_T_9)
 		else				  		
 			print( "_______________________________________________________")
 			--local tmp =user.u_kungfumgr:get_by_type( self.k_type )
@@ -164,8 +165,9 @@ function REQUEST:kungfu_levelup()
 end				
 			
 function REQUEST:kungfu_chose()
-	print( "kungfu chose is calle****************************" )
-	assert( self.r_csv_id and self.idlist )
+	print( "kungfu chose is calle****************************" , self.r_csv_id , self.idlist )
+
+	assert( self.r_csv_id  )
 	print( self.r_csv_id , self.idlist )
 	local ret = {}
 	local t = user.u_rolemgr:get_by_csv_id( self.r_csv_id )
@@ -176,9 +178,11 @@ function REQUEST:kungfu_chose()
 		t[ k_csv_id ] = 0	
 	end
 
-	for _ , v in pairs( self.idlist ) do
-		local k_csv_id = "k_csv_id" .. v.position
-		t[ k_csv_id ] = v.k_csv_id
+	if not self.idlist then
+		for _ , v in pairs( self.idlist ) do
+			local k_csv_id = "k_csv_id" .. v.position
+			t[ k_csv_id ] = v.k_csv_id
+		end
 	end
 
 	t:__update_db( { "k_csv_id1" , "k_csv_id2" , "k_csv_id3" , "k_csv_id4" , "k_csv_id5" , "k_csv_id6" , "k_csv_id7" } )

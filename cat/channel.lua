@@ -30,7 +30,7 @@ local function get_public_email_index( signup_time )
 
 	local b = 1 
 	local e = public_emailmgr:get_count()
-	local mid 
+	local mid = 1
 
 	while b <= e do
 		mid = math.floor( ( b + e ) / 2 )
@@ -53,37 +53,40 @@ local function get_public_email_index( signup_time )
 end 		
 		
 function CMD:agent_get_public_email( ucsv_id , pemail_csv_id , signup_time )
+	print( "agent_get_public_email****************************** is called" )
+	print( ucsv_id , pemail_csv_id , signup_time )
 	assert( ucsv_id and pemail_csv_id and signup_time )
-	local counter
+	local counter = 1
 	local sign 
 	local len = public_emailmgr:get_count()
-
+	print( "counter is and len is " , counter , len )
 	if 0 == pemail_csv_id then
 		sign , counter = get_public_email_index( signup_time )
-		if not sign and counter >= len then
+		print( sign , counter )
+		if sign or ( not sign and counter >= len ) then
 			counter = len + 1
 		end  
 	else   
-		counter = counter + 1
-	end 
-
+		counter = pemail_csv_id + 1
+	end  
+	print( "sign and counter and len is **********************" , sign , counter , len )
 	local t = {}
 	for i = counter , len do
+		print( "i is " , i )
 		local tmp = public_emailmgr.__data[ i ]
 		assert( tmp )
-
+        
 		tmp.pemail_csv_id = tmp.csv_id -- record public email id
-
-		tmp.csv_id = skynet.call( ".game" , "lua" , "u_guid" , ucsv_id , const.PUBLIC_EMAILENTROPY ) -- change pemail_csv_id into user's email csv_id
-					
+        
+		tmp.csv_id = skynet.call( ".game" , "lua" , "u_guid" , ucsv_id , const.UEMAILENTROPY ) -- change pemail_csv_id into user's email csv_id
+		print( "tmp.csv_id is **********************************" , tmp.csv_id )
 		table.insert( t , tmp )
 	end 
-
 	return t
 end 	
 		
 function CMD:send_public_email_to_all( tvals )
-	print( "channel send_email_to_all is called" )
+	print( "channel send_public_email_to_all is called" )
 
 	assert( tvals )
 
@@ -103,8 +106,9 @@ function CMD:send_public_email_to_all( tvals )
 			tvals[num] = 0
 		end 
 	end     
-
+		
 	tvals.csv_id = skynet.call( ".game" , "lua" , "guid" , const.PUBLIC_EMAILENTROPY )
+	print( "tvals.csv_id is ******************************" , tvals.csv_id )
 	assert( tvals.csv_id )
 		
 	channel:publish( "email" , tvals )
@@ -112,7 +116,8 @@ function CMD:send_public_email_to_all( tvals )
 	tvals = public_emailmgr.create( tvals )
 	assert( tvals )
 	public_emailmgr:add( tvals )
-
+	tvals:__insert_db( const.DB_PRIORITY_2 )
+	print( "channel send_public_email_to_all is called" )
 	--[[local sql = "select csv_id from users where ifonline = 0" -- in users , csv_id now is "uid".
 	local r = skynet.call( util.random_db() , "lua" , "command" , "query" , sql )
 	print( "sizeof r = " , #r )
@@ -131,7 +136,7 @@ function CMD:send_public_email_to_all( tvals )
 	u_emailmgr.insert_db( tmp )--]]
 end 	
 		
-function CMD:send_email_to_all( tvals )
+--[[function CMD:send_email_to_all( tvals )
 	print( "channel send_email_to_all is called" )
 	
 	assert( tvals )
@@ -170,7 +175,7 @@ function CMD:send_email_to_all( tvals )
 	end 
 
 	u_emailmgr.insert_db( tmp )
-end 
+end --]]
 
 function CMD:send_email_to_group( tval , tucsv_id )
 	assert( tval and tucsv_id )
@@ -183,33 +188,30 @@ function CMD:send_email_to_group( tval , tucsv_id )
 	for i = 1 , 5 do
 		local id = "itemsn" .. i
 		local num = "itemnum" .. i
-		print( id , tval[id] , num , tval[num] )
 		if nil == tval[id] then
 			assert( tval[num] == nil )
-			
 			tval[id] = 0
 			tval[num] = 0
 		end
 	end
 
 	for _ , v in ipairs( tucsv_id ) do
-		print( v.csv_id )
-		tval.csv_id = skynet.call(game, "lua" , "u_guid" , v.csv_id , const.UEMAILENTROPY )
-		tval.uid = v.csv_id
-		
+		assert(v.uid)
+		tval.csv_id = skynet.call(".game", "lua" , "u_guid" , v.uid, const.UEMAILENTROPY )
+		tval.uid = v.uid
 		print("********************************eamil", tval.csv_id)
-			
-		local t = dc.get( v.csv_id )
-
+		local t = dc.get( v.uid )
 		--[[ id user online then send directly , else insert into db --]]
 		if t then 
 			skynet.send( t.addr , "lua" , "newemail" , "newemail" , tval )
 		else
+			print( "get a new useremail**************************" )
+
 			local ne = u_emailmgr.create( tval )
-			assert( ne )
-			ne:__insert_db()
+			ne:__insert_db( const.DB_PRIORITY_2)
 		end	
 	end 	
+
 end 		
 		
 --[[function CMD:hello( tval , ... )

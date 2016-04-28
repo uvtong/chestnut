@@ -18,15 +18,16 @@ function _Meta.__new()
  	return t
 end 
 
-function _Meta:__insert_db()
+function _Meta:__insert_db(priority)
 	-- body
+	assert(priority)
 	local t = {}
 	for k,v in pairs(_Meta) do
 		if not string.match(k, "^__*") then
 			t[k] = assert(self[k])
 		end
 	end
-	skynet.send(util.random_db(), "lua", "command", "insert", self.__tname, t)
+	skynet.send(util.random_db(), "lua", "command", "insert", self.__tname, t, priority)
 end
 
 function _Meta:__update_db(t)
@@ -50,7 +51,8 @@ function _Meta:__serialize()
 	return r
 end
 
-function _M.insert_db( values )
+function _M.insert_db( values, priority)
+	assert(priority)
 	assert(type(values) == "table" )
 	local total = {}
 	for i,v in ipairs(values) do
@@ -62,7 +64,7 @@ function _M.insert_db( values )
 		end
 		table.insert(total, t)
 	end
-	skynet.send( util.random_db() , "lua" , "command" , "insert_all" , _Meta.__tname , total )
+	skynet.send( util.random_db() , "lua" , "command" , "insert_all" , _Meta.__tname , total, priority)
 end 
 
 function _M.create( P )
@@ -81,7 +83,24 @@ function _M:add( u )
 	self.__data[tostring(u.date)] = u
 	self.__count = self.__count + 1
 end
-	
+
+function _M:get_by_today()
+	-- body
+	local t = os.date("*t", os.time())
+	t = { year=t.year, month=t.month, day=t.day}
+	local sec = os.time(t)
+	local j = self:get_by_date(sec)
+	if j then
+		return j
+	else
+		t = { user_id=user.csv_id, date=sec, goods_refresh_count=0, goods_refresh_reset_count=0}
+		j = self.create(t)
+		self:add(j)
+		j:__insert_db(const.DB_PRIORITY_1)
+		return j
+	end
+end
+
 function _M:get_by_date(csv_id)
 	-- body
 	return self.__data[tostring(csv_id)]
@@ -104,12 +123,13 @@ function _M:clear()
 	self.__count = 0
 end
 
-function _M:update_db()
+function _M:update_db(priority)
 	-- body
+	assert(priority)
 	if self.__count > 0 then
 		local columns = { "goods_refresh_count", "goods_refresh_reset_count"}
 		local condition = { {user_id = self.__user_id}, {date = {}}}
-		skynet.send(util.random_db(), "lua", "command", "update_all", _Meta.__tname, condition, columns, self.__data)
+		skynet.send(util.random_db(), "lua", "command", "update_all", _Meta.__tname, condition, columns, self.__data, priority)
 	end
 end
 

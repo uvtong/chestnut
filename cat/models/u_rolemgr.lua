@@ -23,7 +23,17 @@ local _Meta = { user_id=0,
 				k_csv_id4=0, 
 				k_csv_id5=0, 
 				k_csv_id6=0, 
-				k_csv_id7=0}
+				k_csv_id7=0,
+				property_id1=0,
+				value1=0,
+				property_id2=0,
+				value2=0,
+				property_id3=0,
+				value3=0,
+				property_id4=0,
+				value4=0,
+				property_id5=0,
+				value5=0}
 
 _Meta.__tname = "u_role"
 
@@ -34,15 +44,16 @@ function _Meta.__new()
  	return t
 end 
 
-function _Meta:__insert_db()
+function _Meta:__insert_db(priority)
 	-- body
+	assert(priority)
 	local t = {}
 	for k,v in pairs(self) do
 		if not string.match(k, "^__*") then
 			t[k] = self[k]
 		end
 	end
-	skynet.send(util.random_db(), "lua", "command", "insert", self.__tname, t)
+	skynet.send(util.random_db(), "lua", "command", "insert", self.__tname, t, priority)
 end
 
 function _Meta:__update_db(t)
@@ -53,17 +64,6 @@ function _Meta:__update_db(t)
 	-- 	columns[tostring(v)] = self[tostring(v)]
 	-- end
 	-- skynet.send(util.random_db(), "lua", "command", "update", self.__tname, {{ user_id = self.user_id, csv_id=self.csv_id }}, columns)
-end
-
-function _Meta:__serialize()
-	-- body
-	local r = {}
-	for k,v in pairs(_Meta) do
-		if not string.match(k, "^__*") then
-			r[k] = self[k]
-		end
-	end
-	return r
 end
 
 function _M.create( P )
@@ -100,20 +100,20 @@ function _M:get_count()
 	return self.__count
 end
 
-function _M:update_db()
+function _M:clear()
+	self.__data = {}
+	self.__count = 0
+end
+
+function _M:update_db(priority)
 	-- body
 	if self.__count > 0 then
 		local columns = { "name", "star", "us_prop_csv_id", "us_prop_num", "sharp", "skill_csv_id", "gather_buffer_id", 
 					"battle_buffer_id", "k_csv_id1", "k_csv_id2", "k_csv_id3", "k_csv_id4", "k_csv_id5", 
 					"k_csv_id6", "k_csv_id7"}
 		local condition = { {user_id = self.__user_id}, {csv_id = {}}}
-		skynet.send(util.random_db(), "lua", "command", "update_all", _Meta.__tname, condition, columns, self.__data)
+		skynet.send(util.random_db(), "lua", "command", "update_all", _Meta.__tname, condition, columns, self.__data, priority)
 	end
-end
-
-function _M:clear()
-	self.__data = {}
-	self.__count = 0
 end
 
 return _M

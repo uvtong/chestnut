@@ -16,25 +16,27 @@ function _Meta.__new()
  	return t
 end 
 
-function _Meta:__insert_db()
+function _Meta:__insert_db( priority )
 	-- body
+
 	local t = {}
 	for k,v in pairs( _Meta ) do
 		if not string.match(k, "^__*") then
 			t[ k ] = assert( self[ k ] )
 		end
 	end
-	skynet.send( util.random_db() , "lua" , "command" , "insert" , self.__tname , t )
+	skynet.send( util.random_db() , "lua" , "command" , "insert" , self.__tname , t , priority )
 end
 
 function _Meta:__update_db( t )
 	-- body
-	assert( type( t ) == "table" )
-	local columns = {}
-	for i,v in ipairs( t ) do
-		columns[ tostring( v ) ] = self[ tostring( v ) ]
-	end
-	skynet.send( util.random_db(), "lua", "command", "update", self.__tname, { { id = assert( self.id ) } } , columns )
+
+	--assert( type( t ) == "table" )
+	--local columns = {}
+	--for i,v in ipairs( t ) do
+	--	columns[ tostring( v ) ] = self[ tostring( v ) ]
+	--end
+	--skynet.send( util.random_db(), "lua", "command", "update", self.__tname, { { id = assert( self.id ) } } , columns )
 end
 
 function _Meta:__serialize()
@@ -46,10 +48,6 @@ function _Meta:__serialize()
 		end
 	end
 	return r
-end
-
-function _M:clear()
-	self.__data = {}
 end
 
 function _M.insert_db( values )
@@ -99,6 +97,21 @@ end
 function _M:get_count()
 	-- body
 	return self.__count
+end
+
+function _M:clear()
+	self.__data = {}
+	self.__count = 0
+end
+
+function _M:update_db(priority)
+	-- body
+	assert(priority)
+	if self.__count > 0 then
+		local columns = { "val"}
+		local condition = { 1, {id = {}}}
+		skynet.send(util.random_db(), "lua", "command", "update_all", _Meta.__tname, condition, columns, self.__data, priority)
+	end
 end
 
 return _M

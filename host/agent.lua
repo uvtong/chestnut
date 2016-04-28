@@ -1,26 +1,27 @@
-package.path = "../host/lualib/?.lua;../host/?.lua;" .. package.path
-package.cpath = "../host/luaclib/?.so;" .. package.cpath
+package.path = "../pbc/binding/lua53/?.lua;../host/lualib/?.lua;"..package.path
+package.cpath = "../pbc/binding/lua53/?.so;"..package.cpath
 local skynet = require "skynet"
 local netpack = require "netpack"
 local socket = require "socket"
 local protobuf = require "protobuf"
-local lpeg = require "lpeg"
 local util = require "util"
 local dc = require "datacenter"
 local loader = require "loader"
 local errorcode = require "errorcode"
 
-local WATCHDOG
 local host
 local send_request
+local gate
+local uid, subid
 
-local CMD = {}
-local REQUEST = {}
-local RESPONSE = {}
-local client_fd
+local CMD       = {}
+local REQUEST   = {}
+local RESPONSE  = {}
+local SUBSCRIBE = {}
 local c2s_proto
 local s2c_proto
 
+local db
 local game
 local user
 local left
@@ -311,20 +312,48 @@ function CMD.rob(user_id, m)
 	send_package(send_request(12, {user_id=user.csv_id, countdown=20}))
 end
 
-function CMD.start(conf)
-	local fd = conf.client
-	local gate = conf.gate
-	WATCHDOG = conf.watchdog
-	-- slot 1,2 set at main.lua
-	-- host = sprotoloader.load(1):host "package"
-	-- send_request = host:attach(sprotoloader.load(2))
-	-- skynet.fork(function()
-	-- 	while true do
-	-- 		send_package(send_request "heartbeat")
-	-- 		skynet.sleep(500)
-	-- 	end
-	-- end)
-	
+function CMD.login(source, uid, sid, secret, game, db)
+	-- body
+	skynet.error(string.format("%s is login", uid))
+	gate = source
+	uid = uid
+	subid = sid
+	game = game
+	db = db
+
+	return true
+end
+
+local function logout()
+	-- body
+	if gate then
+		skynet.call(gate, "lua", "logout", userid, subid)
+	end
+	skynet.exit()
+end
+
+function CMD.logout(source)
+	-- body
+	assert(false)
+	skynet.error(string.format("%s is logout", userid))
+	logout()
+end
+
+function CMD.afk(source)
+	-- body
+	skynet.error(string.format("AFK"))
+end
+
+local function update_db()
+	-- body
+	while true do
+		flush_db(const.DB_PRIORITY_3)
+		skynet.sleep(100 * 60) -- 1ti == 0.01s
+	end
+end
+
+local function start()
+	-- body
 	local addr = io.open("../host/c2s.pb","rb")
 	local buffer = addr:read "*a"
 	addr:close()
@@ -356,15 +385,6 @@ function CMD.start(conf)
 		local encode = protobuf.encode(s2c_proto.package .. "." .. s2c_proto.message_type[tag].name, msg)
 		return code .. encode
 	end
-	client_fd = fd
-	skynet.call(gate, "lua", "forward", fd)
-
-	game = loader.load_game()
-end
-
-function CMD.disconnect()
-	-- todo: do something before exit
-	skynet.exit()
 end
 
 skynet.start(function()
@@ -372,4 +392,6 @@ skynet.start(function()
 		local f = CMD[command]
 		skynet.ret(skynet.pack(f(...)))
 	end)
+	skynet.fork(update_db)
+	start()	
 end)

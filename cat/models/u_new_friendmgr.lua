@@ -16,25 +16,27 @@ function _Meta.__new()
  	return t
 end 
 
-function _Meta:__insert_db()
+function _Meta:__insert_db(priority)
 	-- body
+	assert(priority)
 	local t = {}
 	for k,v in pairs(_Meta) do
 		if not string.match(k, "^__*") then
 			t[k] = assert(self[k])
 		end
 	end
-	skynet.send(util.random_db(), "lua", "command", "insert", self.__tname, t)
+	skynet.send(util.random_db(), "lua", "command", "insert", self.__tname, t, priority)
 end
 
-function _Meta:__update_db(t)
+function _Meta:__update_db(t, priority)
 	-- body
+	assert(priority)
 	assert(type(t) == "table")
 	local columns = {}
 	for i,v in ipairs(t) do
 		columns[tostring(v)] = self[tostring(v)]
 	end
-	skynet.send(util.random_db(), "lua", "command", "update", self.__tname, {{ csv_id=assert(self.csv_id) }}, columns)
+	skynet.send(util.random_db(), "lua", "command", "update", self.__tname, {{ csv_id=assert(self.csv_id) }}, columns, priority)
 end
 
 function _Meta:__serialize()
@@ -48,7 +50,7 @@ function _Meta:__serialize()
 	return r
 end
 
-function _M.insert_db( values )
+function _M.insert_db( values, priority)
 	assert(type(values) == "table" )
 	local total = {}
 	for i,v in ipairs(values) do
@@ -60,7 +62,7 @@ function _M.insert_db( values )
 		end
 		table.insert(total, t)
 	end
-	skynet.send( util.random_db() , "lua" , "command" , "insert_all" , _Meta.__tname , total )
+	skynet.send( util.random_db() , "lua" , "command" , "insert_all" , _Meta.__tname , total, priority)
 end 
 
 function _M.create( P )

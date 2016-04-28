@@ -5,6 +5,7 @@ local _M = {}
 _M.__data = {}
 _M.__count = 0
 _M.__user_id = 0
+_M.__tname = "u_recharge_vip_reward"
 
 local _Meta = { user_id=0, vip=0, collected=0, purchased=0}
 
@@ -17,15 +18,16 @@ function _Meta.__new()
  	return t
 end 
 
-function _Meta:__insert_db()
+function _Meta:__insert_db(priority)
 	-- body
+	assert(priority)
 	local t = {}
 	for k,v in pairs(self) do
 		if not string.match(k, "^__*") then
 			t[k] = self[k]
 		end
 	end
-	skynet.send(util.random_db(), "lua", "command", "insert", self.__tname, t)
+	skynet.send(util.random_db(), "lua", "command", "insert", self.__tname, t, priority)
 end
 
 function _Meta:__update_db(t)
@@ -85,13 +87,17 @@ end
 
 function _M:clear()
 	self.__data = {}
+	self.__count = 0
 end
 
-function _M:update_db()
+function _M:update_db(priority)
 	-- body
-	local columns = { "collected", "purchased"}
-	local condition = { {user_id = self.__user_id}, {vip = {}}}
-	skynet.send(util.random_db(), "lua", "command", "update_all", _Meta.__tname, condition, columns, self.__data)
+	assert(priority)
+	if self.__count > 0 then
+		local columns = { "collected", "purchased"}
+		local condition = { {user_id = self.__user_id}, {vip = {}}}
+		skynet.send(util.random_db(), "lua", "command", "update_all", _Meta.__tname, condition, columns, self.__data, priority)
+	end
 end
 
 return _M

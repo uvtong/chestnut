@@ -5,8 +5,7 @@ local _M = {}
 _M.__data = {}
 _M.__count = 0
 _M.__user_id = 0
-
-_M.__update_fields = { type=0, finished=0, c_num=0, unlock_next_csv_id=0, is_unlock=0, is_valid=0}
+_M.__tname = "u_achievement"
 
 local _Meta = { user_id=0, csv_id=0, type=0, finished=0, c_num=0, unlock_next_csv_id=0, is_unlock=0, is_valid=0}
 
@@ -19,7 +18,7 @@ function _Meta.__new()
  	return t
 end 
 
-function _Meta:__insert_db()
+function _Meta:__insert_db(priority)
 	-- body
 	local t = {}
 	for k,v in pairs(self) do
@@ -27,7 +26,7 @@ function _Meta:__insert_db()
 			t[k] = assert(self[k])
 		end
 	end
-	skynet.send(util.random_db(), "lua", "command", "insert", self.__tname, t)
+	skynet.send(util.random_db(), "lua", "command", "insert", self.__tname, t, priority)
 end
 
 function _Meta:__update_db(t)
@@ -51,7 +50,8 @@ function _Meta:__serialize()
 	return r
 end
 
-function _M.insert_db( values )
+function _M.insert_db(values, priority )
+	assert(priority)
 	assert(type(values) == "table" )
 	local total = {}
 	for i,v in ipairs(values) do
@@ -63,14 +63,15 @@ function _M.insert_db( values )
 		end
 		table.insert(total, t)
 	end
-	skynet.send( util.random_db() , "lua" , "command" , "insert_all" , _Meta.__tname , total )
+	skynet.send( util.random_db() , "lua" , "command" , "insert_all" , _Meta.__tname , total, priority)
 end 
 
-function _M:update_db()
+function _M:update_db(priority)
 	-- body
-	local columns = { "type", "finished", "c_num", "unlock_next_csv_id", "is_unlock", "is_valid"}
-	local condition = { {user_id = self.__user_id}, {csv_id = {}}}
-	skynet.send(util.random_db(), "lua", "command", "update_all", _Meta.__tname, condition, columns, self.__data)
+	assert(priority)
+	local columns = { "csv_id", "finished", "c_num", "unlock_next_csv_id"}
+	local condition = { {user_id = self.__user_id}, {type = {}}}
+	skynet.send(util.random_db(), "lua", "command", "update_all", _Meta.__tname, condition, columns, self.__data, priority)
 end
 
 function _M:clear()
@@ -91,6 +92,7 @@ end
 
 function _M:add( u )
 	assert(u)
+	assert(self.__data[tostring(u.type)] == nil)
 	self.__data[tostring(u.type)] = u
 	self.__count = self.__count + 1
 end

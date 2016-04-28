@@ -2,63 +2,60 @@ package.path = "./../cat/?.lua;" .. package.path
 local skynet = require "skynet"
 require "skynet.manager"
 local util = require "util"
-local randomvalmgr = require "models/g_randomvalmgr"
-
+local const = require "const"
+local game
+local loader = require "loader"
+local trandom
 
 local CMD = {}
 
-local function load_g_randomval()
-	local r = skynet.call( util.random_db() , "lua" , "command" , "select" , "randomval" )
-	for k , v in ipairs( r ) do
-		local t = randomvalmgr.create( v )
-		randomvalmgr:add( t )
-	end
+function CMD.start()
+ 	-- body
+ 	game = loader.load_randomval()
+ 	assert( game )
 end 
-	
-function CMD:draw( val )
+
+function CMD.draw( val )
 	assert( val )
-	print( "random draw is called in randomserver" .. val.drawtype )
-        
 	local r
-	--local addr = randomaddr()
-	local trandom = randomvalmgr:get_by_id( val.drawtype )
+	
+	trandom = game.g_randomvalmgr:get_by_id( val.drawtype )
 	assert( trandom )
-         
+
+	print( "drawtype is ***************************" , val.drawtype , trandom.val , trandom.step )
 	if val.drawtype == 3 then
 		r = {}
-        
 		for i = 1 , 10 do
-			trandom.val = trandom.val + trandom.step
-			if trandom.val > 10000 then -- zan shi
-				trandom.val = trandom.val % 10000
-			end
+			trandom.val = ( trandom.val + trandom.step ) % 10000
 			table.insert( r , trandom.val )
 		end
+		print( trandom.val )
 	else
-		trandom.val = trandom.val + trandom.step
-		
-		if trandom.val > 10000 then -- zan shi
-			trandom.val = trandom.val % 10000
-		end
-        
+		trandom.val = ( trandom.val + trandom.step ) % 10000 
 		r = trandom.val
 	end 
-	    
-	trandom:__update_db( { "val" } )
-	print( r )
 	return r	
-end	    
-	    
+end	   
+
+local function update_db()
+	-- body
+	while true do
+		if game then
+			game.g_randomvalmgr:update_db(const.DB_PRIORITY_3)
+		end
+		skynet.sleep(const.DB_DELTA) -- 1ti == 0.01s
+	end
+end
+
 skynet.start( function () 
 	skynet.dispatch( "lua" , function( _, _, cmd , subcmd , ... )
-		print( "random draw is called" )
-			local f = assert( CMD[ subcmd ] )
-			local result = f(CMD , ... )
-			print( result )
-		skynet.ret( skynet.pack( result ) )
+		print( "random draw is called" , cmd , subcmd )
+		local f = assert( CMD[ cmd ] )
+		local result = f(subcmd, ... )
+		if result then
+			skynet.ret( skynet.pack( result ) )
+		end
 	end)	
 	skynet.register ".randomdraw"
-        
-	load_g_randomval()
-
+	skynet.fork(update_db)
 end)    

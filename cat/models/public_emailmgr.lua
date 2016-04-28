@@ -6,7 +6,7 @@ _M.__data = {}
 _M.__count = 0
 
 local _Meta = { csv_id = 0 , type=0, title=0, content = 0 , acctime = 0 , deltime = 0 , isread = 0 , isdel = 0 , itemsn1 = 0 , itemnum1 = 0 , 
-			itemsn2 = 0 , itemnum2 = 0 ,itemsn3 = 0 , itemnum3 = 0 ,itemsn4 = 0 , itemnum4 = 0 ,itemsn5 = 0 , itemnum5 = 0 , iconid = 0 , isreward = 0 }
+			itemsn2 = 0 , itemnum2 = 0 ,itemsn3 = 0 , itemnum3 = 0 ,itemsn4 = 0 , itemnum4 = 0 ,itemsn5 = 0 , itemnum5 = 0 , isreward = 0 }
 
 _Meta.__tname = "public_email"
 
@@ -17,7 +17,7 @@ function _Meta.__new()
  	return t
 end 
 
-function _Meta:__insert_db()
+function _Meta:__insert_db(priority)
 	-- body
 	local t = {}
 	for k,v in pairs(_Meta) do
@@ -25,18 +25,17 @@ function _Meta:__insert_db()
 			t[k] = assert(self[k])
 		end
 	end
-	skynet.send(util.random_db(), "lua", "command", "insert", self.__tname, t)
+	skynet.send(util.random_db(), "lua", "command", "insert", self.__tname, t, priority)
 end
 
 function _Meta:__update_db(t)
 	-- body
-
-	assert(type(t) == "table")
-	local columns = {}
-	for i,v in ipairs(t) do
-	columns[tostring(v)] = self[tostring(v)]
-	end
-	skynet.send(util.random_db(), "lua", "command", "update", self.__tname, {{ id = self.id }}, columns)
+	-- assert(type(t) == "table")
+	-- local columns = {}
+	-- for i,v in ipairs(t) do
+	-- columns[tostring(v)] = self[tostring(v)]
+	-- end
+	-- skynet.send(util.random_db(), "lua", "command", "update", self.__tname, {{ id = self.id }}, columns)
 end
 
 function _Meta:__serialize()

@@ -2,7 +2,8 @@ local sprotoparser = require "sprotoparser"
 
 local proto = {}
 
-proto.c2s = sprotoparser.parse [[.package {
+proto.c2s = sprotoparser.parse [[
+.package {
 	type 0 : integer
 	session 1 : integer
 }
@@ -12,6 +13,16 @@ proto.c2s = sprotoparser.parse [[.package {
     is_possessed 1 : boolean
     star 2 : integer
     u_us_prop_num 3 : integer
+    property_id1 4 : integer
+    value1 5 : integer
+    property_id2 6 : integer
+    value2 7 : integer
+    property_id3 8 : integer
+    value3 9 : integer
+    property_id4 10 : integer
+    value4 11 : integer
+    property_id5 12 : integer
+    value5 13 : integer
 }
 
 .prop {
@@ -26,14 +37,12 @@ proto.c2s = sprotoparser.parse [[.package {
     is_unlock 3 : boolean
 }
 
-.attach
-{
+.attach {
     itemsn 0 : integer
     itemnum 1 : integer
 }
 
-.mail
-{	
+.mail {	
 	emailid 0 : integer
 	type 1 : integer
 	iconid 2 : integer
@@ -46,20 +55,17 @@ proto.c2s = sprotoparser.parse [[.package {
 	attachs 9 : *attach
 }
 
-.idlist
-{
+.idlist {
     id 0 : integer
 }
 
-.friendidlist
-{
+.friendidlist {
     signtime 0 : integer
     friendid 1 : integer
     type 2 : integer
 }
 
-.subuser
-{
+.subuser {
 	id 0 : integer
 	name 1 : string
 	level 2 : integer
@@ -77,15 +83,13 @@ proto.c2s = sprotoparser.parse [[.package {
     heartamount 14 : integer
 }
 
-.apply 
-{
+.apply {
 	signtime 0 : integer
 	friendid 1 : integer
 	type 2 : integer
 }
 
-.heartlist
-{   
+.heartlist {   
     signtime 0 : integer
     amount 1 : integer
     friendid 2 : integer
@@ -103,14 +107,12 @@ proto.c2s = sprotoparser.parse [[.package {
     countdown 6 : integer
 }
  
-.goodsbuy
-{
+.goodsbuy {
     goods_id 0 : integer
     goods_num 1 : integer
 }
 
-.recharge_item
-{
+.recharge_item {
 	csv_id 0 : integer
 	icon_id 1 : integer
 	name 2 : string
@@ -120,35 +122,30 @@ proto.c2s = sprotoparser.parse [[.package {
 	rmb 6 : integer
 }
 
-.recharge_buy
-{
+.recharge_buy {
 	csv_id 0 : integer
 	num 1 : integer
 }
 
-.recharge_reward_item
-{
+.recharge_reward_item {
 	id 0 : integer
 	distribute_dt 1 : string
 	icon_id 2 : integer
 }
 
-.drawlist
-{  
+.drawlist {  
     drawtype 0 : integer
     lefttime 1 : integer
     drawnum 2 : integer
 }
  
-.drawrewardlist
-{      
+.drawrewardlist {
     propid 0 : integer
     propnum 1 : integer
     proptype 2 : integer
 }  
 
-.recharge_vip_reward 
-{
+.recharge_vip_reward {
     vip 0 : integer
     props 1 : *prop
     collected 2 : boolean
@@ -169,14 +166,13 @@ proto.c2s = sprotoparser.parse [[.package {
     enhance_success_rate 10 : integer
 }
 
-.kungfu_content
-{
+.kungfu_content {
     csv_id 1 : integer
     k_level 2 : integer
     k_type 3 : integer
     k_sp_num 4 : integer 
 }
- 
+
 .kungfu_pos_and_id {
     position 0 : integer
     k_csv_id 1 : integer
@@ -190,31 +186,81 @@ proto.c2s = sprotoparser.parse [[.package {
 .user {
     uname 0 : string 
     uviplevel 1 : integer
-    uexp 2 : integer
-    config_sound 3 : boolean
-    config_music 4 : boolean
-    avatar 5 : integer
-    sign 6 : string
-    c_role_id 7 : integer
-    rolelist 8 : *role
-    gold 9 : integer
-    diamond 10 : integer
-    recharge_total 11 : integer
-    recharge_vip 12 : integer
-    recharge_progress 13 : integer
-    recharge_diamond 14 : integer
+    config_sound 2 : boolean
+    config_music 3 : boolean
+    avatar 4 : integer
+    sign 5 : string
+    c_role_id 6 : integer
+    level 7 : integer
+    recharge_rmb 8 : integer
+    recharge_diamond 9 : integer
+    uvip_progress 10 : integer
+    cp_hanging_id 11 : integer
+    uexp 12 : integer
+    gold 13 : integer
+    diamond 14 : integer
     love 15 : integer
     equipment_list 16 : *equipment
     kungfu_list 17 : *kungfu_content
-    level 18 : integer
+    rolelist 18 : *role
+    cp_chapter 19 : integer
+    lilian_level 20 : integer
+    ara_rnk 21 : integer
 }
+
+.suser {
+    csv_id 0 : integer
+    uname 1 : string
+    total_combat 2 : integer
+    ara_rnk 3 : integer
+    iconid 4 : integer
+}
+
+.checkpoint_chapter {
+	chapter 0 : integer
+	chapter_type0 1 : integer
+	chapter_type1 2 : integer
+	chapter_type2 3 : integer		
+}
+
+.lilian_idlist {
+    id 0 : integer
+}       
+        
+.quanguan_basic_info {
+    quanguan_id 0 : integer
+    lilian_num 1 : integer
+    left_cd_time 2 : integer
+    errorcode 3 : integer
+    msg 4 : string
+    if_trigger_event 5 : integer
+    invitation_id 6 : integer
+    iflevel_up 7 : integer
+    delay_type 8 : integer
+    if_event_reward 9 : integer
+    if_lilian_reward 10 : integer
+    eventid 11 : integer
+    reward 12 : *lilian_reward_info
+}   
+    
+.lilian_reward_info {
+    propid 1 : integer
+    propnum 2 : integer
+}   
+
+.quanguan_lilian_num {
+    quanguan_id 0 : integer
+    num 1 : integer
+    reset_num 2 : integer
+}   
 
 handshake 1 {
     request {
         secret 0 : string
     }
     response {
-        msg 0  : string
+    	errorcode 0 : integer
+        msg 1 : string
     }
 }
 
@@ -230,11 +276,11 @@ role_info 2 {
 }
 
 mails 3 {
-  response {
-    errorcode 0 : integer
-	msg 1 : string 
-	mail_list 2 : *mail	
-  }
+    response {
+        errorcode 0 : integer
+	   msg 1 : string 
+	   mail_list 2 : *mail	
+    }
 }
 
 signup 4 {
@@ -471,6 +517,8 @@ user 28 {
         errorcode 0 : integer
         msg 1 : string
         user 2 : user
+        ara_leaderboards 3 : *suser
+        ara_rmd_list 4 : *suser
     }
 }
 
@@ -580,6 +628,7 @@ achievement_reward_collect 40 {
     response {
         errorcode 0 : integer
         msg 1 : string
+        next 2 : achi
     }
 }
 
@@ -682,6 +731,8 @@ equipment_enhance 50 {
         errorcode 0 : integer
         msg 1 : string
         e 2 : equipment
+        is_valid 3 : boolean
+        effect 4 : integer
     }
 }
 
@@ -791,6 +842,266 @@ recharge_vip_reward_purchase 60 {
     }
 }
 
+xilian 61 {
+    request {
+        role_id 0 : integer
+        is_locked1 1 : boolean
+        is_locked2 2 : boolean
+        is_locked3 3 : boolean
+        is_locked4 4 : boolean
+        is_locked5 5 : boolean
+    }
+    response {
+        errorcode 0 : integer
+        msg 1 : string
+        property_id1 2 : integer
+        value1 3 : integer
+        property_id2 4 : integer
+        value2 5 : integer
+        property_id3 6 : integer
+        value3 7 : integer
+        property_id4 8 : integer
+        value4 9 : integer
+        property_id5 10 : integer
+        value5 11 : integer
+    }
+}
+
+xilian_ok 62 {
+    request {
+        role_id 0 : integer
+        ok 1 : boolean
+    }
+    response {
+        errorcode 0 : integer
+        msg 1 : string
+    }
+}
+
+checkpoint_chapter 63 {
+	response {
+		errorcode 0 : integer
+		msg 1 : string
+		l 2 : *checkpoint_chapter
+	}
+}
+
+checkpoint_hanging 64 {
+	response {
+		errorcode 0 : integer
+		msg 1 : string
+        props 2 : *prop
+	}
+}
+
+checkpoint_battle_exit 65 {
+    request {
+        chapter 0 : integer
+        type 1 : integer
+        checkpoint 2 : integer
+        csv_id 3 : integer
+        result 4 : integer
+    }
+    response {
+        errorcode 0 : integer
+        msg 1 : string
+        reward 2 : *prop
+    }
+}
+
+checkpoint_hanging_choose 66 {
+    request {
+        chapter 0 : integer
+        type 1 : integer
+        checkpoint 2 : integer
+        csv_id 3 : integer
+    }  
+    response {
+        errorcode 0 : integer
+        msg 1 : string
+        passed 2 : integer
+    }
+}
+
+checkpoint_battle_enter 67 {
+    request {
+        chapter 0 : integer
+        type 1 : integer
+        checkpoint 2 : integer
+        csv_id 3 : integer
+    }
+    response { 
+        errorcode 0 : integer
+        msg 1 : string
+        cd 2 : integer
+    }
+}
+
+get_lilian_info 68 {
+    response {
+        errorcode 0 : integer
+        msg 1 : string
+        level 2 : integer
+        phy_power 3 : integer
+        invitation_idlist 4 : *lilian_idlist
+        basic_info 5 : *quanguan_basic_info
+        lilian_exp 6 : integer
+        lilian_num_list 7 : *quanguan_lilian_num
+        purch_phy_power_num 8 : integer
+        phy_power_left_cd_time 9 : integer
+        present_phy_power_num 10 : integer
+    }    
+}       
+
+start_lilian 69 {
+    request {
+        quanguan_id 0 : integer
+        invitation_id 1 : integer
+    }
+    response {
+        errorcode 0: integer
+        msg 1 : string
+        left_cd_time 2 : integer
+    }
+}   
+    
+lilian_get_phy_power 70 {
+    response {
+        errorcode 0 : integer
+        msg 1 : string
+        phy_power 2 : integer
+        left_cd_time 3 : integer
+    }
+}
+
+lilian_get_reward_list 71 {
+    request {
+        quanguan_id 0 : integer
+        reward_type 1 : integer
+    }
+    response {
+        iffinished 0 : integer
+        if_trigger_event 1 : integer
+        left_cd_time 2 : integer
+        invitation_id 3 : integer
+        lilian_level 4 : integer
+        errorcode 5 : integer
+        if_lilian_reward 6 : integer
+        if_event_reward 7 : integer
+
+        if_lilian_finished 8 : integer
+        lilian_exp 9 : integer
+        eventid 10 : integer
+        reward 11 : *lilian_reward_info
+    }
+}
+
+checkpoint_exit 72 {
+    response {
+        errorcode 0 : integer
+        msg 1 : string
+    }
+}
+
+lilian_purch_phy_power 73 {
+    response {
+        errorcode 0 : integer
+        msg 1 : string
+        phy_power 2 : integer
+        left_cd_time 3 : integer
+    }
+}
+
+app_resume 74 {
+    response {
+        errorcode 0 : integer
+        msg 1 : string
+    }
+}
+
+app_backgroud 75 {
+    response {
+        errorcode 0 : integer
+        msg 1 : string
+    }
+}
+
+lilian_inc 76 {
+    request {
+        quanguan_id 0 : integer 
+        inc_type 1 : integer
+    }
+    response {
+        errorcode 0 : integer
+        msg 1 : string
+        inc_num 2 : integer
+        diamond_num 3 : integer
+        iffinished 4 : integer
+        if_trigger_event 5 : integer
+        left_cd_time 6 : integer
+        invitation_id 7 : integer
+        lilian_level 8 : integer
+        if_lilian_reward 9 : integer
+        if_event_reward 10 : integer
+        lilian_exp 11 : integer
+        eventid 12 : integer
+        reward 13 : *lilian_reward_info
+    }
+}
+
+lilian_reset_quanguan 77 {
+    request {
+        quanguan_id 0 : integer
+    }
+    response {
+        errorcode 0 : integer
+        msg 1 : string
+        diamond_num 2 : integer
+    }
+}
+
+lilian_rewared_list 78 {
+    request {
+        quanguan_id 0 : integer
+        rtype 1 : integer
+    }
+    response {
+        errorcode 0 : integer
+        reward 1 : *lilian_reward_info
+        invitation_id 2 : integer
+        left_cd_time 3 : integer
+    }
+}
+
+ara_bat_ovr 79 {
+    response {
+        errorcode 0 : integer
+        msg 1 : string
+        ara_leaderboards 2 : *suser
+        ara_rmd_list 3 : *suser
+    }
+}
+
+ara_bat_clg 80 {
+    request {
+        role_id1 0 : integer
+        role_id2 1 : integer
+        role_id3 2 : integer
+    }
+    response {
+        errorcode 0 : integer
+        msg 1 : string
+    }
+}
+
+ara_rfh 81 {
+    response {
+        errorcode 0 : integer
+        msg 1 : string
+        ara_rmd_list 2 : *suser
+    }
+}
+
 ]]
 
 proto.s2c = sprotoparser.parse [[
@@ -823,6 +1134,13 @@ finish_achi 3 {
     request {
         which 0 : achi
     }
+    response {
+        errorcode 0 : integer
+        msg 1 : string
+    }
+}
+
+lilian_update 4 {
     response {
         errorcode 0 : integer
         msg 1 : string

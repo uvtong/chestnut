@@ -5,7 +5,10 @@ require "skynet.manager"
 local util = require "util"
 local loader = require "loader"
 local tptr = require "tablepointer"
+local const = require "const"
 local game
+
+local db = tonumber(...)
 
 local CMD = {}
  
@@ -40,6 +43,12 @@ function CMD.query_g_achievement(pk)
 	elseif type(pk) == "nil" then
 		return game.g_achievementmgr.__data
 	else
+		print(pk)
+		if type(pk) == "table" then
+			for k,v in pairs(pk) do
+				print(k,v)
+			end
+		end
 		assert(false)
 	end
 end
@@ -92,6 +101,22 @@ function CMD.query_g_checkpoint(pk)
 	end
 end
 
+function CMD.query_g_checkpoint_chapter(pk)
+	-- body
+	if type(pk) == "number" then
+		local r = game.g_checkpoint_chaptermgr:get_by_chapter(pk)
+		if r then
+			return r
+		else
+			error "there are insufficient data"
+		end
+	elseif type(pk) == "nil" then
+		return game.g_checkpoint_chaptermgr.__data
+	else
+		assert(false)
+	end
+end
+
 function CMD.query_g_daily_task(pk)
 	-- body
 	if type(pk) == "number" then
@@ -119,6 +144,81 @@ function CMD.query_g_drawcost(pk)
 		end
 	elseif type(pk) == "nil" then
 		return game.g_drawcostmgr.__data 
+	else
+		assert(false)
+	end
+end
+
+function CMD.query_g_draw_role(pk)
+	if type(pk) == "number" then
+		local r = game.g_draw_rolemgr:get_by_csv_id(pk)
+		if r then
+			return r
+		else
+			error "there are insufficient data"
+		end
+	elseif type(pk) == "nil" then
+		return game.g_draw_rolemgr.__data
+	else
+		assert(false)
+	end
+end
+
+function CMD.query_g_lilian_event(pk)
+	if type(pk) == "number" then
+		local r = game.g_lilian_eventmgr:get_by_csv_id(pk)
+		if r then
+			return r
+		else
+			error "there are insufficient data"
+		end
+	elseif type(pk) == "nil" then
+		return game.g_lilian_eventmgr.__data
+	else
+		assert(false)
+	end
+end
+
+function CMD.query_g_lilian_invitation(pk)
+	if type(pk) == "number" then
+		local r = game.g_lilian_invitationmgr:get_by_csv_id(pk)
+		if r then
+			return r
+		else
+			error "there are insufficient data"
+		end
+	elseif type(pk) == "nil" then
+		return game.g_lilian_invitationmgr.__data
+	else
+		assert(false)
+	end
+end
+
+function CMD.query_g_lilian_level(pk)
+	if type(pk) == "number" then
+		local r = game.g_lilian_levelmgr:get_by_csv_id(pk)
+		if r then
+			return r
+		else
+			error "there are insufficient data"
+		end
+	elseif type(pk) == "nil" then
+		return game.g_lilian_levelmgr.__data
+	else
+		assert(false)
+	end
+end
+
+function CMD.query_g_lilian_quanguan(pk)
+	if type(pk) == "number" then
+		local r = game.g_lilian_quanguanmgr:get_by_csv_id(pk)
+		if r then
+			return r
+		else
+			error "there are insufficient data"
+		end
+	elseif type(pk) == "nil" then
+		return game.g_lilian_quanguanmgr.__data
 	else
 		assert(false)
 	end
@@ -372,31 +472,157 @@ function CMD.query_g_user_level(pk)
 	end
 end
 
-function CMD.query_g_config()
+function CMD.query_g_lilian_phy_power(pk)
+	assert(pk)
+	if type(pk) == "number" then
+		local r = game.g_lilian_phy_powermgr:get_by_csv_id(pk)
+		if r then
+			return r
+		else
+			error "there are insufficient data"
+		end
+	elseif type(pk) == "nil" then
+		return game.g_lilian_phy_powermgr.__data
+	else
+		assert(false)
+	end
+end
+
+function CMD.query_g_config(pk)
 	-- body
-	local r = game.g_configmgr:get_by_csv_id(1)
-	local ptr = tptr.topointer(r)
-	return ptr
+	if type(pk) == "string" then
+		return game.g_configmgr:get_by_csv_id(1)[pk]
+	else
+		local r = game.g_configmgr:get_by_csv_id(1)
+		local ptr = tptr.topointer(r)
+		return ptr
+	end
+end
+
+function CMD.query_g_xilian_cost(pk)
+	-- body
+	if type(pk) == "number" then
+		local r = game.g_xilian_costmgr:get_by_csv_id(pk)
+		if r then
+			return r
+		else
+			error "there are insufficient data"
+		end
+	elseif type(pk) == "nil" then
+		return game.g_xilian_costmgr.__data
+	else
+		assert(false)
+	end
+end
+
+function CMD.query_g_property_pool(pk)
+	-- body
+	if type(pk) == "number" then
+		local r = game.g_property_poolmgr:get_by_csv_id(pk)
+		if r then
+			return r
+		else
+			error "there are insufficient data"
+		end
+	elseif type(pk) == "nil" then
+		assert(game.g_property_poolmgr:get_count() > 0)
+		for k,v in pairs(game.g_property_poolmgr.__data) do
+			print(k,v)
+		end
+		return game.g_property_poolmgr.__data
+	else
+		assert(false)
+	end
+end
+
+function CMD.query_g_property_pool_second(pk, T)
+	-- body
+	if type(pk) == "number" then
+		if pk > 0 then
+			local r = game.g_property_pool_secondmgr:get_by_csv_id(pk)
+			if r then
+				return r
+			else
+				error "there are insufficient data"
+			end
+		else
+			assert(type(T) == "number")
+			local second = {}
+			for k,v in pairs(game.g_property_pool_secondmgr.__data) do
+				if v.property_pool_id == T then
+					table.insert(second, v)
+				end
+			end
+			return second
+		end
+	elseif type(pk) == "nil" then
+		return game.g_property_pool_secondmgr.__data
+	else
+		assert(false)
+	end
+end
+
+function CMD.query_g_randomval()
+	-- body
+	return assert(game.g_randomvalmgr.__data)
+end
+
+function CMD.query_g_equipment_effect(pk)
+	-- body
+	if type(pk) == "number" then
+		local r = game.query_g_equipment_effectmgr:get_by_level(pk)
+		if r then
+			return r
+		else
+			error "there are insufficient data"
+		end
+	else
+		assert(false)
+	end
+end
+
+local function guid(csv_id)
+	-- body
+	local r = game.g_uidmgr:get_by_csv_id(csv_id)
+	if not r then
+		local t = { csv_id=csv_id, entropy=1}
+		t = game.g_uidmgr.create(t)
+		game.g_uidmgr:add(t)
+		t:__insert_db(const.DB_PRIORITY_2)
+		return t.entropy
+	else
+		r.entropy = tonumber(r.entropy) + 1
+		return r.entropy
+	end
+end
+
+local function u_guid(user_id, csv_id)
+	-- body
+	csv_id = user_id * 10000 + csv_id
+	return guid(csv_id)
 end
 
 function CMD.u_guid(user_id, csv_id)
 	-- body
-	print(user_id, csv_id)
-	return util.u_guid(user_id, game, csv_id)
+	assert(type(user_id) == "number" and user_id > 0)
+	assert(type(csv_id) == "number" and csv_id > 0)
+	return u_guid(user_id, csv_id)
 end
 
 function CMD.guid(csv_id)
 	-- body
-	return util.guid(game, csv_id)
+	assert(type(csv_id) == "number" and csv_id > 0)
+	return guid(csv_id)
 end
 
 local function update_db()
 	-- body
 	while true do
 		if game then
-			game.g_uidmgr:update_db()
+			game.g_uidmgr:update_db(const.DB_PRIORITY_3)
+			game.g_randomvalmgr:update_db(const.DB_PRIORITY_3)
 		end
-		skynet.sleep(100 * 60 * 10) -- 1ti == 0.01s
+		skynet.sleep(100 * 60) -- 1ti == 0.01s
 	end
 end
 
@@ -410,6 +636,4 @@ skynet.start(function()
 		end
 	end)
 	skynet.fork(update_db)
-
-	skynet.register ".game"
 end)

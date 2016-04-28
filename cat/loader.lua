@@ -29,6 +29,18 @@ local function load_g_checkpoint()
 	game.g_checkpointmgr = g_checkpointmgr
 end
 
+local function load_g_checkpoint_chapter()
+	-- body
+	assert(game.g_checkpoint_chaptermgr == nil)
+	local g_checkpoint_chaptermgr = require "models/g_checkpoint_chaptermgr"
+	local r = skynet.call(util.random_db(), "lua", "command", "select", "g_checkpoint_chapter")
+	for i,v in ipairs(r) do
+		local t = g_checkpoint_chaptermgr.create(v)
+		g_checkpoint_chaptermgr:add(t)
+	end
+	game.g_checkpoint_chaptermgr = g_checkpoint_chaptermgr
+end
+
 local function load_g_effct()
 	-- body
 	assert(game.g_effctmgr == nil)
@@ -40,6 +52,17 @@ local function load_g_effct()
 	end
 	game.g_effctmgr = g_effctmgr
 end
+
+local function load_g_role_effect()
+	assert( nil == game.g_role_effectmgr )
+	local g_role_effectmgr = require "models/g_role_effectmgr"
+	local r = skynet.call( util.random_db() , "lua" , "command" , "select" , "g_role_effect" )
+	for i,v in ipairs(r) do
+		local t = g_role_effectmgr.create(v)
+		g_role_effectmgr:add(t)
+	end
+	game.g_role_effectmgr = g_role_effectmgr
+end	
 
 local function load_g_equipment()
 	-- body
@@ -280,6 +303,18 @@ local function load_g_drawcost()
 	game.g_drawcostmgr = g_drawcostmgr
 end
 
+local function load_g_draw_role()
+	assert( nil == game.g_draw_rolemgr )
+
+	local g_draw_rolemgr = require "models/g_draw_rolemgr"
+	local r = skynet.call(util.random_db() , "lua" , "command" , "select" , "g_draw_role")
+	for i , v in ipairs( r ) do
+		local t = g_draw_rolemgr.create( v )
+		g_draw_rolemgr:add( t )
+	end
+	game.g_draw_rolemgr = g_draw_rolemgr
+end
+
 local function load_g_mainreward()
 	assert( nil == game.g_mainrewardmgr )
 
@@ -313,8 +348,20 @@ local function load_g_randomval()
 		local t = g_randomvalmgr.create( v )
 		g_randomvalmgr:add( t )
 	end
-
+	print( "load randomval successfully" )
 	game.g_randomvalmgr = g_randomvalmgr
+end
+
+local function  load_g_lilian_phy_power()
+	-- body
+	assert( nil == game.g_lilian_phy_powermgr )
+	local g_lilian_phy_powermgr = require "models/g_lilian_phy_powermgr"
+	local r = skynet.call(util.random_db() , "lua" , "command" , "select" , "g_lilian_phy_power")
+	for i , v in ipairs( r ) do
+		local t = g_lilian_phy_powermgr.create( v )
+		g_lilian_phy_powermgr:add( t )
+	end
+	game.g_lilian_phy_powermgr = g_lilian_phy_powermgr
 end
 
 local function load_g_uid()
@@ -339,6 +386,54 @@ local function load_g_config()
 		g_configmgr:add(t)
 	end
 	game.g_configmgr = g_configmgr
+end
+
+local function load_g_xilian_cost()
+	-- body
+	assert(game.g_xilian_costmgr == nil)
+	local g_xilian_costmgr = require "models/g_xilian_costmgr"
+	local r = skynet.call(util.random_db(), "lua", "command", "select", "g_xilian_cost")
+	for i,v in ipairs(r) do
+		local t = g_xilian_costmgr.create(v)
+		g_xilian_costmgr:add(t)
+	end
+	game.g_xilian_costmgr = g_xilian_costmgr
+end
+
+local function load_g_property_pool()
+	-- body
+	assert(game.g_property_poolmgr == nil)
+	local g_property_poolmgr = require "models/g_property_poolmgr"
+	local r = skynet.call(util.random_db(), "lua", "command", "select", "g_property_pool")
+	for i,v in ipairs(r) do
+		local t = g_property_poolmgr.create(v)
+		g_property_poolmgr:add(t)
+	end
+	game.g_property_poolmgr = g_property_poolmgr
+end
+
+local function load_g_property_pool_second()
+	-- body
+	assert(game.g_property_pool_secondmgr == nil)
+	local g_property_pool_secondmgr = require "models/g_property_pool_secondmgr"
+	local r = skynet.call(util.random_db(), "lua", "command", "select", "g_property_pool_second")
+	for i,v in ipairs(r) do
+		local t = g_property_pool_secondmgr.create(v)
+		g_property_pool_secondmgr:add(t)
+	end
+	game.g_property_pool_secondmgr = g_property_pool_secondmgr
+end
+
+local function load_g_equipment_effect()
+	-- body
+	assert(game.g_equipment_effectmgr == nil)
+	local g_equipment_effectmgr = require "models/g_equipment_effectmgr"
+	local r = skynet.call(util.random_db(), "lua", "command", "select", "g_equipment_effect")
+	for i,v in ipairs(r) do
+		local t = g_equipment_effectmgr.create(v)
+		g_equipment_effectmgr:add(t)
+	end
+	game.g_equipment_effectmgr = g_equipment_effectmgr
 end
 
 local function load_u_achievement(user)
@@ -425,8 +520,6 @@ local function load_u_cgold( user )
 	user.u_cgoldmgr = u_cgoldmgr
 end
 
-
-
 local function load_u_checkpoint(user)
 	-- body
 	assert(user.u_checkpointmgr == nil)
@@ -439,6 +532,19 @@ local function load_u_checkpoint(user)
 	end
 	u_checkpointmgr.__user_id = user.csv_id
 	user.u_checkpointmgr = u_checkpointmgr
+end
+
+local function load_u_checkpoint_rc(user)
+	-- body
+	assert(user.u_checkpoint_rcmgr == nil)
+	local u_checkpoint_rcmgr = require "models/u_checkpoint_rcmgr"
+	local r = skynet.call(util.random_db(), "lua", "command", "select", "u_checkpoint_rc", {{ user_id=user.csv_id}})
+	for i,v in ipairs(r) do
+		local a = u_checkpoint_rcmgr.create(v)
+		u_checkpoint_rcmgr:add(a)
+	end
+	u_checkpoint_rcmgr.__user_id = user.csv_id
+	user.u_checkpoint_rcmgr = u_checkpoint_rcmgr
 end
 
 local function load_u_equipment(user)
@@ -495,10 +601,10 @@ local function load_u_draw( user )
 	u_drawmgr.__user_id = user.csv_id
 	user.u_drawmgr = u_drawmgr
 end	
-
+	
 local function load_u_email( user )
 	assert( nil == user.u_emailmgr )
-
+	
 	local u_emailmgr = require "models/u_emailmgr"
 	local r = skynet.call( util.random_db() , "lua", "command" , "select" , "u_new_email", { { uid = user.csv_id , isdel = 0 } } )
 	print( "sizeof r is ************************************************************" , #r )
@@ -515,7 +621,68 @@ local function load_u_email( user )
 	user.u_emailmgr = u_emailmgr
 end
 
+local function load_u_lilian_main(user)
+	assert(user)
+	local u_lilian_mainmgr = require "models/u_lilian_mainmgr"
+	local nr = skynet.call( util.random_db() , "lua" , "command" , "select" , "u_lilian_main" , { { user_id = user.csv_id , iffinished = 0 } } )
 
+	for i , v in ipairs( nr ) do
+		local a = u_lilian_mainmgr.create( v )
+		u_lilian_mainmgr:add( a )
+	end
+	
+	u_lilian_mainmgr.__user_id = user.csv_id
+	user.u_lilian_mainmgr = u_lilian_mainmgr
+end
+
+local function load_u_lilian_sub(user)
+	assert(user)
+	local u_lilian_submgr = require "models/u_lilian_submgr"
+	local nr = skynet.call( util.random_db() , "lua" , "command" , "select" , "u_lilian_sub" , { { csv_id = user.csv_id } } )
+
+	for i , v in ipairs( nr ) do
+		local a = u_lilian_submgr.create( v )
+		u_lilian_submgr:add( a )
+	end
+
+	u_lilian_submgr.__user_id = user.csv_id
+	user.u_lilian_submgr = u_lilian_submgr
+end
+
+local function load_u_lilian_qg_num(user)
+	assert(user)
+	local u_lilian_qg_nummgr = require "models/u_lilian_qg_nummgr"
+	local date = os.time()
+	local sql = string.format( "select * from u_lilian_qg_num where user_id = %s and start_time < %s and %s < end_time" , user.csv_id , date , date)
+	local nr = skynet.call( util.random_db() , "lua" , "command" , "query" , sql )
+
+	for i , v in ipairs( nr ) do
+		local a = u_lilian_qg_nummgr.create( v )
+		u_lilian_qg_nummgr:add( a )
+	end
+
+	u_lilian_qg_nummgr.__user_id = user.csv_id
+	user.u_lilian_qg_nummgr = u_lilian_qg_nummgr
+end
+
+local function load_u_lilian_phy_power(user)
+	assert(user)
+
+	local u_lilian_phy_powermgr = require "models/u_lilian_phy_powermgr"
+	local date = os.time()
+	local sql = string.format( "select * from u_lilian_phy_power where user_id = %s and start_time < %s and %s < end_time" , user.csv_id , date , date)
+	local nr = skynet.call( util.random_db() , "lua" , "command" , "query" , sql )
+
+	for i , v in ipairs( nr ) do
+		local a = u_lilian_phy_powermgr.create( v )
+		u_lilian_phy_powermgr:add( a )
+	end
+
+	u_lilian_phy_powermgr.__user_id = user.csv_id
+	user.u_lilian_phy_powermgr = u_lilian_phy_powermgr
+
+end 
+	
 local function load_u_prop(user)
 	-- body
 	local u_propmgr = require "models/u_propmgr"
@@ -642,12 +809,19 @@ local function load_u_goods(user)
 	user.u_goodsmgr = u_goodsmgr
 end
 
+function loader.load_randomval()
+	-- body
+	load_g_randomval()
+	return game
+end
+
 function loader.load_game()
 	-- body
 	local f = function ()
 		-- body
 		load_g_achievement()
 		load_g_checkpoint()
+		load_g_checkpoint_chapter()
 		load_g_checkin()
 		load_g_checkin_total()
 		load_g_equipment()
@@ -661,11 +835,10 @@ function loader.load_game()
 		load_g_subreward()
 		load_g_prop()
 		load_g_recharge()
-		--load_g_lilian_invitation()
-		--load_g_lilian_level()
-		--load_g_lilian_event()
-		--load_g_lilian_quanguan()
-		
+		load_g_lilian_invitation()
+		load_g_lilian_level()
+		load_g_lilian_event()
+		load_g_lilian_quanguan()
 		load_g_randomval()
 		load_g_recharge_vip_reward()
 		load_g_role()
@@ -674,20 +847,18 @@ function loader.load_game()
 		load_g_user_level()
 		load_g_uid()
 		load_g_config()
+		load_g_draw_role()
+		load_g_xilian_cost()
+		load_g_property_pool()
+		load_g_property_pool_second()
+		load_g_role_effect()
+		load_g_equipment_effect()
+		load_g_lilian_phy_power()
 	end
 	skynet.fork(f)
 	return game
 end
 
-function loader.load_channel_game()
-	-- body
-	local f = function ()
-		-- body
-		load_g_uid()
-	end
-	skynet.fork(f)
-	return game
-end
 
 function loader.load_user(user)
 	-- body
@@ -696,6 +867,7 @@ function loader.load_user(user)
 	load_u_checkin(user)
 	load_u_checkin_month( user )
 	load_u_checkpoint(user)
+	load_u_checkpoint_rc(user)
 	load_u_equipment(user)
 	load_u_exercise( user)
 	load_u_cgold( user )
@@ -711,13 +883,17 @@ function loader.load_user(user)
 	load_u_recharge_vip_reward(user)
 	load_u_journal(user)
 	load_u_goods(user)
+	load_u_lilian_main(user)
+	load_u_lilian_sub(user)
+	load_u_lilian_qg_num(user)
+	load_u_lilian_phy_power(user)
 	return user
 end
 
 function loader.clear(user)
 	-- body
 	for k,v in pairs(user) do
-		if string.match(k, "^u_%w+mgr$") then
+		if string.match(k, "^u_[%w_]+mgr$") then
 			print(k)
 			v:clear()
 		end
