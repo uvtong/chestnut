@@ -1077,6 +1077,9 @@ ara_bat_ovr 79 {
     response {
         errorcode 0 : integer
         msg 1 : string
+        ara_points 2 : integer
+        ara_win_tms 3 : integer
+        ara_lose_tms 4 : integer
         ara_leaderboards 2 : *suser
         ara_rmd_list 3 : *suser
     }
@@ -1100,6 +1103,14 @@ ara_rfh 81 {
         msg 1 : string
         ara_rmd_list 2 : *suser
     }
+}
+
+ara_clg_tms_purchase 82 {
+	response {
+		errorcode 0 : integer
+		msg 1 : string
+		ara_clg_tms 2 : integer
+	}
 }
 
 ]]
