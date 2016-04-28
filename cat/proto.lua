@@ -1081,7 +1081,7 @@ ara_bat_ovr 79 {
         ara_win_tms 3 : integer
         ara_lose_tms 4 : integer
         ara_leaderboards 5 : *suser
-        ara_rmd_list 6s : *suser
+        ara_rmd_list 6 : *suser
     }
 }
 

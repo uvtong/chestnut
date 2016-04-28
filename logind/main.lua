@@ -1,10 +1,7 @@
 local skynet = require "skynet"
 require "skynet.manager"
 local sprotoloader = require "sprotoloader"
-
-local max_client = 64
-local server_name = "sample"
-local logind_name = "login_master"
+local assert = assert
 
 skynet.start(function()
 	skynet.uniqueservice("protoloader")
@@ -26,10 +23,10 @@ skynet.start(function()
 	assert(ok)
 	skynet.name(".db", db) -- for forward.
 	
-    server_name = skynet.getenv("servername")
-    max_client = skynet.getenv("maxclient") or 64
-    logind_name = skynet.getenv("logind_name") or logind_name
-    local loginserver
+    local server_name = skynet.getenv("servername")
+    local max_client = skynet.getenv("maxclient") or 64
+    local logind_name = skynet.getenv("logind_name")
+
     if skynet.getenv("standalone") then
     	local conf = {
 			db_host = "192.168.1.116",
@@ -41,25 +38,23 @@ skynet.start(function()
 			cache_port = 6379,
 		}
 		local db = skynet.newservice("db")
+		assert(skynet.call(db, "lua", "start", conf))
 		skynet.name(".signup_db", db)
-		local ok = assert(skynet.call(db, "lua", "start", conf))
-    	local address, port = string.match(skynet.getenv("signupd"), "([%d.]+)%:(%d+)")
 		local signupserver = skynet.newservice("signupserver", db)
 		skynet.name(".signupd", signupserver)
 
-		loginserver = skynet.newservice("logind")
+		local loginserver = skynet.newservice("logind")
 		skynet.name(logind_name, loginserver)
-	else
-		loginserver = skynet.queryservice(true, logind_name)
 	end
 
 	local game = skynet.newservice("game", db)
 	skynet.name(".game", game)
-
-	local gated = skynet.newservice("gated", loginserver)
-	address, port = string.match(skynet.getenv("gated"), "([%d.]+)%:(%d+)")
+	
+	local gated = skynet.newservice("gated", logind_name)
+	local address, port = string.match(skynet.getenv("gated"), "([%d.]+)%:(%d+)")
 	skynet.call(gated, "lua", "open", { 
-		port = 8888,
+		address = address or "0.0.0.0",
+		port = port,
 		maxclient = max_client,
 		servername = server_name,
 		--nodelay = true,

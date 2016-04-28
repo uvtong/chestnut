@@ -17,6 +17,7 @@ snax        = root.."../logind/?.lua;"..root.."test/?.lua"
 -- snax_interface_g = "snax_g"
 cpath       = root.."../logind/?.so;"..root.."cservice/?.so"
 -- daemon = "./skynet.pid"
+maxclient   = 64
 servername  = "sample"
 signupd     = "192.168.1.239:3001"
 logind      = "192.168.1.239:3002"

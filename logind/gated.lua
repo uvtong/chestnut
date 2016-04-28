@@ -4,10 +4,7 @@ local msgserver = require "msgserver"
 local crypt = require "crypt"
 local skynet = require "skynet"
 
-local args = {...}
-local loginservice = tonumber(args[1])
-local game = tonumber(args[2])
-local db = tonumber(args[3])
+local loginservice = tostring(...)
 
 local servername
 local gated
