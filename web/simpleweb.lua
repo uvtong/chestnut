@@ -111,7 +111,7 @@ local function route( id, code, url, method, header, body )
 	if method == "GET" then
 		local suffix = string.gsub(path, "(.*)/[^/]*%.(%w+)", "%2")
 		if suffix == "js" or suffix == "css" then
-			path = "../cat/web/statics" .. path
+			path = "../web/statics" .. path
 			print(path)
 			local fd = io.open(path, "r")
 			local ret = fd:read("*a")

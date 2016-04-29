@@ -16,7 +16,7 @@ _M.__head    = %s
 
 function _M.create(P)
 	assert(P)
-	local t = { table_name="%s", fields = %s }
+	local t = { table_name="%s", fields = %s}
 	setmetatable(t, model)
 	for k,v in pairs(t.fields) do
 		t[k] = assert(P[k])
@@ -63,14 +63,9 @@ function _M:update_db(priority)
 	-- body
 	assert(priority)
 	if self.__count > 0 then
-		for k,v in pairs(_M.__head) do
-			if k == "user_id" then
-			else
+		for k,v in pairs(self.__data) do
+			v("update")
 		end
-		local columns = { "finished", "reward_collected", "is_unlock"}
-		local condition = { {user_id = self.__user_id}, {csv_id = {}}}
-		local sql = util.update_all(_M.__tname, condition, columns, self.__data)
-		skynet.send(util.random_db(), "lua", "command", "update_all_sql", _M.__tname, sql, priority)
 	end
 end
 

@@ -294,9 +294,14 @@ function VIEW.validation()
 	local R = {}
 	function R:__post()
 		-- body
+		local ret = {}
 		local table_name = self.body["table_name"]
 		local sql = string.format("select * from columns where table_name=\"%s\";", table_name)
 		local r = query.select_sql_wait(table_name, sql, query.DB_PRIORITY_2)
+		if #r == 0 then
+			ret.ok = 0
+			ret.msg = "failture"
+		end
 		local fields = "{\n"
 		local head = "{\n"
 		for i,v in ipairs(r) do
@@ -319,14 +324,13 @@ function VIEW.validation()
 		fields = fields.."}\n"
 
 		local s, ss = require("model")()
-		local addr = io.open("./../clash/models/"..table_name.."mgr.lua", "w")
+		local dir = skynet.getenv("pro_dir")
+		local addr = io.open(dir.."models/"..table_name.."mgr.lua", "w")
 		local content = string.format(s, table_name, head, ss, table_name, fields)
 		addr:write(content)
 		addr:close()
-		local ret = {
-			ok = 1,
-			msg = "send succss."
-		}
+		ret.ok = 1
+		ret.msg = "succss"
 		return json.encode(ret)
 	end
 	return R
