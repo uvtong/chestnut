@@ -1,3 +1,16 @@
-local x = {}
+local function abc(edf)
+	-- body
 
-print("abc")
+end
+local function cc( ... )
+	-- body
+	m = 3
+end
+abc()
+print(m)
+cc()
+print(m)
+
+abc(function ( ... )
+	-- body
+end)

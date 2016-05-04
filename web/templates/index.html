@@ -12,10 +12,10 @@
             <a href="/props">props</a>
 		</div>
 
-        <input type="submit" value="submit" />
-		
+        <input id="mtext" type="text">
+        <input id="valid" type="submit" value="submit" />
+		<p id="msg"></p>
         <script src="//code.jquery.com/jquery-1.12.0.min.js"></script>
-        <script src="//code.jquery.com/jquery-migrate-1.2.1.min.js"></script>
         <script type="text/javascript" src="http://code.highcharts.com/highcharts.js"></script>
         <script type="text/javascript">
             $(function () { 
@@ -24,12 +24,26 @@
                     title: { text: 'Fruit Consumption' },
                     xAxis: { categories: ['Apples', 'Bananas', 'Oranges'] },
                     yAxis: { title: { text: 'Fruit eaten' } },
-                    series: [{ name: 'Jane', data: [1, 0, 4]}, {
-                name: 'John',
-                data: [5, 7, 3]
-            }]
-        });
-    });
+                    series: [{ name:'Jane', data:[1, 0, 4]}, { name:'John', data:[5, 7, 3]}]
+                });
+            });
+            $(document).ready(function(){
+                $("#valid").click(function(){
+                    var table_name = $("#mtext").val() || "";
+                    $.ajax({
+                        url:"/validation",
+                        type:"POST",
+                        data:{ table_name:table_name},
+                        dataType:"json",
+                        success:function(resp) {
+                            $("#msg").html(resp.msg)
+                        },
+                        error:function() {
+                            alert("error")
+                        }
+                    })
+                });
+            });
         </script>
 	</body>
 </html>

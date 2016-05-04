@@ -1,11 +1,10 @@
-package.path = "../cat/?.lua;../cat/lualib/?.lua;../cat/luaclib/?.so;" .. package.path
+package.cpath = "../lua-cjson/?.so;" .. package.cpath
 local skynet = require "skynet"
 require "skynet.manager"
-local util = require "util"
-local json = require "json"
-local errorcode = require "errorcode"
+local json = require "cjson"
 local template = require "resty.template"
 local csvreader = require "csvReader"
+local query = require "query"
 
 template.caching(true)
 template.precompile("index.html")
@@ -15,7 +14,7 @@ local VIEW = {}
 local function path( filename )
 	-- body
 	assert(type(filename) == "string")
-	return "../cat/web/templates/" .. filename
+	return "../web/templates/" .. filename
 end
 
 function VIEW.index()
@@ -76,7 +75,7 @@ local function Split(szFullString, szSeparator)
    			nFindStartIndex = nFindLastIndex + string.len(szSeparator)
 		end  	
 		return tstrcont
-	end
+end
 
 function VIEW.user()
 	-- body
@@ -210,7 +209,7 @@ function VIEW.props()
 	function R:__get()
 		-- body
 		-- local query = self.query
-		local users = skynet.call(util.random_db(), "lua", "command", "select_and", "users")
+		local users = skynet.call(db, "lua", "command", "select_and", "users")
 		for i,v in ipairs(users) do
 			for kk,vv in pairs(v) do
 				print(kk,vv)
@@ -232,7 +231,7 @@ function VIEW.props()
 			}
 			return json.encode(ret)
 		end
-		local user = skynet.call(util.random_db(), "lua", "command", "select_user", { uaccount = uaccount})
+		local user = skynet.call(db, "lua", "command", "select_user", { uaccount = uaccount})
 		print(user.id, csv_id, num)
 		skynet.send(util.random_db(), "lua", "command", "insert_prop", user.id, csv_id, num)
 		local ret = {
@@ -255,7 +254,7 @@ function VIEW.equipments()
 	function R:__get()
 		-- body
 		-- local query = self.query
-		local users = skynet.call(util.random_db(), "lua", "command", "select_and", "users")
+		local users = skynet.call(db, "lua", "command", "select_and", "users")
 		local func = template.compile(path("equipments.html"))
 		return func { message = "fill in the blank text.", users = users }
 	end
@@ -264,7 +263,7 @@ function VIEW.equipments()
 		-- local body = self.body
 		if self.body["cmd"] == "user" then
 			local uaccount = self.body["uaccount"]
-			local user = skynet.call(util.random_db(), "lua", "command", "select_user", { uaccount = uaccount})
+			local user = skynet.call(db, "lua", "command", "select_user", { uaccount = uaccount})
 			local achievements = skynet.call(util.random_db(), "lua", "command", "select_and", "equipments", { user_id = user.id })
 			local ret = {
 				errorcode = 0,
@@ -273,8 +272,8 @@ function VIEW.equipments()
 			}
 			return json.encode(ret)
 		elseif self.body["cmd"] == "equip" then
-			local user = skynet.call(util.random_db(), "lua", "command", "select_user", { uaccount = uaccount})
-			skynet.send(util.random_db(), "lua", "command", "insert", { user_id = user.id, achievement_id = achievement_id, level = level})
+			local user = skynet.call(db, "lua", "command", "select_user", { uaccount = uaccount})
+			skynet.send(db, "lua", "command", "insert", { user_id = user.id, achievement_id = achievement_id, level = level})
 			local ret = {
 				ok = 1,
 				msg = "send succss."
@@ -286,6 +285,53 @@ function VIEW.equipments()
 		-- body
 		-- local file = self.file
 		print(self.file)
+	end
+	return R
+end
+
+function VIEW.validation()
+	-- body
+	local R = {}
+	function R:__post()
+		-- body
+		local ret = {}
+		local table_name = self.body["table_name"]
+		local sql = string.format("select * from columns where table_name=\"%s\";", table_name)
+		local r = query.select_sql_wait(table_name, sql, query.DB_PRIORITY_2)
+		if #r == 0 then
+			ret.ok = 0
+			ret.msg = "failture"
+		end
+		local fields = "{\n"
+		local head = "{\n"
+		for i,v in ipairs(r) do
+			local seg = ""..v.COLUMN_NAME.." = {\n"
+			seg = seg .. string.format("\tpk = false,\n")
+			seg = seg .. string.format("\tfk = false,\n")
+			seg = seg .. string.format("\tuq = false,\n")
+			if v.DATA_TYPE == "int" then
+				seg = seg .. string.format("\tt = \"%s\",\n", "number")
+			elseif v.DATA_TYPE == "varchar" or v.DATA_TYPE == "char" then
+				seg = seg .. string.format("\tt = \"%s\",\n", "string")
+			end
+			seg = seg .. "},"
+			head = head .. seg
+
+			seg = seg .. string.format("\tc = 0,\n")
+			fields = fields .. string.format("\t%s = { c = 0, v = nil },\n", v.COLUMN_NAME)
+		end
+		head = head.."}\n"
+		fields = fields.."}\n"
+
+		local s, ss = require("model")()
+		local dir = skynet.getenv("pro_dir")
+		local addr = io.open(dir.."models/"..table_name.."mgr.lua", "w")
+		local content = string.format(s, table_name, head, ss, table_name, fields)
+		addr:write(content)
+		addr:close()
+		ret.ok = 1
+		ret.msg = "succss"
+		return json.encode(ret)
 	end
 	return R
 end

@@ -1,6 +1,7 @@
 local skynet = require "skynet"
 local util = require "util"
 local gamemgr = require "models/gamemgr"
+local query = require "query"
 local game = gamemgr.create()
 
 local loader = {}
@@ -15,6 +16,45 @@ local function load_g_achievement()
 		g_achievementmgr:add(t)
 	end
 	game.g_achievementmgr = g_achievementmgr
+end
+
+local function load_g_ara_pts()
+	-- body
+	assert(game.g_ara_ptsmgr == nil)
+	local g_ara_ptsmgr = require "models/g_ara_ptsmgr"
+	local sql = "select * from g_ara_pts"
+	local r = query.select_sql_wait("g_ara_pts", sql, query.DB_PRIORITY_3)
+	for i,v in ipairs(r) do
+		local t = g_ara_ptsmgr.create(v)
+		g_ara_ptsmgr:add(t)
+	end
+	game.g_ara_ptsmgr = g_ara_ptsmgr
+end
+
+local function load_g_ara_rnk_rwd()
+	-- body
+	assert(game.g_ara_rnk_rwdmgr == nil)
+	local g_ara_rnk_rwdmgr = require "models/g_ara_rnk_rwd"
+	local sql = "select * from g_ara_rnk_rwd"
+	local r = query.select_sql_wait("g_ara_rnk_rwd", sql, query.DB_PRIORITY_3)
+	for i,v in ipairs(r) do
+		local t = g_ara_rnk_rwdmgr.create(v)
+		g_ara_rnk_rwdmgr:add(t)
+	end
+	game.g_ara_rnk_rwdmgr = g_ara_rnk_rwdmgr
+end
+
+local function load_g_ara_tms()
+	-- body
+	assert(game.g_ara_tmsmgr == nil)
+	local g_ara_tmsmgr = require "models/g_ara_tmsmgr"
+	local sql = "select * from g_ara_tms"
+	local r = query.select_sql_wait("g_ara_tms", sql, query.DB_PRIORITY_1)
+	for i,v in ipairs(r) do
+		local t = g_ara_rnk_rwdmgr.create(v)
+		g_ara_rnk_rwdmgr:add(t)
+	end
+	game.g_ara_rnk_rwdmgr = g_ara_rnk_rwdmgr
 end
 
 local function load_g_checkpoint()
@@ -434,6 +474,12 @@ local function load_g_equipment_effect()
 		g_equipment_effectmgr:add(t)
 	end
 	game.g_equipment_effectmgr = g_equipment_effectmgr
+end
+
+local function load_user(user_id)
+	-- body
+	local usersmgr = require "usersmgr"
+	local r = query.select_sql_
 end
 
 local function load_u_achievement(user)
@@ -862,6 +908,7 @@ end
 
 function loader.load_user(user)
 	-- body
+	local user = 
 	load_u_achievement(user)
 	load_u_achievement_rc(user)
 	load_u_checkin(user)

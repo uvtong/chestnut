@@ -133,6 +133,69 @@ function _Meta.__new()
  	return t
 end 
 
+function _M.get_default(uid)
+	-- body
+	local level = skynet.call(".game", "lua", "query_g_user_level", 1)
+	local vip = skynet.call(".game", "lua", "query_g_recharge_vip_reward", 0)
+	local t = { csv_id= uid,
+				uname="nihao",
+				uaccount=self.account, 
+				upassword=self.password,
+				uviplevel=3,
+				config_sound=1, 
+				config_music=1, 
+				avatar=0, 
+				sign="peferct ", 
+				c_role_id=1, 
+				ifonline=0, 
+				level=level.level, 
+				combat=level.combat, 
+				defense=level.defense, 
+				critical_hit=level.critical_hit, 
+				blessing=0, 
+				modify_uname_count=0, 
+				onlinetime=0, 
+				iconid=0, 
+				is_valid=1, 
+				recharge_rmb=0, 
+				goods_refresh_count=0, 
+				recharge_diamond=0, 
+				uvip_progress=0, 
+				checkin_num=0, 
+				checkin_reward_num=0, 
+				exercise_level=0, 
+				cgold_level=0,
+				gold_max=level.gold_max + math.floor(level.gold_max * vip.gold_max_up_p/100),
+				exp_max=level.exp_max + math.floor(level.exp_max * vip.exp_max_up_p/100),
+				equipment_enhance_success_rate_up_p=assert(vip.equipment_enhance_success_rate_up_p),
+				store_refresh_count_max=assert(vip.store_refresh_count_max),
+				prop_refresh=0,
+				arena_frozen_time=0,
+				purchase_hp_count=0, 
+				gain_gold_up_p=0,
+				gain_exp_up_p=0,
+				purchase_hp_count_max=4 ,--assert(vip.purchase_hp_count_max),
+				SCHOOL_reset_count_max=assert(vip.SCHOOL_reset_count_max),
+				SCHOOL_reset_count=0,
+				signup_time=os.time() ,
+				pemail_csv_id = 0,
+				take_diamonds=0,
+				draw_number=0 ,
+				ifxilian = 0,              -- 
+				cp_chapter=1,                 -- checkpoint progress 1
+				cp_hanging_id=0,
+				cp_battle_id=0,
+				cp_battle_chapter=0,
+				lilian_level = 1,
+				lilian_exp = 0,
+				lilian_phy_power = 120,
+				purch_lilian_phy_power = 0,
+				cp_hanging_drop_starttime=0,
+				}
+	local u = usersmgr.create(t)
+	return u
+end
+
 function _M.create( P )
 	assert(P)
 	local u = _Meta.__new()

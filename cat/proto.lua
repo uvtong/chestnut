@@ -172,7 +172,7 @@ proto.c2s = sprotoparser.parse [[
     k_type 3 : integer
     k_sp_num 4 : integer 
 }
- 
+
 .kungfu_pos_and_id {
     position 0 : integer
     k_csv_id 1 : integer
@@ -205,6 +205,15 @@ proto.c2s = sprotoparser.parse [[
     rolelist 18 : *role
     cp_chapter 19 : integer
     lilian_level 20 : integer
+    ara_rnk 21 : integer
+}
+
+.suser {
+    csv_id 0 : integer
+    uname 1 : string
+    total_combat 2 : integer
+    ara_rnk 3 : integer
+    iconid 4 : integer
 }
 
 .checkpoint_chapter {
@@ -508,6 +517,8 @@ user 28 {
         errorcode 0 : integer
         msg 1 : string
         user 2 : user
+        ara_leaderboards 3 : *suser
+        ara_rmd_list 4 : *suser
     }
 }
 
@@ -1062,7 +1073,62 @@ lilian_rewared_list 78 {
     }
 }
 
+ara_bat_ovr 79 {
+    response {
+        errorcode 0 : integer
+        msg 1 : string
+        ara_points 2 : integer
+        ara_win_tms 3 : integer
+        ara_lose_tms 4 : integer
+        ara_leaderboards 5 : *suser
+        ara_rmd_list 6 : *suser
+    }
+}
 
+ara_bat_clg 80 {
+    request {
+        role_id1 0 : integer
+        role_id2 1 : integer
+        role_id3 2 : integer
+    }
+    response {
+        errorcode 0 : integer
+        msg 1 : string
+    }
+}
+
+ara_rfh 81 {
+    response {
+        errorcode 0 : integer
+        msg 1 : string
+        ara_rmd_list 2 : *suser
+    }
+}
+
+ara_clg_tms_purchase 82 {
+	response {
+		errorcode 0 : integer
+		msg 1 : string
+		ara_clg_tms 2 : integer
+	}
+}
+
+ara_worship 83 {
+    request {
+        uid 0 : integer
+    }    
+    response {
+        errorcode 0 : integer
+        msg 1 : string
+    }
+}
+
+ara_rnk_reward_collected 84 {
+    response {
+        errorcode 0 : integer
+        msg 1 : string
+    }
+}
 ]]
 
 proto.s2c = sprotoparser.parse [[
@@ -1074,6 +1140,69 @@ proto.s2c = sprotoparser.parse [[
 .achi {
     csv_id 0 : integer
     finished 1 : integer
+}
+
+.role {
+    csv_id 0 : integer
+    is_possessed 1 : boolean
+    star 2 : integer
+    u_us_prop_num 3 : integer
+    property_id1 4 : integer
+    value1 5 : integer
+    property_id2 6 : integer
+    value2 7 : integer
+    property_id3 8 : integer
+    value3 9 : integer
+    property_id4 10 : integer
+    value4 11 : integer
+    property_id5 12 : integer
+    value5 13 : integer
+}
+
+.kungfu_content {
+    csv_id 1 : integer
+    k_level 2 : integer
+    k_type 3 : integer
+    k_sp_num 4 : integer 
+}
+
+.equipment {
+    csv_id 0 : integer
+    level 1 : integer
+    combat 2 : integer
+    defense 3 : integer
+    critical_hit 4 : integer
+    king 5 : integer
+    critical_hit_probability 6 : integer
+    combat_probability 7 : integer
+    defense_probability 8 : integer
+    king_probability 9 : integer
+    enhance_success_rate 10 : integer
+}
+
+.user {
+    uname 0 : string 
+    uviplevel 1 : integer
+    config_sound 2 : boolean
+    config_music 3 : boolean
+    avatar 4 : integer
+    sign 5 : string
+    c_role_id 6 : integer
+    level 7 : integer
+    recharge_rmb 8 : integer
+    recharge_diamond 9 : integer
+    uvip_progress 10 : integer
+    cp_hanging_id 11 : integer
+    uexp 12 : integer
+    gold 13 : integer
+    diamond 14 : integer
+    love 15 : integer
+    equipment_list 16 : *equipment
+    kungfu_list 17 : *kungfu_content
+    rolelist 18 : *role
+    cp_chapter 19 : integer
+    lilian_level 20 : integer
+    ara_rnk 21 : integer
 }
 
 heartbeat 1 {}
@@ -1105,6 +1234,12 @@ lilian_update 4 {
     response {
         errorcode 0 : integer
         msg 1 : string
+    }
+}
+
+login 5 {
+    request {
+        u 0 : user
     }
 }
 

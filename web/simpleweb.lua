@@ -1,10 +1,10 @@
-package.path = "../web/?.lua;" .. package.path
+package.path = "../web/?.lua;../web/lualib/?.lua;../lualib/?.lua;"..package.path
 local skynet = require "skynet"
 local socket = require "socket"
 local httpd = require "http.httpd"
 local sockethelper = require "http.sockethelper"
 local urllib = require "http.url"
-local urls = require "web.urls"
+local urls = require "urls"
 local table = table
 local string = string
 
@@ -111,7 +111,7 @@ local function route( id, code, url, method, header, body )
 	if method == "GET" then
 		local suffix = string.gsub(path, "(.*)/[^/]*%.(%w+)", "%2")
 		if suffix == "js" or suffix == "css" then
-			path = "../cat/web/statics" .. path
+			path = "../web/statics" .. path
 			print(path)
 			local fd = io.open(path, "r")
 			local ret = fd:read("*a")

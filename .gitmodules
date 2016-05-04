@@ -10,3 +10,6 @@
 [submodule "pbc"]
 	path = pbc
 	url = https://github.com/cloudwu/pbc
+[submodule "lua-cjson"]
+	path = lua-cjson
+	url = https://github.com/cloudwu/lua-cjson
