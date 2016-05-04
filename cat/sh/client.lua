@@ -100,7 +100,7 @@ writeline(fd, crypt.base64encode(hmac))
 
 local token = {
 	server = "sample",
-	user = "123",
+	user = "125",
 	pass = "123",
 }
 
