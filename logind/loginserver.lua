@@ -28,11 +28,11 @@ Error Code:
 	401 Unauthorized . unauthorized by auth_handler
 	403 Forbidden . login_handler failed
 	406 Not Acceptable . already in login (disallow multi login)
-
+		
 Success:
 	200 base64(subid)
-]]
-
+]]		
+		
 local socket_error = {}
 local function assert_socket(service, v, fd)
 	if v then

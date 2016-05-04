@@ -43,9 +43,10 @@ function server.login_handler(server, uid, secret)
 	if user_online[uid] then
 		error(string.format("user %s is already online", uid))
 	end
-	print(gameserver)
+	print("gameserver is called",gameserver)
 	local subid, gated = tostring(skynet.call(gameserver, "lua", "login", uid, secret))
 	user_online[uid] = { address = gameserver, subid = subid , server = server}
+	print("gameserver is *******************", gameserver, subid, server, gated)
 	return subid, gated
 end
 

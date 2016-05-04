@@ -1153,8 +1153,6 @@ BeginGUQNQIACoreFight 85 {
     }
 }
 
-
-
 GuanQiaBattleList 86 {
     request {
         fightlist 0 : *BattleListElem

@@ -9,9 +9,6 @@ local skynet = require "skynet"
 local queue = require "skynet.queue"
 										  	
 local cs
-local FIXED_STEP = 60 --sec, used for lilian_phy_power
-local ADAY = 24 * 60 * 60
-local IF_TRIGGER_EVENT = 0
 	  			  	
 local send_package
 local send_request
@@ -35,6 +32,7 @@ local _Meta = {
 		    TotalFightNum = 0,  
 		    IsDead = 0,
 		    IsAffectedNextTime = 0, 
+		    FightNums = 1,
 			FightList = {}, 
 			FightIdList = {}, 
 			TmpFightIdList = {},
@@ -48,12 +46,10 @@ local function New()
 end
 
 local QuanFaNum = 7
-local FIGHT_TYPE = {GUANQIA = 1, ARENA = 2}
-local INIT_TYPE = {SELF = 1, ENEMY = 2}
-local ATTACK_TYPE = {AUTOMATIC = 1, MANUAL = 2}
 local SELF = 1
 local ENEMY = 2
 local START_DELAY = 3 --sec
+
 local COMMON_KF = 100001
 local COMBO_KF = 100002
 
@@ -64,7 +60,7 @@ local function send_package(pack)
 	local package = string.pack(">s2", pack)
 	socket.write(client_fd, package)
 end	  	
-	  	
+
 local function getsettime()
 	local date = os.time()
 	local year = tonumber( os.date( "%Y" , date ) )
@@ -96,7 +92,7 @@ local function daily_update()
     	    
 	skynet.timeout( ( settime + ADAY - date ) * 100, update )
 end 	
-			
+	
 function REQUEST:login(u)
 	-- body
 	assert( u )
@@ -194,12 +190,12 @@ local function get_fight_list(uid, roleid, roletype)
 		assert(r)
 		TmpSelf = Self
 	else
-		local sql = string.format("select * from u_role where user_id = %s and csv_id = %s" , uid , roleid)
+		local sql = string.format("select * from u_role where user_id = %s and csv_id = %s" , uid, roleid)
 		r = skynet.call(util.random_db(), "lua", "command", "query", sql)
 		assert(r)
 		TmpSelf = Enemy
 	end
-	
+
 	local inx = 1
 	local tmp = {}
 
@@ -220,24 +216,31 @@ end
 	
 local function init_attribute(uid, roleid, inittype)
 	assert(uid and roleid and inittype)
+	local t = {}
 
 	if (inittype == SELF) then
-		local t = util.get_total_property(user, _, roleid)
+		t = util.get_total_property(user, _, roleid)
 		assert(t)
 
 		Self.Attr.combat = t[1]
 		Self.Attr.defence = t[2]
 		Self.Attr.critical_hit = t[3]
 		Self.Attr.king = t[4]
+
+		Self.FightPower = t[1]
 	else     
-		local t = util.get_total_property(_, uid, roleid)
+		t = util.get_total_property(_, uid, roleid)
 		assert(t)
 
 		Enemy.Attr.combat = t[1]
 		Enemy.Attr.defence = t[2]
 		Enemy.Attr.critical_hit = t[3]
 		Enemy.Attr.king = t[4]
+
+		Enemy.FightPower = t[1]
 	end			
+
+	print("basic property is************************************", t[1], t[2], t[3], t[4])
 end			
 										
 function REQUEST:BeginGUQNQIACoreFight()
@@ -245,7 +248,7 @@ function REQUEST:BeginGUQNQIACoreFight()
 	print("BeginGUANQIACoreFight is called *******************************", self.monsterid)
 
 	local ret = {}
-		
+	
 	get_monster_fight_list(self.monsterid)
 	init_attribute(_, user.c_role_id, SELF)
 
@@ -271,16 +274,17 @@ function REQUEST:BeginArenaCoreFight()
 	init_attribute(_, user.c_role_id, SELF)
 	init_attribute(self.uid, self.roleid, ENEMY)
 
-	ret.errorcode = errorcode[1].code
-	ret.delay_time = START_DELAY
 	if first_fighter() then
 		ret.firstfighter = SELF
 	else
 		ret.firstfighter = ENEMY
 	end 
 
+	ret.errorcode = errorcode[1].code
+	ret.delay_time = START_DELAY
+
 	return ret
-end 		
+end 
 	
 local function judge_arise_type(kf, totalfightnum)
 	assert(kf and totalfightnum)
@@ -313,9 +317,9 @@ local function judge_arise_count(kf)
 		end 	
 	end 		
 
-	return sign
-end 		
-					
+	return sign 
+end 			
+				
 local function get_attack(kf, TmpSelf, TmpEnemy)
 	assert(kf and TmpSelf and TmpEnemy)
 
@@ -395,11 +399,26 @@ local function get_attacheffect(kf, TmpSelf, TmpEnemy)
 		--TODO deal 0 type 
 	end 		
 end				
-							
-local function get_kf_id_by_prob(kflist, prob)
-	assert(kflist and prob)
+	
+local function reset(t)
+	assert(t)
 
-	local totalprob = 0
+	t.FightPower = 0
+	t.TmpFightIdList = {}
+	t.FightIdList = {}
+	t.Attr = {}
+	t.IsDead = 0
+	t.IsAffectedNextTime = 0
+	t.MaxComboNum = 0
+	t.PresentComboNum = 0
+	t.TotalFightNum = 0
+	t.FightNums = 0
+end 
+	
+local function get_kf_id_by_prob(kflist, prob) 	
+	assert(kflist and prob)						
+
+	local totalprob = 0												    
 	for k, v in ipairs(kflist) do
 		totalprob = totalprob + v.prob
 		if prob < totalprob then
@@ -408,11 +427,11 @@ local function get_kf_id_by_prob(kflist, prob)
 	end 			
 
 	return false 		
-end					
-	
+end 					
+			
 local KF_TYPE = {QUANFA = 1, COMBO = 2, COMMON = 3}
 local function do_verify(v, userroleid)
-	print("do_verify is called********************************")
+	print("do_verify is called********************************", userroleid)
 	assert(v) 	
 
 	local TmpSelf = {}
@@ -448,7 +467,7 @@ local function do_verify(v, userroleid)
 			local tmp_kf_id = get_kf_id_by_prob(TmpSelf.TmpFightIdList, v.prob)
 			if not tmp_kf_id then 
 				return false	  
-			else 				  	
+			else 				  
 				if tmp_kf_id == v.kf_id then
 					totalattack = get_attack(kf, TmpSelf, TmpEnemy) 		
 				else 			  	
@@ -473,22 +492,30 @@ local function do_verify(v, userroleid)
 			TmpEnemy.PresentComboNum = 0
 		end 		
 
-		local isdead
+		local isdead = 0
 
 		if totalattack == v.attack then	
 			if TmpEnemy.FightPower - totalattack > 0 then
 				TmpEnemy.FightPower = TmpEnemy.FightPower - totalattack
 				get_attacheffect(kf, TmpSelf, TmpEnemy)
-				isdead = false
-			else 	
-				isdead = true		
-			end 	
+				if 1 == TmpSelf.IsDead 
+					isdead = SELF
+				end
 
-			if isdead == v.IsDead then
-				return true						
+				if 1 == TmpEnemy.IsDead then
+					isdead = Enemy
+				end
 			else 	
-				return false
-			end		
+				TmpEnemy.IsDead = 1
+				isdead = Enemy		
+			end 	
+			if v.IsDead ~= 0 then
+				if isdead == v.IsDead then
+					return true						
+				else 	
+					return false
+				end	
+			end	
 		else 		
 			return false	
 		end 		
@@ -496,7 +523,7 @@ local function do_verify(v, userroleid)
 		return false
 	end 			
 end 				
-								
+
 function REQUEST:GuanQiaBattleList()
 	print("BattleList is called ****************************")
 	assert(self.fightlist)
@@ -507,7 +534,7 @@ function REQUEST:GuanQiaBattleList()
 			ret.errorcode = errorcode[].code
 			return ret
 		end
-	end 	
+	end 		
 
 	ret.errorcode = errorcode[1].code
 	return ret
@@ -521,7 +548,7 @@ function REQUEST:ArenaBattleList()
 
 	end 	
 end 		
-			
+
 local NormalExistTime	
 local MAX_EXIT_TIME = 5 --sec
 			
