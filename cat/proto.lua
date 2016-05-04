@@ -254,6 +254,21 @@ proto.c2s = sprotoparser.parse [[
     reset_num 2 : integer
 }   
 
+.kf_list {
+    id 0 : integer
+}
+
+.BattleListElem {
+    fighterid 0 : integer
+    kf_id 1 : integer
+    attcktype 2 : integer
+    isdead 3 : integer
+    kf_prob 4 : integer
+    attach_effect 5 : integer
+    kf_type 6 : integer
+    attack 7 : integer
+}
+
 handshake 1 {
     request {
         secret 0 : string
@@ -1129,6 +1144,30 @@ ara_rnk_reward_collected 84 {
         msg 1 : string
     }
 }
+
+BeginGUQNQIACoreFight 85 {
+    request {
+        monsterid 0 : integer
+    }
+    response {
+        errorcode 0 : integer
+        firstfighter 1 : integer
+        delay_time 2 : integer
+    }
+}
+
+
+
+GuanQiaBattleList 86 {
+    request {
+        fightlist 0 : *BattleListElem
+    }
+    response {
+        errorcode 0 : integer
+        msg 1 : string
+    }
+}
+
 ]]
 
 proto.s2c = sprotoparser.parse [[

@@ -262,7 +262,7 @@ end
 	
 function REQUEST:BeginArenaCoreFight()
 	assert(self.uid and self.roleid)
-	print("BeginArenaCoreFight is called **********************************", )
+	print("BeginArenaCoreFight is called **********************************", self.uid, self.roleid)
 
     local ret = {}
 
