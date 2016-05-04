@@ -124,9 +124,9 @@ assert(code == 200)
 socket.close(fd)
 
 -- 8. subid
-local subid = crypt.base64decode(string.sub(result, 5, 8))
-local uid = crypt.base64decode(string.sub(result, 9, 12))
-print("login ok, subid=", subid)
+local uid = crypt.base64decode(string.sub(result, 6, 9))
+local subid = crypt.base64decode(string.sub(result, 11, 14))
+print("login ok, subid=", subid, "uid=", uid)
 
 ----- connect to game server
 
@@ -138,9 +138,15 @@ local request = host:attach(sproto.new(proto.c2s))
 --	socket.send(fd, package)
 --end
 
+local c2s_req_tag  = 1 << 0
+local c2s_resp_tag = 1 << 1
+local s2c_req_tag  = 1 << 2
+local s2c_resp_tag = 1 << 3
+
 local function send_request_b(v, session)
-	local size = #v + 4
-	local package = string.pack(">I2", size)..v..string.pack(">I4", session)
+	local size = #v + 4 + 1
+	local package = string.pack(">I2", size)..v..string.pack(">I4", session)..string.pack("B", c2s_req_tag)
+	print("size is", size, "actual size is", #package)
 	socket.send(fd, package)
 	return v, session
 end
@@ -250,21 +256,23 @@ print("connect")
 fd = assert(socket.connect("192.168.1.239", 3301))
 last = ""
 
-local handshake = string.format("%s@%s#%s:%d", crypt.base64encode(token.user), crypt.base64encode(token.server),crypt.base64encode(subid) , index)
+local handshake = string.format("%s@%s#%s:%d", crypt.base64encode(uid), crypt.base64encode(token.server),crypt.base64encode(subid) , index)
 local hmac = crypt.hmac64(crypt.hashkey(handshake), secret)
 
 -- send handshake
 send_package(fd, handshake .. ":" .. crypt.base64encode(hmac))
 
 print(readpackage())
-send_request("handshake")
-send_request("set", { what = "hello", value="world" })
 while true do
 	dispatch_package()
 	local cmd = socket.readstdin()
 	if cmd then
 		if cmd == "quit" then
 			send_request("quit")
+		elseif cmd == "role_info" then
+			send_request(cmd, { role_id = 1})
+		elseif cmd == "mails" then
+			send_request(cmd)
 		else
 			send_request("get", { what = cmd })
 		end

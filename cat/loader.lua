@@ -34,7 +34,7 @@ end
 local function load_g_ara_rnk_rwd()
 	-- body
 	assert(game.g_ara_rnk_rwdmgr == nil)
-	local g_ara_rnk_rwdmgr = require "models/g_ara_rnk_rwd"
+	local g_ara_rnk_rwdmgr = require "models/g_ara_rnk_rwdmgr"
 	local sql = "select * from g_ara_rnk_rwd"
 	local r = query.select_sql_wait("g_ara_rnk_rwd", sql, query.DB_PRIORITY_3)
 	for i,v in ipairs(r) do
@@ -51,10 +51,10 @@ local function load_g_ara_tms()
 	local sql = "select * from g_ara_tms"
 	local r = query.select_sql_wait("g_ara_tms", sql, query.DB_PRIORITY_1)
 	for i,v in ipairs(r) do
-		local t = g_ara_rnk_rwdmgr.create(v)
-		g_ara_rnk_rwdmgr:add(t)
+		local t = g_ara_tmsmgr.create(v)
+		g_ara_tmsmgr:add(t)
 	end
-	game.g_ara_rnk_rwdmgr = g_ara_rnk_rwdmgr
+	game.g_ara_tmsmgr = g_ara_tmsmgr
 end
 
 local function load_g_checkpoint()
@@ -478,8 +478,14 @@ end
 
 local function load_user(user_id)
 	-- body
-	local usersmgr = require "usersmgr"
-	local r = query.select_sql_
+	local usersmgr = require "models/usersmgr"
+	local sql = string.format("select * from users where csv_id = %d", user_id)
+	local r = query.select_sql_wait("users", sql, query.DB_PRIORITY_1)
+	if #r == 1 then
+		return usersmgr.create(r[1])
+	else
+		assert(false)
+	end
 end
 
 local function load_u_achievement(user)
@@ -863,52 +869,51 @@ end
 
 function loader.load_game()
 	-- body
-	local f = function ()
-		-- body
-		load_g_achievement()
-		load_g_checkpoint()
-		load_g_checkpoint_chapter()
-		load_g_checkin()
-		load_g_checkin_total()
-		load_g_equipment()
-		load_g_equipment_enhance()
-		load_g_daily_task()
-		load_g_goods()
-		load_g_goods_refresh_cost()
-		load_g_kungfu()
-		load_g_drawcost()
-		load_g_mainreward()
-		load_g_subreward()
-		load_g_prop()
-		load_g_recharge()
-		load_g_lilian_invitation()
-		load_g_lilian_level()
-		load_g_lilian_event()
-		load_g_lilian_quanguan()
-		load_g_randomval()
-		load_g_recharge_vip_reward()
-		load_g_role()
-		load_g_role_star()
-		load_g_shop()
-		load_g_user_level()
-		load_g_uid()
-		load_g_config()
-		load_g_draw_role()
-		load_g_xilian_cost()
-		load_g_property_pool()
-		load_g_property_pool_second()
-		load_g_role_effect()
-		load_g_equipment_effect()
-		load_g_lilian_phy_power()
-	end
-	skynet.fork(f)
+	load_g_achievement()
+	load_g_ara_pts()
+	load_g_ara_rnk_rwd()
+	load_g_ara_tms()
+	load_g_checkpoint()
+	load_g_checkpoint_chapter()
+	load_g_checkin()
+	load_g_checkin_total()
+	load_g_equipment()
+	load_g_equipment_enhance()
+	load_g_daily_task()
+	load_g_goods()
+	load_g_goods_refresh_cost()
+	load_g_kungfu()
+	load_g_drawcost()
+	load_g_mainreward()
+	load_g_subreward()
+	load_g_prop()
+	load_g_recharge()
+	load_g_lilian_invitation()
+	load_g_lilian_level()
+	load_g_lilian_event()
+	load_g_lilian_quanguan()
+	load_g_randomval()
+	load_g_recharge_vip_reward()
+	load_g_role()
+	load_g_role_star()
+	load_g_shop()
+	load_g_user_level()
+	load_g_uid()
+	load_g_config()
+	load_g_draw_role()
+	load_g_xilian_cost()
+	load_g_property_pool()
+	load_g_property_pool_second()
+	load_g_role_effect()
+	load_g_equipment_effect()
+	load_g_lilian_phy_power()
 	return game
 end
 
 
-function loader.load_user(user)
+function loader.load_user(uid)
 	-- body
-	local user = 
+	local user = load_user(uid)
 	load_u_achievement(user)
 	load_u_achievement_rc(user)
 	load_u_checkin(user)

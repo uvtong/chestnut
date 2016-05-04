@@ -102,7 +102,7 @@ function _M.create(P)
 	purchase_cost = { c = 0, v = nil },
 	list_refresh_cost = { c = 0, v = nil },
 }
- }
+}
 	setmetatable(t, model)
 	for k,v in pairs(t.fields) do
 		t[k] = assert(P[k])

@@ -1,7 +1,5 @@
-package.cpath = "../lua-cjson/?.so;" .. package.cpath
 local skynet = require "skynet"
 require "skynet.manager"
-local json = require "cjson"
 local template = require "resty.template"
 local csvreader = require "csvReader"
 local query = require "query"
@@ -299,8 +297,12 @@ function VIEW.validation()
 		local sql = string.format("select * from columns where table_name=\"%s\";", table_name)
 		local r = query.select_sql_wait(table_name, sql, query.DB_PRIORITY_2)
 		if #r == 0 then
+			for k,v in pairs(r) do
+				print(k,v)
+			end
 			ret.ok = 0
 			ret.msg = "failture"
+			return ret
 		end
 		local fields = "{\n"
 		local head = "{\n"
@@ -331,7 +333,7 @@ function VIEW.validation()
 		addr:close()
 		ret.ok = 1
 		ret.msg = "succss"
-		return json.encode(ret)
+		return ret
 	end
 	return R
 end

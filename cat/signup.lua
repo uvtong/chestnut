@@ -10,8 +10,8 @@ local u_checkpointmgr = require "models/u_checkpointmgr"
 local u_checkpoint_rcmgr = require "models/u_checkpoint_rcmgr"
 local u_equipmentmgr = require "models/u_equipmentmgr"
 local u_exercisemgr = require "models/u_exercisemgr"
-local u_friendmgr = require "models/u_friendmgr"
-local u_friendmsgmgr = require "models/u_friendmsgmgr"
+-- local u_friendmgr = require "models/u_friendmgr"
+-- local u_friendmsgmgr = require "models/u_friendmsgmgr"
 local u_goodsmgr = require "models/u_goodsmgr"
 local u_journalmgr = require "models/u_journalmgr"
 local u_kungfumgr = require "models/u_kungfumgr"
@@ -19,8 +19,8 @@ local u_lilian_mainmgr = require "models/u_lilian_mainmgr"
 local u_lilian_phy_powermgr = require "models/u_lilian_phy_powermgr"
 local u_lilian_qg_nummgr = require "models/u_lilian_qg_nummgr"
 local u_lilian_submgr = require "models/u_lilian_submgr"
-local u_new_drawmgr = require "models/u_new_drawmgr"
-local u_new_emailmgr = require "models/u_new_emailmgr"
+-- local u_new_drawmgr = require "models/u_new_drawmgr"
+-- local u_new_emailmgr = require "models/u_new_emailmgr"
 local u_propmgr = require "models/u_propmgr"
 local u_purchase_goodsmgr = require "models/u_purchase_goodsmgr"
 local u_purchase_rewardmgr = require "models/u_purchase_rewardmgr"
@@ -29,18 +29,19 @@ local u_recharge_recordmgr = require "models/u_recharge_recordmgr"
 local u_recharge_vip_rewardmgr = require "models/u_recharge_vip_rewardmgr"
 local u_rolemgr = require "models/u_rolemgr"
 local usersmgr = require "models/usersmgr"
+local const = require "const"
+local errorcode = require "errorcode"
 local game = ".game"
 
-local function signup(uid)
+local function signup(uid, xilian)
 	-- body
-	local u = usersmgr.get_default(uid)
-	local res = u:__insert_db_wait(const.DB_PRIORITY_1)
-	if res.errno then
-		ret.errorcode = errorcode[13].code
-		ret.msg = errorcode[13].msg
-		return ret
-	end
 
+	local u = usersmgr.create_default(uid)
+	local res = u:__insert_db_wait(const.DB_PRIORITY_1)
+	print("****************************abc")
+	if res.errno then
+		return nil
+	end
 	u.u_achievementmgr = u_achievementmgr
 	u.u_achievement_rcmgr = u_achievement_rcmgr
 	u.u_ara_batmgr = u_ara_batmgr
@@ -59,8 +60,8 @@ local function signup(uid)
 	u.u_checkpoint_rcmgr = u_checkpoint_rcmgr
 	u.u_equipmentmgr = u_equipmentmgr
 	u.u_exercisemgr = u_exercisemgr
-	u.u_friendmgr = u_friendmgr
-	u.u_friendmsgmgr = u_friendmsgmgr
+	-- u.u_friendmgr = u_friendmgr
+	-- u.u_friendmsgmgr = u_friendmsgmgr
 	u.u_goodsmgr = u_goodsmgr
 	u.u_journalmgr = u_journalmgr
 	u.u_kungfumgr = u_kungfumgr
@@ -68,8 +69,8 @@ local function signup(uid)
 	u.u_lilian_phy_powermgr = u_lilian_phy_powermgr
 	u.u_lilian_qg_nummgr = u_lilian_qg_nummgr
 	u.u_lilian_submgr = u_lilian_submgr
-	u.u_new_drawmgr = u_new_drawmgr
-	u.u_new_emailmgr = u_new_emailmgr 
+	-- u.u_new_drawmgr = u_new_drawmgr
+	-- u.u_new_emailmgr = u_new_emailmgr 
 	u.u_propmgr = u_propmgr
 	u.u_purchase_goodsmgr = u_purchase_goodsmgr
 	u.u_purchase_rewardmgr = u_purchase_rewardmgr
@@ -200,7 +201,7 @@ local function signup(uid)
 	}
 	local cp = u_checkpointmgr.create(tmp)
 	cp:__insert_db(const.DB_PRIORITY_1)
-	
+	return u
 end
 
 return signup
