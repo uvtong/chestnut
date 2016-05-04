@@ -1,4 +1,4 @@
-package.path = "./../cat/?.lua;" .. package.path
+package.path = "./../cat/?.lua;../lualib/?.lua;" .. package.path
 package.cpath = "./../cat/luaclib/?.so;" .. package.cpath
 local skynet = require "skynet"
 require "skynet.manager"
@@ -2467,7 +2467,8 @@ skynet.register_protocol {
 			local ok, result  = pcall(request, ...)
 			if ok then
 				if result then
-					send_package(result)
+					return result
+					-- send_package(result)
 				end
 			else
 				skynet.error(result)
@@ -2503,15 +2504,17 @@ function CMD.login(source, uid, sid, sct, game, db)
 	secret = sct
 	game   = game
 	db     = db
-
-	subscribe()
-	skynet.fork(subscribe)
-
+	
 	local times = skynet.call(".logintimes", "lua", "login", uid)
 	if times == 1 then
-		local signup = request "signup"
-		user = signup(uid)
+		print("************************************123")
+		local signup = require "signup"
+		user = signup(uid, xilian)
+		if user == nil then
+			return false
+		end
 	else
+		print("************************************456")
 		user = loader.load_user(uid)
 	end
 
@@ -2529,6 +2532,9 @@ function CMD.login(source, uid, sid, sct, game, db)
 	friendrequest.getvalue(user, send_package, send_request)
 	--load public email from channel public_emailmgr
 	get_public_email()
+
+	subscribe()
+	skynet.fork(subscribe)
 
 	local ret = {}
 	ret.errorcode = errorcode[1].code

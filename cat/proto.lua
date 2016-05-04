@@ -270,9 +270,6 @@ proto.c2s = sprotoparser.parse [[
 }
 
 handshake 1 {
-    request {
-        secret 0 : string
-    }
     response {
     	errorcode 0 : integer
         msg 1 : string

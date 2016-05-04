@@ -1,10 +1,12 @@
 package.path = "../web/?.lua;../web/lualib/?.lua;../lualib/?.lua;"..package.path
+package.cpath = "../lua-cjson/?.so;" .. package.cpath
 local skynet = require "skynet"
 local socket = require "socket"
 local httpd = require "http.httpd"
 local sockethelper = require "http.sockethelper"
 local urllib = require "http.url"
 local urls = require "urls"
+local json = require "cjson"
 local table = table
 local string = string
 
@@ -112,7 +114,6 @@ local function route( id, code, url, method, header, body )
 		local suffix = string.gsub(path, "(.*)/[^/]*%.(%w+)", "%2")
 		if suffix == "js" or suffix == "css" then
 			path = "../web/statics" .. path
-			print(path)
 			local fd = io.open(path, "r")
 			local ret = fd:read("*a")
 			fd:close()
@@ -121,7 +122,10 @@ local function route( id, code, url, method, header, body )
 			for k,v in pairs(urls) do
 				if string.match(path, k) then
 					v.query = query
-					bodyfunc = v:__get()
+					local ok, res = pcall(v.__get, v)
+					if ok then
+						bodyfunc = res
+					end
 					break
 				end
 			end
@@ -136,10 +140,16 @@ local function route( id, code, url, method, header, body )
 			if string.match(path, k) then
 				if flag == "file" then
 					v.file = body
-					bodyfunc = v:__file()
+					local ok, res = pcall(v.__file, v)
+					if ok then
+						bodyfunc = res
+					end
 				elseif flag == "post" then
 					v.body = body
-					bodyfunc = v:__post()
+					local ok, res = pcall(v.__post, v)
+					if ok then
+						bodyfunc = res
+					end
 				else
 					assert(false)
 				end
@@ -151,6 +161,9 @@ local function route( id, code, url, method, header, body )
 		end
 	else
 		bodyfunc = "don't support mathcing method."
+	end
+	if type(bodyfunc) == "table" then
+		bodyfunc = json.encode(bodyfunc)
 	end
 	header = {}
 	header["connection"] = "close"

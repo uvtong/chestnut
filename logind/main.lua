@@ -53,6 +53,10 @@ skynet.start(function()
 
 	local game = skynet.newservice("game", db)
 	skynet.name(".game", game)
+
+	local channel = skynet.newservice("channel", game)
+	skynet.name(".channel", channel)
+	
 	local logintimes = skynet.newservice("logintimes", db)
 	skynet.name(".logintimes", logintimes)
 
@@ -61,7 +65,7 @@ skynet.start(function()
 	skynet.call(gated, "lua", "open", { 
 		address = address or "0.0.0.0",
 		port = port,
-		maxclient = max_client,
+		maxclient = tonumber(max_client),
 		servername = server_name,
 		--nodelay = true,
 	})

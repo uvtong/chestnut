@@ -8,19 +8,19 @@ _M.__data    = {}
 _M.__count   = 0
 _M.__cap     = 0
 _M.__user_id = 0
-_M.__tname   = "g_ara_tms"
+_M.__tname   = "g_ara_rnk_rwd"
 _M.__head    = {
-csv_id = {
+seri = {
 	pk = false,
 	fk = false,
 	uq = false,
 	t = "number",
-},purchase_cost = {
+},csv_id = {
 	pk = false,
 	fk = false,
 	uq = false,
-	t = "string",
-},list_refresh_cost = {
+	t = "number",
+},reward = {
 	pk = false,
 	fk = false,
 	uq = false,
@@ -97,10 +97,10 @@ local model = {
 
 function _M.create(P)
 	assert(P)
-	local t = { table_name="g_ara_tms", fields = {
+	local t = { table_name="g_ara_rnk_rwd", fields = {
+	seri = { c = 0, v = nil },
 	csv_id = { c = 0, v = nil },
-	purchase_cost = { c = 0, v = nil },
-	list_refresh_cost = { c = 0, v = nil },
+	reward = { c = 0, v = nil },
 }
 }
 	setmetatable(t, model)

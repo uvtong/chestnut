@@ -1,14 +1,14 @@
 local skynet = require "skynet"
 local util = require "util"
+local db_common = require "db_common"
+local query = require "query"
 
 local _M = {}
 _M.__data = {}
 _M.__count = 0
 
 local _Meta = { csv_id=0, 
-				uname=0, 
-				uaccount=0, 
-				upassword=0, 
+				uname=0,
 				uviplevel=0, 
 				config_sound=0, 
 				config_music=0, 
@@ -70,7 +70,8 @@ function _Meta:__insert_db( priority )
 			t[k] = self[k]
 		end
 	end
-	skynet.send(util.random_db(), "lua", "command", "insert", self.__tname, t , priority)
+	local sql = db_common.insert(self.__tname, t)
+	query.insert_sql(self.__tname, sql, query.DB_PRIORITY_3)
 end
 
 function _Meta:__insert_db_wait(priority)
@@ -133,14 +134,12 @@ function _Meta.__new()
  	return t
 end 
 
-function _M.get_default(uid)
+function _M.create_default(uid)
 	-- body
 	local level = skynet.call(".game", "lua", "query_g_user_level", 1)
 	local vip = skynet.call(".game", "lua", "query_g_recharge_vip_reward", 0)
 	local t = { csv_id= uid,
 				uname="nihao",
-				uaccount=self.account, 
-				upassword=self.password,
 				uviplevel=3,
 				config_sound=1, 
 				config_music=1, 
@@ -192,7 +191,7 @@ function _M.get_default(uid)
 				purch_lilian_phy_power = 0,
 				cp_hanging_drop_starttime=0,
 				}
-	local u = usersmgr.create(t)
+	local u = _M.create(t)
 	return u
 end
 

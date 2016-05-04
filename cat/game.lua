@@ -11,11 +11,6 @@ local game
 local db = tonumber(...)
 
 local CMD = {}
- 
-function CMD.start()
- 	-- body
- 	game = loader.load_game()
-end 
 
 function CMD.ptr()
 	-- body
@@ -677,5 +672,6 @@ skynet.start(function()
 			skynet.ret(skynet.pack(result))
 		end
 	end)
+	game = loader.load_game()
 	skynet.fork(update_db)
 end)

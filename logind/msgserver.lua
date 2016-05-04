@@ -101,10 +101,10 @@ local user_online = {}
 local handshake   = {}
 local connection  = {}
 
-local c2s_req_tag  = (7 & (1 << 2) & (1 << 4))
-local c2s_resp_tag = (7 & (1 << 2) & (0 << 4))
-local s2c_req_tag  = (7 & (0 << 2) & (1 << 4))
-local s2c_resp_tag = (7 & (0 << 2) & (0 << 4))
+local c2s_req_tag  = 1 << 0
+local c2s_resp_tag = 1 << 1
+local s2c_req_tag  = 1 << 2
+local s2c_resp_tag = 1 << 3
 
 function server.userid(username)
 	-- base64(uid)@base64(server)#base64(subid)
@@ -302,9 +302,10 @@ function server.start(conf)
 			socketdriver.send(fd, string.pack(">s2", ""))
 			return
 		end
-		local tag = string.unpack("B", message, -1, -2)
-		local session = string.unpack(">I4", message, -2, -5)
-		message = message:sub(1,-6)
+		local tag = string.unpack("B", string.sub(message, 12))
+		local session = string.unpack(">I4", string.sub(message, 8, 11))
+		message = string.sub(message, 1, 7)
+		print("tag is", tag, "session is", session, "size of msg is", #message)
 		if tag == c2s_req_tag then
 			local p = u.response[session]
 			if p then

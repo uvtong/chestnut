@@ -8,23 +8,46 @@ _M.__data    = {}
 _M.__count   = 0
 _M.__cap     = 0
 _M.__user_id = 0
-_M.__tname   = "g_ara_tms"
+_M.__tname   = "u_ara_bat"
 _M.__head    = {
-csv_id = {
+id = {
 	pk = false,
 	fk = false,
 	uq = false,
 	t = "number",
-},purchase_cost = {
+},user_id = {
 	pk = false,
 	fk = false,
 	uq = false,
-	t = "string",
-},list_refresh_cost = {
+	t = "number",
+},csv_id = {
 	pk = false,
 	fk = false,
 	uq = false,
-	t = "string",
+	t = "number",
+},date = {
+	pk = false,
+	fk = false,
+	uq = false,
+	t = "number",
+},ser = {
+	pk = false,
+	fk = false,
+	uq = false,
+	t = "number",
+},start_time = {
+	pk = false,
+	fk = false,
+	uq = false,
+	t = "number",
+},is_over = {
+	pk = false,
+	fk = false,
+	uq = false,
+},res = {
+	pk = false,
+	fk = false,
+	uq = false,
 },}
 
 
@@ -97,10 +120,15 @@ local model = {
 
 function _M.create(P)
 	assert(P)
-	local t = { table_name="g_ara_tms", fields = {
+	local t = { table_name="u_ara_bat", fields = {
+	id = { c = 0, v = nil },
+	user_id = { c = 0, v = nil },
 	csv_id = { c = 0, v = nil },
-	purchase_cost = { c = 0, v = nil },
-	list_refresh_cost = { c = 0, v = nil },
+	date = { c = 0, v = nil },
+	ser = { c = 0, v = nil },
+	start_time = { c = 0, v = nil },
+	is_over = { c = 0, v = nil },
+	res = { c = 0, v = nil },
 }
 }
 	setmetatable(t, model)

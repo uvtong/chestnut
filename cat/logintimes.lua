@@ -13,8 +13,15 @@ function CMD.login(uid)
 		t[uid] = 0
 	end
 	t[uid] = t[uid] + 1
-	local sql = string.format("update logintimes set times = %d where uid = %d", t[uid], uid)
-	query.update("logintimes", sql, query.DB_PRIORITY_3)
+	if t[uid] == 1 then
+		local sql = string.format("insert into logintimes (uid, times) values (%d, %d)", uid, t[uid])
+		print(sql)
+		query.insert_sql("logintimes", sql, query.DB_PRIORITY_1)
+	else	
+		local sql = string.format("update logintimes set times = %d where uid = %d", t[uid], uid)
+		print(sql)
+		query.update_sql("logintimes", sql, query.DB_PRIORITY_1)
+	end
 	return t[uid]
 end
 
@@ -27,4 +34,9 @@ skynet.start(function ()
 			skynet.ret(skynet.pack(result))
 		end
 		end)
+	local sql = string.format("select * from logintimes")
+	local res = query.select_sql_wait("logintimes", sql, query.DB_PRIORITY_3)
+	for i,v in ipairs(res) do
+		t[v.uid] = v.times
+	end
 end)
