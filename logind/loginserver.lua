@@ -28,11 +28,11 @@ Error Code:
 	401 Unauthorized . unauthorized by auth_handler
 	403 Forbidden . login_handler failed
 	406 Not Acceptable . already in login (disallow multi login)
-
+		
 Success:
 	200 base64(subid)
-]]
-
+]]		
+		
 local socket_error = {}
 local function assert_socket(service, v, fd)
 	if v then
@@ -156,9 +156,8 @@ local function accept(conf, s, fd, addr)
 		gated = gated or ""
 		write("response 200",fd,  "200 "..":"..crypt.base64encode(uid).."@"..crypt.base64encode(err).."#"..crypt.base64encode(gated).."\n")
 	else
-		print("**********************4")
+		print("**********************4", err)
 		write("response 403",fd,  "403 Forbidden\n")
-		error(err)
 	end
 end
 
