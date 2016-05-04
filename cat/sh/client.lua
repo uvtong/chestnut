@@ -10,7 +10,7 @@ if _VERSION ~= "Lua 5.3" then
 	error "Use lua 5.3"
 end
 
-local fd = assert(socket.connect("192.168.1.116", 3002))
+local fd = assert(socket.connect("192.168.1.239", 3002))
 
 local function writeline(fd, text)
 	socket.send(fd, text .. "\n")
@@ -58,7 +58,7 @@ end
 local readline = unpack_f(unpack_line)
 -- 0
 --local cha = crypt.base64decode(readline())
-print(readline())
+-- print(readline())
 
 -- 1. get challenge
 local challenge = crypt.base64decode(readline())
@@ -124,8 +124,8 @@ assert(code == 200)
 socket.close(fd)
 
 -- 8. subid
-local subid = crypt.base64decode(string.sub(result, 5))
-
+local subid = crypt.base64decode(string.sub(result, 5, 8))
+local uid = crypt.base64decode(string.sub(result, 9, 12))
 print("login ok, subid=", subid)
 
 ----- connect to game server
