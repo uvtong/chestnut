@@ -1,4 +1,4 @@
-package.path = "./../cat/?.lua;./../cat/lualib/?.lua;" .. package.path
+package.path = "./../cat/?.lua;./../cat/lualib/?.lua;./../lualib/?.lua;" .. package.path
 package.cpath = "./../cat/luaclib/?.so;" .. package.cpath
 local skynet = require "skynet"
 require "skynet.manager"
@@ -570,7 +570,49 @@ end
 function CMD.query_g_equipment_effect(pk)
 	-- body
 	if type(pk) == "number" then
-		local r = game.query_g_equipment_effectmgr:get_by_level(pk)
+		local r = game.g_equipment_effectmgr:get_by_level(pk)
+		if r then
+			return r
+		else
+			error "there are insufficient data"
+		end
+	else
+		assert(false)
+	end
+end
+
+function CMD.query_g_ara_pts(pk)
+	-- body
+	if type(pk) == "number" then
+		local r = game.g_ara_ptsmgr:get_by_csv_id(pk)
+		if r then
+			return r
+		else
+			error "there are insufficient data"
+		end
+	else
+		assert(false)
+	end
+end
+
+function CMD.query_g_ara_rnk_rwd(pk)
+	-- body
+	if type(pk) == "number" then
+		local r = game.g_ara_rnk_rwdmgr:get_by_csv_id(pk)
+		for i,v in ipairs(game.g_ara_rnk_rwdmgr.__data) do
+			if v.csv_id >= pk then
+				return v.reward
+			end
+		end
+	else
+		assert(false)
+	end
+end
+
+function CMD.query_g_ara_tms(pk)
+	-- body
+	if type(pk) == "number" then
+		local r = game.g_ara_tmsmgr:get_by_csv_id(pk)
 		if r then
 			return r
 		else

@@ -53,7 +53,7 @@ local model = {
 			columns_str = string.gsub(columns_str, "(.*)%,%s$", "%1)")
 			values_str = string.gsub(values_str, "(.*)%,%s$", "%1)")
 			local sql = string.format("insert into %s ", t.table_name) .. columns_str .. " values " .. values_str .. ";"
-			query.insert_sql(t.table_name, sql, query.DB_PRIORITY_2)
+			query.insert_sql(t.table_name, sql, query.DB_PRIORITY_3)
 		elseif func == "update" then
 			local columns_str = "set "
 			local condition_str = ""
@@ -85,7 +85,7 @@ local model = {
 				condition_str = " where " .. condition_str
 			end
 			local sql = string.format("update %s ", t.table_name) .. columns_str .. condition_str .. ";"
-			query.update(t.table_name, sql, query.DB_PRIORITY_2)
+			query.update(t.table_name, sql, query.DB_PRIORITY_3)
 		end
 	end
 }

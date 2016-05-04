@@ -47,9 +47,15 @@ skynet.start(function()
 		skynet.name(logind_name, loginserver)
 	end
 
+	local leaderboards_name = skynet.getenv("leaderboards_name")
+	local lb = skynet.newservice("leaderboards")
+	skynet.name(leaderboards_name, lb)
+
 	local game = skynet.newservice("game", db)
 	skynet.name(".game", game)
-	
+	local logintimes = skynet.newservice("logintimes", db)
+	skynet.name(".logintimes", logintimes)
+
 	local gated = skynet.newservice("gated", logind_name)
 	local address, port = string.match(skynet.getenv("gated"), "([%d.]+)%:(%d+)")
 	skynet.call(gated, "lua", "open", { 

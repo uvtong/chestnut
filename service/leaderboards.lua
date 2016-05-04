@@ -35,34 +35,56 @@ local function bsearch(k)
 	return low+1
 end
 
-function CMD.leader(id, key)
+function CMD.swap(rnk1, rnk2)
 	-- body
-	local idx = bsearch(key)
-	local p = #ranking_name
+	local u1 = ranking_name[rnk1]
+	local u2 = ranking_name[rnk2]
+	name_ranking[u1].ranking = rnk2
+	name_ranking[u2].ranking = rnk1
+	ranking_name[rnk1] = u2
+	ranking_name[rnk2] = u1
+end
+
+function CMD.enter(id, k)
+	-- body
+	local idx = bsearch(k)
+	local l = #ranking_name
+	local p = l
 	while p >= idx do
 		ranking_name[p+1] = ranking_name[p]
 		p = p - 1
 	end
-	ranking_name[idx-1] = id
-	name_ranking[id] = { id = id, ranking=idx-1, key=key}
+	ranking_name[p] = id
+	name_ranking[id] = { id = id, ranking=p, key=k}
+	
+	return p
 end
 
-function CMD.name(id)
+function CMD.push(id, k)
 	-- body
-	assert(id)
-	return assert(name_ranking[id])
+	local l = #ranking_name
+	local rnk = l+1
+	ranking_name[rnk] = id
+	name_ranking[id] = {id=id, ranking=rnk, key=k}
+	return rnk
 end
 
 function CMD.ranking(id)
 	-- body
 	assert(id)
-	return assert(ranking_name[id])
+	return assert(name_ranking[id].ranking)
+end
+
+function CMD.name(rnk)
+	-- body
+	assert(rnk)
+	return assert(ranking_name[rnk])
 end
 
 skynet.start(function ()
 	-- body
 	skynet.dispatch("lua", function(_,_, command, subcmd, ...)
-		if command ~= "abc" then
+		if command ~= "command" then
 			local f = CMD[command]
 			local r = f( ... )
 			if r then

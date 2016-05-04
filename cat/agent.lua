@@ -53,6 +53,9 @@ local db
 local game
 local user
 
+local leaderboards_name = skynet.getenv("leaderboards_name")
+local lb = skynet.localname(leaderboards_name)
+
 notification.handler = function (event)
 	-- body
 	if event == notification.EGOLD then
@@ -485,229 +488,7 @@ function REQUEST:achievement_reward_collect()
 	ret.msg = errorcode[26].msg
 	return ret
 end
-    
-function REQUEST:signup()
-	-- body
-	local ret = {}
-	if #self.account == 0 or #self.password == 0 then
-		ret.errorcode = errorcode[12].code
-		ret.msg = errorcode[12].msg
-		return ret
-	end
-	local condition = {{ uaccount = self.account}}
-	local addr = util.random_db()
-	local r = skynet.call(addr, "lua", "command", "select", "users", condition)
-	if #r == 0 then
-		local level = skynet.call(game, "lua", "query_g_user_level", 1)
-		local vip = skynet.call(game, "lua", "query_g_recharge_vip_reward", 0)
-		-- create an user
-		local t = { csv_id= skynet.call(game, "lua", "guid", const.UENTROPY),
-				uname="nihao",
-				uaccount=self.account, 
-				upassword=self.password,
-				uviplevel=3,
-				config_sound=1, 
-				config_music=1, 
-				avatar=0, 
-				sign="peferct ", 
-				c_role_id=1, 
-				ifonline=0, 
-				level=level.level, 
-				combat=level.combat, 
-				defense=level.defense, 
-				critical_hit=level.critical_hit, 
-				blessing=0, 
-				modify_uname_count=0, 
-				onlinetime=0, 
-				iconid=0, 
-				is_valid=1, 
-				recharge_rmb=0, 
-				goods_refresh_count=0, 
-				recharge_diamond=0, 
-				uvip_progress=0, 
-				checkin_num=0, 
-				checkin_reward_num=0, 
-				exercise_level=0, 
-				cgold_level=0,
-				gold_max=level.gold_max + math.floor(level.gold_max * vip.gold_max_up_p/100),
-				exp_max=level.exp_max + math.floor(level.exp_max * vip.exp_max_up_p/100),
-				equipment_enhance_success_rate_up_p=assert(vip.equipment_enhance_success_rate_up_p),
-				store_refresh_count_max=assert(vip.store_refresh_count_max),
-				prop_refresh=0,
-				arena_frozen_time=0,
-				purchase_hp_count=0, 
-				gain_gold_up_p=0,
-				gain_exp_up_p=0,
-				purchase_hp_count_max=4 ,--assert(vip.purchase_hp_count_max),
-				SCHOOL_reset_count_max=assert(vip.SCHOOL_reset_count_max),
-				SCHOOL_reset_count=0,
-				signup_time=os.time() ,
-				pemail_csv_id = 0,
-				take_diamonds=0,
-				draw_number=0 ,
-				ifxilian = 0,              -- 
-				cp_chapter=1,                 -- checkpoint progress 1
-				cp_hanging_id=0,
-				cp_battle_id=0,
-				cp_battle_chapter=0,
-				lilian_level = 1,
-				lilian_exp = 0,
-				lilian_phy_power = 120,
-				purch_lilian_phy_power = 0,
-				cp_hanging_drop_starttime=0,
-				}
-		local usersmgr = require "models/usersmgr"
-		local u = usersmgr.create(t)
-		local res = u:__insert_db_wait(const.DB_PRIORITY_1)
-		if res.errno then
-			ret.errorcode = errorcode[13].code
-			ret.msg = errorcode[13].msg
-			return ret
-		end
-		print("******************************************* __insert_db_wait")
-
-		-- create
-		local u_equipmentmgr = require "models/u_equipmentmgr"
-		local l = {}
-		local r = skynet.call(game, "lua", "query_g_equipment")
-		for k,v in pairs(r) do
-			local equip = skynet.call(game, "lua", "query_g_equipment_enhance", v.csv_id*1000+v.level)
-			equip.user_id = u.csv_id
-			local equip = u_equipmentmgr.create(equip)
-			table.insert(l, equip)
-		end
-		u_equipmentmgr.insert_db(l, const.DB_PRIORITY_1)
-
-		l = {}
-		local u_propmgr = require "models/u_propmgr"
-		local prop = skynet.call(game, "lua", "query_g_prop", const.GOLD)
-		prop.user_id = u.csv_id
-		prop.num = 100
-		prop = u_propmgr.create(prop)
-		table.insert(l, prop)
-
-		prop = skynet.call(game, "lua", "query_g_prop", const.DIAMOND)
-		prop.user_id = u.csv_id
-		prop.num = 100
-		prop = u_propmgr.create(prop)
-		table.insert(l, prop)
-
-		prop = skynet.call(game, "lua", "query_g_prop", const.EXP)
-		prop.user_id = u.csv_id
-		prop.num = 100
-		prop = u_propmgr.create(prop)
-		table.insert(l, prop)
-		
-		prop = skynet.call(game, "lua", "query_g_prop", const.LOVE)
-		prop.user_id = u.csv_id
-		prop.num = 100     
-		prop = u_propmgr.create(prop)
-		table.insert(l, prop)
-		
-		--add invitation
-		prop = skynet.call( game , "lua" , "query_g_prop" , 50007)
-		assert( prop )
-		prop.user_id = u.csv_id
-		prop.num = 100
-		prop = u_propmgr.create(prop)
-		table.insert( l , prop )
-		
-		u_propmgr.insert_db(l, const.DB_PRIORITY_1)
-
-		local newemail = { 
-						   type = 1 , title = "new user email" , 
-						   content = "Welcome to the game" , 
-						   itemsn1 = 1 , itemnum1 = 10000 , 
-						   itemsn2 = 2 , itemnum2 = 10000 , 
-						   itemsn3 = 3 , itemnum3 = 10000
-						}  
-		skynet.send(".channel", "lua", "send_email_to_group", newemail,  { { uid = u.csv_id } })
-		-- local u_kungfumgr = require "models/u_kungfumgr"
-		-- local kungfu = game.g_kungfumgr:get_by_csv_id(1001)
-		-- kungfu.user_id = assert(u.csv_id)
-		-- kungfu.is_learned = 0
-		-- local k = u_kungfumgr.create(kungfu)
-		-- k:__insert_db() 
-						   	
-		local u_rolemgr = require "models/u_rolemgr"
-		local role = skynet.call(game, "lua", "query_g_role", 1)
-		local role_star = skynet.call(game, "lua", "query_g_role_star", role.csv_id*1000+role.star)
-		for k,v in pairs(role_star) do
-			role[k] = v
-		end
-		role.user_id = assert(u.csv_id)
-		role.k_csv_id1 = 0
-		role.k_csv_id2 = 0
-		role.k_csv_id3 = 0
-		role.k_csv_id4 = 0
-		role.k_csv_id5 = 0
-		role.k_csv_id6 = 0
-		role.k_csv_id7 = 0
-		local n, r = xilian(role, {role_id=role.csv_id, is_locked1=false, is_locked2=false, is_locked3=false, is_locked4=false, is_locked5=false})
-		assert(n == 0, string.format("%d locked.", n))
-		role.property_id1 = r.property_id1
-		role.value1 = r.value1
-		role.property_id2 = r.property_id2
-		role.value2 = r.value2
-		role.property_id3 = r.property_id3
-		role.value3 = r.value3
-		role.property_id4 = r.property_id4
-		role.value4 = r.value4
-		role.property_id5 = r.property_id5
-		role.value5 = r.value5
-		role = u_rolemgr.create(role)
-		role:__insert_db(const.DB_PRIORITY_1)
-
-		l = {}
-		local u_achievementmgr = require "models/u_achievementmgr"
-		for i=1,8 do
-			local csv_id = i * 1000 + 1
-			local a = skynet.call(game, "lua", "query_g_achievement", csv_id)
-			a.user_id = u.csv_id
-			a.finished = 0
-			a.reward_collected = 0
-			a.is_unlock = 1
-			a.is_valid = 1
-			a = u_achievementmgr.create(a)	
-			table.insert(l, a)
- 		end
- 		u_achievementmgr.insert_db(l, const.DB_PRIORITY_1)
-
-		local u_goodsmgr = require "models/u_goodsmgr"
-		local r = skynet.call(game, "lua", "query_g_goods")
-		l = {}
-		for k,v in pairs(r) do
-			local t = { user_id = u.csv_id, csv_id=v.csv_id, inventory=v.inventory_init, countdown=0, st=0}
-			local a = u_goodsmgr.create(t)
-			table.insert(l, a)
-		end
-		u_goodsmgr.insert_db(l, const.DB_PRIORITY_1)
-
-		local u_checkpointmgr = require "models/u_checkpointmgr"
-		local tmp = {
-			user_id = u.csv_id,
-			chapter = u.cp_chapter,
-			chapter_type0 = 1,       
-			chapter_type1 = 0,
-			chapter_type2 = 0,
-			chapter_type0_finished=0,
-			chapter_type1_finished=0,
-			chapter_type2_finished=0,
-			finished=0
-		}
-		local cp = u_checkpointmgr.create(tmp)
-		cp:__insert_db(const.DB_PRIORITY_1)
-	
-		ret.errorcode = errorcode[1].code
-		ret.msg	= errorcode[1].msg
-		return ret
-	else
-		ret.errorcode = errorcode[13].code
-		ret.msg = errorcode[13].msg
-		return ret
-	end 
-end 	
-    	
+        	
 local function get_public_email()
 	local r = skynet.call( ".channel" , "lua" , "agent_get_public_email" , user.csv_id , user.pemail_csv_id , user.signup_time )
 	assert( r )
@@ -757,56 +538,7 @@ function REQUEST:login()
 			return ret
 		end
 
-		dc.set(user.csv_id, { client_fd=client_fd, addr=skynet.self()})
-		loader.load_user(user)
-		subscribe()
-		skynet.fork(subscribe)
-		context.user = user
-
-		local onlinetime = os.time()
-		user.ifonline = 1
-		user.onlinetime = onlinetime
-		user:__update_db({"ifonline", "onlinetime"}, const.DB_PRIORITY_2)
-		user.friendmgr = friendmgr:loadfriend( user , dc )
-		friendrequest.getvalue(user, send_package, send_request)
-		--load public email from channel public_emailmgr
-		get_public_email()
-
-		ret.errorcode = errorcode[1].code
-		ret.msg = errorcode[1].msg
-		ret.u = {
-			uname = user.uname,
-			uviplevel = user.uviplevel,
-			config_sound = (user.config_sound == 1) and true or false,
-			config_music = (user.config_music == 1) and true or false,
-			avatar = user.avatar,
-			sign = user.sign,
-			c_role_id = user.c_role_id,
-			level = user.level,
-			recharge_rmb = user.recharge_rmb,
-    		recharge_diamond = user.recharge_diamond,
-    		uvip_progress = user.uvip_progress,
-    		cp_hanging_id = user.cp_hanging_id,
-    		cp_chapter = user.cp_chapter,
-    		lilian_level = user.lilian_level
-		}
-		ret.u.uexp = assert(user.u_propmgr:get_by_csv_id(const.EXP)).num
-		ret.u.gold = assert(user.u_propmgr:get_by_csv_id(const.GOLD)).num
-		ret.u.diamond = assert(user.u_propmgr:get_by_csv_id(const.DIAMOND)).num
-		ret.u.love = user.u_propmgr:get_by_csv_id(const.LOVE).num
-		ret.u.equipment_list = {}
-		for k,v in pairs(user.u_equipmentmgr.__data) do
-			table.insert(ret.u.equipment_list, v)
-		end
-		ret.u.kungfu_list = {}
-		for k,v in pairs(user.u_kungfumgr.__data) do
-			table.insert(ret.u.kungfu_list, v)
-		end
-		ret.u.rolelist = {}
-		for k,v in pairs(user.u_rolemgr.__data) do
-			table.insert(ret.u.rolelist, v)
-		end
-		return ret
+		
 	else
 		assert(false)
 	end 
@@ -2562,8 +2294,70 @@ function REQUEST:checkpoint_exit()
 	return ret
 end
 
-function REQUEST:(  )
+function REQUEST:ara_bat_ovr()
 	-- body
+end
+
+function REQUEST:ara_bat_clg()
+	-- body
+	local t = user.u_journalmgr:get_by_today()
+	if t.ara_clg_tms > 0 then
+		t.ara_clg_tms = t.ara_clg_tms - 1
+		-- TODO: enter ara
+	end
+end
+
+function REQUEST:ara_rfh()
+	-- body
+	-- if user.ara_rnk
+
+end
+
+function REQUEST:ara_worship()
+	-- body
+	local ret = {}
+	local rand = math.random()
+	if rand % 1 == 1 then
+		local id = skynet.call(game, "lua", "worship_reward_id")
+		local num = skynet.call(game, "lua", "worship_reward_num")
+		local prop = user.u_propmgr:get_by_csv_id(id)
+		prop.num = prop.num + num
+		ret.errorcode = errorcode[1].code
+		ret.msg = errorcode[1].msg
+		return ret
+	else
+		ret.errorcode = errorcode[33].code
+		ret.msg = errorcode[33].msg
+		return ret
+	end
+end
+
+function REQUEST:ara_clg_tms_purchase()
+	-- body
+	-- u_journalmgr
+
+end
+
+function REQUEST:ara_rnk_reward_collected()
+	-- body
+	local ret = {}
+	local rnk = skynet.call(lp, "lua", "ranking", user.csv_id)
+	local rnk_rwd = user.u_ara_rnk_rwd:get_by_csv_id(rnk)
+	if rnk_rwd == nil or rnk_rwd.is_collected == 0 then
+		local r = skynet.call(game, "lua", "query_g_ara_rnk_rwd", rnk)
+		r = util.parse_text(r, "(%d+%*%d+%*?)", 2)
+		for i,v in ipairs(r) do
+			local prop = user.u_propmgr:get_by_csv_id(v[1])
+			prop.num = prop.num + v[2]
+		end
+		ret.errorcode = errorcode[1].code
+		ret.msg = errorcode[1].msg
+		return ret
+	else
+		ret.errorcode = errorcode[38].code
+		ret.msg = errorcode[38].msg
+		return ret
+	end
 end
 
 function REQUEST:handshake()
@@ -2679,7 +2473,6 @@ skynet.register_protocol {
 		elseif type == "HEARTBEAT" then
 			send_package(send_request "heartbeat")
 		elseif type == "RESPONSE" then
-			print( "************************************************************************ls called" )
 			pcall(response, ...)
 		end
 	end
@@ -2708,7 +2501,70 @@ function CMD.login(source, uid, sid, sct, game, db)
 	secret = sct
 	game   = game
 	db     = db
-	return true
+
+	subscribe()
+	skynet.fork(subscribe)
+
+	local times = skynet.call(".logintimes", "lua", "login", uid)
+	if times == 1 then
+		local signup = request "signup"
+		user = signup(uid)
+	else
+		user = loader.load_user(uid)
+	end
+
+	local rnk = skynet.call(lb, "lua", "push", user.csv_id, user.csv_id)
+	user.ara_rnk = rnk
+
+	dc.set(user.csv_id, { client_fd=client_fd, addr=skynet.self()})	
+	context.user = user
+
+	local onlinetime = os.time()
+	user.ifonline = 1
+	user.onlinetime = onlinetime
+	user:__update_db({"ifonline", "onlinetime"}, const.DB_PRIORITY_2)
+	user.friendmgr = friendmgr:loadfriend( user , dc )
+	friendrequest.getvalue(user, send_package, send_request)
+	--load public email from channel public_emailmgr
+	get_public_email()
+
+	local ret = {}
+	ret.errorcode = errorcode[1].code
+	ret.msg = errorcode[1].msg
+	ret.u = {
+		uname = user.uname,
+		uviplevel = user.uviplevel,
+		config_sound = (user.config_sound == 1) and true or false,
+		config_music = (user.config_music == 1) and true or false,
+		avatar = user.avatar,
+		sign = user.sign,
+		c_role_id = user.c_role_id,
+		level = user.level,
+		recharge_rmb = user.recharge_rmb,
+		recharge_diamond = user.recharge_diamond,
+		uvip_progress = user.uvip_progress,
+		cp_hanging_id = user.cp_hanging_id,
+		cp_chapter = user.cp_chapter,
+		lilian_level = user.lilian_level
+	}
+	ret.u.uexp = assert(user.u_propmgr:get_by_csv_id(const.EXP)).num
+	ret.u.gold = assert(user.u_propmgr:get_by_csv_id(const.GOLD)).num
+	ret.u.diamond = assert(user.u_propmgr:get_by_csv_id(const.DIAMOND)).num
+	ret.u.love = user.u_propmgr:get_by_csv_id(const.LOVE).num
+	ret.u.equipment_list = {}
+	for k,v in pairs(user.u_equipmentmgr.__data) do
+		table.insert(ret.u.equipment_list, v)
+	end
+	ret.u.kungfu_list = {}
+	for k,v in pairs(user.u_kungfumgr.__data) do
+		table.insert(ret.u.kungfu_list, v)
+	end
+	ret.u.rolelist = {}
+	for k,v in pairs(user.u_rolemgr.__data) do
+		table.insert(ret.u.rolelist, v)
+	end
+	
+	return true, send_request("login", ret)
 end
 
 local function logout()
@@ -2747,10 +2603,10 @@ local function start()
 	context.send_request = send_request
 	context.game = game
 
-	local t = loader.load_game()
-	for i,v in ipairs(M) do
-		v.start(fd, send_request, t)
-	end	
+	-- local t = loader.load_game()
+	-- for i,v in ipairs(M) do
+	-- 	v.start(fd, send_request, t)
+	-- end	
 end
 
 skynet.start(function()
