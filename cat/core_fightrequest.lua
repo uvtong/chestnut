@@ -2,7 +2,7 @@ local core_fightrequest = {}
 	  		
 local dc = require "datacenter"
 local util = require "util"
-local errorcode = requi re "errorcode"
+local errorcode = require "errorcode"
 local const = require "const"
 local socket = require "socket"
 local skynet = require "skynet"
@@ -298,7 +298,7 @@ local function judge_arise_type(kf, totalfightnum)
 		sign =  Enemy.FightPower < math.floor(Enemy.Attr.combat * (kf.arise_param / 100))
 	elseif 3 == kf.arise_type then
 		sign = (totalfightnum + 1) == kf.arise_param
-	elseif 
+	else
 		assert(false)
 	end 		
 
@@ -498,7 +498,7 @@ local function do_verify(v, userroleid)
 			if TmpEnemy.FightPower - totalattack > 0 then
 				TmpEnemy.FightPower = TmpEnemy.FightPower - totalattack
 				get_attacheffect(kf, TmpSelf, TmpEnemy)
-				if 1 == TmpSelf.IsDead 
+				if 1 == TmpSelf.IsDead then
 					isdead = SELF
 				end
 
@@ -531,7 +531,7 @@ function REQUEST:GuanQiaBattleList()
 
 	for k , v in ipairs(self.fightlist) do
 		if not do_verify(v, user.c_role_id) then
-			ret.errorcode = errorcode[].code
+			ret.errorcode = errorcode[1].code
 			return ret
 		end
 	end 		
