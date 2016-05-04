@@ -302,8 +302,9 @@ function server.start(conf)
 			socketdriver.send(fd, string.pack(">s2", ""))
 			return
 		end
-		local tag = string.unpack("B", string.sub(message, 12))
-		local session = string.unpack(">I4", string.sub(message, 8, 11))
+		local len = #message
+		local tag = string.unpack("B", string.sub(message, len))
+		local session = string.unpack(">I4", string.sub(message, len-4, len-1))
 		message = string.sub(message, 1, 7)
 		print("tag is", tag, "session is", session, "size of msg is", #message)
 		if tag == c2s_req_tag then
