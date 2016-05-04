@@ -312,22 +312,30 @@ local function collect_info_from_g_role_effect( bufferid , ttotal )
 		print( index , gre[ value ] )
 		if 0 ~= index then
 			ttotal[ index ] = ttotal[ index ] + gre[ value ]
-		end
+		end 
 		i = i + 1
 	end		
 end			
 	--[[ if online ( user , nil , propertyname ) , if not online ( nil , uid , propertyname )                  ]]
-function util.get_total_property( user , uid )   -- zhijie ti sheng zhan dou li gu ding zhi hai mei you ,  
+function util.get_total_property( user , uid , onbattleroleid)   -- zhijie ti sheng zhan dou li gu ding zhi hai mei you ,  
 	local uequip
 	local role 
 	local roles
 	local u
- 		
+ 	
  	local tmpname = propertyname
 
 	if user then
 		uequip = assert( user.u_equipmentmgr.__data )
-		role = user.u_rolemgr:get_by_csv_id( user.c_role_id )	
+
+		local id
+		if not onbattleroleid then
+			id = user.c_role_id
+		else
+			id = onbattleroleid
+		end
+
+		role = user.u_rolemgr:get_by_csv_id( id )
 		roles = user.u_rolemgr.__data
 		u = user
 	else    
@@ -350,13 +358,20 @@ function util.get_total_property( user , uid )   -- zhijie ti sheng zhan dou li 
 		u = tmp[ 1 ]
 		assert( u )
 
+		local roleid
+		if not onbattleroleid then
+			roleid = u.c_role_id
+		else
+			roleid = onbattleroleid
+		end
+
  		for k , v in pairs( roles ) do
- 			print( k , v , v.csv_id , u.c_role_id )
- 			if v.csv_id == u.c_role_id then
- 				role = v
- 				print( "find the role ********************************" )
- 				break
- 			end	
+ 			print( k , v , v.csv_id )
+			if v.csv_id == roleid then
+				role = v
+				print( "find the role ********************************" )
+				break
+			end
  		end
  		assert( role )
 	end 
@@ -374,7 +389,7 @@ function util.get_total_property( user , uid )   -- zhijie ti sheng zhan dou li 
 				ttotal[ k  + 4 ] = ttotal[ k + 4 ] + vv[ probability ]
 			end
 		end		
-	end     
+	end 	    
 
 	-- role battle property
 	collect_info_from_g_role_effect( role.battle_buffer_id , ttotal )

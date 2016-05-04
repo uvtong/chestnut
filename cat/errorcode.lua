@@ -73,4 +73,9 @@ errorcode[89] = { code = 89 , msg = "limit purchase num" }
 errorcode[90] = { code = 90 , msg = "can not reset" }
 errorcode[91] = { code = 91 , msg = "speed over time"}
 
+--corefight
+errorcode[110] = {code = 110, msg = "game is over"}
+errorcode[111] = {code = 111, msg = "continue fight"}
+errorcode[112] = {code = 112, msg = ""}
+
 return errorcode
