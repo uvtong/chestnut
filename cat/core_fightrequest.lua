@@ -221,17 +221,17 @@ local function init_attribute(uid, roleid, inittype)
 	if (inittype == SELF) then
 		t = util.get_total_property(user, _, roleid)
 		assert(t)
-
+		
 		Self.Attr.combat = t[1]
 		Self.Attr.defence = t[2]
 		Self.Attr.critical_hit = t[3]
 		Self.Attr.king = t[4]
-
+		
 		Self.FightPower = t[1]
 	else     
 		t = util.get_total_property(_, uid, roleid)
 		assert(t)
-
+		
 		Enemy.Attr.combat = t[1]
 		Enemy.Attr.defence = t[2]
 		Enemy.Attr.critical_hit = t[3]
@@ -273,13 +273,13 @@ function REQUEST:BeginArenaCoreFight()
 	get_fight_list(self.uid, self.roleid, ENEMY)
 	init_attribute(_, user.c_role_id, SELF)
 	init_attribute(self.uid, self.roleid, ENEMY)
-
+	
 	if first_fighter() then
 		ret.firstfighter = SELF
 	else
 		ret.firstfighter = ENEMY
 	end 
-
+	
 	ret.errorcode = errorcode[1].code
 	ret.delay_time = START_DELAY
 
@@ -501,7 +501,7 @@ local function do_verify(v, userroleid)
 				if 1 == TmpSelf.IsDead then
 					isdead = SELF
 				end
-
+				
 				if 1 == TmpEnemy.IsDead then
 					isdead = Enemy
 				end

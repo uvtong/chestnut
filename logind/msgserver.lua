@@ -327,14 +327,17 @@ function server.start(conf)
 				-- new pack
 				p = { fd }
 				u.response[session] = p
+				print("************************abced1")
 				local ok, result = pcall(conf.request_handler, u.username, message)
+				print("***********abced2", ok)
 				-- NOTICE: YIELD here, socket may close.
 				result = result or ""
 				if not ok then
 					skynet.error(result)
-					result = string.pack(">BI4", 0, session)
+					result = string.pack(">I4B", session, c2s_resp_tag)
 				else
-					result = result .. string.pack(">BI4", 1, session)
+					print(result)
+					result = result .. string.pack(">I4B", session, c2s_resp_tag)
 				end
 
 				p[2] = string.pack(">s2",result)

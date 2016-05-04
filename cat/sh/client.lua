@@ -273,6 +273,8 @@ while true do
 			send_request(cmd, { role_id = 1})
 		elseif cmd == "mails" then
 			send_request(cmd)
+		elseif cmd == "user" then
+			send_request(cmd)
 		else
 			send_request("get", { what = cmd })
 		end

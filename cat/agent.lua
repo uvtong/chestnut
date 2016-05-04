@@ -778,6 +778,7 @@ end
 function REQUEST:user()
 	-- body
 	local ret = {}
+	print("called****************************111")
 	if not user then
 		ret.errorcode = errorcode[2].code
 		ret.msg	= errorcode[2].msg
@@ -804,18 +805,22 @@ function REQUEST:user()
     	diamond = assert(user.u_propmgr:get_by_csv_id(const.DIAMOND)).num,
     	love = assert(user.u_propmgr:get_by_csv_id(const.LOVE)).num,
 	}
+	print("called****************************222")
 	ret.user.equipment_list = {}
 	for k,v in pairs(user.u_equipmentmgr.__data) do
 		table.insert(ret.user.equipment_list, v)
 	end
+	print("called****************************333")
 	ret.user.kungfu_list = {}
 	for k,v in pairs(user.u_kungfumgr.__data) do
 		table.insert(ret.user.kungfu_list, v)
 	end
+	print("called****************************444")
 	ret.user.rolelist = {}
 	for k,v in pairs(user.u_rolemgr.__data) do
 		table.insert(ret.user.rolelist, v)
 	end
+	print("called****************************555")
 	return ret
 end
 
@@ -2377,7 +2382,7 @@ local function generate_session()
 end
 
 local function request(name, args, response)
-	skynet.error(string.format("request: %s", name))
+	skynet.error(string.format("line request: %s", name))
     local f = nil
     if REQUEST[name] ~= nil then
     	f = REQUEST[name]
@@ -2404,6 +2409,7 @@ local function request(name, args, response)
 				end
 			end
 		end  
+		print(result)
 		return response(result)
 	else
 		skynet.error(result)
@@ -2467,14 +2473,17 @@ skynet.register_protocol {
 			local ok, result  = pcall(request, ...)
 			if ok then
 				if result then
-					return result
+					print("88888888888888888888888")
+					-- return result
 					-- send_package(result)
+					skynet.retpack(result)
 				end
 			else
 				skynet.error(result)
 			end
 		elseif type == "HEARTBEAT" then
-			send_package(send_request "heartbeat")
+			assert(false)
+			-- send_package(send_request "heartbeat")
 		elseif type == "RESPONSE" then
 			pcall(response, ...)
 		end
