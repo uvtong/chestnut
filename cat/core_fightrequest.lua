@@ -2,7 +2,7 @@ local core_fightrequest = {}
 	  		
 local dc = require "datacenter"
 local util = require "util"
-local errorcode = requi re "errorcode"
+local errorcode = require "errorcode"
 local const = require "const"
 local socket = require "socket"
 local skynet = require "skynet"
@@ -221,17 +221,17 @@ local function init_attribute(uid, roleid, inittype)
 	if (inittype == SELF) then
 		t = util.get_total_property(user, _, roleid)
 		assert(t)
-
+		
 		Self.Attr.combat = t[1]
 		Self.Attr.defence = t[2]
 		Self.Attr.critical_hit = t[3]
 		Self.Attr.king = t[4]
-
+		
 		Self.FightPower = t[1]
 	else     
 		t = util.get_total_property(_, uid, roleid)
 		assert(t)
-
+		
 		Enemy.Attr.combat = t[1]
 		Enemy.Attr.defence = t[2]
 		Enemy.Attr.critical_hit = t[3]
@@ -273,13 +273,13 @@ function REQUEST:BeginArenaCoreFight()
 	get_fight_list(self.uid, self.roleid, ENEMY)
 	init_attribute(_, user.c_role_id, SELF)
 	init_attribute(self.uid, self.roleid, ENEMY)
-
+	
 	if first_fighter() then
 		ret.firstfighter = SELF
 	else
 		ret.firstfighter = ENEMY
 	end 
-
+	
 	ret.errorcode = errorcode[1].code
 	ret.delay_time = START_DELAY
 
@@ -298,7 +298,7 @@ local function judge_arise_type(kf, totalfightnum)
 		sign =  Enemy.FightPower < math.floor(Enemy.Attr.combat * (kf.arise_param / 100))
 	elseif 3 == kf.arise_type then
 		sign = (totalfightnum + 1) == kf.arise_param
-	elseif 
+	else
 		assert(false)
 	end 		
 
@@ -498,10 +498,10 @@ local function do_verify(v, userroleid)
 			if TmpEnemy.FightPower - totalattack > 0 then
 				TmpEnemy.FightPower = TmpEnemy.FightPower - totalattack
 				get_attacheffect(kf, TmpSelf, TmpEnemy)
-				if 1 == TmpSelf.IsDead 
+				if 1 == TmpSelf.IsDead then
 					isdead = SELF
 				end
-
+				
 				if 1 == TmpEnemy.IsDead then
 					isdead = Enemy
 				end
@@ -531,7 +531,7 @@ function REQUEST:GuanQiaBattleList()
 
 	for k , v in ipairs(self.fightlist) do
 		if not do_verify(v, user.c_role_id) then
-			ret.errorcode = errorcode[].code
+			ret.errorcode = errorcode[1].code
 			return ret
 		end
 	end 		

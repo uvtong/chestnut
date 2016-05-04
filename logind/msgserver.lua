@@ -297,11 +297,11 @@ function server.start(conf)
 
 	local function do_request(fd, message)
 		local u = assert(connection[fd], "invalid fd")
-		print(#message)
+		print(#message) 
 		if #message == 0 then
 			socketdriver.send(fd, string.pack(">s2", ""))
-			return
-		end
+			return 		
+		end 			
 		local len = #message
 		local tag = string.unpack("B", string.sub(message, len))
 		local session = string.unpack(">I4", string.sub(message, len-4, len-1))
@@ -309,7 +309,7 @@ function server.start(conf)
 		print("tag is", tag, "session is", session, "size of msg is", #message)
 		if tag == c2s_req_tag then
 			local p = u.response[session]
-			if p then
+			if p then 	
 				-- session can be reuse in the same connection
 				if p[3] == u.version then
 					local last = u.response[session]
@@ -319,15 +319,17 @@ function server.start(conf)
 						local error_msg = string.format("Conflict session %s", crypt.hexencode(session))
 						skynet.error(error_msg)
 						error(error_msg)
-					end
-				end
-			end
+					end 
+				end 	
+			end 		
 
 			if p == nil then
 				-- new pack
 				p = { fd }
 				u.response[session] = p
+				print("************************abced1")
 				local ok, result = pcall(conf.request_handler, u.username, message)
+				print("***********abced2", ok)
 				-- NOTICE: YIELD here, socket may close.
 				result = result or ""
 				print(#result)
