@@ -10,7 +10,7 @@ if _VERSION ~= "Lua 5.3" then
 	error "Use lua 5.3"
 end
 
-local fd = assert(socket.connect("192.168.1.116", 3002))
+local fd = assert(socket.connect("192.168.1.239", 3002))
 
 local function writeline(fd, text)
 	socket.send(fd, text .. "\n")
@@ -153,8 +153,8 @@ end
 
 local function recv_response(v)
 	local size = #v - 5
-	local content, ok, session = string.unpack("c"..tostring(size).."B>I4", v)
-	return ok ~=0 , content, session
+	local content, session, tag = string.unpack("c"..tostring(size)..">I4B", v)
+	return tag, session, content
 end
 
 local function unpack_package(text)
@@ -239,12 +239,12 @@ local function dispatch_package()
 		if not v then
 			break
 		end
-		local ok, content, session = recv_response(v)
-		print(ok, session)
-		if ok then
-			local str = crypt.base64decode(content)
-			str = crypt.desdecode(secret, str)
-			print_package(host:dispatch(str))
+		local tag, session, content = recv_response(v)
+		if tag == c2s_resp_tag then
+			print("tag is", tag, "session is", session)
+			-- local str = crypt.base64decode(content)
+			-- str = crypt.desdecode(secret, str)
+			print_package(host:dispatch(content))
 		end
 	end
 end
@@ -253,7 +253,7 @@ end
 local index = 1
 
 print("connect")
-fd = assert(socket.connect("192.168.1.116", 3301))
+fd = assert(socket.connect("192.168.1.239", 3301))
 last = ""
 
 local handshake = string.format("%s@%s#%s:%d", crypt.base64encode(uid), crypt.base64encode(token.server),crypt.base64encode(subid) , index)
@@ -272,6 +272,8 @@ while true do
 		elseif cmd == "role_info" then
 			send_request(cmd, { role_id = 1})
 		elseif cmd == "mails" then
+			send_request(cmd)
+		elseif cmd == "user" then
 			send_request(cmd)
 		else
 			send_request("get", { what = cmd })

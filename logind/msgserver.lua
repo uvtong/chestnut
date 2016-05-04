@@ -330,11 +330,12 @@ function server.start(conf)
 				local ok, result = pcall(conf.request_handler, u.username, message)
 				-- NOTICE: YIELD here, socket may close.
 				result = result or ""
+				print(#result)
 				if not ok then
 					skynet.error(result)
-					result = string.pack(">BI4", 0, session)
+					result = string.pack(">I4B", session, c2s_resp_tag)
 				else
-					result = result .. string.pack(">BI4", 1, session)
+					result = result .. string.pack(">I4B", session, c2s_resp_tag)
 				end
 
 				p[2] = string.pack(">s2",result)

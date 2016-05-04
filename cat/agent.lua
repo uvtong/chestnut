@@ -2312,7 +2312,7 @@ end
 function REQUEST:ara_rfh()
 	-- body
 	-- if user.ara_rnk
-
+	skynet.call(lp, "lua", "")
 end
 
 function REQUEST:ara_worship()
@@ -2337,7 +2337,7 @@ end
 function REQUEST:ara_clg_tms_purchase()
 	-- body
 	-- u_journalmgr
-
+	
 end
 
 function REQUEST:ara_rnk_reward_collected()
@@ -2467,7 +2467,9 @@ skynet.register_protocol {
 			local ok, result  = pcall(request, ...)
 			if ok then
 				if result then
-					return result
+					print(#result)
+					skynet.retpack(result)
+					-- return result
 					-- send_package(result)
 				end
 			else

@@ -1165,6 +1165,16 @@ GuanQiaBattleList 86 {
     }
 }
 
+ara_convert_pts 87 {
+    request {
+        pts 0 : integer
+    }
+    response {
+        errorcode 0 : integer
+        msg 1 : string
+    }
+}
+
 ]]
 
 proto.s2c = sprotoparser.parse [[
