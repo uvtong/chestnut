@@ -38,6 +38,7 @@ errorcode[35] = { code = 35, msg = "checkpoint id error"}
 errorcode[36] = { code = 36, msg = "nothing from client"}
 errorcode[37] = { code = 37, msg = "data from client is wrong."}
 errorcode[38] = { code = 38, msg = "rnk rwd has collected"}
+errorcode[39] = { code = 38, msg = "no exists protocol"}
 
 --email
 errorcode[41] = { code = 41 , msg = "not email in maillist" }

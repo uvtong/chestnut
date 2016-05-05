@@ -15,29 +15,12 @@ local function path( filename )
 	return "../web/templates/" .. filename
 end
 
-function VIEW.index()
+function VIEW:index()
 	-- body
-	local R = {}
-	function R:__get()
-		-- body
-		-- local query = self.query
-		--for i = 1 , 100 do
-		--end
+	if self.method == "get" then
 		local func = template.compile( path( "index.html" ) )
-		local r = func { message = "hello, world."}
-		return r
+		return func { message = "hello, world."}
 	end
-	function R:__post()
-		-- body
-		-- local body = self.body
-		
-				--skynet.send(".channel", "lua", "fire", 1, {head="sljd", content="jksldfj", })
-	end
-	function R:__file()
-		-- body
-		-- local file = self.file
-	end
-	return R
 end
 
 local function Split(szFullString, szSeparator)  
@@ -75,62 +58,31 @@ local function Split(szFullString, szSeparator)
 		return tstrcont
 end
 
-function VIEW.user()
+function VIEW:user()
 	-- body
-	local R = {}
-	function R:__get()
-		-- body
-		-- local query = self.query
+	if self.method == "get" then
 		local func = template.compile(path("user.html"))
-		local r = func()
-		return r	
-	end         
-	function R:__post()
-		-- body 
-		-- local body = self.body
-	end 		
-				
-	function R:__file()
-		-- body
-	end 
-	return R
+		return func()
+	end
 end
 
-function VIEW.role()
+function VIEW:role()
 	-- body
-	local R = {}
-	function R:__get()
-		-- body
-		-- local query = self.query
+	if self.method == "get" then
 		local func = template.compile(path("role.html"))
-		local r = func()
-		return r
-	end
-	function R:__post()
-		-- body
-		-- local body = self.body
-	end
-	function R:__file()
-		-- body
-		-- local file = self.file
+		return func()
+	elseif self.method == "file" then
 		print(self.file)
 		return "succss"
 	end
-	return R
 end
 
-function VIEW.email()
+function VIEW:email()
 	-- body
-	local R = {}
-	function R:__get()
-		-- body
-		-- local query = self.query
+	if self.method == "get" then
 		local func = template.compile(path("email.html"))
 		return func { message = "EMAIL"}
-	end
-	function R:__post()
-		-- body
-		-- local body = self.body
+	elseif self.method == "post" then
 		local send_type = tonumber(self.body["send_type"])
 		local c = {}
 		c["type"] = tonumber(self.body["type"])  -- 1 or 2
@@ -157,17 +109,12 @@ function VIEW.email()
 			ret.msg = errorcode[1].msg
 			return json.encode(ret)
 		end
-	end
-	function R:__file()
-		-- body
-		-- local file = self.file
+	elseif self.method == "file" then
 		local file = self.file
 		assert( csvreader and file )
 		print("filecont is  " , file )
-
 		local cont = Split( file , "\r\n" )
 		assert( cont )
-
 		for k , v in ipairs( cont ) do
 			local ne = {}
 			ne.type = tonumber( v.email_type )
@@ -175,7 +122,6 @@ function VIEW.email()
 			ne.title = v.title
 			ne.content = v.content
 			local titem = util.parse_text( v.reward , "(%d+%*%d+%*?)" , 2 )
-
 			assert( titem )
 			local i = 1
 			for sk , sv in ipairs( titem ) do
@@ -195,18 +141,13 @@ function VIEW.email()
 		local ret = {}
 		ret.errorcode = errorcode[1].code
 		ret.msg = errorcode[1].msg
-
-		return json.encode(ret)
+		return ret
 	end
-	return R
 end
 
-function VIEW.props()
+function VIEW:props()
 	-- body
-	local R = {}
-	function R:__get()
-		-- body
-		-- local query = self.query
+	if self.method == "get" then
 		local users = skynet.call(db, "lua", "command", "select_and", "users")
 		for i,v in ipairs(users) do
 			for kk,vv in pairs(v) do
@@ -215,10 +156,7 @@ function VIEW.props()
 		end
 		local func = template.compile(path("props.html"))
 		return func { message = "fill in the blank text.", users = users }
-	end
-	function R:__post()
-		-- body
-		-- local body = self.body
+	elseif self.method == "post" then
 		local uaccount = self.body["uaccount"]
 		local csv_id = tonumber(self.body["csv_id"])
 		local num = tonumber(self.body["num"])
@@ -236,29 +174,17 @@ function VIEW.props()
 			ok = 1,
 			msg = "send succss."
 		}
-		return json.encode(ret)
+		return ret
 	end
-	function R:__file()
-		-- body
-		-- local file = self.file
-		print(self.file)
-	end
-	return R
 end
 
-function VIEW.equipments()
+function VIEW:equipments()
 	-- body
-	local R = {}
-	function R:__get()
-		-- body
-		-- local query = self.query
+	if self.method == "get" then
 		local users = skynet.call(db, "lua", "command", "select_and", "users")
 		local func = template.compile(path("equipments.html"))
 		return func { message = "fill in the blank text.", users = users }
-	end
-	function R:__post()
-		-- body
-		-- local body = self.body
+	elseif self.method == "post" then
 		if self.body["cmd"] == "user" then
 			local uaccount = self.body["uaccount"]
 			local user = skynet.call(db, "lua", "command", "select_user", { uaccount = uaccount})
@@ -268,7 +194,7 @@ function VIEW.equipments()
 				msg = "succss",
 				achievements = achievements
 			}
-			return json.encode(ret)
+			return ret
 		elseif self.body["cmd"] == "equip" then
 			local user = skynet.call(db, "lua", "command", "select_user", { uaccount = uaccount})
 			skynet.send(db, "lua", "command", "insert", { user_id = user.id, achievement_id = achievement_id, level = level})
@@ -276,22 +202,14 @@ function VIEW.equipments()
 				ok = 1,
 				msg = "send succss."
 			}
-			return json.encode(ret)
+			return ret
 		end
 	end
-	function R:__file()
-		-- body
-		-- local file = self.file
-		print(self.file)
-	end
-	return R
 end
 
-function VIEW.validation()
+function VIEW:validation()
 	-- body
-	local R = {}
-	function R:__post()
-		-- body
+	if self.method == "post" then
 		local ret = {}
 		local table_name = self.body["table_name"]
 		local sql = string.format("select * from columns where table_name=\"%s\";", table_name)
@@ -335,7 +253,49 @@ function VIEW.validation()
 		ret.msg = "succss"
 		return ret
 	end
-	return R
+end
+
+function VIEW:validation_ro()
+	-- body
+	if self.method == "post" then
+		local ret = {}
+		local table_name = self.body["table_name"]
+		local sql = string.format("select * from columns where table_name=\"%s\";", table_name)
+		local r = query.select_sql_wait(table_name, sql, query.DB_PRIORITY_1)
+		if #r == 0 then
+			ret.ok = 0
+			ret.msg = "failture"
+			return ret
+		end
+		local head = "{\n"
+		for i,v in ipairs(r) do
+			local seg = ""..v.COLUMN_NAME.." = {\n"
+			if v.DATA_TYPE == "int" then
+				seg = seg .. string.format("\tt = \"%s\",\n", "number")
+			elseif v.DATA_TYPE == "varchar" or v.DATA_TYPE == "char" then
+				seg = seg .. string.format("\tt = \"%s\",\n", "string")
+			end
+			seg = seg .. "},"
+			head = head .. seg
+		end
+		head = head.."}\n"
+		local s = require "tool"
+		s = string.format(s, head)
+		local dir = skynet.getenv("pro_dir")
+		local addr = io.open(dir.."models/"..table_name.."mgr.lua", "w")
+		addr:write(s)
+		addr:close()
+		ret.ok = 1
+		ret.msg = "succss"
+		return ret
+	end
+end
+
+function VIEW:_404()
+	-- body
+	if self.method == "get" then
+		return "404"
+	end
 end
 
 return VIEW

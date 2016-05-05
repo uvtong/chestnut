@@ -1,12 +1,13 @@
 local const = {}
 
 -- prop id
-const.DIAMOND = 1
-const.GOLD = 2
-const.EXP = 3
-const.LOVE = 4
-const.PHY_POWER = 5
-const.INVITATION = 6
+const.DIAMOND       = 1
+const.GOLD          = 2
+const.EXP           = 3
+const.LOVE          = 4
+const.PHY_POWER     = 5
+const.HONORARY_COIN = 6
+const.ARA_INTEGRAL  = 7
 
 -- achievement type
 const.ACHIEVEMENT_T_SUM = 8
