@@ -2317,7 +2317,7 @@ end
 function REQUEST:ara_rfh()
 	-- body
 	-- if user.ara_rnk
-
+	skynet.call(lp, "lua", "")
 end
 
 function REQUEST:ara_worship()
@@ -2342,7 +2342,7 @@ end
 function REQUEST:ara_clg_tms_purchase()
 	-- body
 	-- u_journalmgr
-
+	
 end
 
 function REQUEST:ara_rnk_reward_collected()
@@ -2468,23 +2468,29 @@ skynet.register_protocol {
 			error "error"
 		end
 	end,
-	dispatch = function (_, _, type, ...)
-		if type == "REQUEST" then
+	dispatch = function (_, _, t, ...)
+		if t == "REQUEST" then
 			local ok, result  = pcall(request, ...)
 			if ok then
 				if result then
-					print("88888888888888888888888")
 					-- return result
 					-- send_package(result)
-					skynet.retpack(result)
+					print(type(result), #result)
+					assert(type(result) == "string")
+					local msg, sz = skynet.pack(result)
+					print(sz)
+					skynet.ret(msg, sz)
+					-- skynet.ret(result)
+					-- skynet.retpack(result)
+					return result
 				end
 			else
 				skynet.error(result)
 			end
-		elseif type == "HEARTBEAT" then
+		elseif t == "HEARTBEAT" then
 			assert(false)
 			-- send_package(send_request "heartbeat")
-		elseif type == "RESPONSE" then
+		elseif t == "RESPONSE" then
 			pcall(response, ...)
 		end
 	end

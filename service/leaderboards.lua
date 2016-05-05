@@ -1,5 +1,10 @@
+package.path = "../lualib/?.lua;" .. package.path
 local skynet = require "skynet"
 local assert = assert
+local query = require "query"
+
+
+local table_name = ...
 
 -- {id = { id=0, ranking=0, key=} }
 local name_ranking = {}
@@ -93,4 +98,13 @@ skynet.start(function ()
 		else
 		end
 	end)
+	local sql = string.format("select * from %s", table_name)
+	local r = query.select_sql_wait(table_name, sql, query.DB_PRIORITY_1)
+	local idx = 1
+	for i,v in ipairs(r) do
+		assert(v.csv_id == idx)
+		idx = idx + 1
+		ranking_name[v.csv_id] = v.id
+		name_ranking[id] = { id=v.id, ranking=v.csv_id, key=v.key} 
+	end
 end)
