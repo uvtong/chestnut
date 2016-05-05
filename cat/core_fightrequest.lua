@@ -172,19 +172,19 @@ local function get_monster_fight_list(monsterid)
 	for k, v in ipairs(t) do
 		tmp[k] = v[1]
 	end 
-	
+		
 	assert(#tmp > 0)
-	
+		
 	fight_id_list = get_ordered_fight_list(tmp, Enemy.FightList, Enemy.FightIdList)
-	
+		
 	return fight_id_list
-end 
+end 	
 										
 local function get_fight_list(uid, roleid, roletype)
 	local ret = {}
 	local r = {}
 	local TmpSelf = {}
-	
+		
 	if roletype == SELF then
 		r = user.u_rolemgr:get_by_csv_id(roleid)
 		assert(r)
@@ -194,9 +194,9 @@ local function get_fight_list(uid, roleid, roletype)
 		r = skynet.call(util.random_db(), "lua", "command", "query", sql)
 		assert(r)
 		TmpSelf = Enemy
-	end
+	end 
 
-	local inx = 1
+	local idx = 1
 	local tmp = {}
 
 	while idx <= QuanFaNum do
