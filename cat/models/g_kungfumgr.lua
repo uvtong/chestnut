@@ -79,6 +79,13 @@ function _M:get_by_g_csv_id( vtype , level )
 	end
 end
 
+function _M:get_by_csv_id(g_csv_id)
+	assert(g_csv_id)
+	print("g_csv_id is g_kungfu is ", g_csv_id)
+	assert(self.__data[tostring(g_csv_id)] ~= nil)
+	return self.__data[tostring(g_csv_id)]
+end
+
 function _M:delete_by_g_csv_id(g_csv_id)
 	-- body
 	assert(self.__data[tostring(g_csv_id)])

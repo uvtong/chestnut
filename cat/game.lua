@@ -274,6 +274,16 @@ function CMD.query_g_goods(pk)
 	end
 end
 
+function CMD:query_g_daily_task()
+	local r = game.g_daily_taskmgr:get_one()
+	if r then
+		return r
+	else
+		assert(false)
+	end
+end
+
+
 function CMD.query_g_goods_refresh_cost(pk)
 	-- body
 	print("abcedfe")
@@ -323,16 +333,18 @@ function CMD.query_g_mainreward(pk)
 	end
 end
 
-function CMD.query_g_monster()
+function CMD.query_g_monster(pk)
 	-- body
 	if type(pk) == "number" then
 		local r = game.g_monstermgr:get_by_csv_id(pk)
 		if r then
+			print("*****************************************************g_monster1", r.combat, r.defense, r.critical_hit)
 			return r
 		else
 			error "there are insufficient data"
 		end
 	elseif type(pk) == "nil" then
+		print("*****************************************************g_monster1")
 		return game.g_monstermgr.__data
 	else
 		assert(false)

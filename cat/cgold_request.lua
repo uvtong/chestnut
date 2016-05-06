@@ -54,7 +54,8 @@ function REQUEST:login(u)
 	user = u
 	
 	--print( game.g_daily_taskmgr:get_count() )
-	local t = game.g_daily_taskmgr:get_one() -- may be changed
+	--local t = game.g_daily_taskmgr:get_one() -- may be changed
+	local t = skynet.call(".game", "lua", "query_g_daily_task")
 	assert( t )
 	record_date = Split( t.update_time , "|" )
 	--print( record_date[ 1 ] , record_date[ 2 ] , record_date[ 3 ] )

@@ -309,7 +309,7 @@ local function collect_info_from_g_role_effect( bufferid , ttotal )
 
 		local index = gre[ property_id ] 
 		assert( index )
-		print( index , gre[ value ] )
+		--print( index , gre[ value ] )
 		if 0 ~= index then
 			ttotal[ index ] = ttotal[ index ] + gre[ value ]
 		end 
@@ -334,8 +334,9 @@ function util.get_total_property( user , uid , onbattleroleid)   -- zhijie ti sh
 		else
 			id = onbattleroleid
 		end
-
+		print("id is ************************************", id)
 		role = user.u_rolemgr:get_by_csv_id( id )
+		assert(role)
 		roles = user.u_rolemgr.__data
 		u = user
 	else    
