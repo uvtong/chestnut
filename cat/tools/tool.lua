@@ -1,5 +1,7 @@
 local tname = tostring(...)
-local addr = io.open("./models/" .. tname .. "mgr.lua", "w")
+
+local addr = io.open("./../models/" .. tname .. "mgr.lua", "w")
+
 local s = string.format([[
 local skynet = require "skynet"
 local util = require "util"

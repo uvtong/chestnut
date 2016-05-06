@@ -22,7 +22,7 @@ Protocol:
 	8. Server : call auth_handler(token) -> server, uid (A user defined method)
 	9. Server : call login_handler(server, uid, secret) ->subid (A user defined method)
 	10. Server->Client : 200 base64(subid)
-
+		
 Error Code:
 	400 Bad Request . challenge failed
 	401 Unauthorized . unauthorized by auth_handler
@@ -40,13 +40,13 @@ local function assert_socket(service, v, fd)
 	else
 		skynet.error(string.format("%s failed: socket (fd = %d) closed", service, fd))
 		error(socket_error)
-	end
-end
-
+	end 
+end 	
+		
 local function write(service, fd, text)
 	assert_socket(service, socket.write(fd, text), fd)
-end
-
+end 	
+		
 local function launch_slave(auth_handler)
 	local function auth(fd, addr)
 		-- set socket buffer limit (8K)

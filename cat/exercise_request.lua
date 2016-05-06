@@ -79,7 +79,7 @@ local function raise_achievement(type, user)
 					local k1 = string.gsub(a.unlock_next_csv_id, "(%d*)%*(%d*)", "%1")
 					local k2 = string.gsub(a.unlock_next_csv_id, "(%d*)%*(%d*)", "%2")
 					
-					local a1 = skynet.call(game, "lua", "query_g_achievement", k1)
+					local a1 = skynet.call(".game", "lua", "query_g_achievement", k1)
 					a1.user_id = user.csv_id
 					a1.finished = 100
 					a1.is_unlock = 1
@@ -182,14 +182,14 @@ local function raise_achievement(type, user)
 	end
 end
 
-
 function REQUEST:login(u)
 	-- body
 	assert( u )
 	print( "**********************************exerciserequest_login " )
 	user = u
-	print( game.g_daily_taskmgr:get_count() )
-	local t = game.g_daily_taskmgr:get_one() -- may be changed
+	
+	--local t = game.g_daily_taskmgr:get_one() -- may be changed
+	local t = skynet.call(".game", "lua", "query_g_daily_task")
 	assert( t )
 	record_date = Split( t.update_time , "|" )
 	time_first = tonumber( string.sub( record_date[ 1 ] , 1 , 2 ) )

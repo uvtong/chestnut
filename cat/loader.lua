@@ -451,7 +451,7 @@ local function load_g_property_pool()
 	end
 	game.g_property_poolmgr = g_property_poolmgr
 end
-
+	
 local function load_g_property_pool_second()
 	-- body
 	assert(game.g_property_pool_secondmgr == nil)
@@ -462,8 +462,8 @@ local function load_g_property_pool_second()
 		g_property_pool_secondmgr:add(t)
 	end
 	game.g_property_pool_secondmgr = g_property_pool_secondmgr
-end
-
+end 
+	 
 local function load_g_equipment_effect()
 	-- body
 	assert(game.g_equipment_effectmgr == nil)
@@ -474,8 +474,21 @@ local function load_g_equipment_effect()
 		g_equipment_effectmgr:add(t)
 	end
 	game.g_equipment_effectmgr = g_equipment_effectmgr
-end
+end 
+	
+local function load_g_monster()
+	assert(nil == game.g_monstermgr)
 
+	local g_monstermgr = require "models/g_monstermgr"
+	local r = skynet.call(util.random_db(), "lua", "command", "select", "g_monster")
+	for i, v in ipairs(r) do
+		local t = g_monstermgr.create(v)
+		g_monstermgr:add(t)
+	end
+
+	game.g_monstermgr = g_monstermgr
+end 
+	
 local function load_user(user_id)
 	-- body
 	local usersmgr = require "models/usersmgr"
@@ -907,6 +920,7 @@ function loader.load_game()
 	load_g_role_effect()
 	load_g_equipment_effect()
 	load_g_lilian_phy_power()
+	load_g_monster()
 	return game
 end
 

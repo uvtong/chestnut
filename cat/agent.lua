@@ -2417,6 +2417,7 @@ local function request(name, args, response)
     		end
     	end
     end
+
     if f then
 	    local ok, result = pcall(f, args)
 	    if ok then
@@ -2552,9 +2553,19 @@ function CMD.login(source, uid, sid, sct, game, db)
 		local signup = require "signup"
 		
 	else
+		
+
 		print("************************************456")
 		user = loader.load_user(uid)
 	end
+
+
+	for k,v in pairs(M) do
+		if v.REQUEST then
+			v.REQUEST["login"](v.REQUEST, user)
+		end
+	end
+
 
 	local rnk = skynet.call(lb, "lua", "push", user.csv_id, user.csv_id)
 	user.ara_rnk = rnk
@@ -2648,6 +2659,7 @@ local function start()
 	context.host = host
 	context.send_request = send_request
 	context.game = game
+
 
 	local t = loader.load_game()
 	for i,v in ipairs(M) do
