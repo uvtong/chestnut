@@ -130,7 +130,10 @@ local function route( id, code, url, method, header, body )
 					if ok then
 						bodyfunc = res
 					else
-						bodyfunc = res
+						print(res)
+						statuscode = 301
+						bodyfunc = "404"
+						headerd["Location"] = "/404"		
 					end
 					break
 				end
@@ -154,7 +157,10 @@ local function route( id, code, url, method, header, body )
 					if ok then
 						bodyfunc = res
 					else
-						bodyfunc = res
+						print(res)
+						statuscode = 301
+						bodyfunc = "404"
+						headerd["Location"] = "/404"		
 					end
 				elseif flag == "post" then
 					local args = {}
@@ -164,7 +170,10 @@ local function route( id, code, url, method, header, body )
 					if ok then
 						bodyfunc = res
 					else
-						bodyfunc = res
+						print(res)
+						statuscode = 301
+						bodyfunc = "404"
+						headerd["Location"] = "/404"
 					end
 				else
 					assert(false)
@@ -172,11 +181,15 @@ local function route( id, code, url, method, header, body )
 				break
 			end
 		end
-		if not bodyfunc then
+		if bodyfunc == nil then
+			statuscode = 301
 			bodyfunc = "404"
+			headerd["Location"] = "/404"
 		end
 	else
-		bodyfunc = "handle default."
+		statuscode = 301
+		bodyfunc = "404"
+		headerd["Location"] = "/404"
 	end
 	if type(bodyfunc) == "table" then
 		bodyfunc = json.encode(bodyfunc)

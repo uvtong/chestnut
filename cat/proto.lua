@@ -1086,6 +1086,9 @@ lilian_rewared_list 78 {
 }
 
 ara_bat_ovr 79 {
+    request {
+        win 0 : integer
+    }
     response {
         errorcode 0 : integer
         msg 1 : string

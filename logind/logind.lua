@@ -43,17 +43,32 @@ function server.login_handler(server, uid, secret)
 	if user_online[uid] then
 		error(string.format("user %s is already online", uid))
 	end
-	print("gameserver is called",gameserver)
-	local subid, gated = tostring(skynet.call(gameserver, "lua", "login", uid, secret))
+	local subid, gated
+	print("gameserver is called", gameserver)
+	local areamgr = require "areamgr"
+	if areamgr:get_by_csv_id(server) == nil then
+		subid, gated = skynet.call(gameserver, "lua", "login", uid, secret, true)
+	else
+		subid, gated = skynet.call(gameserver, "lua", "login", uid, secret, false)
+	end
 	user_online[uid] = { address = gameserver, subid = subid , server = server}
-	print("gameserver is *******************", gameserver, subid, server, gated)
-	return subid, gated
+	return tostring(subid), gated
 end
 
 local CMD = {}
 
+function CMD.load()
+	-- body
+	local areamgr = require "areamgr"
+	local sql = "select * from area"
+	local r = skynet.call(".signup_db", "lua", "command", "query", sql)
+	for i,v in ipairs(r) do
+		local t = areamgr.create(v)
+		areamgr.add(t)
+	end
+end
+
 function CMD.register_gate(server, address)
-	print("************", server, address)
 	server_list[server] = address
 end
 

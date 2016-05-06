@@ -16,7 +16,7 @@ local internal_id = 0
 
 -- login server disallow multi login, so login_handler never be reentry
 -- call by login server
-function server.login_handler(uid, secret)
+function server.login_handler(uid, secret, cmd, ...)
 	if users[uid] then
 		error(string.format("%s is already login", uid))
 	end
@@ -36,8 +36,13 @@ function server.login_handler(uid, secret)
 	}
 
 	-- trash subid (no used)
-	local ok = skynet.call(agent, "lua", "login", uid, id, secret, game, db)
-	assert(ok)
+	if cmd then
+		local ok = skynet.call(agent, "lua", "signup", uid, id, secret, game, db)
+		assert(ok)
+	else	
+		local ok = skynet.call(agent, "lua", "login", uid, id, secret, game, db)
+		assert(ok)
+	end
 
 	users[uid] = u
 	username_map[username] = u

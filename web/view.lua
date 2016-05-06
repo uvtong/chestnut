@@ -215,38 +215,44 @@ function VIEW:validation()
 		local sql = string.format("select * from columns where table_name=\"%s\";", table_name)
 		local r = query.select_sql_wait(table_name, sql, query.DB_PRIORITY_2)
 		if #r == 0 then
-			for k,v in pairs(r) do
-				print(k,v)
-			end
 			ret.ok = 0
 			ret.msg = "failture"
 			return ret
 		end
+		local pk
+		local count = "{\n"
 		local fields = "{\n"
 		local head = "{\n"
 		for i,v in ipairs(r) do
-			local seg = ""..v.COLUMN_NAME.." = {\n"
-			seg = seg .. string.format("\tpk = false,\n")
-			seg = seg .. string.format("\tfk = false,\n")
-			seg = seg .. string.format("\tuq = false,\n")
-			if v.DATA_TYPE == "int" then
-				seg = seg .. string.format("\tt = \"%s\",\n", "number")
-			elseif v.DATA_TYPE == "varchar" or v.DATA_TYPE == "char" then
-				seg = seg .. string.format("\tt = \"%s\",\n", "string")
+			local seg = "\t"..v.COLUMN_NAME.." = {\n"
+			if v.COLUMN_KEY == "PRI" then
+				pk = v.COLUMN_NAME
+				seg = seg .. string.format("\t\tpk = true,\n")
+			else
+				seg = seg .. string.format("\t\tpk = false,\n")
 			end
-			seg = seg .. "},"
+			seg = seg .. string.format("\t\tfk = false,\n")
+			seg = seg .. string.format("\t\tuq = false,\n")
+			if v.DATA_TYPE == "int" then
+				seg = seg .. string.format("\t\tt = \"%s\",\n", "number")
+			elseif v.DATA_TYPE == "varchar" or v.DATA_TYPE == "char" then
+				seg = seg .. string.format("\t\tt = \"%s\",\n", "string")
+			end
+			seg = seg .. "\t},\n"
 			head = head .. seg
 
 			seg = seg .. string.format("\tc = 0,\n")
-			fields = fields .. string.format("\t%s = { c = 0, v = nil },\n", v.COLUMN_NAME)
+			count = count .. string.format("\t\t\t%s = 0,\n", v.COLUMN_NAME)
+			fields = fields .. string.format("\t\t\t%s = 0,\n", v.COLUMN_NAME)
 		end
 		head = head.."}\n"
-		fields = fields.."}\n"
-
-		local s, ss = require("model")()
+		fields = fields.."\t\t}\n"
+		count = count.."\t\t}\n"
+		
+		local s = require("model")
 		local dir = skynet.getenv("pro_dir")
 		local addr = io.open(dir.."models/"..table_name.."mgr.lua", "w")
-		local content = string.format(s, table_name, head, ss, table_name, fields)
+		local content = string.format(s, table_name, head, pk, fields)
 		addr:write(content)
 		addr:close()
 		ret.ok = 1

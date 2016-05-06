@@ -305,7 +305,7 @@ function server.start(conf)
 		local len = #message
 		local tag = string.unpack("B", string.sub(message, len))
 		local session = string.unpack(">I4", string.sub(message, len-4, len-1))
-		message = string.sub(message, 1, 7)
+		message = string.sub(message, 1, len-5)
 		print("tag is", tag, "session is", session, "size of msg is", #message)
 		if tag == c2s_req_tag then
 			local p = u.response[session]

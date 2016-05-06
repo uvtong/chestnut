@@ -2303,7 +2303,33 @@ end
 
 function REQUEST:ara_bat_ovr()
 	-- body
-	
+	local ret = {}
+	if not user then
+		ret.errorcode = errorcode[2].code
+		ret.msg = errorcode[2].msg
+		return ret
+	end
+	local prop = user.u_propmgr:get_by_csv_id(const.ARA_INTEGRAL)
+	if self.win == 1 then
+		user.ara_win_tms = user.ara_win_tms + 1
+		prop.num = prop.num + 2
+	elseif self.win == 0 then
+		user.ara_tie_tms = user.ara_tie_tms + 1
+		prop.num = prop.num + 2
+	elseif self.win == -1 then
+		user.ara_lose_tms = user.ara_lose_tms + 1
+		prop.num = prop.num + 1
+	end
+	ret.errorcode = errorcode[1].code
+	ret.msg = errorcode[1].msg
+	ret.ara_points = prop.num
+	ret.ara_win_tms = user.ara_win_tms
+	ret.ara_lose_tms = user.ara_lose_tms
+	local leaderboards_name = skynet.getenv("leaderboards_name")
+	local l = skynet.call(leaderboards_name, "lua", "ranking_range", 1, 100)
+	ret.ara_leaderboards = l
+	ret.rmd_list = 
+	return ret
 end
 
 function REQUEST:ara_bat_clg()
@@ -2343,7 +2369,7 @@ end
 function REQUEST:ara_clg_tms_purchase()
 	-- body
 	-- u_journalmgr
-	
+	skynet.call()
 end
 
 function REQUEST:ara_rnk_reward_collected()
@@ -2371,9 +2397,9 @@ end
 local function generate_session()
 	local session = 0
 	return function () 
-			session = session + 1
-			return session
-		   end 
+		session = session + 1
+		return session
+	end 
 end
 
 local function request(name, args, response)
@@ -2491,6 +2517,25 @@ function CMD.newemail(source, subcmd , ... )
 	f( new_emailrequest , ... )
 end
 
+function CMD.signup(source, uid, sid, sct, game, db)
+	-- body
+	skynet.error(string.format("%s is login", uid))
+	gate   = source
+	userid = uid
+	subid  = sid
+	secret = sct
+	game   = game
+	db     = db
+
+	user = signup(uid, xilian)
+	if user == nil then
+		return false
+	end
+
+	return true
+
+end
+
 function CMD.login(source, uid, sid, sct, game, db)
 	-- body
 	skynet.error(string.format("%s is login", uid))
@@ -2505,10 +2550,7 @@ function CMD.login(source, uid, sid, sct, game, db)
 	if times == 1 then
 		print("************************************123")
 		local signup = require "signup"
-		user = signup(uid, xilian)
-		if user == nil then
-			return false
-		end
+		
 	else
 		print("************************************456")
 		user = loader.load_user(uid)

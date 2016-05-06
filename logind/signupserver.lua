@@ -4,6 +4,7 @@ local crypt = require "crypt"
 local skynet = require "skynet"
 local accountmgr = require "models/accountmgr"
 local db
+local MAX_INTEGER = 16777216
 
 local address, port = string.match(skynet.getenv("signupd"), "([%d.]+)%:(%d+)")
 local server = {
@@ -23,32 +24,41 @@ function server.auth_handler(token)
 	user = crypt.base64decode(user)
 	server = crypt.base64decode(server)
 	password = crypt.base64decode(password)
-	if accountmgr:get_by_user(user) == nil then
-		local sql = string.format("select * from account where user = \"%s\" and password = \"%s\"", user, password)
-		local r = skynet.call(".signup_db", "lua", "command", "query", sql)
-		if #r >= 1 then
-			error("has account")
-		end
-		-- for k,v in pairs(r) do
-		-- 	print(k,v)
-		-- end
-		local sql = string.format("select * from uid where csv_id = 1")
-		local r = skynet.call(".signup_db", "lua", "command", "query", sql)
-		local csv_id = r[1].entropy
-		sql = string.format("update uid set entropy=%d where csv_id=1", csv_id+1)
-		skynet.call(".signup_db", "lua", "command", "query", sql)
-		local tmp = {
-			csv_id = csv_id,
-			user=user, 
-			password=password, 
-			signuptime=os.time()
-		}
-		local u = accountmgr.create(tmp)
-		accountmgr:add(u)
-		u:__insert_db(1)
-		return server, csv_id
+	-- judge is exits
+	local sql = string.format("select * from account where user = \"%s\"", user)
+	local r = skynet.call(".signup_db", "lua", "command", "query", sql)
+	if #r >= 1 then
+		error("has account")
 	else
-		error("no account")
+		local backup = {}
+		local id
+		local function gen_id()
+			-- body
+			local rand = math.random(1, 4)
+			if backup[rand] then
+				return false
+			end
+			local sql = string.format("select * from uid where id = %d", rand)
+			local r = skynet.call(".signup_db", "lua", "command", "query", sql)	
+			assert(#r == 1)
+			id = r.entropy
+			if id < MAX_INTEGER then
+				sql = string.format("update uid set entropy = %d where id = %d", id + 1, rand)
+				skynet.send(".signup_db", "lua", "command", "update_sql", "uid", sql, 1)		
+				id = id << 8
+				rand = rand & 255
+				id = id | rand
+				return true
+			else		
+				backup[rand] = true
+				return false
+			end
+		end
+		while gen_id() do
+		end
+		sql = string.format("insert into account (id, user, password, signuptime) values ( %d, \"%s\", \"%s\", %d)", id, user, password, os.time())
+		skynet.send(".signup_db", "lua", "command", "insert_sql", "account", sql, 1)
+		return server, id
 	end
 end
 

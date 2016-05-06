@@ -86,6 +86,19 @@ function CMD.name(rnk)
 	return assert(ranking_name[rnk])
 end
 
+function CMD.ranking_range(s, e)
+	-- body
+	assert(type(s) == "number")
+	assert(type(e) == "number")
+	assert(e > s)
+	local l = {}
+	for i=s,e do
+		local id = ranking_name[i]
+		table.insert(l, name_ranking[id])
+	end
+	return l
+end
+
 skynet.start(function ()
 	-- body
 	skynet.dispatch("lua", function(_,_, command, subcmd, ...)
