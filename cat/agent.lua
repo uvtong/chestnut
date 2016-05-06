@@ -2618,17 +2618,11 @@ local function start()
 	context.send_request = send_request
 	context.game = game
 
-<<<<<<< HEAD
-	-- local t = loader.load_game()
-	-- for i,v in ipairs(M) do
-	-- 	v.start(fd, send_request, game)
-	-- end	
-=======
+
 	local t = loader.load_game()
 	for i,v in ipairs(M) do
 		v.start(fd, send_request, t)
 	end	
->>>>>>> b4122124164fc259884f9cac975c2465f6336a63
 end
 
 skynet.start(function()

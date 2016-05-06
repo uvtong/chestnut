@@ -556,7 +556,7 @@ local function do_verify(v, userroleid)
 			else 	
 				assert(false)
 			end 		
-
+			
 			TmpEnemy.PresentComboNum = 0
 		end 		
                  	
@@ -596,14 +596,14 @@ function REQUEST:GuanQiaBattleList()
 	print("BattleList is called ****************************")
 	assert(self.fightlist)
 	local ret = {}		
-
+	
 	for k , v in ipairs(self.fightlist) do
 		if not do_verify(v, user.c_role_id) then
 			ret.errorcode = errorcode[1].code
 			return ret
 		end
 	end 		
-
+	
 	ret.errorcode = errorcode[1].code
 	return ret
 end 		
@@ -613,7 +613,7 @@ function REQUEST:ArenaBattleList()
 	assert(self.fightlist)
            
 	for k , v in ipairs(self.fightlist) do
-
+		
 	end 	
 end 		
 		
@@ -629,7 +629,7 @@ function REQUEST:OnReEnterCoreFight()
 	print( "OnReEnterCoreFight is called**************************************" )
 	local date = os.time()
 	local ret = {}
-
+	
 	if date - NormalExistTime >= MAX_EXIT_TIME then
 		--TODO Tell client user failed
 
