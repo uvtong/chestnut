@@ -93,21 +93,23 @@ local function parse_header( header, body )
 	if not header["content-type"] then
 		return "post", parse(body)
 	end
-		local t, c = unpack_seg(header["content-type"], ";")
-		if t == "application/x-www-form-urlencoded" then
-			return "post", parse(body)
-		elseif t == "multipart/form-data" then
-			local idx = string.find(c, "=")
-			local boundary = string.sub(c, idx+1)
-		 	return "file", parse_file(header, boundary, body)
-		else
-		 	assert(false)
-		end
+	local t, c = unpack_seg(header["content-type"], ";")
+	if t == "application/x-www-form-urlencoded" then
+		return "post", parse(body)
+	elseif t == "multipart/form-data" then
+		local idx = string.find(c, "=")
+		local boundary = string.sub(c, idx+1)
+	 	return "file", parse_file(header, boundary, body)
+	else
+	 	assert(false)
+	end
 end
 
 local function route( id, code, url, method, header, body )
 	-- body
 	local statuscode = code
+	local headerd = {}
+	headerd["connection"] = "close"
 	local bodyfunc
 	local path, query = urllib.parse(url)
 	if method == "GET" then
@@ -121,16 +123,22 @@ local function route( id, code, url, method, header, body )
 		else
 			for k,v in pairs(urls) do
 				if string.match(path, k) then
-					v.query = query
-					local ok, res = pcall(v.__get, v)
+					local args = {}
+					args.method = "get"
+					args.query = query
+					local ok, res = pcall(v, args)
 					if ok then
+						bodyfunc = res
+					else
 						bodyfunc = res
 					end
 					break
 				end
 			end
 			if not bodyfunc then
-				bodyfunc = "don't have mathcing url."
+				bodyfunc = "404"
+				statuscode = 301
+				headerd["Location"] = "/404"
 			end
 		end
 	elseif method == "POST" then
@@ -139,15 +147,23 @@ local function route( id, code, url, method, header, body )
 		for k,v in pairs(urls) do
 			if string.match(path, k) then
 				if flag == "file" then
-					v.file = body
-					local ok, res = pcall(v.__file, v)
+					local args = {}
+					args.method = flag
+					args.file = body
+					local ok, res = pcall(v, args)
 					if ok then
+						bodyfunc = res
+					else
 						bodyfunc = res
 					end
 				elseif flag == "post" then
-					v.body = body
-					local ok, res = pcall(v.__post, v)
+					local args = {}
+					args.method = flag
+					args.body = body
+					local ok, res = pcall(v, args)
 					if ok then
+						bodyfunc = res
+					else
 						bodyfunc = res
 					end
 				else
@@ -157,17 +173,16 @@ local function route( id, code, url, method, header, body )
 			end
 		end
 		if not bodyfunc then
-			bodyfunc = "don't have mathcing url."
+			bodyfunc = "404"
 		end
 	else
-		bodyfunc = "don't support mathcing method."
+		bodyfunc = "handle default."
 	end
 	if type(bodyfunc) == "table" then
 		bodyfunc = json.encode(bodyfunc)
 	end
-	header = {}
-	header["connection"] = "close"
-	return response(id, statuscode, bodyfunc, header)
+	assert(type(bodyfunc) == "string" or type(bodyfunc) == "function")
+	return response(id, statuscode, bodyfunc, headerd)
 end 
 
 skynet.start(function()

@@ -28,13 +28,13 @@ local new_drawrequest = require "new_drawrequest"
 local lilian_request = require "lilian_request"
 local core_fightrequest = require "core_fightrequest"
 
-table.insert( M , checkinrequest )
-table.insert( M , exercise_request )
-table.insert( M , cgold_request )
-table.insert( M , new_emailrequest )
-table.insert( M , kungfurequest )
-table.insert( M , new_drawrequest )
-table.insert( M , lilian_request )
+table.insert(M, checkinrequest )
+table.insert(M, exercise_request )
+table.insert(M, cgold_request )
+table.insert(M, new_emailrequest )
+table.insert(M, kungfurequest )
+table.insert(M, new_drawrequest )
+table.insert(M, lilian_request )
 table.insert(M, core_fightrequest)
 
 local host
@@ -2303,6 +2303,7 @@ end
 
 function REQUEST:ara_bat_ovr()
 	-- body
+	
 end
 
 function REQUEST:ara_bat_clg()
@@ -2367,12 +2368,6 @@ function REQUEST:ara_rnk_reward_collected()
 	end
 end
 
-function REQUEST:handshake()
-	print("Welcome to skynet, I will send heartbeat every 5 sec." )
-	return { msg = "Welcome to skynet, I will send heartbeat every 5 sec." }
-end		
-
-
 local function generate_session()
 	local session = 0
 	return function () 
@@ -2396,17 +2391,22 @@ local function request(name, args, response)
     		end
     	end
     end
-    assert(f)
-    assert(response)
-    local ok, result = pcall(f, args)
-    if ok then
-		print(result)
-		return response(result)
+
+    if f then
+	    local ok, result = pcall(f, args)
+	    if ok then
+			return response(result)
+		else
+			skynet.error(result)
+			local ret = {}
+			ret.errorcode = errorcode[29].code
+			ret.msg = errorcode[29].msg
+			return response(ret)
+		end
 	else
-		skynet.error(result)
 		local ret = {}
-		ret.errorcode = errorcode[29].code
-		ret.msg = errorcode[29].msg
+		ret.errorcode = errorcode[39].code
+		ret.msg = errorcode[39].msg
 		return response(ret)
 	end
 end      
@@ -2464,19 +2464,10 @@ skynet.register_protocol {
 			local ok, result  = pcall(request, ...)
 			if ok then
 				if result then
-					-- return result
-					-- send_package(result)
-					print(type(result), #result)
-					assert(type(result) == "string")
-					local msg, sz = skynet.pack(result)
-					print(sz)
-					skynet.ret(msg, sz)
-					-- skynet.ret(result)
-					-- skynet.retpack(result)
-					return result
+					skynet.retpack(result)
 				end
 			else
-				skynet.error(result)
+				assert(false, result)
 			end
 		elseif t == "HEARTBEAT" then
 			assert(false)
@@ -2627,10 +2618,17 @@ local function start()
 	context.send_request = send_request
 	context.game = game
 
+<<<<<<< HEAD
 	-- local t = loader.load_game()
 	-- for i,v in ipairs(M) do
 	-- 	v.start(fd, send_request, game)
 	-- end	
+=======
+	local t = loader.load_game()
+	for i,v in ipairs(M) do
+		v.start(fd, send_request, t)
+	end	
+>>>>>>> b4122124164fc259884f9cac975c2465f6336a63
 end
 
 skynet.start(function()

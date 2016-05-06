@@ -1,4 +1,5 @@
 package.path = "./../db/?.lua;./../db/lualib/?.lua;./../cat/?.lua;" .. package.path
+package.cpath = "./../lua-cjson/?.so;"..package.cpath
 local skynet = require "skynet"
 local mysql = require "mysql"
 local redis = require "redis"
@@ -167,6 +168,26 @@ local function connect_redis(conf)
 end	
 		
 local QUERY = {}
+
+function QUERY:set(k, v)
+	-- body
+	assert(type(k) == "string")
+	assert(type(k) == "string")
+	cache:set(k, v)
+end
+
+function QUERY:get(k, sub)
+	-- body
+	assert(type(k) == "string")
+	assert(type(sub) == "string")
+	local v = cache:get(k)
+	if sub ~= nil then
+		v = json.decode(v)
+		return v[sub]
+	else
+		return v
+	end
+end
 
 function QUERY:query( sql )
 	-- body

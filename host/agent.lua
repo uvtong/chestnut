@@ -29,10 +29,6 @@ local right
 
 local room = {}
 
-local function send_package(pack)
-	local package = string.pack(">s2", pack)
-	socket.write(client_fd, package)
-end
 
 local function shuffle( ... )
 	-- body
@@ -275,7 +271,7 @@ skynet.register_protocol {
 			local ok, result  = pcall(request, ...)
 			if ok then
 				if result then
-					send_package(result)
+					skynet.retpack(result)
 				end
 			else
 				skynet.error(result)
