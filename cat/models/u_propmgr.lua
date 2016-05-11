@@ -2,6 +2,7 @@ local skynet = require "skynet"
 local util = require "util"
 local const = require "const"
 local notification = require "notification"
+local query = require "query"
 
 local _M = {}
 _M.__data = {}
@@ -161,7 +162,7 @@ function _M:update_db(priority)
 		local columns = { "num" }
 		local condition = { {user_id = self.__user_id}, {csv_id = {}}}
 		local sql = util.update_all(self.__tname, condition, columns, self.__data)
-		skynet.send(util.random_db(), "lua", "command", "update_all_sql", self.__tname, sql, priority)
+		query.write(".db", self.__tname, sql, priority)
 	end
 end
 

@@ -52,24 +52,26 @@ local function launch_slave(auth_handler)
 		-- set socket buffer limit (8K)
 		-- If the attacker send large package, close the socket
 		socket.limit(fd, 8192)
-		print("******************************a0")
 		local challenge = crypt.randomkey()
-		print("******************************a00")
 		write("auth", fd, crypt.base64encode(challenge).."\n")
-		print("******************************a01")
+
+		print("***************************1")
 
 		local handshake = assert_socket("auth", socket.readline(fd), fd)
 		local clientkey = crypt.base64decode(handshake)
 		if #clientkey ~= 8 then
 			error "Invalid client key"
 		end
-		print("******************************a1")
+		
+		print("***************************2")
+
 		local serverkey = crypt.randomkey()
 		write("auth", fd, crypt.base64encode(crypt.dhexchange(serverkey)).."\n")
 
+		print("***************************3")
+
 		local secret = crypt.dhsecret(clientkey, serverkey)
 
-		print("******************************a2")
 		local response = assert_socket("auth", socket.readline(fd), fd)
 		local hmac = crypt.hmac64(challenge, secret)
 
@@ -78,12 +80,10 @@ local function launch_slave(auth_handler)
 			error "challenge failed"
 		end
 
-		print("******************************a3")
 		local etoken = assert_socket("auth", socket.readline(fd),fd)
 
 		local token = crypt.desdecode(secret, crypt.base64decode(etoken))
 
-		print("******************************a4")
 		local ok, server, uid =  pcall(auth_handler,token)
 
 		return ok, server, uid, secret

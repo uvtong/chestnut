@@ -12,9 +12,21 @@ _M.__cap     = 0
 _M.__tname   = "%s"
 _M.__head    = %s
 _M.__pk      = "%s"
+_M.__rdb     = ".rdb"
+_M.__wdb     = ".wdb"
 
-function _M.create( ... )
+function _M:genpk(user_id, csv_id)
 	-- body
+	local pk = user_id << 32
+	pk = (pk | ((1 << 32 -1) & csv_id ))
+	return pk
+end
+
+function _M:ctor(P)
+	-- body
+	local r = self.create(P)
+	self:add(r)
+	r("insert")
 end
 
 function _M.create(P)
@@ -22,34 +34,47 @@ function _M.create(P)
 	local t = { 
 		__head  = _M.__head,
 		__tname = _M.__tname,
-		__col_num_ued=0,
-		__fields = %s
+		__pk    = _M.__pk,
+		__col_updated=0,
+		__fields = %s,
+		__ecol_updated = %s
 	}
 	setmetatable(t, entity)
-	for k,v in pairs(t.__fields) do
-		t[k] = assert(P[k])
+	for k,v in pairs(t.__head) do
+		t.__fields[k] = assert(P[k])
 	end
 	return t
 end	
-
-function _M.( . )
-	-- body
-end
 
 function _M:add(u)
  	-- body
  	assert(u)
  	assert(self.__data[u.id] == nil)
- 	self.__data[u.id] = u
+ 	self.__data[ u[self.__pk] ] = u
  	self.__count = self.__count + 1
- 	u:insert()
 end
 
 function _M:get(pk)
 	-- body
 	if self.__data[pk] then
 		return self.__data[pk]
-	elseif 
+	else
+		local r = self("load", pk)
+		if r then
+			self.create(r)
+			self:add(r)
+		end
+		return r
+	end
+end
+
+function _M:delete(pk)
+	-- body
+	local r = self.__data[pk]
+	if r then
+		r("update")
+		self.__data[pk] = nil
+	end
 end
 
 function _M:get_by_csv_id(csv_id)

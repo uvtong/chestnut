@@ -22,12 +22,7 @@ local function load_g_ara_pts()
 	-- body
 	assert(game.g_ara_ptsmgr == nil)
 	local g_ara_ptsmgr = require "models/g_ara_ptsmgr"
-	local sql = "select * from g_ara_pts"
-	local r = query.select_sql_wait("g_ara_pts", sql, query.DB_PRIORITY_3)
-	for i,v in ipairs(r) do
-		local t = g_ara_ptsmgr.create(v)
-		g_ara_ptsmgr:add(t)
-	end
+	g_ara_ptsmgr("load_db")
 	game.g_ara_ptsmgr = g_ara_ptsmgr
 end
 
@@ -35,12 +30,7 @@ local function load_g_ara_rnk_rwd()
 	-- body
 	assert(game.g_ara_rnk_rwdmgr == nil)
 	local g_ara_rnk_rwdmgr = require "models/g_ara_rnk_rwdmgr"
-	local sql = "select * from g_ara_rnk_rwd"
-	local r = query.select_sql_wait("g_ara_rnk_rwd", sql, query.DB_PRIORITY_3)
-	for i,v in ipairs(r) do
-		local t = g_ara_rnk_rwdmgr.create(v)
-		g_ara_rnk_rwdmgr:add(t)
-	end
+	g_ara_rnk_rwdmgr("load_db")
 	game.g_ara_rnk_rwdmgr = g_ara_rnk_rwdmgr
 end
 
@@ -48,12 +38,7 @@ local function load_g_ara_tms()
 	-- body
 	assert(game.g_ara_tmsmgr == nil)
 	local g_ara_tmsmgr = require "models/g_ara_tmsmgr"
-	local sql = "select * from g_ara_tms"
-	local r = query.select_sql_wait("g_ara_tms", sql, query.DB_PRIORITY_1)
-	for i,v in ipairs(r) do
-		local t = g_ara_tmsmgr.create(v)
-		g_ara_tmsmgr:add(t)
-	end
+	g_ara_tmsmgr("load_db")
 	game.g_ara_tmsmgr = g_ara_tmsmgr
 end
 
@@ -478,7 +463,6 @@ end
 	
 local function load_g_monster()
 	assert(nil == game.g_monstermgr)
-
 	local g_monstermgr = require "models/g_monstermgr"
 	local r = skynet.call(util.random_db(), "lua", "command", "select", "g_monster")
 	for i, v in ipairs(r) do
@@ -493,7 +477,7 @@ local function load_user(user_id)
 	-- body
 	local usersmgr = require "models/usersmgr"
 	local sql = string.format("select * from users where csv_id = %d", user_id)
-	local r = query.select_sql_wait("users", sql, query.DB_PRIORITY_1)
+	local r = query.read(".rdb", "users", sql, query.DB_PRIORITY_1)
 	if #r == 1 then
 		return usersmgr.create(r[1])
 	else
@@ -920,7 +904,7 @@ function loader.load_game()
 	load_g_role_effect()
 	load_g_equipment_effect()
 	load_g_lilian_phy_power()
-	load_g_monster()
+	-- load_g_monster()
 	return game
 end
 
@@ -960,7 +944,6 @@ function loader.clear(user)
 	-- body
 	for k,v in pairs(user) do
 		if string.match(k, "^u_[%w_]+mgr$") then
-			print(k)
 			v:clear()
 		end
 	end

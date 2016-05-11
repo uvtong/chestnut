@@ -40,7 +40,7 @@ local function signup(uid, xilian)
 	local res = u:__insert_db_wait(const.DB_PRIORITY_1)
 	print("****************************abc")
 	if res.errno then
-		return nil
+		error("create user failture"..tostring(res.errno))
 	end
 	u.u_achievementmgr = u_achievementmgr
 	u.u_achievement_rcmgr = u_achievement_rcmgr

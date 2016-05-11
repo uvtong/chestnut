@@ -8,10 +8,16 @@ setmetatable(_M, modelmgr)
 _M.__data    = {}
 _M.__count   = 0
 _M.__cap     = 0
-_M.__tname   = "g_ara_rnk_rwd"
+_M.__tname   = "u_ara_journal"
 _M.__head    = {
-	seri = {
+	id = {
 		pk = true,
+		fk = false,
+		uq = false,
+		t = "number",
+	},
+	user_id = {
+		pk = false,
 		fk = false,
 		uq = false,
 		t = "number",
@@ -22,21 +28,49 @@ _M.__head    = {
 		uq = false,
 		t = "number",
 	},
-	reward = {
+	date = {
 		pk = false,
 		fk = false,
 		uq = false,
-		t = "string",
+		t = "number",
+	},
+	ara_clg_tms = {
+		pk = false,
+		fk = false,
+		uq = false,
+		t = "number",
+	},
+	ara_clg_tms_pur_tms = {
+		pk = false,
+		fk = false,
+		uq = false,
+		t = "number",
+	},
+	ara_rfh_tms = {
+		pk = false,
+		fk = false,
+		uq = false,
+		t = "number",
+	},
+	ara_bat_ser = {
+		pk = false,
+		fk = false,
+		uq = false,
+		t = "number",
 	},
 }
 
-_M.__pk      = "seri"
-_M.__rdb     = ".rdb"
-_M.__wdb     = ".db"
+_M.__pk      = "id"
+
+function _M:genpk(user_id, csv_id)
+	-- body
+	local pk = user_id << 32
+	pk = (pk | ((1 << 32 -1) & csv_id ))
+	return pk
+end
 
 function _M:ctor(P)
 	-- body
-	P[self.__pk] = genpk(P.user_id, P.csv_id)
 	local r = self.create(P)
 	self:add(r)
 	r("insert")
@@ -49,15 +83,25 @@ function _M.create(P)
 		__tname = _M.__tname,
 		__col_updated=0,
 		__fields = {
-			seri = 0,
+			id = 0,
+			user_id = 0,
 			csv_id = 0,
-			reward = 0,
+			date = 0,
+			ara_clg_tms = 0,
+			ara_clg_tms_pur_tms = 0,
+			ara_rfh_tms = 0,
+			ara_bat_ser = 0,
 		}
 ,
 		__ecol_updated = {
-			seri = 0,
+			id = 0,
+			user_id = 0,
 			csv_id = 0,
-			reward = 0,
+			date = 0,
+			ara_clg_tms = 0,
+			ara_clg_tms_pur_tms = 0,
+			ara_rfh_tms = 0,
+			ara_bat_ser = 0,
 		}
 
 	}

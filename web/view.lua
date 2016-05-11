@@ -213,7 +213,7 @@ function VIEW:validation()
 		local ret = {}
 		local table_name = self.body["table_name"]
 		local sql = string.format("select * from columns where table_name=\"%s\";", table_name)
-		local r = query.select_sql_wait(table_name, sql, query.DB_PRIORITY_2)
+		local r = query.read(".rdb", table_name, sql)
 		if #r == 0 then
 			ret.ok = 0
 			ret.msg = "failture"
@@ -233,7 +233,7 @@ function VIEW:validation()
 			end
 			seg = seg .. string.format("\t\tfk = false,\n")
 			seg = seg .. string.format("\t\tuq = false,\n")
-			if v.DATA_TYPE == "int" then
+			if v.DATA_TYPE=="int" or v.DATA_TYPE=="bigint" or v.DATA_TYPE=="tinyint" or v.DATA_TYPE=="smallint" then
 				seg = seg .. string.format("\t\tt = \"%s\",\n", "number")
 			elseif v.DATA_TYPE == "varchar" or v.DATA_TYPE == "char" then
 				seg = seg .. string.format("\t\tt = \"%s\",\n", "string")
@@ -252,7 +252,7 @@ function VIEW:validation()
 		local s = require("model")
 		local dir = skynet.getenv("pro_dir")
 		local addr = io.open(dir.."models/"..table_name.."mgr.lua", "w")
-		local content = string.format(s, table_name, head, pk, fields)
+		local content = string.format(s, table_name, head, pk, fields, count)
 		addr:write(content)
 		addr:close()
 		ret.ok = 1

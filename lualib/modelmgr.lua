@@ -1,135 +1,141 @@
 local query = require "query"
-local json = require "json"
+local json = require "cjson"
 
-local function load(t, pk)
+local function get_row_db(t, pk)
 	-- body
-	query.select_sql_wait(t.__tname, "")
-	local r = skynet.call(util.random_db(), "lua", "command", "select", "g_achievement")
-	for i,v in ipairs(r) do
-		local t = g_achievementmgr.create(v)
-		g_achievementmgr:add(t)
-	end
-	game.g_achievementmgr = g_achievementmgr
-end
-
-local function m_update(t)
-	-- body
-	assert(t.__data)
-	for k,v in pairs(t.__data) do
-		if v.col_num_ued > 0 then
-			v.update()
-		end
-	end
-end
-
-local function m_insert(t)
-	-- body
-end
-
-local function insert(t, ...)
-	-- body
-	assert(t.__fields ~= nil)
-	set(t, ...)
-	local columns_str = "("
-	local values_str = "("
-	local value
-	for k,v in pairs(t.__fields) do
-		columns_str = columns_str .. k .. ", "
-		if v.t == "string" then
-			value = "\'" .. v.v .. "\'"
-		end
-		values_str = values_str .. value .. ", "
-	end
-	columns_str = string.gsub(columns_str, "(.*)%,%s$", "%1)")
-	values_str = string.gsub(values_str, "(.*)%,%s$", "%1)")
-	local sql = string.format("insert into %s ", t.__tname) .. columns_str .. " values " .. values_str .. ";"
-	query.insert_sql(t.__tname, sql, query.DB_PRIORITY_3)
-end
-
-local function get_row(t, pk)
-	-- body
-	local sql = string.format("select * from %s where t.__pk")
-end
-
-local function get_rows(t, key, value)
-	-- body
+	-- assert(t.__head[t.__pk].pk == true)
 	local sql
-	if type(value) == "string" then
-		sql = string.format("select * from %s where %s = \"%s\"", t.__tname, key, value)
-	elseif type(value) == "number" then
-		sql = string.format("select * from %s where %s = %d", t.__tname, key, value)
+	if t.__head[t.__pk].t == "string" then
+		sql = string.format("select * from %s where %s = \"%s\"", t.__tname, t.__pk, pk)
+	elseif t.__head[t.__pk].t == "number" then
+		sql = string.format("select * from %s where %s = %d", t.__tname, t.__pk, pk)
+	else
+		assert(false)
 	end
-	query.select_sql_wait(t.__tname, sql, query.DB_PRIORITY_1)
+	local r = query.read(t.__rdb, t.__tname, sql)
+	return r[1]
 end
 
-local function get_table(t)
+local function set_row_cache(t, pk, value)
 	-- body
-	local sql = string.format("select * from %s", t.__tname)
-	query.select_sql_wait()
-end
-
-local function set_cache(t, pk)
-	-- body
-	assert(t.__fields ~= nil)
-	local tmp = {}
-	local pk
-	for k,v in pairs(t.__fields) do
-		tmp[k] = v.v
-		if t.__head[k].pk then
-			pk = v.v
-		end
-	end
-	local v = json.encode(tmp)
-	local k = t.__tname..":"..string.format("%d", pk)
-	query.set(k, v)
-end
-
-local function get_cache(t, pk)
-	-- body
-	assert(type(pk) == t.__pk.t)
+	assert(type(pk) == t.__head[t.__pk].t)
 	local k
-	if t.__pk.t == "string" then
+	if t.__head[t.__pk].t == "string" then
 		k = t.__tname..":"..pk
-	elseif type(pk) then
+	elseif t.__head[t.__pk].t == "number" then
 		k = t.__tname..":"..string.format("%d", pk)
 	end
-	local v = query.get(k)
+	local v = json.encode(value)
+	query.set(t.__wdb, k, v)
+end
+
+local function get_row_cache(t, pk)
+	-- body
+	assert(type(pk) == t.__head[t.__pk].t)
+	local k
+	if t.__head[t.__pk].t == "string" then
+		k = t.__tname..":"..pk
+	elseif t.__head[t.__pk].t == "number" then
+		k = t.__tname..":"..string.format("%d", pk)
+	end
+	local v = query.get(t.__rdb, k)
 	if v == nil then
-		v = get_db(t, pk)
-		if v == nil then
-			return nil
-		else
-			v = t.create(t[1])
-			t:add(v)
-			set_cache(t, pk)
-			return v
-		end
+		return nil
 	else
 		v = json.decode(v)
-		v = t.create(v)
-		t:add(v)
 		return v
 	end
 end
 
-local function init(t, key, value)
+local function get_row(t, pk)
 	-- body
-	if key ~= nil then
-		get_rows(t, key, value)
+	local r = get_row_cache(t, pk)
+	if r then
+		return r
 	else
-		get_table()
+		r = get_row_db(t, pk)
+		return r
+	end
+end
+
+-- this function 
+local function load_db_to_cache(t, key, value)
+	-- body
+	local sql
+	if type(key) ~= "nil" then
+		if type(value) == "string" then
+			sql = string.format("select * from %s where %s = \"%s\"", t.__tname, key, value)
+		elseif type(value) == "number" then
+			sql = string.format("select * from %s where %s = %d", t.__tname, key, value)
+		else
+			assert(false)
+		end
+	else
+		sql = string.format("select * from %s", t.__tname)
+	end
+	local r = query.read(t.__rdb, t.__tname, sql)
+	for i,v in ipairs(r) do
+		local pk = v[t.__pk]
+		set_row_cache(t, pk, v)
+	end
+	return r
+end
+
+local function load_db(t, key, value)
+	-- body
+	local sql
+	if type(key) ~= "nil" then
+		if type(value) == "string" then
+			sql = string.format("select * from %s where %s = \"%s\"", t.__tname, key, value)
+		elseif type(value) == "number" then
+			sql = string.format("select * from %s where %s = %d", t.__tname, key, value)
+		else
+			assert(false)
+		end
+	else
+		sql = string.format("select * from %s", t.__tname)
+	end
+	local r = query.read(t.__rdb, t.__tname, sql)
+	for i,v in ipairs(r) do
+		local o = t.create(v)
+		t:add(o)
+	end
+end
+
+local function load_cache(t, key, value)
+	-- body
+	local r = load_db_to_cache(t, key, value)
+	for k,v in pairs(r) do
+		local o = t.create(v)
+		t:add(o)
+	end
+end
+
+local function update(t, ...)
+	-- body
+	for k,v in pairs(t.__data) do
+		if v.__col_updated > 2 then
+			v("update")
+		end
 	end
 end
 
 _M = {
 	__index = function (t, key) 
-		if key == "update" then
-			return update
-		end
 	end,
-
 	__call = function (t, func, ...)
 		-- body
+		if func == "get_row" then
+			get_row(t, ...)
+		elseif func == "load_db_to_cache" then
+			load_db_to_cache(t, ...)
+		elseif func == "load_db" then
+			load_db(t, ...)
+		elseif func == "load_cache" then
+			load_cache(t, ...)
+		elseif func == "update" then
+			update(t, ...)
+		end
 	end
 }
 

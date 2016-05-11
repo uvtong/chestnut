@@ -2,13 +2,13 @@ package.path = "./../cat/?.lua;./../cat/lualib/?.lua;./../lualib/?.lua;" .. pack
 package.cpath = "./../cat/luaclib/?.so;" .. package.cpath
 local skynet = require "skynet"
 require "skynet.manager"
+rdb = skynet.localname(".rdb")
+wdb = skynet.localname(".db")
 local util = require "util"
 local loader = require "loader"
 local tptr = require "tablepointer"
 local const = require "const"
 local game
-
-local db = tonumber(...)
 
 local CMD = {}
 
@@ -282,7 +282,6 @@ function CMD:query_g_daily_task()
 		assert(false)
 	end
 end
-
 
 function CMD.query_g_goods_refresh_cost(pk)
 	-- body

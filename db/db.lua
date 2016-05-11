@@ -169,11 +169,6 @@ end
 		
 local QUERY = {}
 
-function QUERY:initcache()
-	-- body
-	local sql = "select * from "
-end
-
 function QUERY:read(table_name, sql)
 	-- body
 	return db:query(sql)
@@ -317,83 +312,6 @@ function QUERY:update_all( table_name, condition, columns, data, priority)
 	end
 end
 
-function QUERY:select_sql_wait(table_name, sql, priority)
-	-- body
-	return db:query(sql)
-end
-
-function QUERY:update_sql(table_name, sql, priority)
-	-- body
-	assert(priority, string.format("when query %s you must provide priority", table_name))
-	if priority == const.DB_PRIORITY_1 then
-		Queue.enqueue(priority_queue[priority].Q, { table_name=table_name, sql=sql})
-	elseif priority == const.DB_PRIORITY_2 then
-		Queue.enqueue(priority_queue[priority].Q, { table_name=table_name, sql=sql})
-	elseif priority == const.DB_PRIORITY_3 then
-		Queue.enqueue(priority_queue[priority].Q, { table_name=table_name, sql=sql})
-	else
-		assert(false)
-	end
-	
-	if c_priority > priority then
-		c_priority = priority
-		-- skynet.yield() -- 
-		skynet.wakeup(priority_queue[c_priority].co)
-	end
-end
-
-function QUERY:insert_sql(table_name, sql, priority)
-	-- body
-	assert(priority, string.format("when query %s you must provide priority", table_name))
-	if priority == const.DB_PRIORITY_1 then
-		Queue.enqueue(priority_queue[priority].Q, { table_name=table_name, sql=sql})
-	elseif priority == const.DB_PRIORITY_2 then
-		Queue.enqueue(priority_queue[priority].Q, { table_name=table_name, sql=sql})
-	elseif priority == const.DB_PRIORITY_3 then
-		Queue.enqueue(priority_queue[priority].Q, { table_name=table_name, sql=sql})
-	end
-	
-	if c_priority > priority then
-		c_priority = priority
-		-- skynet.yield() -- 
-		skynet.wakeup(priority_queue[c_priority].co)
-	end
-end
-
-function QUERY:insert_all_sql(table_name, sql, priority)
-	assert(priority, string.format("when query %s you must provide priority", table_name))
-	if priority == const.DB_PRIORITY_1 then
-		Queue.enqueue(priority_queue[priority].Q, { table_name=table_name, sql=sql})
-	elseif priority == const.DB_PRIORITY_2 then
-		Queue.enqueue(priority_queue[priority].Q, { table_name=table_name, sql=sql})
-	elseif priority == const.DB_PRIORITY_3 then
-		Queue.enqueue(priority_queue[priority].Q, { table_name=table_name, sql=sql})
-	end
-	if c_priority > priority then
-		c_priority = priority
-		-- skynet.yield() -- 
-		skynet.wakeup(priority_queue[c_priority].co)
-	end
-end
-
-function QUERY:update_all_sql(table_name, sql, priority)
-	-- body
-	assert(priority, string.format("when query %s you must provide priority", table_name))
-	if priority == const.DB_PRIORITY_1 then
-		Queue.enqueue(priority_queue[priority].Q, { table_name=table_name, sql=sql})
-	elseif priority == const.DB_PRIORITY_2 then
-		Queue.enqueue(priority_queue[priority].Q, { table_name=table_name, sql=sql})
-	elseif priority == const.DB_PRIORITY_3 then
-		Queue.enqueue(priority_queue[priority].Q, { table_name=table_name, sql=sql})
-	end
-	
-	if c_priority > priority then
-		c_priority = priority
-		-- skynet.yield() -- 
-		skynet.wakeup(priority_queue[priority].co)
-	end
-end
-
 -- friend	
 function QUERY:select_user( condition, columns )
 	-- body
@@ -427,8 +345,6 @@ function QUERY:getrandomval( drawtype )
 	return r[1].val % 10000
 end	
 
-
-	
 local CMD = {}
 		
 function CMD.disconnect_redis( ... )
@@ -439,7 +355,7 @@ function CMD.disconnect_mysql( ... )
 	db:disconnect()
 end
 	
-function CMD.start_write(conf)
+function CMD.start(conf)
 	-- body
 	local db_conf = {
 		host = conf.db_host or "192.168.1.116",
@@ -468,10 +384,6 @@ function CMD.start_write(conf)
 	priority_queue[const.DB_PRIORITY_2] = { Q = Q2, co = co2}
 	priority_queue[const.DB_PRIORITY_3] = { Q = Q3, co = co3}
 	return true
-end
-
-function CMD( ... )
-	-- body
 end
 
 local function command(subcmd, ... )

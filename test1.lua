@@ -1,16 +1,9 @@
-local function abc(edf)
-	-- body
-
+_ENV['abc'] = 3
+for k,v in pairs(_ENV) do
+	print(k,v)
 end
-local function cc( ... )
-	-- body
-	m = 3
-end
-abc()
-print(m)
-cc()
-print(m)
+print("**********************")
 
-abc(function ( ... )
-	-- body
-end)
+for k,v in pairs(_G) do
+	print(k,v)
+end

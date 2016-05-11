@@ -2,6 +2,8 @@ package.path = "./../cat/?.lua;../lualib/?.lua;" .. package.path
 package.cpath = "./../cat/luaclib/?.so;" .. package.cpath
 local skynet = require "skynet"
 require "skynet.manager"
+rdb = skynet.localname(".rdb")
+wdb = skynet.localname(".db")
 local netpack = require "netpack"
 local socket = require "socket"
 local sproto = require "sproto"
@@ -362,16 +364,21 @@ local function cp_exit()
 	end
 end
 
+function SUBSCRIBE.update_db()
+	-- body
+	flush_db(const.DB_PRIORITY_3)
+end
+
 local function subscribe( )
 	-- body
-	local c = skynet.call(".channel", "lua", "agent_start", user.csv_id, skynet.self())
+	local c = skynet.call(".channel", "lua", "agent_start")
 	local c2 = mc.new {
 		channel = c,
 		dispatch = function ( channel, source, cmd, tvals , ... )
 			-- body
 			if SUBSCRIBE[cmd] then
-				local f = assert(SUBSCRIBE[cmd])
-				f(SUBSCRIBE, tvals, ...)
+				local f = SUBSCRIBE[cmd]
+				f(tvals, ...)
 			else
 				for k,v in pairs(M) do
 					if v.SUBSCRIBE[cmd] then
@@ -2328,7 +2335,7 @@ function REQUEST:ara_bat_ovr()
 	local leaderboards_name = skynet.getenv("leaderboards_name")
 	local l = skynet.call(leaderboards_name, "lua", "ranking_range", 1, 100)
 	ret.ara_leaderboards = l
-	ret.rmd_list = 
+	-- ret.rmd_list = 
 	return ret
 end
 
@@ -2343,8 +2350,11 @@ end
 
 function REQUEST:ara_rfh()
 	-- body
-	-- if user.ara_rnk
-	skynet.call(lp, "lua", "")
+	local usersmgr = require "usersmgr"
+	local r = skynet.call(".ara_lb", "lua", "ranking_range", 1, 10)
+	for i,v in ipairs(r) do
+		local usersmgr
+	end
 end
 
 function REQUEST:ara_worship()
@@ -2518,6 +2528,12 @@ function CMD.newemail(source, subcmd , ... )
 	f( new_emailrequest , ... )
 end
 
+local function (u)
+	-- body
+	local lp = skynet.getenv("leaderboards_name")
+	skynet.call(lp, "lua", "push", id, id)
+end
+
 function CMD.signup(source, uid, sid, sct, game, db)
 	-- body
 	skynet.error(string.format("%s is login", uid))
@@ -2528,13 +2544,13 @@ function CMD.signup(source, uid, sid, sct, game, db)
 	game   = game
 	db     = db
 
-	user = signup(uid, xilian)
-	if user == nil then
-		return false
+	local signup = require "signup"
+	local ok, user = pcall(signup, uid, xilian)
+	if ok then
+		return ok
+	else
+		return ok
 	end
-
-	return true
-
 end
 
 function CMD.login(source, uid, sid, sct, game, db)
@@ -2547,25 +2563,13 @@ function CMD.login(source, uid, sid, sct, game, db)
 	game   = game
 	db     = db
 	
-	local times = skynet.call(".logintimes", "lua", "login", uid)
-	if times == 1 then
-		print("************************************123")
-		local signup = require "signup"
-		
-	else
-		
-
-		print("************************************456")
-		user = loader.load_user(uid)
-	end
-
+	user = loader.load_user(uid)
 
 	for k,v in pairs(M) do
 		if v.REQUEST then
 			v.REQUEST["login"](v.REQUEST, user)
 		end
 	end
-
 
 	local rnk = skynet.call(lb, "lua", "push", user.csv_id, user.csv_id)
 	user.ara_rnk = rnk
@@ -2581,9 +2585,6 @@ function CMD.login(source, uid, sid, sct, game, db)
 	friendrequest.getvalue(user, send_package, send_request)
 	--load public email from channel public_emailmgr
 	get_public_email()
-
-	subscribe()
-	skynet.fork(subscribe)
 
 	local ret = {}
 	ret.errorcode = errorcode[1].code
@@ -2643,13 +2644,13 @@ function CMD.afk(source)
 	skynet.error(string.format("AFK"))
 end
 
-local function update_db()
-	-- body
-	while true do
-		flush_db(const.DB_PRIORITY_3)
-		skynet.sleep(100 * 60) -- 1ti == 0.01s
-	end
-end
+-- local function update_db()
+-- 	-- body
+-- 	while true do
+-- 		flush_db(const.DB_PRIORITY_3)
+-- 		skynet.sleep(100 * 60) -- 1ti == 0.01s
+-- 	end
+-- end
 
 local function start()
 	-- body
@@ -2676,6 +2677,7 @@ skynet.start(function()
 			skynet.ret(skynet.pack(result))
 		end
 	end)
-	skynet.fork(update_db)
+	-- skynet.fork(update_db)
 	start()
+	subscribe()
 end)

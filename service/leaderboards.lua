@@ -1,7 +1,10 @@
 package.path = "../lualib/?.lua;" .. package.path
 local skynet = require "skynet"
-local assert = assert
 local query = require "query"
+local rdb = skynet.localname(".rdb")
+local wdb = skynet.localname(".db")
+
+local assert = assert
 
 
 local table_name = ...
@@ -61,7 +64,6 @@ function CMD.enter(id, k)
 	end
 	ranking_name[p] = id
 	name_ranking[id] = { id = id, ranking=p, key=k}
-	
 	return p
 end
 
@@ -94,7 +96,9 @@ function CMD.ranking_range(s, e)
 	local l = {}
 	for i=s,e do
 		local id = ranking_name[i]
-		table.insert(l, name_ranking[id])
+		if id then
+			table.insert(l, name_ranking[id])
+		end
 	end
 	return l
 end
@@ -112,7 +116,7 @@ skynet.start(function ()
 		end
 	end)
 	local sql = string.format("select * from %s", table_name)
-	local r = query.select_sql_wait(table_name, sql, query.DB_PRIORITY_1)
+	local r = query.read(rdb, table_name, sql)
 	local idx = 1
 	for i,v in ipairs(r) do
 		assert(v.csv_id == idx)

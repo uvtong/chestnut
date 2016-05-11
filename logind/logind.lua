@@ -2,6 +2,8 @@ package.path = "./../logind/?.lua;"..package.path
 local login = require "loginserver"
 local crypt = require "crypt"
 local skynet = require "skynet"
+rdb = skynet.localname(".logind_rdb")
+wdb = skynet.localname(".logind_wdb")
 
 local address, port = string.match(skynet.getenv("logind"), "([%d.]+)%:(%d+)")
 local server = {
@@ -23,7 +25,7 @@ function server.auth_handler(token)
 	server = crypt.base64decode(server)
 	password = crypt.base64decode(password)
 	-- assert(password == "password", "Invalid password")
-	local ok, uid = skynet.call(".signupd", "lua", "auth", user, password)
+	local ok, uid = skynet.call("signup_master", "lua", "auth", user, password)
 	if ok then
 		return server, uid
 	else
@@ -43,30 +45,20 @@ function server.login_handler(server, uid, secret)
 	if user_online[uid] then
 		error(string.format("user %s is already online", uid))
 	end
-	local subid, gated
 	print("gameserver is called", gameserver)
-	local areamgr = require "areamgr"
-	if areamgr:get_by_csv_id(server) == nil then
-		subid, gated = skynet.call(gameserver, "lua", "login", uid, secret, true)
-	else
-		subid, gated = skynet.call(gameserver, "lua", "login", uid, secret, false)
+	local subid, gated
+	local r = skynet.call(".logindata", "lua", "get", server, uid)
+	if r == 1 then
+		subid, gated = skynet.call(gameserver, "lua", "login", uid, secret, "login")
+	elseif r == 0 then
+		skynet.call(".logindata", "lua", "set", server, uid)
+		subid, gated = skynet.call(gameserver, "lua", "login", uid, secret, "signup")
 	end
 	user_online[uid] = { address = gameserver, subid = subid , server = server}
 	return tostring(subid), gated
 end
 
 local CMD = {}
-
-function CMD.load()
-	-- body
-	local areamgr = require "areamgr"
-	local sql = "select * from area"
-	local r = skynet.call(".signup_db", "lua", "command", "query", sql)
-	for i,v in ipairs(r) do
-		local t = areamgr.create(v)
-		areamgr.add(t)
-	end
-end
 
 function CMD.register_gate(server, address)
 	server_list[server] = address
