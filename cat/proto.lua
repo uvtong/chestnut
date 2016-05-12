@@ -1186,6 +1186,13 @@ OnReEnterCoreFight 89 {
     }
 }
 
+Arena_OnPrepareNextRole 90 {
+    response {
+        errorcode 1 : integer
+        msg 2 : string
+    }   
+}
+
 
 
 ]]
