@@ -3,9 +3,7 @@ _M.__data = {}
 _M.__count = 0
 
 local _Meta = {
-id = {
-	t = "number",
-},csv_id = {
+csv_id = {
 	t = "number",
 },user_level_max = {
 	t = "number",

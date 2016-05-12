@@ -2617,8 +2617,7 @@ local function start()
 	context.host = host
 	context.send_request = send_request
 	context.game = game
-
-
+	
 	local t = loader.load_game()
 	for i,v in ipairs(M) do
 		v.start(fd, send_request, t)

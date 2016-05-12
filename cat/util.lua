@@ -318,11 +318,12 @@ local function collect_info_from_g_role_effect( bufferid , ttotal )
 end			
 	--[[ if online ( user , nil , propertyname ) , if not online ( nil , uid , propertyname )                  ]]
 function util.get_total_property( user , uid , onbattleroleid)   -- zhijie ti sheng zhan dou li gu ding zhi hai mei you ,  
-	local uequip
+	local uequip --zhuangbei
 	local role 
 	local roles
 	local u
- 	
+	local ukf = {} --user kungfu
+ 			
  	local tmpname = propertyname
 
 	if user then
@@ -339,6 +340,10 @@ function util.get_total_property( user , uid , onbattleroleid)   -- zhijie ti sh
 		assert(role)
 		roles = user.u_rolemgr.__data
 		u = user
+
+		for k , v in pairs(user.u_kungfumgr.__data) do
+			table.insert(ukf, v.g_csv_id)
+		end
 	else    
 		local sql = string.format( "select * from u_equipment where user_id = %s " , uid )
 		uequip = skynet.call( util.random_db() , "lua" , "command" , "query" , sql )
@@ -375,6 +380,13 @@ function util.get_total_property( user , uid , onbattleroleid)   -- zhijie ti sh
 			end
  		end
  		assert( role )
+
+ 		sql = string.format("select csv_id from u_kungfu where user_id = %s", user.csv_id)
+ 		print(sql)
+ 		local tmp = skynet.call( util.random_db() , "lua" , "command" , "query" , sql )
+ 		for k , v in ipairs(tmp) do
+ 			table.insert(ukf, v.g_csv_id)
+ 		end
 	end 
 
 	----all equipment property
@@ -388,12 +400,16 @@ function util.get_total_property( user , uid , onbattleroleid)   -- zhijie ti sh
 			if 0 ~= vv[ v ] then 
 				ttotal[ k ] = ttotal[ k ] + vv[ v ]
 				ttotal[ k  + 4 ] = ttotal[ k + 4 ] + vv[ probability ]
+				if k == 1 then
+					print("total[k] in equipment is ", ttotal[k])
+				end
 			end
 		end		
 	end 	    
-
+	print("after equipment is ************************", ttotal[1], ttotal[7])
 	-- role battle property
 	collect_info_from_g_role_effect( role.battle_buffer_id , ttotal )
+	print("after role battle is ****************************", ttotal[1], ttotal[7])
 
 	-- xilian property
 	if 1 == u.ifxilian then
@@ -404,13 +420,16 @@ function util.get_total_property( user , uid , onbattleroleid)   -- zhijie ti sh
 			local index = role[ property_id ]
 			if 0 ~= index then
 				ttotal[ index ] = ttotal[ index ] + role[ value ]
+				if index == 1 then
+					print("total[k] in xilian is ", ttotal[index])
+				end
 			end
 
 			i = i + 1
 		end 
 	end     
-
-	--kungfu property
+	print("after xilian is***************************************", ttotal[1], ttotal[7])
+	--role equiped kungfu property
 	local i = 1
 	while i <= 7 do 
 		local sk_csv_id = "k_csv_id" .. i
@@ -425,25 +444,36 @@ function util.get_total_property( user , uid , onbattleroleid)   -- zhijie ti sh
 
 		i = i + 1 
 	end     
+	print("after equiped kungfu is *****************************", ttotal[1], ttotal[7])
+	--user kungfu property
+	for k, v in ipairs(ukf) do
+		local gk = skynet.call( ".game" , "lua" , "query_g_kungfu" , v )
+		assert( gk )
+		collect_info_from_g_role_effect( gk.equip_buff_id , ttotal )
+	end
 
+	print("after user kungfu is ************************************", ttotal[1], ttotal[7])
 	--rolecollect property
 	for k , v in pairs( roles ) do
 		collect_info_from_g_role_effect( v.gather_buffer_id , ttotal )
 	end
+
+	print("after rolwcollect is ***************************************", ttotal[1], ttotal[7])
 	--basic property
 	ttotal[ 1 ] = ttotal[ 1 ] + u.combat
 	ttotal[ 2 ] = ttotal[ 2 ] + u.defense
 	ttotal[ 3 ] = ttotal[ 3 ] + u.critical_hit
 	ttotal[ 4 ] = ttotal[ 4 ] + u.blessing
-
+	print("user basic prop is ", u.combat, u.defense, u.critical_hit, u.blessing)
 	local result = { }
 	local i = 1
 	while i <= 4 do
 		table.insert( result , math.floor( ( ttotal[ i ] * ( 1 + ttotal[ i + 4 ] / 100 ) ) ) )
+		print("ttotal is ",ttotal[i], ttotal[ i ] * ( 1 + ttotal[ i + 4 ] / 100 ), ( 1 + ttotal[ i + 4 ] / 100 ))
 		i = i + 1
 	end	  
 
-	print( "final combat and percent is ************" , result[ 1 ] , result[ 2 ] , result[ 3 ] , result[ 4 ] )
+	print( "final combat and percent is ************" , result[ 1 ] , result[ 2 ] , result[ 3 ] , result[ 4 ])
 
 	return result
 end  			

@@ -267,6 +267,7 @@ proto.c2s = sprotoparser.parse [[
     attach_effect 5 : integer
     kf_type 6 : integer
     attack 7 : integer
+    random_combo_num 8 : integer
 }
 
 handshake 1 {
@@ -1145,18 +1146,18 @@ ara_rnk_reward_collected 84 {
 BeginGUQNQIACoreFight 85 {
     request {
         monsterid 0 : integer
-    }
+    }   
     response {
         errorcode 0 : integer
         firstfighter 1 : integer
         delay_time 2 : integer
-    }
-}
-
+    }   
+}       
+        
 GuanQiaBattleList 86 {
     request {
         fightlist 0 : *BattleListElem
-    }
+    }   
     response {
         errorcode 0 : integer
         msg 1 : string
@@ -1172,6 +1173,20 @@ ara_convert_pts 87 {
         msg 1 : string
     }
 }
+
+OnNormalExitCoreFight 88 {
+    
+}
+
+OnReEnterCoreFight 89 {
+    response {
+        errorcode 0 : integer
+        msg 1 : string
+        loserid 2 : integer
+    }
+}
+
+
 
 ]]
 

@@ -7,7 +7,7 @@ _M.__count = 0
 _M.__user_id = 0
 _M.__tname = "u_kungfu"
 
-local _Meta = { user_id = 0 , csv_id = 0 , level = 0 , type = 0 , sp_id = 0 } -- type 1 zhudong , 2 beidong , csv_id is quanfa leixing id = 1,2,3,4,...
+local _Meta = { user_id = 0 , csv_id = 0 , level = 0 , type = 0 , sp_id = 0 , g_csv_id = 0} -- type 1 zhudong , 2 beidong , csv_id is quanfa leixing id = 1,2,3,4,...
 
 _Meta.__tname = "u_kungfu"
 
