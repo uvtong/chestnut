@@ -3,7 +3,8 @@ thread      = 8
 logger      = nil
 --logger      = "userlog"
 --logservice  = "snlua"
-logpath     = "."
+--logservice  = "catlogger"
+logpath     = "./../cat/log/"
 harbor      = 1
 address     = "127.0.0.1:2401"
 master      = "127.0.0.1:2013"
@@ -15,7 +16,7 @@ lualoader   = "lualib/loader.lua"
 -- preload = "./game-slave1/preload.lua"	-- run preload.lua before every lua service run
 snax        = root.."../logind/?.lua;"..root.."test/?.lua"
 -- snax_interface_g = "snax_g"
-cpath       = root.."../logind/?.so;"..root.."cservice/?.so"
+cpath       = "./../cservice/?.so;./cservice/?.so"
 -- daemon = "./skynet.pid"
 
 -- signup server
@@ -31,6 +32,8 @@ gated       = "192.168.1.239:3301"
 gated_name  = "sample"
 maxclient   = 64
 leaderboards_name = ".ara_lb"
+gated_rdb   = ".rdb"
+gated_wdb   = ".db"
 
 -- db server
 db_host     = "192.168.1.116"

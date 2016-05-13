@@ -37,7 +37,7 @@ function _Meta:__insert_db(priority)
 		end
 	end
 	local sql = util.insert(self.__tname, t)
-	skynet.send(util.random_db(), "lua", "command", "insert_sql", self.__tname, sql, priority)
+	query.write(".db", self.__tname, sql, priority)
 end
 
 function _Meta:__update_db(t)
@@ -83,7 +83,7 @@ function _M.insert_db(values, priority)
 		table.insert(total, t)
 	end
 	local sql = util.insert_all(_Meta.__tname, total)
-	skynet.send(util.random_db(), "lua", "command", "insert_all_sql", _M.__tname, sql, priority)
+	query.write(".db", _M.__tname, sql, priority)
 end 
 
 -- pk

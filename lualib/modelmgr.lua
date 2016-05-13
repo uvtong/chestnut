@@ -1,5 +1,8 @@
 local query = require "query"
 local json = require "cjson"
+local sharedata = require "sharedata"
+local stm = require "stm"
+local sd_cache = {}
 
 local function get_row_db(t, pk)
 	-- body
@@ -108,6 +111,101 @@ local function load_cache(t, key, value)
 	for k,v in pairs(r) do
 		local o = t.create(v)
 		t:add(o)
+	end
+end
+
+local function load_db_to_sd()
+	-- body
+	local sql
+	if type(key) ~= "nil" then
+		if type(value) == "string" then
+			sql = string.format("select * from %s where %s = \"%s\"", t.__tname, key, value)
+		elseif type(value) == "number" then
+			sql = string.format("select * from %s where %s = %d", t.__tname, key, value)
+		else
+			assert(false)
+		end
+	else
+		sql = string.format("select * from %s", t.__tname)
+	end
+	local r = query.read(t.__rdb, t.__tname, sql)
+	for i,v in ipairs(r) do
+		local key
+		local pk = v[t.__pk]
+		local head = t.__head[t.__pk]
+		if head.t == "string" then
+			key = t.__tname..":"..pk
+		elseif head.t == "number" then
+			key = t.__tname..":"..string.format("%d")
+		else
+			assert(false)
+		end
+		sharedata.new(key, v)
+	end
+end
+
+local function sd(k, sub)
+	-- body
+	assert(k and (type(k) == "string"))
+	local r = sharedata.query(k)
+	if sub then
+		return r[sub]
+	else
+		return r
+	end
+end
+
+local function load_db_to_stm()
+	-- body
+	local sql
+	if type(key) ~= "nil" then
+		if type(value) == "string" then
+			sql = string.format("select * from %s where %s = \"%s\"", t.__tname, key, value)
+		elseif type(value) == "number" then
+			sql = string.format("select * from %s where %s = %d", t.__tname, key, value)
+		else
+			assert(false)
+		end
+	else
+		sql = string.format("select * from %s", t.__tname)
+	end
+	local r = query.read(t.__rdb, t.__tname, sql)
+	for i,v in ipairs(r) do
+		local key
+		local pk = v[t.__pk]
+		local head = t.__head[t.__pk]
+		if head.t == "string" then
+			key = t.__tname..":"..pk
+		elseif head.t == "number" then
+			key = t.__tname..":"..string.format("%d", pk)
+		else
+			assert(false)
+		end
+	end
+end
+
+local function load_cache_to_sd()
+	-- body
+end
+
+local function load_cache_to_stm( ... )
+	-- body
+end
+
+local function load_data_to_stm(ctx, child)
+	-- body
+	if t.__stm then
+		-- ctx.__data
+		local r = {}
+		for k,v in pairs(t.__data) do
+			r[k] = v("load_data_to_stm")
+		end
+	end
+end
+
+local function load_stm_to_data(ctx, child)
+	-- body
+	if t.__stm then
 	end
 end
 

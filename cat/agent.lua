@@ -17,7 +17,7 @@ local const = require "const"
 local tptr = require "tablepointer"
 local context = require "agent_context"
 local notification = require "notification"
-
+local x = 1
 local friendrequest = require "friendrequest"
 local friendmgr = require "friendmgr"
 local M = {}
@@ -39,11 +39,34 @@ table.insert(M, new_drawrequest )
 table.insert(M, lilian_request )
 table.insert(M, core_fightrequest)
 
+-- service internal context
+
+
 local host
 local send_request
 local gate
 local userid, subid
 local secret
+local db
+local game
+local user
+local stm = require "stm"
+local sharemap = require "sharemap"
+local sharedata = require "sharedata"
+
+local env = {}
+env.host = host
+env.send_request = send_request
+env.gate = gate
+env.userid = userid
+env.subid = subid
+env.secret = secret
+env.db = db
+env.game = game
+env.user = user
+env.usersmgr = require "models/usersmgr"
+env.area = { me = user, enemy = user}
+
 
 local CMD       = {}
 local REQUEST   = {}
@@ -52,10 +75,6 @@ local SUBSCRIBE = {}
 
 local func_gs 
 local table_gs = {}
-
-local db
-local game
-local user
 
 local leaderboards_name = skynet.getenv("leaderboards_name")
 local lb = skynet.localname(leaderboards_name)
@@ -86,10 +105,12 @@ local function flush_db(priority)
 	if user then
 		for k,v in pairs(user) do
 			if string.match(k, "^u_[%w_]+mgr$") then
-				v:update_db(priority)
+				if v["update_db"] then
+					v:update_db(priority)
+				end
 			end
 		end
-		user:__update_db_all(priority)
+		user("update")
 		local cm = user.u_checkin_monthmgr:get_checkin_month()
 		if cm then
 			cm:__update_db({"checkin_month"}, priority)
@@ -506,7 +527,7 @@ local function get_public_email()
 		assert( v and v.pemail_csv_id )
 		
 		user.pemail_csv_id = v.pemail_csv_id
-		user:__update_db( { "pemail_csv_id" }, const.DB_PRIORITY_2)
+		-- user:__update_db( { "pemail_csv_id" }, const.DB_PRIORITY_2)
 
 		v.pemail_csv_id = nil
 		new_emailrequest:public_email( v , user )
@@ -2294,7 +2315,7 @@ function REQUEST:checkpoint_battle_enter()
 	end
 end
 
-function REQUEST:checkpoint_exit()
+function REQUEST:checkpoint_exit(ctx)
  	-- body
  	local ret = {}
  	if not user then
@@ -2350,10 +2371,10 @@ end
 
 function REQUEST:ara_rfh()
 	-- body
-	local usersmgr = require "usersmgr"
+	local usersmgr = require "models/usersmgr"
 	local r = skynet.call(".ara_lb", "lua", "ranking_range", 1, 10)
 	for i,v in ipairs(r) do
-		local usersmgr
+		print(i, v)
 	end
 end
 
@@ -2429,7 +2450,7 @@ local function request(name, args, response)
     end
 
     if f then
-	    local ok, result = pcall(f, args)
+	    local ok, result = pcall(f, args, env)
 	    if ok then
 			return response(result)
 		else
@@ -2528,59 +2549,92 @@ function CMD.newemail(source, subcmd , ... )
 	f( new_emailrequest , ... )
 end
 
-local function (u)
+local function enter_lp(u)
 	-- body
+	print(user.csv_id, "**********************enter_lp")
 	local lp = skynet.getenv("leaderboards_name")
-	skynet.call(lp, "lua", "push", id, id)
+	skynet.call(lp, "lua", "push", u.csv_id, u.csv_id)
 end
 
-function CMD.signup(source, uid, sid, sct, game, db)
+function CMD.signup(source, uid, sid, sct, g, d)
 	-- body
 	skynet.error(string.format("%s is login", uid))
 	gate   = source
 	userid = uid
 	subid  = sid
 	secret = sct
-	game   = game
-	db     = db
+	game   = ".game"
+	db     = ".db"
 
 	local signup = require "signup"
-	local ok, user = pcall(signup, uid, xilian)
-	if ok then
-		return ok
-	else
-		return ok
+	user = signup(uid)
+	-- local ok, user = pcall(signup, uid)
+	-- if not ok then
+	-- 	error(user)
+	-- end
+	
+	local u_rolemgr = require "models/u_rolemgr"
+	local role = skynet.call(game, "lua", "query_g_role", 1)
+	local role_star = skynet.call(game, "lua", "query_g_role_star", role.csv_id*1000+role.star)
+	for k,v in pairs(role_star) do
+		role[k] = v
 	end
+	role.user_id = assert(user.csv_id)
+	role.k_csv_id1 = 0
+	role.k_csv_id2 = 0
+	role.k_csv_id3 = 0
+	role.k_csv_id4 = 0
+	role.k_csv_id5 = 0
+	role.k_csv_id6 = 0
+	role.k_csv_id7 = 0
+	local n, r = xilian(role, {role_id=role.csv_id, is_locked1=false, is_locked2=false, is_locked3=false, is_locked4=false, is_locked5=false})
+	assert(n == 0, string.format("%d locked.", n))
+	role.property_id1 = r.property_id1
+	role.value1 = r.value1
+	role.property_id2 = r.property_id2
+	role.value2 = r.value2
+	role.property_id3 = r.property_id3
+	role.value3 = r.value3
+	role.property_id4 = r.property_id4
+	role.value4 = r.value4
+	role.property_id5 = r.property_id5
+	role.value5 = r.value5
+	role = u_rolemgr.create(role)
+	role:__insert_db(const.DB_PRIORITY_1)
+
+	enter_lp(user)
+
+	print("###############################################1")
+	return true
 end
 
-function CMD.login(source, uid, sid, sct, game, db)
+function CMD.login(source, uid, sid, sct, g, d)
 	-- body
 	skynet.error(string.format("%s is login", uid))
 	gate   = source
 	userid = uid
 	subid  = sid
 	secret = sct
-	game   = game
-	db     = db
+	game   = ".game"
+	db     = ".db"
 	
 	user = loader.load_user(uid)
-
+	assert(user, "user must be a certernaly value.")
+	enter_lp(user)
+	
 	for k,v in pairs(M) do
 		if v.REQUEST then
 			v.REQUEST["login"](v.REQUEST, user)
 		end
 	end
-
-	local rnk = skynet.call(lb, "lua", "push", user.csv_id, user.csv_id)
-	user.ara_rnk = rnk
-
+	
 	dc.set(user.csv_id, { client_fd=client_fd, addr=skynet.self()})	
 	context.user = user
 
 	local onlinetime = os.time()
 	user.ifonline = 1
 	user.onlinetime = onlinetime
-	user:__update_db({"ifonline", "onlinetime"}, const.DB_PRIORITY_2)
+	-- user:__update_db({"ifonline", "onlinetime"}, const.DB_PRIORITY_2)
 	user.friendmgr = friendmgr:loadfriend( user , dc )
 	friendrequest.getvalue(user, send_package, send_request)
 	--load public email from channel public_emailmgr
@@ -2652,6 +2706,31 @@ end
 -- 	end
 -- end
 
+local START_SUBSCRIBE = {}
+
+function START_SUBSCRIBE.finish(source, ...)
+	-- body
+	flush_db(const.DB_PRIORITY_1)
+	print(string.format("the node agent %d will be finished. you should clean something.", skynet.self()))
+	skynet.send(source, "lua", "exit")
+end
+
+local function start_subscribe()
+	-- body
+	local c = skynet.call(".start_service", "lua", "register")
+	local c2 = mc.new {
+		channel = c,
+		dispatch = function (channel, source, cmd, ...)
+			-- body
+			local f = START_SUBSCRIBE[cmd]
+			if f then
+				f(source, ...)
+			end
+		end
+	}
+	c2:subscribe()
+end
+
 local function start()
 	-- body
 	host = sprotoloader.load(1):host "package"
@@ -2680,4 +2759,5 @@ skynet.start(function()
 	-- skynet.fork(update_db)
 	start()
 	subscribe()
+	start_subscribe()
 end)

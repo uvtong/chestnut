@@ -1,9 +1,10 @@
-_ENV['abc'] = 3
-for k,v in pairs(_ENV) do
-	print(k,v)
-end
-print("**********************")
+local mm = { __call = function (t, ...)
+	-- body
+	print("abc")
+end}
 
-for k,v in pairs(_G) do
-	print(k,v)
-end
+local m = setmetatable({}, mm)
+
+local _M = setmetatable({}, m)
+
+_M()

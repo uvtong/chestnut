@@ -14,6 +14,8 @@ local send_request
 local gate
 local uid, subid
 
+local x = 1
+
 local CMD       = {}
 local REQUEST   = {}
 local RESPONSE  = {}

@@ -1,23 +1,16 @@
-local assert = assert
-local type   = type
 local entity = require "entity"
 local modelmgr = require "modelmgr"
+local assert = assert
+local type   = type
 
-local _M     = {}
-setmetatable(_M, modelmgr)
+local _M     = setmetatable({}, modelmgr)
 _M.__data    = {}
 _M.__count   = 0
 _M.__cap     = 0
 _M.__tname   = "users"
 _M.__head    = {
-	id = {
-		pk = true,
-		fk = false,
-		uq = false,
-		t = "number",
-	},
 	csv_id = {
-		pk = false,
+		pk = true,
 		fk = false,
 		uq = false,
 		t = "number",
@@ -101,12 +94,6 @@ _M.__head    = {
 		t = "number",
 	},
 	permission = {
-		pk = false,
-		fk = false,
-		uq = false,
-		t = "number",
-	},
-	group = {
 		pk = false,
 		fk = false,
 		uq = false,
@@ -372,9 +359,10 @@ _M.__head    = {
 	},
 }
 
-_M.__pk      = "id"
+_M.__pk      = "csv_id"
 _M.__rdb     = ".rdb"
-_M.__wdb     = ".wdb"
+_M.__wdb     = ".db"
+_M.__stm     = false
 
 function _M:genpk(user_id, csv_id)
 	-- body
@@ -396,9 +384,11 @@ function _M.create(P)
 		__head  = _M.__head,
 		__tname = _M.__tname,
 		__pk    = _M.__pk,
+		__rdb   = _M.__rdb,
+		__wdb   = _M.__wdb,
+		__stm   = _M.__stm,
 		__col_updated=0,
 		__fields = {
-			id = 0,
 			csv_id = 0,
 			uname = 0,
 			uviplevel = 0,
@@ -414,7 +404,6 @@ function _M.create(P)
 			critical_hit = 0,
 			blessing = 0,
 			permission = 0,
-			group = 0,
 			modify_uname_count = 0,
 			onlinetime = 0,
 			iconid = 0,
@@ -461,7 +450,6 @@ function _M.create(P)
 		}
 ,
 		__ecol_updated = {
-			id = 0,
 			csv_id = 0,
 			uname = 0,
 			uviplevel = 0,
@@ -477,7 +465,6 @@ function _M.create(P)
 			critical_hit = 0,
 			blessing = 0,
 			permission = 0,
-			group = 0,
 			modify_uname_count = 0,
 			onlinetime = 0,
 			iconid = 0,

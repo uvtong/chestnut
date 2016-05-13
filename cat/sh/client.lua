@@ -98,10 +98,11 @@ writeline(fd, crypt.base64encode(hmac))
 -- end
 --print(readline())
 
+local p = {...}
 local token = {
-	server = "sample",
-	user = "123",
-	pass = "123",
+	server = p[1] or "sample",
+	user = p[2] or "123",
+	pass = p[3] or "123",
 }
 
 local function encode_token(token)
@@ -263,6 +264,9 @@ local hmac = crypt.hmac64(crypt.hashkey(handshake), secret)
 send_package(fd, handshake .. ":" .. crypt.base64encode(hmac))
 
 print(readpackage())
+
+
+
 while true do
 	dispatch_package()
 	local cmd = socket.readstdin()

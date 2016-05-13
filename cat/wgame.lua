@@ -6,6 +6,8 @@ rdb = skynet.localname(".rdb")
 wdb = skynet.localname(".wdb")
 local loader = require "loader"
 
+
+
 -- local function update_db()
 -- 	-- body
 -- 	while true do
@@ -17,6 +19,10 @@ local loader = require "loader"
 -- 	end
 -- end
 
+function function_name( ... )
+	-- body
+end
+
 skynet.start(function()
 	skynet.dispatch("lua", function(_,_, command, ...)
 		print("called", command)
@@ -26,6 +32,7 @@ skynet.start(function()
 			skynet.ret(skynet.pack(result))
 		end
 	end)
-	game = loader.load_game()
+	-- game = loader.load_game()
 	-- skynet.fork(update_db)
+	
 end)

@@ -30,7 +30,9 @@ function server.login_handler(uid, secret, cmd, ...)
 	print(uid, id, servername)
 
 	-- you can use a pool to alloc new agent
-	local agent = skynet.newservice "agent"
+	-- local agent = skynet.newservice "agent"
+	local agent = skynet.call(".agent_mgr", "lua", "next")
+
 	local u = {
 		username = username,
 		agent = agent,
@@ -41,6 +43,7 @@ function server.login_handler(uid, secret, cmd, ...)
 	-- trash subid (no used)
 	local ok = skynet.call(agent, "lua", cmd, uid, id, secret, game, db)
 	assert(ok)
+	print("###############################################2")
 	
 	users[uid] = u
 	username_map[username] = u

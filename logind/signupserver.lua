@@ -89,6 +89,7 @@ end
 function CMD.auth(user, password)
 	-- body
 	local sql = string.format("select * from account where user = \"%s\" and password = \"%s\"", user, password)
+	print(sql)
 	local r = skynet.call(".signup_db", "lua", "command", "query", sql)
 	if #r ~= 1 then
 		print("account system has error.")

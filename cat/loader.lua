@@ -10,7 +10,8 @@ local function load_g_achievement()
 	-- body
 	assert(game.g_achievementmgr == nil)
 	local g_achievementmgr = require "models/g_achievementmgr"
-	local r = skynet.call(util.random_db(), "lua", "command", "select", "g_achievement")
+	local r = skynet.call(".db", "lua", "command", "select", "g_achievement")
+	print("******************************************load_g_achievement")
 	for i,v in ipairs(r) do
 		local t = g_achievementmgr.create(v)
 		g_achievementmgr:add(t)

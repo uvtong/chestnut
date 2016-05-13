@@ -1,10 +1,9 @@
-local assert = assert
-local type   = type
 local entity = require "entity"
 local modelmgr = require "modelmgr"
+local assert = assert
+local type   = type
 
-local _M     = {}
-setmetatable(_M, modelmgr)
+local _M     = setmetatable({}, modelmgr)
 _M.__data    = {}
 _M.__count   = 0
 _M.__cap     = 0
@@ -37,8 +36,9 @@ _M.__head    = {
 }
 
 _M.__pk      = "id"
-_M.__rdb     = ".logind_rdb"
-_M.__wdb     = ".logind_wdb"
+_M.__rdb     = ".logind_db"
+_M.__wdb     = ".logind_db"
+_M.__stm     = false
 
 function _M:genpk(user_id, csv_id)
 	-- body
@@ -60,6 +60,9 @@ function _M.create(P)
 		__head  = _M.__head,
 		__tname = _M.__tname,
 		__pk    = _M.__pk,
+		__rdb   = _M.__rdb,
+		__wdb   = _M.__wdb,
+		__stm   = _M.__stm,
 		__col_updated=0,
 		__fields = {
 			id = 0,

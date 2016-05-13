@@ -1,19 +1,20 @@
 local s = [[
-local assert = assert
-local type   = type
+local skynet = require "skynet"
 local entity = require "entity"
 local modelmgr = require "modelmgr"
+local assert = assert
+local type   = type
 
-local _M     = {}
-setmetatable(_M, modelmgr)
+local _M     = setmetatable({}, modelmgr)
 _M.__data    = {}
 _M.__count   = 0
 _M.__cap     = 0
 _M.__tname   = "%s"
 _M.__head    = %s
 _M.__pk      = "%s"
-_M.__rdb     = ".rdb"
-_M.__wdb     = ".wdb"
+_M.__rdb     = skynet.localname(skynet.getenv("gated_rdb"))
+_M.__wdb     = skynet.localname(skynet.getenv("gated_wdb"))
+_M.__stm     = false
 
 function _M:genpk(user_id, csv_id)
 	-- body
@@ -35,6 +36,9 @@ function _M.create(P)
 		__head  = _M.__head,
 		__tname = _M.__tname,
 		__pk    = _M.__pk,
+		__rdb   = _M.__rdb,
+		__wdb   = _M.__wdb,
+		__stm   = _M.__stm,
 		__col_updated=0,
 		__fields = %s,
 		__ecol_updated = %s

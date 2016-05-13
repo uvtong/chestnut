@@ -1,24 +1,23 @@
-package.path = "./../db/?.lua;./../db/lualib/?.lua;./../cat/?.lua;" .. package.path
+package.path = "./../db/?.lua;./../lualib/?.lua;./../cat/?.lua;" .. package.path
 package.cpath = "./../lua-cjson/?.so;"..package.cpath
 local skynet = require "skynet"
+local mc = require "multicast"
 local mysql = require "mysql"
 local redis = require "redis"
 local util = require "util"
 local Queue = require "queue"
-
--- update priority
-local const = {}
-const.DB_PRIORITY_1 = 1
-const.DB_PRIORITY_2 = 2
-const.DB_PRIORITY_3 = 3
-const.DB_DELTA = 6000 -- 100 * 60 1ti = 0.01s
-
+local name = ...
 local frienddb = require "frienddb"
 
-local db
-local cache 
-local priority_queue = {}
-local c_priority = const.DB_PRIORITY_1
+local env = {}
+env.DB_PRIORITY_1 = 1
+env.DB_PRIORITY_2 = 2
+env.DB_PRIORITY_3 = 3
+env.DB_DELTA = 6000
+env.c_priority = env.DB_PRIORITY_1
+env.db = false
+env.cache = false
+env.priority_queue = {}
 
 local function dump(obj)
     local getIndent, quoteStr, wrapKey, wrapVal, dumpObj
@@ -64,70 +63,33 @@ local function dump(obj)
     return dumpObj(obj, 0)
 end
 
-local function query_mysql1()
+local function train(ctx, priority)
 	-- body
 	while true do
-		if c_priority ~= const.DB_PRIORITY_1 then
+		if ctx.c_priority ~= priority then
 			skynet.wait()
 		end
-		local r = Queue.dequeue(Q1) 
+		local r = Queue.dequeue(ctx.priority_queue[ctx.c_priority].Q)
 		if r then
-			local res = db:query(r.sql)
-			print(string.format("query %s result=", r.table_name), dump(res))
+			local db = ctx.db
+			if db then
+				print("SQL statement:", r.sql)
+				local res = db:query(r.sql)
+				print(string.format("query %s result=", r.table_name), dump(res))
+			else
+				error "db is lost."
+			end
 		else
-			if c_priority < const.DB_PRIORITY_2 then
-				print("Q1 begin")
-				c_priority = c_priority + 1
-				local co = priority_queue[c_priority].co
+			if ctx.c_priority < ctx.DB_PRIORITY_3 then
+				ctx.c_priority = ctx.c_priority + 1
+				local co = ctx.priority_queue[ctx.c_priority].co
 				skynet.wakeup(co)
-				-- skynet.wait()
-				print("Q1 end")
+				print(string.format("priority Queue %d end", priority))
+			else
+				print(string.format("priority Queue %d end", priority))
+				skynet.wait()
 			end
 		end
-	end
-end
-
-local function query_mysql2()
-	-- body
-	while true do
-		if c_priority ~= const.DB_PRIORITY_2 then
-			skynet.wait()
-		end
-		local r = Queue.dequeue(Q2) 
-		if r then
-			local res = db:query(r.sql)
-			print(string.format("query %s result=", r.table_name), dump(res))
-		else
-			if c_priority < const.DB_PRIORITY_3 then
-				print("Q2 begin")
-				c_priority = c_priority + 1
-				local co = priority_queue[c_priority].co
-				skynet.wakeup(co)
-				-- skynet.wait()
-				print("Q2 end")
-			end
-		end
-		skynet.sleep(100)  -- 1s
-	end
-end
-
-local function query_mysql3()
-	-- body
-	while true do
-		if c_priority ~= const.DB_PRIORITY_3 then
-			skynet.wait()
-		end
-		local r = Queue.dequeue(Q3) 
-		if r then
-			local res = db:query(r.sql)
-			print(string.format("query %s result=", r.table_name), dump(res))
-		else
-			-- skynet.yield()
-			skynet.wait()
-		end
-		print("Q3 begin")
-		skynet.sleep(100 * 5) -- 5s
-		print("Q3 end")
 	end
 end
 
@@ -171,22 +133,22 @@ local QUERY = {}
 
 function QUERY:read(table_name, sql)
 	-- body
-	return db:query(sql)
+	local db = self.db
+	local res = db:query(sql)
+	return res
 end
 
 function QUERY:write(table_name, sql, priority)
 	-- body
-	if priority == const.DB_PRIORITY_1 then
-		Queue.enqueue(priority_queue[priority].Q, { table_name=table_name, sql=sql})
-	elseif priority == const.DB_PRIORITY_2 then
-		Queue.enqueue(priority_queue[priority].Q, { table_name=table_name, sql=sql})
-	elseif priority == const.DB_PRIORITY_3 then
-		Queue.enqueue(priority_queue[priority].Q, { table_name=table_name, sql=sql})
-	end
-	if c_priority > priority then
-		c_priority = priority
+	print("QUERY:write", sql)
+	assert(table_name and sql and priority)
+	assert(priority <= self.DB_PRIORITY_3 and priority >= self.DB_PRIORITY_1)
+	Queue.enqueue(self.priority_queue[priority].Q, { table_name=table_name, sql=sql})
+	if priority <= self.c_priority then
+		self.c_priority = priority
 		-- skynet.yield() -- 
-		skynet.wakeup(priority_queue[c_priority].co)
+		local co = self.priority_queue[self.c_priority].co
+		skynet.wakeup(co)
 	end
 end
 
@@ -194,14 +156,14 @@ function QUERY:set(k, v)
 	-- body
 	assert(type(k) == "string")
 	assert(type(k) == "string")
-	cache:set(k, v)
+	self.cache:set(k, v)
 end
 
 function QUERY:get(k, sub)
 	-- body
 	assert(type(k) == "string")
 	assert(type(sub) == "string")
-	local v = cache:get(k)
+	local v = self.cache:get(k)
 	if sub ~= nil then
 		v = json.decode(v)
 		return v[sub]
@@ -212,103 +174,81 @@ end
 
 function QUERY:query( sql )
 	-- body
-	return db:query(sql)
+	return self.db:query(sql)
 end
 
 function QUERY:select( table_name, condition, columns)
 	-- body
 	local sql = util.select(table_name, condition, columns)
-	return db:query(sql)
+	local r = self.db:query(sql)
+	return r
 end
 
 function QUERY:update( table_name, condition, columns, priority)
 	-- body
-	assert(priority and priority >= const.DB_PRIORITY_1 and priority <= const.DB_PRIORITY_3, string.format("when query %s you must provide priority", table_name))
+	assert(priority and priority >= self.DB_PRIORITY_1 and priority <= self.DB_PRIORITY_3, string.format("when query %s you must provide priority", table_name))
 	local sql = util.update(table_name, condition, columns)
-	if priority == const.DB_PRIORITY_1 then
-		Queue.enqueue(priority_queue[priority].Q, { table_name=table_name, sql=sql})
-	elseif priority == const.DB_PRIORITY_2 then
-		Queue.enqueue(priority_queue[priority].Q, { table_name=table_name, sql=sql})
-	elseif priority == const.DB_PRIORITY_3 then
-		Queue.enqueue(priority_queue[priority].Q, { table_name=table_name, sql=sql})
-	else
-		assert(false)
-	end
-	
-	if c_priority > priority then
-		c_priority = priority
+	assert(table_name and sql and priority)
+	assert(priority <= self.DB_PRIORITY_3 and priority >= self.DB_PRIORITY_1)
+	Queue.enqueue(self.priority_queue[priority].Q, { table_name=table_name, sql=sql})
+	if priority <= self.c_priority then
+		self.c_priority = priority
 		-- skynet.yield() -- 
-		skynet.wakeup(priority_queue[c_priority].co)
+		local co = self.priority_queue[self.c_priority].co
+		skynet.wakeup(co)
 	end
-	-- db:query(sql)
 end
 
 function QUERY:insert( table_name, columns, priority)
 	-- body
-	assert(priority and priority >= const.DB_PRIORITY_1 and priority <= const.DB_PRIORITY_3, string.format("when query %s you must provide priority", table_name))
+	assert(priority and priority >= self.DB_PRIORITY_1 and priority <= self.DB_PRIORITY_3, string.format("when query %s you must provide priority", table_name))
 	local sql = util.insert(table_name, columns)
-	if priority == const.DB_PRIORITY_1 then
-		Queue.enqueue(priority_queue[priority].Q, { table_name=table_name, sql=sql})
-	elseif priority == const.DB_PRIORITY_2 then
-		Queue.enqueue(priority_queue[priority].Q, { table_name=table_name, sql=sql})
-	elseif priority == const.DB_PRIORITY_3 then
-		Queue.enqueue(priority_queue[priority].Q, { table_name=table_name, sql=sql})
-	end
-	
-	if c_priority > priority then
-		c_priority = priority
+	assert(table_name and sql and priority)
+	assert(priority <= self.DB_PRIORITY_3 and priority >= self.DB_PRIORITY_1)
+	Queue.enqueue(self.priority_queue[priority].Q, { table_name=table_name, sql=sql})
+	if priority <= self.c_priority then
+		self.c_priority = priority
 		-- skynet.yield() -- 
-		skynet.wakeup(priority_queue[c_priority].co)
+		local co = self.priority_queue[self.c_priority].co
+		skynet.wakeup(co)
 	end
-	-- Queue.enqueue(Q, sql)
-	-- db:query(sql)
 end
 
 function QUERY:insert_wait( table_name, columns, priority)
 	-- body
-	assert(priority and priority >= const.DB_PRIORITY_1 and priority <= const.DB_PRIORITY_3, string.format("when query %s you must provide priority", table_name))
+	assert(priority and priority >= self.DB_PRIORITY_1 and priority <= self.DB_PRIORITY_3, string.format("when query %s you must provide priority", table_name))
 	local sql = util.insert(table_name, columns)
-	local res = db:query(sql)
+	local res = self.db:query(sql)
 	print(dump(res))
-	for k,v in pairs(res) do
-		print(k,v)
-	end
 	return res
 end
 
 function QUERY:insert_all( table_name , tcolumns, priority)
-	assert(priority and priority >= const.DB_PRIORITY_1 and priority <= const.DB_PRIORITY_3, string.format("when query %s you must provide priority", table_name))
+	assert(priority and priority >= self.DB_PRIORITY_1 and priority <= self.DB_PRIORITY_3, string.format("when query %s you must provide priority", table_name))
 	local sql = util.insert_all( table_name , tcolumns )
-	if priority == const.DB_PRIORITY_1 then
-		Queue.enqueue(priority_queue[priority].Q, { table_name=table_name, sql=sql})
-	elseif priority == const.DB_PRIORITY_2 then
-		Queue.enqueue(priority_queue[priority].Q, { table_name=table_name, sql=sql})
-	elseif priority == const.DB_PRIORITY_3 then
-		Queue.enqueue(priority_queue[priority].Q, { table_name=table_name, sql=sql})
-	end
-	if c_priority > priority then
-		c_priority = priority
+	assert(table_name and sql and priority)
+	assert(priority <= self.DB_PRIORITY_3 and priority >= self.DB_PRIORITY_1)
+	Queue.enqueue(self.priority_queue[priority].Q, { table_name=table_name, sql=sql})
+	if priority <= self.c_priority then
+		self.c_priority = priority
 		-- skynet.yield() -- 
-		skynet.wakeup(priority_queue[c_priority].co)
+		local co = self.priority_queue[self.c_priority].co
+		skynet.wakeup(co)
 	end
 end
 
-function QUERY:update_all( table_name, condition, columns, data, priority)
+function QUERY:update_all(table_name, condition, columns, data, priority)
 	-- body
-	assert(priority and priority >= const.DB_PRIORITY_1 and priority <= const.DB_PRIORITY_3, string.format("when query %s you must provide priority", table_name))
+	assert(priority and priority >= self.DB_PRIORITY_1 and priority <= self.DB_PRIORITY_3, string.format("when query %s you must provide priority", table_name))
 	local sql = util.update_all(table_name, condition, columns, data)
-	if priority == const.DB_PRIORITY_1 then
-		Queue.enqueue(priority_queue[priority].Q, { table_name=table_name, sql=sql})
-	elseif priority == const.DB_PRIORITY_2 then
-		Queue.enqueue(priority_queue[priority].Q, { table_name=table_name, sql=sql})
-	elseif priority == const.DB_PRIORITY_3 then
-		Queue.enqueue(priority_queue[priority].Q, { table_name=table_name, sql=sql})
-	end
-	
-	if c_priority > priority then
-		c_priority = priority
+	assert(table_name and sql and priority)
+	assert(priority <= self.DB_PRIORITY_3 and priority >= self.DB_PRIORITY_1)
+	Queue.enqueue(self.priority_queue[priority].Q, { table_name=table_name, sql=sql})
+	if priority <= self.c_priority then
+		self.c_priority = priority
 		-- skynet.yield() -- 
-		skynet.wakeup(priority_queue[priority].co)
+		local co = self.priority_queue[self.c_priority].co
+		skynet.wakeup(co)
 	end
 end
 
@@ -317,7 +257,7 @@ function QUERY:select_user( condition, columns )
 	-- body
 	-- userid, uaccount, upassword
 	local sql = util.select("users", condition, columns)
-	local r = db:query(sql, condition)
+	local r = self.db:query(sql, condition)
 	--cache:get()
 	return r[1]
 end 	
@@ -325,7 +265,7 @@ end
 function QUERY:getrandomval( drawtype )
 	assert( drawtype )
 	local sql3 = string.format( "select step from randomval" )
-	local r = db:query( sql3 )
+	local r = self.db:query( sql3 )
 	if #r == 0 then
 		print( "r == 3 " )
 	end
@@ -338,8 +278,8 @@ function QUERY:getrandomval( drawtype )
 	print( sql1 )
 	print( sql2 )
 	
-	db:query( sql1 )
-	local r = db:query( sql2 )
+	self.db:query( sql1 )
+	local r = self.db:query( sql2 )
 	print( "update randomval is over" )
 	print( r[1].val , drawtype , r  )
 	return r[1].val % 10000
@@ -347,15 +287,15 @@ end
 
 local CMD = {}
 		
-function CMD.disconnect_redis( ... )
-	cache:disconnect()
+function CMD.disconnect_redis(ctx, ... )
+	ctx.cache:disconnect()
 end	
 	
-function CMD.disconnect_mysql( ... )
-	db:disconnect()
+function CMD.disconnect_mysql(ctx, ... )
+	ctx.db:disconnect()
 end
 	
-function CMD.start(conf)
+function CMD.start(ctx, conf)
 	-- body
 	local db_conf = {
 		host = conf.db_host or "192.168.1.116",
@@ -364,41 +304,103 @@ function CMD.start(conf)
 		user = conf.db_user or "root",
 		password = conf.db_password or "yulei",
 	}
-	db = connect_mysql(db_conf)
+	ctx.db = connect_mysql(db_conf)
 	local cache_conf = {
 		host = conf.cache_host or "192.168.1.116",
 		port = conf.cache_port or 6379,
 		db = 0
 	}
-	cache = connect_redis(cache_conf)
-	frienddb.getvalue( db , cache )
-	Q1 = Queue.new(128)
-	Q2 = Queue.new(128)
-	Q3 = Queue.new(128)
+	ctx.cache = connect_redis(cache_conf)
+	frienddb.getvalue(ctx.db, ctx.cache)
+	local Q1 = Queue.new(128)
+	local Q2 = Queue.new(128)
+	local Q3 = Queue.new(128)
 	
-	co1 = skynet.fork(query_mysql1)
-	co2 = skynet.fork(query_mysql2)
-	co3 = skynet.fork(query_mysql3)
+	local co1 = skynet.fork(train, ctx, ctx.DB_PRIORITY_1)
+	local co2 = skynet.fork(train, ctx, ctx.DB_PRIORITY_2)
+	local co3 = skynet.fork(train, ctx, ctx.DB_PRIORITY_3)
 
-	priority_queue[const.DB_PRIORITY_1] = { Q = Q1, co = co1}
-	priority_queue[const.DB_PRIORITY_2] = { Q = Q2, co = co2}
-	priority_queue[const.DB_PRIORITY_3] = { Q = Q3, co = co3}
+	ctx.priority_queue[ctx.DB_PRIORITY_1] = { Q = Q1, co = co1}
+	ctx.priority_queue[ctx.DB_PRIORITY_2] = { Q = Q2, co = co2}
+	ctx.priority_queue[ctx.DB_PRIORITY_3] = { Q = Q3, co = co3}
 	return true
 end
 
-local function command(subcmd, ... )
+function CMD.test(ctx)
 	-- body
-	local f = nil
-    if nil ~= QUERY[subcmd] then
-    	f = assert(QUERY[ subcmd ])
-		return f(QUERY, ... )
-	elseif nil ~= frienddb[ subcmd ] then
-		f = assert( frienddb[ subcmd ] )
-		return f(frienddb, ...)
+	local sql = "select * from u_prop"
+	local r = ctx.db:query(sql)
+	-- dump(r)kjll;''
+	-- ctx.cache:set("abc", "ace")
+	print("******************ace")
+	return "annalajflajfa"
+end
+
+local START_SUBSCRIBE = {}
+
+local function check_q()
+	-- body
+	if not Queue.is_empty(priority_queue[const.DB_PRIORITY_1].Q) then
+		print("suspend1")
+		skynet.wakeup(priority_queue[const.DB_PRIORITY_1].co)
+		return false
+	end
+	if not Queue.is_empty(priority_queue[const.DB_PRIORITY_2].Q) then
+		print("suspend2")
+		skynet.wakeup(priority_queue[const.DB_PRIORITY_2].co)
+		return false
+	end
+	if not Queue.is_empty(priority_queue[const.DB_PRIORITY_3].Q) then
+		print("suspend3")
+		skynet.wakeup(priority_queue[const.DB_PRIORITY_3].co)
+		return false
+	end
+	return true
+end
+
+function START_SUBSCRIBE.finish(ctx, source, ...)
+	-- body
+	print(string.format("the node  %s will be finished. you should clean something.", name))
+	-- while not check_q() do
+	-- 	skynet.sleep(100)
+	-- end
+	skynet.send(source, "lua", "exit")
+end
+
+function START_SUBSCRIBE.test(ctx, source, msg)
+	-- body
+	print(name, msg)
+end
+
+local function start_subscribe()
+	-- body
+	print("start_subscribe", name)
+	local c = skynet.call(".start_service", "lua", "register")
+	local c2 = mc.new {
+		channel = c,
+		dispatch = function (channel, source, cmd, ...)
+			-- body
+			print(name, "test subscribe")
+			local f = START_SUBSCRIBE[cmd]
+			if f then
+				f(env, source, ...)
+			end
+		end
+	}
+	c2:subscribe()
+end
+
+local function command(subcmd, table_name, ... )
+	-- body
+	local f = QUERY[subcmd]
+	if f then
+		return f(env, table_name, ...)
+	elseif frienddb[subcmd] then
+		f = frienddb[subcmd]
+		return f(frienddb, table_name, ...)
 	else
-		print(subcmd)
-		assert( f )
-    end
+		error(string.format("db node for table_name %s cmd %s will not be called.", table_name, subcmd))
+	end
 end
 
 skynet.start(function ()
@@ -410,10 +412,11 @@ skynet.start(function ()
 			end
 		else
 			local f = assert(CMD[cmd])
-			local r = f(subcmd, ...)
+			local r = f(env, subcmd, ...)
 			if r then
 				skynet.ret(skynet.pack(r))
 			end
 		end
 	end)
+	start_subscribe()
 end)

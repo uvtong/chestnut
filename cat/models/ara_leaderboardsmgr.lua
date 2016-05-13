@@ -1,70 +1,28 @@
-local assert = assert
-local type   = type
+local skynet = require "skynet"
 local entity = require "entity"
 local modelmgr = require "modelmgr"
+local assert = assert
+local type   = type
 
-local _M     = {}
-setmetatable(_M, modelmgr)
+local _M     = setmetatable({}, modelmgr)
 _M.__data    = {}
 _M.__count   = 0
 _M.__cap     = 0
-_M.__tname   = "g_config"
+_M.__tname   = "ara_leaderboards"
 _M.__head    = {
-	csv_id = {
+	uid = {
 		pk = true,
 		fk = false,
 		uq = false,
 		t = "number",
 	},
-	user_level_max = {
+	ranking = {
 		pk = false,
 		fk = false,
 		uq = false,
 		t = "number",
 	},
-	user_vip_max = {
-		pk = false,
-		fk = false,
-		uq = false,
-		t = "number",
-	},
-	xilian_begain_level = {
-		pk = false,
-		fk = false,
-		uq = false,
-		t = "number",
-	},
-	cp_chapter_max = {
-		pk = false,
-		fk = false,
-		uq = false,
-		t = "number",
-	},
-	purch_phy_power = {
-		pk = false,
-		fk = false,
-		uq = false,
-		t = "number",
-	},
-	diamond_per_sec = {
-		pk = false,
-		fk = false,
-		uq = false,
-		t = "number",
-	},
-	ara_clg_tms_rst_tp = {
-		pk = false,
-		fk = false,
-		uq = false,
-		t = "number",
-	},
-	worship_reward_id = {
-		pk = false,
-		fk = false,
-		uq = false,
-		t = "number",
-	},
-	worship_reward_num = {
+	k = {
 		pk = false,
 		fk = false,
 		uq = false,
@@ -72,9 +30,10 @@ _M.__head    = {
 	},
 }
 
-_M.__pk      = "csv_id"
-_M.__rdb     = ".rdb"
-_M.__wdb     = ".wdb"
+_M.__pk      = "uid"
+_M.__rdb     = skynet.localname(skynet.getenv("gated_rdb"))
+_M.__wdb     = skynet.localname(skynet.getenv("gated_wdb"))
+_M.__stm     = false
 
 function _M:genpk(user_id, csv_id)
 	-- body
@@ -96,31 +55,20 @@ function _M.create(P)
 		__head  = _M.__head,
 		__tname = _M.__tname,
 		__pk    = _M.__pk,
+		__rdb   = _M.__rdb,
+		__wdb   = _M.__wdb,
+		__stm   = _M.__stm,
 		__col_updated=0,
 		__fields = {
-			csv_id = 0,
-			user_level_max = 0,
-			user_vip_max = 0,
-			xilian_begain_level = 0,
-			cp_chapter_max = 0,
-			purch_phy_power = 0,
-			diamond_per_sec = 0,
-			ara_clg_tms_rst_tp = 0,
-			worship_reward_id = 0,
-			worship_reward_num = 0,
+			uid = 0,
+			ranking = 0,
+			k = 0,
 		}
 ,
 		__ecol_updated = {
-			csv_id = 0,
-			user_level_max = 0,
-			user_vip_max = 0,
-			xilian_begain_level = 0,
-			cp_chapter_max = 0,
-			purch_phy_power = 0,
-			diamond_per_sec = 0,
-			ara_clg_tms_rst_tp = 0,
-			worship_reward_id = 0,
-			worship_reward_num = 0,
+			uid = 0,
+			ranking = 0,
+			k = 0,
 		}
 
 	}

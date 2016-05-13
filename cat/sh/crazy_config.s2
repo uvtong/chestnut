@@ -31,6 +31,8 @@ gated       = "192.168.1.239:3302"
 gated_name  = "sample1"
 maxclient   = 64
 leaderboards_name = ".ara_lb"
+gated_rdb   = ".rdb"
+gated_wdb   = ".db"
 
 -- db server
 db_host     = "192.168.1.116"

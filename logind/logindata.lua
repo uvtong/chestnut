@@ -1,6 +1,7 @@
 package.path = "./../lualib/?.lua;./../logind/?.lua;"..package.path
 package.cpath = "./../lua-cjson/?.so;"..package.cpath
 local skynet = require "skynet"
+local mc = require "multicast"
 rdb = skynet.localname(".logind_rdb")
 wdb = skynet.localname(".logind_wdb")
 local areamgr = require "models/areamgr"
@@ -35,6 +36,7 @@ end
 
 function CMD.set(server, uid)
 	-- body
+	print("###############################################5")
 	local id = cov(server, uid)
 	local tmp = {
 		id = id,
@@ -48,6 +50,38 @@ function CMD.set(server, uid)
 	return 1
 end
 
+local START_SUBSCRIBE = {}
+
+function START_SUBSCRIBE.finish(source, ...)
+	-- body
+	print(string.format("the node logindata %d will be finished. you should clean something.", skynet.self()))
+	skynet.send(source, "lua", "exit")
+end
+
+local function start_subscribe()
+	-- body
+	local c = skynet.call(".start_service", "lua", "register")
+	local c2 = mc.new {
+		channel = c,
+		dispatch = function (channel, source, cmd, ...)
+			-- body
+			local f = START_SUBSCRIBE[cmd]
+			if f then
+				f(source, ...)
+			end
+		end
+	}
+	c2:subscribe()
+end
+
+local function update_db()
+	-- body
+	while true do 
+		areamgr("update")
+		skynet.sleep(60 * 100)
+	end
+end
+
 skynet.start(function()
 	skynet.dispatch("lua", function(_, source, command, ...)
 		print("logindata is called" , command)
@@ -58,4 +92,6 @@ skynet.start(function()
 		end
 	end)
 	areamgr("load_db")
+	skynet.fork(update_db)
+	start_subscribe()
 end)
