@@ -30,6 +30,7 @@ local function insert(t, ...)
 	columns_str = string.gsub(columns_str, "(.*)%,%s$", "%1)")
 	values_str = string.gsub(values_str, "(.*)%,%s$", "%1)")
 	local sql = string.format("insert into %s ", t.__tname) .. columns_str .. " values " .. values_str .. ";"
+	print(t.__wdb)
 	query.write(t.__wdb, t.__tname, sql, query.DB_PRIORITY_1)
 end
 

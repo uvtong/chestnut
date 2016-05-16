@@ -1,36 +1,32 @@
-package.path = "../pbc/binding/lua53/?.lua;../host/lualib/?.lua;"..package.path
-package.cpath = "../pbc/binding/lua53/?.so;"..package.cpath
+package.path = "../host/lualib/?.lua;"..package.path
 local skynet = require "skynet"
 local netpack = require "netpack"
 local socket = require "socket"
-local protobuf = require "protobuf"
+local sproto = require "sproto"
+local sprotoloader = require "sprotoloader"
 local util = require "util"
 local dc = require "datacenter"
-local loader = require "loader"
+-- local loader = require "loader"
 local errorcode = require "errorcode"
-
-local host
-local send_request
-local gate
-local uid, subid
-
-local x = 1
 
 local CMD       = {}
 local REQUEST   = {}
 local RESPONSE  = {}
 local SUBSCRIBE = {}
-local c2s_proto
-local s2c_proto
 
-local db
-local game
-local user
-local left
-local right
-
-local room = {}
-
+local env = {}
+env.host         = 0
+env.send_request = 0
+env.gate         = 0
+env.uid          = 0
+env.subid        = 0
+env.secret       = 0
+env.user         = 0
+env.stm          = require "stm"
+env.sharemap     = require "sharemap"
+env.sharedata    = require "sharedata"
+env.room         = 0
+env.rdtroom      = true
 
 local function shuffle( ... )
 	-- body
@@ -47,76 +43,7 @@ local function shuffle( ... )
 	end
 end 
 
-function REQUEST:signup()
-	-- body
-	-- 0. success
-	-- 1.
-	local ret = {}
-	local condition = { uaccount = self.account}
-	local addr = util.random_db()
-	local r = skynet.call(addr, "lua", "command", "signup", { condition } )
-	if #r == 0 then
-		local t = { csv_id=util.guid(game, const.UENTROPY), 
-				uname="nihao", 
-				uaccount=self.account, 
-				upassword=self.password, 
-				uviplevel=0,
-				config_sound=1, 
-				config_music=1, 
-				avatar=0, 
-				sign="peferct ", 
-				c_role_id=1, 
-				ifonline=0, 
-				level=0, 
-				combat=0, 
-				defense=0, 
-				critical_hit=0, 
-				blessing=0, 
-				modify_uname_count=0, 
-				onlinetime=0, 
-				iconid=0, 
-				is_valid=1, 
-				recharge_rmb=0, 
-				goods_refresh_count=0, 
-				recharge_diamond=0, 
-				uvip_progress=0, 
-				checkin_num=0, 
-				checkin_reward_num=0, 
-				exercise_level=0, 
-				cgold_level=0 }
-		local usersmgr = require "models/usersmgr"
-		local u = usersmgr.create(t)
-		u:__insert_db()
-		ret.errorcode = 0
-		ret.msg = "success"
-		return ret
-	end
-end
-
-function REQUEST:account()
-	-- body
-	assert(self.account ~= "hubing")
-	assert(self.password ~= "123456")
-	local addr = util.random_db()
-	-- local r = skynet.call(addr, "command", "select", "users", {{ account=self.account, password=self.password }})
-	if r and #r == 1 then
-		local users = require "models/usersmgr"
-		user = users.create(r)
-		dc.set(user.csv_id, { addr=skynet.self(), client_fd=client_fd })
-		return { errorcode=0, msg="yes"}
-	end
-	return { errorcode = 1, msg = "no"}
-end
-
-function REQUEST:logout( ... )
-	-- body
-	local ret = {}
-	ret.errorcode = 0
-	ret.msg = "success"
-	return ret
-end
-
-function REQUEST:enter_room()
+function REQUEST:enter_room(args)
 	-- body
 	local ret = {}
 	if not user then
@@ -141,7 +68,7 @@ function REQUEST:enter_room()
 	return { errorcode=0, msg="ok"}
 end
 
-function REQUEST:ready()
+function REQUEST:ready(args)
 	-- body
 	local ret = {}
 	if not user then
@@ -159,37 +86,40 @@ function REQUEST:ready()
 	return ret
 end
 
-function REQUEST:mp()
+function REQUEST:mp(args)
 	-- body
 end
 
-function REQUEST:am()
+function REQUEST:am(args)
 	-- body
 end
 
-function REQUEST:rob()
+function REQUEST:rob(args)
 	-- body
 	skynet.send(right.addr, "lua", "left.user_id", self.m)
 end
 
-function REQUEST:lead()
+function REQUEST:lead(args)
 	-- body
 end
 
-function REQUEST:handshake()
-	return { msg = "Welcome to skynet, I will send heartbeat every 5 sec." }
-end
-
-function REQUEST:quit()
-	skynet.call(WATCHDOG, "lua", "close", client_fd)
-end
-
 local function request(name, args, response)
-	local f = assert(REQUEST[name])
-	print("REQUEST:", name)
-	local msg = f(args)
-	if response then
-		return response(msg)
+	local f = REQUEST[name]
+	if f then
+		local ok, result = pcall(f, env, args)
+		if ok then
+			return response(result)
+		else
+			local ret = {}
+			ret.errorcode = errorcode[29].code
+			ret.msg = errorcode[29].msg
+			return response(result)
+		end
+	else
+		local ret = {}
+		ret.errorcode = errorcode[39].code
+		ret.msg = errorcode[39].msg
+		return response(result)
 	end
 end
 
@@ -241,60 +171,48 @@ skynet.register_protocol {
 	name = "client",
 	id = skynet.PTYPE_CLIENT,
 	unpack = function (msg, sz)
-		if sz == 0 then
-			return "HEARTBEAT"
-		else	
-			local code = skynet.tostring(msg, sz)
-			local package = protobuf.decode(c2s_proto.package .. "." .. c2s_proto.message_type[1].name, string.sub(code, 1, 6))
-			if package.type == "REQUEST" then
-				local args = protobuf.decode(c2s_proto.package .. "." .. c2s_proto.message_type[package.tag+1].name, string.sub(code, 7))
-				local function response(msg)
-					-- body
-					local pg = {	
-						tag = package.tag + 1, -- client.
-						type = "RESPONSE",
-						session = package.session,
-					}
-					local pg_encode = protobuf.encode(c2s_proto.package .. "." .. c2s_proto.message_type[1].name, pg)
-					local msg_encode = protobuf.encode(c2s_proto.package .. "." .. c2s_proto.message_type[pg.tag + 1].name, msg)
-					return pg_encode .. msg_encode
-				end
-				return package.type, string.gsub(c2s_proto.message_type[package.tag+1].name, "req_(%w*)", "%1"), args, response
-			elseif package.type == "RESPONSE" then
-				local args = protobuf.decode(s2c_proto.package .. "." .. s2c_proto.message_type[package.tag+1].name, string.sub(code, 7))
-				return package.type, string.gsub(s2c_proto.message_type[package.tag+1].name, "resp_(%w*)", "%1"), args
-			else
-				assert(false)
+		if env.rdtroom then
+			return msg, sz
+		else
+			if sz == 0 then
+				return "HEARTBEAT"
+			else	
+				return host:dispatch(msg, sz)
 			end
 		end
 	end,
-	dispatch = function (_, _, type, ...)
-		if type == "REQUEST" then
-			local ok, result  = pcall(request, ...)
-			if ok then
-				if result then
-					skynet.retpack(result)
+	dispatch = function (session, source, type, ...)
+		if env.rdtroom then
+			skynet.redirect(env.room, skynet.self(), id, session, type, ...)
+		else
+			if type == "REQUEST" then
+				local ok, result  = pcall(request, ...)
+				if ok then
+					if result then
+						skynet.retpack(result)
+					end
+				else
+					skynet.error(result)
 				end
+			elseif type == "RESPONSE" then
+				pcall(response, ...)
 			else
-				skynet.error(result)
+				error "other type is not existence."
 			end
-		elseif type == "HEARTBEAT" then
-			send_package(send_request(2, { msg = "HEARTBEAT"}))
-		elseif type == "RESPONSE" then
-			pcall(response, ...)
-			-- assert(type == "RESPONSE")
-			-- error "This example doesn't support request client"
 		end
 	end
 }
 
-function CMD.enter_room(t)
+function CMD:enter_room(source, room)
 	-- body
-	for k,v in pairs(t) do
-		assert(room[k] == nil)
-		room[k] = v
-		send_package(send_request(2, { user_id=tonumber(k), name="hello" })) 
-	end
+	self.room = room
+	self.rdtroom = true
+	-- skynet.
+	-- for k,v in pairs(t) do
+	-- 	assert(room[k] == nil)
+	-- 	room[k] = v
+	-- 	send_package(send_request(2, { user_id=tonumber(k), name="hello" })) 
+	-- end
 end
 
 function CMD.ready(t)
@@ -310,14 +228,17 @@ function CMD.rob(user_id, m)
 	send_package(send_request(12, {user_id=user.csv_id, countdown=20}))
 end
 
-function CMD.login(source, uid, sid, secret, game, db)
+function CMD.signup(source, uid, sid, sct, g, d)
+end
+
+function CMD.login(source, uid, sid, secret, g, d)
 	-- body
 	skynet.error(string.format("%s is login", uid))
 	gate = source
 	uid = uid
 	subid = sid
-	game = game
-	db = db
+	game = g
+	db = d
 
 	return true
 end
@@ -352,44 +273,18 @@ end
 
 local function start()
 	-- body
-	local addr = io.open("../host/c2s.pb","rb")
-	local buffer = addr:read "*a"
-	addr:close()
-	protobuf.register(buffer)
-	t = protobuf.decode("google.protobuf.FileDescriptorSet", buffer)
-	c2s_proto = t.file[1]
-	print(c2s_proto.name)
-	print(c2s_proto.package)
-
-	addr = io.open("../host/s2c.pb","rb")
-	buffer = addr:read "*a"
-	addr:close()
-	protobuf.register(buffer)
-	t = protobuf.decode("google.protobuf.FileDescriptorSet", buffer)
-	s2c_proto = t.file[1]
-	print(s2c_proto.name)
-	print(s2c_proto.package)
-
-	local session = 1
-	send_request = function ( tag, msg )
-		-- body
-		session = session + 1
-		local package = {
-			tag = tag,
-			type = "REQUEST",
-			session = session,
-		}
-		local code = protobuf.encode("s2c.package", package)
-		local encode = protobuf.encode(s2c_proto.package .. "." .. s2c_proto.message_type[tag].name, msg)
-		return code .. encode
-	end
+	host = sprotoloader.load(1):host "package"
+	send_request = host:attach(sprotoloader.load(2))
 end
 
 skynet.start(function()
 	skynet.dispatch("lua", function(_,_, command, ...)
 		local f = CMD[command]
-		skynet.ret(skynet.pack(f(...)))
+		local r = f(...)
+		if r then
+			skynet.ret(skynet.pack(r))
+		end
 	end)
-	skynet.fork(update_db)
+	-- skynet.fork(update_db)
 	start()	
 end)
