@@ -93,10 +93,10 @@ function cls.load_db(t, key, value)
 		if key == "pk" then
 			if t.__head[t.__pk].t == "string" then
 				assert(type(value) == "string")
-				sql = string.format("select * from %s where %s = \"%s\"", t.__tname, t.__pk, value)
+				sql = string.format("select * from %s where `%s` = \"%s\"", t.__tname, t.__pk, value)
 			elseif t.__head[t.__pk].t == "number" then
 				assert(type(value) == "number")
-				sql = string.format("select * from %s where %s = %d", t.__tname, t.__pk, value)
+				sql = string.format("select * from %s where `%s` = %d", t.__tname, t.__pk, value)
 			else
 				assert(false)
 			end
@@ -104,10 +104,10 @@ function cls.load_db(t, key, value)
 			print(t.__fk)
 			if t.__head[t.__fk].t == "string" then
 				assert(type(value) == "string")
-				sql = string.format("select * from %s where %s = \"%s\"", t.__tname, t.__fk, value)
+				sql = string.format("select * from %s where `%s` = \"%s\"", t.__tname, t.__fk, value)
 			elseif t.__head[t.__pk].t == "number" then
 				assert(type(value) == "number")
-				sql = string.format("select * from %s where %s = %d", t.__tname, t.__fk, value)
+				sql = string.format("select * from %s where `%s` = %d", t.__tname, t.__fk, value)
 			else
 				assert(false)
 			end

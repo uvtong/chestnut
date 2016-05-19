@@ -46,15 +46,15 @@ function cls.update(t, ...)
 		local keys_str = "("
 		local values_str = "("
 		for k,v in pairs(t.__fields) do
-			keys_str = keys_str..k..", "
+			keys_str = keys_str.."`"..k.."`"..", "
 			local head = t.__head[k]
 			if head.pk then
 				if head.t == "string" then
 					values_str = values_str..string.format("\"%s\", ", v)
-					columns_str = columns_str..string.format("%s = \"%s\", ", k, v)
+					columns_str = columns_str..string.format("`%s` = \"%s\", ", k, v)
 				elseif head.t == "number" then
 					values_str = values_str..string.format("%d, ", v)
-					columns_str = columns_str..string.format("%s = %d, ", k, v)
+					columns_str = columns_str..string.format("`%s` = %d, ", k, v)
 				else
 					assert(false)
 				end
@@ -63,10 +63,10 @@ function cls.update(t, ...)
 					t.__ecol_updated[k] = 0
 					if head.t == "string" then
 						values_str = values_str..string.format("\"%s\", ", v)
-						columns_str = columns_str..string.format("%s = \"%s\", ", k, v)
+						columns_str = columns_str..string.format("`%s` = \"%s\", ", k, v)
 					elseif head.t == "number" then
 						values_str = values_str..string.format("%d, ", v)
-						columns_str = columns_str..string.format("%s = %d, ", k, v)
+						columns_str = columns_str..string.format("`%s` = %d, ", k, v)
 					else
 						assert(false)
 					end
@@ -77,7 +77,8 @@ function cls.update(t, ...)
 		values_str = string.gsub(values_str, "(.*)%,%s$", "%1")..")"
 		columns_str = string.gsub(columns_str, "(.*)%,%s$", "%1")	
 		local sql = string.format("insert into %s ", t.__tname)..keys_str.." values "..values_str.." on duplicate key update "..columns_str..";"
-		query.write(t.__wdb, t.table_name, sql, query.DB_PRIORITY_3)
+		print(sql)
+		query.write(t.__wdb, t.__tname, sql, query.DB_PRIORITY_3)
 	end
 end
 
