@@ -4,6 +4,7 @@ local skynet = require "skynet"
 local assert = assert
 local table_name = ...
 local leaderboardsmgr = require "models/ara_leaderboardsmgr"
+leaderboardsmgr = leaderboardsmgr()
 
 -- {ranking=id }
 local top = 0
@@ -136,11 +137,5 @@ skynet.start(function ()
 		end
 	end)
 	leaderboardsmgr("load_db")
-	for k,v in pairs(leaderboardsmgr.__data) do
-		if v.ranking > top then
-			top = v.ranking
-		end
-		ranking_name[v.ranking] = v.uid
-	end
 	skynet.fork(print_c)
 end)

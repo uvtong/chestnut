@@ -189,20 +189,20 @@ function REQUEST:login(u)
 	user = u
 	
 	--local t = game.g_daily_taskmgr:get_one() -- may be changed
-	local t = skynet.call(".game", "lua", "query_g_daily_task")
-	assert( t )
-	record_date = Split( t.update_time , "|" )
-	time_first = tonumber( string.sub( record_date[ 1 ] , 1 , 2 ) )
-	time_second = tonumber( string.sub( record_date[ 2 ] , 1 , 2 ) )
+	-- local t = skynet.call(".game", "lua", "query_g_daily_task")
+	-- assert( t )
+	-- record_date = Split( t.update_time , "|" )
+	-- time_first = tonumber( string.sub( record_date[ 1 ] , 1 , 2 ) )
+	-- time_second = tonumber( string.sub( record_date[ 2 ] , 1 , 2 ) )
 
-	exercise_time = #record_date
+	-- exercise_time = #record_date
 	
 
-	if 3 == exercise_time then
-		time_third = tonumber( string.sub( record_date[ 3 ] , 1 , 2 ) )
-	end 
+	-- if 3 == exercise_time then
+	-- 	time_third = tonumber( string.sub( record_date[ 3 ] , 1 , 2 ) )
+	-- end 
 
-	print( time_first , time_second , time_third )
+	-- print( time_first , time_second , time_third )
 end		
 	
 -- msg: **ifexercise_t * 1 can check , --0 can not exercise**

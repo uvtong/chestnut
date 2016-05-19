@@ -3,3 +3,4 @@
 
 print("PRELOAD", ...)
 
+require "./../lualib/functions"

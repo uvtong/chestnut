@@ -1,169 +1,197 @@
 local skynet = require "skynet"
-local util = require "util"
-local const = require "const"
-local notification = require "notification"
-local query = require "query"
+local entity = require "entity"
+local modelmgr = require "modelmgr"
+local assert = assert
+local type   = type
+local setmetatable = setmetatable
 
-local _M = {}
-_M.__data = {}
-_M.__count = 0
-_M.__user_id = 0
-_M.__tname = "u_prop"
-
-local _Meta = { user_id=0, 
-				csv_id=0, 
-				num=0, 
-				sub_type=0, 
-				level=0, 
-				pram1=0, 
-				pram2=0, 
-				use_type=0}
-_Meta.__tname = "u_prop"
-
-function _Meta.__new()
- 	-- body
- 	local t = {}
- 	setmetatable( t, { __index = _Meta } )
- 	return t
-end 
-
-function _Meta:__insert_db(priority)
+local function genpk(self, user_id, csv_id)
 	-- body
-	assert(priority)
-	local t = {}
-	for k,v in pairs(_Meta) do
-		if not string.match(k, "^__*") then
-			t[k] = assert(self[k])
-		end
-	end
-	local sql = util.insert(self.__tname, t)
-	query.write(".db", self.__tname, sql, priority)
+	local pk = user_id << 32
+	pk = (pk | ((1 << 32 -1) & csv_id ))
+	return pk
 end
 
-function _Meta:__update_db(t)
+local function ctor(self, P)
 	-- body
-	-- assert(type(t) == "table")
-	-- local columns = {}
-	-- for i,v in ipairs(t) do
-	-- 	columns[tostring(v)] = self[tostring(v)]
-	-- end
-	-- skynet.send(util.random_db(), "lua", "command", "update", self.__tname, {{ user_id = self.user_id,  csv_id = self.csv_id}}, columns)
+	local r = self.create(P)
+	self:add(r)
+	r("insert")
 end
 
-function _Meta:__get(key)
-	-- body
-	assert(type(key) == "string")
-	assert(_Meta[key])
-	return assert(self[key])
-end
-
-function _Meta:__set(key, value)
-	-- body
-	assert(type(key) == "string")
-	self[key] = value
-	if self[csv_id] == const.GOLD then
-		notification.handler[self.EGOLD](self.EGOLD)
-	elseif self[csv_id] == const.EXP then
-		notification.handler[self.EEXP](self.EGOLD)
-	else
-	end
-end
-
-function _M.insert_db(values, priority)
-	assert(priority)
-	assert(type(values) == "table" )
-	local total = {}
-	for i,v in ipairs(values) do
-		local t = {}
-		for kk,vv in pairs(v) do
-			if not string.match(kk, "^__*") then
-				t[kk] = vv
-			end
-		end
-		table.insert(total, t)
-	end
-	local sql = util.insert_all(_Meta.__tname, total)
-	query.write(".db", _M.__tname, sql, priority)
-end 
-
--- pk
-function _M.create_with_csv_id(csv_id) 
-	-- body
-	assert(csv_id, "csv_id ~= nil")
-	local r = skynet.call(".game", "lua", "query_g_prop", csv_id)
-	assert(r, "there is no corresponding props.")
-	r.user_id = _M.__user_id
-	r.num = 0
-	return _M.create(r)
-end
-
-function _M.create(P)
+local function create(self, P)
 	assert(P)
-	local u = _Meta.__new()
-	for k,v in pairs(_Meta) do
-		if not string.match(k, "^__*") then
-			-- print(k, P.csv_id)
-			u[k] = assert(P[k])
-		end
+	local t = { 
+		__head  = self.__head,
+		__tname = self.__tname,
+		__pk    = self.__pk,
+		__fk    = self.__fk,
+		__rdb   = self.__rdb,
+		__wdb   = self.__wdb,
+		__stm   = self.__stm,
+		__col_updated=0,
+		__fields = {
+			id = 0,
+			user_id = 0,
+			csv_id = 0,
+			num = 0,
+			sub_type = 0,
+			level = 0,
+			pram1 = 0,
+			pram2 = 0,
+			name = 0,
+			use_type = 0,
+		}
+,
+		__ecol_updated = {
+			id = 0,
+			user_id = 0,
+			csv_id = 0,
+			num = 0,
+			sub_type = 0,
+			level = 0,
+			pram1 = 0,
+			pram2 = 0,
+			name = 0,
+			use_type = 0,
+		}
+
+	}
+	setmetatable(t, entity)
+	for k,v in pairs(t.__head) do
+		t.__fields[k] = assert(P[k])
 	end
-	return u
+	return t
+end	
+
+local function add(self, u)
+ 	-- body
+ 	assert(u)
+ 	assert(self.__data[u.id] == nil)
+ 	self.__data[ u[self.__pk] ] = u
+ 	self.__count = self.__count + 1
 end
 
-function _M:add( u )
-	assert(u)
-	self.__data[tostring(u.csv_id)] = u
-	self.__count = self.__count + 1
-end
-
-function _M:get_by_csv_id(csv_id)
+local function get(self, pk)
 	-- body
-	local r = self.__data[tostring(csv_id)]
-	if r then
-		return r
+	if self.__data[pk] then
+		return self.__data[pk]
 	else
-		r = self.create_with_csv_id(csv_id)
-		self:add(r)
-		r:__insert_db(const.DB_PRIORITY_2)
+		local r = self("load", pk)
+		if r then
+			self.create(r)
+			self:add(r)
+		end
 		return r
 	end
 end
 
-function _M:delete_by_csv_id(csv_id)
+local function delete(self, pk)
 	-- body
-	self.__data[tostring(csv_id)] = nil
+	local r = self.__data[pk]
+	if r then
+		r("update")
+		self.__data[pk] = nil
+	end
 end
 
-function _M:get_count()
+local function get_by_csv_id(self, csv_id)
+	-- body
+	return self.__data[csv_id]
+end
+
+local function delete_by_csv_id(self, csv_id)
+	assert(self.__data[csv_id])
+	self.__data[csv_id] = nil
+	self.__count = self.__count - 1
+end
+
+local function get_count(self)
 	-- body
 	return self.__count
 end
 
-function _M:clear()
+local function get_cap(self)
+	-- body
+	return self.__cap
+end
+
+local function clear(self)
+	-- body
 	self.__data = {}
 	self.__count = 0
 end
 
-function _M:get(pk, key)
+function factory()
 	-- body
-	local r = self:get_by_csv_id(pk)
-	r:__get(key)
+	local _M     = setmetatable({}, modelmgr)
+	_M.__data    = {}
+	_M.__count   = 0
+	_M.__cap     = 0
+	_M.__tname   = "u_prop"
+	_M.__head    = {
+	id = {
+		pk = true,
+		uq = false,
+		t = "number",
+	},
+	user_id = {
+		fk = true,
+		uq = false,
+		t = "number",
+	},
+	csv_id = {
+		uq = false,
+		t = "number",
+	},
+	num = {
+		uq = false,
+		t = "number",
+	},
+	sub_type = {
+		uq = false,
+		t = "number",
+	},
+	level = {
+		uq = false,
+		t = "number",
+	},
+	pram1 = {
+		uq = false,
+		t = "string",
+	},
+	pram2 = {
+		uq = false,
+		t = "string",
+	},
+	name = {
+		uq = false,
+		t = "string",
+	},
+	use_type = {
+		uq = false,
+		t = "number",
+	},
+}
+
+	_M.__pk      = "id"
+	_M.__fk      = "user_id"
+	_M.__rdb     = skynet.localname(skynet.getenv("gated_rdb"))
+	_M.__wdb     = skynet.localname(skynet.getenv("gated_wdb"))
+	_M.__stm     = false
+	_M.genpk     = genpk
+	_M.ctor      = ctor
+	_M.create    = create
+	_M.add       = add
+	_M.get       = get
+	_M.delete    = delete
+	_M.get_by_csv_id = get_by_csv_id
+	_M.delete_by_csv_id = delete_by_csv_id
+	_M.get_count = get_count
+	_M.get_cap   = get_cap
+	_M.clear     = clear
+	return _M
 end
 
-function _M:set(pk, key, value)
-	-- body
-	local r = self:get_by_csv_id(pk)
-	r:__set(key, value)
-end
+return factory
 
-function _M:update_db(priority)
-	-- body
-	assert(priority)
-	if self.__count > 0 then
-		local columns = { "num" }
-		local condition = { {user_id = self.__user_id}, {csv_id = {}}}
-		local sql = util.update_all(self.__tname, condition, columns, self.__data)
-		query.write(".db", self.__tname, sql, priority)
-	end
-end
-
-return _M

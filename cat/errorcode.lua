@@ -38,7 +38,9 @@ errorcode[35] = { code = 35, msg = "checkpoint id error"}
 errorcode[36] = { code = 36, msg = "nothing from client"}
 errorcode[37] = { code = 37, msg = "data from client is wrong."}
 errorcode[38] = { code = 38, msg = "rnk rwd has collected"}
-errorcode[39] = { code = 38, msg = "no exists protocol"}
+errorcode[39] = { code = 39, msg = "no exists protocol"}
+errorcode[40] = { code = 40, msg = "not enough chllenge times."}
+
 
 --email
 errorcode[41] = { code = 41 , msg = "not email in maillist" }
@@ -79,5 +81,8 @@ errorcode[91] = { code = 91 , msg = "speed over time"}
 errorcode[110] = {code = 110, msg = "game is over"}
 errorcode[111] = {code = 111, msg = "continue fight"}
 errorcode[112] = {code = 112, msg = ""}
+
+
+
 
 return errorcode

@@ -1,103 +1,146 @@
 local skynet = require "skynet"
-local util = require "util"
+local modelmgr = require "modelmgrcpp"
+local entity = require "entity"
+local assert = assert
+local type   = type
 
-local _M = {}
-_M.__data = {}
-_M.__count = 0
+local cls = class("g_achievementmgr", modelmgr)
 
-local _Meta = { csv_id=0, type=0, c_num=0, reward=0, star=0, unlock_next_csv_id=0}
+function cls:ctor( ... )
+	-- body
+	self.__data    = {}
+	self.__count   = 0
+	self.__cap     = 0
+	self.__tname   = "g_achievement"
+	self.__head    = {
+	csv_id = {
+		pk = true,
+		fk = false,
+		uq = false,
+		t = "number",
+	},
+	type = {
+		pk = false,
+		fk = false,
+		uq = false,
+		t = "number",
+	},
+	name = {
+		pk = false,
+		fk = false,
+		uq = false,
+		t = "string",
+	},
+	c_num = {
+		pk = false,
+		fk = false,
+		uq = false,
+		t = "number",
+	},
+	describe = {
+		pk = false,
+		fk = false,
+		uq = false,
+		t = "string",
+	},
+	icon_id = {
+		pk = false,
+		fk = false,
+		uq = false,
+		t = "number",
+	},
+	reward = {
+		pk = false,
+		fk = false,
+		uq = false,
+		t = "string",
+	},
+	star = {
+		pk = false,
+		fk = false,
+		uq = false,
+		t = "number",
+	},
+	unlock_next_csv_id = {
+		pk = false,
+		fk = false,
+		uq = false,
+		t = "number",
+	},
+}
 
-_Meta.__tname = "g_achievement"
+	self.__pk      = "csv_id"
+	self.__fk      = "0"
+	self.__rdb     = skynet.localname(skynet.getenv("gated_rdb"))
+	self.__wdb     = skynet.localname(skynet.getenv("gated_wdb"))
+	self.__stm     = false
+	self.__entity  = "g_achievemententity"
+	return self
+end
 
-function _Meta.__new()
+function cls.genpk(self, user_id, csv_id)
+	-- body
+	local pk = user_id << 32
+	pk = (pk | ((1 << 32 -1) & csv_id ))
+	return pk
+end
+
+function cls.add(self, u)
  	-- body
- 	local t = {}
- 	setmetatable( t, { __index = _Meta } )
- 	return t
-end 
+ 	assert(u)
+ 	assert(self.__data[u.id] == nil)
+ 	self.__data[ u[self.__pk] ] = u
+ 	self.__count = self.__count + 1
+end
 
-function _Meta:__insert_db()
+function cls.get(self, pk)
 	-- body
-	local t = {}
-	for k,v in pairs(self) do
-		if not string.match(k, "^__*") then
-			t[k] = self[k]
+	if self.__data[pk] then
+		return self.__data[pk]
+	else
+		local r = self("load", pk)
+		if r then
+			self.create(r)
+			self:add(r)
 		end
-	end
-	skynet.send(util.random_db(), "lua", "command", "insert", self.__tname, t)
-end
-
-function _Meta:__update_db(t)
-	-- body
-	assert(type(t) == "table")
-	local columns = {}
-	for i,v in ipairs(t) do
-		columns[tostring(v)] = self[tostring(v)]
-	end
-	skynet.send(util.random_db(), "lua", "command", "update", self.__tname, {{ id = self.id }}, columns)
-end
-
-function _Meta:__serialize()
-	-- body
-	local r = {}
-	for k,v in pairs(_Meta) do
-		if not string.match(k, "^__*") then
-			r[k] = self[k]
-		end
-	end
-	return r
-end
-
-function _M.insert_db(l)
-	-- body
-end
-
-function _M:update_db()
-	-- body
-	for k,v in pairs(self.__data) do
-		print(k,v)
+		return r
 	end
 end
 
-function _M.create( P )
-	assert(P)
-	local u = _Meta.__new()
-	for k,v in pairs(_Meta) do
-		if not string.match(k, "^__*") then
-			u[k] = assert(P[k])
-		end
-	end
-	return u
-end	
-
-function _M:add( u )
-	assert(u)
-	self.__data[tostring(u.csv_id)] = u
-	self.__count = self.__count + 1
-end
-
-function _M:clear()
-	self.__data = {}
-end
-
-function _M:get_by_csv_id(csv_id)
+function cls.delete(self, pk)
 	-- body
-	return self.__data[tostring(csv_id)]
-end
-
-function _M:get_by_type_and_init(t)
-	-- body
-	for k,v in pairs(self.__data) do
-		if v.type == t and v.is_init == 1 then
-			return v
-		end
+	local r = self.__data[pk]
+	if r then
+		r("update")
+		self.__data[pk] = nil
 	end
-	return nil
 end
 
-function _M:get_count()
+function cls.get_by_csv_id(self, csv_id)
+	-- body
+	return self.__data[csv_id]
+end
+
+function cls.delete_by_csv_id(self, csv_id)
+	assert(self.__data[csv_id])
+	self.__data[csv_id] = nil
+	self.__count = self.__count - 1
+end
+
+function cls.get_count(self)
 	-- body
 	return self.__count
 end
 
-return _M
+function cls.get_cap(self)
+	-- body
+	return self.__cap
+end
+
+function cls.clear(self)
+	-- body
+	self.__data = {}
+	self.__count = 0
+end
+
+return cls

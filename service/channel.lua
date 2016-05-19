@@ -1,15 +1,16 @@
 package.path = "./../cat/?.lua;./../lualib/?.lua;" .. package.path
+package.cpath = "./../lua-cjson/?.so;"..package.cpath
 local skynet = require "skynet"
 require "skynet.manager"
 local mc = require "multicast"
 local util = require "util"
-local loader = require "loader"
+local loader = require "load_game"
 local const = require "const"
 local dc = require "datacenter"
 local u_emailmgr = require "models/u_emailmgr"	
-local public_emailmgr = require "models/public_emailmgr"
+local public_emailmgr = require("models/public_emailmgr")()
 
-local game = tonumber(...)
+local game = ".game"
 
 local register_updatedb = {}
 local channel
@@ -116,7 +117,7 @@ function CMD.send_public_email_to_all(source, tvals )
 		
 	channel:publish( "email" , tvals )
 
-	tvals = public_emailmgr.create( tvals )
+	tvals = public_emailmgr:create( tvals )
 	assert( tvals )
 	public_emailmgr:add( tvals )
 	tvals:__insert_db( const.DB_PRIORITY_2 )
@@ -290,7 +291,7 @@ local function load_public_email()
 	
 	local r = skynet.call( util.random_db() , "lua", "command" , "select" , "public_email" )
 	for i , v in ipairs ( r ) do
-		local t = public_emailmgr.create( v )
+		local t = public_emailmgr:create( v )
 		public_emailmgr:add( t )
 	end
 end

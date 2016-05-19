@@ -87,11 +87,28 @@ end
 local function load_db(t, key, value)
 	-- body
 	local sql
-	if type(key) ~= "nil" then
-		if type(value) == "string" then
-			sql = string.format("select * from %s where %s = \"%s\"", t.__tname, key, value)
-		elseif type(value) == "number" then
-			sql = string.format("select * from %s where %s = %d", t.__tname, key, value)
+	if key ~= nil then
+		if key == "pk" then
+			if t.__head[t.__pk].t == "string" then
+				assert(type(value) == "string")
+				sql = string.format("select * from %s where %s = \"%s\"", t.__tname, t.__pk, value)
+			elseif t.__head[t.__pk].t == "number" then
+				assert(type(value) == "number")
+				sql = string.format("select * from %s where %s = %d", t.__tname, t.__pk, value)
+			else
+				assert(false)
+			end
+		elseif key == "fk" then
+			print(t.__fk)
+			if t.__head[t.__fk].t == "string" then
+				assert(type(value) == "string")
+				sql = string.format("select * from %s where %s = \"%s\"", t.__tname, t.__fk, value)
+			elseif t.__head[t.__pk].t == "number" then
+				assert(type(value) == "number")
+				sql = string.format("select * from %s where %s = %d", t.__tname, t.__fk, value)
+			else
+				assert(false)
+			end
 		else
 			assert(false)
 		end
@@ -100,7 +117,7 @@ local function load_db(t, key, value)
 	end
 	local r = query.read(t.__rdb, t.__tname, sql)
 	for i,v in ipairs(r) do
-		local o = t.create(v)
+		local o = t:create(v)
 		t:add(o)
 	end
 end

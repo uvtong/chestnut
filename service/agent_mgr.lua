@@ -3,7 +3,7 @@ package.cpath = "../lua-cjson/?.so;"..package.cpath
 local skynet = require "skynet"
 local queue = require "queue"
 
-local agent_len = 4
+local agent_len = tonumber(skynet.getenv("maxclient")) or 24
 local agent_map = queue.new(agent_len)
 
 local CMD = {}

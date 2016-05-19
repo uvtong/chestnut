@@ -55,19 +55,20 @@ function REQUEST:login(u)
 	
 	--print( game.g_daily_taskmgr:get_count() )
 	--local t = game.g_daily_taskmgr:get_one() -- may be changed
-	local t = skynet.call(".game", "lua", "query_g_daily_task")
-	assert( t )
-	record_date = Split( t.update_time , "|" )
-	--print( record_date[ 1 ] , record_date[ 2 ] , record_date[ 3 ] )
-	time_first = tonumber( string.sub( record_date[ 1 ] , 1 , 2 ) )
-	time_second = tonumber( string.sub( record_date[ 2 ] , 1 , 2 ) )
+	
+	-- local t = skynet.call(".game", "lua", "query_g_daily_task")
+	-- assert( t )
+	-- record_date = Split( t.update_time , "|" )
+	-- --print( record_date[ 1 ] , record_date[ 2 ] , record_date[ 3 ] )
+	-- time_first = tonumber( string.sub( record_date[ 1 ] , 1 , 2 ) )
+	-- time_second = tonumber( string.sub( record_date[ 2 ] , 1 , 2 ) )
 
-	cgold_time = #record_date
+	-- cgold_time = #record_date
 	
 
-	if 3 == cgold_time then
-		time_third = tonumber( string.sub( record_date[ 3 ] , 1 , 2 ) )
-	end 
+	-- if 3 == cgold_time then
+	-- 	time_third = tonumber( string.sub( record_date[ 3 ] , 1 , 2 ) )
+	-- end 
 
 	--print( time_first , time_second , time_third )
 end		

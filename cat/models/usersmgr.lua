@@ -1,392 +1,34 @@
+local skynet = require "skynet"
 local entity = require "entity"
 local modelmgr = require "modelmgr"
 local assert = assert
 local type   = type
+local setmetatable = setmetatable
 
-local _M     = setmetatable({}, modelmgr)
-_M.__data    = {}
-_M.__count   = 0
-_M.__cap     = 0
-_M.__tname   = "users"
-_M.__head    = {
-	csv_id = {
-		pk = true,
-		fk = false,
-		uq = false,
-		t = "number",
-	},
-	uname = {
-		pk = false,
-		fk = false,
-		uq = false,
-		t = "string",
-	},
-	uviplevel = {
-		pk = false,
-		fk = false,
-		uq = false,
-		t = "number",
-	},
-	config_sound = {
-		pk = false,
-		fk = false,
-		uq = false,
-		t = "number",
-	},
-	config_music = {
-		pk = false,
-		fk = false,
-		uq = false,
-		t = "number",
-	},
-	avatar = {
-		pk = false,
-		fk = false,
-		uq = false,
-		t = "number",
-	},
-	sign = {
-		pk = false,
-		fk = false,
-		uq = false,
-		t = "string",
-	},
-	c_role_id = {
-		pk = false,
-		fk = false,
-		uq = false,
-		t = "number",
-	},
-	ifonline = {
-		pk = false,
-		fk = false,
-		uq = false,
-		t = "number",
-	},
-	level = {
-		pk = false,
-		fk = false,
-		uq = false,
-		t = "number",
-	},
-	combat = {
-		pk = false,
-		fk = false,
-		uq = false,
-		t = "number",
-	},
-	defense = {
-		pk = false,
-		fk = false,
-		uq = false,
-		t = "number",
-	},
-	critical_hit = {
-		pk = false,
-		fk = false,
-		uq = false,
-		t = "number",
-	},
-	blessing = {
-		pk = false,
-		fk = false,
-		uq = false,
-		t = "number",
-	},
-	permission = {
-		pk = false,
-		fk = false,
-		uq = false,
-		t = "number",
-	},
-	modify_uname_count = {
-		pk = false,
-		fk = false,
-		uq = false,
-		t = "number",
-	},
-	onlinetime = {
-		pk = false,
-		fk = false,
-		uq = false,
-		t = "number",
-	},
-	iconid = {
-		pk = false,
-		fk = false,
-		uq = false,
-		t = "number",
-	},
-	is_valid = {
-		pk = false,
-		fk = false,
-		uq = false,
-		t = "number",
-	},
-	recharge_rmb = {
-		pk = false,
-		fk = false,
-		uq = false,
-		t = "number",
-	},
-	recharge_diamond = {
-		pk = false,
-		fk = false,
-		uq = false,
-		t = "number",
-	},
-	uvip_progress = {
-		pk = false,
-		fk = false,
-		uq = false,
-		t = "number",
-	},
-	checkin_num = {
-		pk = false,
-		fk = false,
-		uq = false,
-		t = "number",
-	},
-	checkin_reward_num = {
-		pk = false,
-		fk = false,
-		uq = false,
-		t = "number",
-	},
-	exercise_level = {
-		pk = false,
-		fk = false,
-		uq = false,
-		t = "number",
-	},
-	cgold_level = {
-		pk = false,
-		fk = false,
-		uq = false,
-		t = "number",
-	},
-	gold_max = {
-		pk = false,
-		fk = false,
-		uq = false,
-		t = "number",
-	},
-	exp_max = {
-		pk = false,
-		fk = false,
-		uq = false,
-		t = "number",
-	},
-	equipment_enhance_success_rate_up_p = {
-		pk = false,
-		fk = false,
-		uq = false,
-		t = "number",
-	},
-	store_refresh_count_max = {
-		pk = false,
-		fk = false,
-		uq = false,
-		t = "number",
-	},
-	prop_refresh = {
-		pk = false,
-		fk = false,
-		uq = false,
-		t = "number",
-	},
-	arena_frozen_time = {
-		pk = false,
-		fk = false,
-		uq = false,
-		t = "number",
-	},
-	purchase_hp_count = {
-		pk = false,
-		fk = false,
-		uq = false,
-		t = "number",
-	},
-	gain_gold_up_p = {
-		pk = false,
-		fk = false,
-		uq = false,
-		t = "number",
-	},
-	gain_exp_up_p = {
-		pk = false,
-		fk = false,
-		uq = false,
-		t = "number",
-	},
-	purchase_hp_count_max = {
-		pk = false,
-		fk = false,
-		uq = false,
-		t = "number",
-	},
-	SCHOOL_reset_count_max = {
-		pk = false,
-		fk = false,
-		uq = false,
-		t = "number",
-	},
-	SCHOOL_reset_count = {
-		pk = false,
-		fk = false,
-		uq = false,
-		t = "number",
-	},
-	signup_time = {
-		pk = false,
-		fk = false,
-		uq = false,
-		t = "number",
-	},
-	pemail_csv_id = {
-		pk = false,
-		fk = false,
-		uq = false,
-		t = "number",
-	},
-	take_diamonds = {
-		pk = false,
-		fk = false,
-		uq = false,
-		t = "number",
-	},
-	draw_number = {
-		pk = false,
-		fk = false,
-		uq = false,
-		t = "number",
-	},
-	ifxilian = {
-		pk = false,
-		fk = false,
-		uq = false,
-		t = "number",
-	},
-	cp_chapter = {
-		pk = false,
-		fk = false,
-		uq = false,
-		t = "number",
-	},
-	cp_hanging_id = {
-		pk = false,
-		fk = false,
-		uq = false,
-		t = "number",
-	},
-	cp_battle_id = {
-		pk = false,
-		fk = false,
-		uq = false,
-		t = "number",
-	},
-	cp_battle_chapter = {
-		pk = false,
-		fk = false,
-		uq = false,
-		t = "number",
-	},
-	lilian_level = {
-		pk = false,
-		fk = false,
-		uq = false,
-		t = "number",
-	},
-	lilian_exp = {
-		pk = false,
-		fk = false,
-		uq = false,
-		t = "number",
-	},
-	lilian_phy_power = {
-		pk = false,
-		fk = false,
-		uq = false,
-		t = "number",
-	},
-	purch_lilian_phy_power = {
-		pk = false,
-		fk = false,
-		uq = false,
-		t = "number",
-	},
-	ara_role_id1 = {
-		pk = false,
-		fk = false,
-		uq = false,
-		t = "number",
-	},
-	ara_role_id2 = {
-		pk = false,
-		fk = false,
-		uq = false,
-		t = "number",
-	},
-	ara_role_id3 = {
-		pk = false,
-		fk = false,
-		uq = false,
-		t = "number",
-	},
-	ara_rnk = {
-		pk = false,
-		fk = false,
-		uq = false,
-		t = "number",
-	},
-	ara_win_tms = {
-		pk = false,
-		fk = false,
-		uq = false,
-		t = "number",
-	},
-	ara_lose_tms = {
-		pk = false,
-		fk = false,
-		uq = false,
-		t = "number",
-	},
-	ara_tie_tms = {
-		pk = false,
-		fk = false,
-		uq = false,
-		t = "number",
-	},
-}
-
-_M.__pk      = "csv_id"
-_M.__rdb     = ".rdb"
-_M.__wdb     = ".db"
-_M.__stm     = false
-
-function _M:genpk(user_id, csv_id)
+local function genpk(self, user_id, csv_id)
 	-- body
 	local pk = user_id << 32
 	pk = (pk | ((1 << 32 -1) & csv_id ))
 	return pk
 end
 
-function _M:ctor(P)
+local function ctor(self, P)
 	-- body
 	local r = self.create(P)
 	self:add(r)
 	r("insert")
 end
 
-function _M.create(P)
+local function create(self, P)
 	assert(P)
 	local t = { 
-		__head  = _M.__head,
-		__tname = _M.__tname,
-		__pk    = _M.__pk,
-		__rdb   = _M.__rdb,
-		__wdb   = _M.__wdb,
-		__stm   = _M.__stm,
+		__head  = self.__head,
+		__tname = self.__tname,
+		__pk    = self.__pk,
+		__fk    = self.__fk,
+		__rdb   = self.__rdb,
+		__wdb   = self.__wdb,
+		__stm   = self.__stm,
 		__col_updated=0,
 		__fields = {
 			csv_id = 0,
@@ -447,6 +89,9 @@ function _M.create(P)
 			ara_win_tms = 0,
 			ara_lose_tms = 0,
 			ara_tie_tms = 0,
+			ara_clg_tms = 0,
+			ara_clg_tms_pur_tms = 0,
+			ara_clg_tms_rst_tm = 0,
 		}
 ,
 		__ecol_updated = {
@@ -508,6 +153,9 @@ function _M.create(P)
 			ara_win_tms = 0,
 			ara_lose_tms = 0,
 			ara_tie_tms = 0,
+			ara_clg_tms = 0,
+			ara_clg_tms_pur_tms = 0,
+			ara_clg_tms_rst_tm = 0,
 		}
 
 	}
@@ -518,7 +166,7 @@ function _M.create(P)
 	return t
 end	
 
-function _M:add(u)
+local function add(self, u)
  	-- body
  	assert(u)
  	assert(self.__data[u.id] == nil)
@@ -526,7 +174,7 @@ function _M:add(u)
  	self.__count = self.__count + 1
 end
 
-function _M:get(pk)
+local function get(self, pk)
 	-- body
 	if self.__data[pk] then
 		return self.__data[pk]
@@ -540,7 +188,7 @@ function _M:get(pk)
 	end
 end
 
-function _M:delete(pk)
+local function delete(self, pk)
 	-- body
 	local r = self.__data[pk]
 	if r then
@@ -549,31 +197,306 @@ function _M:delete(pk)
 	end
 end
 
-function _M:get_by_csv_id(csv_id)
+local function get_by_csv_id(self, csv_id)
 	-- body
 	return self.__data[csv_id]
 end
 
-function _M:delete_by_csv_id(csv_id)
+local function delete_by_csv_id(self, csv_id)
 	assert(self.__data[csv_id])
 	self.__data[csv_id] = nil
 	self.__count = self.__count - 1
 end
 
-function _M:get_count()
+local function get_count(self)
 	-- body
 	return self.__count
 end
 
-function _M:get_cap()
+local function get_cap(self)
 	-- body
 	return self.__cap
 end
 
-function _M:clear()
+local function clear(self)
 	-- body
 	self.__data = {}
 	self.__count = 0
 end
 
-return _M
+function factory()
+	-- body
+	local _M     = setmetatable({}, modelmgr)
+	_M.__data    = {}
+	_M.__count   = 0
+	_M.__cap     = 0
+	_M.__tname   = "users"
+	_M.__head    = {
+	csv_id = {
+		pk = true,
+		uq = false,
+		t = "number",
+	},
+	uname = {
+		uq = false,
+		t = "string",
+	},
+	uviplevel = {
+		uq = false,
+		t = "number",
+	},
+	config_sound = {
+		uq = false,
+		t = "number",
+	},
+	config_music = {
+		uq = false,
+		t = "number",
+	},
+	avatar = {
+		uq = false,
+		t = "number",
+	},
+	sign = {
+		uq = false,
+		t = "string",
+	},
+	c_role_id = {
+		uq = false,
+		t = "number",
+	},
+	ifonline = {
+		uq = false,
+		t = "number",
+	},
+	level = {
+		uq = false,
+		t = "number",
+	},
+	combat = {
+		uq = false,
+		t = "number",
+	},
+	defense = {
+		uq = false,
+		t = "number",
+	},
+	critical_hit = {
+		uq = false,
+		t = "number",
+	},
+	blessing = {
+		uq = false,
+		t = "number",
+	},
+	permission = {
+		uq = false,
+		t = "number",
+	},
+	modify_uname_count = {
+		uq = false,
+		t = "number",
+	},
+	onlinetime = {
+		uq = false,
+		t = "number",
+	},
+	iconid = {
+		uq = false,
+		t = "number",
+	},
+	is_valid = {
+		uq = false,
+		t = "number",
+	},
+	recharge_rmb = {
+		uq = false,
+		t = "number",
+	},
+	recharge_diamond = {
+		uq = false,
+		t = "number",
+	},
+	uvip_progress = {
+		uq = false,
+		t = "number",
+	},
+	checkin_num = {
+		uq = false,
+		t = "number",
+	},
+	checkin_reward_num = {
+		uq = false,
+		t = "number",
+	},
+	exercise_level = {
+		uq = false,
+		t = "number",
+	},
+	cgold_level = {
+		uq = false,
+		t = "number",
+	},
+	gold_max = {
+		uq = false,
+		t = "number",
+	},
+	exp_max = {
+		uq = false,
+		t = "number",
+	},
+	equipment_enhance_success_rate_up_p = {
+		uq = false,
+		t = "number",
+	},
+	store_refresh_count_max = {
+		uq = false,
+		t = "number",
+	},
+	prop_refresh = {
+		uq = false,
+		t = "number",
+	},
+	arena_frozen_time = {
+		uq = false,
+		t = "number",
+	},
+	purchase_hp_count = {
+		uq = false,
+		t = "number",
+	},
+	gain_gold_up_p = {
+		uq = false,
+		t = "number",
+	},
+	gain_exp_up_p = {
+		uq = false,
+		t = "number",
+	},
+	purchase_hp_count_max = {
+		uq = false,
+		t = "number",
+	},
+	SCHOOL_reset_count_max = {
+		uq = false,
+		t = "number",
+	},
+	SCHOOL_reset_count = {
+		uq = false,
+		t = "number",
+	},
+	signup_time = {
+		uq = false,
+		t = "number",
+	},
+	pemail_csv_id = {
+		uq = false,
+		t = "number",
+	},
+	take_diamonds = {
+		uq = false,
+		t = "number",
+	},
+	draw_number = {
+		uq = false,
+		t = "number",
+	},
+	ifxilian = {
+		uq = false,
+		t = "number",
+	},
+	cp_chapter = {
+		uq = false,
+		t = "number",
+	},
+	cp_hanging_id = {
+		uq = false,
+		t = "number",
+	},
+	cp_battle_id = {
+		uq = false,
+		t = "number",
+	},
+	cp_battle_chapter = {
+		uq = false,
+		t = "number",
+	},
+	lilian_level = {
+		uq = false,
+		t = "number",
+	},
+	lilian_exp = {
+		uq = false,
+		t = "number",
+	},
+	lilian_phy_power = {
+		uq = false,
+		t = "number",
+	},
+	purch_lilian_phy_power = {
+		uq = false,
+		t = "number",
+	},
+	ara_role_id1 = {
+		uq = false,
+		t = "number",
+	},
+	ara_role_id2 = {
+		uq = false,
+		t = "number",
+	},
+	ara_role_id3 = {
+		uq = false,
+		t = "number",
+	},
+	ara_rnk = {
+		uq = false,
+		t = "number",
+	},
+	ara_win_tms = {
+		uq = false,
+		t = "number",
+	},
+	ara_lose_tms = {
+		uq = false,
+		t = "number",
+	},
+	ara_tie_tms = {
+		uq = false,
+		t = "number",
+	},
+	ara_clg_tms = {
+		uq = false,
+		t = "number",
+	},
+	ara_clg_tms_pur_tms = {
+		uq = false,
+		t = "number",
+	},
+	ara_clg_tms_rst_tm = {
+		uq = false,
+		t = "number",
+	},
+}
+
+	_M.__pk      = "csv_id"
+	_M.__fk      = "0"
+	_M.__rdb     = skynet.localname(skynet.getenv("gated_rdb"))
+	_M.__wdb     = skynet.localname(skynet.getenv("gated_wdb"))
+	_M.__stm     = false
+	_M.genpk     = genpk
+	_M.ctor      = ctor
+	_M.create    = create
+	_M.add       = add
+	_M.get       = get
+	_M.delete    = delete
+	_M.get_by_csv_id = get_by_csv_id
+	_M.delete_by_csv_id = delete_by_csv_id
+	_M.get_count = get_count
+	_M.get_cap   = get_cap
+	_M.clear     = clear
+	return _M
+end
+
+return factory
+
