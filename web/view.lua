@@ -207,12 +207,9 @@ function VIEW:equipments()
 	end
 end
 
-function VIEW:validation()
+local function print_table(table_name)
 	-- body
-	if self.method == "post" then
-		local ret = {}
-		local table_name = self.body["table_name"]
-		local sql = string.format("select * from columns where table_name=\"%s\";", table_name)
+	local sql = string.format("select * from columns where table_name=\"%s\";", table_name)
 		local r = query.read(".rdb", table_name, sql)
 		if #r == 0 then
 			ret.ok = 0
@@ -297,10 +294,26 @@ end
 		local content = string.format(s, mgrcls, table_name, head, pk, fk, entitycls)
 		addr:write(content)
 		addr:close()
-		
-		ret.ok = 1
-		ret.msg = "succss"
-		return ret
+end
+
+function VIEW:validation()
+	-- body
+	if self.method == "post" then
+		local r = query.read(".rdb", "all", "select table_name from information_schema.tables where table_schema='project' and table_type='base table'")
+		if r then
+			local ok = pcall(function ()
+				-- body
+				for i,v in ipairs(r) do
+					for kk,vv in pairs(v) do
+						print_table(vv)
+					end
+				end
+			end)
+			local ret = {}
+			ret.ok = 1
+			ret.msg = "succss"
+			return ret
+		end
 	end
 end
 

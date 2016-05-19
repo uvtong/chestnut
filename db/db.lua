@@ -8,6 +8,9 @@ local util = require "util"
 local Queue = require "queue"
 local name = ...
 local frienddb = require "frienddb"
+local queue = require "skynet.queue"
+
+local cs1 = queue()
 
 local env = {}
 env.DB_PRIORITY_1 = 1
@@ -133,6 +136,8 @@ local QUERY = {}
 
 function QUERY:read(table_name, sql)
 	-- body
+	-- local res = cs1(self.db.query, db, sql)
+	-- return res
 	local db = self.db
 	local res = db:query(sql)
 	return res
@@ -140,16 +145,20 @@ end
 
 function QUERY:write(table_name, sql, priority)
 	-- body
-	print("QUERY:write", sql)
-	assert(table_name and sql and priority)
-	assert(priority <= self.DB_PRIORITY_3 and priority >= self.DB_PRIORITY_1)
-	Queue.enqueue(self.priority_queue[priority].Q, { table_name=table_name, sql=sql})
-	if priority <= self.c_priority then
-		self.c_priority = priority
-		-- skynet.yield() -- 
-		local co = self.priority_queue[self.c_priority].co
-		skynet.wakeup(co)
-	end
+	local db = self.db
+	local res = db:query(sql)
+	-- local res = cs1(self.db.query, db, sql)
+	-- return res
+	-- print("QUERY:write", sql)
+	-- assert(table_name and sql and priority)
+	-- assert(priority <= self.DB_PRIORITY_3 and priority >= self.DB_PRIORITY_1)
+	-- Queue.enqueue(self.priority_queue[priority].Q, { table_name=table_name, sql=sql})
+	-- if priority <= self.c_priority then
+	-- 	self.c_priority = priority
+	-- 	-- skynet.yield() -- 
+	-- 	local co = self.priority_queue[self.c_priority].co
+	-- 	skynet.wakeup(co)
+	-- end
 end
 
 function QUERY:set(k, v)

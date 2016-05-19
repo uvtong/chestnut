@@ -1,88 +1,138 @@
 local skynet = require "skynet"
-local util = require "util"
+local modelmgr = require "modelmgrcpp"
+local entity = require "entity"
+local assert = assert
+local type   = type
 
-local _M = {}
-_M.__data = {}
-_M.__count = 0
-_M.__user_id = 0
-_M.__tname = 0
+local cls = class("u_friendmgr", modelmgr)
 
-local _Meta = u_friend
+function cls:ctor( ... )
+	-- body
+	self.__data    = {}
+	self.__count   = 0
+	self.__cap     = 0
+	self.__tname   = "u_friend"
+	self.__head    = {
+	id = {
+		pk = true,
+		fk = false,
+		uq = false,
+		t = "number",
+	},
+	uid = {
+		pk = false,
+		fk = false,
+		uq = false,
+		t = "number",
+	},
+	friendid = {
+		pk = false,
+		fk = false,
+		uq = false,
+		t = "number",
+	},
+	isdel = {
+		pk = false,
+		fk = false,
+		uq = false,
+		t = "number",
+	},
+	recvtime = {
+		pk = false,
+		fk = false,
+		uq = false,
+		t = "number",
+	},
+	heartamount = {
+		pk = false,
+		fk = false,
+		uq = false,
+		t = "number",
+	},
+	sendtime = {
+		pk = false,
+		fk = false,
+		uq = false,
+		t = "number",
+	},
+}
 
-_M.__tname = "{ csv_id, }"
+	self.__pk      = "id"
+	self.__fk      = ""
+	self.__rdb     = skynet.localname(skynet.getenv("gated_rdb"))
+	self.__wdb     = skynet.localname(skynet.getenv("gated_wdb"))
+	self.__stm     = false
+	self.__entity  = "u_friendentity"
+	return self
+end
 
-function _Meta.__new()
+function cls.genpk(self, csv_id)
+	-- body
+	if #self.__fk == 0 then
+		return csv_id
+	else
+		local pk = user_id << 32
+		pk = (pk | ((1 << 32 -1) & csv_id ))
+		return pk
+	end
+end
+
+function cls.add(self, u)
  	-- body
- 	local t = {}
- 	setmetatable( t, { __index = _Meta } )
- 	return t
-end 
+ 	assert(u)
+ 	assert(self.__data[ u[self.__pk](u) ] == nil)
+ 	self.__data[ u[self.__pk](u) ] = u
+ 	self.__count = self.__count + 1
+end
 
-function _Meta:__insert_db(priority)
+function cls.get(self, pk)
 	-- body
-	assert(priority)
-	local t = {}
-	for k,v in pairs(self) do
-		if not string.match(k, "^__*") then
-			t[k] = self[k]
-		end
+	if self.__data[pk] then
+		return self.__data[pk]
+	else
+		assert(false)
+		-- local r = self("load", pk)
+		-- if r then
+		-- 	self.create(r)
+		-- 	self:add(r)
+		-- end
+		-- return r
 	end
-	skynet.send(util.random_db(), "lua", "command", "insert", self.__tname, t, priority)
 end
 
-function _Meta:__update_db(t)
+function cls.delete(self, pk)
 	-- body
-	-- assert(type(t) == "table")
-	-- local columns = {}
-	-- for i,v in ipairs(t) do
-	-- 	columns[tostring(v)] = self[tostring(v)]
-	-- end
-	-- skynet.send(util.random_db(), "lua", "command", "update", self.__tname, {{ id = self.id }}, columns)
-end
-
-function _M.create( P )
-	assert(P)
-	local u = _Meta.__new()
-	for k,v in pairs(_Meta) do
-		if not string.match(k, "^__*") then
-			u[k] = assert(P[k])
-		end
+	if nil ~= self.__data[pk] then
+		self.__data[pk] = nil
+		self.__count = self.__count - 1
 	end
-	return u
-end	
-
-function _M:add( u )
-	assert(u)
-	self.__data[tostring(u.csv_id)] = u
-	self.__count = self.__count + 1
 end
-	
-function _M:get_by_csv_id(csv_id)
+
+function cls.get_by_csv_id(self, csv_id)
 	-- body
-	return self.__data[tostring(csv_id)]
+	local pk = self:genpk(csv_id)
+	return self:get(pk)
 end
 
-function _M:delete_by_csv_id(csv_id)
-	-- body
-	self.__data[tostring(csv_id)] = nil
+function cls.delete_by_csv_id(self, csv_id)
+	local pk = self:genpk(csv_id)
+	self:delete(pk)
 end
 
-function _M:get_count()
+function cls.get_count(self)
 	-- body
 	return self.__count
 end
 
-function _M:clear()
+function cls.get_cap(self)
+	-- body
+	return self.__cap
+end
+
+function cls.clear(self)
 	-- body
 	self.__data = {}
 	self.__count = 0
 end
 
-function _M:update_db()
-	-- body
-	-- local columns = { "finished", "reward_collected", "is_unlock"}
-	-- local condition = { {user_id = self.__user_id}, {csv_id = {}}}
-	-- skynet.send(util.random_db(), "lua", "command", "update_all", _Meta.__tname, condition, columns, self.__data)
-end
-
-return _M
+return cls
