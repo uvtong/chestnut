@@ -8,43 +8,44 @@ message package {
     	REQUEST         = 0;
     	RESPONSE        = 1;
     };
-	required int32 tag = 1;
-	required Type type = 2;
-	required int32 session = 3;
+	
+	required Type type = 1;
+	required int32 session = 2;
+	required string tag = 3;
 }
 
 // 1
-message req_account {
+message account_req {
 	required string account = 1;
 	required string password = 2;
 }
 
 // 2
-message resp_account {
-	optional int32 errorcode = 1;
-	optional string msg = 2;
+message account_rsp {
+	required int32 errorcode = 1;
+	required string msg = 2;
 }
 
 // 3
-message req_enter_room {
+message enter_room_req {
 	required int32 rule = 1;
 	required int32 mode = 2;
 	required int32 scene = 3;
 }
 
 // 4
-message resp_enter_room {
+message enter_room_rsp {
 	required int32 errorcode = 1;
 	required string msg = 2;
 }
 
 // 5
-message req_ready {
+message ready_req {
 	required int32 ready = 1;
 }
 
 // 6
-message resp_ready {
+message ready_rsp {
 	required int32 errorcode = 1;
 	required string msg = 2;
 	required int32 user_id = 3;
@@ -55,12 +56,12 @@ message resp_ready {
 }
 
 // 7
-message req_mp {
+message mp_req {
 	required int32 m = 1;
 }
 
 // 8 
-message resp_mp {
+message mp_rsp {
 	required int32 errorcode = 1;
 	required string msg = 2;
 	required int32 m = 3;
@@ -71,23 +72,23 @@ message resp_mp {
 }
 
 // 9
-message req_am {
+message am_req {
 	required int32 m = 1;
 }
 
 // 10
-message resp_am {
+message am_rsp {
 	required int32 errorcode = 1;
 	required string msg = 2;
 }
 
 // 11
-message req_rob {
+message rob_req {
 	required int32 m = 1;
 }
 
 // 12
-message resp_rob {
+message rob_rsp {
 	required int32 errorcode = 1;
 	required string msg = 2;
 	required int32 your_turn = 3;	
@@ -95,12 +96,12 @@ message resp_rob {
 }
 
 // 13
-message req_lead {
+message lead_req {
 	repeated int32 cards = 1;
 }
 
 // 14
-message resp_lead {
+message lead_rsp {
 	message settlement {
 		required int32 gold = 1;	
 	}
@@ -114,21 +115,21 @@ message resp_lead {
 }
 
 // 15 
-message req_logout {
+message logout_req {
 }
 
 // 16
-message resp_logout {
+message logout_rsp {
 	required int32 errorcode = 1;
 	required string msg = 2;
 }
 
 // 17
-message req_deal_cards {
+message deal_cards_req {
 }
 
 // 18
-message resp_deal_cards {
+message deal_cards_rsp {
 	required int32 errorcode = 1;
 	required string msg = 2;
 	optional int32 your_turn = 3;
