@@ -23,18 +23,22 @@ function cls:ctor( ... )
 	return self
 end
 
-function cls.genpk(self, user_id, csv_id)
+function cls.genpk(self, csv_id)
 	-- body
-	local pk = user_id << 32
-	pk = (pk | ((1 << 32 -1) & csv_id ))
-	return pk
+	if #self.__fk == 0 then
+		return csv_id
+	else
+		local pk = user_id << 32
+		pk = (pk | ((1 << 32 -1) & csv_id ))
+		return pk
+	end
 end
 
 function cls.add(self, u)
  	-- body
  	assert(u)
- 	assert(self.__data[u.id] == nil)
- 	self.__data[ u[self.__pk] ] = u
+ 	assert(self.__data[ u[self.__pk](u) ] == nil)
+ 	self.__data[ u[self.__pk](u) ] = u
  	self.__count = self.__count + 1
 end
 
@@ -43,33 +47,33 @@ function cls.get(self, pk)
 	if self.__data[pk] then
 		return self.__data[pk]
 	else
-		local r = self("load", pk)
-		if r then
-			self.create(r)
-			self:add(r)
-		end
-		return r
+		assert(false)
+		-- local r = self("load", pk)
+		-- if r then
+		-- 	self.create(r)
+		-- 	self:add(r)
+		-- end
+		-- return r
 	end
 end
 
 function cls.delete(self, pk)
 	-- body
-	local r = self.__data[pk]
-	if r then
-		r("update")
+	if nil ~= self.__data[pk] then
 		self.__data[pk] = nil
+		self.__count = self.__count - 1
 	end
 end
 
 function cls.get_by_csv_id(self, csv_id)
 	-- body
-	return self.__data[csv_id]
+	local pk = self:genpk(csv_id)
+	return self:get(pk)
 end
 
 function cls.delete_by_csv_id(self, csv_id)
-	assert(self.__data[csv_id])
-	self.__data[csv_id] = nil
-	self.__count = self.__count - 1
+	local pk = self:genpk(csv_id)
+	self:delete(pk)
 end
 
 function cls.get_count(self)

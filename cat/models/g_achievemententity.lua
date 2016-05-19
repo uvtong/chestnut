@@ -45,84 +45,83 @@ end
 function cls:csv_id(v, ... )
 	-- body
 	if v then
-		self.csv_id = v
+		self.__fields.csv_id = v
 	else
-		return self.csv_id
+		return self.__fields.csv_id
 	end
 end
 
 function cls:type(v, ... )
 	-- body
 	if v then
-		self.type = v
+		self.__fields.type = v
 	else
-		return self.type
+		return self.__fields.type
 	end
 end
 
 function cls:name(v, ... )
 	-- body
 	if v then
-		self.name = v
+		self.__fields.name = v
 	else
-		return self.name
+		return self.__fields.name
 	end
 end
 
 function cls:c_num(v, ... )
 	-- body
 	if v then
-		self.c_num = v
+		self.__fields.c_num = v
 	else
-		return self.c_num
+		return self.__fields.c_num
 	end
 end
 
 function cls:describe(v, ... )
 	-- body
 	if v then
-		self.describe = v
+		self.__fields.describe = v
 	else
-		return self.describe
+		return self.__fields.describe
 	end
 end
 
 function cls:icon_id(v, ... )
 	-- body
 	if v then
-		self.icon_id = v
+		self.__fields.icon_id = v
 	else
-		return self.icon_id
+		return self.__fields.icon_id
 	end
 end
 
 function cls:reward(v, ... )
 	-- body
 	if v then
-		self.reward = v
+		self.__fields.reward = v
 	else
-		return self.reward
+		return self.__fields.reward
 	end
 end
 
 function cls:star(v, ... )
 	-- body
 	if v then
-		self.star = v
+		self.__fields.star = v
 	else
-		return self.star
+		return self.__fields.star
 	end
 end
 
 function cls:unlock_next_csv_id(v, ... )
 	-- body
 	if v then
-		self.unlock_next_csv_id = v
+		self.__fields.unlock_next_csv_id = v
 	else
-		return self.unlock_next_csv_id
+		return self.__fields.unlock_next_csv_id
 	end
 end
-
 
 
 return cls

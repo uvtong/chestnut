@@ -6,12 +6,12 @@ local function load_g_achievement(game)
 	-- body
 	assert(game.g_achievementmgr == nil)
 	local cls = require "models/g_achievementmgr"
-	local g_achievementmgr = cls.new()
-	for k,v in pairs(g_achievementmgr) do
-		print(k,v)
-	end
 	game.g_achievementmgr = cls.new()
 	game.g_achievementmgr:load_db()
+	local r = game.g_achievementmgr:get(1001)
+	r:update()
+	local c_num = r:c_num()
+	print("test", c_num)
 end
 
 local function load_g_ara_pts(game)
