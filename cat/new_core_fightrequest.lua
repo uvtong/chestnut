@@ -628,7 +628,7 @@ local function do_verify(v, userroleid)
 			print("v.isdead is ", v.isdead)
 			print("Selffightpower is **********************", TmpSelf.FightPower)
 			print("Enemyfightpower is *************************", TmpEnemy.FightPower)
-			
+
 			if v.isdead ~= 0 then
 				if isdead == v.isdead then
 				 	return true					
@@ -797,7 +797,7 @@ function REQUEST:Arena_OnPrepareNextRole(ctx)
 		ret.errorcode = errorcode[110].code
 		return ret 	 
 	end 			
-					
+		
 	if TmpSelf.OnBattleSequence < 3 then
 		TmpSelf.IsDead = 0 
 		reset(TmpSelf) 

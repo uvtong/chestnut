@@ -1,118 +1,183 @@
 local skynet = require "skynet"
-local util = require "util"
-local const = require "const"
+local entity = require "entity"
+local modelmgr = require "modelmgr"
+local assert = assert
+local type   = type
+local setmetatable = setmetatable
 
-local _M = {}
-_M.__data = {}
-_M.__count = 0
-_M.__user_id = 0
-_M.__tname = "u_checkpoint"
-
-local _Meta = { user_id=0, 
-				chapter=0, 
-				chapter_type0=0, 
-				chapter_type1=0, 
-				chapter_type2=0 }
-
-_Meta.__tname = "u_checkpoint"
-
-function _Meta.__new()
- 	-- body
- 	local t = {}
- 	setmetatable( t, { __index = _Meta } )
- 	return t
-end 
-
-function _Meta:__insert_db(priority)
+local function genpk(self, user_id, csv_id)
 	-- body
-	assert(priority)
-	local t = {}
-	for k,v in pairs(self) do
-		if not string.match(k, "^__*") then
-			t[k] = self[k]
-		end
-	end
-	skynet.send(util.random_db(), "lua", "command", "insert", self.__tname, t, priority)
+	local pk = user_id << 32
+	pk = (pk | ((1 << 32 -1) & csv_id ))
+	return pk
 end
 
-function _Meta:__update_db(t)
+local function ctor(self, P)
 	-- body
-	-- assert(type(t) == "table")
-	-- local columns = {}
-	-- for i,v in ipairs(t) do
-	-- 	columns[tostring(v)] = self[tostring(v)]
-	-- end
-	-- skynet.send(util.random_db(), "lua", "command", "update", self.__tname, {{ id = self.id }}, columns)
+	local r = self.create(P)
+	self:add(r)
+	r("insert")
 end
 
-function _M.create_with_chapter(chapter)
-	-- body
-	local t = {
-		user_id = _M.__user_id,
-		chapter = chapter,
-		chapter_type0 = 0,              -- 0 means 0 checkpont no.
-		chapter_type1 = 0,
-		chapter_type2 = 0,
-	}
-	return _M.create(t)
-end
-
-function _M.create(P)
+local function create(self, P)
 	assert(P)
-	local u = _Meta.__new()
-	for k,v in pairs(_Meta) do
-		if not string.match(k, "^__*") then
-			u[k] = assert(P[k])
-		end
+	local t = { 
+		__head  = self.__head,
+		__tname = self.__tname,
+		__pk    = self.__pk,
+		__fk    = self.__fk,
+		__rdb   = self.__rdb,
+		__wdb   = self.__wdb,
+		__stm   = self.__stm,
+		__col_updated=0,
+		__fields = {
+			id = 0,
+			user_id = 0,
+			chapter = 0,
+			chapter_type0 = 0,
+			chapter_type1 = 0,
+			chapter_type2 = 0,
+		}
+,
+		__ecol_updated = {
+			id = 0,
+			user_id = 0,
+			chapter = 0,
+			chapter_type0 = 0,
+			chapter_type1 = 0,
+			chapter_type2 = 0,
+		}
+
+	}
+	setmetatable(t, entity)
+	for k,v in pairs(t.__head) do
+		t.__fields[k] = assert(P[k])
 	end
-	return u
+	return t
 end	
 
-function _M:add(u)
-	assert(u)
-	assert(self.__data[tostring(u.chapter)] == nil, string.format("%d", u.chapter))
-	self.__data[tostring(u.chapter)] = u
-	self.__count = self.__count + 1
+local function add(self, u)
+ 	-- body
+ 	assert(u)
+ 	assert(self.__data[u.id] == nil)
+ 	self.__data[ u[self.__pk] ] = u
+ 	self.__count = self.__count + 1
 end
 
-function _M:get_by_chapter(csv_id)
+local function get(self, pk)
 	-- body
-	local r = self.__data[tostring(csv_id)]
-	if r then
-		return r
+	if self.__data[pk] then
+		return self.__data[pk]
 	else
-		r = self.create_with_chapter(csv_id)
-		self:add(r)
-		r:__insert_db(const.DB_PRIORITY_2)
+		local r = self("load", pk)
+		if r then
+			self.create(r)
+			self:add(r)
+		end
 		return r
 	end
 end
 
-function _M:delete_by_chapter(csv_id)
+local function delete(self, pk)
 	-- body
-	assert(self.__data[tostring(csv_id)])
-	self.__data[tostring(csv_id)] = nil
+	local r = self.__data[pk]
+	if r then
+		r("update")
+		self.__data[pk] = nil
+	end
+end
+
+local function get_by_csv_id(self, csv_id)
+	-- body
+	return self.__data[csv_id]
+end
+
+local function delete_by_csv_id(self, csv_id)
+	assert(self.__data[csv_id])
+	self.__data[csv_id] = nil
 	self.__count = self.__count - 1
 end
 
-function _M:get_count()
+local function get_count(self)
 	-- body
 	return self.__count
 end
 
-function _M:clear()
+local function get_cap(self)
+	-- body
+	return self.__cap
+end
+
+local function clear(self)
+	-- body
 	self.__data = {}
 	self.__count = 0
 end
 
-function _M:update_db(priority)
+function factory()
 	-- body
-	assert(priority, "you must")
-	if self.__count >= 1 then
-		local columns = { "chapter_type0", "chapter_type1", "chapter_type2"}
-		local condition = { {user_id = self.__user_id}, {chapter = {}}}
-		skynet.send(util.random_db(), "lua", "command", "update_all", _Meta.__tname, condition, columns, self.__data, priority)
-	end
+	local _M     = setmetatable({}, modelmgr)
+	_M.__data    = {}
+	_M.__count   = 0
+	_M.__cap     = 0
+	_M.__tname   = "u_checkpoint"
+	_M.__head    = {
+	id = {
+		pk = true,
+		fk = false,
+		uq = false,
+		t = "number",
+	},
+	user_id = {
+		pk = false,
+		fk = true,
+		uq = false,
+		t = "number",
+	},
+	chapter = {
+		pk = false,
+		fk = false,
+		uq = false,
+		t = "number",
+	},
+	chapter_type0 = {
+		pk = false,
+		fk = false,
+		uq = false,
+		t = "number",
+	},
+	chapter_type1 = {
+		pk = false,
+		fk = false,
+		uq = false,
+		t = "number",
+	},
+	chapter_type2 = {
+		pk = false,
+		fk = false,
+		uq = false,
+		t = "number",
+	},
+}
+
+	_M.__pk      = "id"
+	_M.__fk      = "user_id"
+	_M.__rdb     = skynet.localname(skynet.getenv("gated_rdb"))
+	_M.__wdb     = skynet.localname(skynet.getenv("gated_wdb"))
+	_M.__stm     = false
+	_M.genpk     = genpk
+	_M.ctor      = ctor
+	_M.create    = create
+	_M.add       = add
+	_M.get       = get
+	_M.delete    = delete
+	_M.get_by_csv_id = get_by_csv_id
+	_M.delete_by_csv_id = delete_by_csv_id
+	_M.get_count = get_count
+	_M.get_cap   = get_cap
+	_M.clear     = clear
+	return _M
 end
 
-return _M
+return factory
+

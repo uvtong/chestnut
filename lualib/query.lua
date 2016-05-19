@@ -1,5 +1,4 @@
 local skynet = require "skynet"
-local db = skynet.localname(".db")
 
 local _M = {
 	DB_PRIORITY_1 = 1,
@@ -7,28 +6,32 @@ local _M = {
 	DB_PRIORITY_3 = 3
 }
 
-function _M.select_sql_wait(table_name, sql, priority)
+function _M.write(wdb, table_name, sql, priority)
 	-- body
-	return skynet.call(db, "lua", "command", "select_sql_wait", table_name, sql, priority)
+	skynet.send(wdb, "lua", "command", "write", table_name, sql, priority)
 end
 
-function _M.update_sql(table_name, sql, priority)
+function _M.read(rdb, table_name, sql)
 	-- body
-	skynet.send(db, "lua", "command", "update_sql", table_name, sql, priority)
+	if type(rdb) == "string" then
+		if not string.match(rdb, "^%.[%w_]*") then
+			error(string.format("read data from %s", table_name))
+		end
+	else
+		assert(type(rdb) == "number")
+	end
+	local r = skynet.call(rdb, "lua", "command", "read", table_name, sql)
+	return r
 end
 
-function _M.insert_sql(table_name, sql, priority)
+function _M.set(wdb, k, v)
 	-- body
-	skynet.send(db, "lua", "command", "insert_sql", table_name, sql, priority)
-end
-
-function _M.insert_all_sql(table_name, sql, priority)
-	skynet.send(db, "lua", "command", "insert_all_sql", table_name, sql, priority)
-end
-
-function _M.update_all_sql(table_name, sql, priority)
-	-- body
-	skynet.send(db, "lua", "command", "update_all_sql", table_name, sql, priority)
+	skynet.send(wdb, "lua", "command", "set", k, v)
 end
 	
+function _M.get(rdb, k, sub)
+	-- body
+	return skynet.call(rdb, "lua", "command", "get", k, sub)
+end
+
 return _M

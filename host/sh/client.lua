@@ -1,5 +1,5 @@
 package.cpath = "luaclib/?.so"
-package.path = "lualib/?.lua;../crazy/?.lua"
+package.path = "./../cat/?.lua;lualib/?.lua"
 
 local socket = require "clientsocket"
 local crypt = require "crypt"
@@ -10,7 +10,7 @@ if _VERSION ~= "Lua 5.3" then
 	error "Use lua 5.3"
 end
 
-local fd = assert(socket.connect("192.168.1.116", 8001))
+local fd = assert(socket.connect("192.168.1.239", 3002))
 
 local function writeline(fd, text)
 	socket.send(fd, text .. "\n")
@@ -58,7 +58,7 @@ end
 local readline = unpack_f(unpack_line)
 -- 0
 --local cha = crypt.base64decode(readline())
-print(readline())
+-- print(readline())
 
 -- 1. get challenge
 local challenge = crypt.base64decode(readline())
@@ -100,8 +100,8 @@ writeline(fd, crypt.base64encode(hmac))
 
 local token = {
 	server = "sample",
-	user = "hello",
-	pass = "password",
+	user = "125",
+	pass = "123",
 }
 
 local function encode_token(token)
@@ -124,9 +124,9 @@ assert(code == 200)
 socket.close(fd)
 
 -- 8. subid
-local subid = crypt.base64decode(string.sub(result, 5))
-
-print("login ok, subid=", subid)
+local uid = crypt.base64decode(string.sub(result, 6, 9))
+local subid = crypt.base64decode(string.sub(result, 11, 14))
+print("login ok, subid=", subid, "uid=", uid)
 
 ----- connect to game server
 
@@ -138,17 +138,23 @@ local request = host:attach(sproto.new(proto.c2s))
 --	socket.send(fd, package)
 --end
 
+local c2s_req_tag  = 1 << 0
+local c2s_resp_tag = 1 << 1
+local s2c_req_tag  = 1 << 2
+local s2c_resp_tag = 1 << 3
+
 local function send_request_b(v, session)
-	local size = #v + 4
-	local package = string.pack(">I2", size)..v..string.pack(">I4", session)
+	local size = #v + 4 + 1
+	local package = string.pack(">I2", size)..v..string.pack(">I4", session)..string.pack("B", c2s_req_tag)
+	print("size is", size, "actual size is", #package)
 	socket.send(fd, package)
 	return v, session
 end
 
 local function recv_response(v)
 	local size = #v - 5
-	local content, ok, session = string.unpack("c"..tostring(size).."B>I4", v)
-	return ok ~=0 , content, session
+	local content, session, tag = string.unpack("c"..tostring(size)..">I4B", v)
+	return tag, session, content
 end
 
 local function unpack_package(text)
@@ -233,12 +239,12 @@ local function dispatch_package()
 		if not v then
 			break
 		end
-		local ok, content, session = recv_response(v)
-		print(ok, session)
-		if ok then
-			local str = crypt.base64decode(content)
-			str = crypt.desdecode(secret, str)
-			print_package(host:dispatch(str))
+		local tag, session, content = recv_response(v)
+		if tag == c2s_resp_tag then
+			print("tag is", tag, "session is", session)
+			-- local str = crypt.base64decode(content)
+			-- str = crypt.desdecode(secret, str)
+			print_package(host:dispatch(content))
 		end
 	end
 end
@@ -247,24 +253,28 @@ end
 local index = 1
 
 print("connect")
-fd = assert(socket.connect("192.168.1.116", 8888))
+fd = assert(socket.connect("192.168.1.239", 3301))
 last = ""
 
-local handshake = string.format("%s@%s#%s:%d", crypt.base64encode(token.user), crypt.base64encode(token.server),crypt.base64encode(subid) , index)
+local handshake = string.format("%s@%s#%s:%d", crypt.base64encode(uid), crypt.base64encode(token.server),crypt.base64encode(subid) , index)
 local hmac = crypt.hmac64(crypt.hashkey(handshake), secret)
 
 -- send handshake
 send_package(fd, handshake .. ":" .. crypt.base64encode(hmac))
 
 print(readpackage())
-send_request("handshake")
-send_request("set", { what = "hello", value="world" })
 while true do
 	dispatch_package()
 	local cmd = socket.readstdin()
 	if cmd then
 		if cmd == "quit" then
 			send_request("quit")
+		elseif cmd == "role_info" then
+			send_request(cmd, { role_id = 1})
+		elseif cmd == "mails" then
+			send_request(cmd)
+		elseif cmd == "user" then
+			send_request(cmd)
 		else
 			send_request("get", { what = cmd })
 		end

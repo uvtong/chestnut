@@ -33,15 +33,82 @@ local const = require "const"
 local errorcode = require "errorcode"
 local game = ".game"
 
+function create_default(uid)
+	-- body
+	local level = skynet.call(".game", "lua", "query_g_user_level", 1)
+	local vip = skynet.call(".game", "lua", "query_g_recharge_vip_reward", 0)
+	local t = { csv_id= uid,
+				uname="nihao",
+				uviplevel=3,
+				config_sound=1, 
+				config_music=1, 
+				avatar=0, 
+				sign="peferct ", 
+				c_role_id=1, 
+				ifonline=0, 
+				level=level.level, 
+				combat=level.combat, 
+				defense=level.defense, 
+				critical_hit=level.critical_hit, 
+				blessing=0,
+				permission = 1,
+				group = 0, 
+				modify_uname_count=0, 
+				onlinetime=0, 
+				iconid=0, 
+				is_valid=1, 
+				recharge_rmb=0, 
+				goods_refresh_count=0, 
+				recharge_diamond=0, 
+				uvip_progress=0, 
+				checkin_num=0, 
+				checkin_reward_num=0, 
+				exercise_level=0, 
+				cgold_level=0,
+				gold_max=level.gold_max + math.floor(level.gold_max * vip.gold_max_up_p/100),
+				exp_max=level.exp_max + math.floor(level.exp_max * vip.exp_max_up_p/100),
+				equipment_enhance_success_rate_up_p=assert(vip.equipment_enhance_success_rate_up_p),
+				store_refresh_count_max=assert(vip.store_refresh_count_max),
+				prop_refresh=0,
+				arena_frozen_time=0,
+				purchase_hp_count=0, 
+				gain_gold_up_p=0,
+				gain_exp_up_p=0,
+				purchase_hp_count_max=4 ,--assert(vip.purchase_hp_count_max),
+				SCHOOL_reset_count_max=assert(vip.SCHOOL_reset_count_max),
+				SCHOOL_reset_count=0,
+				signup_time=os.time() ,
+				pemail_csv_id = 0,
+				take_diamonds=0,
+				draw_number=0 ,
+				ifxilian = 0,              -- 
+				cp_chapter=1,                 -- checkpoint progress 1
+				cp_hanging_id=0,
+				cp_battle_id=0,
+				cp_battle_chapter=0,
+				lilian_level = 1,
+				lilian_exp = 0,
+				lilian_phy_power = 120,
+				purch_lilian_phy_power = 0,
+				cp_hanging_drop_starttime=0,
+				ara_role_id1 = 0,
+				ara_role_id2 = 0,
+				ara_role_id3 = 0,
+				ara_rnk = 0,
+				ara_win_tms = 0,
+				ara_lose_tms = 0,
+				ara_tie_tms = 0,
+				}
+	local u = usersmgr.create(t)
+	return u
+end
+
 local function signup(uid, xilian)
 	-- body
-
-	local u = usersmgr.create_default(uid)
-	local res = u:__insert_db_wait(const.DB_PRIORITY_1)
+	print(uid)
+	local u = create_default(uid)
+	u("insert")
 	print("****************************abc")
-	if res.errno then
-		return nil
-	end
 	u.u_achievementmgr = u_achievementmgr
 	u.u_achievement_rcmgr = u_achievement_rcmgr
 	u.u_ara_batmgr = u_ara_batmgr
@@ -79,9 +146,9 @@ local function signup(uid, xilian)
 	u.u_rolemgr = u_rolemgr
 
 	local l = {}
-	local r = skynet.call(game, "lua", "query_g_equipment")
+	local r = skynet.call(".game", "lua", "query_g_equipment")
 	for k,v in pairs(r) do
-		local equip = skynet.call(game, "lua", "query_g_equipment_enhance", v.csv_id*1000+v.level)
+		local equip = skynet.call(".game", "lua", "query_g_equipment_enhance", v.csv_id*1000+v.level)
 		equip.user_id = u.csv_id
 		local equip = u_equipmentmgr.create(equip)
 		u_equipmentmgr:add(equip)
@@ -90,38 +157,37 @@ local function signup(uid, xilian)
 	u_equipmentmgr.insert_db(l, const.DB_PRIORITY_1)
 
 	l = {}
-	local prop = skynet.call(game, "lua", "query_g_prop", const.GOLD)
+	local prop = skynet.call(".game", "lua", "query_g_prop", const.GOLD)
 	prop.user_id = u.csv_id
 	prop.num = 100
 	prop = u_propmgr.create(prop)
 	table.insert(l, prop)
 
-	prop = skynet.call(game, "lua", "query_g_prop", const.DIAMOND)
+	prop = skynet.call(".game", "lua", "query_g_prop", const.DIAMOND)
 	prop.user_id = u.csv_id
 	prop.num = 100
 	prop = u_propmgr.create(prop)
 	table.insert(l, prop)
 
-	prop = skynet.call(game, "lua", "query_g_prop", const.EXP)
+	prop = skynet.call(".game", "lua", "query_g_prop", const.EXP)
 	prop.user_id = u.csv_id
 	prop.num = 100
 	prop = u_propmgr.create(prop)
 	table.insert(l, prop)
 	
-	prop = skynet.call(game, "lua", "query_g_prop", const.LOVE)
+	prop = skynet.call(".game", "lua", "query_g_prop", const.LOVE)
 	prop.user_id = u.csv_id
 	prop.num = 100     
 	prop = u_propmgr.create(prop)
 	table.insert(l, prop)
 	
 	--add invitation
-	prop = skynet.call( game , "lua" , "query_g_prop" , 50007)
+	prop = skynet.call(".game", "lua" , "query_g_prop" , 50007)
 	assert( prop )
 	prop.user_id = u.csv_id
 	prop.num = 100
 	prop = u_propmgr.create(prop)
 	table.insert( l , prop )
-	
 	u_propmgr.insert_db(l, const.DB_PRIORITY_1)
 
 	local newemail = { 
@@ -133,40 +199,11 @@ local function signup(uid, xilian)
 					}  
 	skynet.send(".channel", "lua", "send_email_to_group", newemail,  { { uid = u.csv_id } })
 
-	local u_rolemgr = require "models/u_rolemgr"
-	local role = skynet.call(game, "lua", "query_g_role", 1)
-	local role_star = skynet.call(game, "lua", "query_g_role_star", role.csv_id*1000+role.star)
-	for k,v in pairs(role_star) do
-		role[k] = v
-	end
-	role.user_id = assert(u.csv_id)
-	role.k_csv_id1 = 0
-	role.k_csv_id2 = 0
-	role.k_csv_id3 = 0
-	role.k_csv_id4 = 0
-	role.k_csv_id5 = 0
-	role.k_csv_id6 = 0
-	role.k_csv_id7 = 0
-	local n, r = xilian(role, {role_id=role.csv_id, is_locked1=false, is_locked2=false, is_locked3=false, is_locked4=false, is_locked5=false})
-	assert(n == 0, string.format("%d locked.", n))
-	role.property_id1 = r.property_id1
-	role.value1 = r.value1
-	role.property_id2 = r.property_id2
-	role.value2 = r.value2
-	role.property_id3 = r.property_id3
-	role.value3 = r.value3
-	role.property_id4 = r.property_id4
-	role.value4 = r.value4
-	role.property_id5 = r.property_id5
-	role.value5 = r.value5
-	role = u_rolemgr.create(role)
-	role:__insert_db(const.DB_PRIORITY_1)
-
 	l = {}
 	local u_achievementmgr = require "models/u_achievementmgr"
 	for i=1,8 do
 		local csv_id = i * 1000 + 1
-		local a = skynet.call(game, "lua", "query_g_achievement", csv_id)
+		local a = skynet.call(".game", "lua", "query_g_achievement", csv_id)
 		a.user_id = u.csv_id
 		a.finished = 0
 		a.reward_collected = 0
@@ -178,7 +215,7 @@ local function signup(uid, xilian)
 		u_achievementmgr.insert_db(l, const.DB_PRIORITY_1)
 
 	local u_goodsmgr = require "models/u_goodsmgr"
-	local r = skynet.call(game, "lua", "query_g_goods")
+	local r = skynet.call(".game", "lua", "query_g_goods")
 	l = {}
 	for k,v in pairs(r) do
 		local t = { user_id = u.csv_id, csv_id=v.csv_id, inventory=v.inventory_init, countdown=0, st=0}

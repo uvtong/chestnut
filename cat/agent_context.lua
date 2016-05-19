@@ -1,30 +1,21 @@
-local skynet = require "skynet"
-local const = require "const"
 local _M = {}
 
-_M.WATCHDOG = nil
-_M.host = nil
-_M.send_request = nil
 
-_M.client_fd = nil
-
-_M.game = nil
-_M.user = nil
-
-function _M:send_package(pack)
+function _M.new( ... )
 	-- body
-	local package = string.pack(">s2", pack)
-	socket.write(self.client_fd, package)
-end
-
-function _M:push_achievement(achievement)
-	-- body
-	ret = {}
-	ret.which = {
-		csv_id = achievement.csv_id,
-		finished = achievement.finished
-	}
-	-- self:send_package(self.send_request("finish_achi", ret))
+	local env = {}
+	env.host = 0
+	env.send_request = 0
+	env.gate = 0
+	env.userid = 0
+	env.subid = 0
+	env.secret = 0
+	env.db = 0
+	env.game = 0
+	env.user = 0
+	env.usersmgr = 0
+	env.area = 0
+	return env
 end
 
 function _M:raise_achievement(T)

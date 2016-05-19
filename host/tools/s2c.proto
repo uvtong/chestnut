@@ -14,7 +14,7 @@ message package {
 }
 
 // 1
-message req_enter_room {
+message enter_room_req {
 	enum Type {
 		RIGHT          = 1;
 		LEFT           = 0;
@@ -25,13 +25,13 @@ message req_enter_room {
 }
 
 // 2
-message resp_enter_room {
+message enter_room_rsp {
 	required int32 errorcode = 1;
 	required string msg = 2;
 }
 
 // 3
-message req_ready {
+message ready_req {
 	required int32 errorcode = 1;
 	required int32 user_id = 2;
 	required int32 ready = 3;
@@ -44,15 +44,15 @@ message req_ready {
 }
 
 // 4
-message resp_ready {
+message ready_rsp {
 	required int32 errorcode = 1;
 	required string msg = 2;
 }
 
 // 5
-message req_mp {
+message mp_req {
 	required int32 user_id = 1;
-	required int32 user_id = 2;
+	required int32 user_id_ = 2;
 	required int32 m = 3;
 	repeated int32 mcards = 4;
 	repeated int32 rcards = 5;
@@ -61,13 +61,13 @@ message req_mp {
 }
 
 // 6 
-message resp_mp {
+message mp_rsp {
 	required int32 errorcode = 1;
 	required string msg = 2;
 }
 
 // 7
-message req_deal_cards {
+message deal_cards_req {
 	required int32 errorcode = 1;
 	required string msg = 2;
 	optional int32 your_turn = 3;
@@ -75,13 +75,13 @@ message req_deal_cards {
 }
 
 // 8
-message resp_deal_cards {
+message deal_cards_rsp {
 	required int32 errorcode = 1;
 	required string msg = 2;	
 }
 
 // 9
-message req_rob {
+message rob_req {
 	// 1.rob 2.turn 3. lead
 	required int32 errorcode = 1;
 	required int32 user_id = 2;
@@ -91,38 +91,39 @@ message req_rob {
 }
 
 // 10
-message resp_rob {
+message rob_rsp {
 	required int32 errorcode = 1;
 	required string msg = 2;
 }
 
 // 11
-message req_turn_rob {
+message turn_rob_req {
 	// waste
 }
 
 // 12
-message resp_turn_rob {
+message turn_rob_rsp {
 	// waste
 }
 
 // 13
-message req_mark {
+message mark_req {
 	required int32 user_id = 1;
 }
 
 // 14
-message resp_mark {
+message mark_rsp {
 	required int32 errorcode = 1;
 	required string msg = 2;
 }
 
+// 1. lead 2. turn_lead 3. result
+message settlement {
+	required int32 gold = 1;	
+}
+
 // 15
-message req_lead {
-	// 1. lead 2. turn_lead 3. result
-	message settlement {
-		required int32 gold = 1;	
-	}
+message lead_req {
 	required int32 errorcode = 1;
 	required int32 user_id = 2;
 	repeated int32 cards = 3;
@@ -150,13 +151,13 @@ message resp_turn_lead {
 }
 
 // 19
-message req_am {
+message am_req {
 	required int32 user_id = 1;
 	required int32 m = 2;
 }
 
 // 20 
-message resp_am {
+message am_rsp {
 	required int32 errorcode = 1;
 	required string msg = 2;
 }

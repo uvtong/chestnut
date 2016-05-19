@@ -1087,6 +1087,9 @@ lilian_rewared_list 78 {
 }
 
 ara_bat_ovr 79 {
+    request {
+        win 0 : integer
+    }
     response {
         errorcode 0 : integer
         msg 1 : string
@@ -1100,9 +1103,7 @@ ara_bat_ovr 79 {
 
 ara_bat_clg 80 {
     request {
-        role_id1 0 : integer
-        role_id2 1 : integer
-        role_id3 2 : integer
+        user_id 0 : integer
     }
     response {
         errorcode 0 : integer

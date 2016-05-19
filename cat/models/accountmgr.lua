@@ -1,6 +1,7 @@
 local skynet = require "skynet"
 local util = require "util"
 local notification = require "notification"
+local query = require "query"
 
 local _M = {}
 _M.__data = {}
@@ -28,7 +29,7 @@ function _Meta:__insert_db(priority)
 		end
 	end
 	local sql = util.insert(self.__tname, t)
-	skynet.send(util.random_db(), "lua", "command", "insert_sql", _M.__tname, sql, priority)
+	query.write(".db", "lua", sql, priority)
 end
 
 function _Meta:__update_db(t, priority)
@@ -75,7 +76,8 @@ function _M.insert_db(values, priority)
 		table.insert(total, t)
 	end
 	local sql = util.insert_all(_M.__tname, total)
-	skynet.send(util.random_db(), "lua", "command", "insert_all_sql", _M.__tname, sql, priority)
+	-- skynet.send(util.random_db(), "lua", "command", "insert_all_sql", _M.__tname, sql, priority)
+	query.write(".db", _M.__tname, sql, priority)
 end 
 
 function _M.create_with_csv_id(csv_id)
@@ -148,7 +150,7 @@ function _M:update_db(priority)
 		local columns = { "finished", "reward_collected", "is_unlock"}
 		local condition = { {user_id = self.__user_id}, {csv_id = {}}}
 		local sql = util.update_all(_M.__tname, condition, columns, self.__data)
-		skynet.send(util.random_db(), "lua", "command", "update_all_sql", _M.__tname, sql, priority)
+		query.write(".db", _M.__tname, sql, priority)
 	end
 end
 

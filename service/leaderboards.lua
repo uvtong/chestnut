@@ -1,14 +1,13 @@
-package.path = "../lualib/?.lua;" .. package.path
+package.path = "../cat/?.lua;../lualib/?.lua;" .. package.path
+package.cpath = "../lua-cjson/?.so;"..package.cpath
 local skynet = require "skynet"
 local assert = assert
-local query = require "query"
-
-
 local table_name = ...
+local leaderboardsmgr = require "models/ara_leaderboardsmgr"
+leaderboardsmgr = leaderboardsmgr()
 
--- {id = { id=0, ranking=0, key=} }
-local name_ranking = {}
 -- {ranking=id }
+local top = 0
 local ranking_name = {}
 
 local CMD = {}
@@ -50,8 +49,9 @@ function CMD.swap(rnk1, rnk2)
 	ranking_name[rnk2] = u1
 end
 
-function CMD.enter(id, k)
+function CMD.enter(id, key)
 	-- body
+	assert(false)
 	local idx = bsearch(k)
 	local l = #ranking_name
 	local p = l
@@ -61,17 +61,28 @@ function CMD.enter(id, k)
 	end
 	ranking_name[p] = id
 	name_ranking[id] = { id = id, ranking=p, key=k}
-	
 	return p
 end
 
-function CMD.push(id, k)
+function CMD.push(id, key)
 	-- body
-	local l = #ranking_name
-	local rnk = l+1
-	ranking_name[rnk] = id
-	name_ranking[id] = {id=id, ranking=rnk, key=k}
-	return rnk
+	local u = leaderboardsmgr:get(id)
+	if u then
+		return u.ranking
+	else
+		top = top + 1
+		local ranking = top
+		ranking_name[ranking] = id
+		local tmp = {
+			uid = id,
+			ranking = ranking,
+			k = key
+		}
+		local o = leaderboardsmgr.create(tmp)
+		leaderboardsmgr:add(o)
+		o("insert")
+		return ranking
+	end
 end
 
 function CMD.ranking(id)
@@ -86,25 +97,45 @@ function CMD.name(rnk)
 	return assert(ranking_name[rnk])
 end
 
+function CMD.ranking_range(s, e)
+	-- body
+	assert(type(s) == "number")
+	assert(type(e) == "number")
+	assert(e > s)
+	local l = {}
+	for i=s,e do
+		local id = ranking_name[i]
+		if id then
+			l[i] = id
+		end
+	end
+	return l
+end
+
+local function print_c()
+	-- body
+	while true do 
+		print("begain to print leaderboards")
+		for i,v in ipairs(ranking_name) do
+			print(i,v)
+		end
+		leaderboardsmgr("update")
+		skynet.sleep(60 * 100)
+	end
+end
+
 skynet.start(function ()
 	-- body
 	skynet.dispatch("lua", function(_,_, command, subcmd, ...)
 		if command ~= "command" then
 			local f = CMD[command]
-			local r = f( ... )
+			local r = f(subcmd, ... )
 			if r then
 				skynet.ret(skynet.pack(r))
 			end
 		else
 		end
 	end)
-	local sql = string.format("select * from %s", table_name)
-	local r = query.select_sql_wait(table_name, sql, query.DB_PRIORITY_1)
-	local idx = 1
-	for i,v in ipairs(r) do
-		assert(v.csv_id == idx)
-		idx = idx + 1
-		ranking_name[v.csv_id] = v.id
-		name_ranking[id] = { id=v.id, ranking=v.csv_id, key=v.key} 
-	end
+	leaderboardsmgr("load_db")
+	skynet.fork(print_c)
 end)

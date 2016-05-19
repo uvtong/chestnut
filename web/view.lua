@@ -213,42 +213,91 @@ function VIEW:validation()
 		local ret = {}
 		local table_name = self.body["table_name"]
 		local sql = string.format("select * from columns where table_name=\"%s\";", table_name)
-		local r = query.select_sql_wait(table_name, sql, query.DB_PRIORITY_2)
+		local r = query.read(".rdb", table_name, sql)
 		if #r == 0 then
-			for k,v in pairs(r) do
-				print(k,v)
-			end
 			ret.ok = 0
 			ret.msg = "failture"
 			return ret
 		end
+		local pk = 0
+		local fk = 0
+		local funcs = ""
+		local count = "{\n"
 		local fields = "{\n"
 		local head = "{\n"
 		for i,v in ipairs(r) do
-			local seg = ""..v.COLUMN_NAME.." = {\n"
-			seg = seg .. string.format("\tpk = false,\n")
-			seg = seg .. string.format("\tfk = false,\n")
-			seg = seg .. string.format("\tuq = false,\n")
-			if v.DATA_TYPE == "int" then
-				seg = seg .. string.format("\tt = \"%s\",\n", "number")
-			elseif v.DATA_TYPE == "varchar" or v.DATA_TYPE == "char" then
-				seg = seg .. string.format("\tt = \"%s\",\n", "string")
+			local seg = "\t"..v.COLUMN_NAME.." = {\n"
+			local pk_seg = string.format("\t\tpk = false,\n")
+			local fk_seg = string.format("\t\tfk = false,\n")
+			if v.COLUMN_KEY == "PRI" then
+				pk = v.COLUMN_NAME
+				pk_seg = string.format("\t\tpk = true,\n")
+			else
+				local sql = string.format("select * from INFORMATION_SCHEMA.KEY_COLUMN_USAGE WHERE TABLE_NAME ='%s' and COLUMN_NAME = '%s'", table_name, v.COLUMN_NAME)
+				local r = query.read(".rdb", table_name, sql)
+				for i,vv in ipairs(r) do
+					if vv.CONSTRAINT_NAME == "PRIMARY" then
+						print(sql)
+						ret.ok = 0
+						ret.msg = "PRIMARY failture"
+						return ret
+					end	
+					local sql = string.format("select * from INFORMATION_SCHEMA.TABLE_CONSTRAINTS t where t.TABLE_NAME='%s' and CONSTRAINT_TYPE='FOREIGN KEY' and CONSTRAINT_NAME = '%s'", table_name, vv.CONSTRAINT_NAME)
+					local r = query.read(".rdb", table_name, sql)
+					print(sql)
+					if #r == 1 then
+						fk_seg = string.format("\t\tfk = true,\n")	
+						fk = v.COLUMN_NAME
+					end	
+				end
 			end
-			seg = seg .. "},"
+			seg = seg .. pk_seg
+			seg = seg .. fk_seg
+			seg = seg .. string.format("\t\tuq = false,\n")
+			if v.DATA_TYPE=="int" or v.DATA_TYPE=="bigint" or v.DATA_TYPE=="tinyint" or v.DATA_TYPE=="smallint" then
+				seg = seg .. string.format("\t\tt = \"%s\",\n", "number")
+			elseif v.DATA_TYPE == "varchar" or v.DATA_TYPE == "char" then
+				seg = seg .. string.format("\t\tt = \"%s\",\n", "string")
+			end
+			seg = seg .. "\t},\n"
 			head = head .. seg
 
 			seg = seg .. string.format("\tc = 0,\n")
-			fields = fields .. string.format("\t%s = { c = 0, v = nil },\n", v.COLUMN_NAME)
+			count = count .. string.format("\t\t\t%s = 0,\n", v.COLUMN_NAME)
+			fields = fields .. string.format("\t\t\t%s = 0,\n", v.COLUMN_NAME)
+			funcs = funcs .. string.format(
+[[
+function cls:%s(v, ... )
+	-- body
+	if v then
+		self.%s = v
+	else
+		return self.%s
+	end
+end
+
+]], v.COLUMN_NAME, v.COLUMN_NAME, v.COLUMN_NAME)
 		end
 		head = head.."}\n"
-		fields = fields.."}\n"
-
-		local s, ss = require("model")()
+		fields = fields.."\t\t}\n"
+		count = count.."\t\t}\n"
+		
 		local dir = skynet.getenv("pro_dir")
-		local addr = io.open(dir.."models/"..table_name.."mgr.lua", "w")
-		local content = string.format(s, table_name, head, ss, table_name, fields)
+		
+		local s = require("entitycppt")
+		local entitycls = table_name.."entity"
+		local addr = io.open(dir.."models/"..table_name.."entity.lua", "w")
+		local content = string.format(s, entitycls, fields, count, funcs)
 		addr:write(content)
 		addr:close()
+
+		local s = require("modelcppt")
+		local mgrcls = table_name.."mgr"
+		local addr = io.open(dir.."models/"..table_name.."mgr.lua", "w")
+		local content = string.format(s, mgrcls, table_name, head, pk, fk, entitycls)
+		addr:write(content)
+		addr:close()
+		
 		ret.ok = 1
 		ret.msg = "succss"
 		return ret

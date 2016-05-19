@@ -1,0 +1,79 @@
+[:01000001] LAUNCH catlogger userlog
+[:01000002] LAUNCH snlua bootstrap
+[:01000003] LAUNCH snlua launcher
+[:01000004] LAUNCH snlua cmaster
+[:01000004] master listen socket 0.0.0.0:2013
+[:01000005] LAUNCH snlua cslave
+[:01000005] slave connect to master 127.0.0.1:2013
+[:01000004] connect from 127.0.0.1:51668 4
+[:01000006] LAUNCH harbor 1 16777221
+[:01000004] Harbor 1 (fd=4) report 127.0.0.1:2401
+[:01000005] Waiting for 0 harbors
+[:01000005] Shakehand ready
+[:01000007] LAUNCH snlua datacenterd
+[:01000008] LAUNCH snlua service_mgr
+[:01000009] LAUNCH snlua main
+[:0100000a] LAUNCH snlua protoloader
+[:0100000b] LAUNCH snlua console
+[:0100000c] LAUNCH snlua db
+[:0100000d] LAUNCH snlua db
+[:0100000e] LAUNCH snlua db
+[:0100000f] LAUNCH snlua signupserver 16777230
+[:01000010] LAUNCH snlua signupserver
+[:01000011] LAUNCH snlua signupserver
+[:01000012] LAUNCH snlua signupserver
+[:01000013] LAUNCH snlua signupserver
+[:01000014] LAUNCH snlua signupserver
+[:01000015] LAUNCH snlua signupserver
+[:01000016] LAUNCH snlua signupserver
+[:01000017] LAUNCH snlua signupserver
+[:0100000f] login server listen at : 192.168.1.239 3001
+[:01000018] LAUNCH snlua db
+[:01000019] LAUNCH snlua db
+[:0100001a] LAUNCH snlua logindata
+[:0100001b] LAUNCH snlua logind 16777241
+[:0100001c] LAUNCH snlua logind
+[:0100001d] LAUNCH snlua logind
+[:0100001e] LAUNCH snlua logind
+[:0100001f] LAUNCH snlua logind
+[:01000020] LAUNCH snlua logind
+[:01000021] LAUNCH snlua logind
+[:01000022] LAUNCH snlua logind
+[:01000023] LAUNCH snlua logind
+[:0100001b] login server listen at : 192.168.1.239 3002
+[:01000024] LAUNCH snlua wgame
+[:01000025] LAUNCH snlua game
+[:01000026] LAUNCH snlua simpledb
+[:01000027] LAUNCH snlua leaderboards .ara_lb
+[:01000028] LAUNCH snlua channel 16777253
+[:01000029] LAUNCH snlua multicastd
+[:0100002a] LAUNCH snlua gated
+[:0100002a] Listen on 192.168.1.239:3301
+[:01000009] KILL self
+[:01000002] KILL self
+[:0100001c] connect from 192.168.1.239:55833 (fd = 19)
+[:0100002b] LAUNCH snlua agent
+[:0100002b] 385 is login
+[:0100002b] lua call [100000c to :100002b : 44 msgsz = 798] error : [31m./lualib/skynet.lua:521: ./lualib/skynet.lua:155: ../lualib/entity.lua:90: attempt to index a nil value (field '?')
+stack traceback:
+	../lualib/entity.lua:90: in function 'entity.__newindex'
+	./../cat/loader.lua:498: in upvalue 'load_u_achievement'
+	./../cat/loader.lua:915: in function 'loader.load_user'
+	./../cat/agent.lua:2567: in local 'f'
+	./../cat/agent.lua:2678: in upvalue 'f'
+	./lualib/skynet.lua:109: in function <./lualib/skynet.lua:103>
+stack traceback:
+	[C]: in function 'assert'
+	./lualib/skynet.lua:521: in function 'skynet.dispatch_message'[0m
+[:0100002a] lua call [100002b to :100002a : 4 msgsz = 0] error : [31m./lualib/skynet.lua:521: ./lualib/skynet.lua:155: ./lualib/skynet.lua:380: call failed
+stack traceback:
+	[C]: in function 'error'
+	./lualib/skynet.lua:380: in upvalue 'yield_call'
+	./lualib/skynet.lua:391: in function 'skynet.call'
+	./../logind/gated.lua:42: in function <./../logind/gated.lua:22>
+	(...tail calls...)
+	./lualib/snax/gateserver.lua:151: in upvalue 'f'
+	./lualib/skynet.lua:109: in function <./lualib/skynet.lua:103>
+stack traceback:
+	[C]: in function 'assert'
+	./lualib/skynet.lua:521: in function 'skynet.dispatch_message'[0m
