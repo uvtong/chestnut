@@ -2607,10 +2607,6 @@ function CMD.signup(source, uid, sid, sct, g, d)
 
 	local signup = require "signup"
 	user = signup(uid)
-	-- local ok, user = pcall(signup, uid)
-	-- if not ok then
-	-- 	error(user)
-	-- end
 	
 	local u_rolemgr = require "models/u_rolemgr"
 	local role = skynet.call(game, "lua", "query_g_role", 1)
@@ -2792,11 +2788,10 @@ local function start()
 	-- body
 	host = sprotoloader.load(1):host "package"
 	send_request = host:attach(sprotoloader.load(2))
-	
+
 	env.host = host
 	env.send_request = send_request
 	env.game = game
-	
 end
 
 skynet.start(function()
@@ -2810,6 +2805,6 @@ skynet.start(function()
 	end)
 	-- skynet.fork(update_db)
 	start()
-	subscribe()
+	-- subscribe()
 	start_subscribe()
 end)

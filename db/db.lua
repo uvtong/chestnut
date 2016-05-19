@@ -172,95 +172,95 @@ function QUERY:get(k, sub)
 	end
 end
 
-function QUERY:query( sql )
-	-- body
-	return self.db:query(sql)
-end
+-- function QUERY:query( sql )
+-- 	-- body
+-- 	return self.db:query(sql)
+-- end
 
-function QUERY:select( table_name, condition, columns)
-	-- body
-	local sql = util.select(table_name, condition, columns)
-	local r = self.db:query(sql)
-	return r
-end
+-- function QUERY:select( table_name, condition, columns)
+-- 	-- body
+-- 	local sql = util.select(table_name, condition, columns)
+-- 	local r = self.db:query(sql)
+-- 	return r
+-- end
 
-function QUERY:update( table_name, condition, columns, priority)
-	-- body
-	assert(priority and priority >= self.DB_PRIORITY_1 and priority <= self.DB_PRIORITY_3, string.format("when query %s you must provide priority", table_name))
-	local sql = util.update(table_name, condition, columns)
-	assert(table_name and sql and priority)
-	assert(priority <= self.DB_PRIORITY_3 and priority >= self.DB_PRIORITY_1)
-	Queue.enqueue(self.priority_queue[priority].Q, { table_name=table_name, sql=sql})
-	if priority <= self.c_priority then
-		self.c_priority = priority
-		-- skynet.yield() -- 
-		local co = self.priority_queue[self.c_priority].co
-		skynet.wakeup(co)
-	end
-end
+-- function QUERY:update( table_name, condition, columns, priority)
+-- 	-- body
+-- 	assert(priority and priority >= self.DB_PRIORITY_1 and priority <= self.DB_PRIORITY_3, string.format("when query %s you must provide priority", table_name))
+-- 	local sql = util.update(table_name, condition, columns)
+-- 	assert(table_name and sql and priority)
+-- 	assert(priority <= self.DB_PRIORITY_3 and priority >= self.DB_PRIORITY_1)
+-- 	Queue.enqueue(self.priority_queue[priority].Q, { table_name=table_name, sql=sql})
+-- 	if priority <= self.c_priority then
+-- 		self.c_priority = priority
+-- 		-- skynet.yield() -- 
+-- 		local co = self.priority_queue[self.c_priority].co
+-- 		skynet.wakeup(co)
+-- 	end
+-- end
 
-function QUERY:insert( table_name, columns, priority)
-	-- body
-	assert(priority and priority >= self.DB_PRIORITY_1 and priority <= self.DB_PRIORITY_3, string.format("when query %s you must provide priority", table_name))
-	local sql = util.insert(table_name, columns)
-	assert(table_name and sql and priority)
-	assert(priority <= self.DB_PRIORITY_3 and priority >= self.DB_PRIORITY_1)
-	Queue.enqueue(self.priority_queue[priority].Q, { table_name=table_name, sql=sql})
-	if priority <= self.c_priority then
-		self.c_priority = priority
-		-- skynet.yield() -- 
-		local co = self.priority_queue[self.c_priority].co
-		skynet.wakeup(co)
-	end
-end
+-- function QUERY:insert( table_name, columns, priority)
+-- 	-- body
+-- 	assert(priority and priority >= self.DB_PRIORITY_1 and priority <= self.DB_PRIORITY_3, string.format("when query %s you must provide priority", table_name))
+-- 	local sql = util.insert(table_name, columns)
+-- 	assert(table_name and sql and priority)
+-- 	assert(priority <= self.DB_PRIORITY_3 and priority >= self.DB_PRIORITY_1)
+-- 	Queue.enqueue(self.priority_queue[priority].Q, { table_name=table_name, sql=sql})
+-- 	if priority <= self.c_priority then
+-- 		self.c_priority = priority
+-- 		-- skynet.yield() -- 
+-- 		local co = self.priority_queue[self.c_priority].co
+-- 		skynet.wakeup(co)
+-- 	end
+-- end
 
-function QUERY:insert_wait( table_name, columns, priority)
-	-- body
-	assert(priority and priority >= self.DB_PRIORITY_1 and priority <= self.DB_PRIORITY_3, string.format("when query %s you must provide priority", table_name))
-	local sql = util.insert(table_name, columns)
-	local res = self.db:query(sql)
-	print(dump(res))
-	return res
-end
+-- function QUERY:insert_wait( table_name, columns, priority)
+-- 	-- body
+-- 	assert(priority and priority >= self.DB_PRIORITY_1 and priority <= self.DB_PRIORITY_3, string.format("when query %s you must provide priority", table_name))
+-- 	local sql = util.insert(table_name, columns)
+-- 	local res = self.db:query(sql)
+-- 	print(dump(res))
+-- 	return res
+-- end
 
-function QUERY:insert_all( table_name , tcolumns, priority)
-	assert(priority and priority >= self.DB_PRIORITY_1 and priority <= self.DB_PRIORITY_3, string.format("when query %s you must provide priority", table_name))
-	local sql = util.insert_all( table_name , tcolumns )
-	assert(table_name and sql and priority)
-	assert(priority <= self.DB_PRIORITY_3 and priority >= self.DB_PRIORITY_1)
-	Queue.enqueue(self.priority_queue[priority].Q, { table_name=table_name, sql=sql})
-	if priority <= self.c_priority then
-		self.c_priority = priority
-		-- skynet.yield() -- 
-		local co = self.priority_queue[self.c_priority].co
-		skynet.wakeup(co)
-	end
-end
+-- function QUERY:insert_all( table_name , tcolumns, priority)
+-- 	assert(priority and priority >= self.DB_PRIORITY_1 and priority <= self.DB_PRIORITY_3, string.format("when query %s you must provide priority", table_name))
+-- 	local sql = util.insert_all( table_name , tcolumns )
+-- 	assert(table_name and sql and priority)
+-- 	assert(priority <= self.DB_PRIORITY_3 and priority >= self.DB_PRIORITY_1)
+-- 	Queue.enqueue(self.priority_queue[priority].Q, { table_name=table_name, sql=sql})
+-- 	if priority <= self.c_priority then
+-- 		self.c_priority = priority
+-- 		-- skynet.yield() -- 
+-- 		local co = self.priority_queue[self.c_priority].co
+-- 		skynet.wakeup(co)
+-- 	end
+-- end
 
-function QUERY:update_all(table_name, condition, columns, data, priority)
-	-- body
-	assert(priority and priority >= self.DB_PRIORITY_1 and priority <= self.DB_PRIORITY_3, string.format("when query %s you must provide priority", table_name))
-	local sql = util.update_all(table_name, condition, columns, data)
-	assert(table_name and sql and priority)
-	assert(priority <= self.DB_PRIORITY_3 and priority >= self.DB_PRIORITY_1)
-	Queue.enqueue(self.priority_queue[priority].Q, { table_name=table_name, sql=sql})
-	if priority <= self.c_priority then
-		self.c_priority = priority
-		-- skynet.yield() -- 
-		local co = self.priority_queue[self.c_priority].co
-		skynet.wakeup(co)
-	end
-end
+-- function QUERY:update_all(table_name, condition, columns, data, priority)
+-- 	-- body
+-- 	assert(priority and priority >= self.DB_PRIORITY_1 and priority <= self.DB_PRIORITY_3, string.format("when query %s you must provide priority", table_name))
+-- 	local sql = util.update_all(table_name, condition, columns, data)
+-- 	assert(table_name and sql and priority)
+-- 	assert(priority <= self.DB_PRIORITY_3 and priority >= self.DB_PRIORITY_1)
+-- 	Queue.enqueue(self.priority_queue[priority].Q, { table_name=table_name, sql=sql})
+-- 	if priority <= self.c_priority then
+-- 		self.c_priority = priority
+-- 		-- skynet.yield() -- 
+-- 		local co = self.priority_queue[self.c_priority].co
+-- 		skynet.wakeup(co)
+-- 	end
+-- end
 
 -- friend	
-function QUERY:select_user( condition, columns )
-	-- body
-	-- userid, uaccount, upassword
-	local sql = util.select("users", condition, columns)
-	local r = self.db:query(sql, condition)
-	--cache:get()
-	return r[1]
-end 	
+-- function QUERY:select_user( condition, columns )
+-- 	-- body
+-- 	-- userid, uaccount, upassword
+-- 	local sql = util.select("users", condition, columns)
+-- 	local r = self.db:query(sql, condition)
+-- 	--cache:get()
+-- 	return r[1]
+-- end 	
 
 function QUERY:getrandomval( drawtype )
 	assert( drawtype )
