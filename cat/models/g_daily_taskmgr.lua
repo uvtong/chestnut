@@ -1,33 +1,33 @@
 local skynet = require "skynet"
 local util = require "util"
-
+			
 local _M = {}
 _M.__data = {}
 _M.__count = 0
-
+			
 -- type = daily_type * 10 + exercise_type
 local _Meta = { update_time = 0 , type = 0 , task_name = 0 , cost_amount = 0 , iconid = 0 , basic_reward = 0 , levelup_reward = 0 , level_up = 0 , cost_id = 0 }
-
+			
 _M.__tname = "g_daily_task"
-
+			    
 function _Meta.__new()
- 	-- body
+ 	-- body     
  	local t = {}
  	setmetatable( t, { __index = _Meta } )
- 	return t
-end 
-
+ 	return t    
+end 		    
+			    
 function _Meta:__insert_db()
-	-- body
+	-- body	    
 	local t = {}
 	for k,v in pairs(self) do
 		if not string.match(k, "^__*") then
 			t[k] = self[k]
-		end
-	end
+		end     
+	end 	    
 	skynet.send(util.random_db(), "lua", "command", "insert", self.__tname, t)
-end
-
+end 		
+			
 function _Meta:__update_db(t)
 	-- body
 	assert(type(t) == "table")

@@ -325,7 +325,7 @@ function util.get_total_property( user , uid , onbattleroleid)   -- zhijie ti sh
 	local ukf = {} --user kungfu
  			
  	local tmpname = propertyname
-
+ 		
 	if user then
 		uequip = assert( user.u_equipmentmgr.__data )
 
