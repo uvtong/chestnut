@@ -301,7 +301,7 @@ function VIEW:validation()
 	if self.method == "post" then
 		local r = query.read(".rdb", "all", "select table_name from information_schema.tables where table_schema='project' and table_type='base table'")
 		if r then
-			local ok = pcall(function ()
+			local ok, result = pcall(function ()
 				-- body
 				for i,v in ipairs(r) do
 					for kk,vv in pairs(v) do
@@ -309,10 +309,17 @@ function VIEW:validation()
 					end
 				end
 			end)
-			local ret = {}
-			ret.ok = 1
-			ret.msg = "succss"
-			return ret
+			if ok then
+				local ret = {}
+				ret.ok = 1
+				ret.msg = "succss"
+				return ret
+			else
+				local ret = {}
+				ret.ok = 0
+				ret.msg = "failture"
+				return ret
+			end
 		end
 	end
 end
