@@ -219,8 +219,8 @@ function VIEW:validation()
 			ret.msg = "failture"
 			return ret
 		end
-		local pk = 0
-		local fk = 0
+		local pk = ""
+		local fk = ""
 		local funcs = ""
 		local count = "{\n"
 		local fields = "{\n"
@@ -270,9 +270,9 @@ function VIEW:validation()
 function cls:%s(v, ... )
 	-- body
 	if v then
-		self.%s = v
+		self.__fields.%s = v
 	else
-		return self.%s
+		return self.__fields.%s
 	end
 end
 

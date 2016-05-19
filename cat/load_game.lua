@@ -8,6 +8,10 @@ local function load_g_achievement(game)
 	local cls = require "models/g_achievementmgr"
 	game.g_achievementmgr = cls.new()
 	game.g_achievementmgr:load_db()
+	local r = game.g_achievementmgr:get(1001)
+	r:update()
+	local c_num = r:c_num()
+	print("test", c_num)
 end
 
 local function load_g_ara_pts(game)
