@@ -4,7 +4,7 @@ local cls = class("g_achievemententity", entitycpp)
 
 function cls:ctor(mgr, P, ... )
 	-- body
-	self.__head  = mgr.__head
+	self.__head  = mgr.__head        --
 	self.__tname = mgr.__tname
 	self.__pk    = mgr.__pk
 	self.__fk    = mgr.__fk
@@ -45,9 +45,9 @@ end
 function cls:csv_id(v, ... )
 	-- body
 	if v then
-		self.csv_id = v
+		self.__fileds.csv_id = v
 	else
-		return self.csv_id
+		return self.__fileds.csv_id
 	end
 end
 

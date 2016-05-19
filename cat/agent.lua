@@ -2793,21 +2793,10 @@ local function start()
 	host = sprotoloader.load(1):host "package"
 	send_request = host:attach(sprotoloader.load(2))
 	
-<<<<<<< HEAD
-	context.host = host
-	context.send_request = send_request
-	context.game = game
-	
-	local t = loader.load_game()
-	for i,v in ipairs(M) do
-		v.start(fd, send_request, t)
-	end	
-=======
 	env.host = host
 	env.send_request = send_request
 	env.game = game
 	
->>>>>>> 931696816634519aea42a229a9e7390203b5b471
 end
 
 skynet.start(function()

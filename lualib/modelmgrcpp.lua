@@ -84,7 +84,7 @@ function cls.load_db_to_cache(t, key, value)
 		set_row_cache(t, pk, v)
 	end
 	return r
-end
+end     
 
 function cls.load_db(t, key, value)
 	-- body

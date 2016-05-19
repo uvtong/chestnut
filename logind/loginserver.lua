@@ -61,15 +61,9 @@ local function launch_slave(auth_handler)
 		local clientkey = crypt.base64decode(handshake)
 		if #clientkey ~= 8 then
 			error "Invalid client key"
-<<<<<<< HEAD
-		end 
-		print("******************************a1")
-=======
 		end
-		
 		print("***************************2")
 
->>>>>>> 931696816634519aea42a229a9e7390203b5b471
 		local serverkey = crypt.randomkey()
 		write("auth", fd, crypt.base64encode(crypt.dhexchange(serverkey)).."\n")
 
