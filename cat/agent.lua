@@ -2,6 +2,7 @@ package.path = "./../cat/?.lua;../lualib/?.lua;" .. package.path
 package.cpath = "./../cat/luaclib/?.so;" .. package.cpath
 local skynet = require "skynet"
 require "skynet.manager"
+require "functions"
 rdb = skynet.localname(".rdb")
 wdb = skynet.localname(".db")
 local netpack = require "netpack"
@@ -2636,6 +2637,15 @@ function CMD.signup(source, uid, sid, sct, g, d)
 	role.value5 = r.value5
 	role = u_rolemgr.create(role)
 	role:__insert_db(const.DB_PRIORITY_1)
+
+	local cls = require "u_rolemgr"
+	local u_rolemgr = cls.new()
+	local cls = require "u_roleentity"
+	local record = cls.new()
+	u_rolemgr:add(record)
+	record:update()
+	record:update_fi()
+	-- record.update_fi(record)
 
 	enter_lp(user)
 

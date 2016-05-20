@@ -264,16 +264,18 @@ local function print_table(table_name)
 			fields = fields .. string.format("\t\t\t%s = 0,\n", v.COLUMN_NAME)
 			funcs = funcs .. string.format(
 [[
-function cls:%s(v, ... )
+function cls:set_%s(v, ... )
 	-- body
-	if v then
-		self.__fields.%s = v
-	else
-		return self.__fields.%s
-	end
+	assert(v)
+	self.__fields.%s = v
 end
 
-]], v.COLUMN_NAME, v.COLUMN_NAME, v.COLUMN_NAME)
+function cls:get_%s( ... )
+	-- body
+	return self.__fields.%s
+end
+
+]], v.COLUMN_NAME, v.COLUMN_NAME, v.COLUMN_NAME, v.COLUMN_NAME)
 		end
 		head = head.."}\n"
 		fields = fields.."\t\t}\n"

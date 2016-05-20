@@ -1,10 +1,11 @@
 package.path = "../cat/?.lua;../lualib/?.lua;" .. package.path
 package.cpath = "../lua-cjson/?.so;"..package.cpath
 local skynet = require "skynet"
+require "functions"
 local assert = assert
 local table_name = ...
-local leaderboardsmgr = require "models/ara_leaderboardsmgr"
-leaderboardsmgr = leaderboardsmgr()
+local cls = require "models/ara_leaderboardsmgr"
+leaderboardsmgr = cls.new()
 
 -- {ranking=id }
 local top = 0
@@ -119,7 +120,7 @@ local function print_c()
 		for i,v in ipairs(ranking_name) do
 			print(i,v)
 		end
-		leaderboardsmgr("update")
+		leaderboardsmgr:update()
 		skynet.sleep(60 * 100)
 	end
 end
@@ -136,6 +137,6 @@ skynet.start(function ()
 		else
 		end
 	end)
-	leaderboardsmgr("load_db")
+	leaderboardsmgr:load_db()
 	skynet.fork(print_c)
 end)

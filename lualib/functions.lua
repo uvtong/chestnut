@@ -178,26 +178,15 @@ end
 
 local decorator = {
     __index = function (instance, key, ... )
-        if string.match("^[%w_]+entity", instance.class.__cname) then
-
-            local v = instance.__fields[key]
-            if v then
-                return v
-            else
-                return instance.class[key]
-            end
-        else
-            return instance.class[key]
-        end
+    	if instance.__fields[key] then
+    		return instance.__fields[key]
+    	else
+    		return instance.class[key]
+    	end
     end,
-    __newindex = function (instance, key, value, ... )
-        -- body
-        if string.match("^[%w_]+entity", instance.class.__cname) then
-            instance.__fields[key] = value
-        else
-            instance[key] = value
-        end
-    end
+    -- __newindex = function (instance, key, value, ... )
+    --     -- body
+    -- end
 }
 
 function class(classname, ...)
@@ -262,10 +251,11 @@ function class(classname, ...)
         else
             instance = {}
         end
-        setmetatableindex(instance, cls)
+        -- setmetatableindex(instance, cls)
         instance.class = cls
+        instance.__fields = {}
         -- instance.name  = "abc"
-        -- setmetatable(instance, decorator)
+        setmetatable(instance, decorator)
         instance:ctor(...)
         return instance
     end

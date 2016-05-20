@@ -82,6 +82,10 @@ function cls.update(t, ...)
 	end
 end
 
+function cls.update_field()
+	-- body
+end
+
 function cls.load_data_to_stm(t, child)
 	local r = {}
 	for k,v in pairs(t) do

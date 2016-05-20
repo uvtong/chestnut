@@ -42,85 +42,103 @@ function cls:ctor(mgr, P, ... )
 	return self
 end
 
-function cls:csv_id(v, ... )
+function cls:set_csv_id(v, ... )
 	-- body
-	if v then
-		self.__fields.csv_id = v
-	else
-		return self.__fields.csv_id
-	end
+	assert(v)
+	self.__fields.csv_id = v
 end
 
-function cls:type(v, ... )
+function cls:get_csv_id( ... )
 	-- body
-	if v then
-		self.__fields.type = v
-	else
-		return self.__fields.type
-	end
+	return self.__fields.csv_id
 end
 
-function cls:name(v, ... )
+function cls:set_type(v, ... )
 	-- body
-	if v then
-		self.__fields.name = v
-	else
-		return self.__fields.name
-	end
+	assert(v)
+	self.__fields.type = v
 end
 
-function cls:c_num(v, ... )
+function cls:get_type( ... )
 	-- body
-	if v then
-		self.__fields.c_num = v
-	else
-		return self.__fields.c_num
-	end
+	return self.__fields.type
 end
 
-function cls:describe(v, ... )
+function cls:set_name(v, ... )
 	-- body
-	if v then
-		self.__fields.describe = v
-	else
-		return self.__fields.describe
-	end
+	assert(v)
+	self.__fields.name = v
 end
 
-function cls:icon_id(v, ... )
+function cls:get_name( ... )
 	-- body
-	if v then
-		self.__fields.icon_id = v
-	else
-		return self.__fields.icon_id
-	end
+	return self.__fields.name
 end
 
-function cls:reward(v, ... )
+function cls:set_c_num(v, ... )
 	-- body
-	if v then
-		self.__fields.reward = v
-	else
-		return self.__fields.reward
-	end
+	assert(v)
+	self.__fields.c_num = v
 end
 
-function cls:star(v, ... )
+function cls:get_c_num( ... )
 	-- body
-	if v then
-		self.__fields.star = v
-	else
-		return self.__fields.star
-	end
+	return self.__fields.c_num
 end
 
-function cls:unlock_next_csv_id(v, ... )
+function cls:set_describe(v, ... )
 	-- body
-	if v then
-		self.__fields.unlock_next_csv_id = v
-	else
-		return self.__fields.unlock_next_csv_id
-	end
+	assert(v)
+	self.__fields.describe = v
+end
+
+function cls:get_describe( ... )
+	-- body
+	return self.__fields.describe
+end
+
+function cls:set_icon_id(v, ... )
+	-- body
+	assert(v)
+	self.__fields.icon_id = v
+end
+
+function cls:get_icon_id( ... )
+	-- body
+	return self.__fields.icon_id
+end
+
+function cls:set_reward(v, ... )
+	-- body
+	assert(v)
+	self.__fields.reward = v
+end
+
+function cls:get_reward( ... )
+	-- body
+	return self.__fields.reward
+end
+
+function cls:set_star(v, ... )
+	-- body
+	assert(v)
+	self.__fields.star = v
+end
+
+function cls:get_star( ... )
+	-- body
+	return self.__fields.star
+end
+
+function cls:set_unlock_next_csv_id(v, ... )
+	-- body
+	assert(v)
+	self.__fields.unlock_next_csv_id = v
+end
+
+function cls:get_unlock_next_csv_id( ... )
+	-- body
+	return self.__fields.unlock_next_csv_id
 end
 
 
