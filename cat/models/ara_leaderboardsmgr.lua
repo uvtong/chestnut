@@ -16,22 +16,30 @@ function cls:ctor( ... )
 	uid = {
 		pk = true,
 		fk = false,
+		cn = "uid",
 		uq = false,
 		t = "number",
 	},
 	ranking = {
 		pk = false,
 		fk = false,
+		cn = "ranking",
 		uq = false,
 		t = "number",
 	},
 	k = {
 		pk = false,
 		fk = false,
+		cn = "k",
 		uq = false,
 		t = "number",
 	},
 }
+
+	self.__head_ord = {}
+		self.__head_ord[1] = self.__head[uid]
+	self.__head_ord[2] = self.__head[ranking]
+	self.__head_ord[3] = self.__head[k]
 
 	self.__pk      = "uid"
 	self.__fk      = ""

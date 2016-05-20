@@ -14,6 +14,8 @@ function cls:ctor( ... )
 	self.__cap     = 0
 	self.__tname   = "%s"
 	self.__head    = %s
+	self.__head_ord = {}
+	%s
 	self.__pk      = "%s"
 	self.__fk      = "%s"
 	self.__rdb     = skynet.localname(skynet.getenv("gated_rdb"))

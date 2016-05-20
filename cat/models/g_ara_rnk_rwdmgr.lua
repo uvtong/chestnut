@@ -16,22 +16,30 @@ function cls:ctor( ... )
 	seri = {
 		pk = true,
 		fk = false,
+		cn = "seri",
 		uq = false,
 		t = "number",
 	},
 	csv_id = {
 		pk = false,
 		fk = false,
+		cn = "csv_id",
 		uq = false,
 		t = "number",
 	},
 	reward = {
 		pk = false,
 		fk = false,
+		cn = "reward",
 		uq = false,
 		t = "string",
 	},
 }
+
+	self.__head_ord = {}
+		self.__head_ord[1] = self.__head[seri]
+	self.__head_ord[2] = self.__head[csv_id]
+	self.__head_ord[3] = self.__head[reward]
 
 	self.__pk      = "seri"
 	self.__fk      = ""

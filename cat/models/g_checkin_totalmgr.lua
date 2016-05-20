@@ -16,22 +16,30 @@ function cls:ctor( ... )
 	csv_id = {
 		pk = true,
 		fk = false,
+		cn = "csv_id",
 		uq = false,
 		t = "number",
 	},
 	totalamount = {
 		pk = false,
 		fk = false,
+		cn = "totalamount",
 		uq = false,
 		t = "number",
 	},
 	prop_id_num = {
 		pk = false,
 		fk = false,
+		cn = "prop_id_num",
 		uq = false,
 		t = "string",
 	},
 }
+
+	self.__head_ord = {}
+		self.__head_ord[1] = self.__head[csv_id]
+	self.__head_ord[2] = self.__head[totalamount]
+	self.__head_ord[3] = self.__head[prop_id_num]
 
 	self.__pk      = "csv_id"
 	self.__fk      = ""

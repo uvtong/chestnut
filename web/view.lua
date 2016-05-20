@@ -222,7 +222,12 @@ local function print_table(table_name)
 		local count = "{\n"
 		local fields = "{\n"
 		local head = "{\n"
+		local head_ord = ""
 		for i,v in ipairs(r) do
+			head_ord = head_ord..string.format(
+[[
+	self.__head_ord[%d] = self.__head[%s]
+]], i, v.COLUMN_NAME)
 			local seg = "\t"..v.COLUMN_NAME.." = {\n"
 			local pk_seg = string.format("\t\tpk = false,\n")
 			local fk_seg = string.format("\t\tfk = false,\n")
@@ -250,6 +255,7 @@ local function print_table(table_name)
 			end
 			seg = seg .. pk_seg
 			seg = seg .. fk_seg
+			seg = seg .. string.format("\t\tcn = \"%s\",\n", v.COLUMN_NAME)
 			seg = seg .. string.format("\t\tuq = false,\n")
 			if v.DATA_TYPE=="int" or v.DATA_TYPE=="bigint" or v.DATA_TYPE=="tinyint" or v.DATA_TYPE=="smallint" then
 				seg = seg .. string.format("\t\tt = \"%s\",\n", "number")
@@ -293,7 +299,7 @@ end
 		local s = require("modelcppt")
 		local mgrcls = table_name.."mgr"
 		local addr = io.open(dir.."models/"..table_name.."mgr.lua", "w")
-		local content = string.format(s, mgrcls, table_name, head, pk, fk, entitycls)
+		local content = string.format(s, mgrcls, table_name, head, head_ord, pk, fk, entitycls)
 		addr:write(content)
 		addr:close()
 end

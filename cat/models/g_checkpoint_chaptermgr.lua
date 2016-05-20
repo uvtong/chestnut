@@ -16,40 +16,54 @@ function cls:ctor( ... )
 	csv_id = {
 		pk = true,
 		fk = false,
+		cn = "csv_id",
 		uq = false,
 		t = "number",
 	},
 	level = {
 		pk = false,
 		fk = false,
+		cn = "level",
 		uq = false,
 		t = "number",
 	},
 	name = {
 		pk = false,
 		fk = false,
+		cn = "name",
 		uq = false,
 		t = "string",
 	},
 	type0_max = {
 		pk = false,
 		fk = false,
+		cn = "type0_max",
 		uq = false,
 		t = "number",
 	},
 	type1_max = {
 		pk = false,
 		fk = false,
+		cn = "type1_max",
 		uq = false,
 		t = "number",
 	},
 	type2_max = {
 		pk = false,
 		fk = false,
+		cn = "type2_max",
 		uq = false,
 		t = "number",
 	},
 }
+
+	self.__head_ord = {}
+		self.__head_ord[1] = self.__head[csv_id]
+	self.__head_ord[2] = self.__head[level]
+	self.__head_ord[3] = self.__head[name]
+	self.__head_ord[4] = self.__head[type0_max]
+	self.__head_ord[5] = self.__head[type1_max]
+	self.__head_ord[6] = self.__head[type2_max]
 
 	self.__pk      = "csv_id"
 	self.__fk      = ""

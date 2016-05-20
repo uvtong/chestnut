@@ -16,22 +16,30 @@ function cls:ctor( ... )
 	csv_id = {
 		pk = true,
 		fk = false,
+		cn = "csv_id",
 		uq = false,
 		t = "number",
 	},
 	purchase_cost = {
 		pk = false,
 		fk = false,
+		cn = "purchase_cost",
 		uq = false,
 		t = "string",
 	},
 	list_refresh_cost = {
 		pk = false,
 		fk = false,
+		cn = "list_refresh_cost",
 		uq = false,
 		t = "string",
 	},
 }
+
+	self.__head_ord = {}
+		self.__head_ord[1] = self.__head[csv_id]
+	self.__head_ord[2] = self.__head[purchase_cost]
+	self.__head_ord[3] = self.__head[list_refresh_cost]
 
 	self.__pk      = "csv_id"
 	self.__fk      = ""

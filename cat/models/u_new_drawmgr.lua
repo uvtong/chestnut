@@ -16,46 +16,62 @@ function cls:ctor( ... )
 	id = {
 		pk = true,
 		fk = false,
+		cn = "id",
 		uq = false,
 		t = "number",
 	},
 	uid = {
 		pk = false,
 		fk = true,
+		cn = "uid",
 		uq = false,
 		t = "number",
 	},
 	drawtype = {
 		pk = false,
 		fk = false,
+		cn = "drawtype",
 		uq = false,
 		t = "number",
 	},
 	srecvtime = {
 		pk = false,
 		fk = false,
+		cn = "srecvtime",
 		uq = false,
 		t = "number",
 	},
 	propid = {
 		pk = false,
 		fk = false,
+		cn = "propid",
 		uq = false,
 		t = "number",
 	},
 	amount = {
 		pk = false,
 		fk = false,
+		cn = "amount",
 		uq = false,
 		t = "number",
 	},
 	iffree = {
 		pk = false,
 		fk = false,
+		cn = "iffree",
 		uq = false,
 		t = "number",
 	},
 }
+
+	self.__head_ord = {}
+		self.__head_ord[1] = self.__head[id]
+	self.__head_ord[2] = self.__head[uid]
+	self.__head_ord[3] = self.__head[drawtype]
+	self.__head_ord[4] = self.__head[srecvtime]
+	self.__head_ord[5] = self.__head[propid]
+	self.__head_ord[6] = self.__head[amount]
+	self.__head_ord[7] = self.__head[iffree]
 
 	self.__pk      = "id"
 	self.__fk      = "uid"

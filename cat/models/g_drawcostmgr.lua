@@ -16,28 +16,38 @@ function cls:ctor( ... )
 	csv_id = {
 		pk = true,
 		fk = false,
+		cn = "csv_id",
 		uq = false,
 		t = "number",
 	},
 	cointype = {
 		pk = false,
 		fk = false,
+		cn = "cointype",
 		uq = false,
 		t = "number",
 	},
 	price = {
 		pk = false,
 		fk = false,
+		cn = "price",
 		uq = false,
 		t = "number",
 	},
 	cdtime = {
 		pk = false,
 		fk = false,
+		cn = "cdtime",
 		uq = false,
 		t = "number",
 	},
 }
+
+	self.__head_ord = {}
+		self.__head_ord[1] = self.__head[csv_id]
+	self.__head_ord[2] = self.__head[cointype]
+	self.__head_ord[3] = self.__head[price]
+	self.__head_ord[4] = self.__head[cdtime]
 
 	self.__pk      = "csv_id"
 	self.__fk      = ""

@@ -16,28 +16,38 @@ function cls:ctor( ... )
 	id = {
 		pk = true,
 		fk = false,
+		cn = "id",
 		uq = false,
 		t = "number",
 	},
 	csv_id = {
 		pk = false,
 		fk = false,
+		cn = "csv_id",
 		uq = false,
 		t = "number",
 	},
 	dioment = {
 		pk = false,
 		fk = false,
+		cn = "dioment",
 		uq = false,
 		t = "number",
 	},
 	reset_quanguan_dioment = {
 		pk = false,
 		fk = false,
+		cn = "reset_quanguan_dioment",
 		uq = false,
 		t = "number",
 	},
 }
+
+	self.__head_ord = {}
+		self.__head_ord[1] = self.__head[id]
+	self.__head_ord[2] = self.__head[csv_id]
+	self.__head_ord[3] = self.__head[dioment]
+	self.__head_ord[4] = self.__head[reset_quanguan_dioment]
 
 	self.__pk      = "id"
 	self.__fk      = ""

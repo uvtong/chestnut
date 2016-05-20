@@ -16,33 +16,45 @@ function cls:ctor( ... )
 	id = {
 		pk = true,
 		fk = false,
+		cn = "id",
 		uq = false,
 		t = "number",
 	},
 	name = {
 		pk = false,
 		fk = false,
+		cn = "name",
 		uq = false,
 		t = "string",
 	},
 	age = {
 		pk = false,
 		fk = false,
+		cn = "age",
 		uq = false,
 		t = "number",
 	},
 	remark = {
 		pk = false,
 		fk = false,
+		cn = "remark",
 		uq = false,
 		t = "string",
 	},
 	tfloat = {
 		pk = false,
 		fk = false,
+		cn = "tfloat",
 		uq = false,
 	},
 }
+
+	self.__head_ord = {}
+		self.__head_ord[1] = self.__head[id]
+	self.__head_ord[2] = self.__head[name]
+	self.__head_ord[3] = self.__head[age]
+	self.__head_ord[4] = self.__head[remark]
+	self.__head_ord[5] = self.__head[tfloat]
 
 	self.__pk      = "id"
 	self.__fk      = ""

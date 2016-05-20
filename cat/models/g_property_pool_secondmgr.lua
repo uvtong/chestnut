@@ -16,40 +16,54 @@ function cls:ctor( ... )
 	id = {
 		pk = true,
 		fk = false,
+		cn = "id",
 		uq = false,
 		t = "number",
 	},
 	csv_id = {
 		pk = false,
 		fk = false,
+		cn = "csv_id",
 		uq = false,
 		t = "number",
 	},
 	property_pool_id = {
 		pk = false,
 		fk = false,
+		cn = "property_pool_id",
 		uq = false,
 		t = "number",
 	},
 	probability = {
 		pk = false,
 		fk = false,
+		cn = "probability",
 		uq = false,
 		t = "number",
 	},
 	property_id = {
 		pk = false,
 		fk = false,
+		cn = "property_id",
 		uq = false,
 		t = "number",
 	},
 	value = {
 		pk = false,
 		fk = false,
+		cn = "value",
 		uq = false,
 		t = "number",
 	},
 }
+
+	self.__head_ord = {}
+		self.__head_ord[1] = self.__head[id]
+	self.__head_ord[2] = self.__head[csv_id]
+	self.__head_ord[3] = self.__head[property_pool_id]
+	self.__head_ord[4] = self.__head[probability]
+	self.__head_ord[5] = self.__head[property_id]
+	self.__head_ord[6] = self.__head[value]
 
 	self.__pk      = "id"
 	self.__fk      = ""

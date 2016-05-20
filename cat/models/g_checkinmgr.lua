@@ -16,52 +16,70 @@ function cls:ctor( ... )
 	csv_id = {
 		pk = true,
 		fk = false,
+		cn = "csv_id",
 		uq = false,
 		t = "number",
 	},
 	month = {
 		pk = false,
 		fk = false,
+		cn = "month",
 		uq = false,
 		t = "number",
 	},
 	count = {
 		pk = false,
 		fk = false,
+		cn = "count",
 		uq = false,
 		t = "number",
 	},
 	g_prop_csv_id = {
 		pk = false,
 		fk = false,
+		cn = "g_prop_csv_id",
 		uq = false,
 		t = "number",
 	},
 	g_prop_num = {
 		pk = false,
 		fk = false,
+		cn = "g_prop_num",
 		uq = false,
 		t = "number",
 	},
 	vip = {
 		pk = false,
 		fk = false,
+		cn = "vip",
 		uq = false,
 		t = "number",
 	},
 	vip_g_prop_csv_id = {
 		pk = false,
 		fk = false,
+		cn = "vip_g_prop_csv_id",
 		uq = false,
 		t = "number",
 	},
 	vip_g_prop_num = {
 		pk = false,
 		fk = false,
+		cn = "vip_g_prop_num",
 		uq = false,
 		t = "number",
 	},
 }
+
+	self.__head_ord = {}
+		self.__head_ord[1] = self.__head[csv_id]
+	self.__head_ord[2] = self.__head[month]
+	self.__head_ord[3] = self.__head[count]
+	self.__head_ord[4] = self.__head[g_prop_csv_id]
+	self.__head_ord[5] = self.__head[g_prop_num]
+	self.__head_ord[6] = self.__head[vip]
+	self.__head_ord[7] = self.__head[vip_g_prop_csv_id]
+	self.__head_ord[8] = self.__head[vip_g_prop_num]
 
 	self.__pk      = "csv_id"
 	self.__fk      = ""
