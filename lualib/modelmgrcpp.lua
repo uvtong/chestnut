@@ -90,27 +90,40 @@ function cls.load_db(t, key, value)
 	-- body
 	local sql
 	if key ~= nil then
-		if key == "pk" then
-			if t.__head[t.__pk].t == "string" then
-				assert(type(value) == "string")
-				sql = string.format("select * from %s where `%s` = \"%s\"", t.__tname, t.__pk, value)
-			elseif t.__head[t.__pk].t == "number" then
-				assert(type(value) == "number")
-				sql = string.format("select * from %s where `%s` = %d", t.__tname, t.__pk, value)
-			else
-				assert(false)
+		if type(key) == "string" then
+			if key == "pk" then
+				if t.__head[t.__pk].t == "string" then
+					assert(type(value) == "string")
+					sql = string.format("select * from %s where `%s` = \"%s\"", t.__tname, t.__pk, value)
+				elseif t.__head[t.__pk].t == "number" then
+					assert(type(value) == "number")
+					sql = string.format("select * from %s where `%s` = %d", t.__tname, t.__pk, value)
+				else
+					assert(false)
+				end
+			elseif key == "fk" then
+				print(t.__fk)
+				if t.__head[t.__fk].t == "string" then
+					assert(type(value) == "string")
+					sql = string.format("select * from %s where `%s` = \"%s\"", t.__tname, t.__fk, value)
+				elseif t.__head[t.__pk].t == "number" then
+					assert(type(value) == "number")
+					sql = string.format("select * from %s where `%s` = %d", t.__tname, t.__fk, value)
+				else
+					assert(false)
+				end
 			end
-		elseif key == "fk" then
-			print(t.__fk)
-			if t.__head[t.__fk].t == "string" then
-				assert(type(value) == "string")
-				sql = string.format("select * from %s where `%s` = \"%s\"", t.__tname, t.__fk, value)
-			elseif t.__head[t.__pk].t == "number" then
-				assert(type(value) == "number")
-				sql = string.format("select * from %s where `%s` = %d", t.__tname, t.__fk, value)
-			else
-				assert(false)
+		elseif type(key) == "table" then
+			local seg = ""
+			for k,v in pairs(key) do
+				if t.__head[k].t == "string" then
+					seg = seg..string.format("`%s` = %s and ", k, v)
+				elseif t.__head[k].t == "number" then
+					seg = seg..string.format("`%s` = %d and ", k, v)
+				end
 			end
+			seg = string.gsub(seg, "(.*)%sand%s$", "%1)")
+			sql = string.format("select * from %s where %s", t.__tname, seg)
 		else
 			assert(false)
 		end
@@ -241,4 +254,90 @@ function cls.update(t, ...)
 	end
 end
 
+<<<<<<< HEAD
 return cls
+=======
+function cls.create(t, p, ...)
+	-- body
+	local entity = require("models/"..t.__entity)
+	local r = entity.new(t, p)
+	return r
+end
+
+function cls.set_user(self, user, ... )
+	-- body
+	self._user = user
+end
+
+function cls.genpk(self, csv_id)
+	-- body
+	if #self.__fk == 0 then
+		return csv_id
+	else
+		local user_id = self._user.csv_id
+		local pk = user_id << 32
+		pk = (pk | ((1 << 32 -1) & csv_id ))
+		return pk
+	end
+end
+
+function cls.add(self, u)
+ 	-- body
+ 	assert(u)
+ 	assert(self.__data[ u[self.__pk] ] == nil)
+ 	self.__data[ u[self.__pk] ] = u
+ 	self.__count = self.__count + 1
+end
+
+function cls.get(self, pk)
+	-- body
+	if self.__data[pk] then
+		return self.__data[pk]
+	else
+		assert(false)
+		-- local r = self("load", pk)
+		-- if r then
+		-- 	self.create(r)
+		-- 	self:add(r)
+		-- end
+		-- return r
+	end
+end
+
+function cls.delete(self, pk)
+	-- body
+	if nil ~= self.__data[pk] then
+		self.__data[pk] = nil
+		self.__count = self.__count - 1
+	end
+end
+
+function cls.get_by_csv_id(self, csv_id)
+	-- body
+	local pk = self:genpk(csv_id)
+	return self:get(pk)
+end
+
+function cls.delete_by_csv_id(self, csv_id)
+	local pk = self:genpk(csv_id)
+	self:delete(pk)
+end
+
+function cls.get_count(self)
+	-- body
+	return self.__count
+end
+
+function cls.get_cap(self)
+	-- body
+	return self.__cap
+end
+
+function cls.clear(self)
+	-- body
+	self.__data = {}
+	self.__count = 0
+end
+
+return cls
+>>>>>>> 2df82517a173e80f324a4df4267a113eac77bcf5

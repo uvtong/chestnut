@@ -2,6 +2,7 @@ package.path = "./../cat/?.lua;../lualib/?.lua;" .. package.path
 package.cpath = "./../cat/luaclib/?.so;" .. package.cpath
 local skynet = require "skynet"
 require "skynet.manager"
+require "functions"
 rdb = skynet.localname(".rdb")
 wdb = skynet.localname(".db")
 local netpack = require "netpack"
@@ -15,9 +16,11 @@ local loader = require "load_user"
 local errorcode = require "errorcode"
 local const = require "const"
 local tptr = require "tablepointer"
-local notification = require "notification"
+local context = require "agent_context"
+
 local friendrequest = require "friendrequest"
 local friendmgr = require "friendmgr"
+
 local M = {}
 local new_emailrequest = require "new_emailrequest"
 local checkinrequest = require "checkinrequest"
@@ -27,7 +30,7 @@ local kungfurequest = require "kungfurequest"
 local new_drawrequest = require "new_drawrequest"
 local lilian_request = require "lilian_request"
 local core_fightrequest = require "core_fightrequest"
-local context = require "agent_context"
+
 
 table.insert(M, checkinrequest )
 table.insert(M, exercise_request )
@@ -52,8 +55,8 @@ local user
 local stm = require "stm"
 local sharemap = require "sharemap"
 local sharedata = require "sharedata"
-
 local env = context.new()
+
 
 local CMD       = {}
 local REQUEST   = {}
@@ -66,15 +69,19 @@ local table_gs = {}
 local leaderboards_name = skynet.getenv("leaderboards_name")
 local lb = skynet.localname(leaderboards_name)
 
-notification.handler = function (event)
+local function handler_egold( ... )
 	-- body
-	if event == notification.EGOLD then
-		context:raise_achievement(const.ACHIEVEMENT_T_2)
-	elseif event == notification.EEXP then
-		context:raise_achievement(const.ACHIEVEMENT_T_3)
-	else
-		context:raise_achievement(const.ACHIEVEMENT_T_7)
-	end
+	env:raise_achievement(const.ACHIEVEMENT_T_2)
+end
+
+local function handler_eexp( ... )
+	-- body
+	env:raise_achievement(const.ACHIEVEMENT_T_3)
+end
+
+local function handler_user_level( ... )
+	-- body
+	env:raise_achievement(const.ACHIEVEMENT_T_7)
 end
 
 local global_response_session = 1
@@ -690,7 +697,7 @@ function REQUEST:props()
 	return ret
 end
 
-function REQUEST:use_prop()
+function REQUEST:use_prop(ctx)
 	-- body
 	local ret = {}
 	if not user then
@@ -727,13 +734,13 @@ function REQUEST:use_prop()
 			e.num = e.num + (tonumber(prop.pram1) * num)
 			e:__update_db({"num"})
 			table.insert(l, e)
-			context:raise_achievement(const.ACHIEVEMENT_T_3)
+			ctx:raise_achievement(const.ACHIEVEMENT_T_3)
 		elseif assert(prop.use_type) == 2 then -- gold
 			local g = user.u_propmgr:get_by_csv_id(const.GOLD)
 			g.num = g.num + (tonumber(prop.pram1) * num)
 			g:__update_db({"num"})
 			table.insert(l, g)
-			context:raise_achievement(const.ACHIEVEMENT_T_2)
+			ctx:raise_achievement(const.ACHIEVEMENT_T_2)
 		elseif assert(prop.use_type) == 3 then
 			local r = util.parse_text(prop.pram1, "(%d+%*%d+%*?)", 2)
 			print("length of r", #r)
@@ -743,13 +750,13 @@ function REQUEST:use_prop()
 					prop.num = prop.num + (v[2] * num)
 					prop:__update_db({"num"})
 					table.insert(l, prop)
-					context:raise_achievement(const.ACHIEVEMENT_T_2)
+					ctx:raise_achievement(const.ACHIEVEMENT_T_2)
 				elseif v[1] == const.EXP then
 					local prop = user.u_propmgr:get_by_csv_id(v[1])
 					prop.num = prop.num + (v[2] * num)
 					prop:__update_db({"num"})
 					table.insert(l, prop)
-					context:raise_achievement(const.ACHIEVEMENT_T_3)
+					ctx:raise_achievement(const.ACHIEVEMENT_T_3)
 				else
 					local prop = get_prop(v[1])
 					prop.num = prop.num + (v[2] * num)
@@ -891,7 +898,7 @@ function REQUEST:user_modify_name()
 	end
 end
 
-function REQUEST:user_upgrade()
+function REQUEST:user_upgrade(ctx)
 	-- body
 	local ret = {}
 	if not user then
@@ -930,7 +937,7 @@ function REQUEST:user_upgrade()
 			if user.level >= xilian_begain_level then
 				user.ifxilian = 1
 			end
-			context:raise_achievement(const.ACHIEVEMENT_T_7)
+			ctx:raise_achievement(const.ACHIEVEMENT_T_7)
 			ret.errorcode = errorcode[1].code
 			ret.msg = errorcode[1].msg
 			return ret
@@ -1082,7 +1089,7 @@ function REQUEST:shop_refresh()
 	end
 end
 
-function REQUEST:shop_purchase()
+function REQUEST:shop_purchase(ctx)
 	-- body
 	local ret = {}
 	if not user then
@@ -1223,7 +1230,7 @@ function REQUEST:shop_purchase()
 						ug:__update_db({"inventory"})
 						currency.num = currency.num - diamond
 						user.take_diamonds = user.take_diamonds + diamond
-						context:raise_achievement(const.ACHIEVEMENT_T_4)
+						ctx:raise_achievement(const.ACHIEVEMENT_T_4)
 						local prop = get_prop(gg.g_prop_csv_id)
 						prop.num = prop.num + (gg.g_prop_num * self.g[1].goods_num)
 						prop:__update_db({"num"})
@@ -1260,7 +1267,7 @@ function REQUEST:shop_purchase()
 			elseif ug.inventory == 99 then
 				currency.num = currency.num - diamond
 				user.take_diamonds = user.take_diamonds + diamond
-				context:raise_achievement(const.ACHIEVEMENT_T_4)
+				ctx:raise_achievement(const.ACHIEVEMENT_T_4)
 				local prop = get_prop(gg.g_prop_csv_id)
 				prop.num = prop.num + (gg.g_prop_num * self.g[1].goods_num)
 				prop:__update_db({"num"})
@@ -1288,7 +1295,7 @@ function REQUEST:shop_purchase()
 					end
 					currency.num = currency.num - diamond
 					user.take_diamonds = user.take_diamonds + diamond
-					context:raise_achievement(const.ACHIEVEMENT_T_4)
+					ctx:raise_achievement(const.ACHIEVEMENT_T_4)
 					local prop = get_prop(gg.g_prop_csv_id)
 					prop.num = prop.num + (gg.g_prop_num * self.g[1].goods_num)
 					ret.errorcode = errorcode[1].code
@@ -1733,7 +1740,7 @@ function REQUEST:role_recruit()
 		role = user.u_rolemgr.create(role)
 		user.u_rolemgr:add(role)
 		role:__insert_db(const.DB_PRIORITY_2)
-		context:raise_achievement(const.ACHIEVEMENT_T_5)
+		ctx:raise_achievement(const.ACHIEVEMENT_T_5)
 		ret.errorcode = errorcode[1].code
 		ret.msg = errorcode[1].msg
 		ret.r = {
@@ -2637,6 +2644,15 @@ function CMD.signup(source, uid, sid, sct, g, d)
 	role = u_rolemgr.create(role)
 	role:__insert_db(const.DB_PRIORITY_1)
 
+	local cls = require "u_rolemgr"
+	local u_rolemgr = cls.new()
+	local cls = require "u_roleentity"
+	local record = cls.new()
+	u_rolemgr:add(record)
+	record:update()
+	record:update_fi()
+	-- record.update_fi(record)
+
 	enter_lp(user)
 
 	print("###############################################1")
@@ -2664,8 +2680,8 @@ function CMD.login(source, uid, sid, sct, g, d)
 	end
 	
 	dc.set(user.csv_id, { client_fd=client_fd, addr=skynet.self()})	
-	context.user = user
-
+	env:set_user(user)
+	
 	local onlinetime = os.time()
 	user.ifonline = 1
 	user.onlinetime = onlinetime
@@ -2751,13 +2767,13 @@ function CMD.afk(source)
 	skynet.error(string.format("AFK"))
 end
 
--- local function update_db()
--- 	-- body
--- 	while true do
--- 		flush_db(const.DB_PRIORITY_3)
--- 		skynet.sleep(100 * 60) -- 1ti == 0.01s
--- 	end
--- end
+local function update_db()
+	-- body
+	while true do
+		flush_db(const.DB_PRIORITY_3)
+		skynet.sleep(100 * 60) -- 1ti == 0.01s
+	end
+end
 
 local START_SUBSCRIBE = {}
 
@@ -2789,9 +2805,14 @@ local function start()
 	host = sprotoloader.load(1):host "package"
 	send_request = host:attach(sprotoloader.load(2))
 
-	env.host = host
-	env.send_request = send_request
-	env.game = game
+	env:set_host(host)
+	env:set_send_request(send_request)
+	env:set_game(".game")
+
+	local cls = require "notification"
+	local notification = cls.new()
+	env:set_notification(notification)
+	
 end
 
 skynet.start(function()
@@ -2803,7 +2824,7 @@ skynet.start(function()
 			skynet.ret(skynet.pack(result))
 		end
 	end)
-	-- skynet.fork(update_db)
+	skynet.fork(update_db)
 	start()
 	-- subscribe()
 	start_subscribe()

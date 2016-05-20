@@ -79,7 +79,13 @@ function cls.update(t, ...)
 		local sql = string.format("insert into %s ", t.__tname)..keys_str.." values "..values_str.." on duplicate key update "..columns_str..";"
 		print(sql)
 		query.write(t.__wdb, t.__tname, sql, query.DB_PRIORITY_3)
+	else
+		
 	end
+end
+
+function cls.update_field()
+	-- body
 end
 
 function cls.load_data_to_stm(t, child)

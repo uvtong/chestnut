@@ -207,12 +207,9 @@ function VIEW:equipments()
 	end
 end
 
-function VIEW:validation()
+local function print_table(table_name)
 	-- body
-	if self.method == "post" then
-		local ret = {}
-		local table_name = self.body["table_name"]
-		local sql = string.format("select * from columns where table_name=\"%s\";", table_name)
+	local sql = string.format("select * from columns where table_name=\"%s\";", table_name)
 		local r = query.read(".rdb", table_name, sql)
 		if #r == 0 then
 			ret.ok = 0
@@ -225,7 +222,12 @@ function VIEW:validation()
 		local count = "{\n"
 		local fields = "{\n"
 		local head = "{\n"
+		local head_ord = ""
 		for i,v in ipairs(r) do
+			head_ord = head_ord..string.format(
+[[
+	self.__head_ord[%d] = self.__head[%s]
+]], i, v.COLUMN_NAME)
 			local seg = "\t"..v.COLUMN_NAME.." = {\n"
 			local pk_seg = string.format("\t\tpk = false,\n")
 			local fk_seg = string.format("\t\tfk = false,\n")
@@ -253,6 +255,7 @@ function VIEW:validation()
 			end
 			seg = seg .. pk_seg
 			seg = seg .. fk_seg
+			seg = seg .. string.format("\t\tcn = \"%s\",\n", v.COLUMN_NAME)
 			seg = seg .. string.format("\t\tuq = false,\n")
 			if v.DATA_TYPE=="int" or v.DATA_TYPE=="bigint" or v.DATA_TYPE=="tinyint" or v.DATA_TYPE=="smallint" then
 				seg = seg .. string.format("\t\tt = \"%s\",\n", "number")
@@ -267,16 +270,18 @@ function VIEW:validation()
 			fields = fields .. string.format("\t\t\t%s = 0,\n", v.COLUMN_NAME)
 			funcs = funcs .. string.format(
 [[
-function cls:%s(v, ... )
+function cls:set_%s(v, ... )
 	-- body
-	if v then
-		self.__fields.%s = v
-	else
-		return self.__fields.%s
-	end
+	assert(v)
+	self.__fields.%s = v
 end
 
-]], v.COLUMN_NAME, v.COLUMN_NAME, v.COLUMN_NAME)
+function cls:get_%s( ... )
+	-- body
+	return self.__fields.%s
+end
+
+]], v.COLUMN_NAME, v.COLUMN_NAME, v.COLUMN_NAME, v.COLUMN_NAME)
 		end
 		head = head.."}\n"
 		fields = fields.."\t\t}\n"
@@ -294,13 +299,36 @@ end
 		local s = require("modelcppt")
 		local mgrcls = table_name.."mgr"
 		local addr = io.open(dir.."models/"..table_name.."mgr.lua", "w")
-		local content = string.format(s, mgrcls, table_name, head, pk, fk, entitycls)
+		local content = string.format(s, mgrcls, table_name, head, head_ord, pk, fk, entitycls)
 		addr:write(content)
 		addr:close()
-		
-		ret.ok = 1
-		ret.msg = "succss"
-		return ret
+end
+
+function VIEW:validation()
+	-- body
+	if self.method == "post" then
+		local r = query.read(".rdb", "all", "select table_name from information_schema.tables where table_schema='project' and table_type='base table'")
+		if r then
+			local ok, result = pcall(function ()
+				-- body
+				for i,v in ipairs(r) do
+					for kk,vv in pairs(v) do
+						print_table(vv)
+					end
+				end
+			end)
+			if ok then
+				local ret = {}
+				ret.ok = 1
+				ret.msg = "succss"
+				return ret
+			else
+				local ret = {}
+				ret.ok = 0
+				ret.msg = "failture"
+				return ret
+			end
+		end
 	end
 end
 
