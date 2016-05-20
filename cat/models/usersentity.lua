@@ -1,0 +1,822 @@
+local entitycpp = require "entitycpp"
+
+local cls = class("usersentity", entitycpp)
+
+function cls:ctor(mgr, P, ... )
+	-- body
+	self.__head  = mgr.__head
+	self.__head_ord = mgr.__head_ord
+	self.__tname = mgr.__tname
+	self.__pk    = mgr.__pk
+	self.__fk    = mgr.__fk
+	self.__rdb   = mgr.__rdb
+	self.__wdb   = mgr.__wdb
+	self.__stm   = mgr.__stm
+	self.__col_updated=0
+	self.__fields = {
+			csv_id = 0,
+			uname = 0,
+			uviplevel = 0,
+			config_sound = 0,
+			config_music = 0,
+			avatar = 0,
+			sign = 0,
+			c_role_id = 0,
+			ifonline = 0,
+			level = 0,
+			combat = 0,
+			defense = 0,
+			critical_hit = 0,
+			blessing = 0,
+			permission = 0,
+			modify_uname_count = 0,
+			onlinetime = 0,
+			iconid = 0,
+			is_valid = 0,
+			recharge_rmb = 0,
+			recharge_diamond = 0,
+			uvip_progress = 0,
+			checkin_num = 0,
+			checkin_reward_num = 0,
+			exercise_level = 0,
+			cgold_level = 0,
+			gold_max = 0,
+			exp_max = 0,
+			equipment_enhance_success_rate_up_p = 0,
+			store_refresh_count_max = 0,
+			prop_refresh = 0,
+			arena_frozen_time = 0,
+			purchase_hp_count = 0,
+			gain_gold_up_p = 0,
+			gain_exp_up_p = 0,
+			purchase_hp_count_max = 0,
+			SCHOOL_reset_count_max = 0,
+			SCHOOL_reset_count = 0,
+			signup_time = 0,
+			pemail_csv_id = 0,
+			take_diamonds = 0,
+			draw_number = 0,
+			ifxilian = 0,
+			cp_chapter = 0,
+			cp_hanging_id = 0,
+			cp_battle_id = 0,
+			cp_battle_chapter = 0,
+			lilian_level = 0,
+			lilian_exp = 0,
+			lilian_phy_power = 0,
+			purch_lilian_phy_power = 0,
+			ara_role_id1 = 0,
+			ara_role_id2 = 0,
+			ara_role_id3 = 0,
+			ara_rnk = 0,
+			ara_win_tms = 0,
+			ara_lose_tms = 0,
+			ara_tie_tms = 0,
+			ara_clg_tms = 0,
+			ara_clg_tms_pur_tms = 0,
+			ara_clg_tms_rst_tm = 0,
+		}
+
+	self.__ecol_updated = {
+			csv_id = 0,
+			uname = 0,
+			uviplevel = 0,
+			config_sound = 0,
+			config_music = 0,
+			avatar = 0,
+			sign = 0,
+			c_role_id = 0,
+			ifonline = 0,
+			level = 0,
+			combat = 0,
+			defense = 0,
+			critical_hit = 0,
+			blessing = 0,
+			permission = 0,
+			modify_uname_count = 0,
+			onlinetime = 0,
+			iconid = 0,
+			is_valid = 0,
+			recharge_rmb = 0,
+			recharge_diamond = 0,
+			uvip_progress = 0,
+			checkin_num = 0,
+			checkin_reward_num = 0,
+			exercise_level = 0,
+			cgold_level = 0,
+			gold_max = 0,
+			exp_max = 0,
+			equipment_enhance_success_rate_up_p = 0,
+			store_refresh_count_max = 0,
+			prop_refresh = 0,
+			arena_frozen_time = 0,
+			purchase_hp_count = 0,
+			gain_gold_up_p = 0,
+			gain_exp_up_p = 0,
+			purchase_hp_count_max = 0,
+			SCHOOL_reset_count_max = 0,
+			SCHOOL_reset_count = 0,
+			signup_time = 0,
+			pemail_csv_id = 0,
+			take_diamonds = 0,
+			draw_number = 0,
+			ifxilian = 0,
+			cp_chapter = 0,
+			cp_hanging_id = 0,
+			cp_battle_id = 0,
+			cp_battle_chapter = 0,
+			lilian_level = 0,
+			lilian_exp = 0,
+			lilian_phy_power = 0,
+			purch_lilian_phy_power = 0,
+			ara_role_id1 = 0,
+			ara_role_id2 = 0,
+			ara_role_id3 = 0,
+			ara_rnk = 0,
+			ara_win_tms = 0,
+			ara_lose_tms = 0,
+			ara_tie_tms = 0,
+			ara_clg_tms = 0,
+			ara_clg_tms_pur_tms = 0,
+			ara_clg_tms_rst_tm = 0,
+		}
+
+	for k,v in pairs(self.__head) do
+		self.__fields[k] = assert(P[k])
+	end
+	return self
+end
+
+function cls:set_csv_id(v, ... )
+	-- body
+	assert(v)
+	self.__fields.csv_id = v
+end
+
+function cls:get_csv_id( ... )
+	-- body
+	return self.__fields.csv_id
+end
+
+function cls:set_uname(v, ... )
+	-- body
+	assert(v)
+	self.__fields.uname = v
+end
+
+function cls:get_uname( ... )
+	-- body
+	return self.__fields.uname
+end
+
+function cls:set_uviplevel(v, ... )
+	-- body
+	assert(v)
+	self.__fields.uviplevel = v
+end
+
+function cls:get_uviplevel( ... )
+	-- body
+	return self.__fields.uviplevel
+end
+
+function cls:set_config_sound(v, ... )
+	-- body
+	assert(v)
+	self.__fields.config_sound = v
+end
+
+function cls:get_config_sound( ... )
+	-- body
+	return self.__fields.config_sound
+end
+
+function cls:set_config_music(v, ... )
+	-- body
+	assert(v)
+	self.__fields.config_music = v
+end
+
+function cls:get_config_music( ... )
+	-- body
+	return self.__fields.config_music
+end
+
+function cls:set_avatar(v, ... )
+	-- body
+	assert(v)
+	self.__fields.avatar = v
+end
+
+function cls:get_avatar( ... )
+	-- body
+	return self.__fields.avatar
+end
+
+function cls:set_sign(v, ... )
+	-- body
+	assert(v)
+	self.__fields.sign = v
+end
+
+function cls:get_sign( ... )
+	-- body
+	return self.__fields.sign
+end
+
+function cls:set_c_role_id(v, ... )
+	-- body
+	assert(v)
+	self.__fields.c_role_id = v
+end
+
+function cls:get_c_role_id( ... )
+	-- body
+	return self.__fields.c_role_id
+end
+
+function cls:set_ifonline(v, ... )
+	-- body
+	assert(v)
+	self.__fields.ifonline = v
+end
+
+function cls:get_ifonline( ... )
+	-- body
+	return self.__fields.ifonline
+end
+
+function cls:set_level(v, ... )
+	-- body
+	assert(v)
+	self.__fields.level = v
+end
+
+function cls:get_level( ... )
+	-- body
+	return self.__fields.level
+end
+
+function cls:set_combat(v, ... )
+	-- body
+	assert(v)
+	self.__fields.combat = v
+end
+
+function cls:get_combat( ... )
+	-- body
+	return self.__fields.combat
+end
+
+function cls:set_defense(v, ... )
+	-- body
+	assert(v)
+	self.__fields.defense = v
+end
+
+function cls:get_defense( ... )
+	-- body
+	return self.__fields.defense
+end
+
+function cls:set_critical_hit(v, ... )
+	-- body
+	assert(v)
+	self.__fields.critical_hit = v
+end
+
+function cls:get_critical_hit( ... )
+	-- body
+	return self.__fields.critical_hit
+end
+
+function cls:set_blessing(v, ... )
+	-- body
+	assert(v)
+	self.__fields.blessing = v
+end
+
+function cls:get_blessing( ... )
+	-- body
+	return self.__fields.blessing
+end
+
+function cls:set_permission(v, ... )
+	-- body
+	assert(v)
+	self.__fields.permission = v
+end
+
+function cls:get_permission( ... )
+	-- body
+	return self.__fields.permission
+end
+
+function cls:set_modify_uname_count(v, ... )
+	-- body
+	assert(v)
+	self.__fields.modify_uname_count = v
+end
+
+function cls:get_modify_uname_count( ... )
+	-- body
+	return self.__fields.modify_uname_count
+end
+
+function cls:set_onlinetime(v, ... )
+	-- body
+	assert(v)
+	self.__fields.onlinetime = v
+end
+
+function cls:get_onlinetime( ... )
+	-- body
+	return self.__fields.onlinetime
+end
+
+function cls:set_iconid(v, ... )
+	-- body
+	assert(v)
+	self.__fields.iconid = v
+end
+
+function cls:get_iconid( ... )
+	-- body
+	return self.__fields.iconid
+end
+
+function cls:set_is_valid(v, ... )
+	-- body
+	assert(v)
+	self.__fields.is_valid = v
+end
+
+function cls:get_is_valid( ... )
+	-- body
+	return self.__fields.is_valid
+end
+
+function cls:set_recharge_rmb(v, ... )
+	-- body
+	assert(v)
+	self.__fields.recharge_rmb = v
+end
+
+function cls:get_recharge_rmb( ... )
+	-- body
+	return self.__fields.recharge_rmb
+end
+
+function cls:set_recharge_diamond(v, ... )
+	-- body
+	assert(v)
+	self.__fields.recharge_diamond = v
+end
+
+function cls:get_recharge_diamond( ... )
+	-- body
+	return self.__fields.recharge_diamond
+end
+
+function cls:set_uvip_progress(v, ... )
+	-- body
+	assert(v)
+	self.__fields.uvip_progress = v
+end
+
+function cls:get_uvip_progress( ... )
+	-- body
+	return self.__fields.uvip_progress
+end
+
+function cls:set_checkin_num(v, ... )
+	-- body
+	assert(v)
+	self.__fields.checkin_num = v
+end
+
+function cls:get_checkin_num( ... )
+	-- body
+	return self.__fields.checkin_num
+end
+
+function cls:set_checkin_reward_num(v, ... )
+	-- body
+	assert(v)
+	self.__fields.checkin_reward_num = v
+end
+
+function cls:get_checkin_reward_num( ... )
+	-- body
+	return self.__fields.checkin_reward_num
+end
+
+function cls:set_exercise_level(v, ... )
+	-- body
+	assert(v)
+	self.__fields.exercise_level = v
+end
+
+function cls:get_exercise_level( ... )
+	-- body
+	return self.__fields.exercise_level
+end
+
+function cls:set_cgold_level(v, ... )
+	-- body
+	assert(v)
+	self.__fields.cgold_level = v
+end
+
+function cls:get_cgold_level( ... )
+	-- body
+	return self.__fields.cgold_level
+end
+
+function cls:set_gold_max(v, ... )
+	-- body
+	assert(v)
+	self.__fields.gold_max = v
+end
+
+function cls:get_gold_max( ... )
+	-- body
+	return self.__fields.gold_max
+end
+
+function cls:set_exp_max(v, ... )
+	-- body
+	assert(v)
+	self.__fields.exp_max = v
+end
+
+function cls:get_exp_max( ... )
+	-- body
+	return self.__fields.exp_max
+end
+
+function cls:set_equipment_enhance_success_rate_up_p(v, ... )
+	-- body
+	assert(v)
+	self.__fields.equipment_enhance_success_rate_up_p = v
+end
+
+function cls:get_equipment_enhance_success_rate_up_p( ... )
+	-- body
+	return self.__fields.equipment_enhance_success_rate_up_p
+end
+
+function cls:set_store_refresh_count_max(v, ... )
+	-- body
+	assert(v)
+	self.__fields.store_refresh_count_max = v
+end
+
+function cls:get_store_refresh_count_max( ... )
+	-- body
+	return self.__fields.store_refresh_count_max
+end
+
+function cls:set_prop_refresh(v, ... )
+	-- body
+	assert(v)
+	self.__fields.prop_refresh = v
+end
+
+function cls:get_prop_refresh( ... )
+	-- body
+	return self.__fields.prop_refresh
+end
+
+function cls:set_arena_frozen_time(v, ... )
+	-- body
+	assert(v)
+	self.__fields.arena_frozen_time = v
+end
+
+function cls:get_arena_frozen_time( ... )
+	-- body
+	return self.__fields.arena_frozen_time
+end
+
+function cls:set_purchase_hp_count(v, ... )
+	-- body
+	assert(v)
+	self.__fields.purchase_hp_count = v
+end
+
+function cls:get_purchase_hp_count( ... )
+	-- body
+	return self.__fields.purchase_hp_count
+end
+
+function cls:set_gain_gold_up_p(v, ... )
+	-- body
+	assert(v)
+	self.__fields.gain_gold_up_p = v
+end
+
+function cls:get_gain_gold_up_p( ... )
+	-- body
+	return self.__fields.gain_gold_up_p
+end
+
+function cls:set_gain_exp_up_p(v, ... )
+	-- body
+	assert(v)
+	self.__fields.gain_exp_up_p = v
+end
+
+function cls:get_gain_exp_up_p( ... )
+	-- body
+	return self.__fields.gain_exp_up_p
+end
+
+function cls:set_purchase_hp_count_max(v, ... )
+	-- body
+	assert(v)
+	self.__fields.purchase_hp_count_max = v
+end
+
+function cls:get_purchase_hp_count_max( ... )
+	-- body
+	return self.__fields.purchase_hp_count_max
+end
+
+function cls:set_SCHOOL_reset_count_max(v, ... )
+	-- body
+	assert(v)
+	self.__fields.SCHOOL_reset_count_max = v
+end
+
+function cls:get_SCHOOL_reset_count_max( ... )
+	-- body
+	return self.__fields.SCHOOL_reset_count_max
+end
+
+function cls:set_SCHOOL_reset_count(v, ... )
+	-- body
+	assert(v)
+	self.__fields.SCHOOL_reset_count = v
+end
+
+function cls:get_SCHOOL_reset_count( ... )
+	-- body
+	return self.__fields.SCHOOL_reset_count
+end
+
+function cls:set_signup_time(v, ... )
+	-- body
+	assert(v)
+	self.__fields.signup_time = v
+end
+
+function cls:get_signup_time( ... )
+	-- body
+	return self.__fields.signup_time
+end
+
+function cls:set_pemail_csv_id(v, ... )
+	-- body
+	assert(v)
+	self.__fields.pemail_csv_id = v
+end
+
+function cls:get_pemail_csv_id( ... )
+	-- body
+	return self.__fields.pemail_csv_id
+end
+
+function cls:set_take_diamonds(v, ... )
+	-- body
+	assert(v)
+	self.__fields.take_diamonds = v
+end
+
+function cls:get_take_diamonds( ... )
+	-- body
+	return self.__fields.take_diamonds
+end
+
+function cls:set_draw_number(v, ... )
+	-- body
+	assert(v)
+	self.__fields.draw_number = v
+end
+
+function cls:get_draw_number( ... )
+	-- body
+	return self.__fields.draw_number
+end
+
+function cls:set_ifxilian(v, ... )
+	-- body
+	assert(v)
+	self.__fields.ifxilian = v
+end
+
+function cls:get_ifxilian( ... )
+	-- body
+	return self.__fields.ifxilian
+end
+
+function cls:set_cp_chapter(v, ... )
+	-- body
+	assert(v)
+	self.__fields.cp_chapter = v
+end
+
+function cls:get_cp_chapter( ... )
+	-- body
+	return self.__fields.cp_chapter
+end
+
+function cls:set_cp_hanging_id(v, ... )
+	-- body
+	assert(v)
+	self.__fields.cp_hanging_id = v
+end
+
+function cls:get_cp_hanging_id( ... )
+	-- body
+	return self.__fields.cp_hanging_id
+end
+
+function cls:set_cp_battle_id(v, ... )
+	-- body
+	assert(v)
+	self.__fields.cp_battle_id = v
+end
+
+function cls:get_cp_battle_id( ... )
+	-- body
+	return self.__fields.cp_battle_id
+end
+
+function cls:set_cp_battle_chapter(v, ... )
+	-- body
+	assert(v)
+	self.__fields.cp_battle_chapter = v
+end
+
+function cls:get_cp_battle_chapter( ... )
+	-- body
+	return self.__fields.cp_battle_chapter
+end
+
+function cls:set_lilian_level(v, ... )
+	-- body
+	assert(v)
+	self.__fields.lilian_level = v
+end
+
+function cls:get_lilian_level( ... )
+	-- body
+	return self.__fields.lilian_level
+end
+
+function cls:set_lilian_exp(v, ... )
+	-- body
+	assert(v)
+	self.__fields.lilian_exp = v
+end
+
+function cls:get_lilian_exp( ... )
+	-- body
+	return self.__fields.lilian_exp
+end
+
+function cls:set_lilian_phy_power(v, ... )
+	-- body
+	assert(v)
+	self.__fields.lilian_phy_power = v
+end
+
+function cls:get_lilian_phy_power( ... )
+	-- body
+	return self.__fields.lilian_phy_power
+end
+
+function cls:set_purch_lilian_phy_power(v, ... )
+	-- body
+	assert(v)
+	self.__fields.purch_lilian_phy_power = v
+end
+
+function cls:get_purch_lilian_phy_power( ... )
+	-- body
+	return self.__fields.purch_lilian_phy_power
+end
+
+function cls:set_ara_role_id1(v, ... )
+	-- body
+	assert(v)
+	self.__fields.ara_role_id1 = v
+end
+
+function cls:get_ara_role_id1( ... )
+	-- body
+	return self.__fields.ara_role_id1
+end
+
+function cls:set_ara_role_id2(v, ... )
+	-- body
+	assert(v)
+	self.__fields.ara_role_id2 = v
+end
+
+function cls:get_ara_role_id2( ... )
+	-- body
+	return self.__fields.ara_role_id2
+end
+
+function cls:set_ara_role_id3(v, ... )
+	-- body
+	assert(v)
+	self.__fields.ara_role_id3 = v
+end
+
+function cls:get_ara_role_id3( ... )
+	-- body
+	return self.__fields.ara_role_id3
+end
+
+function cls:set_ara_rnk(v, ... )
+	-- body
+	assert(v)
+	self.__fields.ara_rnk = v
+end
+
+function cls:get_ara_rnk( ... )
+	-- body
+	return self.__fields.ara_rnk
+end
+
+function cls:set_ara_win_tms(v, ... )
+	-- body
+	assert(v)
+	self.__fields.ara_win_tms = v
+end
+
+function cls:get_ara_win_tms( ... )
+	-- body
+	return self.__fields.ara_win_tms
+end
+
+function cls:set_ara_lose_tms(v, ... )
+	-- body
+	assert(v)
+	self.__fields.ara_lose_tms = v
+end
+
+function cls:get_ara_lose_tms( ... )
+	-- body
+	return self.__fields.ara_lose_tms
+end
+
+function cls:set_ara_tie_tms(v, ... )
+	-- body
+	assert(v)
+	self.__fields.ara_tie_tms = v
+end
+
+function cls:get_ara_tie_tms( ... )
+	-- body
+	return self.__fields.ara_tie_tms
+end
+
+function cls:set_ara_clg_tms(v, ... )
+	-- body
+	assert(v)
+	self.__fields.ara_clg_tms = v
+end
+
+function cls:get_ara_clg_tms( ... )
+	-- body
+	return self.__fields.ara_clg_tms
+end
+
+function cls:set_ara_clg_tms_pur_tms(v, ... )
+	-- body
+	assert(v)
+	self.__fields.ara_clg_tms_pur_tms = v
+end
+
+function cls:get_ara_clg_tms_pur_tms( ... )
+	-- body
+	return self.__fields.ara_clg_tms_pur_tms
+end
+
+function cls:set_ara_clg_tms_rst_tm(v, ... )
+	-- body
+	assert(v)
+	self.__fields.ara_clg_tms_rst_tm = v
+end
+
+function cls:get_ara_clg_tms_rst_tm( ... )
+	-- body
+	return self.__fields.ara_clg_tms_rst_tm
+end
+
+
+return cls
