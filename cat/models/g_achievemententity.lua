@@ -100,10 +100,10 @@ function cls:reward(v, ... )
 	-- body
 	if v then
 		self.__fields.reward = v
-	else
+	else 				   	
 		return self.__fields.reward
-	end
-end
+	end 				   
+end 					   							
 
 function cls:star(v, ... )
 	-- body
@@ -122,6 +122,5 @@ function cls:unlock_next_csv_id(v, ... )
 		return self.__fields.unlock_next_csv_id
 	end
 end
-
 
 return cls

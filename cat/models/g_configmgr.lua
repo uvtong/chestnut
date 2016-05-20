@@ -174,6 +174,7 @@ function factory()
 	_M.__tname   = "g_config"
 	_M.__head    = {
 	csv_id = {
+		cn = "csv_id"
 		pk = true,
 		uq = false,
 		t = "number",
@@ -219,6 +220,10 @@ function factory()
 		t = "number",
 	},
 }
+_M.__head_ord = {	
+}
+_M.__head_ord[1] = _M.__head.csv_id
+
 
 	_M.__pk      = "csv_id"
 	_M.__fk      = "0"
