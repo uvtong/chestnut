@@ -5,6 +5,7 @@ local cls = class("g_drawcostentity", entitycpp)
 function cls:ctor(mgr, P, ... )
 	-- body
 	self.__head  = mgr.__head
+	self.__head_ord = mgr.__head_ord
 	self.__tname = mgr.__tname
 	self.__pk    = mgr.__pk
 	self.__fk    = mgr.__fk
