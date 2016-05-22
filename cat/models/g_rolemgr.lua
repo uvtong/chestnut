@@ -1,104 +1,69 @@
 local skynet = require "skynet"
-local util = require "util"
+local modelmgr = require "modelmgrcpp"
+local entity = require "entity"
+local assert = assert
+local type   = type
 
-local _M = {}
-_M.__data = {}
-_M.__data1 = {}
-_M.__count = 0
+local cls = class("g_rolemgr", modelmgr)
 
-local _Meta = { csv_id=0, star=0, name=0, us_prop_csv_id=0 }
-
-_Meta.__tname = "g_role"
-
-function _Meta.__new()
- 	-- body
- 	local t = {}
- 	setmetatable( t, { __index = _Meta } )
- 	return t
-end 
-
-function _Meta:__insert_db()
+function cls:ctor( ... )
 	-- body
-	local t = {}
-	for k,v in pairs(self) do
-		if not string.match(k, "^__*") then
-			t[k] = self[k]
-		end
-	end
-	skynet.send(util.random_db(), "lua", "command", "insert", self.__tname, t)
+	self.__data    = {}
+	self.__count   = 0
+	self.__cap     = 0
+	self.__tname   = "g_role"
+	self.__head    = {
+	id = {
+		pk = true,
+		fk = false,
+		cn = "id",
+		uq = false,
+		t = "number",
+	},
+	csv_id = {
+		pk = false,
+		fk = false,
+		cn = "csv_id",
+		uq = false,
+		t = "number",
+	},
+	star = {
+		pk = false,
+		fk = false,
+		cn = "star",
+		uq = false,
+		t = "number",
+	},
+	name = {
+		pk = false,
+		fk = false,
+		cn = "name",
+		uq = false,
+		t = "string",
+	},
+	us_prop_csv_id = {
+		pk = false,
+		fk = false,
+		cn = "us_prop_csv_id",
+		uq = false,
+		t = "number",
+	},
+}
+
+	self.__head_ord = {}
+		self.__head_ord[1] = self.__head[id]
+	self.__head_ord[2] = self.__head[csv_id]
+	self.__head_ord[3] = self.__head[star]
+	self.__head_ord[4] = self.__head[name]
+	self.__head_ord[5] = self.__head[us_prop_csv_id]
+
+	self.__pk      = "id"
+	self.__fk      = ""
+	self.__rdb     = skynet.localname(skynet.getenv("gated_rdb"))
+	self.__wdb     = skynet.localname(skynet.getenv("gated_wdb"))
+	self.__stm     = false
+	self.__entity  = "g_roleentity"
+	return self
 end
 
-function _Meta:__update_db(t)
-	-- body
-	assert(type(t) == "table")
-	local columns = {}
-	for i,v in ipairs(t) do
-		columns[tostring(v)] = self[tostring(v)]
-	end
-	skynet.send(util.random_db(), "lua", "command", "update", self.__tname, {{ id = self.id }}, columns)
-end
-
-function _Meta:__serialize()
-	-- body
-	local r = {}
-	for k,v in pairs(_Meta) do
-		if not string.match(k, "^__*") then
-			r[k] = assert(self[k])
-		end
-	end
-	return r
-end
-
-function _M:clear()
-	self.__data = {}
-end
-
-function _M.create( P )
-	local u = _Meta.__new()
-	for k,v in pairs(_Meta) do
-		if not string.match(k, "^__*") then
-			u[k] = assert(P[k])
-		end
-	end
-	return u
-end	
-
-function _M:add( u )
-	assert(u)
-	self.__data[tostring(u.csv_id)] = u
-	self.__data1[tostring(u.us_prop_csv_id)] = u
-	self.__count = self.__count + 1
-end
-
-function _M:get_by_csv_id(csv_id)
-	-- body
-	return self.__data[tostring(csv_id)]
-end
-
-function _M:delete_by_csv_id(csv_id)
-	-- body
-	local r = assert(self.__data[tostring(csv_id)])
-	self.__data[tostring(csv_id)] = nil
-	self.__data1[tostring(r.us_prop_csv_id)] = nil
-	self.__count = self.__count - 1
-end
-
-function _M:get_by_us_prop_csv_id(csv_id)
-	-- body
-	return self.__data1[tostring(csv_id)]
-end
-
-function _M:delete_by_us_prop_csv_id(csv_id)
-	-- body
-	local r = assert(self.__data1[tostring(csv_id)])
-	self.__data[tostring(r.csv_id)] = nil
-	self.__data1[tostring(csv_id)] = nil
-	self.__count = self.__count - 1
-end
-
-function _M:get_count()
-	-- body
-	return self.__count
-end
-
-return _M
+return cls

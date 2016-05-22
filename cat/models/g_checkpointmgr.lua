@@ -1,93 +1,157 @@
 local skynet = require "skynet"
-local util = require "util"
+local modelmgr = require "modelmgrcpp"
+local entity = require "entity"
+local assert = assert
+local type   = type
 
-local _M = {}
-_M.__data = {}
-_M.__count = 0
+local cls = class("g_checkpointmgr", modelmgr)
 
-local _Meta = { csv_id=0, 
-				chapter=0, 
-				combat=0, 
-				level=0, 
-				name=0, 
-				checkpoint=0, 
-				type=0, 
-				cd=0, 
-				gain_gold=0, 
-				gain_exp=0,
-				drop=0,
-				reward=0,
-				monster_csv_id1=0,
-				monster_csv_id2=0,
-				monster_csv_id2=0 }
-_Meta.__tname = "g_checkpoint"
-
-function _Meta.__new()
- 	-- body
- 	local t = {}
- 	setmetatable( t, { __index = _Meta } )
- 	return t
-end 
-
-function _Meta:__insert_db()
+function cls:ctor( ... )
 	-- body
-	-- local t = {}
-	-- for k,v in pairs(self) do
-	-- 	if not string.match(k, "^__*") then
-	-- 		t[k] = assert(self[k])
-	-- 	end
-	-- end
-	-- skynet.send(util.random_db(), "lua", "command", "insert", self.__tname, t)
+	self.__data    = {}
+	self.__count   = 0
+	self.__cap     = 0
+	self.__tname   = "g_checkpoint"
+	self.__head    = {
+	csv_id = {
+		pk = true,
+		fk = false,
+		cn = "csv_id",
+		uq = false,
+		t = "number",
+	},
+	chapter = {
+		pk = false,
+		fk = false,
+		cn = "chapter",
+		uq = false,
+		t = "number",
+	},
+	combat = {
+		pk = false,
+		fk = false,
+		cn = "combat",
+		uq = false,
+		t = "number",
+	},
+	level = {
+		pk = false,
+		fk = false,
+		cn = "level",
+		uq = false,
+		t = "number",
+	},
+	name = {
+		pk = false,
+		fk = false,
+		cn = "name",
+		uq = false,
+		t = "string",
+	},
+	checkpoint = {
+		pk = false,
+		fk = false,
+		cn = "checkpoint",
+		uq = false,
+		t = "number",
+	},
+	type = {
+		pk = false,
+		fk = false,
+		cn = "type",
+		uq = false,
+		t = "number",
+	},
+	cd = {
+		pk = false,
+		fk = false,
+		cn = "cd",
+		uq = false,
+		t = "number",
+	},
+	gain_gold = {
+		pk = false,
+		fk = false,
+		cn = "gain_gold",
+		uq = false,
+		t = "number",
+	},
+	gain_exp = {
+		pk = false,
+		fk = false,
+		cn = "gain_exp",
+		uq = false,
+		t = "number",
+	},
+	drop = {
+		pk = false,
+		fk = false,
+		cn = "drop",
+		uq = false,
+		t = "number",
+	},
+	reward = {
+		pk = false,
+		fk = false,
+		cn = "reward",
+		uq = false,
+		t = "string",
+	},
+	monster_csv_id1 = {
+		pk = false,
+		fk = false,
+		cn = "monster_csv_id1",
+		uq = false,
+		t = "number",
+	},
+	monster_csv_id2 = {
+		pk = false,
+		fk = false,
+		cn = "monster_csv_id2",
+		uq = false,
+		t = "number",
+	},
+	monster_csv_id3 = {
+		pk = false,
+		fk = false,
+		cn = "monster_csv_id3",
+		uq = false,
+		t = "number",
+	},
+	drop_cd = {
+		pk = false,
+		fk = false,
+		cn = "drop_cd",
+		uq = false,
+		t = "number",
+	},
+}
+
+	self.__head_ord = {}
+		self.__head_ord[1] = self.__head[csv_id]
+	self.__head_ord[2] = self.__head[chapter]
+	self.__head_ord[3] = self.__head[combat]
+	self.__head_ord[4] = self.__head[level]
+	self.__head_ord[5] = self.__head[name]
+	self.__head_ord[6] = self.__head[checkpoint]
+	self.__head_ord[7] = self.__head[type]
+	self.__head_ord[8] = self.__head[cd]
+	self.__head_ord[9] = self.__head[gain_gold]
+	self.__head_ord[10] = self.__head[gain_exp]
+	self.__head_ord[11] = self.__head[drop]
+	self.__head_ord[12] = self.__head[reward]
+	self.__head_ord[13] = self.__head[monster_csv_id1]
+	self.__head_ord[14] = self.__head[monster_csv_id2]
+	self.__head_ord[15] = self.__head[monster_csv_id3]
+	self.__head_ord[16] = self.__head[drop_cd]
+
+	self.__pk      = "csv_id"
+	self.__fk      = ""
+	self.__rdb     = skynet.localname(skynet.getenv("gated_rdb"))
+	self.__wdb     = skynet.localname(skynet.getenv("gated_wdb"))
+	self.__stm     = false
+	self.__entity  = "g_checkpointentity"
+	return self
 end
 
-function _Meta:__update_db(t)
-	-- body
-	-- assert(type(t) == "table")
-	-- local columns = {}
-	-- for i,v in ipairs(t) do
-	-- 	columns[tostring(v)] = self[tostring(v)]
-	-- end
-	-- skynet.send(util.random_db(), "lua", "command", "update", self.__tname, {{ id = self.id }}, columns)
-end
-
-
-
-function _M:clear()
-	self.__data = {}
-	self.__count = 0
-end
-
-function _M.create( P )
-	assert(P)
-	local u = _Meta.__new()
-	for k,v in pairs(_Meta) do
-		if not string.match(k, "^__*") then
-			u[k] = assert(P[k])
-		end
-	end
-	return u
-end	
-
-function _M:add( u )
-	assert(u)
-	self.__data[tostring(u.csv_id)] = u
-	self.__count = self.__count + 1
-end
-
-function _M:get_by_csv_id(csv_id)
-	-- body
-	return self.__data[tostring(csv_id)]
-end
-
-function _M:delete_by_csv_id(csv_id)
-	assert(self.__data[tostring(csv_id)] ~= nil) 
-	self.__data[tostring(id)] = nil
-	self.__count = self.__count - 1
-end
-
-function _M:get_count()
-	-- body
-	return self.__count
-end
-
-return _M
+return cls

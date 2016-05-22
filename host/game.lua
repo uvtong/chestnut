@@ -1,4 +1,4 @@
-package.path = "./../cat/?.lua;./../cat/lualib/?.lua;" .. package.path
+package.path = "./../host/?.lua;./../host/lualib/?.lua;../lualib/?.lua;" .. package.path
 package.cpath = "./../cat/luaclib/?.so;" .. package.cpath
 local skynet = require "skynet"
 require "skynet.manager"
@@ -8,7 +8,7 @@ local tptr = require "tablepointer"
 local const = require "const"
 local game
 
-local db = tonumber(...)
+-- local db = tonumber(...)
 
 local CMD = {}
  
@@ -635,6 +635,6 @@ skynet.start(function()
 			skynet.ret(skynet.pack(result))
 		end
 	end)
-	skynet.fork(update_db)
+	-- skynet.fork(update_db)
 	skynet.register ".game"
 end)

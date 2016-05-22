@@ -1,119 +1,157 @@
 local skynet = require "skynet"
-local util = require "util"
+local modelmgr = require "modelmgrcpp"
+local entity = require "entity"
+local assert = assert
+local type   = type
 
-local _M = {}
-_M.__data = {}
-_M.__count = 0
+local cls = class("g_equipment_enhancemgr", modelmgr)
 
-local _Meta = { g_csv_id=0, 
-				csv_id=0, 
-				name=0, 
-				level=0, 
-				combat=0, 
-				defense=0, 
-				critical_hit=0, 
-				king=0, 
-				combat_probability=0, 
-				defense_probability=0, 
-				critical_hit_probability=0,
-				king_probability=0, 
-				enhance_success_rate=0, 
-				currency_type=0, 
-				currency_num=0}
-
-_Meta.__tname = "g_equipment_enhance"
-
-function _Meta.__new()
- 	-- body
- 	local t = {}
- 	setmetatable( t, { __index = _Meta } )
- 	return t
-end 
-
-function _Meta:__insert_db()
+function cls:ctor( ... )
 	-- body
-	local t = {}
-	for k,v in pairs(_Meta) do
-		if not string.match(k, "^__*") then
-			t[k] = assert(self[k])
-		end
-	end
-	skynet.send(util.random_db(), "lua", "command", "insert", self.__tname, t)
+	self.__data    = {}
+	self.__count   = 0
+	self.__cap     = 0
+	self.__tname   = "g_equipment_enhance"
+	self.__head    = {
+	id = {
+		pk = true,
+		fk = false,
+		cn = "id",
+		uq = false,
+		t = "number",
+	},
+	g_csv_id = {
+		pk = false,
+		fk = false,
+		cn = "g_csv_id",
+		uq = false,
+		t = "number",
+	},
+	csv_id = {
+		pk = false,
+		fk = false,
+		cn = "csv_id",
+		uq = false,
+		t = "number",
+	},
+	name = {
+		pk = false,
+		fk = false,
+		cn = "name",
+		uq = false,
+		t = "string",
+	},
+	level = {
+		pk = false,
+		fk = false,
+		cn = "level",
+		uq = false,
+		t = "number",
+	},
+	combat = {
+		pk = false,
+		fk = false,
+		cn = "combat",
+		uq = false,
+		t = "number",
+	},
+	defense = {
+		pk = false,
+		fk = false,
+		cn = "defense",
+		uq = false,
+		t = "number",
+	},
+	critical_hit = {
+		pk = false,
+		fk = false,
+		cn = "critical_hit",
+		uq = false,
+		t = "number",
+	},
+	king = {
+		pk = false,
+		fk = false,
+		cn = "king",
+		uq = false,
+		t = "number",
+	},
+	combat_probability = {
+		pk = false,
+		fk = false,
+		cn = "combat_probability",
+		uq = false,
+		t = "number",
+	},
+	defense_probability = {
+		pk = false,
+		fk = false,
+		cn = "defense_probability",
+		uq = false,
+		t = "number",
+	},
+	critical_hit_probability = {
+		pk = false,
+		fk = false,
+		cn = "critical_hit_probability",
+		uq = false,
+		t = "number",
+	},
+	king_probability = {
+		pk = false,
+		fk = false,
+		cn = "king_probability",
+		uq = false,
+		t = "number",
+	},
+	enhance_success_rate = {
+		pk = false,
+		fk = false,
+		cn = "enhance_success_rate",
+		uq = false,
+		t = "number",
+	},
+	currency_type = {
+		pk = false,
+		fk = false,
+		cn = "currency_type",
+		uq = false,
+		t = "number",
+	},
+	currency_num = {
+		pk = false,
+		fk = false,
+		cn = "currency_num",
+		uq = false,
+		t = "number",
+	},
+}
+
+	self.__head_ord = {}
+		self.__head_ord[1] = self.__head[id]
+	self.__head_ord[2] = self.__head[g_csv_id]
+	self.__head_ord[3] = self.__head[csv_id]
+	self.__head_ord[4] = self.__head[name]
+	self.__head_ord[5] = self.__head[level]
+	self.__head_ord[6] = self.__head[combat]
+	self.__head_ord[7] = self.__head[defense]
+	self.__head_ord[8] = self.__head[critical_hit]
+	self.__head_ord[9] = self.__head[king]
+	self.__head_ord[10] = self.__head[combat_probability]
+	self.__head_ord[11] = self.__head[defense_probability]
+	self.__head_ord[12] = self.__head[critical_hit_probability]
+	self.__head_ord[13] = self.__head[king_probability]
+	self.__head_ord[14] = self.__head[enhance_success_rate]
+	self.__head_ord[15] = self.__head[currency_type]
+	self.__head_ord[16] = self.__head[currency_num]
+
+	self.__pk      = "id"
+	self.__fk      = ""
+	self.__rdb     = skynet.localname(skynet.getenv("gated_rdb"))
+	self.__wdb     = skynet.localname(skynet.getenv("gated_wdb"))
+	self.__stm     = false
+	self.__entity  = "g_equipment_enhanceentity"
+	return self
 end
 
-function _Meta:__update_db(t)
-	-- body
-	assert(type(t) == "table")
-	local columns = {}
-	for i,v in ipairs(t) do
-		columns[tostring(v)] = self[tostring(v)]
-	end
-	skynet.send(util.random_db(), "lua", "command", "update", self.__tname, {{ csv_id=assert(self.csv_id) }}, columns)
-end
-
-function _Meta:__serialize()
-	-- body
-	local r = {}
-	for k,v in pairs(_Meta) do
-		if not string.match(k, "^__*") then
-			r[k] = assert(self[k])
-		end
-	end
-	return r
-end
-
-function _M:clear()
-	self.__data = {}
-end
-
-function _M.insert_db( values )
-	assert(type(values) == "table" )
-	local total = {}
-	for i,v in ipairs(values) do
-		local t = {}
-		for kk,vv in pairs(v) do
-			if not string.match(kk, "^__*") then
-				t[kk] = vv
-			end
-		end
-		table.insert(total, t)
-	end
-	skynet.send( util.random_db() , "lua" , "command" , "insert_all" , _Meta.__tname , total )
-end 
-
-function _M.create( P )
-	assert(P)
-	local u = _Meta.__new()
-	for k,v in pairs(_Meta) do
-		if not string.match(k, "^__*") then
-			u[k] = assert(P[k])
-		end
-	end
-	return u
-end	
-
-function _M:add( u )
-	assert(u)
-	self.__data[tostring(u.g_csv_id)] = u
-	self.__count = self.__count + 1
-end
-	
-function _M:get_by_csv_id(csv_id)
-	-- body
-	return self.__data[tostring(csv_id)]
-end
-
-function _M:delete_by_csv_id(csv_id)
-	-- body
-	assert(self.__data[tostring(csv_id)])
-	self.__data[tostring(csv_id)] = nil
-	self.__count = self.__count - 1
-end
-
-function _M:get_count()
-	-- body
-	return self.__count
-end
-
-return _M
-
+return cls

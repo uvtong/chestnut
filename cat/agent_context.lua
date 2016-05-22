@@ -1,57 +1,160 @@
 local skynet = require "skynet"
-local const = require "const"
-local _M = {}
+require "skynet.manager"
 
-_M.WATCHDOG = nil
-_M.host = nil
-_M.send_request = nil
+local cls = class("agent_context")
 
-_M.client_fd = nil
-
-_M.game = nil
-_M.user = nil
-
-function _M:send_package(pack)
+function cls:ctor( ... )
 	-- body
-	local package = string.pack(">s2", pack)
-	socket.write(self.client_fd, package)
+	self._host = false
+	self._send_request = false
+	self._gate = false
+	self._userid = false
+	self._subid = false
+	self._secret = false
+	self._db = false
+	self._game = false
+	self._user = false
+	self._area = false
+	self._notification = false
 end
 
-function _M:push_achievement(achievement)
+function cls:get_game( ... )
 	-- body
-	ret = {}
-	ret.which = {
-		csv_id = achievement.csv_id,
-		finished = achievement.finished
-	}
-	-- self:send_package(self.send_request("finish_achi", ret))
+	return self._game
 end
 
-function _M:raise_achievement(T)
+function cls:set_game(v, ... )
+	-- body
+	self._game = v
+end
+
+function cls:get_notification( ... )
+	-- body
+	return self._notification
+end
+
+function cls:set_notification(v, ... )
+	-- body
+	self._notification = v
+end
+
+function cls:get_host( ... )
+	-- body
+	return self._host
+end
+
+function cls:set_host(v)
+	-- body
+	if self._host == false then
+		self._host = v
+	end
+end
+
+function cls:get_send_request( ... )
+	-- body
+	return self._send_request
+end
+
+function cls:set_send_request(v)
+	-- body
+	self._send_request = true
+end
+
+function cls:get_gate( ... )
+	-- body
+	return self._gate
+end
+
+function cls:set_gate(v, ... )
+	-- body
+	self._gate = v
+end
+
+function cls:get_userid( ... )
+	-- body
+	return self._userid
+end
+
+function cls:set_userid(v, ... )
+	-- body
+	self._userid = v
+end
+
+function cls:get_subid( ... )
+	-- body
+	return self._subid
+end
+
+function cls:set_subid(v, ... )
+	-- body
+	self._subid = v
+end
+
+function cls:get_secret( ... )
+	-- body
+	return self._secret
+end
+
+function cls:set_secret(v, ... )
+	-- body
+	self._secret = v
+end
+
+function cls:get_db( ... )
+	-- body
+	return self._db
+end
+
+function cls:set_db(v, ... )
+	-- body
+	self._db = v
+end
+
+function cls:get_user( ... )
+	-- body
+	return self._user
+end
+
+function cls:set_user(v, ... )
+	-- body
+	self._user = v
+end
+
+function cls:get_area( ... )
+	-- body
+	return self._area
+end
+
+function cls:set_area(v, ... )
+	-- body
+	self._area = v
+end
+
+function cls:raise_achievement(T)
 	-- body
 	assert(T)
 	while true do 
-		local a = assert(self.user.u_achievementmgr:get_by_type(T))
+		local a = assert(self._user.u_achievementmgr:get_by_type(T))
 		if a.unlock_next_csv_id == 0 then
 			break
 		end
 		local finished
 		if T == const.ACHIEVEMENT_T_2 then
-			finished = self.user.u_propmgr:get_by_csv_id(const.GOLD).num
+			finished = self._user.u_propmgr:get_by_csv_id(const.GOLD).num
 		elseif T == const.ACHIEVEMENT_T_3 then
-			finished = self.user.u_propmgr:get_by_csv_id(const.EXP).num
+			finished = self._user.u_propmgr:get_by_csv_id(const.EXP).num
 		elseif T == const.ACHIEVEMENT_T_4 then
-			finished = self.user.take_diamonds
+			finished = self._user.take_diamonds
 		elseif T == const.ACHIEVEMENT_T_5 then
-			finished = self.user.u_rolemgr:get_count()
+			finished = self._user.u_rolemgr:get_count()
 		elseif T == const.ACHIEVEMENT_T_6 then
-			finished = self.user.u_checkpointmgr:get_by_csv_id(0).chapter
+			finished = self._user.u_checkpointmgr:get_by_csv_id(0).chapter
 		elseif T == const.ACHIEVEMENT_T_7 then
-			finished = self.user.level
+			finished = self._user.level
 		elseif T == const.ACHIEVEMENT_T_8 then
-			finished = self.user.draw_number
+			finished = self._user.draw_number
 		elseif T == const.ACHIEVEMENT_T_9 then
-			finished = self.user.u_kungfumgr:get_count()
+			finished = self._user.u_kungfumgr:get_count()
 		else
 			assert(false)
 		end
@@ -65,12 +168,12 @@ function _M:raise_achievement(T)
 			tmp.reward_collected = 0
 			self:push_achievement(a)
 
-			local rc = self.user.u_achievement_rcmgr.create(tmp)
-			self.user.u_achievement_rcmgr:add(rc)
+			local rc = self._user.u_achievement_rcmgr:create(tmp)
+			self._user.u_achievement_rcmgr:add(rc)
 			rc:__insert_db(const.DB_PRIORITY_2)
 
 			assert(type(a.unlock_next_csv_id), string.format("%s", type(a.unlock_next_csv_id)))
-			local ga = skynet.call(self.game, "lua", "query_g_achievement", a.unlock_next_csv_id)
+			local ga = skynet.call(self._game, "lua", "query_g_achievement", a.unlock_next_csv_id)
 			a.csv_id = ga.csv_id
 			a.finished = 0
 			a.c_num = ga.c_num
@@ -83,11 +186,11 @@ function _M:raise_achievement(T)
 	end
 end
 
-function _M:xilian(role, t)
+function cls:xilian(role, t)
 	-- body
 	assert(type(t) == "table")
 	local ret = {}
-	local property_pool = skynet.call(self.game, "lua", "query_g_property_pool")
+	local property_pool = skynet.call(self._game, "lua", "query_g_property_pool")
 	local last = 0
 	local sum = 0
 	for k,v in pairs(property_pool) do
@@ -113,7 +216,7 @@ function _M:xilian(role, t)
 		property_pool_id = 1
 		local last1 = 0
 		local sum1 = 0
-		local second = skynet.call(self.game, "lua", "query_g_property_pool_second", 0, property_pool_id)
+		local second = skynet.call(self._game, "lua", "query_g_property_pool_second", 0, property_pool_id)
 		for i,v in ipairs(second) do
 			v.min = last1
 			sum1 = sum1 + v.probability
@@ -146,7 +249,7 @@ function _M:xilian(role, t)
 		property_pool_id = 1
 		local last1 = 0
 		local sum1 = 0
-		local second = skynet.call(self.game, "lua", "query_g_property_pool_second", 0, property_pool_id)
+		local second = skynet.call(self._game, "lua", "query_g_property_pool_second", 0, property_pool_id)
 		for i,v in ipairs(second) do
 			v.min = last1
 			sum1 = sum1 + v.probability
@@ -179,7 +282,7 @@ function _M:xilian(role, t)
 		property_pool_id = 1
 		local last1 = 0
 		local sum1 = 0
-		local second = skynet.call(self.game, "lua", "query_g_property_pool_second", 0, property_pool_id)
+		local second = skynet.call(self._game, "lua", "query_g_property_pool_second", 0, property_pool_id)
 		for i,v in ipairs(second) do
 			v.min = last1
 			sum1 = sum1 + v.probability
@@ -212,7 +315,7 @@ function _M:xilian(role, t)
 		property_pool_id = 1
 		local last1 = 0
 		local sum1 = 0
-		local second = skynet.call(self.game, "lua", "query_g_property_pool_second", 0, property_pool_id)
+		local second = skynet.call(self._game, "lua", "query_g_property_pool_second", 0, property_pool_id)
 		for i,v in ipairs(second) do
 			v.min = last1
 			sum1 = sum1 + v.probability
@@ -245,7 +348,7 @@ function _M:xilian(role, t)
 		property_pool_id = 1
 		local last1 = 0
 		local sum1 = 0
-		local second = skynet.call(self.game, "lua", "query_g_property_pool_second", 0, property_pool_id)
+		local second = skynet.call(self._game, "lua", "query_g_property_pool_second", 0, property_pool_id)
 		for i,v in ipairs(second) do
 			v.min = last1
 			sum1 = sum1 + v.probability
@@ -263,7 +366,7 @@ function _M:xilian(role, t)
 	return n, ret
 end
 
-function _M:role_recruit(csv_id)
+function cls:role_recruit(csv_id)
 	-- body
 	assert(csv_id)
 	local role = skynet.call(".game", "lua", "query_g_role", csv_id)
@@ -313,4 +416,4 @@ function _M:role_recruit(csv_id)
 	end
 end
 
-return _M
+return cls

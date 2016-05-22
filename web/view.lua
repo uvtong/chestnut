@@ -207,33 +207,57 @@ function VIEW:equipments()
 	end
 end
 
-function VIEW:validation()
+local function print_table(table_name)
 	-- body
-	if self.method == "post" then
-		local ret = {}
-		local table_name = self.body["table_name"]
-		local sql = string.format("select * from columns where table_name=\"%s\";", table_name)
-		local r = query.select_sql_wait(table_name, sql, query.DB_PRIORITY_2)
+	local sql = string.format("select * from columns where table_name=\"%s\";", table_name)
+		local r = query.read(".rdb", table_name, sql)
 		if #r == 0 then
 			ret.ok = 0
 			ret.msg = "failture"
 			return ret
 		end
-		local pk
+		local pk = ""
+		local fk = ""
+		local funcs = ""
 		local count = "{\n"
 		local fields = "{\n"
 		local head = "{\n"
+		local head_ord = ""
 		for i,v in ipairs(r) do
+			head_ord = head_ord..string.format(
+[[
+	self.__head_ord[%d] = self.__head[%s]
+]], i, v.COLUMN_NAME)
 			local seg = "\t"..v.COLUMN_NAME.." = {\n"
+			local pk_seg = string.format("\t\tpk = false,\n")
+			local fk_seg = string.format("\t\tfk = false,\n")
 			if v.COLUMN_KEY == "PRI" then
 				pk = v.COLUMN_NAME
-				seg = seg .. string.format("\t\tpk = true,\n")
+				pk_seg = string.format("\t\tpk = true,\n")
 			else
-				seg = seg .. string.format("\t\tpk = false,\n")
+				local sql = string.format("select * from INFORMATION_SCHEMA.KEY_COLUMN_USAGE WHERE TABLE_NAME ='%s' and COLUMN_NAME = '%s'", table_name, v.COLUMN_NAME)
+				local r = query.read(".rdb", table_name, sql)
+				for i,vv in ipairs(r) do
+					if vv.CONSTRAINT_NAME == "PRIMARY" then
+						print(sql)
+						ret.ok = 0
+						ret.msg = "PRIMARY failture"
+						return ret
+					end	
+					local sql = string.format("select * from INFORMATION_SCHEMA.TABLE_CONSTRAINTS t where t.TABLE_NAME='%s' and CONSTRAINT_TYPE='FOREIGN KEY' and CONSTRAINT_NAME = '%s'", table_name, vv.CONSTRAINT_NAME)
+					local r = query.read(".rdb", table_name, sql)
+					print(sql)
+					if #r == 1 then
+						fk_seg = string.format("\t\tfk = true,\n")	
+						fk = v.COLUMN_NAME
+					end	
+				end
 			end
-			seg = seg .. string.format("\t\tfk = false,\n")
+			seg = seg .. pk_seg
+			seg = seg .. fk_seg
+			seg = seg .. string.format("\t\tcn = \"%s\",\n", v.COLUMN_NAME)
 			seg = seg .. string.format("\t\tuq = false,\n")
-			if v.DATA_TYPE == "int" then
+			if v.DATA_TYPE=="int" or v.DATA_TYPE=="bigint" or v.DATA_TYPE=="tinyint" or v.DATA_TYPE=="smallint" then
 				seg = seg .. string.format("\t\tt = \"%s\",\n", "number")
 			elseif v.DATA_TYPE == "varchar" or v.DATA_TYPE == "char" then
 				seg = seg .. string.format("\t\tt = \"%s\",\n", "string")
@@ -244,20 +268,67 @@ function VIEW:validation()
 			seg = seg .. string.format("\tc = 0,\n")
 			count = count .. string.format("\t\t\t%s = 0,\n", v.COLUMN_NAME)
 			fields = fields .. string.format("\t\t\t%s = 0,\n", v.COLUMN_NAME)
+			funcs = funcs .. string.format(
+[[
+function cls:set_%s(v, ... )
+	-- body
+	assert(v)
+	self.__fields.%s = v
+end
+
+function cls:get_%s( ... )
+	-- body
+	return self.__fields.%s
+end
+
+]], v.COLUMN_NAME, v.COLUMN_NAME, v.COLUMN_NAME, v.COLUMN_NAME)
 		end
 		head = head.."}\n"
 		fields = fields.."\t\t}\n"
 		count = count.."\t\t}\n"
 		
-		local s = require("model")
 		local dir = skynet.getenv("pro_dir")
-		local addr = io.open(dir.."models/"..table_name.."mgr.lua", "w")
-		local content = string.format(s, table_name, head, pk, fields)
+		
+		local s = require("entitycppt")
+		local entitycls = table_name.."entity"
+		local addr = io.open(dir.."models/"..table_name.."entity.lua", "w")
+		local content = string.format(s, entitycls, fields, count, funcs)
 		addr:write(content)
 		addr:close()
-		ret.ok = 1
-		ret.msg = "succss"
-		return ret
+
+		local s = require("modelcppt")
+		local mgrcls = table_name.."mgr"
+		local addr = io.open(dir.."models/"..table_name.."mgr.lua", "w")
+		local content = string.format(s, mgrcls, table_name, head, head_ord, pk, fk, entitycls)
+		addr:write(content)
+		addr:close()
+end
+
+function VIEW:validation()
+	-- body
+	if self.method == "post" then
+		local r = query.read(".rdb", "all", "select table_name from information_schema.tables where table_schema='project' and table_type='base table'")
+		if r then
+			local ok, result = pcall(function ()
+				-- body
+				for i,v in ipairs(r) do
+					for kk,vv in pairs(v) do
+						print_table(vv)
+					end
+				end
+			end)
+			if ok then
+				local ret = {}
+				ret.ok = 1
+				ret.msg = "succss"
+				return ret
+			else
+				local ret = {}
+				ret.ok = 0
+				ret.msg = "failture"
+				return ret
+			end
+		end
 	end
 end
 

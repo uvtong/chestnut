@@ -2,13 +2,14 @@ package.path = "./../cat/?.lua;./../cat/lualib/?.lua;./../lualib/?.lua;" .. pack
 package.cpath = "./../cat/luaclib/?.so;" .. package.cpath
 local skynet = require "skynet"
 require "skynet.manager"
+require "functions"
+local sharedata = require "sharedata"
+local query = require "query"
 local util = require "util"
-local loader = require "loader"
+local loader = require "load_game"
 local tptr = require "tablepointer"
 local const = require "const"
 local game
-
-local db = tonumber(...)
 
 local CMD = {}
 
@@ -282,7 +283,6 @@ function CMD:query_g_daily_task()
 		assert(false)
 	end
 end
-
 
 function CMD.query_g_goods_refresh_cost(pk)
 	-- body
@@ -666,12 +666,24 @@ end
 
 local function update_db()
 	-- body
+	local x = 1
 	while true do
 		if game then
-			game.g_uidmgr:update_db(const.DB_PRIORITY_3)
-			game.g_randomvalmgr:update_db(const.DB_PRIORITY_3)
+			-- x = x + 1
+			-- local sql = string.format("update g_uid set entropy= %d where csv_id = 2;", x)
+			-- query.write(wdb, "g_uid", sql, const.DB_PRIORITY_1)
+			-- game.g_uidmgr:update_db(const.DB_PRIORITY_1)
+			-- game.g_randomvalmgr:update_db(const.DB_PRIORITY_1)
 		end
 		skynet.sleep(100 * 60) -- 1ti == 0.01s
+	end
+end
+
+local function test(g)
+	-- body
+	local mgr = g.g_achievementmgr
+	for k,v in pairs(mgr) do
+		print(k,v)
 	end
 end
 
@@ -686,4 +698,7 @@ skynet.start(function()
 	end)
 	game = loader.load_game()
 	skynet.fork(update_db)
+	-- local r = skynet.call(".db", "lua", "select", "g_uid")
+	-- local r = skynet.call(".db", "lua", "test")
+	-- print(r)
 end)

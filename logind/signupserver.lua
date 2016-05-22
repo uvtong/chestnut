@@ -1,8 +1,9 @@
-package.path = "./../logind/?.lua;" .. package.path
+package.path = "./../logind/?.lua;../lualib/?.lua;" .. package.path
 local login = require "snax.loginserver"
 local crypt = require "crypt"
 local skynet = require "skynet"
 local accountmgr = require "models/accountmgr"
+local query = require "query"
 local db
 local MAX_INTEGER = 16777216
 
@@ -89,7 +90,7 @@ end
 function CMD.auth(user, password)
 	-- body
 	local sql = string.format("select * from account where user = \"%s\" and password = \"%s\"", user, password)
-	local r = skynet.call(".signup_db", "lua", "command", "query", sql)
+	local r = query.read(".signup_db", "account", sql)
 	if #r ~= 1 then
 		print("account system has error.")
 		return false, "error"

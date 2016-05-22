@@ -1,16 +1,10 @@
-local function abc(edf)
+local mm = { __call = function (t, ...)
 	-- body
+	print("abc")
+end}
 
-end
-local function cc( ... )
-	-- body
-	m = 3
-end
-abc()
-print(m)
-cc()
-print(m)
+local m = setmetatable({}, mm)
 
-abc(function ( ... )
-	-- body
-end)
+local _M = setmetatable({}, m)
+
+_M()

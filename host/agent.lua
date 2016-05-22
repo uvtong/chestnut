@@ -1,5 +1,4 @@
-package.path = "./../cat/?.lua;../lualib/?.lua;" .. package.path
-package.cpath = "./../cat/luaclib/?.so;" .. package.cpath
+package.path = "../host/lualib/?.lua;"..package.path
 local skynet = require "skynet"
 require "skynet.manager"
 local netpack = require "netpack"
@@ -1109,6 +1108,7 @@ function REQUEST:shop_purchase()
 						ug:__update_db({"inventory"})	
 					end
 
+<<<<<<< HEAD
 					currency.num = currency.num - gold
 					currency:__update_db({"num"})
 					local prop = get_prop(gg.g_prop_csv_id)
@@ -1327,6 +1327,26 @@ function REQUEST:recharge_all()
 	ret.l = l
 	return ret
 end
+=======
+local CMD       = {}
+local REQUEST   = {}
+local RESPONSE  = {}
+local SUBSCRIBE = {}
+
+local env = {}
+env.host         = 0
+env.send_request = 0
+env.gate         = 0
+env.uid          = 0
+env.subid        = 0
+env.secret       = 0
+env.user         = 0
+env.stm          = require "stm"
+env.sharemap     = require "sharemap"
+env.sharedata    = require "sharedata"
+env.room         = 0
+env.rdtroom      = true
+>>>>>>> d51e1233e2de15326de56876479f6008f895ff3d
 
 function REQUEST:recharge_purchase()
 	-- body
@@ -1426,6 +1446,7 @@ function REQUEST:recharge_purchase()
 	return ret
 end
 
+<<<<<<< HEAD
 function REQUEST:recharge_vip_reward_all()
 	-- body
 	local ret = {}
@@ -1636,6 +1657,9 @@ function REQUEST:equipment_all()
 end
 
 function REQUEST:role_all()
+=======
+function REQUEST:enter_room(args)
+>>>>>>> d51e1233e2de15326de56876479f6008f895ff3d
 	-- body
 	local ret = {}
 	if not user then
@@ -1750,7 +1774,11 @@ function REQUEST:role_battle()
 	return ret
 end
 
+<<<<<<< HEAD
 function REQUEST:user_sign()
+=======
+function REQUEST:ready(args)
+>>>>>>> d51e1233e2de15326de56876479f6008f895ff3d
 	-- body
 	local ret = {}
 	if not user then
@@ -1766,7 +1794,11 @@ function REQUEST:user_sign()
 	return ret
 end
 
+<<<<<<< HEAD
 function REQUEST:user_random_name()
+=======
+function REQUEST:mp(args)
+>>>>>>> d51e1233e2de15326de56876479f6008f895ff3d
 	-- body
 	local ret = {}
 	if not user then
@@ -1878,10 +1910,14 @@ function REQUEST:recharge_vip_reward_purchase()
  	end
 end
 
+<<<<<<< HEAD
 local xilian_lock = 0
 local xilian_role_id = 0
 
 function REQUEST:xilian()
+=======
+function REQUEST:am(args)
+>>>>>>> d51e1233e2de15326de56876479f6008f895ff3d
 	-- body
 	xilian_lock = 0
 	local ret = {}
@@ -1924,6 +1960,7 @@ function REQUEST:xilian()
 	return ret
 end
 
+<<<<<<< HEAD
 function REQUEST:xilian_ok()
 	-- body
 	local ret = {}
@@ -1963,6 +2000,9 @@ function REQUEST:xilian_ok()
 end   
 
 function REQUEST:checkpoint_chapter()
+=======
+function REQUEST:rob(args)
+>>>>>>> d51e1233e2de15326de56876479f6008f895ff3d
 	-- body
 	local ret = {}
 	if not user then
@@ -1979,7 +2019,11 @@ function REQUEST:checkpoint_chapter()
 	return ret
 end
 
+<<<<<<< HEAD
 local function hanging()
+=======
+function REQUEST:lead(args)
+>>>>>>> d51e1233e2de15326de56876479f6008f895ff3d
 	-- body
 	local r = skynet.call(game, "lua", "query_g_checkpoint", user.cp_hanging_id)
 	assert(r)
@@ -2009,6 +2053,7 @@ local function hanging()
 	return l
 end
 
+<<<<<<< HEAD
 function REQUEST:checkpoint_hanging()
 	-- body
 	local ret = {}
@@ -2121,6 +2166,25 @@ function REQUEST:checkpoint_hanging_choose()
 		ret.errorcode = errorcode[37].code
 		ret.msg = errorcode[37].msg
 		return ret
+=======
+local function request(name, args, response)
+	local f = REQUEST[name]
+	if f then
+		local ok, result = pcall(f, env, args)
+		if ok then
+			return response(result)
+		else
+			local ret = {}
+			ret.errorcode = errorcode[29].code
+			ret.msg = errorcode[29].msg
+			return response(result)
+		end
+	else
+		local ret = {}
+		ret.errorcode = errorcode[39].code
+		ret.msg = errorcode[39].msg
+		return response(result)
+>>>>>>> d51e1233e2de15326de56876479f6008f895ff3d
 	end
 	ret.errorcode = errorcode[1].code
 	ret.msg = errorcode[1].msg
@@ -2477,6 +2541,7 @@ skynet.register_protocol {
 	name = "client",
 	id = skynet.PTYPE_CLIENT,
 	unpack = function (msg, sz)
+<<<<<<< HEAD
 		if sz > 0 then
 			return host:dispatch(msg, sz)
 		elseif sz == 0 then
@@ -2491,8 +2556,35 @@ skynet.register_protocol {
 			if ok then
 				if result then
 					skynet.retpack(result)
+=======
+		if env.rdtroom then
+			return msg, sz
+		else
+			if sz == 0 then
+				return "HEARTBEAT"
+			else	
+				return host:dispatch(msg, sz)
+			end
+		end
+	end,
+	dispatch = function (session, source, type, ...)
+		if env.rdtroom then
+			skynet.redirect(env.room, skynet.self(), id, session, type, ...)
+		else
+			if type == "REQUEST" then
+				local ok, result  = pcall(request, ...)
+				if ok then
+					if result then
+						skynet.retpack(result)
+					end
+				else
+					skynet.error(result)
+>>>>>>> d51e1233e2de15326de56876479f6008f895ff3d
 				end
+			elseif type == "RESPONSE" then
+				pcall(response, ...)
 			else
+<<<<<<< HEAD
 				assert(false, result)
 			end
 		elseif t == "HEARTBEAT" then
@@ -2511,6 +2603,24 @@ function CMD.friend(source, subcmd, ... )
 	if r then
 		return r
 	end
+=======
+				error "other type is not existence."
+			end
+		end
+	end
+}
+
+function CMD:enter_room(source, room)
+	-- body
+	self.room = room
+	self.rdtroom = true
+	-- skynet.
+	-- for k,v in pairs(t) do
+	-- 	assert(room[k] == nil)
+	-- 	room[k] = v
+	-- 	send_package(send_request(2, { user_id=tonumber(k), name="hello" })) 
+	-- end
+>>>>>>> d51e1233e2de15326de56876479f6008f895ff3d
 end
 
 function CMD.newemail(source, subcmd , ... )
@@ -2554,6 +2664,19 @@ function CMD.login(source, uid, sid, sct, game, db)
 		
 	else
 		
+=======
+function CMD.signup(source, uid, sid, sct, g, d)
+end
+
+function CMD.login(source, uid, sid, secret, g, d)
+	-- body
+	skynet.error(string.format("%s is login", uid))
+	gate = source
+	uid = uid
+	subid = sid
+	game = g
+	db = d
+>>>>>>> d51e1233e2de15326de56876479f6008f895ff3d
 
 		print("************************************456")
 		user = loader.load_user(uid)

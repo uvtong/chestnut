@@ -1,98 +1,165 @@
 local skynet = require "skynet"
-local util = require "util"
+local modelmgr = require "modelmgrcpp"
+local entity = require "entity"
+local assert = assert
+local type   = type
 
-local _M = {}
-_M.__data = {}
-_M.__count = 0
+local cls = class("g_recharge_vip_rewardmgr", modelmgr)
 
-local _Meta = { vip=0, 
-				diamond=0, 
-				gain_gold_up_p=0, 
-				gain_exp_up_p=0, 
-				gold_max_up_p=0, 
-				exp_max_up_p=0, 
-				equipment_enhance_success_rate_up_p=0, 
-				prop_refresh_reduction_p=0,
-				arena_frozen_time_reduction_p=0,
-				purchase_hp_count_max=0,
-				SCHOOL_reset_count_max=0,
-				rewared=0,
-				store_refresh_count_max=0,
-				purchasable_gift=0,
-				marked_diamond=0,
-				purchasable_diamond=0}
-
-_Meta.__tname = "g_recharge_vip_reward"
-
-function _Meta.__new()
- 	-- body
- 	local t = {}
- 	setmetatable( t, { __index = _Meta } )
- 	return t
-end 
-
-function _Meta:__insert_db()
+function cls:ctor( ... )
 	-- body
-	local t = {}
-	for k,v in pairs(self) do
-		if not string.match(k, "^__*") then
-			t[k] = self[k]
-		end
-	end
-	skynet.send(util.random_db(), "lua", "command", "insert", self.__tname, t)
+	self.__data    = {}
+	self.__count   = 0
+	self.__cap     = 0
+	self.__tname   = "g_recharge_vip_reward"
+	self.__head    = {
+	id = {
+		pk = true,
+		fk = false,
+		cn = "id",
+		uq = false,
+		t = "number",
+	},
+	vip = {
+		pk = false,
+		fk = false,
+		cn = "vip",
+		uq = false,
+		t = "number",
+	},
+	diamond = {
+		pk = false,
+		fk = false,
+		cn = "diamond",
+		uq = false,
+		t = "number",
+	},
+	gain_gold_up_p = {
+		pk = false,
+		fk = false,
+		cn = "gain_gold_up_p",
+		uq = false,
+		t = "number",
+	},
+	gain_exp_up_p = {
+		pk = false,
+		fk = false,
+		cn = "gain_exp_up_p",
+		uq = false,
+		t = "number",
+	},
+	gold_max_up_p = {
+		pk = false,
+		fk = false,
+		cn = "gold_max_up_p",
+		uq = false,
+		t = "number",
+	},
+	exp_max_up_p = {
+		pk = false,
+		fk = false,
+		cn = "exp_max_up_p",
+		uq = false,
+		t = "number",
+	},
+	equipment_enhance_success_rate_up_p = {
+		pk = false,
+		fk = false,
+		cn = "equipment_enhance_success_rate_up_p",
+		uq = false,
+		t = "number",
+	},
+	prop_refresh_reduction_p = {
+		pk = false,
+		fk = false,
+		cn = "prop_refresh_reduction_p",
+		uq = false,
+		t = "number",
+	},
+	arena_frozen_time_reduction_p = {
+		pk = false,
+		fk = false,
+		cn = "arena_frozen_time_reduction_p",
+		uq = false,
+		t = "number",
+	},
+	purchase_hp_count_max = {
+		pk = false,
+		fk = false,
+		cn = "purchase_hp_count_max",
+		uq = false,
+		t = "number",
+	},
+	SCHOOL_reset_count_max = {
+		pk = false,
+		fk = false,
+		cn = "SCHOOL_reset_count_max",
+		uq = false,
+		t = "number",
+	},
+	rewared = {
+		pk = false,
+		fk = false,
+		cn = "rewared",
+		uq = false,
+		t = "string",
+	},
+	store_refresh_count_max = {
+		pk = false,
+		fk = false,
+		cn = "store_refresh_count_max",
+		uq = false,
+		t = "number",
+	},
+	purchasable_gift = {
+		pk = false,
+		fk = false,
+		cn = "purchasable_gift",
+		uq = false,
+		t = "string",
+	},
+	marked_diamond = {
+		pk = false,
+		fk = false,
+		cn = "marked_diamond",
+		uq = false,
+		t = "number",
+	},
+	purchasable_diamond = {
+		pk = false,
+		fk = false,
+		cn = "purchasable_diamond",
+		uq = false,
+		t = "number",
+	},
+}
+
+	self.__head_ord = {}
+		self.__head_ord[1] = self.__head[id]
+	self.__head_ord[2] = self.__head[vip]
+	self.__head_ord[3] = self.__head[diamond]
+	self.__head_ord[4] = self.__head[gain_gold_up_p]
+	self.__head_ord[5] = self.__head[gain_exp_up_p]
+	self.__head_ord[6] = self.__head[gold_max_up_p]
+	self.__head_ord[7] = self.__head[exp_max_up_p]
+	self.__head_ord[8] = self.__head[equipment_enhance_success_rate_up_p]
+	self.__head_ord[9] = self.__head[prop_refresh_reduction_p]
+	self.__head_ord[10] = self.__head[arena_frozen_time_reduction_p]
+	self.__head_ord[11] = self.__head[purchase_hp_count_max]
+	self.__head_ord[12] = self.__head[SCHOOL_reset_count_max]
+	self.__head_ord[13] = self.__head[rewared]
+	self.__head_ord[14] = self.__head[store_refresh_count_max]
+	self.__head_ord[15] = self.__head[purchasable_gift]
+	self.__head_ord[16] = self.__head[marked_diamond]
+	self.__head_ord[17] = self.__head[purchasable_diamond]
+
+	self.__pk      = "id"
+	self.__fk      = ""
+	self.__rdb     = skynet.localname(skynet.getenv("gated_rdb"))
+	self.__wdb     = skynet.localname(skynet.getenv("gated_wdb"))
+	self.__stm     = false
+	self.__entity  = "g_recharge_vip_rewardentity"
+	return self
 end
 
-function _Meta:__update_db(t)
-	-- body
-	assert(type(t) == "table")
-	local columns = {}
-	for i,v in ipairs(t) do
-		columns[tostring(v)] = self[tostring(v)]
-	end
-	skynet.send(util.random_db(), "lua", "command", "update", self.__tname, {{ id = self.id }}, columns)
-end
-
-function _Meta:__serialize()
-	-- body
-	local r = {}
-	for k,v in pairs(_Meta) do
-		if not string.match(k, "^__*") then
-			r[k] = self[k]
-		end
-	end
-	return r
-end
-
-function _M:clear()
-	self.__data = {}
-end
-
-function _M.create( P )
-	assert(P)
-	local u = _Meta.__new()
-	for k,v in pairs(_Meta) do
-		if not string.match(k, "^__*") then
-			u[k] = assert(P[k])
-		end
-	end
-	return u
-end	
-
-function _M:add( u )
-	assert(u)
-	self.__data[tostring(u.vip)] = u
-	self.__count = self.__count + 1
-end
-	
-function _M:get_by_vip(vip)
-	-- body
-	return self.__data[tostring(vip)]
-end
-
-function _M:get_count()
-	-- body
-	return self.__count
-end
-
-return _M
-
+return cls

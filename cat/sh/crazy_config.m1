@@ -3,7 +3,8 @@ thread      = 8
 logger      = nil
 --logger      = "userlog"
 --logservice  = "snlua"
-logpath     = "."
+--logservice  = "catlogger"
+logpath     = "./../cat/log/"
 harbor      = 1
 address     = "127.0.0.1:2401"
 master      = "127.0.0.1:2013"
@@ -12,26 +13,36 @@ bootstrap   = "snlua bootstrap"	-- The service for bootstrap
 standalone  = "0.0.0.0:2013"
 luaservice  = "./../logind/?.lua;./../db/?.lua;./../web/?.lua;./../cat/?.lua;./../service/?.lua;./service/?.lua"
 lualoader   = "lualib/loader.lua"
--- preload = "./game-slave1/preload.lua"	-- run preload.lua before every lua service run
+preload     = "./../cat/preload.lua"	-- run preload.lua before every lua service run
 snax        = root.."../logind/?.lua;"..root.."test/?.lua"
 -- snax_interface_g = "snax_g"
-cpath       = root.."../logind/?.so;"..root.."cservice/?.so"
+cpath       = "./../cservice/?.so;./cservice/?.so"
 -- daemon = "./skynet.pid"
-maxclient   = 64
-servername  = "sample"
-signupd     = "192.168.1.116:3001"
-logind      = "192.168.1.116:3002"
+
+-- signup server
+signupd      = "192.168.1.239:3001"
+signupd_name = "signup_master"
+
+-- login server
+logind      = "192.168.1.239:3002"
 logind_name = "login_master"
-gated       = "192.168.1.116:3301"
+
+-- gate server
+gated       = "192.168.1.239:3301"
+gated_name  = "sample"
+maxclient   = 4
+leaderboards_name = ".ara_lb"
+gated_rdb   = ".rdb"
+gated_wdb   = ".db"
+
+-- db server
 db_host     = "192.168.1.116"
 db_port     = 3306
 db_database = "project"
+--db_database = "information_schema"
 db_user     = "root"
 db_password = "yulei"
 cache_host  = "192.168.1.116"
 cache_port  = 6379
-leaderboards_name = ".ara_lb"
-signupserver = true
-loginserver  = true
-gameserver   = true
-dbserver     = true
+
+pro_dir     = "./../cat/"

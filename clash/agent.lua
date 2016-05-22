@@ -53,7 +53,6 @@ local db
 local game
 local user
 
-
 local function request(name, args, response)
 	skynet.error(string.format("request: %s", name))
     local f = nil

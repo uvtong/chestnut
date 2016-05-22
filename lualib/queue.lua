@@ -1,6 +1,6 @@
 ------------------------------------------------
 -- head == tail the opacity of queue is empty
--- make head == tial move head
+-- when head == tial to move head
 -- don't move tail 
 
 local Queue = {}
@@ -59,6 +59,15 @@ function Queue.dequeue(Q)
 		end
 	else
 		return nil
+	end
+end
+
+function Queue.is_empty(Q)
+	-- body
+	if Q.__head == Q.__tail then
+		return true
+	else
+		return false
 	end
 end
 

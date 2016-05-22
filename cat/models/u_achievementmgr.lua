@@ -1,121 +1,101 @@
 local skynet = require "skynet"
-local util = require "util"
+local modelmgr = require "modelmgrcpp"
+local entity = require "entity"
+local assert = assert
+local type   = type
 
-local _M = {}
-_M.__data = {}
-_M.__count = 0
-_M.__user_id = 0
-_M.__tname = "u_achievement"
+local cls = class("u_achievementmgr", modelmgr)
 
-local _Meta = { user_id=0, csv_id=0, type=0, finished=0, c_num=0, unlock_next_csv_id=0, is_unlock=0, is_valid=0}
-
-_Meta.__tname = "u_achievement"
-
-function _Meta.__new()
- 	-- body
- 	local t = {}
- 	setmetatable( t, { __index = _Meta } )
- 	return t
-end 
-
-function _Meta:__insert_db(priority)
+function cls:ctor( ... )
 	-- body
-	local t = {}
-	for k,v in pairs(self) do
-		if not string.match(k, "^__*") then
-			t[k] = assert(self[k])
-		end
-	end
-	skynet.send(util.random_db(), "lua", "command", "insert", self.__tname, t, priority)
+	self.__data    = {}
+	self.__count   = 0
+	self.__cap     = 0
+	self.__tname   = "u_achievement"
+	self.__head    = {
+	id = {
+		pk = true,
+		fk = false,
+		cn = "id",
+		uq = false,
+		t = "number",
+	},
+	user_id = {
+		pk = false,
+		fk = true,
+		cn = "user_id",
+		uq = false,
+		t = "number",
+	},
+	csv_id = {
+		pk = false,
+		fk = false,
+		cn = "csv_id",
+		uq = false,
+		t = "number",
+	},
+	finished = {
+		pk = false,
+		fk = false,
+		cn = "finished",
+		uq = false,
+		t = "number",
+	},
+	type = {
+		pk = false,
+		fk = false,
+		cn = "type",
+		uq = false,
+		t = "number",
+	},
+	c_num = {
+		pk = false,
+		fk = false,
+		cn = "c_num",
+		uq = false,
+		t = "number",
+	},
+	unlock_next_csv_id = {
+		pk = false,
+		fk = false,
+		cn = "unlock_next_csv_id",
+		uq = false,
+		t = "number",
+	},
+	is_unlock = {
+		pk = false,
+		fk = false,
+		cn = "is_unlock",
+		uq = false,
+		t = "number",
+	},
+	is_valid = {
+		pk = false,
+		fk = false,
+		cn = "is_valid",
+		uq = false,
+		t = "number",
+	},
+}
+
+	self.__head_ord = {}
+		self.__head_ord[1] = self.__head[id]
+	self.__head_ord[2] = self.__head[user_id]
+	self.__head_ord[3] = self.__head[csv_id]
+	self.__head_ord[4] = self.__head[finished]
+	self.__head_ord[5] = self.__head[type]
+	self.__head_ord[6] = self.__head[c_num]
+	self.__head_ord[7] = self.__head[unlock_next_csv_id]
+	self.__head_ord[8] = self.__head[is_unlock]
+	self.__head_ord[9] = self.__head[is_valid]
+
+	self.__pk      = "id"
+	self.__fk      = "user_id"
+	self.__rdb     = skynet.localname(skynet.getenv("gated_rdb"))
+	self.__wdb     = skynet.localname(skynet.getenv("gated_wdb"))
+	self.__stm     = false
+	self.__entity  = "u_achievemententity"
+	return self
 end
 
-function _Meta:__update_db(t)
-	-- body
-	-- assert(type(t) == "table")
-	-- local columns = {}
-	-- for i,v in ipairs(t) do
-	-- 	columns[tostring(v)] = assert(self[tostring(v)])
-	-- end
-	-- skynet.send(util.random_db(), "lua", "command", "update", self.__tname, {{ user_id = self.user_id, type=self.type }}, columns)
-end
-
-function _Meta:__serialize()
-	-- body
-	local r = {}
-	for k,v in pairs(_Meta) do
-		if not string.match(k, "^__*") then
-			r[k] = assert(self[k])
-		end
-	end
-	return r
-end
-
-function _M.insert_db(values, priority )
-	assert(priority)
-	assert(type(values) == "table" )
-	local total = {}
-	for i,v in ipairs(values) do
-		local t = {}
-		for kk,vv in pairs(v) do
-			if not string.match(kk, "^__*") then
-				t[kk] = vv
-			end
-		end
-		table.insert(total, t)
-	end
-	skynet.send( util.random_db() , "lua" , "command" , "insert_all" , _Meta.__tname , total, priority)
-end 
-
-function _M:update_db(priority)
-	-- body
-	assert(priority)
-	local columns = { "csv_id", "finished", "c_num", "unlock_next_csv_id"}
-	local condition = { {user_id = self.__user_id}, {type = {}}}
-	skynet.send(util.random_db(), "lua", "command", "update_all", _Meta.__tname, condition, columns, self.__data, priority)
-end
-
-function _M:clear()
-	self.__data = {}
-end
-
-function _M.create( P )
-	assert(P)
-	local u = _Meta.__new()
-	for k,v in pairs(_Meta) do
-		if not string.match(k, "^__*") then
-			u[k] = assert(P[k])
-		end
-	end
-	_M.__user_id = u.user_id
-	return u
-end	
-
-function _M:add( u )
-	assert(u)
-	assert(self.__data[tostring(u.type)] == nil)
-	self.__data[tostring(u.type)] = u
-	self.__count = self.__count + 1
-end
-
-function _M:clear()
-	self.__data = {}
-end
-
-function _M:get_by_type(type)
-	-- body
-	return self.__data[tostring(type)]
-end
-
-function _M:delete_by_type(type)
-	-- body
-	self.__data[tostring(type)] = nil
-	self.__count = self.__count - 1
-end
-
-function _M:get_count()
-	-- body
-	return self.__count
-end
-
-return _M
-
+return cls

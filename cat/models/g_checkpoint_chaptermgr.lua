@@ -1,112 +1,77 @@
 local skynet = require "skynet"
-local util = require "util"
+local modelmgr = require "modelmgrcpp"
+local entity = require "entity"
+local assert = assert
+local type   = type
 
-local _M = {}
-_M.__data = {}
-_M.__count = 0
-_M.__user_id = 0
-_M.__tname = "g_checkpoint_chapter"
+local cls = class("g_checkpoint_chaptermgr", modelmgr)
 
-local _Meta = { csv_id=0, level=0, type0_max=0, type1_max=0, type2_max=0}
-
-function _Meta.__new()
- 	-- body
- 	local t = {}
- 	setmetatable( t, { __index = _Meta } )
- 	return t
-end 
-
-function _Meta:__insert_db(priority)
+function cls:ctor( ... )
 	-- body
-	assert(priority)
-	local t = {}
-	for k,v in pairs(_Meta) do
-		if not string.match(k, "^__*") then
-			t[k] = assert(self[k])
-		end
-	end
-	skynet.send(util.random_db(), "lua", "command", "insert", _M.__tname, t, priority)
+	self.__data    = {}
+	self.__count   = 0
+	self.__cap     = 0
+	self.__tname   = "g_checkpoint_chapter"
+	self.__head    = {
+	csv_id = {
+		pk = true,
+		fk = false,
+		cn = "csv_id",
+		uq = false,
+		t = "number",
+	},
+	level = {
+		pk = false,
+		fk = false,
+		cn = "level",
+		uq = false,
+		t = "number",
+	},
+	name = {
+		pk = false,
+		fk = false,
+		cn = "name",
+		uq = false,
+		t = "string",
+	},
+	type0_max = {
+		pk = false,
+		fk = false,
+		cn = "type0_max",
+		uq = false,
+		t = "number",
+	},
+	type1_max = {
+		pk = false,
+		fk = false,
+		cn = "type1_max",
+		uq = false,
+		t = "number",
+	},
+	type2_max = {
+		pk = false,
+		fk = false,
+		cn = "type2_max",
+		uq = false,
+		t = "number",
+	},
+}
+
+	self.__head_ord = {}
+		self.__head_ord[1] = self.__head[csv_id]
+	self.__head_ord[2] = self.__head[level]
+	self.__head_ord[3] = self.__head[name]
+	self.__head_ord[4] = self.__head[type0_max]
+	self.__head_ord[5] = self.__head[type1_max]
+	self.__head_ord[6] = self.__head[type2_max]
+
+	self.__pk      = "csv_id"
+	self.__fk      = ""
+	self.__rdb     = skynet.localname(skynet.getenv("gated_rdb"))
+	self.__wdb     = skynet.localname(skynet.getenv("gated_wdb"))
+	self.__stm     = false
+	self.__entity  = "g_checkpoint_chapterentity"
+	return self
 end
 
-function _Meta:__update_db(t, priority)
-	-- body
-	-- assert(type(t) == "table")
-	-- local columns = {}
-	-- for i,v in ipairs(t) do
-	-- 	columns[tostring(v)] = self[tostring(v)]
-	-- end
-	-- skynet.send(util.random_db(), "lua", "command", "update", _M.__tname, {{ user_id=self.user_id, csv_id=self.csv_id }}, columns, priority)
-end
-
-function _M.insert_db(values, priority)
-	assert(priority)
-	assert(type(values) == "table" )
-	local total = {}
-	for i,v in ipairs(values) do
-		local t = {}
-		for kk,vv in pairs(v) do
-			if not string.match(kk, "^__*") then
-				t[kk] = vv
-			end
-		end
-		table.insert(total, t)
-	end
-	skynet.send(util.random_db(), "lua", "command", "insert_all", _M.__tname, total, priority)
-end 
-
-function _M.create_default()
-	-- body
-end
-
-function _M.create( P )
-	assert(P)
-	local u = _Meta.__new()
-	for k,v in pairs(_Meta) do
-		if not string.match(k, "^__*") then
-			u[k] = assert(P[k])
-		end
-	end
-	return u
-end	
-
-function _M:add( u )
-	assert(u)
-	assert(self.__data[tostring(u.csv_id)] == nil)
-	self.__data[tostring(u.csv_id)] = u
-	self.__count = self.__count + 1
-end
-	
-function _M:get_by_chapter(csv_id)
-	-- body
-	return self.__data[tostring(csv_id)]
-end
-
-function _M:delete_by_chapter(csv_id)
-	-- body
-	assert(self.__data[tostring(csv_id)])
-	self.__data[tostring(csv_id)] = nil
-	self.__count = self.__count - 1
-end
-
-function _M:get_count()
-	-- body
-	return self.__count
-end
-
-function _M:clear()
-	self.__data = {}
-	self.__count = 0
-end
-
-function _M:update_db(priority)
-	-- body
-	-- assert(priority)
-	-- if self.__count > 0 then
-	-- 	local columns = { "finished", "reward_collected", "is_unlock"}
-	-- 	local condition = { {user_id = self.__user_id}, {csv_id = {}}}
-	-- 	skynet.send(util.random_db(), "lua", "command", "update_all", _M.__tname, condition, columns, self.__data, priority)
-	-- end
-end
-
-return _M
-
+return cls

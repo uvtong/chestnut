@@ -1,81 +1,160 @@
-local assert = assert
-local type   = type
+local skynet = require "skynet"
 local entity = require "entity"
 local modelmgr = require "modelmgr"
+local assert = assert
+local type   = type
+local setmetatable = setmetatable
 
-local _M     = {}
-setmetatable(_M, modelmgr)
-_M.__data    = {}
-_M.__count   = 0
-_M.__cap     = 0
-_M.__user_id = 0
-_M.__tname   = "area"
-_M.__head    = {
-	name = {
-		pk = true,
-		fk = false,
-		uq = false,
-		t = "string",
-	},
-	uid = {
-		pk = false,
-		fk = false,
-		uq = false,
-		t = "number",
-	},
-}
+local function genpk(self, user_id, csv_id)
+	-- body
+	local pk = user_id << 32
+	pk = (pk | ((1 << 32 -1) & csv_id ))
+	return pk
+end
 
+local function ctor(self, P)
+	-- body
+	local r = self.create(P)
+	self:add(r)
+	r("insert")
+end
 
-function _M.create(P)
+local function create(self, P)
 	assert(P)
 	local t = { 
-		col_num_ued=0, 
-		table_name="area", 
-		fields = {
-			name = { c = 0, v = nil },
-			uid = { c = 0, v = nil },
+		__head  = self.__head,
+		__tname = self.__tname,
+		__pk    = self.__pk,
+		__fk    = self.__fk,
+		__rdb   = self.__rdb,
+		__wdb   = self.__wdb,
+		__stm   = self.__stm,
+		__col_updated=0,
+		__fields = {
+			id = 0,
+			uid = 0,
+			server_id = 0,
+			server = 0,
 		}
+,
+		__ecol_updated = {
+			id = 0,
+			uid = 0,
+			server_id = 0,
+			server = 0,
+		}
+
 	}
 	setmetatable(t, entity)
-	for k,v in pairs(t.fields) do
-		t[k] = assert(P[k])
+	for k,v in pairs(t.__head) do
+		t.__fields[k] = assert(P[k])
 	end
 	return t
 end	
 
-function _M:add(u)
+local function add(self, u)
  	-- body
  	assert(u)
- 	assert(self.__data[u.name] == nil)
- 	self.__data[u.csv_id] = u
+ 	assert(self.__data[u.id] == nil)
+ 	self.__data[ u[self.__pk] ] = u
  	self.__count = self.__count + 1
 end
 
-function _M:get_by_csv_id(csv_id)
+local function get(self, pk)
+	-- bodyareamgr
+	if self.__data[pk] then
+		return self.__data[pk]
+	else
+		local r = self("load", pk)
+		if r then
+			self.create(r)
+			self:add(r)
+		end
+		return r
+	end
+end
+
+local function delete(self, pk)
+	-- body
+	local r = self.__data[pk]
+	if r then
+		r("update")
+		self.__data[pk] = nil
+	end
+end
+
+local function get_by_csv_id(self, csv_id)
 	-- body
 	return self.__data[csv_id]
 end
 
-function _M:delete_by_csv_id(csv_id)
+local function delete_by_csv_id(self, csv_id)
 	assert(self.__data[csv_id])
 	self.__data[csv_id] = nil
 	self.__count = self.__count - 1
 end
 
-function _M:get_count()
+local function get_count(self)
 	-- body
 	return self.__count
 end
 
-function _M:get_cap()
+local function get_cap(self)
 	-- body
 	return self.__cap
 end
 
-function _M:clear()
+local function clear(self)
 	-- body
 	self.__data = {}
 	self.__count = 0
 end
 
-return _M
+function factory()
+	-- body
+	local _M     = setmetatable({}, modelmgr)
+	_M.__data    = {}
+	_M.__count   = 0
+	_M.__cap     = 0
+	_M.__tname   = "area"
+	_M.__head    = {
+	id = {
+		pk = true,
+		uq = false,
+		t = "number",
+	},
+	uid = {
+		uq = false,
+		t = "number",
+	},
+	server_id = {
+		uq = false,
+		t = "number",
+	},
+	server = {
+		uq = false,
+		t = "string",
+	},
+}
+
+	_M.__pk      = "id"
+	_M.__fk      = "0"
+	_M.__rdb     = ".logind_db"
+	_M.__wdb     = ".logind_db"
+	_M.__stm     = false
+	_M.genpk     = genpk
+	_M.ctor      = ctor
+	_M.create    = create
+	_M.add       = add
+	_M.get       = get
+	_M.delete    = delete
+	_M.get_by_csv_id = get_by_csv_id
+	_M.delete_by_csv_id = delete_by_csv_id
+	_M.get_count = get_count
+	_M.get_cap   = get_cap
+	_M.clear     = clear
+	return _M
+end
+
+return factory
+

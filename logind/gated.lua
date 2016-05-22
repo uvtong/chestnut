@@ -1,10 +1,13 @@
 -- local msgserver = require "snax.msgserver"
 package.path = "./../logind/?.lua;" .. package.path
+local skynet = require "skynet"
+local pro_dir = skynet.getenv("pro_dir")
+package.path = pro_dir.."?.lua;"..package.path
 local msgserver = require "msgserver"
 local crypt = require "crypt"
 local skynet = require "skynet"
 
-local loginservice = tostring(...)
+local loginservice = skynet.getenv("logind_name")
 
 local servername
 local gated
@@ -27,7 +30,9 @@ function server.login_handler(uid, secret, cmd, ...)
 	print(uid, id, servername)
 
 	-- you can use a pool to alloc new agent
-	local agent = skynet.newservice "agent"
+	-- local agent = skynet.newservice "agent"
+	local agent = skynet.call(".agent_mgr", "lua", "next")
+
 	local u = {
 		username = username,
 		agent = agent,
@@ -36,14 +41,10 @@ function server.login_handler(uid, secret, cmd, ...)
 	}
 
 	-- trash subid (no used)
-	if cmd then
-		local ok = skynet.call(agent, "lua", "signup", uid, id, secret, game, db)
-		assert(ok)
-	else	
-		local ok = skynet.call(agent, "lua", "login", uid, id, secret, game, db)
-		assert(ok)
-	end
-
+	local ok = skynet.call(agent, "lua", cmd, uid, id, secret, game, db)
+	assert(ok)
+	print("###############################################2")
+	
 	users[uid] = u
 	username_map[username] = u
 

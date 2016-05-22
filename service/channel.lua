@@ -1,15 +1,18 @@
 package.path = "./../cat/?.lua;./../lualib/?.lua;" .. package.path
+package.cpath = "./../lua-cjson/?.so;"..package.cpath
 local skynet = require "skynet"
 require "skynet.manager"
 local mc = require "multicast"
 local util = require "util"
-local loader = require "loader"
+local loader = require "load_game"
 local const = require "const"
 local dc = require "datacenter"
 local u_emailmgr = require "models/u_emailmgr"	
-local public_emailmgr = require "models/public_emailmgr"
+local public_emailmgr = require("models/public_emailmgr")()
 
-local game = tonumber(...)
+local game = ".game"
+
+local register_updatedb = {}
 local channel
 local u_client_id = {} -- if
 local R = {}
@@ -17,12 +20,13 @@ local R = {}
 local CMD = {}		
 local SEND_TYPE = { TO_ALL = 1 , TO_GROUP = 2 } 
 	
-function CMD.agent_start( user_id, addr )
-	--[[u_client_id.user_id = user_id
-	u_client_id.addr = addr 
-			
-	assert(channel.channel)--]]
-	return channel.channel
+function CMD.agent_start(source)
+	if register_updatedb[source] then
+		return 0
+	else
+		register_updatedb[source] = true
+		return channel.channel
+	end
 end			
 			
 local function get_public_email_index( signup_time )
@@ -52,7 +56,7 @@ local function get_public_email_index( signup_time )
 	return false , mid
 end 		
 		
-function CMD.agent_get_public_email( ucsv_id , pemail_csv_id , signup_time )
+function CMD.agent_get_public_email(source, ucsv_id , pemail_csv_id , signup_time )
 	print( "agent_get_public_email****************************** is called" )
 	print( ucsv_id , pemail_csv_id , signup_time )
 	assert( ucsv_id and pemail_csv_id and signup_time )
@@ -85,7 +89,7 @@ function CMD.agent_get_public_email( ucsv_id , pemail_csv_id , signup_time )
 	return t
 end 	
 		
-function CMD.send_public_email_to_all( tvals )
+function CMD.send_public_email_to_all(source, tvals )
 	print( "channel send_public_email_to_all is called" )
 
 	assert( tvals )
@@ -113,7 +117,7 @@ function CMD.send_public_email_to_all( tvals )
 		
 	channel:publish( "email" , tvals )
 
-	tvals = public_emailmgr.create( tvals )
+	tvals = public_emailmgr:create( tvals )
 	assert( tvals )
 	public_emailmgr:add( tvals )
 	tvals:__insert_db( const.DB_PRIORITY_2 )
@@ -177,7 +181,7 @@ end
 	u_emailmgr.insert_db( tmp )
 end --]]
 
-function CMD.send_email_to_group( tval , tucsv_id )
+function CMD.send_email_to_group(source, tval , tucsv_id )
 	assert( tval and tucsv_id )
 	print( "send to group is called" )
 	tval.acctime = os.time() -- an integer
@@ -287,20 +291,28 @@ local function load_public_email()
 	
 	local r = skynet.call( util.random_db() , "lua", "command" , "select" , "public_email" )
 	for i , v in ipairs ( r ) do
-		local t = public_emailmgr.create( v )
+		local t = public_emailmgr:create( v )
 		public_emailmgr:add( t )
 	end
 end
 
+local function update_db()
+	-- body
+	while true do 
+		channel:publish("update_db")
+		skynet.sleep(100 * 60)
+	end
+end
+
 skynet.start( function () 
-	skynet.dispatch("lua" , function( _, _, command, ... )
+	skynet.dispatch("lua" , function( _, source, command, ... )
 		local f = assert(CMD[command])
-		local r = f(...)
+		local r = f(source, ...)
 		if r then
 			skynet.ret(skynet.pack(r))
 		end
 	end)
-
 	load_public_email()
 	channel = mc.new()
+	skynet.fork(update_db)
 end)
