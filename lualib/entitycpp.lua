@@ -118,9 +118,10 @@ end
 function cls.update_wait(t, ...)
 	assert(t.__fields ~= nil)
 	if true then
-		t.__col_updated = 0
-		local sql = t:gen_update_sql()
-		query.read(t.__wdb, t.__tname, sql)
+		t:update()
+		-- t.__col_updated = 0
+		-- local sql = t:gen_update_sql()
+		-- query.read(t.__wdb, t.__tname, sql)
 	end
 end
 
