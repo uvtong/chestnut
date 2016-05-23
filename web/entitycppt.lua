@@ -17,7 +17,7 @@ function cls:ctor(mgr, P, ... )
 	self.__fields = %s
 	self.__ecol_updated = %s
 	for k,v in pairs(self.__head) do
-		self.__fields[k] = assert(P[k])
+		self.__fields[k] = assert(P[k], string.format("no exist %s", k))
 	end
 	return self
 end

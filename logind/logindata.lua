@@ -4,7 +4,8 @@ local skynet = require "skynet"
 local mc = require "multicast"
 rdb = skynet.localname(".logind_rdb")
 wdb = skynet.localname(".logind_wdb")
-local areamgr = require("models/areamgr")()
+local cls = require("models/areamgr")
+local areamgr = cls.new()
 local server_id = {
 	sample = 1,
 	sample2 = 2
@@ -36,7 +37,6 @@ end
 
 function CMD.set(server, uid)
 	-- body
-	print("###############################################5")
 	local id = cov(server, uid)
 	local tmp = {
 		id = id,
@@ -44,9 +44,9 @@ function CMD.set(server, uid)
 		server_id = server_id[server],
 		server = server
 	}
-	local r = areamgr.create(tmp)
+	local r = areamgr:create_entity(tmp)
 	areamgr:add(r)
-	r("insert")
+	r:update_wait()
 	return 1
 end
 
@@ -77,7 +77,7 @@ end
 local function update_db()
 	-- body
 	while true do 
-		areamgr("update")
+		areamgr:update()
 		skynet.sleep(60 * 100)
 	end
 end
@@ -91,7 +91,7 @@ skynet.start(function()
 			skynet.ret(skynet.pack(result))
 		end
 	end)
-	areamgr("load_db")
+	areamgr:load_db()
 	skynet.fork(update_db)
 	start_subscribe()
 end)

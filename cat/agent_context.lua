@@ -1,5 +1,6 @@
 local skynet = require "skynet"
 require "skynet.manager"
+local const = require "const"
 
 local cls = class("agent_context")
 
@@ -15,7 +16,29 @@ function cls:ctor( ... )
 	self._game = false
 	self._user = false
 	self._area = false
-	self._notification = false
+	self._center = false
+
+	local cls = require "notification_center"	
+	local center = cls.new()
+	self._center = center
+	center:register(center.events.EGOLD, self.handler_egold, self)
+	center:register(center.events.EEXP, self.handler_eexp, self)
+	center:register(center.events.EUSER_LEVEL, self.handler_user_level, self)
+end
+
+function cls:handler_egold( ... )
+	-- body
+	self:raise_achievement(const.ACHIEVEMENT_T_2)
+end
+
+function cls:handler_eexp( ... )
+	-- body
+ 	self:raise_achievement(const.ACHIEVEMENT_T_3)
+end
+
+function cls:handler_user_level( ... )
+	-- body
+	self:raise_achievement(const.ACHIEVEMENT_T_7)
 end
 
 function cls:get_game( ... )
@@ -30,12 +53,7 @@ end
 
 function cls:get_notification( ... )
 	-- body
-	return self._notification
-end
-
-function cls:set_notification(v, ... )
-	-- body
-	self._notification = v
+	return self._center
 end
 
 function cls:get_host( ... )
@@ -420,71 +438,74 @@ function cls:create_default(uid)
 	-- body
 	local level = skynet.call(self._game, "lua", "query_g_user_level", 1)
 	local vip = skynet.call(self._game, "lua", "query_g_recharge_vip_reward", 0)
-	local t = { csv_id= uid,
-				uname="nihao",
-				uviplevel=3,
-				config_sound=1, 
-				config_music=1, 
-				avatar=0, 
-				sign="peferct ", 
-				c_role_id=1, 
-				ifonline=0, 
-				level=level.level, 
-				combat=level.combat, 
-				defense=level.defense, 
-				critical_hit=level.critical_hit, 
-				blessing=0,
-				permission = 1,
-				group = 0, 
-				modify_uname_count=0, 
-				onlinetime=0, 
-				iconid=0, 
-				is_valid=1, 
-				recharge_rmb=0, 
-				goods_refresh_count=0, 
-				recharge_diamond=0, 
-				uvip_progress=0, 
-				checkin_num=0, 
-				checkin_reward_num=0, 
-				exercise_level=0, 
-				cgold_level=0,
-				gold_max=level.gold_max + math.floor(level.gold_max * vip.gold_max_up_p/100),
-				exp_max=level.exp_max + math.floor(level.exp_max * vip.exp_max_up_p/100),
-				equipment_enhance_success_rate_up_p=assert(vip.equipment_enhance_success_rate_up_p),
-				store_refresh_count_max=assert(vip.store_refresh_count_max),
-				prop_refresh=0,
-				arena_frozen_time=0,
-				purchase_hp_count=0, 
-				gain_gold_up_p=0,
-				gain_exp_up_p=0,
-				purchase_hp_count_max=4 ,--assert(vip.purchase_hp_count_max),
-				SCHOOL_reset_count_max=assert(vip.SCHOOL_reset_count_max),
-				SCHOOL_reset_count=0,
-				signup_time=os.time() ,
-				pemail_csv_id = 0,
-				take_diamonds=0,
-				draw_number=0 ,
-				ifxilian = 0,              -- 
-				cp_chapter=1,                 -- checkpoint progress 1
-				cp_hanging_id=0,
-				cp_battle_id=0,
-				cp_battle_chapter=0,
-				lilian_level = 1,
-				lilian_exp = 0,
-				lilian_phy_power = 120,
-				purch_lilian_phy_power = 0,
-				cp_hanging_drop_starttime=0,
-				ara_role_id1 = 0,
-				ara_role_id2 = 0,
-				ara_role_id3 = 0,
-				ara_rnk = 0,
-				ara_win_tms = 0,
-				ara_lose_tms = 0,
-				ara_tie_tms = 0,
-				}
+	local t = { 
+		csv_id= uid,
+		uname="nihao",
+		uviplevel=3,
+		config_sound=1, 
+		config_music=1, 
+		avatar=0, 
+		sign="peferct ", 
+		c_role_id=1, 
+		ifonline=0, 
+		level=level.level, 
+		combat=level.combat, 
+		defense=level.defense, 
+		critical_hit=level.critical_hit, 
+		blessing=0,
+		permission = 1,
+		group = 0, 
+		modify_uname_count=0, 
+		onlinetime=0, 
+		iconid=0, 
+		is_valid=1, 
+		recharge_rmb=0, 
+		goods_refresh_count=0, 
+		recharge_diamond=0, 
+		uvip_progress=0, 
+		checkin_num=0, 
+		checkin_reward_num=0, 
+		exercise_level=0, 
+		cgold_level=0,
+		gold_max=level.gold_max + math.floor(level.gold_max * vip.gold_max_up_p/100),
+		exp_max=level.exp_max + math.floor(level.exp_max * vip.exp_max_up_p/100),
+		equipment_enhance_success_rate_up_p=assert(vip.equipment_enhance_success_rate_up_p),
+		store_refresh_count_max=assert(vip.store_refresh_count_max),
+		prop_refresh=0,
+		arena_frozen_time=0,
+		purchase_hp_count=0, 
+		gain_gold_up_p=0,
+		gain_exp_up_p=0,
+		purchase_hp_count_max=4 ,--assert(vip.purchase_hp_count_max),
+		SCHOOL_reset_count_max=assert(vip.SCHOOL_reset_count_max),
+		SCHOOL_reset_count=0,
+		signup_time=os.time() ,
+		pemail_csv_id = 0,
+		take_diamonds=0,
+		draw_number=0 ,
+		ifxilian = 0,              -- 
+		cp_chapter=1,                 -- checkpoint progress 1
+		cp_hanging_id=0,
+		cp_battle_id=0,
+		cp_battle_chapter=0,
+		lilian_level = 1,
+		lilian_exp = 0,
+		lilian_phy_power = 120,
+		purch_lilian_phy_power = 0,
+		ara_role_id1 = 0,
+		ara_role_id2 = 0,
+		ara_role_id3 = 0,
+		ara_rnk = 0,
+		ara_win_tms = 0,
+		ara_lose_tms = 0,
+		ara_tie_tms = 0,
+		ara_clg_tms = 0,
+		ara_clg_tms_pur_tms = 0,
+		ara_clg_tms_rst_tm = 0,
+	}
 	local cls = require "models/usersmgr"
 	local usersmgr = cls.new()
-	local user = usersmgr:create(t)
+	local user = usersmgr:create_entity(t)
 	return user
 end
 
@@ -493,6 +514,7 @@ function cls:signup(uid)
 	print("**********************************", uid)
 	local u =  self:create_default(uid)
 	u:update_wait()
+
 	local cls
 	cls = require "models/u_achievementmgr"
 	u.u_achievementmgr = cls.new()
@@ -565,15 +587,8 @@ function cls:signup(uid)
 	for k,v in pairs(r) do
 		local equip = skynet.call(".game", "lua", "query_g_equipment_enhance", v.csv_id*1000+v.level)
 		equip.user_id = u.csv_id
-		print(equip.user_id)
-		equip.id = genpk(equip.user_id, equip.csv_id)
-		local equip = u.u_equipmentmgr:create(equip)
-		for k,v in pairs(equip) do
-			print(k,v)
-		end
-		-- for k,v in pairs(equip.__fields) do
-		-- 	print(k,v)
-		-- end
+		equip.id = genpk_2(equip.user_id, equip.csv_id)
+		equip = u.u_equipmentmgr:create_entity(equip)
 		u.u_equipmentmgr:add(equip)
 	end
 	u.u_equipmentmgr:update_wait()
@@ -581,29 +596,39 @@ function cls:signup(uid)
 	local prop = skynet.call(".game", "lua", "query_g_prop", const.GOLD)
 	prop.user_id = u.csv_id
 	prop.num = 100
-	prop = u.u_propmgr:create(prop)
+	prop.id = genpk_2(prop.user_id, prop.csv_id)
+	prop = u.u_propmgr:create_entity(prop)
+	u.u_propmgr:add(prop)
 
 	prop = skynet.call(".game", "lua", "query_g_prop", const.DIAMOND)
 	prop.user_id = u.csv_id
 	prop.num = 100
-	prop = u_propmgr:create(prop)
+	prop.id = genpk_2(prop.user_id, prop.csv_id)
+	prop = u.u_propmgr:create_entity(prop)
+	u.u_propmgr:add(prop)
 
 	prop = skynet.call(".game", "lua", "query_g_prop", const.EXP)
 	prop.user_id = u.csv_id
 	prop.num = 100
-	prop = u_propmgr:create(prop)
+	prop.id = genpk_2(prop.user_id, prop.csv_id)
+	prop = u.u_propmgr:create_entity(prop)
+	u.u_propmgr:add(prop)
 	
 	prop = skynet.call(".game", "lua", "query_g_prop", const.LOVE)
 	prop.user_id = u.csv_id
 	prop.num = 100     
-	prop = u_propmgr:create(prop)
+	prop.id = genpk_2(prop.user_id, prop.csv_id)
+	prop = u.u_propmgr:create_entity(prop)
+	u.u_propmgr:add(prop)
 	
 	--add invitation
 	prop = skynet.call(".game", "lua" , "query_g_prop" , 50007)
 	assert( prop )
 	prop.user_id = u.csv_id
 	prop.num = 100
-	prop = u.u_propmgr:create(prop)
+	prop.id = genpk_2(prop.user_id, prop.csv_id)
+	prop = u.u_propmgr:create_entity(prop)
+	u.u_propmgr:add(prop)
 	u.u_propmgr:update_wait()
 
 	-- local newemail = { 
@@ -623,14 +648,19 @@ function cls:signup(uid)
 		a.reward_collected = 0
 		a.is_unlock = 1
 		a.is_valid = 1
-		a = u_achievementmgr.create(a)	
+		a.id = genpk_2(a.user_id, a.csv_id)
+		a = u.u_achievementmgr:create_entity(a)	
+		u.u_achievementmgr:add(a)
 	end
+	
 	u.u_achievementmgr:update_wait()
 
 	local r = skynet.call(".game", "lua", "query_g_goods")
 	for k,v in pairs(r) do
 		local t = { user_id = u.csv_id, csv_id=v.csv_id, inventory=v.inventory_init, countdown=0, st=0}
-		local a = u.u_goodsmgr:create(t)
+		t.id = genpk_2(t.user_id, t.csv_id)
+		local a = u.u_goodsmgr:create_entity(t)
+		u.u_goodsmgr:add(a)
 	end
 	u.u_goodsmgr:update_wait()
 
@@ -640,18 +670,16 @@ function cls:signup(uid)
 		chapter_type0 = 1,       
 		chapter_type1 = 0,
 		chapter_type2 = 0,
-		chapter_type0_finished=0,
-		chapter_type1_finished=0,
-		chapter_type2_finished=0,
-		finished=0
 	}
-	local cp = u.u_checkpointmgr:create(tmp)
+	tmp.id = genpk_2(tmp.user_id, tmp.chapter)
+	local cp = u.u_checkpointmgr:create_entity(tmp)
+	u.u_checkpointmgr:add(cp)
 	cp:update_wait()
 
-	local role = skynet.call(game, "lua", "query_g_role", 1)
-	local role_star = skynet.call(game, "lua", "query_g_role_star", role.csv_id*1000+role.star)
+	local role = skynet.call(self._game, "lua", "query_g_role", 1)
+	local role_star = skynet.call(self._game, "lua", "query_g_role_star", role.csv_id*1000+role.star)
 	for k,v in pairs(role_star) do
-		role[k] = v
+		role[k] = role_star[k]
 	end
 	role.user_id = assert(u.csv_id)
 	role.k_csv_id1 = 0
@@ -673,7 +701,9 @@ function cls:signup(uid)
 	role.value4 = r.value4
 	role.property_id5 = r.property_id5
 	role.value5 = r.value5
-	role = u.u_rolemgr:create(role)
+	role.id = genpk_2(role.user_id, role.csv_id)
+	role = u.u_rolemgr:create_entity(role)
+	u.u_rolemgr:add(role)
 	role:update_wait()
 	return u
 end

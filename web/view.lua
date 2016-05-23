@@ -335,36 +335,8 @@ end
 function VIEW:validation_ro()
 	-- body
 	if self.method == "post" then
-		local ret = {}
 		local table_name = self.body["table_name"]
-		local sql = string.format("select * from columns where table_name=\"%s\";", table_name)
-		local r = query.select_sql_wait(table_name, sql, query.DB_PRIORITY_1)
-		if #r == 0 then
-			ret.ok = 0
-			ret.msg = "failture"
-			return ret
-		end
-		local head = "{\n"
-		for i,v in ipairs(r) do
-			local seg = ""..v.COLUMN_NAME.." = {\n"
-			if v.DATA_TYPE == "int" then
-				seg = seg .. string.format("\tt = \"%s\",\n", "number")
-			elseif v.DATA_TYPE == "varchar" or v.DATA_TYPE == "char" then
-				seg = seg .. string.format("\tt = \"%s\",\n", "string")
-			end
-			seg = seg .. "},"
-			head = head .. seg
-		end
-		head = head.."}\n"
-		local s = require "tool"
-		s = string.format(s, head)
-		local dir = skynet.getenv("pro_dir")
-		local addr = io.open(dir.."models/"..table_name.."mgr.lua", "w")
-		addr:write(s)
-		addr:close()
-		ret.ok = 1
-		ret.msg = "succss"
-		return ret
+		print_table(table_name)
 	end
 end
 

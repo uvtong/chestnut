@@ -2,5 +2,7 @@
 -- See config
 
 print("PRELOAD", ...)
-
-require "./../lualib/functions"
+package.path = "./../lualib/?.lua;"..package.path
+package.cpath = "./../lua-cjson/?.so;"..package.cpath
+require "functions"
+require "common"

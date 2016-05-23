@@ -269,6 +269,10 @@ end
 
 function cls.create(t, p, ...)
 	-- body
+end
+
+function cls.create_entity(t, p)
+	-- body
 	local entity = require("models/"..t.__entity)
 	local r = entity.new(t, p)
 	return r
@@ -282,36 +286,35 @@ end
 function cls.genpk(self, csv_id)
 	-- body
 	if #self.__fk == 0 then
-		return csv_id
+		return genpk_1(csv_id)
 	else
 		local user_id = self._user.csv_id
-		local pk = user_id << 32
-		pk = (pk | ((1 << 32 -1) & csv_id ))
-		return pk
+		return genpk_2(user_id, csv_id)
 	end
 end
 
 function cls.add(self, u)
  	-- body
  	assert((u and self.__pk), self.__pk)
- 	assert(self.__data[ u[self.__pk] ] == nil)
+ 	assert(self.__data[ u[self.__pk] ] == nil, u[self.__pk], self.__data[ u[self.__pk] ])
  	self.__data[ u[self.__pk] ] = u
  	self.__count = self.__count + 1
 end
 
 function cls.get(self, pk)
 	-- body
-	if self.__data[pk] then
-		return self.__data[pk]
-	else
-		assert(false, self.__tname, pk)
-		-- local r = self("load", pk)
-		-- if r then
-		-- 	self.create(r)
-		-- 	self:add(r)
-		-- end
-		-- return r
-	end
+	return self.__data[pk]
+	-- if self.__data[pk] then
+	-- 	return self.__data[pk]
+	-- else
+	-- 	assert(false, self.__tname, pk)
+	-- 	-- local r = self("load", pk)
+	-- 	-- if r then
+	-- 	-- 	self.create(r)
+	-- 	-- 	self:add(r)
+	-- 	-- end
+	-- 	-- return r
+	-- end
 end
 
 function cls.delete(self, pk)
