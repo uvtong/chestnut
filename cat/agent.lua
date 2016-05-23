@@ -69,20 +69,7 @@ local table_gs = {}
 local leaderboards_name = skynet.getenv("leaderboards_name")
 local lb = skynet.localname(leaderboards_name)
 
-local function handler_egold( ... )
-	-- body
-	env:raise_achievement(const.ACHIEVEMENT_T_2)
-end
 
-local function handler_eexp( ... )
-	-- body
-	env:raise_achievement(const.ACHIEVEMENT_T_3)
-end
-
-local function handler_user_level( ... )
-	-- body
-	env:raise_achievement(const.ACHIEVEMENT_T_7)
-end
 
 local global_response_session = 1
 
@@ -2572,12 +2559,7 @@ function CMD.newemail(source, subcmd , ... )
 	f( new_emailrequest , ... )
 end
 
-local function enter_lp(u)
-	-- body
-	print(user.csv_id, "**********************enter_lp")
-	local lp = skynet.getenv("leaderboards_name")
-	skynet.call(lp, "lua", "push", u.csv_id, u.csv_id)
-end
+
 
 function CMD.ara_info()
 	-- body
@@ -2602,133 +2584,10 @@ function CMD.ara_info()
 	return r
 end
 
-function CMD.signup(source, uid, sid, sct, g, d)
+local function enter_ara(u, ... )
 	-- body
-	skynet.error(string.format("%s is login", uid))
-	gate   = source
-	userid = uid
-	subid  = sid
-	secret = sct
-	game   = ".game"
-	db     = ".db"
-
-	local signup = require "signup"
-	user = signup(uid)
-	
-	local u_rolemgr = require "models/u_rolemgr"
-	local role = skynet.call(game, "lua", "query_g_role", 1)
-	local role_star = skynet.call(game, "lua", "query_g_role_star", role.csv_id*1000+role.star)
-	for k,v in pairs(role_star) do
-		role[k] = v
-	end
-	role.user_id = assert(user.csv_id)
-	role.k_csv_id1 = 0
-	role.k_csv_id2 = 0
-	role.k_csv_id3 = 0
-	role.k_csv_id4 = 0
-	role.k_csv_id5 = 0
-	role.k_csv_id6 = 0
-	role.k_csv_id7 = 0
-	local n, r = xilian(role, {role_id=role.csv_id, is_locked1=false, is_locked2=false, is_locked3=false, is_locked4=false, is_locked5=false})
-	assert(n == 0, string.format("%d locked.", n))
-	role.property_id1 = r.property_id1
-	role.value1 = r.value1
-	role.property_id2 = r.property_id2
-	role.value2 = r.value2
-	role.property_id3 = r.property_id3
-	role.value3 = r.value3
-	role.property_id4 = r.property_id4
-	role.value4 = r.value4
-	role.property_id5 = r.property_id5
-	role.value5 = r.value5
-	role = u_rolemgr.create(role)
-	role:__insert_db(const.DB_PRIORITY_1)
-
-	local cls = require "u_rolemgr"
-	local u_rolemgr = cls.new()
-	local cls = require "u_roleentity"
-	local record = cls.new()
-	u_rolemgr:add(record)
-	record:update()
-	record:update_fi()
-	-- record.update_fi(record)
-
-	enter_lp(user)
-
-	print("###############################################1")
-	return true
-end
-
-function CMD.login(source, uid, sid, sct, g, d)
-	-- body
-	skynet.error(string.format("%s is login", uid))
-	gate   = source
-	userid = uid
-	subid  = sid
-	secret = sct
-	game   = ".game"
-	db     = ".db"
-	
-	user = loader.load_user(uid)
-	assert(user, "user must be a certernaly value.")
-	enter_lp(user)
-	
-	for k,v in pairs(M) do
-		if v.REQUEST then
-			v.REQUEST["login"](v.REQUEST, user)
-		end
-	end
-	
-	dc.set(user.csv_id, { client_fd=client_fd, addr=skynet.self()})	
-	env:set_user(user)
-	
-	local onlinetime = os.time()
-	user.ifonline = 1
-	user.onlinetime = onlinetime
-	-- user:__update_db({"ifonline", "onlinetime"}, const.DB_PRIORITY_2)
-	user.friendmgr = friendmgr:loadfriend( user , dc )
-	friendrequest.getvalue(user, send_package, send_request)
-	--load public email from channel public_emailmgr
-	-- get_public_email()
-
-	local ret = {}
-	ret.errorcode = errorcode[1].code
-	ret.msg = errorcode[1].msg
-	ret.u = {
-		uname = user.uname,
-		uviplevel = user.uviplevel,
-		config_sound = (user.config_sound == 1) and true or false,
-		config_music = (user.config_music == 1) and true or false,
-		avatar = user.avatar,
-		sign = user.sign,
-		c_role_id = user.c_role_id,
-		level = user.level,
-		recharge_rmb = user.recharge_rmb,
-		recharge_diamond = user.recharge_diamond,
-		uvip_progress = user.uvip_progress,
-		cp_hanging_id = user.cp_hanging_id,
-		cp_chapter = user.cp_chapter,
-		lilian_level = user.lilian_level
-	}
-	ret.u.uexp = assert(user.u_propmgr:get_by_csv_id(const.EXP)).num
-	ret.u.gold = assert(user.u_propmgr:get_by_csv_id(const.GOLD)).num
-	ret.u.diamond = assert(user.u_propmgr:get_by_csv_id(const.DIAMOND)).num
-	ret.u.love = user.u_propmgr:get_by_csv_id(const.LOVE).num
-	ret.u.equipment_list = {}
-	for k,v in pairs(user.u_equipmentmgr.__data) do
-		table.insert(ret.u.equipment_list, v)
-	end
-	ret.u.kungfu_list = {}
-	for k,v in pairs(user.u_kungfumgr.__data) do
-		table.insert(ret.u.kungfu_list, v)
-	end
-	ret.u.rolelist = {}
-	for k,v in pairs(user.u_rolemgr.__data) do
-		table.insert(ret.u.rolelist, v)
-	end
-	
 	local ara_clg_tms_rst_tp = skynet.call(".game", "lua", "query_g_config", "ara_clg_tms_rst_tm")
-	local ara_clg_tms_rst_tm = user.ara_clg_tms_rst_tm
+	local ara_clg_tms_rst_tm = u:get_ara_clg_tms_rst_tm()
 	local now = os.time()
 	local m = now - ara_clg_tms_rst_tm
 	if ara_clg_tms_rst_tm == 0 or ara_clg_tms_rst_tm == nil then
@@ -2742,10 +2601,100 @@ function CMD.login(source, uid, sid, sct, g, d)
 			m = m + 1
 		end
 		ara_clg_tms_rst_tm = ara_clg_tms_rst_tm + (m * 86400)
-		user.ara_clg_tms_rst_tm = ara_clg_tms_rst_tm
+		u:set_ara_clg_tms_rst_tm(ara_clg_tms_rst_tm)
+	end
+end
+
+local function enter_lp(u)
+	-- body
+	print(user.csv_id, "**********************enter_lp")
+	local lp = skynet.getenv("leaderboards_name")
+	skynet.call(lp, "lua", "push", u.csv_id, u.csv_id)
+end
+
+local function login(u, ... )
+	-- body
+	enter_lp(u)
+	enter_ara(u)
+end
+
+function CMD.signup(source, uid, sid, sct, g, d)
+	-- body
+	skynet.error(string.format("%s is login", uid))
+	gate   = source
+	userid = uid
+	subid  = sid
+	secret = sct
+	game   = ".game"
+	db     = ".db"
+
+	env:set_gate(source)
+	env:set_userid(userid)
+	env:set_subid(subid)
+	env:set_secret(secret)
+	user = env:signup(userid)
+	
+	local onlinetime = os.time()
+	user.ifonline = 1
+	user.onlinetime = onlinetime
+	user.friendmgr = friendmgr:loadfriend( user , dc )
+	friendrequest.getvalue(user, send_package, send_request)
+
+	-- online
+	for k,v in pairs(M) do
+		if v.REQUEST then
+			v.REQUEST["login"](v.REQUEST, user)
+		end
 	end
 
-	return true, send_request("login", ret)
+	dc.set(user.csv_id, "client_fd", client_fd)
+	dc.set(user.csv_id, "online", true)
+	dc.set(user.csv_id, "addr", skynet.self())
+	env:set_user(user)
+
+	login(user)
+	
+	return true
+end
+
+function CMD.login(source, uid, sid, sct, g, d)
+	-- body
+	skynet.error(string.format("%s is login", uid))
+	gate   = source
+	userid = uid
+	subid  = sid
+	secret = sct
+	game   = ".game"
+	db     = ".db"
+	
+	env:set_gate(source)
+	env:set_userid(userid)
+	env:set_subid(subid)
+	env:set_secret(secret)
+	user = loader.load_user(uid)
+
+	local onlinetime = os.time()
+	user.ifonline = 1
+	user.onlinetime = onlinetime
+	user.friendmgr = friendmgr:loadfriend( user , dc )
+	friendrequest.getvalue(user, send_package, send_request)
+
+	assert(user, "user must be a certernaly value.")
+
+	for k,v in pairs(M) do
+		if v.REQUEST then
+			v.REQUEST["login"](v.REQUEST, user)
+		end
+	end
+
+	dc.set(user.csv_id, "client_fd", client_fd)
+	dc.set(user.csv_id, "online", true)
+	dc.set(user.csv_id, "addr", skynet.self())
+
+	env:set_user(user)
+	login(user)
+	
+	return true
 end
 
 local function logout()
@@ -2808,11 +2757,6 @@ local function start()
 	env:set_host(host)
 	env:set_send_request(send_request)
 	env:set_game(".game")
-
-	local cls = require "notification"
-	local notification = cls.new()
-	env:set_notification(notification)
-	
 end
 
 skynet.start(function()

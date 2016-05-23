@@ -1,7 +1,6 @@
 local s = [[
 local skynet = require "skynet"
 local modelmgr = require "modelmgrcpp"
-local entity = require "entity"
 local assert = assert
 local type   = type
 

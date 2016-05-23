@@ -11,7 +11,7 @@ message package {
 	
 	required Type type = 1;
 	required int32 session = 2;
-	required string tag = 3;
+	required int32 tag = 3;
 }
 
 // 1

@@ -242,15 +242,28 @@ function cls.load_stm_to_data(t, child)
 	end
 end
 
+function cls:update_db(t, ... )
+	-- body
+	self:update()
+end
+
 function cls.update(t, ...)
 	-- body
 	for k,v in pairs(t.__data) do
-		if v.__col_updated > 2 then
-			v("update")
-		end
+		v:update()
+		-- if v.__col_updated > 2 then
+		-- 	v("update")
+		-- end
 	end
-	if t.self_updata then
-		t:self_updata()
+	-- if t.self_updata then
+	-- 	t:self_updata()
+	-- end
+end
+
+function cls.update_wait(t, ... )
+	-- body
+	for k,v in pairs(t.__data) do
+		v:update_wait()
 	end
 end
 
@@ -258,6 +271,10 @@ end
 return cls
 =======
 function cls.create(t, p, ...)
+	-- body
+end
+
+function cls.create_entity(t, p)
 	-- body
 	local entity = require("models/"..t.__entity)
 	local r = entity.new(t, p)
@@ -272,36 +289,35 @@ end
 function cls.genpk(self, csv_id)
 	-- body
 	if #self.__fk == 0 then
-		return csv_id
+		return genpk_1(csv_id)
 	else
 		local user_id = self._user.csv_id
-		local pk = user_id << 32
-		pk = (pk | ((1 << 32 -1) & csv_id ))
-		return pk
+		return genpk_2(user_id, csv_id)
 	end
 end
 
 function cls.add(self, u)
  	-- body
- 	assert(u)
- 	assert(self.__data[ u[self.__pk] ] == nil)
+ 	assert((u and self.__pk), self.__pk)
+ 	assert(self.__data[ u[self.__pk] ] == nil, u[self.__pk], self.__data[ u[self.__pk] ])
  	self.__data[ u[self.__pk] ] = u
  	self.__count = self.__count + 1
 end
 
 function cls.get(self, pk)
 	-- body
-	if self.__data[pk] then
-		return self.__data[pk]
-	else
-		assert(false)
-		-- local r = self("load", pk)
-		-- if r then
-		-- 	self.create(r)
-		-- 	self:add(r)
-		-- end
-		-- return r
-	end
+	return self.__data[pk]
+	-- if self.__data[pk] then
+	-- 	return self.__data[pk]
+	-- else
+	-- 	assert(false, self.__tname, pk)
+	-- 	-- local r = self("load", pk)
+	-- 	-- if r then
+	-- 	-- 	self.create(r)
+	-- 	-- 	self:add(r)
+	-- 	-- end
+	-- 	-- return r
+	-- end
 end
 
 function cls.delete(self, pk)

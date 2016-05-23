@@ -14,19 +14,17 @@ function cls:ctor(mgr, P, ... )
 	self.__stm   = mgr.__stm
 	self.__col_updated=0
 	self.__fields = {
-			id = 0,
+			csv_id = 0,
 			type = 0,
 			num = 0,
 			group_id = 0,
-			csv_id = 0,
 		}
 
 	self.__ecol_updated = {
-			id = 0,
+			csv_id = 0,
 			type = 0,
 			num = 0,
 			group_id = 0,
-			csv_id = 0,
 		}
 
 	for k,v in pairs(self.__head) do
@@ -35,15 +33,15 @@ function cls:ctor(mgr, P, ... )
 	return self
 end
 
-function cls:set_id(v, ... )
+function cls:set_csv_id(v, ... )
 	-- body
 	assert(v)
-	self.__fields.id = v
+	self.__fields.csv_id = v
 end
 
-function cls:get_id( ... )
+function cls:get_csv_id( ... )
 	-- body
-	return self.__fields.id
+	return self.__fields.csv_id
 end
 
 function cls:set_type(v, ... )
@@ -77,17 +75,6 @@ end
 function cls:get_group_id( ... )
 	-- body
 	return self.__fields.group_id
-end
-
-function cls:set_csv_id(v, ... )
-	-- body
-	assert(v)
-	self.__fields.csv_id = v
-end
-
-function cls:get_csv_id( ... )
-	-- body
-	return self.__fields.csv_id
 end
 
 
