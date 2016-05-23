@@ -90,9 +90,9 @@ function cls.update(t, ...)
 		local tmp_sql = {}
 		local sql_first_part = string.format("call " .. "qy_insert_" .. t.__tname .. " (" )
 		table.insert(tmp_sql, sql_first_part)
-
+		
 		assert(nil == t.__head_ord)
-
+		
 		local counter = 0
 		for k, v in ipairs(t.__head_ord) do
 			assert(nil == t.__fields[v])
@@ -101,7 +101,7 @@ function cls.update(t, ...)
 			else
 				counter = counter + 1
 			end
-			
+		
 			if type(t.__fields[v]) == "string" then
 				table.insert(tmp_sql, string.format("'%s'",t.__fields[v] ))
 			else
@@ -112,10 +112,10 @@ function cls.update(t, ...)
 		table.insert(tmp_sql, ")")
 
 		query.write(t.__wdb, t.__tname, table.concat(tmp_sql), query.DB_PRIORITY_3)
-
-	end
-end
-
+		
+	end 
+end 	
+		
 function cls.update_wait(t, ...)
 	assert(t.__fields ~= nil)
 	if true then
