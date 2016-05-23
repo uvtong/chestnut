@@ -14,7 +14,6 @@ function cls:ctor(mgr, P, ... )
 	self.__stm   = mgr.__stm
 	self.__col_updated=0
 	self.__fields = {
-			id = 0,
 			buffer_id = 0,
 			property_id1 = 0,
 			value1 = 0,
@@ -35,7 +34,6 @@ function cls:ctor(mgr, P, ... )
 		}
 
 	self.__ecol_updated = {
-			id = 0,
 			buffer_id = 0,
 			property_id1 = 0,
 			value1 = 0,
@@ -59,17 +57,6 @@ function cls:ctor(mgr, P, ... )
 		self.__fields[k] = assert(P[k])
 	end
 	return self
-end
-
-function cls:set_id(v, ... )
-	-- body
-	assert(v)
-	self.__fields.id = v
-end
-
-function cls:get_id( ... )
-	-- body
-	return self.__fields.id
 end
 
 function cls:set_buffer_id(v, ... )

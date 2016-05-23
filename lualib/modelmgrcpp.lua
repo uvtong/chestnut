@@ -242,15 +242,28 @@ function cls.load_stm_to_data(t, child)
 	end
 end
 
+function cls:update_db(t, ... )
+	-- body
+	self:update()
+end
+
 function cls.update(t, ...)
 	-- body
 	for k,v in pairs(t.__data) do
-		if v.__col_updated > 2 then
-			v("update")
-		end
+		v:update()
+		-- if v.__col_updated > 2 then
+		-- 	v("update")
+		-- end
 	end
-	if t.self_updata then
-		t:self_updata()
+	-- if t.self_updata then
+	-- 	t:self_updata()
+	-- end
+end
+
+function cls.update_wait(t, ... )
+	-- body
+	for k,v in pairs(t.__data) do
+		v:update_wait()
 	end
 end
 
@@ -280,7 +293,7 @@ end
 
 function cls.add(self, u)
  	-- body
- 	assert(u)
+ 	assert((u and self.__pk), self.__pk)
  	assert(self.__data[ u[self.__pk] ] == nil)
  	self.__data[ u[self.__pk] ] = u
  	self.__count = self.__count + 1
@@ -291,7 +304,7 @@ function cls.get(self, pk)
 	if self.__data[pk] then
 		return self.__data[pk]
 	else
-		assert(false)
+		assert(false, self.__tname, pk)
 		-- local r = self("load", pk)
 		-- if r then
 		-- 	self.create(r)

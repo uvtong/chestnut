@@ -13,10 +13,10 @@ function cls:ctor( ... )
 	self.__cap     = 0
 	self.__tname   = "g_shop"
 	self.__head    = {
-	id = {
+	csv_id = {
 		pk = true,
 		fk = false,
-		cn = "id",
+		cn = "csv_id",
 		uq = false,
 		t = "number",
 	},
@@ -41,23 +41,15 @@ function cls:ctor( ... )
 		uq = false,
 		t = "number",
 	},
-	csv_id = {
-		pk = false,
-		fk = false,
-		cn = "csv_id",
-		uq = false,
-		t = "number",
-	},
 }
 
 	self.__head_ord = {}
-		self.__head_ord[1] = self.__head[id]
+		self.__head_ord[1] = self.__head[csv_id]
 	self.__head_ord[2] = self.__head[type]
 	self.__head_ord[3] = self.__head[num]
 	self.__head_ord[4] = self.__head[group_id]
-	self.__head_ord[5] = self.__head[csv_id]
 
-	self.__pk      = "id"
+	self.__pk      = "csv_id"
 	self.__fk      = ""
 	self.__rdb     = skynet.localname(skynet.getenv("gated_rdb"))
 	self.__wdb     = skynet.localname(skynet.getenv("gated_wdb"))

@@ -20,11 +20,16 @@ end
 
 function CMD.query(table_name, pk)
 	-- body
-	for k,v in pairs(game) do
-		if v.__tname == table_name then
-			return assert(v:get_by_csv_id(pk))
-		end
-	end
+	local mgr = string.format("%smgr", table_name)
+	local row = game[mgr]:get(pk)
+	return row.__fields
+end
+
+function CMD.query_key(table_name, pk, key)
+	-- body
+	local mgr = string.format("%smgr", table_name)
+	local row = game[mgr]:get(pk)
+	return row[key]
 end
 
 function CMD.query_g_achievement(pk)
@@ -32,7 +37,7 @@ function CMD.query_g_achievement(pk)
 	if type(pk) == "number" then
 		local r = game.g_achievementmgr:get_by_csv_id(pk)
 		if r then
-			return r
+			return r.__fields
 		else
 			error "there are insufficient data"
 		end
@@ -54,7 +59,7 @@ function CMD.query_g_checkin(pk)
 	if type(pk) == "number" then
 		local r = game.g_checkinmgr:get_by_csv_id(pk)
 		if r then
-			return r
+			return r.__fields
 		else
 			error "there are insufficient data"
 		end
@@ -70,7 +75,7 @@ function CMD.query_g_checkin_total(pk)
 	if type(pk) == "number" then
 		local r = game.g_checkin_totalmgr:get_by_csv_id(pk)
 		if r then
-			return r
+			return r.__fields
 		else
 			error "there are insufficient data"
 		end
@@ -86,7 +91,7 @@ function CMD.query_g_checkpoint(pk)
 	if type(pk) == "number" then
 		local r = game.g_checkpointmgr:get_by_csv_id(pk)
 		if r then
-			return r
+			return r.__fields
 		else
 			error "there are insufficient data"
 		end
@@ -102,7 +107,7 @@ function CMD.query_g_checkpoint_chapter(pk)
 	if type(pk) == "number" then
 		local r = game.g_checkpoint_chaptermgr:get_by_chapter(pk)
 		if r then
-			return r
+			return r.__fields
 		else
 			error "there are insufficient data"
 		end
@@ -118,7 +123,7 @@ function CMD.query_g_daily_task(pk)
 	if type(pk) == "number" then
 		local r = game.g_daily_taskmgr:get_by_csv_id(pk)
 		if r then
-			return r
+			return r.__fields
 		else
 			error "there are insufficient data"
 		end
@@ -134,7 +139,7 @@ function CMD.query_g_drawcost(pk)
 	if type(pk) == "number" then
 		local r = game.g_drawcostmgr:get_by_csv_id(pk)
 		if r then
-			return r
+			return r.__fields
 		else
 			error "there are insufficient data"
 		end
@@ -149,7 +154,7 @@ function CMD.query_g_draw_role(pk)
 	if type(pk) == "number" then
 		local r = game.g_draw_rolemgr:get_by_csv_id(pk)
 		if r then
-			return r
+			return r.__fields
 		else
 			error "there are insufficient data"
 		end
@@ -164,7 +169,7 @@ function CMD.query_g_lilian_event(pk)
 	if type(pk) == "number" then
 		local r = game.g_lilian_eventmgr:get_by_csv_id(pk)
 		if r then
-			return r
+			return r.__fields
 		else
 			error "there are insufficient data"
 		end
@@ -179,7 +184,7 @@ function CMD.query_g_lilian_invitation(pk)
 	if type(pk) == "number" then
 		local r = game.g_lilian_invitationmgr:get_by_csv_id(pk)
 		if r then
-			return r
+			return r.__fields
 		else
 			error "there are insufficient data"
 		end
@@ -194,7 +199,7 @@ function CMD.query_g_lilian_level(pk)
 	if type(pk) == "number" then
 		local r = game.g_lilian_levelmgr:get_by_csv_id(pk)
 		if r then
-			return r
+			return r.__fields
 		else
 			error "there are insufficient data"
 		end
@@ -209,7 +214,7 @@ function CMD.query_g_lilian_quanguan(pk)
 	if type(pk) == "number" then
 		local r = game.g_lilian_quanguanmgr:get_by_csv_id(pk)
 		if r then
-			return r
+			return r.__fields
 		else
 			error "there are insufficient data"
 		end
@@ -225,12 +230,19 @@ function CMD.query_g_equipment(pk)
 	if type(pk) == "number" then
 		local r = game.g_equipmentmgr:get_by_csv_id(pk)
 		if r then
-			return r
+			for k,v in pairs(r.__fields) do
+				print(k,v)
+			end
+			return r.__fields
 		else
 			error "there are insufficient data"
 		end
 	elseif type(pk) == "nil" then
-		return game.g_equipmentmgr.__data
+		local r = {}
+		for k,v in pairs(game.g_equipmentmgr.__data) do
+			table.insert(r, v.__fields)
+		end
+		return r
 	else
 		assert(false)
 	end
@@ -241,7 +253,7 @@ function CMD.query_g_equipment_enhance(pk)
 	if type(pk) == "number" then
 		local r = game.g_equipment_enhancemgr:get_by_csv_id(pk)
 		if r then
-			return r
+			return r.__fields
 		else
 			error "there are insufficient data"
 		end
@@ -257,7 +269,7 @@ function CMD.query_g_goods(pk)
 	if type(pk) == "number" then
 		local r = game.g_goodsmgr:get_by_csv_id(pk)
 		if r then
-			return r
+			return r.__fields
 		else
 			error "there are insufficient data"
 		end
@@ -278,7 +290,7 @@ end
 function CMD:query_g_daily_task()
 	local r = game.g_daily_taskmgr:get_one()
 	if r then
-		return r
+		return r.__fields
 	else
 		assert(false)
 	end
@@ -290,7 +302,7 @@ function CMD.query_g_goods_refresh_cost(pk)
 	if type(pk) == "number" then
 		local r = game.g_goods_refresh_costmgr:get_by_csv_id(pk)
 		if r then
-			return r
+			return r.__fields
 		else
 			error "there are insufficient data"
 		end
@@ -306,7 +318,7 @@ function CMD.query_g_kungfu(pk)
 	if type(pk) == "number" then
 		local r = game.g_kungfumgr:get_by_csv_id(pk)
 		if r then
-			return r
+			return r.__fields
 		else
 			error "there are insufficient data"
 		end
@@ -322,7 +334,7 @@ function CMD.query_g_mainreward(pk)
 	if type(pk) == "number" then
 		local r = game.g_mainrewardmgr:get_by_csv_id(pk)
 		if r then
-			return r
+			return r.__fields
 		else
 			error "there are insufficient data"
 		end
@@ -339,7 +351,7 @@ function CMD.query_g_monster(pk)
 		local r = game.g_monstermgr:get_by_csv_id(pk)
 		if r then
 			print("*****************************************************g_monster1", r.combat, r.defense, r.critical_hit)
-			return r
+			return r.__fields
 		else
 			error "there are insufficient data"
 		end
@@ -356,7 +368,7 @@ function CMD.query_g_prop(pk)
 	if type(pk) == "number" then
 		local r = game.g_propmgr:get_by_csv_id(pk)
 		if r then
-			return r
+			return r.__fields
 		else
 			error "there are insufficient data"
 		end
@@ -372,7 +384,7 @@ function CMD.query_g_recharge(pk)
 	if type(pk) == "number" then
 		local r = game.g_rechargemgr:get_by_csv_id(pk)
 		if r then
-			return r
+			return r.__fields
 		else
 			error "there are insufficient data"
 		end
@@ -386,9 +398,9 @@ end
 function CMD.query_g_recharge_vip_reward(pk)
 	-- body
 	if type(pk) == "number" then
-		local r = game.g_recharge_vip_rewardmgr:get_by_vip(pk)
+		local r = game.g_recharge_vip_rewardmgr:get(pk)
 		if r then
-			return r
+			return r.__fields
 		else
 			error "there are insufficient data"
 		end
@@ -404,7 +416,7 @@ function CMD.query_g_role(pk)
 	if type(pk) == "number" then
 		local r = game.g_rolemgr:get_by_csv_id(pk)
 		if r then
-			return r
+			return r.__fields
 		else
 			error "there are insufficient data"
 		end
@@ -420,7 +432,7 @@ function CMD.query_g_role_effect(pk)
 	if type(pk) == "number" then
 		local r = game.g_role_effectmgr:get_by_csv_id(pk)
 		if r then
-			return r
+			return r.__fields
 		else
 			error "there are insufficient data"
 		end
@@ -436,7 +448,7 @@ function CMD.query_g_role_star(pk)
 	if type(pk) == "number" then
 		local r = game.g_role_starmgr:get_by_csv_id(pk)
 		if r then
-			return r
+			return r.__fields
 		else
 			error "there are insufficient data"
 		end
@@ -452,7 +464,7 @@ function CMD.query_g_subreward(pk)
 	if type(pk) == "number" then
 		local r = game.g_subrewardmgr:get_by_csv_id(pk)
 		if r then
-			return r
+			return r.__fields
 		else
 			error "there are insufficient data"
 		end
@@ -466,9 +478,9 @@ end
 function CMD.query_g_user_level(pk)
 	-- body
 	if type(pk) == "number" then
-		local r = game.g_user_levelmgr:get_by_level(pk)
+		local r = game.g_user_levelmgr:get(pk)
 		if r then
-			return r
+			return r.__fields
 		else
 			error "there are insufficient data"
 		end
@@ -484,7 +496,7 @@ function CMD.query_g_lilian_phy_power(pk)
 	if type(pk) == "number" then
 		local r = game.g_lilian_phy_powermgr:get_by_csv_id(pk)
 		if r then
-			return r
+			return r.__fields
 		else
 			error "there are insufficient data"
 		end
@@ -511,7 +523,7 @@ function CMD.query_g_xilian_cost(pk)
 	if type(pk) == "number" then
 		local r = game.g_xilian_costmgr:get_by_csv_id(pk)
 		if r then
-			return r
+			return r.__fields
 		else
 			error "there are insufficient data"
 		end
@@ -527,7 +539,7 @@ function CMD.query_g_property_pool(pk)
 	if type(pk) == "number" then
 		local r = game.g_property_poolmgr:get_by_csv_id(pk)
 		if r then
-			return r
+			return r.__fields
 		else
 			error "there are insufficient data"
 		end
@@ -548,7 +560,7 @@ function CMD.query_g_property_pool_second(pk, T)
 		if pk > 0 then
 			local r = game.g_property_pool_secondmgr:get_by_csv_id(pk)
 			if r then
-				return r
+				return r.__fields
 			else
 				error "there are insufficient data"
 			end
@@ -577,9 +589,9 @@ end
 function CMD.query_g_equipment_effect(pk)
 	-- body
 	if type(pk) == "number" then
-		local r = game.g_equipment_effectmgr:get_by_level(pk)
+		local r = game.g_equipment_effectmgr:get(pk)
 		if r then
-			return r
+			return r.__fields
 		else
 			error "there are insufficient data"
 		end
@@ -593,7 +605,7 @@ function CMD.query_g_ara_pts(pk)
 	if type(pk) == "number" then
 		local r = game.g_ara_ptsmgr:get_by_csv_id(pk)
 		if r then
-			return r
+			return r.__fields
 		else
 			error "there are insufficient data"
 		end
@@ -621,7 +633,7 @@ function CMD.query_g_ara_tms(pk)
 	if type(pk) == "number" then
 		local r = game.g_ara_tmsmgr:get_by_csv_id(pk)
 		if r then
-			return r
+			return r.__fields
 		else
 			error "there are insufficient data"
 		end
@@ -635,9 +647,8 @@ local function guid(csv_id)
 	local r = game.g_uidmgr:get_by_csv_id(csv_id)
 	if not r then
 		local t = { csv_id=csv_id, entropy=1}
-		t = game.g_uidmgr.create(t)
+		t = game.g_uidmgr:create(t)
 		game.g_uidmgr:add(t)
-		t:__insert_db(const.DB_PRIORITY_2)
 		return t.entropy
 	else
 		r.entropy = tonumber(r.entropy) + 1
@@ -672,8 +683,9 @@ local function update_db()
 			-- x = x + 1
 			-- local sql = string.format("update g_uid set entropy= %d where csv_id = 2;", x)
 			-- query.write(wdb, "g_uid", sql, const.DB_PRIORITY_1)
-			-- game.g_uidmgr:update_db(const.DB_PRIORITY_1)
-			-- game.g_randomvalmgr:update_db(const.DB_PRIORITY_1)
+			game.g_uidmgr:update()
+			-- 
+			-- game.g_randomvalmgr:update_db()
 		end
 		skynet.sleep(100 * 60) -- 1ti == 0.01s
 	end

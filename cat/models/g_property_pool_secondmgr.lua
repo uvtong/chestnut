@@ -13,15 +13,8 @@ function cls:ctor( ... )
 	self.__cap     = 0
 	self.__tname   = "g_property_pool_second"
 	self.__head    = {
-	id = {
-		pk = true,
-		fk = false,
-		cn = "id",
-		uq = false,
-		t = "number",
-	},
 	csv_id = {
-		pk = false,
+		pk = true,
 		fk = false,
 		cn = "csv_id",
 		uq = false,
@@ -58,14 +51,13 @@ function cls:ctor( ... )
 }
 
 	self.__head_ord = {}
-		self.__head_ord[1] = self.__head[id]
-	self.__head_ord[2] = self.__head[csv_id]
-	self.__head_ord[3] = self.__head[property_pool_id]
-	self.__head_ord[4] = self.__head[probability]
-	self.__head_ord[5] = self.__head[property_id]
-	self.__head_ord[6] = self.__head[value]
+		self.__head_ord[1] = self.__head[csv_id]
+	self.__head_ord[2] = self.__head[property_pool_id]
+	self.__head_ord[3] = self.__head[probability]
+	self.__head_ord[4] = self.__head[property_id]
+	self.__head_ord[5] = self.__head[value]
 
-	self.__pk      = "id"
+	self.__pk      = "csv_id"
 	self.__fk      = ""
 	self.__rdb     = skynet.localname(skynet.getenv("gated_rdb"))
 	self.__wdb     = skynet.localname(skynet.getenv("gated_wdb"))

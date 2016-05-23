@@ -651,3 +651,10 @@ function string.formatnumberthousands(num)
     end
     return formatted
 end
+
+function genpk(user_id, csv_id, ... )
+    -- body
+    local pk = user_id << 32
+    pk = (pk | ((1 << 32 -1) & csv_id ))
+    return pk
+end

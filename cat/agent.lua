@@ -2612,46 +2612,15 @@ function CMD.signup(source, uid, sid, sct, g, d)
 	game   = ".game"
 	db     = ".db"
 
-	local signup = require "signup"
-	user = signup(uid)
-	
-	local u_rolemgr = require "models/u_rolemgr"
-	local role = skynet.call(game, "lua", "query_g_role", 1)
-	local role_star = skynet.call(game, "lua", "query_g_role_star", role.csv_id*1000+role.star)
-	for k,v in pairs(role_star) do
-		role[k] = v
-	end
-	role.user_id = assert(user.csv_id)
-	role.k_csv_id1 = 0
-	role.k_csv_id2 = 0
-	role.k_csv_id3 = 0
-	role.k_csv_id4 = 0
-	role.k_csv_id5 = 0
-	role.k_csv_id6 = 0
-	role.k_csv_id7 = 0
-	local n, r = xilian(role, {role_id=role.csv_id, is_locked1=false, is_locked2=false, is_locked3=false, is_locked4=false, is_locked5=false})
-	assert(n == 0, string.format("%d locked.", n))
-	role.property_id1 = r.property_id1
-	role.value1 = r.value1
-	role.property_id2 = r.property_id2
-	role.value2 = r.value2
-	role.property_id3 = r.property_id3
-	role.value3 = r.value3
-	role.property_id4 = r.property_id4
-	role.value4 = r.value4
-	role.property_id5 = r.property_id5
-	role.value5 = r.value5
-	role = u_rolemgr.create(role)
-	role:__insert_db(const.DB_PRIORITY_1)
+	env:set_gate(source)
+	env:set_userid(userid)
+	env:set_subid(subid)
+	env:set_secret(secret)
+	env:signup()
 
-	local cls = require "u_rolemgr"
-	local u_rolemgr = cls.new()
-	local cls = require "u_roleentity"
-	local record = cls.new()
-	u_rolemgr:add(record)
-	record:update()
-	record:update_fi()
-	-- record.update_fi(record)
+	local signup = require "signup"
+	print("****************************11", uid)
+	user = signup(uid)
 
 	enter_lp(user)
 
