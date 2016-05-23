@@ -92,17 +92,17 @@ function cls:ctor( ... )
 }
 
 	self.__head_ord = {}
-		self.__head_ord[1] = self.__head[csv_id]
-	self.__head_ord[2] = self.__head[user_level_max]
-	self.__head_ord[3] = self.__head[user_vip_max]
-	self.__head_ord[4] = self.__head[xilian_begain_level]
-	self.__head_ord[5] = self.__head[cp_chapter_max]
-	self.__head_ord[6] = self.__head[purch_phy_power]
-	self.__head_ord[7] = self.__head[diamond_per_sec]
-	self.__head_ord[8] = self.__head[ara_clg_tms_rst_tp]
-	self.__head_ord[9] = self.__head[worship_reward_id]
-	self.__head_ord[10] = self.__head[worship_reward_num]
-	self.__head_ord[11] = self.__head[ara_clg_tms_max]
+		self.__head_ord[1] = self.__head["csv_id"]
+	self.__head_ord[2] = self.__head["user_level_max"]
+	self.__head_ord[3] = self.__head["user_vip_max"]
+	self.__head_ord[4] = self.__head["xilian_begain_level"]
+	self.__head_ord[5] = self.__head["cp_chapter_max"]
+	self.__head_ord[6] = self.__head["purch_phy_power"]
+	self.__head_ord[7] = self.__head["diamond_per_sec"]
+	self.__head_ord[8] = self.__head["ara_clg_tms_rst_tp"]
+	self.__head_ord[9] = self.__head["worship_reward_id"]
+	self.__head_ord[10] = self.__head["worship_reward_num"]
+	self.__head_ord[11] = self.__head["ara_clg_tms_max"]
 
 	self.__pk      = "csv_id"
 	self.__fk      = ""

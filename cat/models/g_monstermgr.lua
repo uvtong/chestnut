@@ -64,13 +64,13 @@ function cls:ctor( ... )
 }
 
 	self.__head_ord = {}
-		self.__head_ord[1] = self.__head[csv_id]
-	self.__head_ord[2] = self.__head[name]
-	self.__head_ord[3] = self.__head[combat]
-	self.__head_ord[4] = self.__head[defense]
-	self.__head_ord[5] = self.__head[critical_hit]
-	self.__head_ord[6] = self.__head[blessing]
-	self.__head_ord[7] = self.__head[quanfaid]
+		self.__head_ord[1] = self.__head["csv_id"]
+	self.__head_ord[2] = self.__head["name"]
+	self.__head_ord[3] = self.__head["combat"]
+	self.__head_ord[4] = self.__head["defense"]
+	self.__head_ord[5] = self.__head["critical_hit"]
+	self.__head_ord[6] = self.__head["blessing"]
+	self.__head_ord[7] = self.__head["quanfaid"]
 
 	self.__pk      = "csv_id"
 	self.__fk      = ""

@@ -57,12 +57,12 @@ function cls:ctor( ... )
 }
 
 	self.__head_ord = {}
-		self.__head_ord[1] = self.__head[csv_id]
-	self.__head_ord[2] = self.__head[phy_power]
-	self.__head_ord[3] = self.__head[experience]
-	self.__head_ord[4] = self.__head[queue]
-	self.__head_ord[5] = self.__head[dec_lilian_time]
-	self.__head_ord[6] = self.__head[dec_weikun_time]
+		self.__head_ord[1] = self.__head["csv_id"]
+	self.__head_ord[2] = self.__head["phy_power"]
+	self.__head_ord[3] = self.__head["experience"]
+	self.__head_ord[4] = self.__head["queue"]
+	self.__head_ord[5] = self.__head["dec_lilian_time"]
+	self.__head_ord[6] = self.__head["dec_weikun_time"]
 
 	self.__pk      = "csv_id"
 	self.__fk      = ""

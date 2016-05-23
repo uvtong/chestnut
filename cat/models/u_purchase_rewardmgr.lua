@@ -99,18 +99,18 @@ function cls:ctor( ... )
 }
 
 	self.__head_ord = {}
-		self.__head_ord[1] = self.__head[id]
-	self.__head_ord[2] = self.__head[user_id]
-	self.__head_ord[3] = self.__head[csv_id]
-	self.__head_ord[4] = self.__head[g_goods_csv_id]
-	self.__head_ord[5] = self.__head[g_goods_num]
-	self.__head_ord[6] = self.__head[c_type]
-	self.__head_ord[7] = self.__head[c_recharge_vip]
-	self.__head_ord[8] = self.__head[c_vip]
-	self.__head_ord[9] = self.__head[collected]
-	self.__head_ord[10] = self.__head[prop_id]
-	self.__head_ord[11] = self.__head[u_purchase_rewardcol]
-	self.__head_ord[12] = self.__head[distribute_time]
+		self.__head_ord[1] = self.__head["id"]
+	self.__head_ord[2] = self.__head["user_id"]
+	self.__head_ord[3] = self.__head["csv_id"]
+	self.__head_ord[4] = self.__head["g_goods_csv_id"]
+	self.__head_ord[5] = self.__head["g_goods_num"]
+	self.__head_ord[6] = self.__head["c_type"]
+	self.__head_ord[7] = self.__head["c_recharge_vip"]
+	self.__head_ord[8] = self.__head["c_vip"]
+	self.__head_ord[9] = self.__head["collected"]
+	self.__head_ord[10] = self.__head["prop_id"]
+	self.__head_ord[11] = self.__head["u_purchase_rewardcol"]
+	self.__head_ord[12] = self.__head["distribute_time"]
 
 	self.__pk      = "id"
 	self.__fk      = "user_id"

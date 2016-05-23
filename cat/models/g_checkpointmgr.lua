@@ -127,22 +127,22 @@ function cls:ctor( ... )
 }
 
 	self.__head_ord = {}
-		self.__head_ord[1] = self.__head[csv_id]
-	self.__head_ord[2] = self.__head[chapter]
-	self.__head_ord[3] = self.__head[combat]
-	self.__head_ord[4] = self.__head[level]
-	self.__head_ord[5] = self.__head[name]
-	self.__head_ord[6] = self.__head[checkpoint]
-	self.__head_ord[7] = self.__head[type]
-	self.__head_ord[8] = self.__head[cd]
-	self.__head_ord[9] = self.__head[gain_gold]
-	self.__head_ord[10] = self.__head[gain_exp]
-	self.__head_ord[11] = self.__head[drop]
-	self.__head_ord[12] = self.__head[reward]
-	self.__head_ord[13] = self.__head[monster_csv_id1]
-	self.__head_ord[14] = self.__head[monster_csv_id2]
-	self.__head_ord[15] = self.__head[monster_csv_id3]
-	self.__head_ord[16] = self.__head[drop_cd]
+		self.__head_ord[1] = self.__head["csv_id"]
+	self.__head_ord[2] = self.__head["chapter"]
+	self.__head_ord[3] = self.__head["combat"]
+	self.__head_ord[4] = self.__head["level"]
+	self.__head_ord[5] = self.__head["name"]
+	self.__head_ord[6] = self.__head["checkpoint"]
+	self.__head_ord[7] = self.__head["type"]
+	self.__head_ord[8] = self.__head["cd"]
+	self.__head_ord[9] = self.__head["gain_gold"]
+	self.__head_ord[10] = self.__head["gain_exp"]
+	self.__head_ord[11] = self.__head["drop"]
+	self.__head_ord[12] = self.__head["reward"]
+	self.__head_ord[13] = self.__head["monster_csv_id1"]
+	self.__head_ord[14] = self.__head["monster_csv_id2"]
+	self.__head_ord[15] = self.__head["monster_csv_id3"]
+	self.__head_ord[16] = self.__head["drop_cd"]
 
 	self.__pk      = "csv_id"
 	self.__fk      = ""

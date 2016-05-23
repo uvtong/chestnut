@@ -80,7 +80,8 @@ end
 function cls.update(t, ...)
 	-- body
 	assert(t.__fields ~= nil)
-	if false or t.__col_updated > 1 then
+	if true or t.__col_updated > 1 then
+		-- print("*************************1")
 		t.__col_updated = 0
 		-- t:set(t, ...)
 		local sql = t:gen_update_sql()

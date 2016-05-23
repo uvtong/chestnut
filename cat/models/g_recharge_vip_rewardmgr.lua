@@ -127,22 +127,22 @@ function cls:ctor( ... )
 }
 
 	self.__head_ord = {}
-		self.__head_ord[1] = self.__head[vip]
-	self.__head_ord[2] = self.__head[diamond]
-	self.__head_ord[3] = self.__head[gain_gold_up_p]
-	self.__head_ord[4] = self.__head[gain_exp_up_p]
-	self.__head_ord[5] = self.__head[gold_max_up_p]
-	self.__head_ord[6] = self.__head[exp_max_up_p]
-	self.__head_ord[7] = self.__head[equipment_enhance_success_rate_up_p]
-	self.__head_ord[8] = self.__head[prop_refresh_reduction_p]
-	self.__head_ord[9] = self.__head[arena_frozen_time_reduction_p]
-	self.__head_ord[10] = self.__head[purchase_hp_count_max]
-	self.__head_ord[11] = self.__head[SCHOOL_reset_count_max]
-	self.__head_ord[12] = self.__head[rewared]
-	self.__head_ord[13] = self.__head[store_refresh_count_max]
-	self.__head_ord[14] = self.__head[purchasable_gift]
-	self.__head_ord[15] = self.__head[marked_diamond]
-	self.__head_ord[16] = self.__head[purchasable_diamond]
+		self.__head_ord[1] = self.__head["vip"]
+	self.__head_ord[2] = self.__head["diamond"]
+	self.__head_ord[3] = self.__head["gain_gold_up_p"]
+	self.__head_ord[4] = self.__head["gain_exp_up_p"]
+	self.__head_ord[5] = self.__head["gold_max_up_p"]
+	self.__head_ord[6] = self.__head["exp_max_up_p"]
+	self.__head_ord[7] = self.__head["equipment_enhance_success_rate_up_p"]
+	self.__head_ord[8] = self.__head["prop_refresh_reduction_p"]
+	self.__head_ord[9] = self.__head["arena_frozen_time_reduction_p"]
+	self.__head_ord[10] = self.__head["purchase_hp_count_max"]
+	self.__head_ord[11] = self.__head["SCHOOL_reset_count_max"]
+	self.__head_ord[12] = self.__head["rewared"]
+	self.__head_ord[13] = self.__head["store_refresh_count_max"]
+	self.__head_ord[14] = self.__head["purchasable_gift"]
+	self.__head_ord[15] = self.__head["marked_diamond"]
+	self.__head_ord[16] = self.__head["purchasable_diamond"]
 
 	self.__pk      = "vip"
 	self.__fk      = ""

@@ -120,21 +120,21 @@ function cls:ctor( ... )
 }
 
 	self.__head_ord = {}
-		self.__head_ord[1] = self.__head[id]
-	self.__head_ord[2] = self.__head[user_id]
-	self.__head_ord[3] = self.__head[csv_id]
-	self.__head_ord[4] = self.__head[level]
-	self.__head_ord[5] = self.__head[combat]
-	self.__head_ord[6] = self.__head[defense]
-	self.__head_ord[7] = self.__head[critical_hit]
-	self.__head_ord[8] = self.__head[king]
-	self.__head_ord[9] = self.__head[critical_hit_probability]
-	self.__head_ord[10] = self.__head[combat_probability]
-	self.__head_ord[11] = self.__head[defense_probability]
-	self.__head_ord[12] = self.__head[king_probability]
-	self.__head_ord[13] = self.__head[enhance_success_rate]
-	self.__head_ord[14] = self.__head[currency_type]
-	self.__head_ord[15] = self.__head[currency_num]
+		self.__head_ord[1] = self.__head["id"]
+	self.__head_ord[2] = self.__head["user_id"]
+	self.__head_ord[3] = self.__head["csv_id"]
+	self.__head_ord[4] = self.__head["level"]
+	self.__head_ord[5] = self.__head["combat"]
+	self.__head_ord[6] = self.__head["defense"]
+	self.__head_ord[7] = self.__head["critical_hit"]
+	self.__head_ord[8] = self.__head["king"]
+	self.__head_ord[9] = self.__head["critical_hit_probability"]
+	self.__head_ord[10] = self.__head["combat_probability"]
+	self.__head_ord[11] = self.__head["defense_probability"]
+	self.__head_ord[12] = self.__head["king_probability"]
+	self.__head_ord[13] = self.__head["enhance_success_rate"]
+	self.__head_ord[14] = self.__head["currency_type"]
+	self.__head_ord[15] = self.__head["currency_num"]
 
 	self.__pk      = "id"
 	self.__fk      = "csv_id"
