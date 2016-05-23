@@ -1,5 +1,6 @@
 local query = require "query"
 local json = require "cjson"
+local sd = require "sharedata"
 
 local cls = class("entitycpp")
 
@@ -111,6 +112,15 @@ function cls.load_data_to_stm(t, child)
 		end
 	end
 	return r
+end
+
+function cls.load_data_to_sd(t, ... )
+	-- body
+	local pk = t.__fields[t.__pk]
+	if t.__head[t.__pk].t == "number" then
+		local key = string.format("%s:%d", t.__tname, pk)
+		sd.new(key, t.__fields)
+	end
 end
 
 return cls
