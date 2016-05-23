@@ -60,7 +60,7 @@ function cls:ctor(mgr, P, ... )
 		}
 
 	for k,v in pairs(self.__head) do
-		self.__fields[k] = assert(P[k])
+		self.__fields[k] = assert(P[k], string.format("no exist %s", k))
 	end
 	return self
 end
@@ -68,6 +68,10 @@ end
 function cls:set_id(v, ... )
 	-- body
 	assert(v)
+	self.__ecol_updated["id"] = self.__ecol_updated["id"] + 1
+	if self.__ecol_updated["id"] == 1 then
+		self.__col_updated = self.__col_updated + 1
+	end
 	self.__fields.id = v
 end
 
@@ -79,6 +83,10 @@ end
 function cls:set_csv_id(v, ... )
 	-- body
 	assert(v)
+	self.__ecol_updated["csv_id"] = self.__ecol_updated["csv_id"] + 1
+	if self.__ecol_updated["csv_id"] == 1 then
+		self.__col_updated = self.__col_updated + 1
+	end
 	self.__fields.csv_id = v
 end
 
@@ -90,6 +98,10 @@ end
 function cls:set_user_id(v, ... )
 	-- body
 	assert(v)
+	self.__ecol_updated["user_id"] = self.__ecol_updated["user_id"] + 1
+	if self.__ecol_updated["user_id"] == 1 then
+		self.__col_updated = self.__col_updated + 1
+	end
 	self.__fields.user_id = v
 end
 
@@ -101,6 +113,10 @@ end
 function cls:set_quanguan_id(v, ... )
 	-- body
 	assert(v)
+	self.__ecol_updated["quanguan_id"] = self.__ecol_updated["quanguan_id"] + 1
+	if self.__ecol_updated["quanguan_id"] == 1 then
+		self.__col_updated = self.__col_updated + 1
+	end
 	self.__fields.quanguan_id = v
 end
 
@@ -112,6 +128,10 @@ end
 function cls:set_start_time(v, ... )
 	-- body
 	assert(v)
+	self.__ecol_updated["start_time"] = self.__ecol_updated["start_time"] + 1
+	if self.__ecol_updated["start_time"] == 1 then
+		self.__col_updated = self.__col_updated + 1
+	end
 	self.__fields.start_time = v
 end
 
@@ -123,6 +143,10 @@ end
 function cls:set_end_time(v, ... )
 	-- body
 	assert(v)
+	self.__ecol_updated["end_time"] = self.__ecol_updated["end_time"] + 1
+	if self.__ecol_updated["end_time"] == 1 then
+		self.__col_updated = self.__col_updated + 1
+	end
 	self.__fields.end_time = v
 end
 
@@ -134,6 +158,10 @@ end
 function cls:set_if_trigger_event(v, ... )
 	-- body
 	assert(v)
+	self.__ecol_updated["if_trigger_event"] = self.__ecol_updated["if_trigger_event"] + 1
+	if self.__ecol_updated["if_trigger_event"] == 1 then
+		self.__col_updated = self.__col_updated + 1
+	end
 	self.__fields.if_trigger_event = v
 end
 
@@ -145,6 +173,10 @@ end
 function cls:set_iffinished(v, ... )
 	-- body
 	assert(v)
+	self.__ecol_updated["iffinished"] = self.__ecol_updated["iffinished"] + 1
+	if self.__ecol_updated["iffinished"] == 1 then
+		self.__col_updated = self.__col_updated + 1
+	end
 	self.__fields.iffinished = v
 end
 
@@ -156,6 +188,10 @@ end
 function cls:set_invitation_id(v, ... )
 	-- body
 	assert(v)
+	self.__ecol_updated["invitation_id"] = self.__ecol_updated["invitation_id"] + 1
+	if self.__ecol_updated["invitation_id"] == 1 then
+		self.__col_updated = self.__col_updated + 1
+	end
 	self.__fields.invitation_id = v
 end
 
@@ -167,6 +203,10 @@ end
 function cls:set_iflevel_up(v, ... )
 	-- body
 	assert(v)
+	self.__ecol_updated["iflevel_up"] = self.__ecol_updated["iflevel_up"] + 1
+	if self.__ecol_updated["iflevel_up"] == 1 then
+		self.__col_updated = self.__col_updated + 1
+	end
 	self.__fields.iflevel_up = v
 end
 
@@ -178,6 +218,10 @@ end
 function cls:set_event_start_time(v, ... )
 	-- body
 	assert(v)
+	self.__ecol_updated["event_start_time"] = self.__ecol_updated["event_start_time"] + 1
+	if self.__ecol_updated["event_start_time"] == 1 then
+		self.__col_updated = self.__col_updated + 1
+	end
 	self.__fields.event_start_time = v
 end
 
@@ -189,6 +233,10 @@ end
 function cls:set_event_end_time(v, ... )
 	-- body
 	assert(v)
+	self.__ecol_updated["event_end_time"] = self.__ecol_updated["event_end_time"] + 1
+	if self.__ecol_updated["event_end_time"] == 1 then
+		self.__col_updated = self.__col_updated + 1
+	end
 	self.__fields.event_end_time = v
 end
 
@@ -200,6 +248,10 @@ end
 function cls:set_if_lilian_finished(v, ... )
 	-- body
 	assert(v)
+	self.__ecol_updated["if_lilian_finished"] = self.__ecol_updated["if_lilian_finished"] + 1
+	if self.__ecol_updated["if_lilian_finished"] == 1 then
+		self.__col_updated = self.__col_updated + 1
+	end
 	self.__fields.if_lilian_finished = v
 end
 
@@ -211,6 +263,10 @@ end
 function cls:set_eventid(v, ... )
 	-- body
 	assert(v)
+	self.__ecol_updated["eventid"] = self.__ecol_updated["eventid"] + 1
+	if self.__ecol_updated["eventid"] == 1 then
+		self.__col_updated = self.__col_updated + 1
+	end
 	self.__fields.eventid = v
 end
 
@@ -222,6 +278,10 @@ end
 function cls:set_if_canceled(v, ... )
 	-- body
 	assert(v)
+	self.__ecol_updated["if_canceled"] = self.__ecol_updated["if_canceled"] + 1
+	if self.__ecol_updated["if_canceled"] == 1 then
+		self.__col_updated = self.__col_updated + 1
+	end
 	self.__fields.if_canceled = v
 end
 
@@ -233,6 +293,10 @@ end
 function cls:set_if_event_canceled(v, ... )
 	-- body
 	assert(v)
+	self.__ecol_updated["if_event_canceled"] = self.__ecol_updated["if_event_canceled"] + 1
+	if self.__ecol_updated["if_event_canceled"] == 1 then
+		self.__col_updated = self.__col_updated + 1
+	end
 	self.__fields.if_event_canceled = v
 end
 
@@ -244,6 +308,10 @@ end
 function cls:set_if_lilian_reward(v, ... )
 	-- body
 	assert(v)
+	self.__ecol_updated["if_lilian_reward"] = self.__ecol_updated["if_lilian_reward"] + 1
+	if self.__ecol_updated["if_lilian_reward"] == 1 then
+		self.__col_updated = self.__col_updated + 1
+	end
 	self.__fields.if_lilian_reward = v
 end
 
@@ -255,6 +323,10 @@ end
 function cls:set_if_event_reward(v, ... )
 	-- body
 	assert(v)
+	self.__ecol_updated["if_event_reward"] = self.__ecol_updated["if_event_reward"] + 1
+	if self.__ecol_updated["if_event_reward"] == 1 then
+		self.__col_updated = self.__col_updated + 1
+	end
 	self.__fields.if_event_reward = v
 end
 
@@ -266,6 +338,10 @@ end
 function cls:set_event_reward(v, ... )
 	-- body
 	assert(v)
+	self.__ecol_updated["event_reward"] = self.__ecol_updated["event_reward"] + 1
+	if self.__ecol_updated["event_reward"] == 1 then
+		self.__col_updated = self.__col_updated + 1
+	end
 	self.__fields.event_reward = v
 end
 
@@ -277,6 +353,10 @@ end
 function cls:set_lilian_reward(v, ... )
 	-- body
 	assert(v)
+	self.__ecol_updated["lilian_reward"] = self.__ecol_updated["lilian_reward"] + 1
+	if self.__ecol_updated["lilian_reward"] == 1 then
+		self.__col_updated = self.__col_updated + 1
+	end
 	self.__fields.lilian_reward = v
 end
 

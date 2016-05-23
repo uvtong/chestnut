@@ -142,7 +142,7 @@ function cls:ctor(mgr, P, ... )
 		}
 
 	for k,v in pairs(self.__head) do
-		self.__fields[k] = assert(P[k])
+		self.__fields[k] = assert(P[k], string.format("no exist %s", k))
 	end
 	return self
 end
@@ -150,6 +150,10 @@ end
 function cls:set_csv_id(v, ... )
 	-- body
 	assert(v)
+	self.__ecol_updated["csv_id"] = self.__ecol_updated["csv_id"] + 1
+	if self.__ecol_updated["csv_id"] == 1 then
+		self.__col_updated = self.__col_updated + 1
+	end
 	self.__fields.csv_id = v
 end
 
@@ -161,6 +165,10 @@ end
 function cls:set_uname(v, ... )
 	-- body
 	assert(v)
+	self.__ecol_updated["uname"] = self.__ecol_updated["uname"] + 1
+	if self.__ecol_updated["uname"] == 1 then
+		self.__col_updated = self.__col_updated + 1
+	end
 	self.__fields.uname = v
 end
 
@@ -172,6 +180,10 @@ end
 function cls:set_uviplevel(v, ... )
 	-- body
 	assert(v)
+	self.__ecol_updated["uviplevel"] = self.__ecol_updated["uviplevel"] + 1
+	if self.__ecol_updated["uviplevel"] == 1 then
+		self.__col_updated = self.__col_updated + 1
+	end
 	self.__fields.uviplevel = v
 end
 
@@ -183,6 +195,10 @@ end
 function cls:set_config_sound(v, ... )
 	-- body
 	assert(v)
+	self.__ecol_updated["config_sound"] = self.__ecol_updated["config_sound"] + 1
+	if self.__ecol_updated["config_sound"] == 1 then
+		self.__col_updated = self.__col_updated + 1
+	end
 	self.__fields.config_sound = v
 end
 
@@ -194,6 +210,10 @@ end
 function cls:set_config_music(v, ... )
 	-- body
 	assert(v)
+	self.__ecol_updated["config_music"] = self.__ecol_updated["config_music"] + 1
+	if self.__ecol_updated["config_music"] == 1 then
+		self.__col_updated = self.__col_updated + 1
+	end
 	self.__fields.config_music = v
 end
 
@@ -205,6 +225,10 @@ end
 function cls:set_avatar(v, ... )
 	-- body
 	assert(v)
+	self.__ecol_updated["avatar"] = self.__ecol_updated["avatar"] + 1
+	if self.__ecol_updated["avatar"] == 1 then
+		self.__col_updated = self.__col_updated + 1
+	end
 	self.__fields.avatar = v
 end
 
@@ -216,6 +240,10 @@ end
 function cls:set_sign(v, ... )
 	-- body
 	assert(v)
+	self.__ecol_updated["sign"] = self.__ecol_updated["sign"] + 1
+	if self.__ecol_updated["sign"] == 1 then
+		self.__col_updated = self.__col_updated + 1
+	end
 	self.__fields.sign = v
 end
 
@@ -227,6 +255,10 @@ end
 function cls:set_c_role_id(v, ... )
 	-- body
 	assert(v)
+	self.__ecol_updated["c_role_id"] = self.__ecol_updated["c_role_id"] + 1
+	if self.__ecol_updated["c_role_id"] == 1 then
+		self.__col_updated = self.__col_updated + 1
+	end
 	self.__fields.c_role_id = v
 end
 
@@ -238,6 +270,10 @@ end
 function cls:set_ifonline(v, ... )
 	-- body
 	assert(v)
+	self.__ecol_updated["ifonline"] = self.__ecol_updated["ifonline"] + 1
+	if self.__ecol_updated["ifonline"] == 1 then
+		self.__col_updated = self.__col_updated + 1
+	end
 	self.__fields.ifonline = v
 end
 
@@ -249,6 +285,10 @@ end
 function cls:set_level(v, ... )
 	-- body
 	assert(v)
+	self.__ecol_updated["level"] = self.__ecol_updated["level"] + 1
+	if self.__ecol_updated["level"] == 1 then
+		self.__col_updated = self.__col_updated + 1
+	end
 	self.__fields.level = v
 end
 
@@ -260,6 +300,10 @@ end
 function cls:set_combat(v, ... )
 	-- body
 	assert(v)
+	self.__ecol_updated["combat"] = self.__ecol_updated["combat"] + 1
+	if self.__ecol_updated["combat"] == 1 then
+		self.__col_updated = self.__col_updated + 1
+	end
 	self.__fields.combat = v
 end
 
@@ -271,6 +315,10 @@ end
 function cls:set_defense(v, ... )
 	-- body
 	assert(v)
+	self.__ecol_updated["defense"] = self.__ecol_updated["defense"] + 1
+	if self.__ecol_updated["defense"] == 1 then
+		self.__col_updated = self.__col_updated + 1
+	end
 	self.__fields.defense = v
 end
 
@@ -282,6 +330,10 @@ end
 function cls:set_critical_hit(v, ... )
 	-- body
 	assert(v)
+	self.__ecol_updated["critical_hit"] = self.__ecol_updated["critical_hit"] + 1
+	if self.__ecol_updated["critical_hit"] == 1 then
+		self.__col_updated = self.__col_updated + 1
+	end
 	self.__fields.critical_hit = v
 end
 
@@ -293,6 +345,10 @@ end
 function cls:set_blessing(v, ... )
 	-- body
 	assert(v)
+	self.__ecol_updated["blessing"] = self.__ecol_updated["blessing"] + 1
+	if self.__ecol_updated["blessing"] == 1 then
+		self.__col_updated = self.__col_updated + 1
+	end
 	self.__fields.blessing = v
 end
 
@@ -304,6 +360,10 @@ end
 function cls:set_permission(v, ... )
 	-- body
 	assert(v)
+	self.__ecol_updated["permission"] = self.__ecol_updated["permission"] + 1
+	if self.__ecol_updated["permission"] == 1 then
+		self.__col_updated = self.__col_updated + 1
+	end
 	self.__fields.permission = v
 end
 
@@ -315,6 +375,10 @@ end
 function cls:set_modify_uname_count(v, ... )
 	-- body
 	assert(v)
+	self.__ecol_updated["modify_uname_count"] = self.__ecol_updated["modify_uname_count"] + 1
+	if self.__ecol_updated["modify_uname_count"] == 1 then
+		self.__col_updated = self.__col_updated + 1
+	end
 	self.__fields.modify_uname_count = v
 end
 
@@ -326,6 +390,10 @@ end
 function cls:set_onlinetime(v, ... )
 	-- body
 	assert(v)
+	self.__ecol_updated["onlinetime"] = self.__ecol_updated["onlinetime"] + 1
+	if self.__ecol_updated["onlinetime"] == 1 then
+		self.__col_updated = self.__col_updated + 1
+	end
 	self.__fields.onlinetime = v
 end
 
@@ -337,6 +405,10 @@ end
 function cls:set_iconid(v, ... )
 	-- body
 	assert(v)
+	self.__ecol_updated["iconid"] = self.__ecol_updated["iconid"] + 1
+	if self.__ecol_updated["iconid"] == 1 then
+		self.__col_updated = self.__col_updated + 1
+	end
 	self.__fields.iconid = v
 end
 
@@ -348,6 +420,10 @@ end
 function cls:set_is_valid(v, ... )
 	-- body
 	assert(v)
+	self.__ecol_updated["is_valid"] = self.__ecol_updated["is_valid"] + 1
+	if self.__ecol_updated["is_valid"] == 1 then
+		self.__col_updated = self.__col_updated + 1
+	end
 	self.__fields.is_valid = v
 end
 
@@ -359,6 +435,10 @@ end
 function cls:set_recharge_rmb(v, ... )
 	-- body
 	assert(v)
+	self.__ecol_updated["recharge_rmb"] = self.__ecol_updated["recharge_rmb"] + 1
+	if self.__ecol_updated["recharge_rmb"] == 1 then
+		self.__col_updated = self.__col_updated + 1
+	end
 	self.__fields.recharge_rmb = v
 end
 
@@ -370,6 +450,10 @@ end
 function cls:set_recharge_diamond(v, ... )
 	-- body
 	assert(v)
+	self.__ecol_updated["recharge_diamond"] = self.__ecol_updated["recharge_diamond"] + 1
+	if self.__ecol_updated["recharge_diamond"] == 1 then
+		self.__col_updated = self.__col_updated + 1
+	end
 	self.__fields.recharge_diamond = v
 end
 
@@ -381,6 +465,10 @@ end
 function cls:set_uvip_progress(v, ... )
 	-- body
 	assert(v)
+	self.__ecol_updated["uvip_progress"] = self.__ecol_updated["uvip_progress"] + 1
+	if self.__ecol_updated["uvip_progress"] == 1 then
+		self.__col_updated = self.__col_updated + 1
+	end
 	self.__fields.uvip_progress = v
 end
 
@@ -392,6 +480,10 @@ end
 function cls:set_checkin_num(v, ... )
 	-- body
 	assert(v)
+	self.__ecol_updated["checkin_num"] = self.__ecol_updated["checkin_num"] + 1
+	if self.__ecol_updated["checkin_num"] == 1 then
+		self.__col_updated = self.__col_updated + 1
+	end
 	self.__fields.checkin_num = v
 end
 
@@ -403,6 +495,10 @@ end
 function cls:set_checkin_reward_num(v, ... )
 	-- body
 	assert(v)
+	self.__ecol_updated["checkin_reward_num"] = self.__ecol_updated["checkin_reward_num"] + 1
+	if self.__ecol_updated["checkin_reward_num"] == 1 then
+		self.__col_updated = self.__col_updated + 1
+	end
 	self.__fields.checkin_reward_num = v
 end
 
@@ -414,6 +510,10 @@ end
 function cls:set_exercise_level(v, ... )
 	-- body
 	assert(v)
+	self.__ecol_updated["exercise_level"] = self.__ecol_updated["exercise_level"] + 1
+	if self.__ecol_updated["exercise_level"] == 1 then
+		self.__col_updated = self.__col_updated + 1
+	end
 	self.__fields.exercise_level = v
 end
 
@@ -425,6 +525,10 @@ end
 function cls:set_cgold_level(v, ... )
 	-- body
 	assert(v)
+	self.__ecol_updated["cgold_level"] = self.__ecol_updated["cgold_level"] + 1
+	if self.__ecol_updated["cgold_level"] == 1 then
+		self.__col_updated = self.__col_updated + 1
+	end
 	self.__fields.cgold_level = v
 end
 
@@ -436,6 +540,10 @@ end
 function cls:set_gold_max(v, ... )
 	-- body
 	assert(v)
+	self.__ecol_updated["gold_max"] = self.__ecol_updated["gold_max"] + 1
+	if self.__ecol_updated["gold_max"] == 1 then
+		self.__col_updated = self.__col_updated + 1
+	end
 	self.__fields.gold_max = v
 end
 
@@ -447,6 +555,10 @@ end
 function cls:set_exp_max(v, ... )
 	-- body
 	assert(v)
+	self.__ecol_updated["exp_max"] = self.__ecol_updated["exp_max"] + 1
+	if self.__ecol_updated["exp_max"] == 1 then
+		self.__col_updated = self.__col_updated + 1
+	end
 	self.__fields.exp_max = v
 end
 
@@ -458,6 +570,10 @@ end
 function cls:set_equipment_enhance_success_rate_up_p(v, ... )
 	-- body
 	assert(v)
+	self.__ecol_updated["equipment_enhance_success_rate_up_p"] = self.__ecol_updated["equipment_enhance_success_rate_up_p"] + 1
+	if self.__ecol_updated["equipment_enhance_success_rate_up_p"] == 1 then
+		self.__col_updated = self.__col_updated + 1
+	end
 	self.__fields.equipment_enhance_success_rate_up_p = v
 end
 
@@ -469,6 +585,10 @@ end
 function cls:set_store_refresh_count_max(v, ... )
 	-- body
 	assert(v)
+	self.__ecol_updated["store_refresh_count_max"] = self.__ecol_updated["store_refresh_count_max"] + 1
+	if self.__ecol_updated["store_refresh_count_max"] == 1 then
+		self.__col_updated = self.__col_updated + 1
+	end
 	self.__fields.store_refresh_count_max = v
 end
 
@@ -480,6 +600,10 @@ end
 function cls:set_prop_refresh(v, ... )
 	-- body
 	assert(v)
+	self.__ecol_updated["prop_refresh"] = self.__ecol_updated["prop_refresh"] + 1
+	if self.__ecol_updated["prop_refresh"] == 1 then
+		self.__col_updated = self.__col_updated + 1
+	end
 	self.__fields.prop_refresh = v
 end
 
@@ -491,6 +615,10 @@ end
 function cls:set_arena_frozen_time(v, ... )
 	-- body
 	assert(v)
+	self.__ecol_updated["arena_frozen_time"] = self.__ecol_updated["arena_frozen_time"] + 1
+	if self.__ecol_updated["arena_frozen_time"] == 1 then
+		self.__col_updated = self.__col_updated + 1
+	end
 	self.__fields.arena_frozen_time = v
 end
 
@@ -502,6 +630,10 @@ end
 function cls:set_purchase_hp_count(v, ... )
 	-- body
 	assert(v)
+	self.__ecol_updated["purchase_hp_count"] = self.__ecol_updated["purchase_hp_count"] + 1
+	if self.__ecol_updated["purchase_hp_count"] == 1 then
+		self.__col_updated = self.__col_updated + 1
+	end
 	self.__fields.purchase_hp_count = v
 end
 
@@ -513,6 +645,10 @@ end
 function cls:set_gain_gold_up_p(v, ... )
 	-- body
 	assert(v)
+	self.__ecol_updated["gain_gold_up_p"] = self.__ecol_updated["gain_gold_up_p"] + 1
+	if self.__ecol_updated["gain_gold_up_p"] == 1 then
+		self.__col_updated = self.__col_updated + 1
+	end
 	self.__fields.gain_gold_up_p = v
 end
 
@@ -524,6 +660,10 @@ end
 function cls:set_gain_exp_up_p(v, ... )
 	-- body
 	assert(v)
+	self.__ecol_updated["gain_exp_up_p"] = self.__ecol_updated["gain_exp_up_p"] + 1
+	if self.__ecol_updated["gain_exp_up_p"] == 1 then
+		self.__col_updated = self.__col_updated + 1
+	end
 	self.__fields.gain_exp_up_p = v
 end
 
@@ -535,6 +675,10 @@ end
 function cls:set_purchase_hp_count_max(v, ... )
 	-- body
 	assert(v)
+	self.__ecol_updated["purchase_hp_count_max"] = self.__ecol_updated["purchase_hp_count_max"] + 1
+	if self.__ecol_updated["purchase_hp_count_max"] == 1 then
+		self.__col_updated = self.__col_updated + 1
+	end
 	self.__fields.purchase_hp_count_max = v
 end
 
@@ -546,6 +690,10 @@ end
 function cls:set_SCHOOL_reset_count_max(v, ... )
 	-- body
 	assert(v)
+	self.__ecol_updated["SCHOOL_reset_count_max"] = self.__ecol_updated["SCHOOL_reset_count_max"] + 1
+	if self.__ecol_updated["SCHOOL_reset_count_max"] == 1 then
+		self.__col_updated = self.__col_updated + 1
+	end
 	self.__fields.SCHOOL_reset_count_max = v
 end
 
@@ -557,6 +705,10 @@ end
 function cls:set_SCHOOL_reset_count(v, ... )
 	-- body
 	assert(v)
+	self.__ecol_updated["SCHOOL_reset_count"] = self.__ecol_updated["SCHOOL_reset_count"] + 1
+	if self.__ecol_updated["SCHOOL_reset_count"] == 1 then
+		self.__col_updated = self.__col_updated + 1
+	end
 	self.__fields.SCHOOL_reset_count = v
 end
 
@@ -568,6 +720,10 @@ end
 function cls:set_signup_time(v, ... )
 	-- body
 	assert(v)
+	self.__ecol_updated["signup_time"] = self.__ecol_updated["signup_time"] + 1
+	if self.__ecol_updated["signup_time"] == 1 then
+		self.__col_updated = self.__col_updated + 1
+	end
 	self.__fields.signup_time = v
 end
 
@@ -579,6 +735,10 @@ end
 function cls:set_pemail_csv_id(v, ... )
 	-- body
 	assert(v)
+	self.__ecol_updated["pemail_csv_id"] = self.__ecol_updated["pemail_csv_id"] + 1
+	if self.__ecol_updated["pemail_csv_id"] == 1 then
+		self.__col_updated = self.__col_updated + 1
+	end
 	self.__fields.pemail_csv_id = v
 end
 
@@ -590,6 +750,10 @@ end
 function cls:set_take_diamonds(v, ... )
 	-- body
 	assert(v)
+	self.__ecol_updated["take_diamonds"] = self.__ecol_updated["take_diamonds"] + 1
+	if self.__ecol_updated["take_diamonds"] == 1 then
+		self.__col_updated = self.__col_updated + 1
+	end
 	self.__fields.take_diamonds = v
 end
 
@@ -601,6 +765,10 @@ end
 function cls:set_draw_number(v, ... )
 	-- body
 	assert(v)
+	self.__ecol_updated["draw_number"] = self.__ecol_updated["draw_number"] + 1
+	if self.__ecol_updated["draw_number"] == 1 then
+		self.__col_updated = self.__col_updated + 1
+	end
 	self.__fields.draw_number = v
 end
 
@@ -612,6 +780,10 @@ end
 function cls:set_ifxilian(v, ... )
 	-- body
 	assert(v)
+	self.__ecol_updated["ifxilian"] = self.__ecol_updated["ifxilian"] + 1
+	if self.__ecol_updated["ifxilian"] == 1 then
+		self.__col_updated = self.__col_updated + 1
+	end
 	self.__fields.ifxilian = v
 end
 
@@ -623,6 +795,10 @@ end
 function cls:set_cp_chapter(v, ... )
 	-- body
 	assert(v)
+	self.__ecol_updated["cp_chapter"] = self.__ecol_updated["cp_chapter"] + 1
+	if self.__ecol_updated["cp_chapter"] == 1 then
+		self.__col_updated = self.__col_updated + 1
+	end
 	self.__fields.cp_chapter = v
 end
 
@@ -634,6 +810,10 @@ end
 function cls:set_cp_hanging_id(v, ... )
 	-- body
 	assert(v)
+	self.__ecol_updated["cp_hanging_id"] = self.__ecol_updated["cp_hanging_id"] + 1
+	if self.__ecol_updated["cp_hanging_id"] == 1 then
+		self.__col_updated = self.__col_updated + 1
+	end
 	self.__fields.cp_hanging_id = v
 end
 
@@ -645,6 +825,10 @@ end
 function cls:set_cp_battle_id(v, ... )
 	-- body
 	assert(v)
+	self.__ecol_updated["cp_battle_id"] = self.__ecol_updated["cp_battle_id"] + 1
+	if self.__ecol_updated["cp_battle_id"] == 1 then
+		self.__col_updated = self.__col_updated + 1
+	end
 	self.__fields.cp_battle_id = v
 end
 
@@ -656,6 +840,10 @@ end
 function cls:set_cp_battle_chapter(v, ... )
 	-- body
 	assert(v)
+	self.__ecol_updated["cp_battle_chapter"] = self.__ecol_updated["cp_battle_chapter"] + 1
+	if self.__ecol_updated["cp_battle_chapter"] == 1 then
+		self.__col_updated = self.__col_updated + 1
+	end
 	self.__fields.cp_battle_chapter = v
 end
 
@@ -667,6 +855,10 @@ end
 function cls:set_lilian_level(v, ... )
 	-- body
 	assert(v)
+	self.__ecol_updated["lilian_level"] = self.__ecol_updated["lilian_level"] + 1
+	if self.__ecol_updated["lilian_level"] == 1 then
+		self.__col_updated = self.__col_updated + 1
+	end
 	self.__fields.lilian_level = v
 end
 
@@ -678,6 +870,10 @@ end
 function cls:set_lilian_exp(v, ... )
 	-- body
 	assert(v)
+	self.__ecol_updated["lilian_exp"] = self.__ecol_updated["lilian_exp"] + 1
+	if self.__ecol_updated["lilian_exp"] == 1 then
+		self.__col_updated = self.__col_updated + 1
+	end
 	self.__fields.lilian_exp = v
 end
 
@@ -689,6 +885,10 @@ end
 function cls:set_lilian_phy_power(v, ... )
 	-- body
 	assert(v)
+	self.__ecol_updated["lilian_phy_power"] = self.__ecol_updated["lilian_phy_power"] + 1
+	if self.__ecol_updated["lilian_phy_power"] == 1 then
+		self.__col_updated = self.__col_updated + 1
+	end
 	self.__fields.lilian_phy_power = v
 end
 
@@ -700,6 +900,10 @@ end
 function cls:set_purch_lilian_phy_power(v, ... )
 	-- body
 	assert(v)
+	self.__ecol_updated["purch_lilian_phy_power"] = self.__ecol_updated["purch_lilian_phy_power"] + 1
+	if self.__ecol_updated["purch_lilian_phy_power"] == 1 then
+		self.__col_updated = self.__col_updated + 1
+	end
 	self.__fields.purch_lilian_phy_power = v
 end
 
@@ -711,6 +915,10 @@ end
 function cls:set_ara_role_id1(v, ... )
 	-- body
 	assert(v)
+	self.__ecol_updated["ara_role_id1"] = self.__ecol_updated["ara_role_id1"] + 1
+	if self.__ecol_updated["ara_role_id1"] == 1 then
+		self.__col_updated = self.__col_updated + 1
+	end
 	self.__fields.ara_role_id1 = v
 end
 
@@ -722,6 +930,10 @@ end
 function cls:set_ara_role_id2(v, ... )
 	-- body
 	assert(v)
+	self.__ecol_updated["ara_role_id2"] = self.__ecol_updated["ara_role_id2"] + 1
+	if self.__ecol_updated["ara_role_id2"] == 1 then
+		self.__col_updated = self.__col_updated + 1
+	end
 	self.__fields.ara_role_id2 = v
 end
 
@@ -733,6 +945,10 @@ end
 function cls:set_ara_role_id3(v, ... )
 	-- body
 	assert(v)
+	self.__ecol_updated["ara_role_id3"] = self.__ecol_updated["ara_role_id3"] + 1
+	if self.__ecol_updated["ara_role_id3"] == 1 then
+		self.__col_updated = self.__col_updated + 1
+	end
 	self.__fields.ara_role_id3 = v
 end
 
@@ -744,6 +960,10 @@ end
 function cls:set_ara_rnk(v, ... )
 	-- body
 	assert(v)
+	self.__ecol_updated["ara_rnk"] = self.__ecol_updated["ara_rnk"] + 1
+	if self.__ecol_updated["ara_rnk"] == 1 then
+		self.__col_updated = self.__col_updated + 1
+	end
 	self.__fields.ara_rnk = v
 end
 
@@ -755,6 +975,10 @@ end
 function cls:set_ara_win_tms(v, ... )
 	-- body
 	assert(v)
+	self.__ecol_updated["ara_win_tms"] = self.__ecol_updated["ara_win_tms"] + 1
+	if self.__ecol_updated["ara_win_tms"] == 1 then
+		self.__col_updated = self.__col_updated + 1
+	end
 	self.__fields.ara_win_tms = v
 end
 
@@ -766,6 +990,10 @@ end
 function cls:set_ara_lose_tms(v, ... )
 	-- body
 	assert(v)
+	self.__ecol_updated["ara_lose_tms"] = self.__ecol_updated["ara_lose_tms"] + 1
+	if self.__ecol_updated["ara_lose_tms"] == 1 then
+		self.__col_updated = self.__col_updated + 1
+	end
 	self.__fields.ara_lose_tms = v
 end
 
@@ -777,6 +1005,10 @@ end
 function cls:set_ara_tie_tms(v, ... )
 	-- body
 	assert(v)
+	self.__ecol_updated["ara_tie_tms"] = self.__ecol_updated["ara_tie_tms"] + 1
+	if self.__ecol_updated["ara_tie_tms"] == 1 then
+		self.__col_updated = self.__col_updated + 1
+	end
 	self.__fields.ara_tie_tms = v
 end
 
@@ -788,6 +1020,10 @@ end
 function cls:set_ara_clg_tms(v, ... )
 	-- body
 	assert(v)
+	self.__ecol_updated["ara_clg_tms"] = self.__ecol_updated["ara_clg_tms"] + 1
+	if self.__ecol_updated["ara_clg_tms"] == 1 then
+		self.__col_updated = self.__col_updated + 1
+	end
 	self.__fields.ara_clg_tms = v
 end
 
@@ -799,6 +1035,10 @@ end
 function cls:set_ara_clg_tms_pur_tms(v, ... )
 	-- body
 	assert(v)
+	self.__ecol_updated["ara_clg_tms_pur_tms"] = self.__ecol_updated["ara_clg_tms_pur_tms"] + 1
+	if self.__ecol_updated["ara_clg_tms_pur_tms"] == 1 then
+		self.__col_updated = self.__col_updated + 1
+	end
 	self.__fields.ara_clg_tms_pur_tms = v
 end
 
@@ -810,6 +1050,10 @@ end
 function cls:set_ara_clg_tms_rst_tm(v, ... )
 	-- body
 	assert(v)
+	self.__ecol_updated["ara_clg_tms_rst_tm"] = self.__ecol_updated["ara_clg_tms_rst_tm"] + 1
+	if self.__ecol_updated["ara_clg_tms_rst_tm"] == 1 then
+		self.__col_updated = self.__col_updated + 1
+	end
 	self.__fields.ara_clg_tms_rst_tm = v
 end
 

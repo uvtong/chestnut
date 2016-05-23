@@ -32,7 +32,7 @@ function cls:ctor(mgr, P, ... )
 		}
 
 	for k,v in pairs(self.__head) do
-		self.__fields[k] = assert(P[k])
+		self.__fields[k] = assert(P[k], string.format("no exist %s", k))
 	end
 	return self
 end
@@ -40,6 +40,10 @@ end
 function cls:set_id(v, ... )
 	-- body
 	assert(v)
+	self.__ecol_updated["id"] = self.__ecol_updated["id"] + 1
+	if self.__ecol_updated["id"] == 1 then
+		self.__col_updated = self.__col_updated + 1
+	end
 	self.__fields.id = v
 end
 
@@ -51,6 +55,10 @@ end
 function cls:set_user_id(v, ... )
 	-- body
 	assert(v)
+	self.__ecol_updated["user_id"] = self.__ecol_updated["user_id"] + 1
+	if self.__ecol_updated["user_id"] == 1 then
+		self.__col_updated = self.__col_updated + 1
+	end
 	self.__fields.user_id = v
 end
 
@@ -62,6 +70,10 @@ end
 function cls:set_chapter(v, ... )
 	-- body
 	assert(v)
+	self.__ecol_updated["chapter"] = self.__ecol_updated["chapter"] + 1
+	if self.__ecol_updated["chapter"] == 1 then
+		self.__col_updated = self.__col_updated + 1
+	end
 	self.__fields.chapter = v
 end
 
@@ -73,6 +85,10 @@ end
 function cls:set_chapter_type0(v, ... )
 	-- body
 	assert(v)
+	self.__ecol_updated["chapter_type0"] = self.__ecol_updated["chapter_type0"] + 1
+	if self.__ecol_updated["chapter_type0"] == 1 then
+		self.__col_updated = self.__col_updated + 1
+	end
 	self.__fields.chapter_type0 = v
 end
 
@@ -84,6 +100,10 @@ end
 function cls:set_chapter_type1(v, ... )
 	-- body
 	assert(v)
+	self.__ecol_updated["chapter_type1"] = self.__ecol_updated["chapter_type1"] + 1
+	if self.__ecol_updated["chapter_type1"] == 1 then
+		self.__col_updated = self.__col_updated + 1
+	end
 	self.__fields.chapter_type1 = v
 end
 
@@ -95,6 +115,10 @@ end
 function cls:set_chapter_type2(v, ... )
 	-- body
 	assert(v)
+	self.__ecol_updated["chapter_type2"] = self.__ecol_updated["chapter_type2"] + 1
+	if self.__ecol_updated["chapter_type2"] == 1 then
+		self.__col_updated = self.__col_updated + 1
+	end
 	self.__fields.chapter_type2 = v
 end
 

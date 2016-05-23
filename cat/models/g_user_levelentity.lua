@@ -36,7 +36,7 @@ function cls:ctor(mgr, P, ... )
 		}
 
 	for k,v in pairs(self.__head) do
-		self.__fields[k] = assert(P[k])
+		self.__fields[k] = assert(P[k], string.format("no exist %s", k))
 	end
 	return self
 end
@@ -44,6 +44,10 @@ end
 function cls:set_level(v, ... )
 	-- body
 	assert(v)
+	self.__ecol_updated["level"] = self.__ecol_updated["level"] + 1
+	if self.__ecol_updated["level"] == 1 then
+		self.__col_updated = self.__col_updated + 1
+	end
 	self.__fields.level = v
 end
 
@@ -55,6 +59,10 @@ end
 function cls:set_exp(v, ... )
 	-- body
 	assert(v)
+	self.__ecol_updated["exp"] = self.__ecol_updated["exp"] + 1
+	if self.__ecol_updated["exp"] == 1 then
+		self.__col_updated = self.__col_updated + 1
+	end
 	self.__fields.exp = v
 end
 
@@ -66,6 +74,10 @@ end
 function cls:set_combat(v, ... )
 	-- body
 	assert(v)
+	self.__ecol_updated["combat"] = self.__ecol_updated["combat"] + 1
+	if self.__ecol_updated["combat"] == 1 then
+		self.__col_updated = self.__col_updated + 1
+	end
 	self.__fields.combat = v
 end
 
@@ -77,6 +89,10 @@ end
 function cls:set_defense(v, ... )
 	-- body
 	assert(v)
+	self.__ecol_updated["defense"] = self.__ecol_updated["defense"] + 1
+	if self.__ecol_updated["defense"] == 1 then
+		self.__col_updated = self.__col_updated + 1
+	end
 	self.__fields.defense = v
 end
 
@@ -88,6 +104,10 @@ end
 function cls:set_critical_hit(v, ... )
 	-- body
 	assert(v)
+	self.__ecol_updated["critical_hit"] = self.__ecol_updated["critical_hit"] + 1
+	if self.__ecol_updated["critical_hit"] == 1 then
+		self.__col_updated = self.__col_updated + 1
+	end
 	self.__fields.critical_hit = v
 end
 
@@ -99,6 +119,10 @@ end
 function cls:set_skill(v, ... )
 	-- body
 	assert(v)
+	self.__ecol_updated["skill"] = self.__ecol_updated["skill"] + 1
+	if self.__ecol_updated["skill"] == 1 then
+		self.__col_updated = self.__col_updated + 1
+	end
 	self.__fields.skill = v
 end
 
@@ -110,6 +134,10 @@ end
 function cls:set_gold_max(v, ... )
 	-- body
 	assert(v)
+	self.__ecol_updated["gold_max"] = self.__ecol_updated["gold_max"] + 1
+	if self.__ecol_updated["gold_max"] == 1 then
+		self.__col_updated = self.__col_updated + 1
+	end
 	self.__fields.gold_max = v
 end
 
@@ -121,6 +149,10 @@ end
 function cls:set_exp_max(v, ... )
 	-- body
 	assert(v)
+	self.__ecol_updated["exp_max"] = self.__ecol_updated["exp_max"] + 1
+	if self.__ecol_updated["exp_max"] == 1 then
+		self.__col_updated = self.__col_updated + 1
+	end
 	self.__fields.exp_max = v
 end
 

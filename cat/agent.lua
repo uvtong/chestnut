@@ -54,7 +54,7 @@ local game
 local user
 local stm = require "stm"
 local sharemap = require "sharemap"
-local sharedata = require "sharedata"
+local sd = require "sharedata"
 local env = context.new()
 
 
@@ -2586,7 +2586,9 @@ end
 
 local function enter_ara(u, ... )
 	-- body
-	local ara_clg_tms_rst_tp = skynet.call(".game", "lua", "query_g_config", "ara_clg_tms_rst_tm")
+	local key = string.format("%s:%d", "g_config", 1)
+	local r = sd.query(key)
+	local ara_clg_tms_rst_tp = r["ara_clg_tms_rst_tm"]
 	local ara_clg_tms_rst_tm = u:get_ara_clg_tms_rst_tm()
 	local now = os.time()
 	local m = now - ara_clg_tms_rst_tm
@@ -2594,7 +2596,7 @@ local function enter_ara(u, ... )
 		local tmp = os.date("*t", os.time())
 		tmp = { year=tmp.year, month=tmp.month, day=tmp.day, hour=ara_clg_tms_rst_tp}
 		local sec = os.time(tmp)
-		user.ara_clg_tms_rst_tm = sec
+		user:set_ara_clg_tms_rst_tm(sec)
 	elseif m > 0 then
 		m = m // 86400
 		if m % 3600 > 0 then
@@ -2615,7 +2617,7 @@ end
 local function login(u, ... )
 	-- body
 	enter_lp(u)
-	-- enter_ara(u)
+	enter_ara(u)
 end
 
 function CMD.signup(source, uid, sid, sct, g, d)
@@ -2694,7 +2696,6 @@ function CMD.login(source, uid, sid, sct, g, d)
 	env:set_user(user)
 	login(user)
 	
-	print("*********************finish")
 	return true
 end
 

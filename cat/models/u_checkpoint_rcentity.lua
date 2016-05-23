@@ -42,7 +42,7 @@ function cls:ctor(mgr, P, ... )
 		}
 
 	for k,v in pairs(self.__head) do
-		self.__fields[k] = assert(P[k])
+		self.__fields[k] = assert(P[k], string.format("no exist %s", k))
 	end
 	return self
 end
@@ -50,6 +50,10 @@ end
 function cls:set_id(v, ... )
 	-- body
 	assert(v)
+	self.__ecol_updated["id"] = self.__ecol_updated["id"] + 1
+	if self.__ecol_updated["id"] == 1 then
+		self.__col_updated = self.__col_updated + 1
+	end
 	self.__fields.id = v
 end
 
@@ -61,6 +65,10 @@ end
 function cls:set_user_id(v, ... )
 	-- body
 	assert(v)
+	self.__ecol_updated["user_id"] = self.__ecol_updated["user_id"] + 1
+	if self.__ecol_updated["user_id"] == 1 then
+		self.__col_updated = self.__col_updated + 1
+	end
 	self.__fields.user_id = v
 end
 
@@ -72,6 +80,10 @@ end
 function cls:set_csv_id(v, ... )
 	-- body
 	assert(v)
+	self.__ecol_updated["csv_id"] = self.__ecol_updated["csv_id"] + 1
+	if self.__ecol_updated["csv_id"] == 1 then
+		self.__col_updated = self.__col_updated + 1
+	end
 	self.__fields.csv_id = v
 end
 
@@ -83,6 +95,10 @@ end
 function cls:set_passed(v, ... )
 	-- body
 	assert(v)
+	self.__ecol_updated["passed"] = self.__ecol_updated["passed"] + 1
+	if self.__ecol_updated["passed"] == 1 then
+		self.__col_updated = self.__col_updated + 1
+	end
 	self.__fields.passed = v
 end
 
@@ -94,6 +110,10 @@ end
 function cls:set_cd_starttime(v, ... )
 	-- body
 	assert(v)
+	self.__ecol_updated["cd_starttime"] = self.__ecol_updated["cd_starttime"] + 1
+	if self.__ecol_updated["cd_starttime"] == 1 then
+		self.__col_updated = self.__col_updated + 1
+	end
 	self.__fields.cd_starttime = v
 end
 
@@ -105,6 +125,10 @@ end
 function cls:set_cd_finished(v, ... )
 	-- body
 	assert(v)
+	self.__ecol_updated["cd_finished"] = self.__ecol_updated["cd_finished"] + 1
+	if self.__ecol_updated["cd_finished"] == 1 then
+		self.__col_updated = self.__col_updated + 1
+	end
 	self.__fields.cd_finished = v
 end
 
@@ -116,6 +140,10 @@ end
 function cls:set_cd_walk(v, ... )
 	-- body
 	assert(v)
+	self.__ecol_updated["cd_walk"] = self.__ecol_updated["cd_walk"] + 1
+	if self.__ecol_updated["cd_walk"] == 1 then
+		self.__col_updated = self.__col_updated + 1
+	end
 	self.__fields.cd_walk = v
 end
 
@@ -127,6 +155,10 @@ end
 function cls:set_hanging_starttime(v, ... )
 	-- body
 	assert(v)
+	self.__ecol_updated["hanging_starttime"] = self.__ecol_updated["hanging_starttime"] + 1
+	if self.__ecol_updated["hanging_starttime"] == 1 then
+		self.__col_updated = self.__col_updated + 1
+	end
 	self.__fields.hanging_starttime = v
 end
 
@@ -138,6 +170,10 @@ end
 function cls:set_hanging_walk(v, ... )
 	-- body
 	assert(v)
+	self.__ecol_updated["hanging_walk"] = self.__ecol_updated["hanging_walk"] + 1
+	if self.__ecol_updated["hanging_walk"] == 1 then
+		self.__col_updated = self.__col_updated + 1
+	end
 	self.__fields.hanging_walk = v
 end
 
@@ -149,6 +185,10 @@ end
 function cls:set_hanging_drop_starttime(v, ... )
 	-- body
 	assert(v)
+	self.__ecol_updated["hanging_drop_starttime"] = self.__ecol_updated["hanging_drop_starttime"] + 1
+	if self.__ecol_updated["hanging_drop_starttime"] == 1 then
+		self.__col_updated = self.__col_updated + 1
+	end
 	self.__fields.hanging_drop_starttime = v
 end
 
@@ -160,6 +200,10 @@ end
 function cls:set_hanging_drop_walk(v, ... )
 	-- body
 	assert(v)
+	self.__ecol_updated["hanging_drop_walk"] = self.__ecol_updated["hanging_drop_walk"] + 1
+	if self.__ecol_updated["hanging_drop_walk"] == 1 then
+		self.__col_updated = self.__col_updated + 1
+	end
 	self.__fields.hanging_drop_walk = v
 end
 

@@ -273,6 +273,10 @@ local function print_table(table_name)
 function cls:set_%s(v, ... )
 	-- body
 	assert(v)
+	self.__ecol_updated["%s"] = self.__ecol_updated["%s"] + 1
+	if self.__ecol_updated["%s"] == 1 then
+		self.__ecol_updated = self.__ecol_updated + 1
+	end
 	self.__fields.%s = v
 end
 
@@ -281,7 +285,7 @@ function cls:get_%s( ... )
 	return self.__fields.%s
 end
 
-]], v.COLUMN_NAME, v.COLUMN_NAME, v.COLUMN_NAME, v.COLUMN_NAME)
+]], v.COLUMN_NAME, v.COLUMN_NAME, v.COLUMN_NAME, v.COLUMN_NAME, v.COLUMN_NAME, v.COLUMN_NAME, v.COLUMN_NAME)
 		end
 		head = head.."}\n"
 		fields = fields.."\t\t}\n"
@@ -292,7 +296,7 @@ end
 		local s = require("entitycppt")
 		local entitycls = table_name.."entity"
 		local addr = io.open(dir.."models/"..table_name.."entity.lua", "w")
-		local content = string.format(s, entitycls, fields, count, funcs)
+		local content = string.format(s, entitycls, fields, count, "string.format(\"no exist %s\", k)", funcs)
 		addr:write(content)
 		addr:close()
 
@@ -323,6 +327,7 @@ function VIEW:validation()
 				ret.msg = "succss"
 				return ret
 			else
+				print(result)
 				local ret = {}
 				ret.ok = 0
 				ret.msg = "failture"

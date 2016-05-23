@@ -147,6 +147,7 @@ function QUERY:write(table_name, sql, priority)
 	-- body
 	local db = self.db
 	local res = db:query(sql)
+	dump(res)
 	-- local res = cs1(self.db.query, db, sql)
 	-- return res
 	-- print("QUERY:write", sql)

@@ -1,5 +1,6 @@
 local query = require "query"
 local json = require "cjson"
+local sd = require "sharedata"
 
 local cls = class("entitycpp")
 
@@ -79,7 +80,7 @@ end
 function cls.update(t, ...)
 	-- body
 	assert(t.__fields ~= nil)
-	if true or t.__col_updated > 1 then
+	if false or t.__col_updated > 1 then
 		t.__col_updated = 0
 		-- t:set(t, ...)
 		local sql = t:gen_update_sql()
@@ -89,13 +90,14 @@ function cls.update(t, ...)
 	else 	
 		local tmp_sql = {}
 		local sql_first_part = string.format("call " .. "qy_insert_" .. t.__tname .. " (" )
+		print("sql_first_part is :", sql_first_part)
 		table.insert(tmp_sql, sql_first_part)
-		
-		assert(nil == t.__head_ord)
-		
+
+		assert(t.__head_ord ~= nil)
 		local counter = 0
 		for k, v in ipairs(t.__head_ord) do
-			assert(nil == t.__fields[v])
+			print(k, v)
+			assert(nil ~= t.__fields[v])
 			if counter > 0 then
 				table.insert(tmp_sql, ", ")
 			else
@@ -108,20 +110,21 @@ function cls.update(t, ...)
 				table.insert(tmp_sql, string.format("%s", t.__fields[v]))
 			end
 		end
-
 		table.insert(tmp_sql, ")")
 
-		query.write(t.__wdb, t.__tname, table.concat(tmp_sql), query.DB_PRIORITY_3)
-		
-	end 
-end 	
-		
+		local sql = table.concat(tmp_sql)
+		print(sql)
+		query.write(t.__wdb, t.__tname, sql, query.DB_PRIORITY_3)
+	end
+end
+
 function cls.update_wait(t, ...)
 	assert(t.__fields ~= nil)
 	if true then
-		t.__col_updated = 0
-		local sql = t:gen_update_sql()
-		query.read(t.__wdb, t.__tname, sql)
+		t:update()
+		-- t.__col_updated = 0
+		-- local sql = t:gen_update_sql()
+		-- query.read(t.__wdb, t.__tname, sql)
 	end
 end
 
@@ -137,6 +140,15 @@ function cls.load_data_to_stm(t, child)
 		end
 	end 
 	return r
-end     
-	    
+end
+
+function cls.load_data_to_sd(t, ... )
+	-- body
+	local pk = t.__fields[t.__pk]
+	if t.__head[t.__pk].t == "number" then
+		local key = string.format("%s:%d", t.__tname, pk)
+		sd.new(key, t.__fields)
+	end
+end
+
 return cls

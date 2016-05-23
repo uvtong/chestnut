@@ -36,7 +36,7 @@ function cls:ctor(mgr, P, ... )
 		}
 
 	for k,v in pairs(self.__head) do
-		self.__fields[k] = assert(P[k])
+		self.__fields[k] = assert(P[k], string.format("no exist %s", k))
 	end
 	return self
 end
@@ -44,6 +44,10 @@ end
 function cls:set_id(v, ... )
 	-- body
 	assert(v)
+	self.__ecol_updated["id"] = self.__ecol_updated["id"] + 1
+	if self.__ecol_updated["id"] == 1 then
+		self.__col_updated = self.__col_updated + 1
+	end
 	self.__fields.id = v
 end
 
@@ -55,6 +59,10 @@ end
 function cls:set_csv_id(v, ... )
 	-- body
 	assert(v)
+	self.__ecol_updated["csv_id"] = self.__ecol_updated["csv_id"] + 1
+	if self.__ecol_updated["csv_id"] == 1 then
+		self.__col_updated = self.__col_updated + 1
+	end
 	self.__fields.csv_id = v
 end
 
@@ -66,6 +74,10 @@ end
 function cls:set_user_id(v, ... )
 	-- body
 	assert(v)
+	self.__ecol_updated["user_id"] = self.__ecol_updated["user_id"] + 1
+	if self.__ecol_updated["user_id"] == 1 then
+		self.__col_updated = self.__col_updated + 1
+	end
 	self.__fields.user_id = v
 end
 
@@ -77,6 +89,10 @@ end
 function cls:set_start_time(v, ... )
 	-- body
 	assert(v)
+	self.__ecol_updated["start_time"] = self.__ecol_updated["start_time"] + 1
+	if self.__ecol_updated["start_time"] == 1 then
+		self.__col_updated = self.__col_updated + 1
+	end
 	self.__fields.start_time = v
 end
 
@@ -88,6 +104,10 @@ end
 function cls:set_end_time(v, ... )
 	-- body
 	assert(v)
+	self.__ecol_updated["end_time"] = self.__ecol_updated["end_time"] + 1
+	if self.__ecol_updated["end_time"] == 1 then
+		self.__col_updated = self.__col_updated + 1
+	end
 	self.__fields.end_time = v
 end
 
@@ -99,6 +119,10 @@ end
 function cls:set_num(v, ... )
 	-- body
 	assert(v)
+	self.__ecol_updated["num"] = self.__ecol_updated["num"] + 1
+	if self.__ecol_updated["num"] == 1 then
+		self.__col_updated = self.__col_updated + 1
+	end
 	self.__fields.num = v
 end
 
@@ -110,6 +134,10 @@ end
 function cls:set_quanguan_id(v, ... )
 	-- body
 	assert(v)
+	self.__ecol_updated["quanguan_id"] = self.__ecol_updated["quanguan_id"] + 1
+	if self.__ecol_updated["quanguan_id"] == 1 then
+		self.__col_updated = self.__col_updated + 1
+	end
 	self.__fields.quanguan_id = v
 end
 
@@ -121,6 +149,10 @@ end
 function cls:set_reset_num(v, ... )
 	-- body
 	assert(v)
+	self.__ecol_updated["reset_num"] = self.__ecol_updated["reset_num"] + 1
+	if self.__ecol_updated["reset_num"] == 1 then
+		self.__col_updated = self.__col_updated + 1
+	end
 	self.__fields.reset_num = v
 end
 

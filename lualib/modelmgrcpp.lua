@@ -177,6 +177,13 @@ function cls.load_db_to_sd(t)
 	end
 end
 
+function cls.load_data_to_sd(t)
+	-- body
+	for k,v in pairs(t.__data) do
+		v:load_data_to_sd()
+	end
+end
+
 function cls.sd(t, k, sub)
 	-- body
 	assert(k and (type(k) == "string"))
@@ -267,9 +274,6 @@ function cls.update_wait(t, ... )
 	end
 end
 
-<<<<<<< HEAD
-return cls
-=======
 function cls.create(t, p, ...)
 	-- body
 end
@@ -356,4 +360,3 @@ function cls.clear(self)
 end
 
 return cls
->>>>>>> 2df82517a173e80f324a4df4267a113eac77bcf5

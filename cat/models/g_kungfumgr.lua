@@ -1,6 +1,5 @@
 local skynet = require "skynet"
 local modelmgr = require "modelmgrcpp"
-local entity = require "entity"
 local assert = assert
 local type   = type
 
@@ -13,15 +12,8 @@ function cls:ctor( ... )
 	self.__cap     = 0
 	self.__tname   = "g_kungfu"
 	self.__head    = {
-	id = {
-		pk = true,
-		fk = false,
-		cn = "id",
-		uq = false,
-		t = "number",
-	},
 	g_csv_id = {
-		pk = false,
+		pk = true,
 		fk = false,
 		cn = "g_csv_id",
 		uq = false,
@@ -184,32 +176,31 @@ function cls:ctor( ... )
 }
 
 	self.__head_ord = {}
-		self.__head_ord[1] = self.__head[id]
-	self.__head_ord[2] = self.__head[g_csv_id]
-	self.__head_ord[3] = self.__head[name]
-	self.__head_ord[4] = self.__head[csv_id]
-	self.__head_ord[5] = self.__head[level]
-	self.__head_ord[6] = self.__head[iconid]
-	self.__head_ord[7] = self.__head[skill_descp]
-	self.__head_ord[8] = self.__head[skill_effect]
-	self.__head_ord[9] = self.__head[type]
-	self.__head_ord[10] = self.__head[harm_type]
-	self.__head_ord[11] = self.__head[arise_probability]
-	self.__head_ord[12] = self.__head[arise_count]
-	self.__head_ord[13] = self.__head[arise_type]
-	self.__head_ord[14] = self.__head[arise_param]
-	self.__head_ord[15] = self.__head[attack_type]
-	self.__head_ord[16] = self.__head[effect_percent]
-	self.__head_ord[17] = self.__head[addition_effect_type]
-	self.__head_ord[18] = self.__head[addition_prog]
-	self.__head_ord[19] = self.__head[equip_buff_id]
-	self.__head_ord[20] = self.__head[buff_id]
-	self.__head_ord[21] = self.__head[prop_csv_id]
-	self.__head_ord[22] = self.__head[prop_num]
-	self.__head_ord[23] = self.__head[currency_type]
-	self.__head_ord[24] = self.__head[currency_num]
+		self.__head_ord[1] = self.__head[g_csv_id]
+	self.__head_ord[2] = self.__head[name]
+	self.__head_ord[3] = self.__head[csv_id]
+	self.__head_ord[4] = self.__head[level]
+	self.__head_ord[5] = self.__head[iconid]
+	self.__head_ord[6] = self.__head[skill_descp]
+	self.__head_ord[7] = self.__head[skill_effect]
+	self.__head_ord[8] = self.__head[type]
+	self.__head_ord[9] = self.__head[harm_type]
+	self.__head_ord[10] = self.__head[arise_probability]
+	self.__head_ord[11] = self.__head[arise_count]
+	self.__head_ord[12] = self.__head[arise_type]
+	self.__head_ord[13] = self.__head[arise_param]
+	self.__head_ord[14] = self.__head[attack_type]
+	self.__head_ord[15] = self.__head[effect_percent]
+	self.__head_ord[16] = self.__head[addition_effect_type]
+	self.__head_ord[17] = self.__head[addition_prog]
+	self.__head_ord[18] = self.__head[equip_buff_id]
+	self.__head_ord[19] = self.__head[buff_id]
+	self.__head_ord[20] = self.__head[prop_csv_id]
+	self.__head_ord[21] = self.__head[prop_num]
+	self.__head_ord[22] = self.__head[currency_type]
+	self.__head_ord[23] = self.__head[currency_num]
 
-	self.__pk      = "id"
+	self.__pk      = "g_csv_id"
 	self.__fk      = ""
 	self.__rdb     = skynet.localname(skynet.getenv("gated_rdb"))
 	self.__wdb     = skynet.localname(skynet.getenv("gated_wdb"))

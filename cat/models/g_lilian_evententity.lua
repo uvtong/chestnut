@@ -28,7 +28,7 @@ function cls:ctor(mgr, P, ... )
 		}
 
 	for k,v in pairs(self.__head) do
-		self.__fields[k] = assert(P[k])
+		self.__fields[k] = assert(P[k], string.format("no exist %s", k))
 	end
 	return self
 end
@@ -36,6 +36,10 @@ end
 function cls:set_csv_id(v, ... )
 	-- body
 	assert(v)
+	self.__ecol_updated["csv_id"] = self.__ecol_updated["csv_id"] + 1
+	if self.__ecol_updated["csv_id"] == 1 then
+		self.__col_updated = self.__col_updated + 1
+	end
 	self.__fields.csv_id = v
 end
 
@@ -47,6 +51,10 @@ end
 function cls:set_cd_time(v, ... )
 	-- body
 	assert(v)
+	self.__ecol_updated["cd_time"] = self.__ecol_updated["cd_time"] + 1
+	if self.__ecol_updated["cd_time"] == 1 then
+		self.__col_updated = self.__col_updated + 1
+	end
 	self.__fields.cd_time = v
 end
 
@@ -58,6 +66,10 @@ end
 function cls:set_description(v, ... )
 	-- body
 	assert(v)
+	self.__ecol_updated["description"] = self.__ecol_updated["description"] + 1
+	if self.__ecol_updated["description"] == 1 then
+		self.__col_updated = self.__col_updated + 1
+	end
 	self.__fields.description = v
 end
 
@@ -69,6 +81,10 @@ end
 function cls:set_reward(v, ... )
 	-- body
 	assert(v)
+	self.__ecol_updated["reward"] = self.__ecol_updated["reward"] + 1
+	if self.__ecol_updated["reward"] == 1 then
+		self.__col_updated = self.__col_updated + 1
+	end
 	self.__fields.reward = v
 end
 
