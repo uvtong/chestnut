@@ -34,17 +34,17 @@ function cls.insert(t, ...)
 	-- local sql = string.format("insert into %s ", t.__tname) .. columns_str .. " values " .. values_str .. ";"
 	-- print(t.__wdb)
 	-- query.write(t.__wdb, t.__tname, sql, query.DB_PRIORITY_1)
-end
-
+end 				
+				 	
 function cls.update(t, ...)
-	-- body
+	-- body 		
 	assert(t.__fields ~= nil)
-	if true or t.__col_updated > 1 then
+	if false or t.__col_updated > 1 then
 		t.__col_updated = 0
 		-- t:set(t, ...)
 		local columns_str = ""
 		local keys_str = "("
-		local values_str = "("
+		local values_str = "("      
 		for k,v in pairs(t.__fields) do
 			keys_str = keys_str.."`"..k.."`"..", "
 			local head = t.__head[k]
@@ -57,45 +57,67 @@ function cls.update(t, ...)
 					columns_str = columns_str..string.format("`%s` = %d, ", k, v)
 				else
 					assert(false)
-				end
-			else
-				if true or t.__ecol_updated[k] > 0 then
-					t.__ecol_updated[k] = 0
-					if head.t == "string" then
-						values_str = values_str..string.format("\"%s\", ", v)
-						columns_str = columns_str..string.format("`%s` = \"%s\", ", k, v)
-					elseif head.t == "number" then
-						values_str = values_str..string.format("%d, ", v)
-						columns_str = columns_str..string.format("`%s` = %d, ", k, v)
-					else
-						assert(false)
-					end
-				end
-			end
-		end
+				end 
+			else  	
+				if true or t.__ecol_updated[k] > 0 then 
+					t.__ecol_updated[k] = 0 
+					if head.t == "string" then 
+						values_str = values_str..string.format("\"%s\", ", v) 
+						columns_str = columns_str..string.format("`%s` = \"%s\", ", k, v) 
+					elseif head.t == "number" then 
+						values_str = values_str..string.format("%d, ", v) 
+						columns_str = columns_str..string.format("`%s` = %d, ", k, v) 
+					else 					
+						assert(false) 		
+					end 					
+				end 
+			end  		
+		end  		
+
 		keys_str = string.gsub(keys_str, "(.*)%,%s$", "%1")..")"
 		values_str = string.gsub(values_str, "(.*)%,%s$", "%1")..")"
 		columns_str = string.gsub(columns_str, "(.*)%,%s$", "%1")	
 		local sql = string.format("insert into %s ", t.__tname)..keys_str.." values "..values_str.." on duplicate key update "..columns_str..";"
 		print(sql)
 		query.write(t.__wdb, t.__tname, sql, query.DB_PRIORITY_3)
-	else
 		
-	end
-end
+	else 	
+		local tmp_sql = {}
+		local sql_first_part = string.format("call " .. "qy_insert_" .. t.__tname .. "(" )
+		table.insert(tmp_sql, sql_first_part)
 
-function cls.update_field()
-	-- body
-end
+		assert(nil == t.__head_ord)
+                
+		local counter = 0
+		for k, v in ipairs(t.__head_ord) do
+			assert(nil == t.__fields[v])
+			if counter > 0 then
+				table.insert(tmp_sql, ", ")
+			else
+				counter = counter + 1
+			end 
+                
+			if type(t.__fields[v]) == "string" then
+				table.insert(tmp_sql, string.format("'%s'",t.__fields[v] ))
+			else
+				table.insert(tmp_sql, string.format("%s", t.__fields[v]))
+			end
+		end
 
+		table.insert(tmp_sql, ")")
+
+		query.write(t.__wdb, t.__tname, table.concat(tmp_sql), query.DB_PRIORITY_3)
+	end 
+end 	
+		
 function cls.load_data_to_stm(t, child)
 	local r = {}
 	for k,v in pairs(t) do
 		if string.match("^%w+_%w+mgr$", k) then
 			r.k = ctx.k("load_data_to_stm")
 		end
-	end
+	end 
 	return r
-end
-
+end     
+	    
 return cls
