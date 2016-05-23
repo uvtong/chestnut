@@ -80,14 +80,38 @@ end
 function cls.update(t, ...)
 	-- body
 	assert(t.__fields ~= nil)
-	if true or t.__col_updated > 1 then
+	if false or t.__col_updated > 1 then
 		t.__col_updated = 0
 		-- t:set(t, ...)
 		local sql = t:gen_update_sql()
 		-- print(sql)
 		query.write(t.__wdb, t.__tname, sql, query.DB_PRIORITY_3)
-	else
 		
+	else 	
+		local tmp_sql = {}
+		local sql_first_part = string.format("call " .. "qy_insert_" .. t.__tname .. " (" )
+		table.insert(tmp_sql, sql_first_part)
+		assert(t.__head_ord ~= nil)
+
+		local counter = 0
+		for k, v in ipairs(t.__head_ord) do
+			assert(nil ~= t.__fields[v])
+			if counter > 0 then
+				table.insert(tmp_sql, ", ")
+			else
+				counter = counter + 1
+			end
+			
+			if type(t.__fields[v]) == "string" then
+				table.insert(tmp_sql, string.format("'%s'",t.__fields[v] ))
+			else
+				table.insert(tmp_sql, string.format("%s", t.__fields[v]))
+			end
+		end
+		table.insert(tmp_sql, ")")
+		local sql = table.concat(tmp_sql)
+		print(sql)
+		query.write(t.__wdb, t.__tname, sql, query.DB_PRIORITY_3)
 	end
 end
 
@@ -103,14 +127,14 @@ end
 function cls.update_field()
 	-- body
 end
-
+		
 function cls.load_data_to_stm(t, child)
 	local r = {}
 	for k,v in pairs(t) do
 		if string.match("^%w+_%w+mgr$", k) then
 			r.k = ctx.k("load_data_to_stm")
 		end
-	end
+	end 
 	return r
 end
 

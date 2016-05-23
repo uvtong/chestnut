@@ -40,11 +40,11 @@ function friendrequest:applied_list()
 	ret.msg = errorcode[ 1 ].msg
 
 	return ret
-end	
-	
+end		
+		
 function friendrequest:otherfriend_list()
 	print("other is called^^^^^^^^^^^^^^^^^^^")
-	
+		
 	local list = friendmgr:apply_otherfriendlist()
 	local ret = {}
 	ret.friendlist = list
@@ -136,25 +136,25 @@ function friendrequest:agent_request_handle( msg )
     	return nil
     end	--]]
     print( "response apply successfully" )
-end		
-
+end	
+	
 function friendrequest:agent_friendmsg()
 	print( "agent_friendmsg is called" )
-
+	
 	return friendmgr:agent_friendmsg()	
-end
-
-
+end 
+	
+	
 function friendrequest.getvalue( u , sendpackage , sendrequest )
 	user = u
-
+	
 	friendmgr = user.friendmgr
 	sendpackage = sendpackage
 	sendrequest = sendrequest
-
+	
 	assert( user and friendmgr )
 end		
-
+	
 return friendrequest
 			
 		

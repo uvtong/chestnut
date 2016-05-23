@@ -34,7 +34,7 @@ function cls:ctor(mgr, P, ... )
 		}
 
 	for k,v in pairs(self.__head) do
-		self.__fields[k] = assert(P[k])
+		self.__fields[k] = assert(P[k], string.format("no exist %s", k))
 	end
 	return self
 end
@@ -42,6 +42,10 @@ end
 function cls:set_id(v, ... )
 	-- body
 	assert(v)
+	self.__ecol_updated["id"] = self.__ecol_updated["id"] + 1
+	if self.__ecol_updated["id"] == 1 then
+		self.__ecol_updated = self.__ecol_updated + 1
+	end
 	self.__fields.id = v
 end
 
@@ -53,6 +57,10 @@ end
 function cls:set_user_id(v, ... )
 	-- body
 	assert(v)
+	self.__ecol_updated["user_id"] = self.__ecol_updated["user_id"] + 1
+	if self.__ecol_updated["user_id"] == 1 then
+		self.__ecol_updated = self.__ecol_updated + 1
+	end
 	self.__fields.user_id = v
 end
 
@@ -64,6 +72,10 @@ end
 function cls:set_csv_id(v, ... )
 	-- body
 	assert(v)
+	self.__ecol_updated["csv_id"] = self.__ecol_updated["csv_id"] + 1
+	if self.__ecol_updated["csv_id"] == 1 then
+		self.__ecol_updated = self.__ecol_updated + 1
+	end
 	self.__fields.csv_id = v
 end
 
@@ -75,6 +87,10 @@ end
 function cls:set_level(v, ... )
 	-- body
 	assert(v)
+	self.__ecol_updated["level"] = self.__ecol_updated["level"] + 1
+	if self.__ecol_updated["level"] == 1 then
+		self.__ecol_updated = self.__ecol_updated + 1
+	end
 	self.__fields.level = v
 end
 
@@ -86,6 +102,10 @@ end
 function cls:set_type(v, ... )
 	-- body
 	assert(v)
+	self.__ecol_updated["type"] = self.__ecol_updated["type"] + 1
+	if self.__ecol_updated["type"] == 1 then
+		self.__ecol_updated = self.__ecol_updated + 1
+	end
 	self.__fields.type = v
 end
 
@@ -97,6 +117,10 @@ end
 function cls:set_sp_id(v, ... )
 	-- body
 	assert(v)
+	self.__ecol_updated["sp_id"] = self.__ecol_updated["sp_id"] + 1
+	if self.__ecol_updated["sp_id"] == 1 then
+		self.__ecol_updated = self.__ecol_updated + 1
+	end
 	self.__fields.sp_id = v
 end
 
@@ -108,6 +132,10 @@ end
 function cls:set_g_csv_id(v, ... )
 	-- body
 	assert(v)
+	self.__ecol_updated["g_csv_id"] = self.__ecol_updated["g_csv_id"] + 1
+	if self.__ecol_updated["g_csv_id"] == 1 then
+		self.__ecol_updated = self.__ecol_updated + 1
+	end
 	self.__fields.g_csv_id = v
 end
 

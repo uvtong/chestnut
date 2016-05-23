@@ -280,7 +280,7 @@ local function trigger_event( tr )
 end 	
 	
 local function get_reward_lilist( tr , rtype )
-	assert( tr and rtype )	
+	assert( tr and rtype )
 	local reward = {}
 	if 1 == rtype then
 		if 0 == tr.if_lilian_reward then

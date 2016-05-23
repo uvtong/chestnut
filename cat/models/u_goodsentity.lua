@@ -32,7 +32,7 @@ function cls:ctor(mgr, P, ... )
 		}
 
 	for k,v in pairs(self.__head) do
-		self.__fields[k] = assert(P[k])
+		self.__fields[k] = assert(P[k], string.format("no exist %s", k))
 	end
 	return self
 end
@@ -40,6 +40,10 @@ end
 function cls:set_id(v, ... )
 	-- body
 	assert(v)
+	self.__ecol_updated["id"] = self.__ecol_updated["id"] + 1
+	if self.__ecol_updated["id"] == 1 then
+		self.__ecol_updated = self.__ecol_updated + 1
+	end
 	self.__fields.id = v
 end
 
@@ -51,6 +55,10 @@ end
 function cls:set_user_id(v, ... )
 	-- body
 	assert(v)
+	self.__ecol_updated["user_id"] = self.__ecol_updated["user_id"] + 1
+	if self.__ecol_updated["user_id"] == 1 then
+		self.__ecol_updated = self.__ecol_updated + 1
+	end
 	self.__fields.user_id = v
 end
 
@@ -62,6 +70,10 @@ end
 function cls:set_csv_id(v, ... )
 	-- body
 	assert(v)
+	self.__ecol_updated["csv_id"] = self.__ecol_updated["csv_id"] + 1
+	if self.__ecol_updated["csv_id"] == 1 then
+		self.__ecol_updated = self.__ecol_updated + 1
+	end
 	self.__fields.csv_id = v
 end
 
@@ -73,6 +85,10 @@ end
 function cls:set_inventory(v, ... )
 	-- body
 	assert(v)
+	self.__ecol_updated["inventory"] = self.__ecol_updated["inventory"] + 1
+	if self.__ecol_updated["inventory"] == 1 then
+		self.__ecol_updated = self.__ecol_updated + 1
+	end
 	self.__fields.inventory = v
 end
 
@@ -84,6 +100,10 @@ end
 function cls:set_countdown(v, ... )
 	-- body
 	assert(v)
+	self.__ecol_updated["countdown"] = self.__ecol_updated["countdown"] + 1
+	if self.__ecol_updated["countdown"] == 1 then
+		self.__ecol_updated = self.__ecol_updated + 1
+	end
 	self.__fields.countdown = v
 end
 
@@ -95,6 +115,10 @@ end
 function cls:set_st(v, ... )
 	-- body
 	assert(v)
+	self.__ecol_updated["st"] = self.__ecol_updated["st"] + 1
+	if self.__ecol_updated["st"] == 1 then
+		self.__ecol_updated = self.__ecol_updated + 1
+	end
 	self.__fields.st = v
 end
 

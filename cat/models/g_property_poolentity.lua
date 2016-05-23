@@ -26,7 +26,7 @@ function cls:ctor(mgr, P, ... )
 		}
 
 	for k,v in pairs(self.__head) do
-		self.__fields[k] = assert(P[k])
+		self.__fields[k] = assert(P[k], string.format("no exist %s", k))
 	end
 	return self
 end
@@ -34,6 +34,10 @@ end
 function cls:set_csv_id(v, ... )
 	-- body
 	assert(v)
+	self.__ecol_updated["csv_id"] = self.__ecol_updated["csv_id"] + 1
+	if self.__ecol_updated["csv_id"] == 1 then
+		self.__ecol_updated = self.__ecol_updated + 1
+	end
 	self.__fields.csv_id = v
 end
 
@@ -45,6 +49,10 @@ end
 function cls:set_property_pool_id(v, ... )
 	-- body
 	assert(v)
+	self.__ecol_updated["property_pool_id"] = self.__ecol_updated["property_pool_id"] + 1
+	if self.__ecol_updated["property_pool_id"] == 1 then
+		self.__ecol_updated = self.__ecol_updated + 1
+	end
 	self.__fields.property_pool_id = v
 end
 
@@ -56,6 +64,10 @@ end
 function cls:set_probability(v, ... )
 	-- body
 	assert(v)
+	self.__ecol_updated["probability"] = self.__ecol_updated["probability"] + 1
+	if self.__ecol_updated["probability"] == 1 then
+		self.__ecol_updated = self.__ecol_updated + 1
+	end
 	self.__fields.probability = v
 end
 

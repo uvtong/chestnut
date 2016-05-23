@@ -42,7 +42,7 @@ function cls:ctor(mgr, P, ... )
 		}
 
 	for k,v in pairs(self.__head) do
-		self.__fields[k] = assert(P[k])
+		self.__fields[k] = assert(P[k], string.format("no exist %s", k))
 	end
 	return self
 end
@@ -50,6 +50,10 @@ end
 function cls:set_csv_id(v, ... )
 	-- body
 	assert(v)
+	self.__ecol_updated["csv_id"] = self.__ecol_updated["csv_id"] + 1
+	if self.__ecol_updated["csv_id"] == 1 then
+		self.__ecol_updated = self.__ecol_updated + 1
+	end
 	self.__fields.csv_id = v
 end
 
@@ -61,6 +65,10 @@ end
 function cls:set_user_level_max(v, ... )
 	-- body
 	assert(v)
+	self.__ecol_updated["user_level_max"] = self.__ecol_updated["user_level_max"] + 1
+	if self.__ecol_updated["user_level_max"] == 1 then
+		self.__ecol_updated = self.__ecol_updated + 1
+	end
 	self.__fields.user_level_max = v
 end
 
@@ -72,6 +80,10 @@ end
 function cls:set_user_vip_max(v, ... )
 	-- body
 	assert(v)
+	self.__ecol_updated["user_vip_max"] = self.__ecol_updated["user_vip_max"] + 1
+	if self.__ecol_updated["user_vip_max"] == 1 then
+		self.__ecol_updated = self.__ecol_updated + 1
+	end
 	self.__fields.user_vip_max = v
 end
 
@@ -83,6 +95,10 @@ end
 function cls:set_xilian_begain_level(v, ... )
 	-- body
 	assert(v)
+	self.__ecol_updated["xilian_begain_level"] = self.__ecol_updated["xilian_begain_level"] + 1
+	if self.__ecol_updated["xilian_begain_level"] == 1 then
+		self.__ecol_updated = self.__ecol_updated + 1
+	end
 	self.__fields.xilian_begain_level = v
 end
 
@@ -94,6 +110,10 @@ end
 function cls:set_cp_chapter_max(v, ... )
 	-- body
 	assert(v)
+	self.__ecol_updated["cp_chapter_max"] = self.__ecol_updated["cp_chapter_max"] + 1
+	if self.__ecol_updated["cp_chapter_max"] == 1 then
+		self.__ecol_updated = self.__ecol_updated + 1
+	end
 	self.__fields.cp_chapter_max = v
 end
 
@@ -105,6 +125,10 @@ end
 function cls:set_purch_phy_power(v, ... )
 	-- body
 	assert(v)
+	self.__ecol_updated["purch_phy_power"] = self.__ecol_updated["purch_phy_power"] + 1
+	if self.__ecol_updated["purch_phy_power"] == 1 then
+		self.__ecol_updated = self.__ecol_updated + 1
+	end
 	self.__fields.purch_phy_power = v
 end
 
@@ -116,6 +140,10 @@ end
 function cls:set_diamond_per_sec(v, ... )
 	-- body
 	assert(v)
+	self.__ecol_updated["diamond_per_sec"] = self.__ecol_updated["diamond_per_sec"] + 1
+	if self.__ecol_updated["diamond_per_sec"] == 1 then
+		self.__ecol_updated = self.__ecol_updated + 1
+	end
 	self.__fields.diamond_per_sec = v
 end
 
@@ -127,6 +155,10 @@ end
 function cls:set_ara_clg_tms_rst_tp(v, ... )
 	-- body
 	assert(v)
+	self.__ecol_updated["ara_clg_tms_rst_tp"] = self.__ecol_updated["ara_clg_tms_rst_tp"] + 1
+	if self.__ecol_updated["ara_clg_tms_rst_tp"] == 1 then
+		self.__ecol_updated = self.__ecol_updated + 1
+	end
 	self.__fields.ara_clg_tms_rst_tp = v
 end
 
@@ -138,6 +170,10 @@ end
 function cls:set_worship_reward_id(v, ... )
 	-- body
 	assert(v)
+	self.__ecol_updated["worship_reward_id"] = self.__ecol_updated["worship_reward_id"] + 1
+	if self.__ecol_updated["worship_reward_id"] == 1 then
+		self.__ecol_updated = self.__ecol_updated + 1
+	end
 	self.__fields.worship_reward_id = v
 end
 
@@ -149,6 +185,10 @@ end
 function cls:set_worship_reward_num(v, ... )
 	-- body
 	assert(v)
+	self.__ecol_updated["worship_reward_num"] = self.__ecol_updated["worship_reward_num"] + 1
+	if self.__ecol_updated["worship_reward_num"] == 1 then
+		self.__ecol_updated = self.__ecol_updated + 1
+	end
 	self.__fields.worship_reward_num = v
 end
 
@@ -160,6 +200,10 @@ end
 function cls:set_ara_clg_tms_max(v, ... )
 	-- body
 	assert(v)
+	self.__ecol_updated["ara_clg_tms_max"] = self.__ecol_updated["ara_clg_tms_max"] + 1
+	if self.__ecol_updated["ara_clg_tms_max"] == 1 then
+		self.__ecol_updated = self.__ecol_updated + 1
+	end
 	self.__fields.ara_clg_tms_max = v
 end
 

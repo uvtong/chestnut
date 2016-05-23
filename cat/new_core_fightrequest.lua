@@ -12,32 +12,33 @@ local cs
 	  			  	
 local send_package
 local send_request
-
+	
 local REQUEST = {}
 local RESPONSE = {}
 local SUBSCRIBE = {}
 local client_fd
 local func_gs
 local table_gs = {}
-	  	
+	
 local game 
 local user 
 local dc 
 local record_date = {} 
-	
+	 
 local QuanFaNum = 7
 local SELF = 1
 local ENEMY = 2
 local START_DELAY = 3 --sec
 local CERTAIN_SEQUENCE_KF = 3
 local FIGHT_PLACE = 0 
-
+	 
 local COMMON_KF = 90000
 local COMBO_KF = 100000
-local kf_common = {}
-local kf_combo = {}
+local kf_common 
+local kf_combo  
 local PLACE = {GUANQIA = 1, ARENA = 2}
-				
+local myctx
+
 local Self = {  
 			FightPower = 0,  --actually means presentfight power
 		    MaxComboNum = 0, 
@@ -53,7 +54,8 @@ local Self = {
 			OnBattleList = {},
 			IfArenaInit = 0,
 			OnBattleSequence = 1
-		  } 	
+		  } 
+
 local Enemy = { 
 			FightPower = 0,  			--actually means presentfight power
 		    MaxComboNum = 0, 			--maxcomboNum in this battle  
@@ -75,12 +77,12 @@ local function send_package(pack)
 	socket.write(client_fd, package)
 end	  		   	
 	
-function REQUEST:login(u)
+function REQUEST:login(u, ctx)
 	-- body
 	assert( u )
 	print("**********************************lilianrequest_login")
 	user = u
-end	    
+end	
 	
 --get who fight first, true user first, false robot first;	    	
 local function first_fighter()		
@@ -142,7 +144,7 @@ local function get_ordered_fight_list(tfightlist, reserved_fight_list, reserved_
 	end 
 		
 	print("reserved_fight_list is ***************************", #reserved_fight_list)
-							
+								
 	table.sort(reserved_fight_list, SortFunc)
 
 	for k , v in ipairs(reserved_fight_list) do
@@ -154,7 +156,7 @@ end
 --huo de mei ci zi dong zhan dou de quan fa xu lie
 local function get_ordered_fight_list_to_client(sordered_fight_list, tmp_fightid_list, totalfightnum)
 	assert(sordered_fight_list and tmp_fightid_list)
-             
+	             
 	local total_raise_prob = 0    --the sum of all kf trigger prob
 	local sign = false            --to indicate if if first time to get bigger than sign
 	print("sizeof sordered_fight_list is ", #sordered_fight_list)
@@ -189,61 +191,59 @@ local function get_ordered_fight_list_to_client(sordered_fight_list, tmp_fightid
 		end 	
 
 		print("totalattack in get_ordered_fight_list is", total_raise_prob)
-			
+		
 	-- if total_raise_prob < 100% , then add a common fight
 		if total_raise_prob < 100 then             
 			table.insert(tmp_fightid_list, {kf_id = COMMON_KF, prob = 100 - total_raise_prob}) --tmp					
 			--table.insert(reserved_fight_list, )
 			--reserved_fightid_list[tostring()] = #reserved_fight_list + 1
-		end 				
-	end	
-end 	
-	
+		end  				
+	end	     
+end 		 
+			 
 --huo de guai de 		
 local function get_monster_fight_list(monsterid)
 	assert(monsterid)
 	local fight_id_list = {}
-		
+			
 	local r = skynet.call(".game", "lua", "query_g_monster", monsterid)
 	assert(r)
-	
+				
 	Enemy.Attr.combat = r.combat  
 	Enemy.Attr.defence = r.defense
 	Enemy.Attr.critical_hit = r.critical_hit
 	Enemy.Attr.king = r.blessing  
-    
+		    	 	 								
 	Enemy.FightPower = r.combat 
 	print("r.quanfaid is ********************************************", r.quanfaid)
 	local t = util.parse_text(r.quanfaid, "(%d+%*?)", 1)
 	local tmp = {}
 	for k, v in ipairs(t) do
 		tmp[k] = v[1]
-	end 
-	
+	end 	 
+             
 	assert(#tmp > 0)
-																				
+			 																	
 	fight_id_list = get_ordered_fight_list(tmp, Enemy.FightList, Enemy.FightIdList)
-																							
+			 																				
 	return fight_id_list 													
-end 																		
-				
-local function get_fight_list(roleid, roletype)						
+end 		 																
+				 	
+local function get_fight_list(user, roledid, roletype)			
+	assert(user and roledid and roletype)
+
 	local ret = {}															
 	local r = {}															
 	local TmpSelf 																			
-	print("get_fight_list is ******************************", roletype, SELF)
+
 	if roletype == SELF then
-		r = user.u_rolemgr:get_by_csv_id(roleid)
-		assert(r)
 		TmpSelf = Self
-		print("fucking tempself == self")
-	else 																						
-		local sql = string.format("select * from u_role where user_id = %s and csv_id = %s" , uid, roleid)
-		r = skynet.call(util.random_db(), "lua", "command", "query", sql)
-		assert(r)
+	else
 		TmpSelf = Enemy
-		print("fucking tempself == Enemy")
-	end 
+	end	
+
+	r = user.u_rolemgr:get_by_csv_id(roleid)
+	assert(r)
 
 	local idx = 1
 	local tmp = {}
@@ -257,49 +257,42 @@ local function get_fight_list(roleid, roletype)
 		end
 		idx = idx + 1
 	end 
-
 	--assert(Self.FightList == Enemy.FightLIst)
 	for k, v in ipairs(TmpSelf.FightList) do
 		print(k, v.g_csv_id)
 	end 
-			  
 	--assert(TmpSelf.FightList == {})		
 	ret = get_ordered_fight_list(tmp, TmpSelf.FightList, TmpSelf.FightIdList)
 	print("TmpSelf.Fight in get_fight_list is ****************************")
-			  	
+	
 	return ret
-end 		  	
-		
-local function init_attribute(uid, roleid, inittype)
-	print("uid, roleid, inittype", uid, roleid, inittype)
+end 		
+			
+local function init_attribute(user, inittype)
+	assert(user and inittype)
 	--assert(uid and roleid and inittype)
+	local TmpSelf 
 	local t = {}
 		
 	if inittype == SELF then
-		t = util.get_total_property(user, _, _)
-		assert(t)
-				
-		Self.Attr.combat = t[1] or 0
-		Self.Attr.defence = t[2] or 0
-		Self.Attr.critical_hit = t[3] or 0
-		Self.Attr.king = t[4] or 0
+		TmpSelf = Self
+	else
+		TmpSelf = Enemy
+	end 
+
+	t = util.get_total_property(user, _, _)
+	assert(t)
+
+	TmpSelf.Attr.combat = t[1] or 0
+	TmpSelf.Attr.defence = t[2] or 0
+	TmpSelf.Attr.critical_hit = t[3] or 0
+	TmpSelf.Attr.king = t[4] or 0
 			
-		Self.FightPower = t[1] or 0
-	else     
-		t = util.get_total_property(_, uid, roleid)
-		assert(t)
-		
-		Enemy.Attr.combat = t[1] or 0
-		Enemy.Attr.defence = t[2] or 0
-		Enemy.Attr.critical_hit = t[3] or 0
-		Enemy.Attr.king = t[4] or 0
-		
-		Enemy.FightPower = t[1] or 0
-	end	
+	TmpSelf.FightPower = t[1] or 0
 		
 	print("basic property is************************************", t[1], t[2], t[3], t[4])
 end			
-	
+	        
 local function TmpPrintContent(t)
 	assert(t)
 	for k , v in pairs(t) do
@@ -310,22 +303,22 @@ local function TmpPrintContent(t)
 			end
 		else
 			print(k, v)
-		end
-	end
+		end 
+	end 	
 
 	print("sizeof tmpself.FightList is***************************** ", #(t.FightList))
-end	
-	
+end			
+			
 local function get_kf_common_and_combo()
 	local r = skynet.call(".game", "lua", "query_g_kungfu", COMMON_KF)
 	assert(r)
 	kf_common = r
-	
+			
 	local t = skynet.call(".game", "lua", "query_g_kungfu", COMBO_KF)
 	assert(t)
 	kf_combo = t
-end	
-	
+end			
+			
 local function reset(t) 
 	assert(t) 
 
@@ -340,86 +333,61 @@ local function reset(t)
 	t.PresentComboNum = 0
 	t.TotalFightNum = 0  
 
-end 
-	
+end 		
+			
 local function reset_arena(t)
-	reset(t)
-
+	reset(t)  
+          	
 	t.Uid = 0
 	t.OnBattleList = {}
 	t.IfArenaInit = 0
 	t.OnBattleSequence = 1
-end 		
-			
-function REQUEST:BeginGUQNQIACoreFight()
-	assert(self.monsterid)
-	print("BeginGUANQIACoreFight is called *******************************", self.monsterid)
-					
-	FIGHT_PLACE = PLACE.GUANQIA
+end 					  	
+						  
+local function get_monster_battle_list(guanqiaid)
+	assert(guanqiaid)	  
+	local r = skynet.call(".game", "lua", "query_g_checkpoint", guanqiaid)
+	assert(r)			  
 
-	reset(Self)
-	reset(Enemy)
-           	
-	local ret = {}
-	if not kf_common or not kf_combo then
-		get_kf_common_and_combo()
-	end
+	local index = 1
+	while index < FIXED_MONSTER_NUM do
+		local monster_csvid = "monster_csvid" .. index
+		if 0 ~= r[monster_csvid] then
+			table.insert(Enemy.OnBattleList, r[monster_csvid])
+		end 
 
-	get_monster_fight_list(self.monsterid)
-		   	
-	init_attribute(_, user.c_role_id, SELF)
-	get_fight_list(_, user.c_role_id, SELF)
-           	
-	ret.errorcode = errorcode[1].code
-	ret.delay_time = START_DELAY
-           	
-	if first_fighter() then
-		ret.firstfighter = SELF
-	else   	
-		ret.firstfighter = ENEMY
-	end   	
-          	
-	return ret
+		index = index + 1
+	end 
+end		
+		  	
+local function get_on_battle_list(user, type)
+	assert(user and type)	
+
+	local TmpSelf 		
+
+	if type == SELF then
+		TmpSelf = Self  
+	else 			    
+		TmpSelf = Enemy 
+	end 	
+
+	local idx = 1 
+	while idx <= ON_BATTLE_ROLE_NUM do
+	  	local ara_role_id = "ara_role_id" .. idx
+	  	local value = user[ara_role_id]
+	  	if 0 == value then 
+	  		return false 
+	  	else 										
+	  		table.insert(TmpSelf.OnBattleList, value)
+	  	end 										
+	end												
+    													    
+	return true 									
 end 	  	
 		  	
-local function get_on_battle_list(uid, type)	 		
-	assert(uid and type and TmpSelf)	 	
-	if type == SELF then 
-		local idx = 1 
-		while idx <= ON_BATTLE_ROLE_NUM do
-		  	local ara_role_id = "ara_role_id" .. idx
-		  	local value = user[ara_role_id]
-		  	if 0 == value then 
-		  		return false 
-		  	else 
-		  		table.insert(Self.OnBattleList, value)
-		  	end 
-		end	
-	elseif type == ENEMY then
-		local sql = string.format("select ara_role_id1, ara_role_id2, ara_role_id3 from users where csv_id = %s", uid)
-		local r = skynet.call(util.random_db(), "lua", "command", "query", sql)
-		assert(#r == 3)
-          
-		local idx = 1
-		while idx <= ON_BATTLE_ROLE_NUM do
-		  	local ara_role_id = "ara_role_id" .. idx
-		  	local value = r[1][ara_role_id]
-		  	if 0 == value then 
-		  		return false 
-		  	else 
-		  		table.insert(Enemy.OnBattleList, value)
-		  	end 
-		end
-	else  
-		assert(false)
-	end   
-    	    
-	return true
-end 	  
-		  
 local function get_attack(kf, TmpSelf, TmpEnemy)
 	assert(kf and TmpSelf and TmpEnemy)
-          
+          	
 	local totalattack = 0
           			
 	local defenceprob = TmpEnemy.Attr.defence / (TmpEnemy.Attr.defence + 100)                	--enemy defenceprob
@@ -434,18 +402,18 @@ local function get_attack(kf, TmpSelf, TmpEnemy)
 		totalattack = math.floor((TmpSelf.Attr.combat * 0.2 + TmpSelf.FightPower * 0.1) * (kf.effect_percent / 100) * (1 - defenceprob) * (1 + critical_heartprob))
 		print("all value in get_attack is 2", TmpSelf.Attr.combat, TmpSelf.FightPower, kf.effect_percent, defenceprob, critical_heartprob)
 	elseif 3 == kf.attack_type then 
-          
+          	
 	elseif 4 == kf.attack_type then    --combo attack
 		totalattack = math.floor((TmpSelf.Attr.combat * 0.2 + TmpSelf.FightPower * 0.1) * (1 + TmpSelf.PresentComboNum * 0.1 + kingprob + critical_heartprob))
 		print("all value in get_attack is 4", TmpSelf.Attr.combat, TmpSelf.FightPower, kf.effect_percent, defenceprob, TmpSelf.PresentComboNum, kingprob)
 	else  		
 		--TODO	
 	end   		
-          
+          	
 	print(" totalattack******************************* ", totalattack)
 	return totalattack
 end 	 					
-
+			
 local function get_attacheffect(kf, TmpSelf, TmpEnemy, totalattack)
 	print("in get_attacheffect**********************************", kf.addition_effect_type)
 	assert(kf and TmpSelf and TmpEnemy and totalattack) 
@@ -458,8 +426,8 @@ local function get_attacheffect(kf, TmpSelf, TmpEnemy, totalattack)
 		 	else
 		 		break
 		 	end 
-		end 	
-         
+		end 
+         	
 		TmpEnemy.TmpFightIdList = {}
 		get_ordered_fight_list_to_client(TmpEnemy.FightList, TmpEnemy.TmpFightIdList, TmpEnemy.TotalFightNum)
 		TmpEnemy.IsAffectedNextTime = 1
@@ -510,7 +478,7 @@ local function get_attacheffect(kf, TmpSelf, TmpEnemy, totalattack)
 		 	 	TmpSelf.FightPower = TmpSelf.Attr.combat
 		 	end 		  	
   		end  				
-  		print("attacheffect is 5 *******************", math.floor(TmpEnemy.FightPower * (kf.addition_prog / 100)) )
+  		print("attacheffect is 6 *******************", math.floor(TmpEnemy.FightPower * (kf.addition_prog / 100)) )
   	else    
   		--TODO deal 0 type 	
   	end  	 				
@@ -545,7 +513,7 @@ local KF_TYPE = {QUANFA = 1, COMBO = 2, COMMON = 3}
 local function do_verify(v, userroleid)
   	print("do_verify is called********************************", userroleid)
   	assert(v)
-  	
+  			
   	local TmpSelf = {}
   	local TmpEnemy = {}
   			
@@ -559,7 +527,7 @@ local function do_verify(v, userroleid)
   					
   	local kf = {}	
   	local totalattack = 0	
-  			
+  	
   	if 0 == TmpSelf.IsDead and 0 == TmpEnemy.IsDead then
   		if 1 == v.attcktype then
 		assert(1 == v.attcktype)
@@ -578,7 +546,7 @@ local function do_verify(v, userroleid)
 			if 0 == TmpSelf.IsAffectedNextTime then
 				TmpSelf.TmpFightIdList = {}
 				get_ordered_fight_list_to_client(TmpSelf.FightList, TmpSelf.TmpFightIdList, TmpSelf.TotalFightNum)
-			else 	
+			else 			
 				TmpSelf.IsAffectedNextTime = 0
 			end 				
 			
@@ -588,14 +556,14 @@ local function do_verify(v, userroleid)
 			else 				 
 				TmpEnemy.IsAffectedNextTime = 0 
 			end 				 
-            
+            				
 			for k, v in pairs(TmpSelf.TmpFightIdList) do 
 				print("TmpSELE.TmpFightIdList is ", k, v) 
 				for sk, sv in pairs(v) do 
 					print(sk, sv) 
 				end 			 	
 			end 				 
-						
+			
 			local tmp_kf_id = get_kf_id_by_prob(TmpSelf.TmpFightIdList, v.kf_prob) 
 			print("tmp_kf_id is ****************************************", tmp_kf_id) 
 			if not tmp_kf_id then 
@@ -608,7 +576,7 @@ local function do_verify(v, userroleid)
 				end 			  	
 			end 				  		
 		else 					 
-			print("already in 2**************************")				  					--if MANUAL ATTACK 							
+			print("already in 2**************************")								--if MANUAL ATTACK 							
 			if v.kf_type == 1 then 
 				if TmpSelf.PresentComboNum >= v.random_combo_num then 
 					totalattack = get_attack(kf_common, TmpSelf, TmpEnemy) 
@@ -633,32 +601,34 @@ local function do_verify(v, userroleid)
 			local left = TmpEnemy.FightPower - totalattack 
 			print("left is ****************", left, left > 0 ) 
 			if left > 0 then 
-				TmpEnemy.FightPower = TmpEnemy.FightPower - totalattack 
-				print("TmpEnemy.FightPower - totalattack > 0", TmpEnemy.FightPower, totalattack)                 
-				local effect = get_attacheffect(kf, TmpSelf, TmpEnemy, totalattack)
-				if effect ~= v.attach_effect then
-					assert(effect == v.attach_effect)
-					return false
-				end
-            
-				if 1 == TmpSelf.IsDead then                                            
-			   	 	isdead = (TmpSelf == Self) and SELF or ENEMY
-				elseif 1 == TmpEnemy.IsDead then 
-				 	isdead = (TmpEnemy == Enemy) and ENEMY or SELF                                                      
-				end 
-            
-				if v.attcktype == 1 and v.kf_type == KF_TYPE.QUANFA then
-					kf.actual_fight_num = kf.actual_fight_num + 1
-					TmpSelf.TotalFightNum = TmpSelf.TotalFightNum + 1
-				end
+			 	TmpEnemy.FightPower = TmpEnemy.FightPower - totalattack 
+			 	print("TmpEnemy.FightPower - totalattack > 0", TmpEnemy.FightPower, totalattack)                 
+			 	local effect = get_attacheffect(kf, TmpSelf, TmpEnemy, totalattack)
+			 	if effect ~= v.attach_effect then
+			 		assert(effect == v.attach_effect)
+			 		return false
+			 	end
+             	
+			 	if 1 == TmpSelf.IsDead then                                            
+			    	 	isdead = (TmpSelf == Self) and SELF or ENEMY
+			 	elseif 1 == TmpEnemy.IsDead then 
+			 	 	isdead = (TmpEnemy == Enemy) and ENEMY or SELF                                                      
+			 	end 
+                         	
+			 	if v.attcktype == 1 and v.kf_type == KF_TYPE.QUANFA then
+			 		kf.actual_fight_num = kf.actual_fight_num + 1
+			 		TmpSelf.TotalFightNum = TmpSelf.TotalFightNum + 1
+			 	end
 			else 
 				TmpEnemy.IsDead = 1 
 				isdead = (TmpEnemy == Enemy) and ENEMY or SELF		
 			end 	
+
 			print("isdead is ", isdead)
 			print("v.isdead is ", v.isdead)
 			print("Selffightpower is **********************", TmpSelf.FightPower)
 			print("Enemyfightpower is *************************", TmpEnemy.FightPower)
+
 			if v.isdead ~= 0 then
 				if isdead == v.isdead then
 				 	return true					
@@ -675,86 +645,186 @@ local function do_verify(v, userroleid)
 		return false 
 	end 		 	 
 end 				 
-					 
-function REQUEST:GuanQiaBattleList()
+			
+function REQUEST:BeginGUQNQIACoreFight(ctx)
+	assert(self.monsterid and ctx)
+    								
+	print("BeginGUANQIACoreFight is called *******************************", self.monsterid)
+
+	FIGHT_PLACE = PLACE.GUANQIA
+    			
+	reset_arena(Self)
+	reset_arena(Enemy)
+   			
+	local ret = {}	
+	
+	if not kf_common or not kf_combo then							
+		get_kf_common_and_combo()
+	end 	
+
+	assert(ctx.me.cp_chapter ~= 0)
+	--huo de guai de shang zhen xu lie 
+	get_monster_battle_list(ctx.user.cp_chapter)
+
+	--huo de dang qian shang zhen guai de quan fa xu lie
+	get_monster_fight_list(Enemy.OnBattleList[Enemy.OnBattleSequence])
+
+	--chu shi hua ziji de ji chu shu xing
+	init_attribute(ctx.me, SELF)
+	--chu shi hua zi ji de quan fa xue lie
+	get_fight_list(ctx.me, ctx.me.c_role_id, SELF)
+   	
+	ret.errorcode = errorcode[1].code
+	ret.delay_time = START_DELAY
+           	
+	if first_fighter() then
+		ret.firstfighter = SELF
+	else   	
+		ret.firstfighter = ENEMY
+	end   	
+          	
+	return ret
+end 	  	
+			
+function REQUEST:GuanQia_OnPrepareNextMonster(ctx)
+	assert(ctx)
+	local ret = {} 
+			
+	if 1 == Self.IsDead then
+		ret.errorcode = errorcode[110].code 
+	elseif 0 == Enemy.IsDead then
+		ret.errorcode = errorcode[110].code
+	else 	
+		Enemy.IsDead = 0
+		reset(Enemy)
+		if Enemy.OnBattleSequence < 3 then
+			Enemy.OnBattleSequence = Enemy.OnBattleSequence + 1
+			get_monster_fight_list(Enemy.OnBattleList[Enemy.OnBattleSequence])
+
+			if first_fighter() then 	
+				ret.firstfighter = SELF 
+			else 						
+				ret.firstfighter = ENEMY
+			end 						
+							
+			ret.errorcode = errorcode[1].code
+			ret.delay_time = START_DELAY
+		else
+			ret.errorcode = errorcode[110].code
+		end
+	end  				 
+		 	
+	return ret
+end		 
+		 	
+function REQUEST:GuanQiaBattleList(ctx)
 	print("BattleList is called ****************************", #self.fightlist)
 	assert(self.fightlist)
 	local ret = {}   
 		                 
 	for k , v in ipairs(self.fightlist) do
 		for sk , sv in pairs(v) do
-			print("value ",sk, sv)
+		 	print("value ",sk, sv)
 		end          
-        
+         
 		if not do_verify(v, user.c_role_id) then
-			ret.errorcode = errorcode[112].code
-			return ret
+		 	ret.errorcode = errorcode[112].code
+		 	return ret
 		end
-	end 		
-
+	end  
+		 
 	ret.errorcode = errorcode[1].code
 	return ret
-end 				
-			
-function REQUEST:BeginArenaCoreFight()
-	assert(self.uid and self.roleid)
+end 	 			
+		 	
+function REQUEST:BeginArenaCoreFight(ctx)
+	assert(self.uid and self.roleid and ctx)
 	print("BeginArenaCoreFight is called **********************************", self.uid, self.roleid)
-
+		 
 	FIGHT_PLACE = PLACE.ARENA
-		
+		 
 	reset_arena(Self)		
 	reset_arena(Enemy)		
-
+		 
     local ret = {}								
-    											
-    --init common and combo special kf 			
-    get_kf_common_and_combo()         			
+    	 										
+    --init common and combo special kf 
+    if not kf_combo or not kf_combo then			
+    	get_kf_common_and_combo()         			
+    end
+
     --init user and enemy on_battlerole_info_list
-    if not get_on_battle_list(_, SELF) then 	
-    	ret.errorcode = errorcode[110].code 		
-    end 				 				  		
-    															
-    if not get_on_battle_list(self.uid, ENEMY) then
-    	ret.errorcode = errorcode[110],code
-    end                                
-    							
-    --get role fight_list             
-	get_fight_list(_, Self.OnBattleList[1] , SELF) 
-	get_fight_list(self.uid, Enemy.OnBattleList[1], ENEMY) 
-	--init basic attribute             
-	init_attribute(_, Self.OnBattleList[1], SELF) 
-	init_attribute(self.uid, Enemy.OnBattleList[1], ENEMY) 
-						 		
-	if first_fighter() then 	
-		ret.firstfighter = SELF 
-	else 						
+    if not get_on_battle_list(ctx.me SELF) then   	
+    	ret.errorcode = errorcode[110].code 	  	
+    end 				 				  		  	
+    											  					
+    if not get_on_battle_list(ctx.enemy, ENEMY) then
+    	ret.errorcode = errorcode[110],code 	  	 
+    end                                			  
+    								
+    Self.Uid = ctx.me.csv_id
+    Enemy.Uid = ctx.enemy.csv_id
+
+    --get role fight_list             			  	
+	get_fight_list(ctx.me, Self.OnBattleList[1] , SELF) 
+	get_fight_list(ctx.enemy, Enemy.OnBattleList[1], ENEMY) 
+	--init basic attribute             			  	
+	init_attribute(ctx.me, SELF) 
+	init_attribute(ctx.enemy, ENEMY) 
+						 						  
+	if first_fighter() then 					  
+		ret.firstfighter = SELF 				  
+	else 										  
 		ret.firstfighter = ENEMY
 	end 						
-			   					
+					   							
 	ret.errorcode = errorcode[1].code
 	ret.delay_time = START_DELAY
-
-	return ret 					
-end     							
-								
-function REQUEST:Arena_OnPrepareNextRole()
-	--assert(self.loserid)				
-	local ret = {} 					
-
-	local TmpSelf = {}  
+	 			  	
+	return ret 	  				
+end     		  		
+				  	
+function REQUEST:Arena_OnPrepareNextRole(ctx)
+	--assert(self.loserid)
+	local ret = {} 	
+				  	
+	local TmpSelf  	
 	if 1 == Self.IsDead then
 		TmpSelf = Self 
 	elseif 1 == Enemy.IsDead then
 		TmpSelf = Enemy 
+	else 			
+		ret.errorcode = errorcode[110].code
+		return ret 	 
+	end 			
+		
+	if TmpSelf.OnBattleSequence < 3 then
+		TmpSelf.IsDead = 0 
+		reset(TmpSelf) 
+		TmpSelf.OnBattleSequence = TmpSelf.OnBattleSequence + 1
+
+		if 1 == Self.IsDead then
+			get_fight_list(ctx.me, Self.OnBattleList[Self.OnBattleSequence], SELF)
+			init_attribute(ctx.me, SELF)
+		else 			
+			get_fight_list(ctx.enemy, Enemy.OnBattleList[Enemy.OnBattleSequence], ENEMY)
+			init_attribute(ctx.enemy, ENEMY)
+		end 			
+
+		if first_fighter() then 					  
+			ret.firstfighter = SELF 				  
+		else 										  
+			ret.firstfighter = ENEMY
+		end 						
+						
+		ret.errorcode = errorcode[1].code
+		ret.delay_time = START_DELAY 
+	else 				
+		ret.errorcode = errorcode[110].code 
 	end 				
-
-	TmpSelf.IsDead = 0 
-	reset(TmpSelf) 
-	TmpSelf.OnBattleSequence = TmpSelf.OnBattleSequence + 1 
-
-	ret.errorcode = errorcode[110].code 
-
-	return ret
+	--chong xin chu shi hua dead yi fang de zhi
+								
+	return ret 					
 end 	    			
 						
 function REQUEST:ArenaBattleList()
@@ -771,12 +841,12 @@ function REQUEST:ArenaBattleList()
 			ret.errorcode = errorcode[112].code
 			return ret
 		end
-	end 				
+	end 	
 
 	ret.errorcode = errorcode[1].code
 	return ret	
 end 
-		
+	
 local NormalExistTime	
 local MAX_EXIT_TIME = 5 --sec
 			
@@ -805,12 +875,12 @@ function REQUEST:OnReEnterCoreFight()
 	-- 		ret.errorcode = errorcode[1].code  --tell client continue play effect
 	-- 	end                    
 	-- end 	
-
+	
 	return ret
 end 
 	
 function REQUEST:EndCoreFight()
-
+	
 end 
 	
 function core_fightrequest.start(c, s, g, fgs, tgs, ...)

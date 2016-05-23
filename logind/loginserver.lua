@@ -32,21 +32,21 @@ Error Code:
 Success:
 	200 base64(subid)
 ]]		
-		
+				 
 local socket_error = {}
 local function assert_socket(service, v, fd)
-	if v then
-		return v
-	else
+	if v then 	 
+		return v 
+	else 		 
 		skynet.error(string.format("%s failed: socket (fd = %d) closed", service, fd))
 		error(socket_error)
-	end 
-end 	
-		
+	end 		 
+end 			 
+				 
 local function write(service, fd, text)
 	assert_socket(service, socket.write(fd, text), fd)
-end 	
-		
+end 			 
+			 
 local function launch_slave(auth_handler)
 	local function auth(fd, addr)
 		-- set socket buffer limit (8K)
@@ -62,7 +62,6 @@ local function launch_slave(auth_handler)
 		if #clientkey ~= 8 then
 			error "Invalid client key"
 		end
-		
 		print("***************************2")
 
 		local serverkey = crypt.randomkey()
@@ -112,24 +111,24 @@ local function launch_slave(auth_handler)
 
 	skynet.dispatch("lua", function(_,_,...)
 		local ok, msg, len = pcall(auth_fd, ...)
-		if ok then
+		if ok then 			
 			skynet.ret(msg,len)
-		else
+		else 				
 			skynet.ret(skynet.pack(false, msg))
-		end
-	end)
-end
-
-local user_login = {}
-
+		end 					
+	end)					
+end 						
+							
+local user_login = {}		
+							
 local function accept(conf, s, fd, addr)
-	-- call slave auth
+	-- call slave auth 		
 	local ok, server, uid, secret = skynet.call(s, "lua",  fd, addr)
 	-- slave will accept(start) fd, so we can write to fd later
 
 	print("*********************************6")
-	if not ok then
-		if ok ~= nil then
+	if not ok then 			
+		if ok ~= nil then	
 			print("**********************1")
 			write("response 401", fd, "401 Unauthorized\n")
 		end
@@ -158,6 +157,7 @@ local function accept(conf, s, fd, addr)
 	else
 		print("**********************4", err)
 		write("response 403",fd,  "403 Forbidden\n")
+		error(err)
 	end
 end
 

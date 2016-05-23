@@ -40,7 +40,7 @@ function cls:ctor(mgr, P, ... )
 		}
 
 	for k,v in pairs(self.__head) do
-		self.__fields[k] = assert(P[k])
+		self.__fields[k] = assert(P[k], string.format("no exist %s", k))
 	end
 	return self
 end
@@ -48,6 +48,10 @@ end
 function cls:set_id(v, ... )
 	-- body
 	assert(v)
+	self.__ecol_updated["id"] = self.__ecol_updated["id"] + 1
+	if self.__ecol_updated["id"] == 1 then
+		self.__ecol_updated = self.__ecol_updated + 1
+	end
 	self.__fields.id = v
 end
 
@@ -59,6 +63,10 @@ end
 function cls:set_fromid(v, ... )
 	-- body
 	assert(v)
+	self.__ecol_updated["fromid"] = self.__ecol_updated["fromid"] + 1
+	if self.__ecol_updated["fromid"] == 1 then
+		self.__ecol_updated = self.__ecol_updated + 1
+	end
 	self.__fields.fromid = v
 end
 
@@ -70,6 +78,10 @@ end
 function cls:set_toid(v, ... )
 	-- body
 	assert(v)
+	self.__ecol_updated["toid"] = self.__ecol_updated["toid"] + 1
+	if self.__ecol_updated["toid"] == 1 then
+		self.__ecol_updated = self.__ecol_updated + 1
+	end
 	self.__fields.toid = v
 end
 
@@ -81,6 +93,10 @@ end
 function cls:set_type(v, ... )
 	-- body
 	assert(v)
+	self.__ecol_updated["type"] = self.__ecol_updated["type"] + 1
+	if self.__ecol_updated["type"] == 1 then
+		self.__ecol_updated = self.__ecol_updated + 1
+	end
 	self.__fields.type = v
 end
 
@@ -92,6 +108,10 @@ end
 function cls:set_amount(v, ... )
 	-- body
 	assert(v)
+	self.__ecol_updated["amount"] = self.__ecol_updated["amount"] + 1
+	if self.__ecol_updated["amount"] == 1 then
+		self.__ecol_updated = self.__ecol_updated + 1
+	end
 	self.__fields.amount = v
 end
 
@@ -103,6 +123,10 @@ end
 function cls:set_propid(v, ... )
 	-- body
 	assert(v)
+	self.__ecol_updated["propid"] = self.__ecol_updated["propid"] + 1
+	if self.__ecol_updated["propid"] == 1 then
+		self.__ecol_updated = self.__ecol_updated + 1
+	end
 	self.__fields.propid = v
 end
 
@@ -114,6 +138,10 @@ end
 function cls:set_isread(v, ... )
 	-- body
 	assert(v)
+	self.__ecol_updated["isread"] = self.__ecol_updated["isread"] + 1
+	if self.__ecol_updated["isread"] == 1 then
+		self.__ecol_updated = self.__ecol_updated + 1
+	end
 	self.__fields.isread = v
 end
 
@@ -125,6 +153,10 @@ end
 function cls:set_csendtime(v, ... )
 	-- body
 	assert(v)
+	self.__ecol_updated["csendtime"] = self.__ecol_updated["csendtime"] + 1
+	if self.__ecol_updated["csendtime"] == 1 then
+		self.__ecol_updated = self.__ecol_updated + 1
+	end
 	self.__fields.csendtime = v
 end
 
@@ -136,6 +168,10 @@ end
 function cls:set_srecvtime(v, ... )
 	-- body
 	assert(v)
+	self.__ecol_updated["srecvtime"] = self.__ecol_updated["srecvtime"] + 1
+	if self.__ecol_updated["srecvtime"] == 1 then
+		self.__ecol_updated = self.__ecol_updated + 1
+	end
 	self.__fields.srecvtime = v
 end
 
@@ -147,6 +183,10 @@ end
 function cls:set_signtime(v, ... )
 	-- body
 	assert(v)
+	self.__ecol_updated["signtime"] = self.__ecol_updated["signtime"] + 1
+	if self.__ecol_updated["signtime"] == 1 then
+		self.__ecol_updated = self.__ecol_updated + 1
+	end
 	self.__fields.signtime = v
 end
 

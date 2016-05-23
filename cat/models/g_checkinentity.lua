@@ -36,7 +36,7 @@ function cls:ctor(mgr, P, ... )
 		}
 
 	for k,v in pairs(self.__head) do
-		self.__fields[k] = assert(P[k])
+		self.__fields[k] = assert(P[k], string.format("no exist %s", k))
 	end
 	return self
 end
@@ -44,6 +44,10 @@ end
 function cls:set_csv_id(v, ... )
 	-- body
 	assert(v)
+	self.__ecol_updated["csv_id"] = self.__ecol_updated["csv_id"] + 1
+	if self.__ecol_updated["csv_id"] == 1 then
+		self.__ecol_updated = self.__ecol_updated + 1
+	end
 	self.__fields.csv_id = v
 end
 
@@ -55,6 +59,10 @@ end
 function cls:set_month(v, ... )
 	-- body
 	assert(v)
+	self.__ecol_updated["month"] = self.__ecol_updated["month"] + 1
+	if self.__ecol_updated["month"] == 1 then
+		self.__ecol_updated = self.__ecol_updated + 1
+	end
 	self.__fields.month = v
 end
 
@@ -66,6 +74,10 @@ end
 function cls:set_count(v, ... )
 	-- body
 	assert(v)
+	self.__ecol_updated["count"] = self.__ecol_updated["count"] + 1
+	if self.__ecol_updated["count"] == 1 then
+		self.__ecol_updated = self.__ecol_updated + 1
+	end
 	self.__fields.count = v
 end
 
@@ -77,6 +89,10 @@ end
 function cls:set_g_prop_csv_id(v, ... )
 	-- body
 	assert(v)
+	self.__ecol_updated["g_prop_csv_id"] = self.__ecol_updated["g_prop_csv_id"] + 1
+	if self.__ecol_updated["g_prop_csv_id"] == 1 then
+		self.__ecol_updated = self.__ecol_updated + 1
+	end
 	self.__fields.g_prop_csv_id = v
 end
 
@@ -88,6 +104,10 @@ end
 function cls:set_g_prop_num(v, ... )
 	-- body
 	assert(v)
+	self.__ecol_updated["g_prop_num"] = self.__ecol_updated["g_prop_num"] + 1
+	if self.__ecol_updated["g_prop_num"] == 1 then
+		self.__ecol_updated = self.__ecol_updated + 1
+	end
 	self.__fields.g_prop_num = v
 end
 
@@ -99,6 +119,10 @@ end
 function cls:set_vip(v, ... )
 	-- body
 	assert(v)
+	self.__ecol_updated["vip"] = self.__ecol_updated["vip"] + 1
+	if self.__ecol_updated["vip"] == 1 then
+		self.__ecol_updated = self.__ecol_updated + 1
+	end
 	self.__fields.vip = v
 end
 
@@ -110,6 +134,10 @@ end
 function cls:set_vip_g_prop_csv_id(v, ... )
 	-- body
 	assert(v)
+	self.__ecol_updated["vip_g_prop_csv_id"] = self.__ecol_updated["vip_g_prop_csv_id"] + 1
+	if self.__ecol_updated["vip_g_prop_csv_id"] == 1 then
+		self.__ecol_updated = self.__ecol_updated + 1
+	end
 	self.__fields.vip_g_prop_csv_id = v
 end
 
@@ -121,6 +149,10 @@ end
 function cls:set_vip_g_prop_num(v, ... )
 	-- body
 	assert(v)
+	self.__ecol_updated["vip_g_prop_num"] = self.__ecol_updated["vip_g_prop_num"] + 1
+	if self.__ecol_updated["vip_g_prop_num"] == 1 then
+		self.__ecol_updated = self.__ecol_updated + 1
+	end
 	self.__fields.vip_g_prop_num = v
 end
 

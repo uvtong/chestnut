@@ -84,6 +84,10 @@ end
 function cls:set_id(v, ... )
 	-- body
 	assert(v)
+	self.__ecol_updated["id"] = self.__ecol_updated["id"] + 1
+	if self.__ecol_updated["id"] == 1 then
+		self.__ecol_updated = self.__ecol_updated + 1
+	end
 	self.__fields.id = v
 end
 
@@ -95,6 +99,10 @@ end
 function cls:set_user_id(v, ... )
 	-- body
 	assert(v)
+	self.__ecol_updated["user_id"] = self.__ecol_updated["user_id"] + 1
+	if self.__ecol_updated["user_id"] == 1 then
+		self.__ecol_updated = self.__ecol_updated + 1
+	end
 	self.__fields.user_id = v
 end
 
@@ -106,6 +114,10 @@ end
 function cls:set_csv_id(v, ... )
 	-- body
 	assert(v)
+	self.__ecol_updated["csv_id"] = self.__ecol_updated["csv_id"] + 1
+	if self.__ecol_updated["csv_id"] == 1 then
+		self.__ecol_updated = self.__ecol_updated + 1
+	end
 	self.__fields.csv_id = v
 end
 
@@ -117,6 +129,10 @@ end
 function cls:set_name(v, ... )
 	-- body
 	assert(v)
+	self.__ecol_updated["name"] = self.__ecol_updated["name"] + 1
+	if self.__ecol_updated["name"] == 1 then
+		self.__ecol_updated = self.__ecol_updated + 1
+	end
 	self.__fields.name = v
 end
 
@@ -128,6 +144,10 @@ end
 function cls:set_star(v, ... )
 	-- body
 	assert(v)
+	self.__ecol_updated["star"] = self.__ecol_updated["star"] + 1
+	if self.__ecol_updated["star"] == 1 then
+		self.__ecol_updated = self.__ecol_updated + 1
+	end
 	self.__fields.star = v
 end
 
@@ -139,6 +159,10 @@ end
 function cls:set_us_prop_csv_id(v, ... )
 	-- body
 	assert(v)
+	self.__ecol_updated["us_prop_csv_id"] = self.__ecol_updated["us_prop_csv_id"] + 1
+	if self.__ecol_updated["us_prop_csv_id"] == 1 then
+		self.__ecol_updated = self.__ecol_updated + 1
+	end
 	self.__fields.us_prop_csv_id = v
 end
 
@@ -150,6 +174,10 @@ end
 function cls:set_us_prop_num(v, ... )
 	-- body
 	assert(v)
+	self.__ecol_updated["us_prop_num"] = self.__ecol_updated["us_prop_num"] + 1
+	if self.__ecol_updated["us_prop_num"] == 1 then
+		self.__ecol_updated = self.__ecol_updated + 1
+	end
 	self.__fields.us_prop_num = v
 end
 
@@ -161,6 +189,10 @@ end
 function cls:set_sharp(v, ... )
 	-- body
 	assert(v)
+	self.__ecol_updated["sharp"] = self.__ecol_updated["sharp"] + 1
+	if self.__ecol_updated["sharp"] == 1 then
+		self.__ecol_updated = self.__ecol_updated + 1
+	end
 	self.__fields.sharp = v
 end
 
@@ -172,6 +204,10 @@ end
 function cls:set_skill_csv_id(v, ... )
 	-- body
 	assert(v)
+	self.__ecol_updated["skill_csv_id"] = self.__ecol_updated["skill_csv_id"] + 1
+	if self.__ecol_updated["skill_csv_id"] == 1 then
+		self.__ecol_updated = self.__ecol_updated + 1
+	end
 	self.__fields.skill_csv_id = v
 end
 
@@ -183,6 +219,10 @@ end
 function cls:set_gather_buffer_id(v, ... )
 	-- body
 	assert(v)
+	self.__ecol_updated["gather_buffer_id"] = self.__ecol_updated["gather_buffer_id"] + 1
+	if self.__ecol_updated["gather_buffer_id"] == 1 then
+		self.__ecol_updated = self.__ecol_updated + 1
+	end
 	self.__fields.gather_buffer_id = v
 end
 
@@ -194,6 +234,10 @@ end
 function cls:set_battle_buffer_id(v, ... )
 	-- body
 	assert(v)
+	self.__ecol_updated["battle_buffer_id"] = self.__ecol_updated["battle_buffer_id"] + 1
+	if self.__ecol_updated["battle_buffer_id"] == 1 then
+		self.__ecol_updated = self.__ecol_updated + 1
+	end
 	self.__fields.battle_buffer_id = v
 end
 
@@ -205,6 +249,10 @@ end
 function cls:set_k_csv_id1(v, ... )
 	-- body
 	assert(v)
+	self.__ecol_updated["k_csv_id1"] = self.__ecol_updated["k_csv_id1"] + 1
+	if self.__ecol_updated["k_csv_id1"] == 1 then
+		self.__ecol_updated = self.__ecol_updated + 1
+	end
 	self.__fields.k_csv_id1 = v
 end
 
@@ -216,6 +264,10 @@ end
 function cls:set_k_csv_id2(v, ... )
 	-- body
 	assert(v)
+	self.__ecol_updated["k_csv_id2"] = self.__ecol_updated["k_csv_id2"] + 1
+	if self.__ecol_updated["k_csv_id2"] == 1 then
+		self.__ecol_updated = self.__ecol_updated + 1
+	end
 	self.__fields.k_csv_id2 = v
 end
 
@@ -227,6 +279,10 @@ end
 function cls:set_k_csv_id3(v, ... )
 	-- body
 	assert(v)
+	self.__ecol_updated["k_csv_id3"] = self.__ecol_updated["k_csv_id3"] + 1
+	if self.__ecol_updated["k_csv_id3"] == 1 then
+		self.__ecol_updated = self.__ecol_updated + 1
+	end
 	self.__fields.k_csv_id3 = v
 end
 
@@ -238,6 +294,10 @@ end
 function cls:set_k_csv_id4(v, ... )
 	-- body
 	assert(v)
+	self.__ecol_updated["k_csv_id4"] = self.__ecol_updated["k_csv_id4"] + 1
+	if self.__ecol_updated["k_csv_id4"] == 1 then
+		self.__ecol_updated = self.__ecol_updated + 1
+	end
 	self.__fields.k_csv_id4 = v
 end
 
@@ -249,6 +309,10 @@ end
 function cls:set_k_csv_id5(v, ... )
 	-- body
 	assert(v)
+	self.__ecol_updated["k_csv_id5"] = self.__ecol_updated["k_csv_id5"] + 1
+	if self.__ecol_updated["k_csv_id5"] == 1 then
+		self.__ecol_updated = self.__ecol_updated + 1
+	end
 	self.__fields.k_csv_id5 = v
 end
 
@@ -260,6 +324,10 @@ end
 function cls:set_k_csv_id6(v, ... )
 	-- body
 	assert(v)
+	self.__ecol_updated["k_csv_id6"] = self.__ecol_updated["k_csv_id6"] + 1
+	if self.__ecol_updated["k_csv_id6"] == 1 then
+		self.__ecol_updated = self.__ecol_updated + 1
+	end
 	self.__fields.k_csv_id6 = v
 end
 
@@ -271,6 +339,10 @@ end
 function cls:set_k_csv_id7(v, ... )
 	-- body
 	assert(v)
+	self.__ecol_updated["k_csv_id7"] = self.__ecol_updated["k_csv_id7"] + 1
+	if self.__ecol_updated["k_csv_id7"] == 1 then
+		self.__ecol_updated = self.__ecol_updated + 1
+	end
 	self.__fields.k_csv_id7 = v
 end
 
@@ -282,6 +354,10 @@ end
 function cls:set_property_id1(v, ... )
 	-- body
 	assert(v)
+	self.__ecol_updated["property_id1"] = self.__ecol_updated["property_id1"] + 1
+	if self.__ecol_updated["property_id1"] == 1 then
+		self.__ecol_updated = self.__ecol_updated + 1
+	end
 	self.__fields.property_id1 = v
 end
 
@@ -293,6 +369,10 @@ end
 function cls:set_value1(v, ... )
 	-- body
 	assert(v)
+	self.__ecol_updated["value1"] = self.__ecol_updated["value1"] + 1
+	if self.__ecol_updated["value1"] == 1 then
+		self.__ecol_updated = self.__ecol_updated + 1
+	end
 	self.__fields.value1 = v
 end
 
@@ -304,6 +384,10 @@ end
 function cls:set_property_id2(v, ... )
 	-- body
 	assert(v)
+	self.__ecol_updated["property_id2"] = self.__ecol_updated["property_id2"] + 1
+	if self.__ecol_updated["property_id2"] == 1 then
+		self.__ecol_updated = self.__ecol_updated + 1
+	end
 	self.__fields.property_id2 = v
 end
 
@@ -315,6 +399,10 @@ end
 function cls:set_value2(v, ... )
 	-- body
 	assert(v)
+	self.__ecol_updated["value2"] = self.__ecol_updated["value2"] + 1
+	if self.__ecol_updated["value2"] == 1 then
+		self.__ecol_updated = self.__ecol_updated + 1
+	end
 	self.__fields.value2 = v
 end
 
@@ -326,6 +414,10 @@ end
 function cls:set_property_id3(v, ... )
 	-- body
 	assert(v)
+	self.__ecol_updated["property_id3"] = self.__ecol_updated["property_id3"] + 1
+	if self.__ecol_updated["property_id3"] == 1 then
+		self.__ecol_updated = self.__ecol_updated + 1
+	end
 	self.__fields.property_id3 = v
 end
 
@@ -337,6 +429,10 @@ end
 function cls:set_value3(v, ... )
 	-- body
 	assert(v)
+	self.__ecol_updated["value3"] = self.__ecol_updated["value3"] + 1
+	if self.__ecol_updated["value3"] == 1 then
+		self.__ecol_updated = self.__ecol_updated + 1
+	end
 	self.__fields.value3 = v
 end
 
@@ -348,6 +444,10 @@ end
 function cls:set_property_id4(v, ... )
 	-- body
 	assert(v)
+	self.__ecol_updated["property_id4"] = self.__ecol_updated["property_id4"] + 1
+	if self.__ecol_updated["property_id4"] == 1 then
+		self.__ecol_updated = self.__ecol_updated + 1
+	end
 	self.__fields.property_id4 = v
 end
 
@@ -359,6 +459,10 @@ end
 function cls:set_value4(v, ... )
 	-- body
 	assert(v)
+	self.__ecol_updated["value4"] = self.__ecol_updated["value4"] + 1
+	if self.__ecol_updated["value4"] == 1 then
+		self.__ecol_updated = self.__ecol_updated + 1
+	end
 	self.__fields.value4 = v
 end
 
@@ -370,6 +474,10 @@ end
 function cls:set_property_id5(v, ... )
 	-- body
 	assert(v)
+	self.__ecol_updated["property_id5"] = self.__ecol_updated["property_id5"] + 1
+	if self.__ecol_updated["property_id5"] == 1 then
+		self.__ecol_updated = self.__ecol_updated + 1
+	end
 	self.__fields.property_id5 = v
 end
 
@@ -381,6 +489,10 @@ end
 function cls:set_value5(v, ... )
 	-- body
 	assert(v)
+	self.__ecol_updated["value5"] = self.__ecol_updated["value5"] + 1
+	if self.__ecol_updated["value5"] == 1 then
+		self.__ecol_updated = self.__ecol_updated + 1
+	end
 	self.__fields.value5 = v
 end
 

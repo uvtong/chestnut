@@ -34,7 +34,7 @@ function cls:ctor(mgr, P, ... )
 		}
 
 	for k,v in pairs(self.__head) do
-		self.__fields[k] = assert(P[k])
+		self.__fields[k] = assert(P[k], string.format("no exist %s", k))
 	end
 	return self
 end
@@ -42,6 +42,10 @@ end
 function cls:set_id(v, ... )
 	-- body
 	assert(v)
+	self.__ecol_updated["id"] = self.__ecol_updated["id"] + 1
+	if self.__ecol_updated["id"] == 1 then
+		self.__ecol_updated = self.__ecol_updated + 1
+	end
 	self.__fields.id = v
 end
 
@@ -53,6 +57,10 @@ end
 function cls:set_user_id(v, ... )
 	-- body
 	assert(v)
+	self.__ecol_updated["user_id"] = self.__ecol_updated["user_id"] + 1
+	if self.__ecol_updated["user_id"] == 1 then
+		self.__ecol_updated = self.__ecol_updated + 1
+	end
 	self.__fields.user_id = v
 end
 
@@ -64,6 +72,10 @@ end
 function cls:set_date(v, ... )
 	-- body
 	assert(v)
+	self.__ecol_updated["date"] = self.__ecol_updated["date"] + 1
+	if self.__ecol_updated["date"] == 1 then
+		self.__ecol_updated = self.__ecol_updated + 1
+	end
 	self.__fields.date = v
 end
 
@@ -75,6 +87,10 @@ end
 function cls:set_goods_refresh_count(v, ... )
 	-- body
 	assert(v)
+	self.__ecol_updated["goods_refresh_count"] = self.__ecol_updated["goods_refresh_count"] + 1
+	if self.__ecol_updated["goods_refresh_count"] == 1 then
+		self.__ecol_updated = self.__ecol_updated + 1
+	end
 	self.__fields.goods_refresh_count = v
 end
 
@@ -86,6 +102,10 @@ end
 function cls:set_goods_refresh_reset_count(v, ... )
 	-- body
 	assert(v)
+	self.__ecol_updated["goods_refresh_reset_count"] = self.__ecol_updated["goods_refresh_reset_count"] + 1
+	if self.__ecol_updated["goods_refresh_reset_count"] == 1 then
+		self.__ecol_updated = self.__ecol_updated + 1
+	end
 	self.__fields.goods_refresh_reset_count = v
 end
 
@@ -97,6 +117,10 @@ end
 function cls:set_ara_rfh_tms(v, ... )
 	-- body
 	assert(v)
+	self.__ecol_updated["ara_rfh_tms"] = self.__ecol_updated["ara_rfh_tms"] + 1
+	if self.__ecol_updated["ara_rfh_tms"] == 1 then
+		self.__ecol_updated = self.__ecol_updated + 1
+	end
 	self.__fields.ara_rfh_tms = v
 end
 
@@ -108,6 +132,10 @@ end
 function cls:set_ara_bat_ser(v, ... )
 	-- body
 	assert(v)
+	self.__ecol_updated["ara_bat_ser"] = self.__ecol_updated["ara_bat_ser"] + 1
+	if self.__ecol_updated["ara_bat_ser"] == 1 then
+		self.__ecol_updated = self.__ecol_updated + 1
+	end
 	self.__fields.ara_bat_ser = v
 end
 

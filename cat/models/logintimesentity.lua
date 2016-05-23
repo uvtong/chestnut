@@ -24,7 +24,7 @@ function cls:ctor(mgr, P, ... )
 		}
 
 	for k,v in pairs(self.__head) do
-		self.__fields[k] = assert(P[k])
+		self.__fields[k] = assert(P[k], string.format("no exist %s", k))
 	end
 	return self
 end
@@ -32,6 +32,10 @@ end
 function cls:set_uid(v, ... )
 	-- body
 	assert(v)
+	self.__ecol_updated["uid"] = self.__ecol_updated["uid"] + 1
+	if self.__ecol_updated["uid"] == 1 then
+		self.__ecol_updated = self.__ecol_updated + 1
+	end
 	self.__fields.uid = v
 end
 
@@ -43,6 +47,10 @@ end
 function cls:set_times(v, ... )
 	-- body
 	assert(v)
+	self.__ecol_updated["times"] = self.__ecol_updated["times"] + 1
+	if self.__ecol_updated["times"] == 1 then
+		self.__ecol_updated = self.__ecol_updated + 1
+	end
 	self.__fields.times = v
 end
 

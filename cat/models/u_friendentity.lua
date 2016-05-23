@@ -34,7 +34,7 @@ function cls:ctor(mgr, P, ... )
 		}
 
 	for k,v in pairs(self.__head) do
-		self.__fields[k] = assert(P[k])
+		self.__fields[k] = assert(P[k], string.format("no exist %s", k))
 	end
 	return self
 end
@@ -42,6 +42,10 @@ end
 function cls:set_id(v, ... )
 	-- body
 	assert(v)
+	self.__ecol_updated["id"] = self.__ecol_updated["id"] + 1
+	if self.__ecol_updated["id"] == 1 then
+		self.__ecol_updated = self.__ecol_updated + 1
+	end
 	self.__fields.id = v
 end
 
@@ -53,6 +57,10 @@ end
 function cls:set_uid(v, ... )
 	-- body
 	assert(v)
+	self.__ecol_updated["uid"] = self.__ecol_updated["uid"] + 1
+	if self.__ecol_updated["uid"] == 1 then
+		self.__ecol_updated = self.__ecol_updated + 1
+	end
 	self.__fields.uid = v
 end
 
@@ -64,6 +72,10 @@ end
 function cls:set_friendid(v, ... )
 	-- body
 	assert(v)
+	self.__ecol_updated["friendid"] = self.__ecol_updated["friendid"] + 1
+	if self.__ecol_updated["friendid"] == 1 then
+		self.__ecol_updated = self.__ecol_updated + 1
+	end
 	self.__fields.friendid = v
 end
 
@@ -75,6 +87,10 @@ end
 function cls:set_isdel(v, ... )
 	-- body
 	assert(v)
+	self.__ecol_updated["isdel"] = self.__ecol_updated["isdel"] + 1
+	if self.__ecol_updated["isdel"] == 1 then
+		self.__ecol_updated = self.__ecol_updated + 1
+	end
 	self.__fields.isdel = v
 end
 
@@ -86,6 +102,10 @@ end
 function cls:set_recvtime(v, ... )
 	-- body
 	assert(v)
+	self.__ecol_updated["recvtime"] = self.__ecol_updated["recvtime"] + 1
+	if self.__ecol_updated["recvtime"] == 1 then
+		self.__ecol_updated = self.__ecol_updated + 1
+	end
 	self.__fields.recvtime = v
 end
 
@@ -97,6 +117,10 @@ end
 function cls:set_heartamount(v, ... )
 	-- body
 	assert(v)
+	self.__ecol_updated["heartamount"] = self.__ecol_updated["heartamount"] + 1
+	if self.__ecol_updated["heartamount"] == 1 then
+		self.__ecol_updated = self.__ecol_updated + 1
+	end
 	self.__fields.heartamount = v
 end
 
@@ -108,6 +132,10 @@ end
 function cls:set_sendtime(v, ... )
 	-- body
 	assert(v)
+	self.__ecol_updated["sendtime"] = self.__ecol_updated["sendtime"] + 1
+	if self.__ecol_updated["sendtime"] == 1 then
+		self.__ecol_updated = self.__ecol_updated + 1
+	end
 	self.__fields.sendtime = v
 end
 
