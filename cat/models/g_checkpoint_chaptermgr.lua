@@ -57,12 +57,12 @@ function cls:ctor( ... )
 }
 
 	self.__head_ord = {}
-		self.__head_ord[1] = self.__head[csv_id]
-	self.__head_ord[2] = self.__head[level]
-	self.__head_ord[3] = self.__head[name]
-	self.__head_ord[4] = self.__head[type0_max]
-	self.__head_ord[5] = self.__head[type1_max]
-	self.__head_ord[6] = self.__head[type2_max]
+		self.__head_ord[1] = self.__head["csv_id"]
+	self.__head_ord[2] = self.__head["level"]
+	self.__head_ord[3] = self.__head["name"]
+	self.__head_ord[4] = self.__head["type0_max"]
+	self.__head_ord[5] = self.__head["type1_max"]
+	self.__head_ord[6] = self.__head["type2_max"]
 
 	self.__pk      = "csv_id"
 	self.__fk      = ""

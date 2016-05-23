@@ -42,7 +42,7 @@ function cls:set_id(v, ... )
 	assert(v)
 	self.__ecol_updated["id"] = self.__ecol_updated["id"] + 1
 	if self.__ecol_updated["id"] == 1 then
-		self.__ecol_updated = self.__ecol_updated + 1
+		self.__col_updated = self.__col_updated + 1
 	end
 	self.__fields.id = v
 end
@@ -57,7 +57,7 @@ function cls:set_user_id(v, ... )
 	assert(v)
 	self.__ecol_updated["user_id"] = self.__ecol_updated["user_id"] + 1
 	if self.__ecol_updated["user_id"] == 1 then
-		self.__ecol_updated = self.__ecol_updated + 1
+		self.__col_updated = self.__col_updated + 1
 	end
 	self.__fields.user_id = v
 end
@@ -72,7 +72,7 @@ function cls:set_csv_id(v, ... )
 	assert(v)
 	self.__ecol_updated["csv_id"] = self.__ecol_updated["csv_id"] + 1
 	if self.__ecol_updated["csv_id"] == 1 then
-		self.__ecol_updated = self.__ecol_updated + 1
+		self.__col_updated = self.__col_updated + 1
 	end
 	self.__fields.csv_id = v
 end
@@ -87,7 +87,7 @@ function cls:set_inventory(v, ... )
 	assert(v)
 	self.__ecol_updated["inventory"] = self.__ecol_updated["inventory"] + 1
 	if self.__ecol_updated["inventory"] == 1 then
-		self.__ecol_updated = self.__ecol_updated + 1
+		self.__col_updated = self.__col_updated + 1
 	end
 	self.__fields.inventory = v
 end
@@ -102,7 +102,7 @@ function cls:set_countdown(v, ... )
 	assert(v)
 	self.__ecol_updated["countdown"] = self.__ecol_updated["countdown"] + 1
 	if self.__ecol_updated["countdown"] == 1 then
-		self.__ecol_updated = self.__ecol_updated + 1
+		self.__col_updated = self.__col_updated + 1
 	end
 	self.__fields.countdown = v
 end
@@ -117,7 +117,7 @@ function cls:set_st(v, ... )
 	assert(v)
 	self.__ecol_updated["st"] = self.__ecol_updated["st"] + 1
 	if self.__ecol_updated["st"] == 1 then
-		self.__ecol_updated = self.__ecol_updated + 1
+		self.__col_updated = self.__col_updated + 1
 	end
 	self.__fields.st = v
 end

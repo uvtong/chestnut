@@ -48,7 +48,7 @@ function cls:set_csv_id(v, ... )
 	assert(v)
 	self.__ecol_updated["csv_id"] = self.__ecol_updated["csv_id"] + 1
 	if self.__ecol_updated["csv_id"] == 1 then
-		self.__ecol_updated = self.__ecol_updated + 1
+		self.__col_updated = self.__col_updated + 1
 	end
 	self.__fields.csv_id = v
 end
@@ -63,7 +63,7 @@ function cls:set_type(v, ... )
 	assert(v)
 	self.__ecol_updated["type"] = self.__ecol_updated["type"] + 1
 	if self.__ecol_updated["type"] == 1 then
-		self.__ecol_updated = self.__ecol_updated + 1
+		self.__col_updated = self.__col_updated + 1
 	end
 	self.__fields.type = v
 end
@@ -78,7 +78,7 @@ function cls:set_name(v, ... )
 	assert(v)
 	self.__ecol_updated["name"] = self.__ecol_updated["name"] + 1
 	if self.__ecol_updated["name"] == 1 then
-		self.__ecol_updated = self.__ecol_updated + 1
+		self.__col_updated = self.__col_updated + 1
 	end
 	self.__fields.name = v
 end
@@ -93,7 +93,7 @@ function cls:set_c_num(v, ... )
 	assert(v)
 	self.__ecol_updated["c_num"] = self.__ecol_updated["c_num"] + 1
 	if self.__ecol_updated["c_num"] == 1 then
-		self.__ecol_updated = self.__ecol_updated + 1
+		self.__col_updated = self.__col_updated + 1
 	end
 	self.__fields.c_num = v
 end
@@ -108,7 +108,7 @@ function cls:set_describe(v, ... )
 	assert(v)
 	self.__ecol_updated["describe"] = self.__ecol_updated["describe"] + 1
 	if self.__ecol_updated["describe"] == 1 then
-		self.__ecol_updated = self.__ecol_updated + 1
+		self.__col_updated = self.__col_updated + 1
 	end
 	self.__fields.describe = v
 end
@@ -123,7 +123,7 @@ function cls:set_icon_id(v, ... )
 	assert(v)
 	self.__ecol_updated["icon_id"] = self.__ecol_updated["icon_id"] + 1
 	if self.__ecol_updated["icon_id"] == 1 then
-		self.__ecol_updated = self.__ecol_updated + 1
+		self.__col_updated = self.__col_updated + 1
 	end
 	self.__fields.icon_id = v
 end
@@ -138,7 +138,7 @@ function cls:set_reward(v, ... )
 	assert(v)
 	self.__ecol_updated["reward"] = self.__ecol_updated["reward"] + 1
 	if self.__ecol_updated["reward"] == 1 then
-		self.__ecol_updated = self.__ecol_updated + 1
+		self.__col_updated = self.__col_updated + 1
 	end
 	self.__fields.reward = v
 end
@@ -153,7 +153,7 @@ function cls:set_star(v, ... )
 	assert(v)
 	self.__ecol_updated["star"] = self.__ecol_updated["star"] + 1
 	if self.__ecol_updated["star"] == 1 then
-		self.__ecol_updated = self.__ecol_updated + 1
+		self.__col_updated = self.__col_updated + 1
 	end
 	self.__fields.star = v
 end
@@ -168,7 +168,7 @@ function cls:set_unlock_next_csv_id(v, ... )
 	assert(v)
 	self.__ecol_updated["unlock_next_csv_id"] = self.__ecol_updated["unlock_next_csv_id"] + 1
 	if self.__ecol_updated["unlock_next_csv_id"] == 1 then
-		self.__ecol_updated = self.__ecol_updated + 1
+		self.__col_updated = self.__col_updated + 1
 	end
 	self.__fields.unlock_next_csv_id = v
 end

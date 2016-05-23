@@ -36,7 +36,7 @@ function cls:set_csv_id(v, ... )
 	assert(v)
 	self.__ecol_updated["csv_id"] = self.__ecol_updated["csv_id"] + 1
 	if self.__ecol_updated["csv_id"] == 1 then
-		self.__ecol_updated = self.__ecol_updated + 1
+		self.__col_updated = self.__col_updated + 1
 	end
 	self.__fields.csv_id = v
 end
@@ -51,7 +51,7 @@ function cls:set_totalamount(v, ... )
 	assert(v)
 	self.__ecol_updated["totalamount"] = self.__ecol_updated["totalamount"] + 1
 	if self.__ecol_updated["totalamount"] == 1 then
-		self.__ecol_updated = self.__ecol_updated + 1
+		self.__col_updated = self.__col_updated + 1
 	end
 	self.__fields.totalamount = v
 end
@@ -66,7 +66,7 @@ function cls:set_prop_id_num(v, ... )
 	assert(v)
 	self.__ecol_updated["prop_id_num"] = self.__ecol_updated["prop_id_num"] + 1
 	if self.__ecol_updated["prop_id_num"] == 1 then
-		self.__ecol_updated = self.__ecol_updated + 1
+		self.__col_updated = self.__col_updated + 1
 	end
 	self.__fields.prop_id_num = v
 end

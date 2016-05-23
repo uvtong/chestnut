@@ -54,7 +54,7 @@ function cls:set_id(v, ... )
 	assert(v)
 	self.__ecol_updated["id"] = self.__ecol_updated["id"] + 1
 	if self.__ecol_updated["id"] == 1 then
-		self.__ecol_updated = self.__ecol_updated + 1
+		self.__col_updated = self.__col_updated + 1
 	end
 	self.__fields.id = v
 end
@@ -69,7 +69,7 @@ function cls:set_user_id(v, ... )
 	assert(v)
 	self.__ecol_updated["user_id"] = self.__ecol_updated["user_id"] + 1
 	if self.__ecol_updated["user_id"] == 1 then
-		self.__ecol_updated = self.__ecol_updated + 1
+		self.__col_updated = self.__col_updated + 1
 	end
 	self.__fields.user_id = v
 end
@@ -84,7 +84,7 @@ function cls:set_csv_id(v, ... )
 	assert(v)
 	self.__ecol_updated["csv_id"] = self.__ecol_updated["csv_id"] + 1
 	if self.__ecol_updated["csv_id"] == 1 then
-		self.__ecol_updated = self.__ecol_updated + 1
+		self.__col_updated = self.__col_updated + 1
 	end
 	self.__fields.csv_id = v
 end
@@ -99,7 +99,7 @@ function cls:set_g_goods_csv_id(v, ... )
 	assert(v)
 	self.__ecol_updated["g_goods_csv_id"] = self.__ecol_updated["g_goods_csv_id"] + 1
 	if self.__ecol_updated["g_goods_csv_id"] == 1 then
-		self.__ecol_updated = self.__ecol_updated + 1
+		self.__col_updated = self.__col_updated + 1
 	end
 	self.__fields.g_goods_csv_id = v
 end
@@ -114,7 +114,7 @@ function cls:set_g_goods_num(v, ... )
 	assert(v)
 	self.__ecol_updated["g_goods_num"] = self.__ecol_updated["g_goods_num"] + 1
 	if self.__ecol_updated["g_goods_num"] == 1 then
-		self.__ecol_updated = self.__ecol_updated + 1
+		self.__col_updated = self.__col_updated + 1
 	end
 	self.__fields.g_goods_num = v
 end
@@ -129,7 +129,7 @@ function cls:set_c_type(v, ... )
 	assert(v)
 	self.__ecol_updated["c_type"] = self.__ecol_updated["c_type"] + 1
 	if self.__ecol_updated["c_type"] == 1 then
-		self.__ecol_updated = self.__ecol_updated + 1
+		self.__col_updated = self.__col_updated + 1
 	end
 	self.__fields.c_type = v
 end
@@ -144,7 +144,7 @@ function cls:set_c_recharge_vip(v, ... )
 	assert(v)
 	self.__ecol_updated["c_recharge_vip"] = self.__ecol_updated["c_recharge_vip"] + 1
 	if self.__ecol_updated["c_recharge_vip"] == 1 then
-		self.__ecol_updated = self.__ecol_updated + 1
+		self.__col_updated = self.__col_updated + 1
 	end
 	self.__fields.c_recharge_vip = v
 end
@@ -159,7 +159,7 @@ function cls:set_c_vip(v, ... )
 	assert(v)
 	self.__ecol_updated["c_vip"] = self.__ecol_updated["c_vip"] + 1
 	if self.__ecol_updated["c_vip"] == 1 then
-		self.__ecol_updated = self.__ecol_updated + 1
+		self.__col_updated = self.__col_updated + 1
 	end
 	self.__fields.c_vip = v
 end
@@ -174,7 +174,7 @@ function cls:set_collected(v, ... )
 	assert(v)
 	self.__ecol_updated["collected"] = self.__ecol_updated["collected"] + 1
 	if self.__ecol_updated["collected"] == 1 then
-		self.__ecol_updated = self.__ecol_updated + 1
+		self.__col_updated = self.__col_updated + 1
 	end
 	self.__fields.collected = v
 end
@@ -189,7 +189,7 @@ function cls:set_prop_id(v, ... )
 	assert(v)
 	self.__ecol_updated["prop_id"] = self.__ecol_updated["prop_id"] + 1
 	if self.__ecol_updated["prop_id"] == 1 then
-		self.__ecol_updated = self.__ecol_updated + 1
+		self.__col_updated = self.__col_updated + 1
 	end
 	self.__fields.prop_id = v
 end
@@ -204,7 +204,7 @@ function cls:set_u_purchase_rewardcol(v, ... )
 	assert(v)
 	self.__ecol_updated["u_purchase_rewardcol"] = self.__ecol_updated["u_purchase_rewardcol"] + 1
 	if self.__ecol_updated["u_purchase_rewardcol"] == 1 then
-		self.__ecol_updated = self.__ecol_updated + 1
+		self.__col_updated = self.__col_updated + 1
 	end
 	self.__fields.u_purchase_rewardcol = v
 end
@@ -219,7 +219,7 @@ function cls:set_distribute_time(v, ... )
 	assert(v)
 	self.__ecol_updated["distribute_time"] = self.__ecol_updated["distribute_time"] + 1
 	if self.__ecol_updated["distribute_time"] == 1 then
-		self.__ecol_updated = self.__ecol_updated + 1
+		self.__col_updated = self.__col_updated + 1
 	end
 	self.__fields.distribute_time = v
 end

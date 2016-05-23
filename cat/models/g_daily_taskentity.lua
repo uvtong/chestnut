@@ -50,7 +50,7 @@ function cls:set_id(v, ... )
 	assert(v)
 	self.__ecol_updated["id"] = self.__ecol_updated["id"] + 1
 	if self.__ecol_updated["id"] == 1 then
-		self.__ecol_updated = self.__ecol_updated + 1
+		self.__col_updated = self.__col_updated + 1
 	end
 	self.__fields.id = v
 end
@@ -65,7 +65,7 @@ function cls:set_update_time(v, ... )
 	assert(v)
 	self.__ecol_updated["update_time"] = self.__ecol_updated["update_time"] + 1
 	if self.__ecol_updated["update_time"] == 1 then
-		self.__ecol_updated = self.__ecol_updated + 1
+		self.__col_updated = self.__col_updated + 1
 	end
 	self.__fields.update_time = v
 end
@@ -80,7 +80,7 @@ function cls:set_type(v, ... )
 	assert(v)
 	self.__ecol_updated["type"] = self.__ecol_updated["type"] + 1
 	if self.__ecol_updated["type"] == 1 then
-		self.__ecol_updated = self.__ecol_updated + 1
+		self.__col_updated = self.__col_updated + 1
 	end
 	self.__fields.type = v
 end
@@ -95,7 +95,7 @@ function cls:set_task_name(v, ... )
 	assert(v)
 	self.__ecol_updated["task_name"] = self.__ecol_updated["task_name"] + 1
 	if self.__ecol_updated["task_name"] == 1 then
-		self.__ecol_updated = self.__ecol_updated + 1
+		self.__col_updated = self.__col_updated + 1
 	end
 	self.__fields.task_name = v
 end
@@ -110,7 +110,7 @@ function cls:set_cost_amount(v, ... )
 	assert(v)
 	self.__ecol_updated["cost_amount"] = self.__ecol_updated["cost_amount"] + 1
 	if self.__ecol_updated["cost_amount"] == 1 then
-		self.__ecol_updated = self.__ecol_updated + 1
+		self.__col_updated = self.__col_updated + 1
 	end
 	self.__fields.cost_amount = v
 end
@@ -125,7 +125,7 @@ function cls:set_iconid(v, ... )
 	assert(v)
 	self.__ecol_updated["iconid"] = self.__ecol_updated["iconid"] + 1
 	if self.__ecol_updated["iconid"] == 1 then
-		self.__ecol_updated = self.__ecol_updated + 1
+		self.__col_updated = self.__col_updated + 1
 	end
 	self.__fields.iconid = v
 end
@@ -140,7 +140,7 @@ function cls:set_basic_reward(v, ... )
 	assert(v)
 	self.__ecol_updated["basic_reward"] = self.__ecol_updated["basic_reward"] + 1
 	if self.__ecol_updated["basic_reward"] == 1 then
-		self.__ecol_updated = self.__ecol_updated + 1
+		self.__col_updated = self.__col_updated + 1
 	end
 	self.__fields.basic_reward = v
 end
@@ -155,7 +155,7 @@ function cls:set_levelup_reward(v, ... )
 	assert(v)
 	self.__ecol_updated["levelup_reward"] = self.__ecol_updated["levelup_reward"] + 1
 	if self.__ecol_updated["levelup_reward"] == 1 then
-		self.__ecol_updated = self.__ecol_updated + 1
+		self.__col_updated = self.__col_updated + 1
 	end
 	self.__fields.levelup_reward = v
 end
@@ -170,7 +170,7 @@ function cls:set_level_up(v, ... )
 	assert(v)
 	self.__ecol_updated["level_up"] = self.__ecol_updated["level_up"] + 1
 	if self.__ecol_updated["level_up"] == 1 then
-		self.__ecol_updated = self.__ecol_updated + 1
+		self.__col_updated = self.__col_updated + 1
 	end
 	self.__fields.level_up = v
 end
@@ -185,7 +185,7 @@ function cls:set_cost_id(v, ... )
 	assert(v)
 	self.__ecol_updated["cost_id"] = self.__ecol_updated["cost_id"] + 1
 	if self.__ecol_updated["cost_id"] == 1 then
-		self.__ecol_updated = self.__ecol_updated + 1
+		self.__col_updated = self.__col_updated + 1
 	end
 	self.__fields.cost_id = v
 end

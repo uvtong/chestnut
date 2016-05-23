@@ -36,7 +36,7 @@ function cls:set_uid(v, ... )
 	assert(v)
 	self.__ecol_updated["uid"] = self.__ecol_updated["uid"] + 1
 	if self.__ecol_updated["uid"] == 1 then
-		self.__ecol_updated = self.__ecol_updated + 1
+		self.__col_updated = self.__col_updated + 1
 	end
 	self.__fields.uid = v
 end
@@ -51,7 +51,7 @@ function cls:set_ranking(v, ... )
 	assert(v)
 	self.__ecol_updated["ranking"] = self.__ecol_updated["ranking"] + 1
 	if self.__ecol_updated["ranking"] == 1 then
-		self.__ecol_updated = self.__ecol_updated + 1
+		self.__col_updated = self.__col_updated + 1
 	end
 	self.__fields.ranking = v
 end
@@ -66,7 +66,7 @@ function cls:set_k(v, ... )
 	assert(v)
 	self.__ecol_updated["k"] = self.__ecol_updated["k"] + 1
 	if self.__ecol_updated["k"] == 1 then
-		self.__ecol_updated = self.__ecol_updated + 1
+		self.__col_updated = self.__col_updated + 1
 	end
 	self.__fields.k = v
 end

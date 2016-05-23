@@ -38,7 +38,7 @@ function cls:set_csv_id(v, ... )
 	assert(v)
 	self.__ecol_updated["csv_id"] = self.__ecol_updated["csv_id"] + 1
 	if self.__ecol_updated["csv_id"] == 1 then
-		self.__ecol_updated = self.__ecol_updated + 1
+		self.__col_updated = self.__col_updated + 1
 	end
 	self.__fields.csv_id = v
 end
@@ -53,7 +53,7 @@ function cls:set_star(v, ... )
 	assert(v)
 	self.__ecol_updated["star"] = self.__ecol_updated["star"] + 1
 	if self.__ecol_updated["star"] == 1 then
-		self.__ecol_updated = self.__ecol_updated + 1
+		self.__col_updated = self.__col_updated + 1
 	end
 	self.__fields.star = v
 end
@@ -68,7 +68,7 @@ function cls:set_name(v, ... )
 	assert(v)
 	self.__ecol_updated["name"] = self.__ecol_updated["name"] + 1
 	if self.__ecol_updated["name"] == 1 then
-		self.__ecol_updated = self.__ecol_updated + 1
+		self.__col_updated = self.__col_updated + 1
 	end
 	self.__fields.name = v
 end
@@ -83,7 +83,7 @@ function cls:set_us_prop_csv_id(v, ... )
 	assert(v)
 	self.__ecol_updated["us_prop_csv_id"] = self.__ecol_updated["us_prop_csv_id"] + 1
 	if self.__ecol_updated["us_prop_csv_id"] == 1 then
-		self.__ecol_updated = self.__ecol_updated + 1
+		self.__col_updated = self.__col_updated + 1
 	end
 	self.__fields.us_prop_csv_id = v
 end

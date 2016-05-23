@@ -36,9 +36,9 @@ function cls:ctor( ... )
 }
 
 	self.__head_ord = {}
-		self.__head_ord[1] = self.__head[csv_id]
-	self.__head_ord[2] = self.__head[name]
-	self.__head_ord[3] = self.__head[reward]
+		self.__head_ord[1] = self.__head["csv_id"]
+	self.__head_ord[2] = self.__head["name"]
+	self.__head_ord[3] = self.__head["reward"]
 
 	self.__pk      = "csv_id"
 	self.__fk      = ""

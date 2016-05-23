@@ -226,7 +226,7 @@ local function print_table(table_name)
 		for i,v in ipairs(r) do
 			head_ord = head_ord..string.format(
 [[
-	self.__head_ord[%d] = self.__head[%s]
+	self.__head_ord[%d] = self.__head["%s"]
 ]], i, v.COLUMN_NAME)
 			local seg = "\t"..v.COLUMN_NAME.." = {\n"
 			local pk_seg = string.format("\t\tpk = false,\n")
@@ -275,7 +275,7 @@ function cls:set_%s(v, ... )
 	assert(v)
 	self.__ecol_updated["%s"] = self.__ecol_updated["%s"] + 1
 	if self.__ecol_updated["%s"] == 1 then
-		self.__ecol_updated = self.__ecol_updated + 1
+		self.__col_updated = self.__col_updated + 1
 	end
 	self.__fields.%s = v
 end

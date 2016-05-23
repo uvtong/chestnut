@@ -50,11 +50,11 @@ function cls:ctor( ... )
 }
 
 	self.__head_ord = {}
-		self.__head_ord[1] = self.__head[id]
-	self.__head_ord[2] = self.__head[csv_id]
-	self.__head_ord[3] = self.__head[user_id]
-	self.__head_ord[4] = self.__head[u_checkin_time]
-	self.__head_ord[5] = self.__head[ifcheck_in]
+		self.__head_ord[1] = self.__head["id"]
+	self.__head_ord[2] = self.__head["csv_id"]
+	self.__head_ord[3] = self.__head["user_id"]
+	self.__head_ord[4] = self.__head["u_checkin_time"]
+	self.__head_ord[5] = self.__head["ifcheck_in"]
 
 	self.__pk      = "id"
 	self.__fk      = "user_id"

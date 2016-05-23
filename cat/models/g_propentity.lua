@@ -48,7 +48,7 @@ function cls:set_csv_id(v, ... )
 	assert(v)
 	self.__ecol_updated["csv_id"] = self.__ecol_updated["csv_id"] + 1
 	if self.__ecol_updated["csv_id"] == 1 then
-		self.__ecol_updated = self.__ecol_updated + 1
+		self.__col_updated = self.__col_updated + 1
 	end
 	self.__fields.csv_id = v
 end
@@ -63,7 +63,7 @@ function cls:set_name(v, ... )
 	assert(v)
 	self.__ecol_updated["name"] = self.__ecol_updated["name"] + 1
 	if self.__ecol_updated["name"] == 1 then
-		self.__ecol_updated = self.__ecol_updated + 1
+		self.__col_updated = self.__col_updated + 1
 	end
 	self.__fields.name = v
 end
@@ -78,7 +78,7 @@ function cls:set_level(v, ... )
 	assert(v)
 	self.__ecol_updated["level"] = self.__ecol_updated["level"] + 1
 	if self.__ecol_updated["level"] == 1 then
-		self.__ecol_updated = self.__ecol_updated + 1
+		self.__col_updated = self.__col_updated + 1
 	end
 	self.__fields.level = v
 end
@@ -93,7 +93,7 @@ function cls:set_sub_type(v, ... )
 	assert(v)
 	self.__ecol_updated["sub_type"] = self.__ecol_updated["sub_type"] + 1
 	if self.__ecol_updated["sub_type"] == 1 then
-		self.__ecol_updated = self.__ecol_updated + 1
+		self.__col_updated = self.__col_updated + 1
 	end
 	self.__fields.sub_type = v
 end
@@ -108,7 +108,7 @@ function cls:set_pram1(v, ... )
 	assert(v)
 	self.__ecol_updated["pram1"] = self.__ecol_updated["pram1"] + 1
 	if self.__ecol_updated["pram1"] == 1 then
-		self.__ecol_updated = self.__ecol_updated + 1
+		self.__col_updated = self.__col_updated + 1
 	end
 	self.__fields.pram1 = v
 end
@@ -123,7 +123,7 @@ function cls:set_pram2(v, ... )
 	assert(v)
 	self.__ecol_updated["pram2"] = self.__ecol_updated["pram2"] + 1
 	if self.__ecol_updated["pram2"] == 1 then
-		self.__ecol_updated = self.__ecol_updated + 1
+		self.__col_updated = self.__col_updated + 1
 	end
 	self.__fields.pram2 = v
 end
@@ -138,7 +138,7 @@ function cls:set_icon_id(v, ... )
 	assert(v)
 	self.__ecol_updated["icon_id"] = self.__ecol_updated["icon_id"] + 1
 	if self.__ecol_updated["icon_id"] == 1 then
-		self.__ecol_updated = self.__ecol_updated + 1
+		self.__col_updated = self.__col_updated + 1
 	end
 	self.__fields.icon_id = v
 end
@@ -153,7 +153,7 @@ function cls:set_intro(v, ... )
 	assert(v)
 	self.__ecol_updated["intro"] = self.__ecol_updated["intro"] + 1
 	if self.__ecol_updated["intro"] == 1 then
-		self.__ecol_updated = self.__ecol_updated + 1
+		self.__col_updated = self.__col_updated + 1
 	end
 	self.__fields.intro = v
 end
@@ -168,7 +168,7 @@ function cls:set_use_type(v, ... )
 	assert(v)
 	self.__ecol_updated["use_type"] = self.__ecol_updated["use_type"] + 1
 	if self.__ecol_updated["use_type"] == 1 then
-		self.__ecol_updated = self.__ecol_updated + 1
+		self.__col_updated = self.__col_updated + 1
 	end
 	self.__fields.use_type = v
 end

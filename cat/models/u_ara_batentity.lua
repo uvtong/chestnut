@@ -46,7 +46,7 @@ function cls:set_id(v, ... )
 	assert(v)
 	self.__ecol_updated["id"] = self.__ecol_updated["id"] + 1
 	if self.__ecol_updated["id"] == 1 then
-		self.__ecol_updated = self.__ecol_updated + 1
+		self.__col_updated = self.__col_updated + 1
 	end
 	self.__fields.id = v
 end
@@ -61,7 +61,7 @@ function cls:set_user_id(v, ... )
 	assert(v)
 	self.__ecol_updated["user_id"] = self.__ecol_updated["user_id"] + 1
 	if self.__ecol_updated["user_id"] == 1 then
-		self.__ecol_updated = self.__ecol_updated + 1
+		self.__col_updated = self.__col_updated + 1
 	end
 	self.__fields.user_id = v
 end
@@ -76,7 +76,7 @@ function cls:set_csv_id(v, ... )
 	assert(v)
 	self.__ecol_updated["csv_id"] = self.__ecol_updated["csv_id"] + 1
 	if self.__ecol_updated["csv_id"] == 1 then
-		self.__ecol_updated = self.__ecol_updated + 1
+		self.__col_updated = self.__col_updated + 1
 	end
 	self.__fields.csv_id = v
 end
@@ -91,7 +91,7 @@ function cls:set_date(v, ... )
 	assert(v)
 	self.__ecol_updated["date"] = self.__ecol_updated["date"] + 1
 	if self.__ecol_updated["date"] == 1 then
-		self.__ecol_updated = self.__ecol_updated + 1
+		self.__col_updated = self.__col_updated + 1
 	end
 	self.__fields.date = v
 end
@@ -106,7 +106,7 @@ function cls:set_ser(v, ... )
 	assert(v)
 	self.__ecol_updated["ser"] = self.__ecol_updated["ser"] + 1
 	if self.__ecol_updated["ser"] == 1 then
-		self.__ecol_updated = self.__ecol_updated + 1
+		self.__col_updated = self.__col_updated + 1
 	end
 	self.__fields.ser = v
 end
@@ -121,7 +121,7 @@ function cls:set_start_time(v, ... )
 	assert(v)
 	self.__ecol_updated["start_time"] = self.__ecol_updated["start_time"] + 1
 	if self.__ecol_updated["start_time"] == 1 then
-		self.__ecol_updated = self.__ecol_updated + 1
+		self.__col_updated = self.__col_updated + 1
 	end
 	self.__fields.start_time = v
 end
@@ -136,7 +136,7 @@ function cls:set_is_over(v, ... )
 	assert(v)
 	self.__ecol_updated["is_over"] = self.__ecol_updated["is_over"] + 1
 	if self.__ecol_updated["is_over"] == 1 then
-		self.__ecol_updated = self.__ecol_updated + 1
+		self.__col_updated = self.__col_updated + 1
 	end
 	self.__fields.is_over = v
 end
@@ -151,7 +151,7 @@ function cls:set_res(v, ... )
 	assert(v)
 	self.__ecol_updated["res"] = self.__ecol_updated["res"] + 1
 	if self.__ecol_updated["res"] == 1 then
-		self.__ecol_updated = self.__ecol_updated + 1
+		self.__col_updated = self.__col_updated + 1
 	end
 	self.__fields.res = v
 end

@@ -36,7 +36,7 @@ function cls:set_id(v, ... )
 	assert(v)
 	self.__ecol_updated["id"] = self.__ecol_updated["id"] + 1
 	if self.__ecol_updated["id"] == 1 then
-		self.__ecol_updated = self.__ecol_updated + 1
+		self.__col_updated = self.__col_updated + 1
 	end
 	self.__fields.id = v
 end
@@ -51,7 +51,7 @@ function cls:set_checkin_month(v, ... )
 	assert(v)
 	self.__ecol_updated["checkin_month"] = self.__ecol_updated["checkin_month"] + 1
 	if self.__ecol_updated["checkin_month"] == 1 then
-		self.__ecol_updated = self.__ecol_updated + 1
+		self.__col_updated = self.__col_updated + 1
 	end
 	self.__fields.checkin_month = v
 end
@@ -66,7 +66,7 @@ function cls:set_user_id(v, ... )
 	assert(v)
 	self.__ecol_updated["user_id"] = self.__ecol_updated["user_id"] + 1
 	if self.__ecol_updated["user_id"] == 1 then
-		self.__ecol_updated = self.__ecol_updated + 1
+		self.__col_updated = self.__col_updated + 1
 	end
 	self.__fields.user_id = v
 end

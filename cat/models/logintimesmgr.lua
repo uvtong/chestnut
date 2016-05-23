@@ -29,8 +29,8 @@ function cls:ctor( ... )
 }
 
 	self.__head_ord = {}
-		self.__head_ord[1] = self.__head[uid]
-	self.__head_ord[2] = self.__head[times]
+		self.__head_ord[1] = self.__head["uid"]
+	self.__head_ord[2] = self.__head["times"]
 
 	self.__pk      = "uid"
 	self.__fk      = ""

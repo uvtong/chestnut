@@ -36,7 +36,7 @@ function cls:set_csv_id(v, ... )
 	assert(v)
 	self.__ecol_updated["csv_id"] = self.__ecol_updated["csv_id"] + 1
 	if self.__ecol_updated["csv_id"] == 1 then
-		self.__ecol_updated = self.__ecol_updated + 1
+		self.__col_updated = self.__col_updated + 1
 	end
 	self.__fields.csv_id = v
 end
@@ -51,7 +51,7 @@ function cls:set_name(v, ... )
 	assert(v)
 	self.__ecol_updated["name"] = self.__ecol_updated["name"] + 1
 	if self.__ecol_updated["name"] == 1 then
-		self.__ecol_updated = self.__ecol_updated + 1
+		self.__col_updated = self.__col_updated + 1
 	end
 	self.__fields.name = v
 end
@@ -66,7 +66,7 @@ function cls:set_reward(v, ... )
 	assert(v)
 	self.__ecol_updated["reward"] = self.__ecol_updated["reward"] + 1
 	if self.__ecol_updated["reward"] == 1 then
-		self.__ecol_updated = self.__ecol_updated + 1
+		self.__col_updated = self.__col_updated + 1
 	end
 	self.__fields.reward = v
 end

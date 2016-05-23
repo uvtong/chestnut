@@ -44,7 +44,7 @@ function cls:set_id(v, ... )
 	assert(v)
 	self.__ecol_updated["id"] = self.__ecol_updated["id"] + 1
 	if self.__ecol_updated["id"] == 1 then
-		self.__ecol_updated = self.__ecol_updated + 1
+		self.__col_updated = self.__col_updated + 1
 	end
 	self.__fields.id = v
 end
@@ -59,7 +59,7 @@ function cls:set_uid(v, ... )
 	assert(v)
 	self.__ecol_updated["uid"] = self.__ecol_updated["uid"] + 1
 	if self.__ecol_updated["uid"] == 1 then
-		self.__ecol_updated = self.__ecol_updated + 1
+		self.__col_updated = self.__col_updated + 1
 	end
 	self.__fields.uid = v
 end
@@ -74,7 +74,7 @@ function cls:set_friendid(v, ... )
 	assert(v)
 	self.__ecol_updated["friendid"] = self.__ecol_updated["friendid"] + 1
 	if self.__ecol_updated["friendid"] == 1 then
-		self.__ecol_updated = self.__ecol_updated + 1
+		self.__col_updated = self.__col_updated + 1
 	end
 	self.__fields.friendid = v
 end
@@ -89,7 +89,7 @@ function cls:set_isdel(v, ... )
 	assert(v)
 	self.__ecol_updated["isdel"] = self.__ecol_updated["isdel"] + 1
 	if self.__ecol_updated["isdel"] == 1 then
-		self.__ecol_updated = self.__ecol_updated + 1
+		self.__col_updated = self.__col_updated + 1
 	end
 	self.__fields.isdel = v
 end
@@ -104,7 +104,7 @@ function cls:set_recvtime(v, ... )
 	assert(v)
 	self.__ecol_updated["recvtime"] = self.__ecol_updated["recvtime"] + 1
 	if self.__ecol_updated["recvtime"] == 1 then
-		self.__ecol_updated = self.__ecol_updated + 1
+		self.__col_updated = self.__col_updated + 1
 	end
 	self.__fields.recvtime = v
 end
@@ -119,7 +119,7 @@ function cls:set_heartamount(v, ... )
 	assert(v)
 	self.__ecol_updated["heartamount"] = self.__ecol_updated["heartamount"] + 1
 	if self.__ecol_updated["heartamount"] == 1 then
-		self.__ecol_updated = self.__ecol_updated + 1
+		self.__col_updated = self.__col_updated + 1
 	end
 	self.__fields.heartamount = v
 end
@@ -134,7 +134,7 @@ function cls:set_sendtime(v, ... )
 	assert(v)
 	self.__ecol_updated["sendtime"] = self.__ecol_updated["sendtime"] + 1
 	if self.__ecol_updated["sendtime"] == 1 then
-		self.__ecol_updated = self.__ecol_updated + 1
+		self.__col_updated = self.__col_updated + 1
 	end
 	self.__fields.sendtime = v
 end

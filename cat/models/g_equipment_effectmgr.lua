@@ -29,8 +29,8 @@ function cls:ctor( ... )
 }
 
 	self.__head_ord = {}
-		self.__head_ord[1] = self.__head[level]
-	self.__head_ord[2] = self.__head[effect]
+		self.__head_ord[1] = self.__head["level"]
+	self.__head_ord[2] = self.__head["effect"]
 
 	self.__pk      = "level"
 	self.__fk      = ""

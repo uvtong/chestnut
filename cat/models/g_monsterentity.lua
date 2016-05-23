@@ -44,7 +44,7 @@ function cls:set_csv_id(v, ... )
 	assert(v)
 	self.__ecol_updated["csv_id"] = self.__ecol_updated["csv_id"] + 1
 	if self.__ecol_updated["csv_id"] == 1 then
-		self.__ecol_updated = self.__ecol_updated + 1
+		self.__col_updated = self.__col_updated + 1
 	end
 	self.__fields.csv_id = v
 end
@@ -59,7 +59,7 @@ function cls:set_name(v, ... )
 	assert(v)
 	self.__ecol_updated["name"] = self.__ecol_updated["name"] + 1
 	if self.__ecol_updated["name"] == 1 then
-		self.__ecol_updated = self.__ecol_updated + 1
+		self.__col_updated = self.__col_updated + 1
 	end
 	self.__fields.name = v
 end
@@ -74,7 +74,7 @@ function cls:set_combat(v, ... )
 	assert(v)
 	self.__ecol_updated["combat"] = self.__ecol_updated["combat"] + 1
 	if self.__ecol_updated["combat"] == 1 then
-		self.__ecol_updated = self.__ecol_updated + 1
+		self.__col_updated = self.__col_updated + 1
 	end
 	self.__fields.combat = v
 end
@@ -89,7 +89,7 @@ function cls:set_defense(v, ... )
 	assert(v)
 	self.__ecol_updated["defense"] = self.__ecol_updated["defense"] + 1
 	if self.__ecol_updated["defense"] == 1 then
-		self.__ecol_updated = self.__ecol_updated + 1
+		self.__col_updated = self.__col_updated + 1
 	end
 	self.__fields.defense = v
 end
@@ -104,7 +104,7 @@ function cls:set_critical_hit(v, ... )
 	assert(v)
 	self.__ecol_updated["critical_hit"] = self.__ecol_updated["critical_hit"] + 1
 	if self.__ecol_updated["critical_hit"] == 1 then
-		self.__ecol_updated = self.__ecol_updated + 1
+		self.__col_updated = self.__col_updated + 1
 	end
 	self.__fields.critical_hit = v
 end
@@ -119,7 +119,7 @@ function cls:set_blessing(v, ... )
 	assert(v)
 	self.__ecol_updated["blessing"] = self.__ecol_updated["blessing"] + 1
 	if self.__ecol_updated["blessing"] == 1 then
-		self.__ecol_updated = self.__ecol_updated + 1
+		self.__col_updated = self.__col_updated + 1
 	end
 	self.__fields.blessing = v
 end
@@ -134,7 +134,7 @@ function cls:set_quanfaid(v, ... )
 	assert(v)
 	self.__ecol_updated["quanfaid"] = self.__ecol_updated["quanfaid"] + 1
 	if self.__ecol_updated["quanfaid"] == 1 then
-		self.__ecol_updated = self.__ecol_updated + 1
+		self.__col_updated = self.__col_updated + 1
 	end
 	self.__fields.quanfaid = v
 end

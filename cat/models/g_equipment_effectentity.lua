@@ -34,7 +34,7 @@ function cls:set_level(v, ... )
 	assert(v)
 	self.__ecol_updated["level"] = self.__ecol_updated["level"] + 1
 	if self.__ecol_updated["level"] == 1 then
-		self.__ecol_updated = self.__ecol_updated + 1
+		self.__col_updated = self.__col_updated + 1
 	end
 	self.__fields.level = v
 end
@@ -49,7 +49,7 @@ function cls:set_effect(v, ... )
 	assert(v)
 	self.__ecol_updated["effect"] = self.__ecol_updated["effect"] + 1
 	if self.__ecol_updated["effect"] == 1 then
-		self.__ecol_updated = self.__ecol_updated + 1
+		self.__col_updated = self.__col_updated + 1
 	end
 	self.__fields.effect = v
 end

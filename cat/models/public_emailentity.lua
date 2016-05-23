@@ -72,7 +72,7 @@ function cls:set_id(v, ... )
 	assert(v)
 	self.__ecol_updated["id"] = self.__ecol_updated["id"] + 1
 	if self.__ecol_updated["id"] == 1 then
-		self.__ecol_updated = self.__ecol_updated + 1
+		self.__col_updated = self.__col_updated + 1
 	end
 	self.__fields.id = v
 end
@@ -87,7 +87,7 @@ function cls:set_csv_id(v, ... )
 	assert(v)
 	self.__ecol_updated["csv_id"] = self.__ecol_updated["csv_id"] + 1
 	if self.__ecol_updated["csv_id"] == 1 then
-		self.__ecol_updated = self.__ecol_updated + 1
+		self.__col_updated = self.__col_updated + 1
 	end
 	self.__fields.csv_id = v
 end
@@ -102,7 +102,7 @@ function cls:set_type(v, ... )
 	assert(v)
 	self.__ecol_updated["type"] = self.__ecol_updated["type"] + 1
 	if self.__ecol_updated["type"] == 1 then
-		self.__ecol_updated = self.__ecol_updated + 1
+		self.__col_updated = self.__col_updated + 1
 	end
 	self.__fields.type = v
 end
@@ -117,7 +117,7 @@ function cls:set_title(v, ... )
 	assert(v)
 	self.__ecol_updated["title"] = self.__ecol_updated["title"] + 1
 	if self.__ecol_updated["title"] == 1 then
-		self.__ecol_updated = self.__ecol_updated + 1
+		self.__col_updated = self.__col_updated + 1
 	end
 	self.__fields.title = v
 end
@@ -132,7 +132,7 @@ function cls:set_content(v, ... )
 	assert(v)
 	self.__ecol_updated["content"] = self.__ecol_updated["content"] + 1
 	if self.__ecol_updated["content"] == 1 then
-		self.__ecol_updated = self.__ecol_updated + 1
+		self.__col_updated = self.__col_updated + 1
 	end
 	self.__fields.content = v
 end
@@ -147,7 +147,7 @@ function cls:set_acctime(v, ... )
 	assert(v)
 	self.__ecol_updated["acctime"] = self.__ecol_updated["acctime"] + 1
 	if self.__ecol_updated["acctime"] == 1 then
-		self.__ecol_updated = self.__ecol_updated + 1
+		self.__col_updated = self.__col_updated + 1
 	end
 	self.__fields.acctime = v
 end
@@ -162,7 +162,7 @@ function cls:set_deltime(v, ... )
 	assert(v)
 	self.__ecol_updated["deltime"] = self.__ecol_updated["deltime"] + 1
 	if self.__ecol_updated["deltime"] == 1 then
-		self.__ecol_updated = self.__ecol_updated + 1
+		self.__col_updated = self.__col_updated + 1
 	end
 	self.__fields.deltime = v
 end
@@ -177,7 +177,7 @@ function cls:set_isread(v, ... )
 	assert(v)
 	self.__ecol_updated["isread"] = self.__ecol_updated["isread"] + 1
 	if self.__ecol_updated["isread"] == 1 then
-		self.__ecol_updated = self.__ecol_updated + 1
+		self.__col_updated = self.__col_updated + 1
 	end
 	self.__fields.isread = v
 end
@@ -192,7 +192,7 @@ function cls:set_isdel(v, ... )
 	assert(v)
 	self.__ecol_updated["isdel"] = self.__ecol_updated["isdel"] + 1
 	if self.__ecol_updated["isdel"] == 1 then
-		self.__ecol_updated = self.__ecol_updated + 1
+		self.__col_updated = self.__col_updated + 1
 	end
 	self.__fields.isdel = v
 end
@@ -207,7 +207,7 @@ function cls:set_itemsn1(v, ... )
 	assert(v)
 	self.__ecol_updated["itemsn1"] = self.__ecol_updated["itemsn1"] + 1
 	if self.__ecol_updated["itemsn1"] == 1 then
-		self.__ecol_updated = self.__ecol_updated + 1
+		self.__col_updated = self.__col_updated + 1
 	end
 	self.__fields.itemsn1 = v
 end
@@ -222,7 +222,7 @@ function cls:set_itemnum1(v, ... )
 	assert(v)
 	self.__ecol_updated["itemnum1"] = self.__ecol_updated["itemnum1"] + 1
 	if self.__ecol_updated["itemnum1"] == 1 then
-		self.__ecol_updated = self.__ecol_updated + 1
+		self.__col_updated = self.__col_updated + 1
 	end
 	self.__fields.itemnum1 = v
 end
@@ -237,7 +237,7 @@ function cls:set_itemsn2(v, ... )
 	assert(v)
 	self.__ecol_updated["itemsn2"] = self.__ecol_updated["itemsn2"] + 1
 	if self.__ecol_updated["itemsn2"] == 1 then
-		self.__ecol_updated = self.__ecol_updated + 1
+		self.__col_updated = self.__col_updated + 1
 	end
 	self.__fields.itemsn2 = v
 end
@@ -252,7 +252,7 @@ function cls:set_itemnum2(v, ... )
 	assert(v)
 	self.__ecol_updated["itemnum2"] = self.__ecol_updated["itemnum2"] + 1
 	if self.__ecol_updated["itemnum2"] == 1 then
-		self.__ecol_updated = self.__ecol_updated + 1
+		self.__col_updated = self.__col_updated + 1
 	end
 	self.__fields.itemnum2 = v
 end
@@ -267,7 +267,7 @@ function cls:set_itemsn3(v, ... )
 	assert(v)
 	self.__ecol_updated["itemsn3"] = self.__ecol_updated["itemsn3"] + 1
 	if self.__ecol_updated["itemsn3"] == 1 then
-		self.__ecol_updated = self.__ecol_updated + 1
+		self.__col_updated = self.__col_updated + 1
 	end
 	self.__fields.itemsn3 = v
 end
@@ -282,7 +282,7 @@ function cls:set_itemnum3(v, ... )
 	assert(v)
 	self.__ecol_updated["itemnum3"] = self.__ecol_updated["itemnum3"] + 1
 	if self.__ecol_updated["itemnum3"] == 1 then
-		self.__ecol_updated = self.__ecol_updated + 1
+		self.__col_updated = self.__col_updated + 1
 	end
 	self.__fields.itemnum3 = v
 end
@@ -297,7 +297,7 @@ function cls:set_itemsn4(v, ... )
 	assert(v)
 	self.__ecol_updated["itemsn4"] = self.__ecol_updated["itemsn4"] + 1
 	if self.__ecol_updated["itemsn4"] == 1 then
-		self.__ecol_updated = self.__ecol_updated + 1
+		self.__col_updated = self.__col_updated + 1
 	end
 	self.__fields.itemsn4 = v
 end
@@ -312,7 +312,7 @@ function cls:set_itemnum4(v, ... )
 	assert(v)
 	self.__ecol_updated["itemnum4"] = self.__ecol_updated["itemnum4"] + 1
 	if self.__ecol_updated["itemnum4"] == 1 then
-		self.__ecol_updated = self.__ecol_updated + 1
+		self.__col_updated = self.__col_updated + 1
 	end
 	self.__fields.itemnum4 = v
 end
@@ -327,7 +327,7 @@ function cls:set_itemsn5(v, ... )
 	assert(v)
 	self.__ecol_updated["itemsn5"] = self.__ecol_updated["itemsn5"] + 1
 	if self.__ecol_updated["itemsn5"] == 1 then
-		self.__ecol_updated = self.__ecol_updated + 1
+		self.__col_updated = self.__col_updated + 1
 	end
 	self.__fields.itemsn5 = v
 end
@@ -342,7 +342,7 @@ function cls:set_itemnum5(v, ... )
 	assert(v)
 	self.__ecol_updated["itemnum5"] = self.__ecol_updated["itemnum5"] + 1
 	if self.__ecol_updated["itemnum5"] == 1 then
-		self.__ecol_updated = self.__ecol_updated + 1
+		self.__col_updated = self.__col_updated + 1
 	end
 	self.__fields.itemnum5 = v
 end
@@ -357,7 +357,7 @@ function cls:set_iconid(v, ... )
 	assert(v)
 	self.__ecol_updated["iconid"] = self.__ecol_updated["iconid"] + 1
 	if self.__ecol_updated["iconid"] == 1 then
-		self.__ecol_updated = self.__ecol_updated + 1
+		self.__col_updated = self.__col_updated + 1
 	end
 	self.__fields.iconid = v
 end
@@ -372,7 +372,7 @@ function cls:set_isreward(v, ... )
 	assert(v)
 	self.__ecol_updated["isreward"] = self.__ecol_updated["isreward"] + 1
 	if self.__ecol_updated["isreward"] == 1 then
-		self.__ecol_updated = self.__ecol_updated + 1
+		self.__col_updated = self.__col_updated + 1
 	end
 	self.__fields.isreward = v
 end

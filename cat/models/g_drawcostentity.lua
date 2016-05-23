@@ -38,7 +38,7 @@ function cls:set_csv_id(v, ... )
 	assert(v)
 	self.__ecol_updated["csv_id"] = self.__ecol_updated["csv_id"] + 1
 	if self.__ecol_updated["csv_id"] == 1 then
-		self.__ecol_updated = self.__ecol_updated + 1
+		self.__col_updated = self.__col_updated + 1
 	end
 	self.__fields.csv_id = v
 end
@@ -53,7 +53,7 @@ function cls:set_cointype(v, ... )
 	assert(v)
 	self.__ecol_updated["cointype"] = self.__ecol_updated["cointype"] + 1
 	if self.__ecol_updated["cointype"] == 1 then
-		self.__ecol_updated = self.__ecol_updated + 1
+		self.__col_updated = self.__col_updated + 1
 	end
 	self.__fields.cointype = v
 end
@@ -68,7 +68,7 @@ function cls:set_price(v, ... )
 	assert(v)
 	self.__ecol_updated["price"] = self.__ecol_updated["price"] + 1
 	if self.__ecol_updated["price"] == 1 then
-		self.__ecol_updated = self.__ecol_updated + 1
+		self.__col_updated = self.__col_updated + 1
 	end
 	self.__fields.price = v
 end
@@ -83,7 +83,7 @@ function cls:set_cdtime(v, ... )
 	assert(v)
 	self.__ecol_updated["cdtime"] = self.__ecol_updated["cdtime"] + 1
 	if self.__ecol_updated["cdtime"] == 1 then
-		self.__ecol_updated = self.__ecol_updated + 1
+		self.__col_updated = self.__col_updated + 1
 	end
 	self.__fields.cdtime = v
 end

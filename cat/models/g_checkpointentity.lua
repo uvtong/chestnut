@@ -62,7 +62,7 @@ function cls:set_csv_id(v, ... )
 	assert(v)
 	self.__ecol_updated["csv_id"] = self.__ecol_updated["csv_id"] + 1
 	if self.__ecol_updated["csv_id"] == 1 then
-		self.__ecol_updated = self.__ecol_updated + 1
+		self.__col_updated = self.__col_updated + 1
 	end
 	self.__fields.csv_id = v
 end
@@ -77,7 +77,7 @@ function cls:set_chapter(v, ... )
 	assert(v)
 	self.__ecol_updated["chapter"] = self.__ecol_updated["chapter"] + 1
 	if self.__ecol_updated["chapter"] == 1 then
-		self.__ecol_updated = self.__ecol_updated + 1
+		self.__col_updated = self.__col_updated + 1
 	end
 	self.__fields.chapter = v
 end
@@ -92,7 +92,7 @@ function cls:set_combat(v, ... )
 	assert(v)
 	self.__ecol_updated["combat"] = self.__ecol_updated["combat"] + 1
 	if self.__ecol_updated["combat"] == 1 then
-		self.__ecol_updated = self.__ecol_updated + 1
+		self.__col_updated = self.__col_updated + 1
 	end
 	self.__fields.combat = v
 end
@@ -107,7 +107,7 @@ function cls:set_level(v, ... )
 	assert(v)
 	self.__ecol_updated["level"] = self.__ecol_updated["level"] + 1
 	if self.__ecol_updated["level"] == 1 then
-		self.__ecol_updated = self.__ecol_updated + 1
+		self.__col_updated = self.__col_updated + 1
 	end
 	self.__fields.level = v
 end
@@ -122,7 +122,7 @@ function cls:set_name(v, ... )
 	assert(v)
 	self.__ecol_updated["name"] = self.__ecol_updated["name"] + 1
 	if self.__ecol_updated["name"] == 1 then
-		self.__ecol_updated = self.__ecol_updated + 1
+		self.__col_updated = self.__col_updated + 1
 	end
 	self.__fields.name = v
 end
@@ -137,7 +137,7 @@ function cls:set_checkpoint(v, ... )
 	assert(v)
 	self.__ecol_updated["checkpoint"] = self.__ecol_updated["checkpoint"] + 1
 	if self.__ecol_updated["checkpoint"] == 1 then
-		self.__ecol_updated = self.__ecol_updated + 1
+		self.__col_updated = self.__col_updated + 1
 	end
 	self.__fields.checkpoint = v
 end
@@ -152,7 +152,7 @@ function cls:set_type(v, ... )
 	assert(v)
 	self.__ecol_updated["type"] = self.__ecol_updated["type"] + 1
 	if self.__ecol_updated["type"] == 1 then
-		self.__ecol_updated = self.__ecol_updated + 1
+		self.__col_updated = self.__col_updated + 1
 	end
 	self.__fields.type = v
 end
@@ -167,7 +167,7 @@ function cls:set_cd(v, ... )
 	assert(v)
 	self.__ecol_updated["cd"] = self.__ecol_updated["cd"] + 1
 	if self.__ecol_updated["cd"] == 1 then
-		self.__ecol_updated = self.__ecol_updated + 1
+		self.__col_updated = self.__col_updated + 1
 	end
 	self.__fields.cd = v
 end
@@ -182,7 +182,7 @@ function cls:set_gain_gold(v, ... )
 	assert(v)
 	self.__ecol_updated["gain_gold"] = self.__ecol_updated["gain_gold"] + 1
 	if self.__ecol_updated["gain_gold"] == 1 then
-		self.__ecol_updated = self.__ecol_updated + 1
+		self.__col_updated = self.__col_updated + 1
 	end
 	self.__fields.gain_gold = v
 end
@@ -197,7 +197,7 @@ function cls:set_gain_exp(v, ... )
 	assert(v)
 	self.__ecol_updated["gain_exp"] = self.__ecol_updated["gain_exp"] + 1
 	if self.__ecol_updated["gain_exp"] == 1 then
-		self.__ecol_updated = self.__ecol_updated + 1
+		self.__col_updated = self.__col_updated + 1
 	end
 	self.__fields.gain_exp = v
 end
@@ -212,7 +212,7 @@ function cls:set_drop(v, ... )
 	assert(v)
 	self.__ecol_updated["drop"] = self.__ecol_updated["drop"] + 1
 	if self.__ecol_updated["drop"] == 1 then
-		self.__ecol_updated = self.__ecol_updated + 1
+		self.__col_updated = self.__col_updated + 1
 	end
 	self.__fields.drop = v
 end
@@ -227,7 +227,7 @@ function cls:set_reward(v, ... )
 	assert(v)
 	self.__ecol_updated["reward"] = self.__ecol_updated["reward"] + 1
 	if self.__ecol_updated["reward"] == 1 then
-		self.__ecol_updated = self.__ecol_updated + 1
+		self.__col_updated = self.__col_updated + 1
 	end
 	self.__fields.reward = v
 end
@@ -242,7 +242,7 @@ function cls:set_monster_csv_id1(v, ... )
 	assert(v)
 	self.__ecol_updated["monster_csv_id1"] = self.__ecol_updated["monster_csv_id1"] + 1
 	if self.__ecol_updated["monster_csv_id1"] == 1 then
-		self.__ecol_updated = self.__ecol_updated + 1
+		self.__col_updated = self.__col_updated + 1
 	end
 	self.__fields.monster_csv_id1 = v
 end
@@ -257,7 +257,7 @@ function cls:set_monster_csv_id2(v, ... )
 	assert(v)
 	self.__ecol_updated["monster_csv_id2"] = self.__ecol_updated["monster_csv_id2"] + 1
 	if self.__ecol_updated["monster_csv_id2"] == 1 then
-		self.__ecol_updated = self.__ecol_updated + 1
+		self.__col_updated = self.__col_updated + 1
 	end
 	self.__fields.monster_csv_id2 = v
 end
@@ -272,7 +272,7 @@ function cls:set_monster_csv_id3(v, ... )
 	assert(v)
 	self.__ecol_updated["monster_csv_id3"] = self.__ecol_updated["monster_csv_id3"] + 1
 	if self.__ecol_updated["monster_csv_id3"] == 1 then
-		self.__ecol_updated = self.__ecol_updated + 1
+		self.__col_updated = self.__col_updated + 1
 	end
 	self.__fields.monster_csv_id3 = v
 end
@@ -287,7 +287,7 @@ function cls:set_drop_cd(v, ... )
 	assert(v)
 	self.__ecol_updated["drop_cd"] = self.__ecol_updated["drop_cd"] + 1
 	if self.__ecol_updated["drop_cd"] == 1 then
-		self.__ecol_updated = self.__ecol_updated + 1
+		self.__col_updated = self.__col_updated + 1
 	end
 	self.__fields.drop_cd = v
 end

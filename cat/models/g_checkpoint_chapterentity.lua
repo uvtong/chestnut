@@ -42,7 +42,7 @@ function cls:set_csv_id(v, ... )
 	assert(v)
 	self.__ecol_updated["csv_id"] = self.__ecol_updated["csv_id"] + 1
 	if self.__ecol_updated["csv_id"] == 1 then
-		self.__ecol_updated = self.__ecol_updated + 1
+		self.__col_updated = self.__col_updated + 1
 	end
 	self.__fields.csv_id = v
 end
@@ -57,7 +57,7 @@ function cls:set_level(v, ... )
 	assert(v)
 	self.__ecol_updated["level"] = self.__ecol_updated["level"] + 1
 	if self.__ecol_updated["level"] == 1 then
-		self.__ecol_updated = self.__ecol_updated + 1
+		self.__col_updated = self.__col_updated + 1
 	end
 	self.__fields.level = v
 end
@@ -72,7 +72,7 @@ function cls:set_name(v, ... )
 	assert(v)
 	self.__ecol_updated["name"] = self.__ecol_updated["name"] + 1
 	if self.__ecol_updated["name"] == 1 then
-		self.__ecol_updated = self.__ecol_updated + 1
+		self.__col_updated = self.__col_updated + 1
 	end
 	self.__fields.name = v
 end
@@ -87,7 +87,7 @@ function cls:set_type0_max(v, ... )
 	assert(v)
 	self.__ecol_updated["type0_max"] = self.__ecol_updated["type0_max"] + 1
 	if self.__ecol_updated["type0_max"] == 1 then
-		self.__ecol_updated = self.__ecol_updated + 1
+		self.__col_updated = self.__col_updated + 1
 	end
 	self.__fields.type0_max = v
 end
@@ -102,7 +102,7 @@ function cls:set_type1_max(v, ... )
 	assert(v)
 	self.__ecol_updated["type1_max"] = self.__ecol_updated["type1_max"] + 1
 	if self.__ecol_updated["type1_max"] == 1 then
-		self.__ecol_updated = self.__ecol_updated + 1
+		self.__col_updated = self.__col_updated + 1
 	end
 	self.__fields.type1_max = v
 end
@@ -117,7 +117,7 @@ function cls:set_type2_max(v, ... )
 	assert(v)
 	self.__ecol_updated["type2_max"] = self.__ecol_updated["type2_max"] + 1
 	if self.__ecol_updated["type2_max"] == 1 then
-		self.__ecol_updated = self.__ecol_updated + 1
+		self.__col_updated = self.__col_updated + 1
 	end
 	self.__fields.type2_max = v
 end

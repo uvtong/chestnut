@@ -38,7 +38,7 @@ function cls:set_csv_id(v, ... )
 	assert(v)
 	self.__ecol_updated["csv_id"] = self.__ecol_updated["csv_id"] + 1
 	if self.__ecol_updated["csv_id"] == 1 then
-		self.__ecol_updated = self.__ecol_updated + 1
+		self.__col_updated = self.__col_updated + 1
 	end
 	self.__fields.csv_id = v
 end
@@ -53,7 +53,7 @@ function cls:set_cd_time(v, ... )
 	assert(v)
 	self.__ecol_updated["cd_time"] = self.__ecol_updated["cd_time"] + 1
 	if self.__ecol_updated["cd_time"] == 1 then
-		self.__ecol_updated = self.__ecol_updated + 1
+		self.__col_updated = self.__col_updated + 1
 	end
 	self.__fields.cd_time = v
 end
@@ -68,7 +68,7 @@ function cls:set_description(v, ... )
 	assert(v)
 	self.__ecol_updated["description"] = self.__ecol_updated["description"] + 1
 	if self.__ecol_updated["description"] == 1 then
-		self.__ecol_updated = self.__ecol_updated + 1
+		self.__col_updated = self.__col_updated + 1
 	end
 	self.__fields.description = v
 end
@@ -83,7 +83,7 @@ function cls:set_reward(v, ... )
 	assert(v)
 	self.__ecol_updated["reward"] = self.__ecol_updated["reward"] + 1
 	if self.__ecol_updated["reward"] == 1 then
-		self.__ecol_updated = self.__ecol_updated + 1
+		self.__col_updated = self.__col_updated + 1
 	end
 	self.__fields.reward = v
 end

@@ -36,7 +36,7 @@ function cls:set_id(v, ... )
 	assert(v)
 	self.__ecol_updated["id"] = self.__ecol_updated["id"] + 1
 	if self.__ecol_updated["id"] == 1 then
-		self.__ecol_updated = self.__ecol_updated + 1
+		self.__col_updated = self.__col_updated + 1
 	end
 	self.__fields.id = v
 end
@@ -51,7 +51,7 @@ function cls:set_val(v, ... )
 	assert(v)
 	self.__ecol_updated["val"] = self.__ecol_updated["val"] + 1
 	if self.__ecol_updated["val"] == 1 then
-		self.__ecol_updated = self.__ecol_updated + 1
+		self.__col_updated = self.__col_updated + 1
 	end
 	self.__fields.val = v
 end
@@ -66,7 +66,7 @@ function cls:set_step(v, ... )
 	assert(v)
 	self.__ecol_updated["step"] = self.__ecol_updated["step"] + 1
 	if self.__ecol_updated["step"] == 1 then
-		self.__ecol_updated = self.__ecol_updated + 1
+		self.__col_updated = self.__col_updated + 1
 	end
 	self.__fields.step = v
 end

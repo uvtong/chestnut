@@ -42,7 +42,7 @@ function cls:set_csv_id(v, ... )
 	assert(v)
 	self.__ecol_updated["csv_id"] = self.__ecol_updated["csv_id"] + 1
 	if self.__ecol_updated["csv_id"] == 1 then
-		self.__ecol_updated = self.__ecol_updated + 1
+		self.__col_updated = self.__col_updated + 1
 	end
 	self.__fields.csv_id = v
 end
@@ -57,7 +57,7 @@ function cls:set_phy_power(v, ... )
 	assert(v)
 	self.__ecol_updated["phy_power"] = self.__ecol_updated["phy_power"] + 1
 	if self.__ecol_updated["phy_power"] == 1 then
-		self.__ecol_updated = self.__ecol_updated + 1
+		self.__col_updated = self.__col_updated + 1
 	end
 	self.__fields.phy_power = v
 end
@@ -72,7 +72,7 @@ function cls:set_experience(v, ... )
 	assert(v)
 	self.__ecol_updated["experience"] = self.__ecol_updated["experience"] + 1
 	if self.__ecol_updated["experience"] == 1 then
-		self.__ecol_updated = self.__ecol_updated + 1
+		self.__col_updated = self.__col_updated + 1
 	end
 	self.__fields.experience = v
 end
@@ -87,7 +87,7 @@ function cls:set_queue(v, ... )
 	assert(v)
 	self.__ecol_updated["queue"] = self.__ecol_updated["queue"] + 1
 	if self.__ecol_updated["queue"] == 1 then
-		self.__ecol_updated = self.__ecol_updated + 1
+		self.__col_updated = self.__col_updated + 1
 	end
 	self.__fields.queue = v
 end
@@ -102,7 +102,7 @@ function cls:set_dec_lilian_time(v, ... )
 	assert(v)
 	self.__ecol_updated["dec_lilian_time"] = self.__ecol_updated["dec_lilian_time"] + 1
 	if self.__ecol_updated["dec_lilian_time"] == 1 then
-		self.__ecol_updated = self.__ecol_updated + 1
+		self.__col_updated = self.__col_updated + 1
 	end
 	self.__fields.dec_lilian_time = v
 end
@@ -117,7 +117,7 @@ function cls:set_dec_weikun_time(v, ... )
 	assert(v)
 	self.__ecol_updated["dec_weikun_time"] = self.__ecol_updated["dec_weikun_time"] + 1
 	if self.__ecol_updated["dec_weikun_time"] == 1 then
-		self.__ecol_updated = self.__ecol_updated + 1
+		self.__col_updated = self.__col_updated + 1
 	end
 	self.__fields.dec_weikun_time = v
 end

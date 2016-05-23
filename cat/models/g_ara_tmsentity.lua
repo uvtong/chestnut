@@ -36,7 +36,7 @@ function cls:set_csv_id(v, ... )
 	assert(v)
 	self.__ecol_updated["csv_id"] = self.__ecol_updated["csv_id"] + 1
 	if self.__ecol_updated["csv_id"] == 1 then
-		self.__ecol_updated = self.__ecol_updated + 1
+		self.__col_updated = self.__col_updated + 1
 	end
 	self.__fields.csv_id = v
 end
@@ -51,7 +51,7 @@ function cls:set_purchase_cost(v, ... )
 	assert(v)
 	self.__ecol_updated["purchase_cost"] = self.__ecol_updated["purchase_cost"] + 1
 	if self.__ecol_updated["purchase_cost"] == 1 then
-		self.__ecol_updated = self.__ecol_updated + 1
+		self.__col_updated = self.__col_updated + 1
 	end
 	self.__fields.purchase_cost = v
 end
@@ -66,7 +66,7 @@ function cls:set_list_refresh_cost(v, ... )
 	assert(v)
 	self.__ecol_updated["list_refresh_cost"] = self.__ecol_updated["list_refresh_cost"] + 1
 	if self.__ecol_updated["list_refresh_cost"] == 1 then
-		self.__ecol_updated = self.__ecol_updated + 1
+		self.__col_updated = self.__col_updated + 1
 	end
 	self.__fields.list_refresh_cost = v
 end

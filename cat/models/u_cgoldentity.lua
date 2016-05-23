@@ -40,7 +40,7 @@ function cls:set_id(v, ... )
 	assert(v)
 	self.__ecol_updated["id"] = self.__ecol_updated["id"] + 1
 	if self.__ecol_updated["id"] == 1 then
-		self.__ecol_updated = self.__ecol_updated + 1
+		self.__col_updated = self.__col_updated + 1
 	end
 	self.__fields.id = v
 end
@@ -55,7 +55,7 @@ function cls:set_user_id(v, ... )
 	assert(v)
 	self.__ecol_updated["user_id"] = self.__ecol_updated["user_id"] + 1
 	if self.__ecol_updated["user_id"] == 1 then
-		self.__ecol_updated = self.__ecol_updated + 1
+		self.__col_updated = self.__col_updated + 1
 	end
 	self.__fields.user_id = v
 end
@@ -70,7 +70,7 @@ function cls:set_cgold_time(v, ... )
 	assert(v)
 	self.__ecol_updated["cgold_time"] = self.__ecol_updated["cgold_time"] + 1
 	if self.__ecol_updated["cgold_time"] == 1 then
-		self.__ecol_updated = self.__ecol_updated + 1
+		self.__col_updated = self.__col_updated + 1
 	end
 	self.__fields.cgold_time = v
 end
@@ -85,7 +85,7 @@ function cls:set_cgold_type(v, ... )
 	assert(v)
 	self.__ecol_updated["cgold_type"] = self.__ecol_updated["cgold_type"] + 1
 	if self.__ecol_updated["cgold_type"] == 1 then
-		self.__ecol_updated = self.__ecol_updated + 1
+		self.__col_updated = self.__col_updated + 1
 	end
 	self.__fields.cgold_type = v
 end
@@ -100,7 +100,7 @@ function cls:set_time_length(v, ... )
 	assert(v)
 	self.__ecol_updated["time_length"] = self.__ecol_updated["time_length"] + 1
 	if self.__ecol_updated["time_length"] == 1 then
-		self.__ecol_updated = self.__ecol_updated + 1
+		self.__col_updated = self.__col_updated + 1
 	end
 	self.__fields.time_length = v
 end

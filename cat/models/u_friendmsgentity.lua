@@ -50,7 +50,7 @@ function cls:set_id(v, ... )
 	assert(v)
 	self.__ecol_updated["id"] = self.__ecol_updated["id"] + 1
 	if self.__ecol_updated["id"] == 1 then
-		self.__ecol_updated = self.__ecol_updated + 1
+		self.__col_updated = self.__col_updated + 1
 	end
 	self.__fields.id = v
 end
@@ -65,7 +65,7 @@ function cls:set_fromid(v, ... )
 	assert(v)
 	self.__ecol_updated["fromid"] = self.__ecol_updated["fromid"] + 1
 	if self.__ecol_updated["fromid"] == 1 then
-		self.__ecol_updated = self.__ecol_updated + 1
+		self.__col_updated = self.__col_updated + 1
 	end
 	self.__fields.fromid = v
 end
@@ -80,7 +80,7 @@ function cls:set_toid(v, ... )
 	assert(v)
 	self.__ecol_updated["toid"] = self.__ecol_updated["toid"] + 1
 	if self.__ecol_updated["toid"] == 1 then
-		self.__ecol_updated = self.__ecol_updated + 1
+		self.__col_updated = self.__col_updated + 1
 	end
 	self.__fields.toid = v
 end
@@ -95,7 +95,7 @@ function cls:set_type(v, ... )
 	assert(v)
 	self.__ecol_updated["type"] = self.__ecol_updated["type"] + 1
 	if self.__ecol_updated["type"] == 1 then
-		self.__ecol_updated = self.__ecol_updated + 1
+		self.__col_updated = self.__col_updated + 1
 	end
 	self.__fields.type = v
 end
@@ -110,7 +110,7 @@ function cls:set_amount(v, ... )
 	assert(v)
 	self.__ecol_updated["amount"] = self.__ecol_updated["amount"] + 1
 	if self.__ecol_updated["amount"] == 1 then
-		self.__ecol_updated = self.__ecol_updated + 1
+		self.__col_updated = self.__col_updated + 1
 	end
 	self.__fields.amount = v
 end
@@ -125,7 +125,7 @@ function cls:set_propid(v, ... )
 	assert(v)
 	self.__ecol_updated["propid"] = self.__ecol_updated["propid"] + 1
 	if self.__ecol_updated["propid"] == 1 then
-		self.__ecol_updated = self.__ecol_updated + 1
+		self.__col_updated = self.__col_updated + 1
 	end
 	self.__fields.propid = v
 end
@@ -140,7 +140,7 @@ function cls:set_isread(v, ... )
 	assert(v)
 	self.__ecol_updated["isread"] = self.__ecol_updated["isread"] + 1
 	if self.__ecol_updated["isread"] == 1 then
-		self.__ecol_updated = self.__ecol_updated + 1
+		self.__col_updated = self.__col_updated + 1
 	end
 	self.__fields.isread = v
 end
@@ -155,7 +155,7 @@ function cls:set_csendtime(v, ... )
 	assert(v)
 	self.__ecol_updated["csendtime"] = self.__ecol_updated["csendtime"] + 1
 	if self.__ecol_updated["csendtime"] == 1 then
-		self.__ecol_updated = self.__ecol_updated + 1
+		self.__col_updated = self.__col_updated + 1
 	end
 	self.__fields.csendtime = v
 end
@@ -170,7 +170,7 @@ function cls:set_srecvtime(v, ... )
 	assert(v)
 	self.__ecol_updated["srecvtime"] = self.__ecol_updated["srecvtime"] + 1
 	if self.__ecol_updated["srecvtime"] == 1 then
-		self.__ecol_updated = self.__ecol_updated + 1
+		self.__col_updated = self.__col_updated + 1
 	end
 	self.__fields.srecvtime = v
 end
@@ -185,7 +185,7 @@ function cls:set_signtime(v, ... )
 	assert(v)
 	self.__ecol_updated["signtime"] = self.__ecol_updated["signtime"] + 1
 	if self.__ecol_updated["signtime"] == 1 then
-		self.__ecol_updated = self.__ecol_updated + 1
+		self.__col_updated = self.__col_updated + 1
 	end
 	self.__fields.signtime = v
 end

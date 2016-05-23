@@ -34,7 +34,7 @@ function cls:set_uid(v, ... )
 	assert(v)
 	self.__ecol_updated["uid"] = self.__ecol_updated["uid"] + 1
 	if self.__ecol_updated["uid"] == 1 then
-		self.__ecol_updated = self.__ecol_updated + 1
+		self.__col_updated = self.__col_updated + 1
 	end
 	self.__fields.uid = v
 end
@@ -49,7 +49,7 @@ function cls:set_times(v, ... )
 	assert(v)
 	self.__ecol_updated["times"] = self.__ecol_updated["times"] + 1
 	if self.__ecol_updated["times"] == 1 then
-		self.__ecol_updated = self.__ecol_updated + 1
+		self.__col_updated = self.__col_updated + 1
 	end
 	self.__fields.times = v
 end

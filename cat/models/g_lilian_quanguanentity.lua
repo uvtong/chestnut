@@ -50,7 +50,7 @@ function cls:set_csv_id(v, ... )
 	assert(v)
 	self.__ecol_updated["csv_id"] = self.__ecol_updated["csv_id"] + 1
 	if self.__ecol_updated["csv_id"] == 1 then
-		self.__ecol_updated = self.__ecol_updated + 1
+		self.__col_updated = self.__col_updated + 1
 	end
 	self.__fields.csv_id = v
 end
@@ -65,7 +65,7 @@ function cls:set_belong_zone(v, ... )
 	assert(v)
 	self.__ecol_updated["belong_zone"] = self.__ecol_updated["belong_zone"] + 1
 	if self.__ecol_updated["belong_zone"] == 1 then
-		self.__ecol_updated = self.__ecol_updated + 1
+		self.__col_updated = self.__col_updated + 1
 	end
 	self.__fields.belong_zone = v
 end
@@ -80,7 +80,7 @@ function cls:set_open_level(v, ... )
 	assert(v)
 	self.__ecol_updated["open_level"] = self.__ecol_updated["open_level"] + 1
 	if self.__ecol_updated["open_level"] == 1 then
-		self.__ecol_updated = self.__ecol_updated + 1
+		self.__col_updated = self.__col_updated + 1
 	end
 	self.__fields.open_level = v
 end
@@ -95,7 +95,7 @@ function cls:set_time(v, ... )
 	assert(v)
 	self.__ecol_updated["time"] = self.__ecol_updated["time"] + 1
 	if self.__ecol_updated["time"] == 1 then
-		self.__ecol_updated = self.__ecol_updated + 1
+		self.__col_updated = self.__col_updated + 1
 	end
 	self.__fields.time = v
 end
@@ -110,7 +110,7 @@ function cls:set_reward(v, ... )
 	assert(v)
 	self.__ecol_updated["reward"] = self.__ecol_updated["reward"] + 1
 	if self.__ecol_updated["reward"] == 1 then
-		self.__ecol_updated = self.__ecol_updated + 1
+		self.__col_updated = self.__col_updated + 1
 	end
 	self.__fields.reward = v
 end
@@ -125,7 +125,7 @@ function cls:set_day_finish_time(v, ... )
 	assert(v)
 	self.__ecol_updated["day_finish_time"] = self.__ecol_updated["day_finish_time"] + 1
 	if self.__ecol_updated["day_finish_time"] == 1 then
-		self.__ecol_updated = self.__ecol_updated + 1
+		self.__col_updated = self.__col_updated + 1
 	end
 	self.__fields.day_finish_time = v
 end
@@ -140,7 +140,7 @@ function cls:set_need_phy_power(v, ... )
 	assert(v)
 	self.__ecol_updated["need_phy_power"] = self.__ecol_updated["need_phy_power"] + 1
 	if self.__ecol_updated["need_phy_power"] == 1 then
-		self.__ecol_updated = self.__ecol_updated + 1
+		self.__col_updated = self.__col_updated + 1
 	end
 	self.__fields.need_phy_power = v
 end
@@ -155,7 +155,7 @@ function cls:set_reward_exp(v, ... )
 	assert(v)
 	self.__ecol_updated["reward_exp"] = self.__ecol_updated["reward_exp"] + 1
 	if self.__ecol_updated["reward_exp"] == 1 then
-		self.__ecol_updated = self.__ecol_updated + 1
+		self.__col_updated = self.__col_updated + 1
 	end
 	self.__fields.reward_exp = v
 end
@@ -170,7 +170,7 @@ function cls:set_trigger_event_prop(v, ... )
 	assert(v)
 	self.__ecol_updated["trigger_event_prop"] = self.__ecol_updated["trigger_event_prop"] + 1
 	if self.__ecol_updated["trigger_event_prop"] == 1 then
-		self.__ecol_updated = self.__ecol_updated + 1
+		self.__col_updated = self.__col_updated + 1
 	end
 	self.__fields.trigger_event_prop = v
 end
@@ -185,7 +185,7 @@ function cls:set_trigger_event(v, ... )
 	assert(v)
 	self.__ecol_updated["trigger_event"] = self.__ecol_updated["trigger_event"] + 1
 	if self.__ecol_updated["trigger_event"] == 1 then
-		self.__ecol_updated = self.__ecol_updated + 1
+		self.__col_updated = self.__col_updated + 1
 	end
 	self.__fields.trigger_event = v
 end

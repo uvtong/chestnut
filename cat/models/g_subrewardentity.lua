@@ -38,7 +38,7 @@ function cls:set_csv_id(v, ... )
 	assert(v)
 	self.__ecol_updated["csv_id"] = self.__ecol_updated["csv_id"] + 1
 	if self.__ecol_updated["csv_id"] == 1 then
-		self.__ecol_updated = self.__ecol_updated + 1
+		self.__col_updated = self.__col_updated + 1
 	end
 	self.__fields.csv_id = v
 end
@@ -53,7 +53,7 @@ function cls:set_propid(v, ... )
 	assert(v)
 	self.__ecol_updated["propid"] = self.__ecol_updated["propid"] + 1
 	if self.__ecol_updated["propid"] == 1 then
-		self.__ecol_updated = self.__ecol_updated + 1
+		self.__col_updated = self.__col_updated + 1
 	end
 	self.__fields.propid = v
 end
@@ -68,7 +68,7 @@ function cls:set_propnum(v, ... )
 	assert(v)
 	self.__ecol_updated["propnum"] = self.__ecol_updated["propnum"] + 1
 	if self.__ecol_updated["propnum"] == 1 then
-		self.__ecol_updated = self.__ecol_updated + 1
+		self.__col_updated = self.__col_updated + 1
 	end
 	self.__fields.propnum = v
 end
@@ -83,7 +83,7 @@ function cls:set_proptype(v, ... )
 	assert(v)
 	self.__ecol_updated["proptype"] = self.__ecol_updated["proptype"] + 1
 	if self.__ecol_updated["proptype"] == 1 then
-		self.__ecol_updated = self.__ecol_updated + 1
+		self.__col_updated = self.__col_updated + 1
 	end
 	self.__fields.proptype = v
 end

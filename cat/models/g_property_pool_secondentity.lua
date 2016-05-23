@@ -40,7 +40,7 @@ function cls:set_csv_id(v, ... )
 	assert(v)
 	self.__ecol_updated["csv_id"] = self.__ecol_updated["csv_id"] + 1
 	if self.__ecol_updated["csv_id"] == 1 then
-		self.__ecol_updated = self.__ecol_updated + 1
+		self.__col_updated = self.__col_updated + 1
 	end
 	self.__fields.csv_id = v
 end
@@ -55,7 +55,7 @@ function cls:set_property_pool_id(v, ... )
 	assert(v)
 	self.__ecol_updated["property_pool_id"] = self.__ecol_updated["property_pool_id"] + 1
 	if self.__ecol_updated["property_pool_id"] == 1 then
-		self.__ecol_updated = self.__ecol_updated + 1
+		self.__col_updated = self.__col_updated + 1
 	end
 	self.__fields.property_pool_id = v
 end
@@ -70,7 +70,7 @@ function cls:set_probability(v, ... )
 	assert(v)
 	self.__ecol_updated["probability"] = self.__ecol_updated["probability"] + 1
 	if self.__ecol_updated["probability"] == 1 then
-		self.__ecol_updated = self.__ecol_updated + 1
+		self.__col_updated = self.__col_updated + 1
 	end
 	self.__fields.probability = v
 end
@@ -85,7 +85,7 @@ function cls:set_property_id(v, ... )
 	assert(v)
 	self.__ecol_updated["property_id"] = self.__ecol_updated["property_id"] + 1
 	if self.__ecol_updated["property_id"] == 1 then
-		self.__ecol_updated = self.__ecol_updated + 1
+		self.__col_updated = self.__col_updated + 1
 	end
 	self.__fields.property_id = v
 end
@@ -100,7 +100,7 @@ function cls:set_value(v, ... )
 	assert(v)
 	self.__ecol_updated["value"] = self.__ecol_updated["value"] + 1
 	if self.__ecol_updated["value"] == 1 then
-		self.__ecol_updated = self.__ecol_updated + 1
+		self.__col_updated = self.__col_updated + 1
 	end
 	self.__fields.value = v
 end

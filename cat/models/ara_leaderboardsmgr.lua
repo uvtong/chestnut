@@ -36,9 +36,9 @@ function cls:ctor( ... )
 }
 
 	self.__head_ord = {}
-		self.__head_ord[1] = self.__head[uid]
-	self.__head_ord[2] = self.__head[ranking]
-	self.__head_ord[3] = self.__head[k]
+		self.__head_ord[1] = self.__head["uid"]
+	self.__head_ord[2] = self.__head["ranking"]
+	self.__head_ord[3] = self.__head["k"]
 
 	self.__pk      = "uid"
 	self.__fk      = ""

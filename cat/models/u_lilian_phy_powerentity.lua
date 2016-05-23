@@ -44,7 +44,7 @@ function cls:set_id(v, ... )
 	assert(v)
 	self.__ecol_updated["id"] = self.__ecol_updated["id"] + 1
 	if self.__ecol_updated["id"] == 1 then
-		self.__ecol_updated = self.__ecol_updated + 1
+		self.__col_updated = self.__col_updated + 1
 	end
 	self.__fields.id = v
 end
@@ -59,7 +59,7 @@ function cls:set_user_id(v, ... )
 	assert(v)
 	self.__ecol_updated["user_id"] = self.__ecol_updated["user_id"] + 1
 	if self.__ecol_updated["user_id"] == 1 then
-		self.__ecol_updated = self.__ecol_updated + 1
+		self.__col_updated = self.__col_updated + 1
 	end
 	self.__fields.user_id = v
 end
@@ -74,7 +74,7 @@ function cls:set_csv_id(v, ... )
 	assert(v)
 	self.__ecol_updated["csv_id"] = self.__ecol_updated["csv_id"] + 1
 	if self.__ecol_updated["csv_id"] == 1 then
-		self.__ecol_updated = self.__ecol_updated + 1
+		self.__col_updated = self.__col_updated + 1
 	end
 	self.__fields.csv_id = v
 end
@@ -89,7 +89,7 @@ function cls:set_start_time(v, ... )
 	assert(v)
 	self.__ecol_updated["start_time"] = self.__ecol_updated["start_time"] + 1
 	if self.__ecol_updated["start_time"] == 1 then
-		self.__ecol_updated = self.__ecol_updated + 1
+		self.__col_updated = self.__col_updated + 1
 	end
 	self.__fields.start_time = v
 end
@@ -104,7 +104,7 @@ function cls:set_end_time(v, ... )
 	assert(v)
 	self.__ecol_updated["end_time"] = self.__ecol_updated["end_time"] + 1
 	if self.__ecol_updated["end_time"] == 1 then
-		self.__ecol_updated = self.__ecol_updated + 1
+		self.__col_updated = self.__col_updated + 1
 	end
 	self.__fields.end_time = v
 end
@@ -119,7 +119,7 @@ function cls:set_purch_time(v, ... )
 	assert(v)
 	self.__ecol_updated["purch_time"] = self.__ecol_updated["purch_time"] + 1
 	if self.__ecol_updated["purch_time"] == 1 then
-		self.__ecol_updated = self.__ecol_updated + 1
+		self.__col_updated = self.__col_updated + 1
 	end
 	self.__fields.purch_time = v
 end
@@ -134,7 +134,7 @@ function cls:set_num(v, ... )
 	assert(v)
 	self.__ecol_updated["num"] = self.__ecol_updated["num"] + 1
 	if self.__ecol_updated["num"] == 1 then
-		self.__ecol_updated = self.__ecol_updated + 1
+		self.__col_updated = self.__col_updated + 1
 	end
 	self.__fields.num = v
 end

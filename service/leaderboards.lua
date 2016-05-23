@@ -138,5 +138,8 @@ skynet.start(function ()
 		end
 	end)
 	leaderboardsmgr:load_db()
+	for k,v in pairs(leaderboardsmgr.__data) do
+		ranking_name[v.ranking] = v.uid
+	end
 	skynet.fork(print_c)
 end)
