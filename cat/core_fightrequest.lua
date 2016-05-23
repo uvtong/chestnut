@@ -31,13 +31,13 @@ local ENEMY = 2
 local START_DELAY = 3 --sec
 local CERTAIN_SEQUENCE_KF = 3
 local FIGHT_PLACE = 0 
-
+			  		
 local COMMON_KF = 90000
 local COMBO_KF = 100000
 local kf_common = {}
 local kf_combo = {}
 local PLACE = {GUANQIA = 1, ARENA = 2}
-				
+			  	
 local Self = {  
 			FightPower = 0,  --actually means presentfight power
 		    MaxComboNum = 0, 
@@ -51,9 +51,10 @@ local Self = {
 			Attr = {}, 
 			Uid = 0,
 			OnBattleList = {},
-			IfArenaInit = 0,
-			OnBattleSequence = 1
-		  } 	
+		  	IfArenaInit = 0,
+		  	OnBattleSequence = 1
+		  }	  	
+ 		  	  
 local Enemy = { 
 			FightPower = 0,  			--actually means presentfight power
 		    MaxComboNum = 0, 			--maxcomboNum in this battle  
@@ -69,25 +70,26 @@ local Enemy = {
 			OnBattleList = {},			--store chosen battle role_id 	
 			IfArenaInit = 0,			--if Arenainited
 			OnBattleSequence = 1 		--di ji ge shang zhen de jue se 
-		  }    	
+		  } 
+
 local function send_package(pack)
 	local package = string.pack(">s2", pack)
 	socket.write(client_fd, package)
 end	  		   	
-	
+	          
 function REQUEST:login(u)
-	-- body
+	-- body   
 	assert( u )
 	print("**********************************lilianrequest_login")
-	user = u
-end	    
-	
+	user = u  
+end	          
+			  
 --get who fight first, true user first, false robot first;	    	
 local function first_fighter()		
 	return ( 0 == math.random(100) % 2 )                      
 end 	
 	
---judeg if arise_type is true	
+--judge if arise_type is true	
 local function judge_arise_type(kf, totalfightnum)
 	assert(kf and totalfightnum)
 	local sign = false
@@ -100,21 +102,22 @@ local function judge_arise_type(kf, totalfightnum)
 		sign =  Enemy.FightPower < math.floor(Enemy.Attr.combat * (kf.arise_param / 100))
 	elseif 3 == kf.arise_type then
 		sign = (totalfightnum + 1) == kf.arise_param
-	else
-		assert(false)
-	end 		
+	else 							
+		assert(false)				
+	end 							
+									
 	print("judge_arise_type is *************************************", kf.arise_type , sign)
-	return sign 
-end 
-	
---judge if arise_count is true	
+	return sign 					
+end 								
+									
+--judge if arise_count is true	    
 local function judge_arise_count(kf)
-	assert(kf)	
-	local sign = false
+	assert(kf)						
+	local sign = false				
     print("kf.actual_fight_num and kf.arise_count in judge_arise_count is ",kf.g_csv_id, kf.actual_fight_num, kf.arise_count)
-	if 0 == kf.arise_count then
-		sign = true
-	else 		
+	if 0 == kf.arise_count then 	
+		sign = true					
+	else 							
 		if kf.actual_fight_num + 1 <= kf.arise_count then
 			sign = true	
 		end 	
@@ -122,11 +125,11 @@ local function judge_arise_count(kf)
 	print("judge_arise_count is *************************************", kf.actual_fight_num, kf.arise_count, sign)
 	return sign 
 end 
-	
-local function SortFunc(ta, tb)
+ 
+local function SortFunc(ta, tb) 
 	return ta.arise_probability < tb.arise_probability 
 end 
-	
+ 
 --huo de wan jia shang zhen jue se de sou you zhu dong quan fa , bing an zhao chu fa gai lv pai xu
 local function get_ordered_fight_list(tfightlist, reserved_fight_list, reserved_fightid_list)
 	assert(tfightlist and reserved_fight_list)
@@ -150,7 +153,7 @@ local function get_ordered_fight_list(tfightlist, reserved_fight_list, reserved_
 		reserved_fightid_list[tostring(v.g_csv_id)] = k
 	end 										 	
 end 		 
-	
+ 
 --huo de mei ci zi dong zhan dou de quan fa xu lie
 local function get_ordered_fight_list_to_client(sordered_fight_list, tmp_fightid_list, totalfightnum)
 	assert(sordered_fight_list and tmp_fightid_list)

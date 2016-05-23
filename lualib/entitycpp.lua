@@ -80,7 +80,7 @@ end
 function cls.update(t, ...)
 	-- body
 	assert(t.__fields ~= nil)
-	if true or t.__col_updated > 1 then
+	if false or t.__col_updated > 1 then
 		-- print("*************************1")
 		t.__col_updated = 0
 		-- t:set(t, ...)
@@ -97,24 +97,24 @@ function cls.update(t, ...)
 		assert(t.__head_ord ~= nil)
 		local counter = 0
 		for k, v in ipairs(t.__head_ord) do
-			print(k, v)
-			assert(nil ~= t.__fields[v])
+			assert(nil ~= t.__fields[v.cn])
 			if counter > 0 then
 				table.insert(tmp_sql, ", ")
 			else
 				counter = counter + 1
 			end
 		
-			if type(t.__fields[v]) == "string" then
-				table.insert(tmp_sql, string.format("'%s'",t.__fields[v] ))
+			if type(t.__fields[v.cn]) == "string" then
+				table.insert(tmp_sql, string.format("'%s'",t.__fields[v.cn] ))
 			else
-				table.insert(tmp_sql, string.format("%s", t.__fields[v]))
+				table.insert(tmp_sql, string.format("%s", t.__fields[v.cn]))
 			end
 		end
 		table.insert(tmp_sql, ")")
 
 		local sql = table.concat(tmp_sql)
 		print(sql)
+		print(t.__wdb, t.__tname)
 		query.write(t.__wdb, t.__tname, sql, query.DB_PRIORITY_3)
 	end
 end
@@ -122,6 +122,7 @@ end
 function cls.update_wait(t, ...)
 	assert(t.__fields ~= nil)
 	if true then
+		print("called******************************************************************")
 		t:update()
 		-- t.__col_updated = 0
 		-- local sql = t:gen_update_sql()
