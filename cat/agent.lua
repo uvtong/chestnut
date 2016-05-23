@@ -2615,7 +2615,7 @@ end
 local function login(u, ... )
 	-- body
 	enter_lp(u)
-	enter_ara(u)
+	-- enter_ara(u)
 end
 
 function CMD.signup(source, uid, sid, sct, g, d)
@@ -2694,6 +2694,7 @@ function CMD.login(source, uid, sid, sct, g, d)
 	env:set_user(user)
 	login(user)
 	
+	print("*********************finish")
 	return true
 end
 

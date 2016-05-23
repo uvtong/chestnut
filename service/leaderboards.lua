@@ -79,9 +79,9 @@ function CMD.push(id, key)
 			ranking = ranking,
 			k = key
 		}
-		local o = leaderboardsmgr.create(tmp)
+		local o = leaderboardsmgr:create_entity(tmp)
 		leaderboardsmgr:add(o)
-		o("insert")
+		o:update()
 		return ranking
 	end
 end
