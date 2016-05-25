@@ -733,9 +733,11 @@ function cls:signup(uid)
 	role.id = genpk_2(role.user_id, role.csv_id)
 	role = u.u_rolemgr:create_entity(role)
 	u.u_rolemgr:add(role)
+	print("role:update_wait is called**********************")
 	role:update_wait()
 	return u
 end
+
 
 function cls:ara_bat_clg( ... )
 	-- body

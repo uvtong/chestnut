@@ -19,15 +19,15 @@ cpath       = root.."cservice/?.so"
 -- daemon = "./skynet.pid"
 
 -- signup server
--- signupd     = "192.168.1.239:3001"
+-- signupd     = "0.0.0.0:3001"
 -- signupd_name = "signup_master"
 
 -- login server
--- logind      = "192.168.1.239:3002"
+-- logind      = "0.0.0.0:3002"
 logind_name = "login_master"
 
 -- gate server
-gated       = "192.168.1.239:3302"
+gated       = "0.0.0.0:3302"
 gated_name  = "sample1"
 maxclient   = 64
 leaderboards_name = ".ara_lb"

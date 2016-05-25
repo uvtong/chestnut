@@ -18,7 +18,6 @@ local client_fd
 local game
 local user
 local dc
-local draw_mgr
 
 local DAY = 24 * 60 * 60
 local drawtype = { FRIEND = 1 , ONETIME = 2 , TENTIME = 3 }
@@ -33,10 +32,9 @@ end
 function REQUEST:login( u )
 	-- body
 	assert( u )
-	print( "**********************************new_drawrequestrequest_login " )
+	print( "**********************************new_drawrequest_login " )
 	user = u
-	draw_mgr = user.u_drawmgr
-	assert( draw_mgr )
+	
 end		
 		
 local function getsettime()
@@ -116,7 +114,7 @@ function REQUEST:draw()
    	local ret = {}
    	ret.list = {}
    			
-   	local tfrienddraw = draw_mgr:get_by_type( drawtype.FRIEND )
+   	local tfrienddraw = user.u_drawmgr:get_by_type( drawtype.FRIEND )
    		
    	local settime = getsettime()
    		
@@ -136,7 +134,7 @@ function REQUEST:draw()
    	table.insert( ret.list , v )
 	
    	local t = {}
-   	local tonetime = draw_mgr:get_by_type( drawtype.ONETIME )
+   	local tonetime = user.u_drawmgr:get_by_type( drawtype.ONETIME )
    	if not tonetime then
    		print( "has not draw_onetime yet" )
    		t.drawnum = 0
@@ -274,7 +272,7 @@ local function frienddraw()
 	local prop = user.u_propmgr:get_by_csv_id( line.cointype )
 	print( "***************************line.cointype is " , line.cointype )
 
-	local tfriend = draw_mgr:get_by_type( drawtype.FRIEND )
+	local tfriend = user.u_drawmgr:get_by_type( drawtype.FRIEND )
 	if not prop or prop.num < line.price then
 		print( "money is less then price" , prop.num, line.price)
 		local ret = {}
@@ -295,9 +293,9 @@ local function frienddraw()
 			tfriend.amount = 0
 			tfriend.iffree = 1
 
-			tfriend = draw_mgr.create( tfriend )
+			tfriend = user.u_drawmgr.create( tfriend )
 			assert( tfriend )
-			draw_mgr:add( tfriend )	
+			user.u_drawmgr:add( tfriend )	
 		else
 			tfriend.srecvtime = date
 		end
@@ -324,7 +322,7 @@ local function onetimedraw( iffree )
 	        
 	local proplist = {}
 
-	local tonetime = draw_mgr:get_by_type( drawtype.ONETIME )    
+	local tonetime = user.u_drawmgr:get_by_type( drawtype.ONETIME )    
 	
 	local date = os.time()
 
@@ -339,9 +337,9 @@ local function onetimedraw( iffree )
 			tonetime.amount = 0;
 			tonetime.iffree = 0;
 
-			tonetime = draw_mgr.create( tonetime )
+			tonetime = user.u_drawmgr.create( tonetime )
 			assert( tonetime )
-			draw_mgr:add( tonetime )
+			user.u_drawmgr:add( tonetime )
 		else
 			local line = game.g_drawcostmgr:get_by_csv_id( drawtype.ONETIME * 1000 )	
 			assert( line )
