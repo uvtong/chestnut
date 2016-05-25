@@ -28,10 +28,20 @@ function _M.set(wdb, k, v)
 	-- body
 	skynet.send(wdb, "lua", "command", "set", k, v)
 end
-	
+
+function _M.hset(wdb, k, kk, vv)
+	-- body
+	skynet.send(wdb, "lua", "command", "hset", k, kk, vv)
+end
+
 function _M.get(rdb, k, sub)
 	-- body
 	return skynet.call(rdb, "lua", "command", "get", k, sub)
+end
+
+function _M.hget(rdb, k, ... )
+	-- body
+	return skynet.call(rdb, "lua", "command", "hget", k)
 end
 
 return _M

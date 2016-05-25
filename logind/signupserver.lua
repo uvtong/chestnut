@@ -29,7 +29,7 @@ function server.auth_handler(token)
 	print("####################################33")
 	local sql = string.format("select * from account where user = \"%s\"", user)
 	local r = query.read(".signup_db", "account", sql)
-	--local r = skynet.call(".signup_db", "lua", "command", "query", sql)
+
 	if #r >= 1 then
 		error("has account")
 	else

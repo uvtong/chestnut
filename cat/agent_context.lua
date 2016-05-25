@@ -24,6 +24,34 @@ function cls:ctor( ... )
 	center:register(center.events.EGOLD, self.handler_egold, self)
 	center:register(center.events.EEXP, self.handler_eexp, self)
 	center:register(center.events.EUSER_LEVEL, self.handler_user_level, self)
+
+	cls = require "factory"
+	local myfactory = cls.new(self, self._user)
+	self._myfactory = myfactory
+
+	cls = require "load_user"
+	local modelmgr = cls.new(self)
+	self._modelmgr = modelmgr
+end
+
+function cls:get_modelmgr( ... )
+	-- body
+	return self._modelmgr
+end
+
+function cls:set_usersmgr(v, ... )
+	-- body
+	self._usersmgr = v
+end
+
+function cls:get_usersmgr( ... )
+	-- body
+	return self._usersmgr
+end
+
+function cls:get_myfactory( ... )
+	-- body
+	return self._myfactory
 end
 
 function cls:handler_egold( ... )
@@ -568,7 +596,8 @@ function cls:signup(uid)
 	u.u_lilian_qg_nummgr = cls.new()
 	cls = require "models/u_lilian_submgr"
 	u.u_lilian_submgr = cls.new()
-	-- u.u_new_drawmgr = u_new_drawmgr
+	cls = require "models/u_new_drawmgr"
+	u.u_drawmgr = cls.new()
 	-- u.u_new_emailmgr = u_new_emailmgr 
 	cls = require "models/u_propmgr"
 	u.u_propmgr = cls.new()
@@ -707,6 +736,58 @@ function cls:signup(uid)
 	print("role:update_wait is called**********************")
 	role:update_wait()
 	return u
+end
+
+
+function cls:ara_bat_clg( ... )
+	-- body
+	local modelmgr = self._modelmgr
+	local u = self._user
+	local users_ara_batmgr = modelmgr:get_users_ara_batmgr()
+	local bat = users_ara_batmgr:get(self._userid)
+	local ara_fighting = u:get_ara_fighting()
+	-- if ara_fighting == 1 then
+	-- 	self:ara_bat_ovr(-1)
+	-- 	return false
+	-- else
+		
+	-- end
+
+	return true
+end
+
+function cls:ara_bat_ovr(win, ... )
+	-- body
+	local modelmgr = self._modelmgr
+	local u = self._user
+	if win == 1 then
+		local ara_win_tms = u:get_ara_win_tms()
+		ara_win_tms = ara_win_tms + 1
+		u:set_ara_win_tms(ara_win_tms)
+		local ara_integral = u:get_ara_integral()
+		ara_integral = ara_integral + 2
+		u:set_ara_integral(ara_integral)
+	elseif win == 0 then
+		local ara_tie_tms = u:get_ara_tie_tms()
+		ara_tie_tms = ara_tie_tms + 1
+		u:set_ara_tie_tms(ara_tie_tms)
+		local ara_integral = u:get_ara_integral()
+		ara_integral = ara_integral + 2
+		u:set_ara_integral(ara_integral)
+	elseif win == -1 then
+		local ara_lose_tms = u:get_ara_lose_tms()
+		ara_lose_tms = ara_lose_tms + 1
+		u:set_ara_lose_tms(ara_lose_tms)
+		ara_integral = ara_integral + 1
+		u:set_ara_integral(ara_integral)
+	end
+	u:set_ara_fighting(0)
+	local now = os.time()
+	local users_ara_batmgr = modelmgr:get_users_ara_batmgr()
+	local bat = users_ara_batmgr:get(self._userid)
+	bat:set_over(1)
+	bat:set_res(win)
+	bat:update()
 end
 
 return cls

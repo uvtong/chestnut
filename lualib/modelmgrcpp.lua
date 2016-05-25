@@ -64,26 +64,16 @@ function cls.get_row(t, pk)
 end
 
 -- this function 
-function cls.load_db_to_cache(t, key, value)
+function cls.load_db_to_cache(t, pk)
 	-- body
-	local sql
-	if type(key) ~= "nil" then
-		if type(value) == "string" then
-			sql = string.format("select * from %s where %s = \"%s\"", t.__tname, key, value)
-		elseif type(value) == "number" then
-			sql = string.format("select * from %s where %s = %d", t.__tname, key, value)
-		else
-			assert(false)
-		end
-	else
-		sql = string.format("select * from %s", t.__tname)
+	if t.__head[t.__pk].t == "number" then
+		local sql = string.format("select * from %s where %s = %d", t.__tname, t.__pk, pk)
+		local r = query.read(r.__rdb, t.__tname, sql)
+		assert(#r == 1)
+		local k = string.format("%s:%d", t.__tname, pk)
+		local v = json.encode(r[1])
+		query.set(k, v)
 	end
-	local r = query.read(t.__rdb, t.__tname, sql)
-	for i,v in ipairs(r) do
-		local pk = v[t.__pk]
-		set_row_cache(t, pk, v)
-	end
-	return r
 end     
 
 function cls.load_db(t, key, value)
@@ -138,12 +128,44 @@ function cls.load_db(t, key, value)
 	end
 end
 
-function cls.load_cache(t, key, value)
+function cls.load_data_to_cache(t, ... )
 	-- body
-	local r = load_db_to_cache(t, key, value)
-	for k,v in pairs(r) do
-		local o = t.create(v)
-		t:add(o)
+	for k,v in pairs(t.__data) do
+		v:set()
+	end
+end
+
+function cls.load_cache(t, pk)
+	-- body
+	if pk == nil then
+		local h = query.hget(t.__rdb, t.__tname)
+		for k,v in pairs(h) do
+			local k = string.format("%s:%d", t.__tname, v)
+			if k == nil then
+				return false
+			end
+			local v = query.get(k)
+			if v then
+				v = json.decode(v)
+				local r = t:create_entity(v)
+				t:add(r)
+			else
+				return false
+			end
+		end
+		return true
+	else
+		if t.__head[t.__pk].t == "number" then
+			local k = string.format("%s:%d", t.__tname, pk)
+			local v = query.get(k)
+			if v then
+				v = json.decode(v)
+				local r = t:create_entity(v)
+				t:add(r)
+			else
+				t:load_db("pk", pk)
+			end
+		end
 	end
 end
 
@@ -184,54 +206,6 @@ function cls.load_data_to_sd(t)
 	end
 end
 
-function cls.sd(t, k, sub)
-	-- body
-	assert(k and (type(k) == "string"))
-	local r = sharedata.query(k)
-	if sub then
-		return r[sub]
-	else
-		return r
-	end
-end
-
-function cls.load_db_to_stm(t)
-	-- body
-	local sql
-	if type(key) ~= "nil" then
-		if type(value) == "string" then
-			sql = string.format("select * from %s where %s = \"%s\"", t.__tname, key, value)
-		elseif type(value) == "number" then
-			sql = string.format("select * from %s where %s = %d", t.__tname, key, value)
-		else
-			assert(false)
-		end
-	else
-		sql = string.format("select * from %s", t.__tname)
-	end
-	local r = query.read(t.__rdb, t.__tname, sql)
-	for i,v in ipairs(r) do
-		local key
-		local pk = v[t.__pk]
-		local head = t.__head[t.__pk]
-		if head.t == "string" then
-			key = t.__tname..":"..pk
-		elseif head.t == "number" then
-			key = t.__tname..":"..string.format("%d", pk)
-		else
-			assert(false)
-		end
-	end
-end
-
-function cls.load_cache_to_sd(t)
-	-- body
-end
-
-function cls.load_cache_to_stm(t, ... )
-	-- body
-end
-
 function cls.load_data_to_stm(t, child)
 	-- body
 	if t.__stm then
@@ -246,6 +220,22 @@ end
 function cls.load_stm_to_data(t, child)
 	-- body
 	if t.__stm then
+	end
+end
+
+function cls.load_remote(t, p, ... )
+	-- body
+	local entity = require("models/"..t.__entity)
+	for i,v in ipairs(p) do
+		local o = entity.new(t, v)
+		t:add(o)
+	end
+end
+
+function cls:update_cache(t, ... )
+	-- body
+	for k,v in pairs(t.__data) do
+		v:set()
 	end
 end
 
@@ -276,6 +266,7 @@ end
 
 function cls.create(t, p, ...)
 	-- body
+	return t:create_entity(p)
 end
 
 function cls.create_entity(t, p)

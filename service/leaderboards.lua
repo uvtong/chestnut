@@ -107,10 +107,28 @@ function CMD.ranking_range(s, e)
 	for i=s,e do
 		local id = ranking_name[i]
 		if id then
-			l[i] = id
+			local r = leaderboardsmgr:get(id)
+			table.insert(l, r)
 		end
 	end
 	return l
+end
+
+function CMD.nearby(id)
+	-- body
+	local res = {}
+	local r = leaderboardsmgr:get(id)
+	table.insert(res, r)
+	local ranking = r.ranking
+	local _1 = ranking_name[ranking * 0.95]
+	table.insert(res, leaderboardsmgr:get(_1).__fields)
+	local _2 = ranking_name[ranking * 0.9]
+	table.insert(res, leaderboardsmgr:get(_2).__fields)
+	local _3 = ranking_name[ranking * 0.8]
+	table.insert(res, leaderboardsmgr:get(_3).__fields)
+	local _4 = ranking_name[ranking * 0.7]
+	table.insert(res, leaderboardsmgr:get(_4).__fields)
+	return res
 end
 
 local function print_c()
@@ -140,6 +158,7 @@ skynet.start(function ()
 	leaderboardsmgr:load_db()
 	for k,v in pairs(leaderboardsmgr.__data) do
 		ranking_name[v.ranking] = v.uid
+		top = top + 1
 	end
 	skynet.fork(print_c)
 end)

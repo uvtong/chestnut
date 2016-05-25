@@ -8,9 +8,10 @@ function cls.set(t, ...)
 	-- body
 	local v = json.encode(t.__fields)
 	local pk = t.__fields[t.__pk]
-	local k = t.__tname..":"..string.format("%d", pk)
+	local k = string.format("%s:%d", t.__tname, pk)
 	-- print(string.format("set cache k: %s v: %s", k, v))
-	query.set(k, v)
+	query.set(t.__wdb, k, v)
+	query.hset(t.__wdb, t.__tname, pk, pk )
 end
 
 function cls.insert(t, ...)

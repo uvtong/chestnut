@@ -259,9 +259,9 @@ function class(classname, ...)
         instance:ctor(...)
         return instance
     end
-    cls.create = function(_, ...)
-        return cls.new(...)
-    end
+    -- cls.create = function(_, ...)
+    --     return cls.new(...)
+    -- end
 
     return cls
 end

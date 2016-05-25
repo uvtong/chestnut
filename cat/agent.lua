@@ -12,7 +12,6 @@ local sprotoloader = require "sprotoloader"
 local mc = require "multicast"
 local dc = require "datacenter"
 local util = require "util"
-local loader = require "load_user" 
 local errorcode = require "errorcode"
 local const = require "const"
 local tptr = require "tablepointer"
@@ -69,8 +68,6 @@ local table_gs = {}
 local leaderboards_name = skynet.getenv("leaderboards_name")
 local lb = skynet.localname(leaderboards_name)
 
-
-
 local global_response_session = 1
 
 local function send_package(pack)
@@ -82,15 +79,15 @@ end
 
 local function flush_db(priority)
 	-- body
-	assert(priority)
 	if user then
-		-- for k,v in pairs(user) do
-		-- 	if string.match(k, "^u_[%w_]+mgr$") then
-		-- 		if v["update_db"] then
-		-- 			v:update_db(priority)
-		-- 		end
-		-- 	end
-		-- end
+		user:update()
+		for k,v in pairs(user) do
+			if string.match(k, "^u_[%w_]+mgr$") then
+				if v["update_db"] then
+					v:update_db(priority)
+				end
+			end
+		end
 		-- user("update")
 		-- local cm = user.u_checkin_monthmgr:get_checkin_month()
 		-- if cm then
@@ -2310,6 +2307,33 @@ function REQUEST:checkpoint_exit(ctx)
 	return ret
 end
 
+function REQUEST:ara_enter(ctx, ... )
+	-- body
+	local u = ctx:get_user()
+	local ara_interface = u:get_ara_interface()
+	if ara_interface == 1 then
+		local ara_fighting = u:get_ara_fighting()
+		if ara_fighting == 1 then
+			-- ctx:
+		end
+	else
+		ara_interface = 1
+		u:set_ara_interface(ara_interface)
+	end
+end
+
+function REQUEST:ara_exit(ctx, ... )
+	-- body
+	local u = ctx:get_user()
+	local ara_interface = u:get_ara_interface()
+	if ara_interface == 1 then
+		local ara_fighting = u:get_ara_fighting()
+		if ara_fighting == 1 then
+			ctx:ara_bat_ovr(-1)
+		end
+	end
+end
+
 function REQUEST:ara_bat_ovr()
 	-- body
 	local ret = {}
@@ -2344,10 +2368,11 @@ end
 function REQUEST:ara_bat_clg(ctx)
 	-- body
 	local ret = {}
-	local ara_clg_tms_rst_tm = user.ara_clg_tms_rst_tm
+	local ara_clg_tms_rst_tm = user.get_ara_clg_tms_rst_tm()
 	local now = os.time()
 	local m = now - ara_clg_tms_rst_tm
 	if m < 0 then
+		-- local key = string.format
 		local ara_clg_tms_max = skynet.call(".game", "lua", "query_g_config", "ara_clg_tms")
 		if user.ara_clg_tms > ara_clg_tms_max then
 			ret.errorcode = errorcode[40].code
@@ -2379,13 +2404,80 @@ function REQUEST:ara_bat_clg(ctx)
 	end
 end
 
-function REQUEST:ara_rfh()
+function REQUEST:ara_rfh(ctx)
 	-- body
-	local usersmgr = require "models/usersmgr"
-	local r = skynet.call(".ara_lb", "lua", "ranking_range", 1, 10)
-	for i,v in ipairs(r) do
-		print(i, v)
+	local factory = ctx:get_myfactory()
+	local j = factory:get_today()
+	local ara_rfh_tms = j:get_ara_rfh_tms()
+	if ara_rfh_tms > 0 then
+		ara_rfh_tms = ara_rfh_tms - 1
+		j:set_ara_rfh_tms(ara_rfh_tms)
+	else
+		local k = string.format("%s:%d", "g_config", 1)
+		local v = sd:query(k)
+		local id = v.ara_rfh_cost_id
+		local num = v.ara_rfh_cost_num
+		local u = ctx:get_user()
+		local prop = u.u_propmgr:get_by_csv_id(id)
+		local onum = prop:get_num()
+		if onum > num then
+			local nnum = onum - num
+			prop:set_num(nnum)
+		else
+			local ret = {}
+			ret.errorcode = errorcode[31].code
+			ret.msg = errorcode[31].msg
+			return ret
+		end
 	end
+	local l = {}
+	local u = ctx:get_user()
+	local r1 = skynet.call(".ara_lb", "lua", "ranking_range", 1, 10)
+	local r2 = skynet.call(addr, "lua", "nearby", u:get_csv_id())
+	for i,v in ipairs(r1) do
+		local r = {}
+		r["csv_id"] = v.uid
+		r["ara_rnk"] = v.ranking
+		if dc.get(v.uid, "online") then
+			local addr = dc.get(id, "addr")
+			local u = skynet.call(addr, "lua", "user")
+			r["total_combat"] = u.total_combat
+			r["uname"] = u.uname
+			table.insert(l, v)
+		else
+			local usersmgr = ctx:get_usersmgr()
+			usersmgr:load_cache(v.uid)
+			local enemy = usersmgr:get(v.uid)
+			r["total_combat"] = 10
+			r["uname"] = enemy:get(v.uid)
+			table.insert(l, v)
+		end
+	end
+
+	for i,v in ipairs(r2) do
+		local r = {}
+		r["csv_id"] = v.uid
+		r["ara_rnk"] = v.ranking
+		if dc.get(v.uid, "online") then
+			local addr = dc.get(id, "addr")
+			local u = skynet.call(addr, "lua", "user")
+			r["total_combat"] = u.total_combat
+			r["uname"] = u.uname
+			table.insert(l, v)
+		else
+			local usersmgr = ctx:get_usersmgr()
+			usersmgr:load_cache(v.uid)
+			local enemy = usersmgr:get(v.uid)
+			r["total_combat"] = 10
+			r["uname"] = enemy:get(v.uid)
+			table.insert(l, v)
+		end
+	end
+	local ret = {}
+	ret.errorcode = errorcode[1].code
+	ret.msg = errorcode[1].msg
+	ret.ara_rmd_list = l
+	return ret
 end
 
 function REQUEST:ara_worship()
@@ -2432,6 +2524,18 @@ function REQUEST:ara_rnk_reward_collected()
 		ret.errorcode = errorcode[38].code
 		ret.msg = errorcode[38].msg
 		return ret
+	end
+end
+
+function REQUEST:ara_convert_pts(ctx, ... )
+	-- body
+	local u = ctx:get_user()
+	local ara_integral = u:get_ara_integral()
+	if ara_integral > self.pts then
+		ara_integral = ara_integral - self.pts
+		u:set_ara_integral(ara_integral)
+
+	-- self.pts
 	end
 end
 
@@ -2559,8 +2663,6 @@ function CMD.newemail(source, subcmd , ... )
 	f( new_emailrequest , ... )
 end
 
-
-
 function CMD.ara_info()
 	-- body
 	local r
@@ -2673,7 +2775,9 @@ function CMD.login(source, uid, sid, sct, g, d)
 	env:set_userid(userid)
 	env:set_subid(subid)
 	env:set_secret(secret)
-	user = loader.load_user(uid)
+
+	local modelmgr = env:get_modelmgr()
+	user = modelmgr:load_user(uid)
 
 	local onlinetime = os.time()
 	user.ifonline = 1
@@ -2716,6 +2820,15 @@ end
 function CMD.afk(source)
 	-- body
 	skynet.error(string.format("AFK"))
+end
+
+function CMD.user(source, ... )
+	-- body
+	local u = env:get_user()
+	local r = {}
+	r.uname = u:get_uname()
+	r.total_combat = 10
+	return r
 end
 
 local function update_db()
