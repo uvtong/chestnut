@@ -1,12 +1,12 @@
 package.path = "./../cat/?.lua;" .. package.path
-	
+	 
 local skynet = require "skynet"
 local errorcode = require "errorcode"	
 local util = require "util"
-
+	 
 local friendmgr = {}
 friendmgr._data = { friendlist = {} , applylist = {} , appliedlist = {} , avaliblelist = {} }
-	
+	 
 local MAXHEARTNUM = 100
 local MAXFRIENDNUM = 10
 local recvheartnum	= 0
@@ -16,7 +16,7 @@ local total = 50 --dai ding
 local dc 
 local game
 local SENDTYPE = 4 -- dai ding 4 presents heart
-	
+		 
 local friend = { csv_id, apply , name , level , viplevel , iconid , sign , fightpower , isonline , online_time , heart , apply , receive }
 function friend:_new( ... )
 	local t = {}
@@ -34,7 +34,7 @@ function msg:_new()
 
 	return t
 end	
-		
+	
 function friendmgr:_createfriend( tfriend )
 	assert( tfriend )
 	
@@ -146,7 +146,7 @@ function friendmgr:_db_loadavaliblefriend_idlist( uid , lowlevel , uplevel , las
    		print( "avaliblelist is nil ")
    	end
 	return r
-end		
+end	
 	
 function friendmgr:_db_applied_idlist( uid , msgtype )
 	assert( uid and msgtype )
@@ -162,7 +162,7 @@ function friendmgr:_db_applied_idlist( uid , msgtype )
 
 	return r
 end	
-	
+		
 function friendmgr:_db_apply_idlist( uid , msgtype )
 	assert( uid and msgtype )
 

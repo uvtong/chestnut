@@ -749,24 +749,24 @@ function REQUEST:BeginArenaCoreFight()
     end                                
 	Self.Uid = user.csv_id
 	Enemy.Uid = self.uid    			
-
+	
     --get role fight_list             
 	get_fight_list(_, Self.OnBattleList[1] , SELF) 
 	get_fight_list(self.uid, Enemy.OnBattleList[1], ENEMY) 
 	--init basic attribute             
 	init_attribute(_, Self.OnBattleList[1], SELF) 
 	init_attribute(self.uid, Enemy.OnBattleList[1], ENEMY) 				
-    
+    					
     -- who fight first  
-    local TmpSelf  
+    local TmpSelf  	   	
     if first_fighter() then  
 		ret.firstfighter = SELF  
 		TmpSelf = Self  
-	else  
+	else               
 		ret.firstfighter = ENEMY  
 		TmpSelf = Enemy  
 	end  
-
+	
 	--get first fighter kf_id  
 	get_ordered_fight_list_to_client(TmpSelf.FightList, TmpSelf.TmpFightIdList, TmpSelf.TotalFightNum)  
 	local rdm = math.random(100)  
@@ -796,7 +796,6 @@ function REQUEST:Arena_OnPrepareNextRole()
 	end  	  	  	   	
       		           
     if TmpSelf.OnBattleSequence < 3 then              
-	   	TmpSelf.IsDead = 0 
 	   	reset(TmpSelf)    
 	   	TmpSelf.OnBattleSequence = TmpSelf.OnBattleSequence + 1 
        			  
@@ -807,7 +806,7 @@ function REQUEST:Arena_OnPrepareNextRole()
 	   		get_fight_list(Enemy.Uid, Enemy.OnBattleList[Enemy.OnBattleSequence], ENEMY)
 	   		init_attribute(Enemy.Uid, Enemy.OnBattleList[Enemy.OnBattleSequence], ENEMY)
 	 	end   						  	
-	    
+	    	
 	 	if firstfighter() then
 	 		ret.firstfighter = SELF
 	 		TmpSelf = Self
