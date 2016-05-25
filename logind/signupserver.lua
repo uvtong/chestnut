@@ -27,7 +27,8 @@ function server.auth_handler(token)
 	password = crypt.base64decode(password)
 	-- judge is exits
 	local sql = string.format("select * from account where user = \"%s\"", user)
-	local r = skynet.call(".signup_db", "lua", "command", "query", sql)
+	local r = query.read(".signup_db", "account", sql)
+	-- local r = skynet.call(".signup_db", "lua", "command", "query", sql)
 	if #r >= 1 then
 		error("has account")
 	else

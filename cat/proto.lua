@@ -1086,25 +1086,10 @@ lilian_rewared_list 78 {
     }
 }
 
-ara_bat_ovr 79 {
-    request {
-        win 0 : integer
-    }
-    response {
-        errorcode 0 : integer
-        msg 1 : string
-        ara_points 2 : integer
-        ara_win_tms 3 : integer
-        ara_lose_tms 4 : integer
-        ara_leaderboards 5 : *suser
-        ara_rmd_list 6 : *suser
-    }
+ara_exit 79 {
 }
 
-ara_bat_clg 80 {
-    request {
-        user_id 0 : integer
-    }
+ara_enter 80 {
     response {
         errorcode 0 : integer
         msg 1 : string

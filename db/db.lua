@@ -169,6 +169,11 @@ function QUERY:set(k, v)
 	self.cache:set(k, v)
 end
 
+function QUERY:hset(k, kk, vv, ... )
+	-- body
+	self.cache:hset(k, kk, vv)
+end
+
 function QUERY:get(k, sub)
 	-- body
 	assert(type(k) == "string")
