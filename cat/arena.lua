@@ -1,7 +1,10 @@
+local skynet = require "skynet"
+local dc = require "datecenter"
 local cls = class("arena")
 
-function cls:ctor( ... )
+function cls:ctor(env, ... )
 	-- body
+	self._env = env
 	self._me = false
 	self._enemy = false
 	self._me_modelmgr = false
@@ -47,6 +50,27 @@ end
 function cls:get_en_modelmgr( ... )
 	-- body
 	return self._en_modelmgr
+end
+
+function cls:load_enemy(uid, ... )
+	-- body
+	if dc.get(uid, "online") then
+		local modelmgr_cls = require "load_user"
+		local modelmgr = modelmgr_cls.new()
+		local addr = dc.get(uid, "addr")
+		local r = skynet.call(addr, "lua", "ara_user")
+		modelmgr:load_remote(uid, r)
+		local user = modelmgr:get_user("user")
+		self:set_enemy(user)
+		self:set_en_modelmgr(modelmgr)
+	else
+		local modelmgr_cls = require "load_user"
+		local modelmgr = modelmgr_cls.new()
+		modelmgr:load1(uid)
+		local user = modelmgr:get_user("user")
+		self:set_enemy(user)
+		self:set_en_modelmgr(modelmgr)
+	end
 end
 
 return cls

@@ -1191,6 +1191,9 @@ Arena_OnPrepareNextRole 90 {
 }
 
 ara_choose_role_enter 91 {
+    request {
+        enemy_id 1 : integer
+    }
 	response {
 		errorcode 1 : integer
 		msg 2 : string
