@@ -25,8 +25,9 @@ function cls:ctor(mgr, P, ... )
 			worship_reward_id = 0,
 			worship_reward_num = 0,
 			ara_clg_tms_max = 0,
-			ara_rfh_cost_id = 0,
-			ara_rfh_cost_num = 0,
+			ara_clg_tms_rst = 0,
+			ara_integral_rst = 0,
+			ara_clg_tms_pur_tms_rst = 0,
 		}
 
 	self.__ecol_updated = {
@@ -41,8 +42,9 @@ function cls:ctor(mgr, P, ... )
 			worship_reward_id = 0,
 			worship_reward_num = 0,
 			ara_clg_tms_max = 0,
-			ara_rfh_cost_id = 0,
-			ara_rfh_cost_num = 0,
+			ara_clg_tms_rst = 0,
+			ara_integral_rst = 0,
+			ara_clg_tms_pur_tms_rst = 0,
 		}
 
 	for k,v in pairs(self.__head) do
@@ -216,34 +218,49 @@ function cls:get_ara_clg_tms_max( ... )
 	return self.__fields.ara_clg_tms_max
 end
 
-function cls:set_ara_rfh_cost_id(v, ... )
+function cls:set_ara_clg_tms_rst(v, ... )
 	-- body
 	assert(v)
-	self.__ecol_updated["ara_rfh_cost_id"] = self.__ecol_updated["ara_rfh_cost_id"] + 1
-	if self.__ecol_updated["ara_rfh_cost_id"] == 1 then
+	self.__ecol_updated["ara_clg_tms_rst"] = self.__ecol_updated["ara_clg_tms_rst"] + 1
+	if self.__ecol_updated["ara_clg_tms_rst"] == 1 then
 		self.__col_updated = self.__col_updated + 1
 	end
-	self.__fields.ara_rfh_cost_id = v
+	self.__fields.ara_clg_tms_rst = v
 end
 
-function cls:get_ara_rfh_cost_id( ... )
+function cls:get_ara_clg_tms_rst( ... )
 	-- body
-	return self.__fields.ara_rfh_cost_id
+	return self.__fields.ara_clg_tms_rst
 end
 
-function cls:set_ara_rfh_cost_num(v, ... )
+function cls:set_ara_integral_rst(v, ... )
 	-- body
 	assert(v)
-	self.__ecol_updated["ara_rfh_cost_num"] = self.__ecol_updated["ara_rfh_cost_num"] + 1
-	if self.__ecol_updated["ara_rfh_cost_num"] == 1 then
+	self.__ecol_updated["ara_integral_rst"] = self.__ecol_updated["ara_integral_rst"] + 1
+	if self.__ecol_updated["ara_integral_rst"] == 1 then
 		self.__col_updated = self.__col_updated + 1
 	end
-	self.__fields.ara_rfh_cost_num = v
+	self.__fields.ara_integral_rst = v
 end
 
-function cls:get_ara_rfh_cost_num( ... )
+function cls:get_ara_integral_rst( ... )
 	-- body
-	return self.__fields.ara_rfh_cost_num
+	return self.__fields.ara_integral_rst
+end
+
+function cls:set_ara_clg_tms_pur_tms_rst(v, ... )
+	-- body
+	assert(v)
+	self.__ecol_updated["ara_clg_tms_pur_tms_rst"] = self.__ecol_updated["ara_clg_tms_pur_tms_rst"] + 1
+	if self.__ecol_updated["ara_clg_tms_pur_tms_rst"] == 1 then
+		self.__col_updated = self.__col_updated + 1
+	end
+	self.__fields.ara_clg_tms_pur_tms_rst = v
+end
+
+function cls:get_ara_clg_tms_pur_tms_rst( ... )
+	-- body
+	return self.__fields.ara_clg_tms_pur_tms_rst
 end
 
 

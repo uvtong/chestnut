@@ -89,17 +89,24 @@ function cls:ctor( ... )
 		uq = false,
 		t = "number",
 	},
-	ara_rfh_cost_id = {
+	ara_clg_tms_rst = {
 		pk = false,
 		fk = false,
-		cn = "ara_rfh_cost_id",
+		cn = "ara_clg_tms_rst",
 		uq = false,
 		t = "number",
 	},
-	ara_rfh_cost_num = {
+	ara_integral_rst = {
 		pk = false,
 		fk = false,
-		cn = "ara_rfh_cost_num",
+		cn = "ara_integral_rst",
+		uq = false,
+		t = "number",
+	},
+	ara_clg_tms_pur_tms_rst = {
+		pk = false,
+		fk = false,
+		cn = "ara_clg_tms_pur_tms_rst",
 		uq = false,
 		t = "number",
 	},
@@ -117,8 +124,9 @@ function cls:ctor( ... )
 	self.__head_ord[9] = self.__head["worship_reward_id"]
 	self.__head_ord[10] = self.__head["worship_reward_num"]
 	self.__head_ord[11] = self.__head["ara_clg_tms_max"]
-	self.__head_ord[12] = self.__head["ara_rfh_cost_id"]
-	self.__head_ord[13] = self.__head["ara_rfh_cost_num"]
+	self.__head_ord[12] = self.__head["ara_clg_tms_rst"]
+	self.__head_ord[13] = self.__head["ara_integral_rst"]
+	self.__head_ord[14] = self.__head["ara_clg_tms_pur_tms_rst"]
 
 	self.__pk      = "csv_id"
 	self.__fk      = ""

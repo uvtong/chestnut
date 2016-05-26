@@ -2064,7 +2064,7 @@ function REQUEST:checkpoint_hanging_choose()
 	assert(self.chapter <= user.cp_chapter)
 	-- judge chapter 
 	local now = os.time()
-	local cp = user.u_checkpointmgr:get_by_chapter(self.chapter)
+	local cp = user.u_checkpointmgr:get_by_csv_id(self.chapter)
 	local cp_chapter = skynet.call(game, "lua", "query_g_checkpoint_chapter", self.chapter)
 	if self.type == 0 then
 		assert(self.checkpoint <= cp_chapter.type0_max)
@@ -2109,7 +2109,7 @@ function REQUEST:checkpoint_battle_exit()
 	assert(cp_rc.cd_finished == 1)
 	if self.result == 1 then
 		local r = skynet.call(game, "lua", "query_g_checkpoint", self.csv_id)
-		local cp = user.u_checkpointmgr:get_by_chapter(r.chapter)
+		local cp = user.u_checkpointmgr:get_by_csv_id(r.chapter)
 		local cp_chapter = skynet.call(game, "lua", "query_g_checkpoint_chapter", r.chapter)
 		-- reward
 		local reward = {}
@@ -2129,7 +2129,7 @@ function REQUEST:checkpoint_battle_exit()
 					user.cp_chapter = user.cp_chapter + 1
 					local cp_chapter_max = skynet.call(game, "lua", "query_g_config", "cp_chapter_max")
 					if user.cp_chapter <= cp_chapter_max then   
-						local next_cp = user.u_checkpointmgr:get_by_chapter(user.cp_chapter)
+						local next_cp = user.u_checkpointmgr:get_by_csv_id(user.cp_chapter)
 						next_cp.chapter_type0 = 1
 					end
 				end
@@ -2193,7 +2193,7 @@ function REQUEST:checkpoint_battle_enter()
 	assert(self.chapter <= user.cp_chapter)
 	assert(self.csv_id == user.cp_hanging_id, string.format("self.csv_id:%d, user.cp_hanging_id:%d", self.csv_id, user.cp_hanging_id))
 	-- check 
-	local cp = user.u_checkpointmgr:get_by_chapter(self.chapter)
+	local cp = user.u_checkpointmgr:get_by_csv_id(self.chapter)
 	if self.type == 0 then
 		assert(self.checkpoint == cp.chapter_type0)
 	elseif self.type == 1 then
@@ -2622,7 +2622,7 @@ local function response(session, args)
     end
     assert(f)
     assert(response)
-    local ok, result = pcall(f, args)
+    local ok, result = pcall(f, args, env)
 
     if ok then
     	table_gs[tostring(session)] = nil

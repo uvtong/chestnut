@@ -129,35 +129,35 @@ end
 function cls:get_heartamount( ... )
 	-- body
 	return self.__fields.heartamount
-end          
-             
+end
+
 function cls:set_update_time(v, ... )
-	-- body  
+	-- body
 	assert(v)
 	self.__ecol_updated["update_time"] = self.__ecol_updated["update_time"] + 1
 	if self.__ecol_updated["update_time"] == 1 then
 		self.__col_updated = self.__col_updated + 1
-	end      
+	end
 	self.__fields.update_time = v
-end          
-             
+end
+
 function cls:get_update_time( ... )
-	-- body  
+	-- body
 	return self.__fields.update_time
-end 		 
-			 
+end
+
 function cls:set_ifrecved(v, ... )
-	-- body  
+	-- body
 	assert(v)
 	self.__ecol_updated["ifrecved"] = self.__ecol_updated["ifrecved"] + 1
 	if self.__ecol_updated["ifrecved"] == 1 then
 		self.__col_updated = self.__col_updated + 1
-	end      
+	end
 	self.__fields.ifrecved = v
-end          
-             
+end
+
 function cls:get_ifrecved( ... )
-	-- body  
+	-- body
 	return self.__fields.ifrecved
 end
 
