@@ -687,7 +687,7 @@ function REQUEST:use_prop(ctx)
 			table.insert(l, g)
 			ctx:raise_achievement(const.ACHIEVEMENT_T_2)
 		elseif assert(prop.use_type) == 3 then
-			local r = util.parse_text(prop.pram1, "(%d+%*%d+%*?)", 2)
+			local r = util.parse_text(prop.pram1)
 			print("length of r", #r)
 			for k,v in pairs(r) do
 				if v[1] == const.GOLD then
@@ -2280,11 +2280,32 @@ function REQUEST:ara_enter(ctx, ... )
 		local ara_fighting = u:get_ara_fighting()
 		if ara_fighting == 1 then
 			-- ctx:
+			ctx:ara_bat_ovr(-1)
+			u:set_ara_fighting(0)
 		end
 	else
 		ara_interface = 1
 		u:set_ara_interface(ara_interface)
+		local ara_fighting = u:get_ara_fighting()
+		assert(ara_fighting == -1)
 	end
+	local factory = ctx:get_myfactory()
+	local j = factory:get_today()
+	local ara_rfh_tms = j:get_ara_rfh_tms()
+	local l = ctx:ara_rfh()
+	local ret = {}
+	ret.errorcode = errorcode[1].code
+	ret.msg = errorcode[1].msg
+	ret.ara_rmd_list = l
+	ret.ara_win_tms = u:get_field("ara_win_tms")
+	ret.ara_lose_tms = u:get_field("ara_lose_tms")
+	ret.ara_tie_tms = u:get_field("ara_tie_tms")
+	ret.ara_clg_tms = u:get_field("ara_clg_tms")
+	ret.ara_integral = u:get_field("ara_integral")
+	ret.ara_rfh_tms = ara_rfh_tms
+	ret.ara_rfh_cost_tms = u:get_field("ara_rfh_cost_tms")
+	ret.ara_clg_cost_tms = u:get_field("ara_clg_cost_tms")
+	return ret
 end
 
 function REQUEST:ara_exit(ctx, ... )
@@ -2295,13 +2316,60 @@ function REQUEST:ara_exit(ctx, ... )
 		local ara_fighting = u:get_ara_fighting()
 		if ara_fighting == 1 then
 			ctx:ara_bat_ovr(-1)
+			u:set_ara_fighting(0)
 		end
+	else
+		u:set_ara_interface(0)
 	end
+	local ret = {}
+	ret.errorcode = errorcode[1].code
+	ret.msg = errorcode[1].msg
+	return ret
 end
 
 function REQUEST:ara_choose_role_enter(ctx, ... )
 	-- body
 	local u = ctx:get_user()
+	local modelmgr = ctx:get_modelmgr()
+	local u_rolemgr = modelmgr:get_u_rolemgr()
+	if u_rolemgr:get_count() <= 3 then
+		local ret = {}
+		ret.errorcode = errorcode[150].code
+		ret.msg = errorcode[150].msg
+		return ret
+	else
+		local key = string.format("%s:%d", "g_config", 1)
+ 		local value = sd.query(key)
+ 		local ara_clg_tms_rst = value["ara_clg_tms_rst"]
+		local t = os.date("*t", os.time())
+		t = { year=t.year, month=t.month, day=t.day, hour=ara_clg_tms_rst}
+		local sec = os.time(t)
+		local now = os.time()
+		if now > sec then
+			local ara_clg_tms_max = value["ara_clg_tms_max"]
+			u:set_ara_clg_tms(ara_clg_tms_max)
+		end
+		local ara_clg_tms = u:get_field("ara_clg_tms")
+		if ara_clg_tms <= 0 then
+			local ara_clg_cost_tms = u:get_field("ara_clg_cost_tms")
+			ara_clg_cost_tms = ara_clg_cost_tms + 1
+			local key = string.format("%s:%d", "g_ara_tms", ara_clg_cost_tms)
+			local value = sd.query(key)
+			local purchase_cost = value["purchase_cost"]
+			local r = util.parse_text(purchase_cost, "(%d+%*%d+%*?)", 2)
+			local u_propmgr = modelmgr:get_u_propmgr()
+			local prop = u_propmgr:get_by_csv_id(r[1])
+			if prop:get_field("num") > r[2] then
+				local num = prop:get_field("num") - r[2]
+				prop:set_field("num", num)
+			else
+				local ret = {}
+				ret.errorcode = errorcode[31].code
+				ret.msg = errorcode[31].msg
+				return ret
+			end
+		end
+	end
 	local ret = {}
 	ret.errorcode = errorcode[1].code
 	ret.msg = errorcode[1].msg
@@ -2328,78 +2396,13 @@ function REQUEST:ara_bat_enter(ctx, ... )
  	-- body
 end 
 
-function REQUEST:ara_bat_exit()
+function REQUEST:ara_bat_exit(ctx)
 	-- body
-	local ret = {}
-	if not user then
-		ret.errorcode = errorcode[2].code
-		ret.msg = errorcode[2].msg
-		return ret
-	end
-	local prop = user.u_propmgr:get_by_csv_id(const.ARA_INTEGRAL)
-	if self.win == 1 then
-		user.ara_win_tms = user.ara_win_tms + 1
-		prop.num = prop.num + 2
-	elseif self.win == 0 then
-		user.ara_tie_tms = user.ara_tie_tms + 1
-		prop.num = prop.num + 2
-	elseif self.win == -1 then
-		user.ara_lose_tms = user.ara_lose_tms + 1
-		prop.num = prop.num + 1
-	end
-	ret.errorcode = errorcode[1].code
-	ret.msg = errorcode[1].msg
-	ret.ara_points = prop.num
-	ret.ara_win_tms = user.ara_win_tms
-	ret.ara_lose_tms = user.ara_lose_tms
-	local leaderboards_name = skynet.getenv("leaderboards_name")
-	local l = skynet.call(leaderboards_name, "lua", "ranking_range", 1, 100)
-	ret.ara_leaderboards = l
-	-- ret.rmd_list = 
-	return ret
-end
-
-function REQUEST:ara_bat_clg(ctx)
-	-- body
-	local ret = {}
-	local ara_clg_tms_rst_tm = user.get_ara_clg_tms_rst_tm()
-	local now = os.time()
-	local m = now - ara_clg_tms_rst_tm
-	if m < 0 then
-		-- local key = string.format
-		local ara_clg_tms_max = skynet.call(".game", "lua", "query_g_config", "ara_clg_tms")
-		if user.ara_clg_tms > ara_clg_tms_max then
-			ret.errorcode = errorcode[40].code
-			ret.msg = errorcode[40].msg
-			return ret
-		else
-			local ara_clg_tms = user.ara_clg_tms
-			ara_clg_tms = ara_clg_tms + 1
-			user.ara_clg_tms = ara_clg_tms
-			local tmp = dc.get(self.user_id)
-			if tmp then
-				-- this node
-				local addr = tmp.addr
-				local r = skynet.call(addr, "lua", "ara_info")
-				local enemy = ctx.usersmgr.create(r)
-				-- local u_rolemgr = 
-
-			else
-			end
-			-- env.usersmgr("load_db", )
-		end	
-	elseif m > 0 then
-		m = m // 86400
-		if m % 3600 > 0 then
-			m = m + 1
-		end
-		ara_clg_tms_rst_tm = ara_clg_tms_rst_tm + (m * 86400)
-		user.ara_clg_tms_rst_tm = ara_clg_tms_rst_tm
-	end
 end
 
 function REQUEST:ara_rfh(ctx)
 	-- body
+	-- first test when to reset
 	local factory = ctx:get_myfactory()
 	local j = factory:get_today()
 	local ara_rfh_tms = j:get_ara_rfh_tms()
@@ -2407,12 +2410,14 @@ function REQUEST:ara_rfh(ctx)
 		ara_rfh_tms = ara_rfh_tms - 1
 		j:set_ara_rfh_tms(ara_rfh_tms)
 	else
-		local k = string.format("%s:%d", "g_config", 1)
-		local v = sd:query(k)
-		local id = v.ara_rfh_cost_id
-		local num = v.ara_rfh_cost_num
 		local u = ctx:get_user()
-		local prop = u.u_propmgr:get_by_csv_id(id)
+		local ara_rfh_cost_tms = u:get_ara_rfh_cost_tms()
+		ara_rfh_cost_tms = ara_rfh_cost_tms + 1
+		local key = string.format("%s:%d", "g_ara_tms", ara_rfh_cost_tms)
+		local value = sd.query(key)
+		local list_refresh_cost = value["list_refresh_cost"]
+		local r = util.parse_text(list_refresh_cost, "(%d+%*%d+%*?)", 2)
+		local prop = u.u_propmgr:get_by_csv_id(r[1])
 		local onum = prop:get_num()
 		if onum > num then
 			local nnum = onum - num
@@ -2424,49 +2429,7 @@ function REQUEST:ara_rfh(ctx)
 			return ret
 		end
 	end
-	local l = {}
-	local u = ctx:get_user()
-	local r1 = skynet.call(".ara_lb", "lua", "ranking_range", 1, 10)
-	local r2 = skynet.call(addr, "lua", "nearby", u:get_csv_id())
-	for i,v in ipairs(r1) do
-		local r = {}
-		r["csv_id"] = v.uid
-		r["ara_rnk"] = v.ranking
-		if dc.get(v.uid, "online") then
-			local addr = dc.get(id, "addr")
-			local u = skynet.call(addr, "lua", "user")
-			r["total_combat"] = u.total_combat
-			r["uname"] = u.uname
-			table.insert(l, v)
-		else
-			local usersmgr = ctx:get_usersmgr()
-			usersmgr:load_cache(v.uid)
-			local enemy = usersmgr:get(v.uid)
-			r["total_combat"] = 10
-			r["uname"] = enemy:get(v.uid)
-			table.insert(l, v)
-		end
-	end
-
-	for i,v in ipairs(r2) do
-		local r = {}
-		r["csv_id"] = v.uid
-		r["ara_rnk"] = v.ranking
-		if dc.get(v.uid, "online") then
-			local addr = dc.get(id, "addr")
-			local u = skynet.call(addr, "lua", "user")
-			r["total_combat"] = u.total_combat
-			r["uname"] = u.uname
-			table.insert(l, v)
-		else
-			local usersmgr = ctx:get_usersmgr()
-			usersmgr:load_cache(v.uid)
-			local enemy = usersmgr:get(v.uid)
-			r["total_combat"] = 10
-			r["uname"] = enemy:get(v.uid)
-			table.insert(l, v)
-		end
-	end
+	local l = ctx:ara_rfh()
 	local ret = {}
 	ret.errorcode = errorcode[1].code
 	ret.msg = errorcode[1].msg
@@ -2496,12 +2459,6 @@ function REQUEST:ara_worship(ctx)
 		ret.msg = errorcode[33].msg
 		return ret
 	end	
-end
-
-function REQUEST:ara_clg_tms_purchase()
-	-- body
-	-- u_journalmgr
-	skynet.call()
 end
 
 function REQUEST:ara_rnk_reward_collected(ctx)
@@ -2544,11 +2501,13 @@ function REQUEST:ara_convert_pts(ctx, ... )
 	-- body
 	local u = ctx:get_user()
 	local ara_integral = u:get_ara_integral()
-	if ara_integral > self.pts then
+	if ara_integral > self.pts and self.pts > 0 then
+		if self.pts < 10 then
+			
 		ara_integral = ara_integral - self.pts
 		u:set_ara_integral(ara_integral)
+	else
 
-	-- self.pts
 	end
 end
 

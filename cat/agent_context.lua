@@ -485,25 +485,76 @@ function cls:create_default(uid)
 	return user
 end
 
-function cls:ara_bat_clg( ... )
+function cls:ara_rfh( ... )
+	-- body
+	local l = {}
+	local u = ctx:get_user()
+	local leaderboards_name = skynet.getenv("leaderboards_name")
+	local r1 = skynet.call(leaderboards_name, "lua", "ranking_range", 1, 10)
+	local r2 = skynet.call(leaderboards_name, "lua", "nearby", u:get_csv_id())
+	for i,v in ipairs(r1) do
+		local r = {}
+		r["csv_id"] = v.uid
+		r["ara_rnk"] = v.ranking
+		if dc.get(v.uid, "online") then
+			local addr = dc.get(id, "addr")
+			local u = skynet.call(addr, "lua", "user")
+			r["total_combat"] = u.total_combat
+			r["uname"] = u.uname
+			table.insert(l, v)
+		else
+			local usersmgr = ctx:get_usersmgr()
+			usersmgr:load_cache(v.uid)
+			local enemy = usersmgr:get(v.uid)
+			r["total_combat"] = 10
+			r["uname"] = enemy:get(v.uid)
+			table.insert(l, v)
+		end
+	end
+
+	for i,v in ipairs(r2) do
+		local r = {}
+		r["csv_id"] = v.uid
+		r["ara_rnk"] = v.ranking
+		if dc.get(v.uid, "online") then
+			local addr = dc.get(id, "addr")
+			local u = skynet.call(addr, "lua", "user")
+			r["total_combat"] = u.total_combat
+			r["uname"] = u.uname
+			table.insert(l, v)
+		else
+			local usersmgr = ctx:get_usersmgr()
+			usersmgr:load_cache(v.uid)
+			local enemy = usersmgr:get(v.uid)
+			r["total_combat"] = 10
+			r["uname"] = enemy:get(v.uid)
+			table.insert(l, v)
+		end
+	end
+	return l
+end
+
+function cls:ara_bat_clg(enemy_id, ... )
 	-- body
 	local modelmgr = self._modelmgr
 	local u = self._user
 	local ara_fighting = u:get_ara_fighting()
 	if ara_fighting == 1 then
-
-	else
+		self:ara_bat_ovr(-1)
+		u:set_ara_fighting(0)
+		return false
 	end
-	local users_ara_batmgr = modelmgr:get_users_ara_batmgr()
-	local bat = users_ara_batmgr:get(self._userid)
-	local ara_fighting = u:get_ara_fighting()
-	-- if ara_fighting == 1 then
-	-- 	self:ara_bat_ovr(-1)
-	-- 	return false
-	-- else
-		
-	-- end
 
+	
+	local tmp = dc.get(self.user_id)
+	if tmp then
+		-- this node
+		local addr = tmp.addr
+		local r = skynet.call(addr, "lua", "ara_info")
+		local enemy = ctx.usersmgr.create(r)
+		-- local u_rolemgr = 
+	end
+	u:set_ara_fighting(1)
 	return true
 end
 
@@ -541,10 +592,10 @@ function cls:ara_bat_ovr(win, ... )
 	u:set_ara_fighting(0)
 	local now = os.time()
 	local users_ara_batmgr = modelmgr:get_users_ara_batmgr()
-	local bat = users_ara_batmgr:get(self._userid)
-	bat:set_over(1)
-	bat:set_res(win)
-	bat:update_db()
+	-- local bat = users_ara_batmgr:get(self._userid)
+	-- bat:set_over(1)
+	-- bat:set_res(win)
+	-- bat:update_db()
 end
 
 return cls

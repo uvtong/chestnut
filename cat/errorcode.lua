@@ -83,6 +83,5 @@ errorcode[111] = {code = 111, msg = "continue fight"}
 errorcode[112] = {code = 112, msg = "wrong data"}
 
 
-
-
+errorcode[150] = {code = 150, msg = "not enough role"}
 return errorcode
