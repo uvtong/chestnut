@@ -357,7 +357,7 @@ function _M.load_game()
 	local game = {}
 	load_g_achievement(game)
 	load_g_ara_pts(game)
-	load_g_ara_rnk_rwd(game)
+	--load_g_ara_rnk_rwd(game)
 	load_g_ara_tms(game)
 	load_g_checkpoint(game)
 	load_g_checkpoint_chapter(game)

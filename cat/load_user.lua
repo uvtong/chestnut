@@ -38,19 +38,21 @@ function cls:load_user(uid)
 	self:load_u_lilian_sub(user)
 	self:load_u_lilian_qg_num(user)
 	self:load_u_lilian_phy_power(user)
+	--self:load_u_new_friend()
+	--self:load_u_new_friendmsg()
 	return self:get_user()
-end
-
+end 
+	
 function cls:load_remote(uid, p )
 	-- body
-
-end
-
+	
+end 	
+	
 function cls:load_enemy_local(uid)
 	-- body
-
-end
-
+	
+end 	
+	
 function cls:load_user_remote(uid, p, ... )
 	-- body
 	local usersmgr = env:get_usersmgr()
@@ -60,8 +62,8 @@ function cls:load_user_remote(uid, p, ... )
 		env:set_usersmgr(usersmgr)
 	end
 	usersmgr:load_remote()
-end
-
+end 	
+	
 function cls:load_user(user_id)
 	-- body
 	local cls = require "models/usersmgr"
@@ -71,13 +73,45 @@ function cls:load_user(user_id)
 	local user = usersmgr:get(user_id)
 	self._data["user"] = user
 	return user
-end
-
+end 	       
+	
 function cls:get_user( ... )
 	-- body
 	return self._data["user"]
-end
-
+end	       
+	        
+function cls:load_u_new_friend()
+	local u = self:get_user()
+	local cls = require "models/u_new_friend"
+	local u_new_friendmgr = cls.new()
+	u_new_friendmgr:load_db("fk", u:get_csv_id())
+	self._data["u_new_friendmgr"] = u_new_friendmgr
+	u.u_new_friendmgr = u_new_friendmgr
+end              
+               
+function cls:get_u_new_friend()
+        return self._data["u_new_friendmgr"]
+end              
+               
+function cls:load_u_new_friendmgs()
+        local u = self:get_user()
+	local cls = require "models/u_new_friendmsgmgr"
+	local u_new_friendmsgmgr = cls.new()
+	local sql = string.format("select * from u_new_friendmsg where (fromid = %d and isread = 0) or (toid = %d and isread = 0)", u:get_csv_id())
+	local r = query.read(".rdb", "u_new_friendmsg", sql)
+	assert(r.errno == nil) --if query failed, return errno, badresult, sqlstate, err
+	for k, v in ipairs(r) do
+	       	local a = u_new_friendmsgmgr:create_entity( v )
+	       	user.u_new_friendmsgmgr:add( a )		
+	end    
+	self._data["u_new_friendmsgmgr"] = u_new_friendmsgmgr
+	u.u_new_friendmsgmgr = u_new_friendmsgmgr
+end     
+	
+function cls:get_u_new_friendmsg()
+	return self._data["u_new_friendmsgmgr"]
+end 	
+				
 function cls:load_u_achievement()
 	-- body
 	local u = self:get_user()

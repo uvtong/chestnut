@@ -1,7 +1,7 @@
 local entitycpp = require "entitycpp"
-
+	
 local cls = class("g_ara_rnk_rwdentity", entitycpp)
-
+	
 function cls:ctor(mgr, P, ... )
 	-- body
 	self.__head  = mgr.__head
@@ -18,19 +18,19 @@ function cls:ctor(mgr, P, ... )
 			csv_id = 0,
 			reward = 0,
 		}
-
+		
 	self.__ecol_updated = {
 			seri = 0,
 			csv_id = 0,
 			reward = 0,
 		}
-
+		
 	for k,v in pairs(self.__head) do
 		self.__fields[k] = assert(P[k], string.format("no exist %s", k))
 	end
 	return self
-end
-
+end 
+	
 function cls:set_seri(v, ... )
 	-- body
 	assert(v)
@@ -39,8 +39,8 @@ function cls:set_seri(v, ... )
 		self.__col_updated = self.__col_updated + 1
 	end
 	self.__fields.seri = v
-end
-
+end 
+	
 function cls:get_seri( ... )
 	-- body
 	return self.__fields.seri
