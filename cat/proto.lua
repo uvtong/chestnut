@@ -1090,6 +1090,15 @@ ara_enter 79 {
     response {
         errorcode 0 : integer
         msg 1 : string
+        ara_rmd_list 2 : *suser
+        ara_win_tms 3 : integer
+        ara_lose_tms 4 : integer
+        ara_tie_tms 5 : integer
+        ara_clg_tms 6 : integer
+        ara_integral 7 : integer
+        ara_rfh_tms 8 : integer
+        ara_rfh_cost_tms 9 : integer
+        ara_clg_cost_tms 10 : integer
     }
 }
 
@@ -1201,10 +1210,16 @@ ara_bat_enter 93 {
 	request {
 
 	}
+	response {
+	
+	}
 }
 
 ara_bat_exit 94 {
-	
+	request {
+	}
+	response {
+	}
 }
 
 ]]
