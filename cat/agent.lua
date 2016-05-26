@@ -2503,7 +2503,7 @@ function REQUEST:ara_convert_pts(ctx, ... )
 	local ara_integral = u:get_ara_integral()
 	if ara_integral > self.pts and self.pts > 0 then
 		if self.pts < 10 then
-			
+			end
 		ara_integral = ara_integral - self.pts
 		u:set_ara_integral(ara_integral)
 	else
