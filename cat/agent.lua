@@ -2370,6 +2370,10 @@ function REQUEST:ara_choose_role_enter(ctx, ... )
 			end
 		end
 	end
+	local arena = ctx:get_arena()
+	arena:set_me(u)
+	arena:set_me_modelmgr(modelmgr)
+	arena:load_enemy(self.enemy_id)
 	local ret = {}
 	ret.errorcode = errorcode[1].code
 	ret.msg = errorcode[1].msg
@@ -2592,6 +2596,10 @@ end
 
 local function logout()
 	-- body
+	dc.set(user.csv_id, "client_fd", client_fd)
+	dc.set(user.csv_id, "online", false)
+	dc.set(user.csv_id, "addr", 0)
+
 	if gate then
 		skynet.call(gate, "lua", "logout", userid, subid)
 	end
@@ -2651,26 +2659,10 @@ function CMD:newemail(source, subcmd , ... )
 	f( new_emailrequest , ... )
 end
 
-function CMD:ara_info()
+function CMD:ara_user(source)
 	-- body
-	local r
-	r = user.__fields
-	r.u_rolemgr = {}
-	r.u_equipmentmgr = {}
-	r.u_propmgr = {}
-	r.u_kungfumgr = {}
-	for k,v in pairs(user.u_rolemgr.__data) do
-		table.insert(r.u_rolemgr, v.__fields)
-	end
-	for k,v in pairs(user.u_equipmentmgr.__data) do
-		table.insert(r.u_equipmentmgr, v.__fields)
-	end
-	for k,v in pairs(user.u_propmgr.__data) do
-		table.insert(r.u_propmgr, v.__fields)
-	end
-	for k,v in pairs(user.u_kungfumgr.__data) do
-		table.insert(r.u_kungfumgr, v.__fields)
-	end
+	local modelmgr = self:get_modelmgr()
+	local r = modelmgr:gen_remote()
 	return r
 end
 
