@@ -1,6 +1,7 @@
 local skynet = require "skynet"
 local util = require "util"
 local query = require "query"
+local const = require "const"
 
 local cls = class("load_user")
 
@@ -8,6 +9,270 @@ function cls:ctor(env, ... )
 	-- body
 	self._env = env
 	self._data = {}
+end
+
+function cls:signup(uid)
+	-- body
+	print("**********************************", uid)
+	local u =  self._env:create_default(uid)
+	u:update_wait()
+	self._data["user"] = u
+
+	local cls
+	cls = require "models/u_achievementmgr"
+	u.u_achievementmgr = cls.new()
+	self._data["u_achievementmgr"] = u.u_achievementmgr
+	cls = require "models/u_achievement_rcmgr"
+	u.u_achievement_rcmgr = cls.new()
+	self._data["u_achievement_rcmgr"] = u.u_achievement_rcmgr
+	self._data["u_achievement_rcmgr"]:set_user(u)
+	cls = require "models/u_ara_batmgr"
+	u.u_ara_batmgr = cls.new()
+	self._data["u_ara_batmgr"] = u.u_ara_batmgr
+	self._data["u_ara_batmgr"]:set_user(u)
+	cls = require "models/u_ara_rnk_rwdmgr"
+	u.u_ara_rnk_rwdmgr = cls.new()
+	self._data["u_ara_rnk_rwdmgr"] = u.u_ara_rnk_rwdmgr
+	self._data["u_ara_rnk_rwdmgr"]:set_user(u)
+	cls = require "models/u_cgoldmgr"
+	u.u_cgoldmgr = cls.new()
+	self._data["u_cgoldmgr"] = u.u_cgoldmgr
+	self._data["u_cgoldmgr"]:set_user(u)
+	cls = require "models/u_checkinmgr"
+	u.u_checkinmgr = cls.new()
+	self._data["u_checkinmgr"] = u.u_checkinmgr
+	self._data["u_checkinmgr"]:set_user(u)
+	cls = require "models/u_checkin_monthmgr"
+	u.u_checkin_monthmgr = cls.new()
+	self._data["u_checkin_monthmgr"] = u.u_checkin_monthmgr
+	self._data["u_checkin_monthmgr"]:set_user(u)
+	cls = require "models/u_checkpointmgr"
+	u.u_checkpointmgr = cls.new()
+	self._data["u_checkpointmgr"] = u.u_checkpointmgr
+	self._data["u_checkpointmgr"]:set_user(u)
+	cls = require "models/u_checkpoint_rcmgr"
+	u.u_checkpoint_rcmgr = cls.new()
+	self._data["u_checkpoint_rcmgr"] = u.u_checkpoint_rcmgr
+	self._data["u_checkpoint_rcmgr"]:set_user(u)
+	cls = require "models/u_ara_batmgr"
+	u.u_ara_batmgr  = cls.new()
+	self._data["u_ara_batmgr"] = u.u_ara_batmgr
+	self._data["u_ara_batmgr"]:set_user(u)
+	cls = require "models/u_ara_rnk_rwdmgr"
+	u.u_ara_rnk_rwdmgr = cls.new()
+	self._data["u_ara_rnk_rwdmgr"] = u.u_ara_rnk_rwdmgr
+	self._data["u_ara_rnk_rwdmgr"]:set_user(u)
+	cls = require "models/u_cgoldmgr"
+	u.u_cgoldmgr = cls.new()
+	self._data["u_cgoldmgr"] = u.u_cgoldmgr
+	self._data["u_cgoldmgr"]:set_user(u)
+	cls = require "models/u_checkinmgr"
+	u.u_checkinmgr = cls.new()
+	self._data["u_checkinmgr"] = u.u_checkinmgr
+	self._data["u_checkinmgr"]:set_user(u)
+	cls = require "models/u_checkin_monthmgr"
+	u.u_checkin_monthmgr = cls.new()
+	self._data["u_checkin_monthmgr"] = u.u_checkin_monthmgr
+	self._data["u_checkin_monthmgr"]:set_user(u)
+	cls = require "models/u_checkpointmgr"
+	u.u_checkpointmgr = cls.new()
+	self._data["u_checkpointmgr"] = u.u_checkpointmgr
+	self._data["u_checkpointmgr"]:set_user(u)
+	cls = require "models/u_checkpoint_rcmgr"
+	u.u_checkpoint_rcmgr = cls.new()
+	self._data["u_checkpoint_rcmgr"] = u.u_checkpoint_rcmgr
+	self._data["u_checkpoint_rcmgr"]:set_user(u)
+	cls = require "models/u_equipmentmgr"
+	u.u_equipmentmgr = cls.new()
+	self._data["u_equipmentmgr"] = u.u_equipmentmgr
+	self._data["u_equipmentmgr"]:set_user(u)
+	cls = require "models/u_exercisemgr"
+	u.u_exercisemgr = cls.new()
+	self._data["u_exercisemgr"] = u.u_exercisemgr
+	self._data["u_exercisemgr"]:set_user(u)
+	-- u.u_friendmgr = u_friendmgr
+	-- u.u_friendmsgmgr = u_friendmsgmgr
+	cls = require "models/u_goodsmgr"
+	u.u_goodsmgr = cls.new()
+	self._data["u_goodsmgr"] = u.u_goodsmgr
+	self._data["u_goodsmgr"]:set_user(u)
+	cls = require "models/u_journalmgr"
+	u.u_journalmgr = cls.new()
+	self._data["u_journalmgr"] = u.u_journalmgr
+	self._data["u_journalmgr"]:set_user(u)
+	cls = require "models/u_kungfumgr"
+	u.u_kungfumgr = cls.new()
+	self._data["u_kungfumgr"] = u.u_kungfumgr
+	self._data["u_kungfumgr"]:set_user(u)
+	cls = require "models/u_lilian_mainmgr"
+	u.u_lilian_mainmgr = cls.new()
+	self._data["u_lilian_mainmgr"] = u.u_lilian_mainmgr
+	self._data["u_lilian_mainmgr"]:set_user(u)
+	cls = require "models/u_lilian_phy_powermgr"
+	u.u_lilian_phy_powermgr = cls.new()
+	self._data["u_lilian_phy_powermgr"] = u.u_lilian_phy_powermgr
+	self._data["u_lilian_phy_powermgr"]:set_user(u)
+	cls = require "models/u_lilian_qg_nummgr"
+	u.u_lilian_qg_nummgr = cls.new()
+	self._data["u_lilian_qg_nummgr"] = u.u_lilian_qg_nummgr
+	cls = require "models/u_lilian_submgr"
+	u.u_lilian_submgr = cls.new()
+	self._data["u_lilian_submgr"] = u.u_lilian_submgr
+	self._data["u_lilian_submgr"]:set_user(u)
+	cls = require "models/u_new_drawmgr"
+	u.u_drawmgr = cls.new()
+	self._data["u_drawmgr"] = u.u_drawmgr
+	self._data["u_drawmgr"]:set_user(u)
+	-- u.u_new_emailmgr = u_new_emailmgr 
+	cls = require "models/u_propmgr"
+	u.u_propmgr = cls.new()
+	self._data["u_propmgr"] = u.u_propmgr
+	self._data["u_propmgr"]:set_user(u)
+	cls = require "models/u_purchase_goodsmgr"
+	u.u_purchase_goodsmgr = cls.new()
+	self._data["u_purchase_goodsmgr"] = u.u_purchase_goodsmgr
+	self._data["u_purchase_goodsmgr"]:set_user(u)
+	cls = require "models/u_purchase_rewardmgr"
+	u.u_purchase_rewardmgr = cls.new()
+	self._data["u_purchase_rewardmgr"] = u.u_purchase_rewardmgr
+	self._data["u_purchase_rewardmgr"]:set_user(u)
+	cls = require "models/u_recharge_recordmgr"
+	u.u_recharge_recordmgr = cls.new()
+	self._data["u_recharge_recordmgr"] = u.u_recharge_recordmgr
+	self._data["u_recharge_recordmgr"]:set_user(u)
+	cls = require "models/u_recharge_vip_rewardmgr"
+	u.u_recharge_vip_rewardmgr = cls.new()
+	self._data["u_recharge_vip_rewardmgr"] = u.u_recharge_vip_rewardmgr
+	self._data["u_recharge_vip_rewardmgr"]:set_user(u)
+	cls = require "models/u_rolemgr"
+	u.u_rolemgr = cls.new()
+	self._data["u_rolemgr"] = u.u_rolemgr
+	self._data["u_rolemgr"]:set_user(u)
+
+	local r = skynet.call(".game", "lua", "query_g_equipment")
+	for k,v in pairs(r) do
+		local equip = skynet.call(".game", "lua", "query_g_equipment_enhance", v.csv_id*1000+v.level)
+		equip.user_id = u.csv_id
+		equip.id = genpk_2(equip.user_id, equip.csv_id)
+		equip = u.u_equipmentmgr:create_entity(equip)
+		u.u_equipmentmgr:add(equip)
+	end
+	u.u_equipmentmgr:update_wait()
+
+	local prop = skynet.call(".game", "lua", "query_g_prop", const.GOLD)
+	prop.user_id = u.csv_id
+	prop.num = 100
+	prop.id = genpk_2(prop.user_id, prop.csv_id)
+	prop = u.u_propmgr:create_entity(prop)
+	u.u_propmgr:add(prop)
+
+	prop = skynet.call(".game", "lua", "query_g_prop", const.DIAMOND)
+	prop.user_id = u.csv_id
+	prop.num = 100
+	prop.id = genpk_2(prop.user_id, prop.csv_id)
+	prop = u.u_propmgr:create_entity(prop)
+	u.u_propmgr:add(prop)
+
+	prop = skynet.call(".game", "lua", "query_g_prop", const.EXP)
+	prop.user_id = u.csv_id
+	prop.num = 100
+	prop.id = genpk_2(prop.user_id, prop.csv_id)
+	prop = u.u_propmgr:create_entity(prop)
+	u.u_propmgr:add(prop)
+	
+	prop = skynet.call(".game", "lua", "query_g_prop", const.LOVE)
+	prop.user_id = u.csv_id
+	prop.num = 100     
+	prop.id = genpk_2(prop.user_id, prop.csv_id)
+	prop = u.u_propmgr:create_entity(prop)
+	u.u_propmgr:add(prop)
+	
+	--add invitation
+	prop = skynet.call(".game", "lua" , "query_g_prop" , 50007)
+	assert( prop )
+	prop.user_id = u.csv_id
+	prop.num = 100
+	prop.id = genpk_2(prop.user_id, prop.csv_id)
+	prop = u.u_propmgr:create_entity(prop)
+	u.u_propmgr:add(prop)
+	u.u_propmgr:update_wait()
+
+	-- local newemail = { 
+	-- 				   type = 1 , title = "new user email" , 
+	-- 				   content = "Welcome to the game" , 
+	-- 				   itemsn1 = 1 , itemnum1 = 10000 , 
+	-- 				   itemsn2 = 2 , itemnum2 = 10000 , 
+	-- 				   itemsn3 = 3 , itemnum3 = 10000
+	-- 				}  
+	-- skynet.send(".channel", "lua", "send_email_to_group", newemail,  { { uid = u.csv_id } })
+
+	for i=1,8 do
+		local csv_id = i * 1000 + 1
+		local a = skynet.call(".game", "lua", "query_g_achievement", csv_id)
+		a.user_id = u.csv_id
+		a.finished = 0
+		a.reward_collected = 0
+		a.is_unlock = 1
+		a.is_valid = 1
+		a.id = genpk_2(a.user_id, a.csv_id)
+		a = u.u_achievementmgr:create_entity(a)	
+		u.u_achievementmgr:add(a)
+	end
+	
+	u.u_achievementmgr:update_wait()
+
+	local r = skynet.call(".game", "lua", "query_g_goods")
+	for k,v in pairs(r) do
+		local t = { user_id = u.csv_id, csv_id=v.csv_id, inventory=v.inventory_init, countdown=0, st=0}
+		t.id = genpk_2(t.user_id, t.csv_id)
+		local a = u.u_goodsmgr:create_entity(t)
+		u.u_goodsmgr:add(a)
+	end
+	u.u_goodsmgr:update_wait()
+
+	local tmp = {
+		user_id = u.csv_id,
+		chapter = u.cp_chapter,
+		chapter_type0 = 1,       
+		chapter_type1 = 0,
+		chapter_type2 = 0,
+	}
+	tmp.id = genpk_2(tmp.user_id, tmp.chapter)
+	local cp = u.u_checkpointmgr:create_entity(tmp)
+	u.u_checkpointmgr:add(cp)
+	cp:update_wait()
+
+	local role = skynet.call(self._env:get_game(), "lua", "query_g_role", 1)
+	local role_star = skynet.call(self._env:get_game(), "lua", "query_g_role_star", role.csv_id*1000+role.star)
+	for k,v in pairs(role_star) do
+		role[k] = role_star[k]
+	end
+	role.user_id = assert(u.csv_id)
+	role.k_csv_id1 = 0
+	role.k_csv_id2 = 0
+	role.k_csv_id3 = 0
+	role.k_csv_id4 = 0
+	role.k_csv_id5 = 0
+	role.k_csv_id6 = 0
+	role.k_csv_id7 = 0
+	local n, r = self._env:xilian(role, {role_id=role.csv_id, is_locked1=false, is_locked2=false, is_locked3=false, is_locked4=false, is_locked5=false})
+	assert(n == 0, string.format("%d locked.", n))
+	role.property_id1 = r.property_id1
+	role.value1 = r.value1
+	role.property_id2 = r.property_id2
+	role.value2 = r.value2
+	role.property_id3 = r.property_id3
+	role.value3 = r.value3
+	role.property_id4 = r.property_id4
+	role.value4 = r.value4
+	role.property_id5 = r.property_id5
+	role.value5 = r.value5
+	role.id = genpk_2(role.user_id, role.csv_id)
+	role = u.u_rolemgr:create_entity(role)
+	u.u_rolemgr:add(role)
+	print("role:update_wait is called**********************")
+	role:update_wait()
+	return u
 end
 
 function cls:load1(uid)
@@ -385,24 +650,24 @@ function cls:get_u_drawmgr( ... )
 	return self._data["u_drawmgr"]
 end
 	
--- local function load_u_email( user )
--- 	assert( nil == user.u_emailmgr )
--- 	local u_emailmgr = require "models/u_emailmgr"
--- 	user.u_emailmgr = u_emailmgr()
+local function load_u_email( user )
+	assert( nil == user.u_emailmgr )
+	local u_emailmgr = require "models/u_emailmgr"
+	user.u_emailmgr = u_emailmgr()
 
--- 	local r = skynet.call( util.random_db() , "lua", "command" , "select" , "u_new_email", { { uid = user.csv_id , isdel = 0 } } )
--- 	for i , v in ipairs( r ) do
--- 		local a = user.u_emailmgr:create( v )
--- 		user.u_emailmgr:add( a )
--- 	end
--- 	print( "u_emailmgr:get_count" , u_emailmgr:get_count() )
--- 	if user.u_emailmgr:get_count() > user.u_emailmgr.__MAXEMAILNUM then
--- 		print( "sysdelemail is called *********************************************" , u_emailmgr:get_count() )
--- 		user.u_emailmgr:sysdelemail()
--- 	end
--- 	u_emailmgr.__user_id = user.csv_id
+	local r = skynet.call( util.random_db() , "lua", "command" , "select" , "u_new_email", { { uid = user.csv_id , isdel = 0 } } )
+	for i , v in ipairs( r ) do
+		local a = user.u_emailmgr:create( v )
+		user.u_emailmgr:add( a )
+	end
+	print( "u_emailmgr:get_count" , u_emailmgr:get_count() )
+	if user.u_emailmgr:get_count() > user.u_emailmgr.__MAXEMAILNUM then
+		print( "sysdelemail is called *********************************************" , u_emailmgr:get_count() )
+		user.u_emailmgr:sysdelemail()
+	end
+	u_emailmgr.__user_id = user.csv_id
 	
--- end
+end
 
 function cls:load_u_lilian_main()
 	local u = self:get_user()
@@ -488,7 +753,7 @@ function cls:load_u_prop()
 	local u = self:get_user()
 	local cls = require "models/u_propmgr"
 	local u_propmgr = cls.new()
-	u_propmgr:set_user(user)
+	u_propmgr:set_user(u)
 	u_propmgr:load_db("fk", u:get_field("csv_id"))
 	self._data["u_propmgr"] = u_propmgr
 	u.u_propmgr = u_propmgr

@@ -1,3 +1,4 @@
+local skynet = require "skynet"
 local cls = class("factory")
 
 function cls:ctor(env, user, ... )

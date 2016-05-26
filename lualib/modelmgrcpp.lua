@@ -280,38 +280,43 @@ end
 function cls.create(t, p, ...)
 	-- body
 	return t:create_entity(p)
-end
-
+end 
+	
 function cls.create_entity(t, p)
 	-- body
 	local entity = require("models/"..t.__entity)
 	local r = entity.new(t, p)
 	return r
-end
-
+end 
+	
 function cls.set_user(self, user, ... )
 	-- body
 	self._user = user
-end
+end 
 
+function cls.get_user(self, ... )
+	-- body
+	return self._user
+end
+	
 function cls.genpk(self, csv_id)
 	-- body
 	if #self.__fk == 0 then
 		return genpk_1(csv_id)
 	else
-		local user_id = self._user.csv_id
+		local user_id = self:get_user():get_csv_id()
 		return genpk_2(user_id, csv_id)
 	end
-end
-
+end 
+	
 function cls.add(self, u)
  	-- body
  	assert((u and self.__pk), self.__pk)
  	assert(self.__data[ u[self.__pk] ] == nil, u[self.__pk], self.__data[ u[self.__pk] ])
  	self.__data[ u[self.__pk] ] = u
  	self.__count = self.__count + 1
-end
-
+end 
+	
 function cls.get(self, pk)
 	-- body
 	return self.__data[pk]
@@ -326,32 +331,33 @@ function cls.get(self, pk)
 	-- 	-- end
 	-- 	-- return r
 	-- end
-end
-
+end 
+	
 function cls.delete(self, pk)
 	-- body
 	if nil ~= self.__data[pk] then
 		self.__data[pk] = nil
 		self.__count = self.__count - 1
 	end
-end
-
+end 
+	
 function cls.get_by_csv_id(self, csv_id)
 	-- body
+	print(self.__tname)
 	local pk = self:genpk(csv_id)
 	return self:get(pk)
-end
-
+end 
+	
 function cls.delete_by_csv_id(self, csv_id)
 	local pk = self:genpk(csv_id)
 	self:delete(pk)
-end
-
+end 
+	
 function cls.get_count(self)
 	-- body
 	return self.__count
-end
-
+end 
+	
 function cls.get_cap(self)
 	-- body
 	return self.__cap

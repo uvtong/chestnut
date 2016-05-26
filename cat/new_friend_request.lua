@@ -1,5 +1,5 @@
 package.path = "./../cat/?.lua;" .. package.path
-	 				
+
 local friendrequest = {}
 local user 			
 local dc 				
@@ -11,7 +11,8 @@ local query = require "query"
 local dc = require "datacenter"
 	 
 local recommand_idlist = {}
-	 
+local apply_idlist = {}	 
+
 local MAXHEARTNUM = 100
 local MAXFRIENDNUM = 10
 local recvheartnum	= 0
@@ -315,15 +316,24 @@ end
 -- 		return appliedlist
 -- 	end 
 -- end	 	
-	
+			
 function REQUEST:otherfriend_list(ctx)
 	assert(ctx)
 
 	local ret = {}
+end 	
+				
+local function init_apply_idlist(ctx)
+	assert(ctx)
+	print("in init_apply_idlist*****************************************")
 
-
+	for k, v in pairs(ctx:get_modelmgr():get_u_new_friendmsgmgr()._data) do
+		if v.fromid == ctx:get_user():get_csv_id() then
+			apply_idlist[tostring(v.toid)] = v.toid
+		end	
+	end
 end 
-			
+	
 function new_friend_request:loadfriend(uid, lowlevel, uplevel)
 	assert(uid and lowlevel and uplevel)
 
@@ -373,6 +383,7 @@ function new_friend_request:loadfriend(uid, lowlevel, uplevel)
 			i = i + 1
 		end 
 	end     
+
 	assert(tmp_recommand_idlist[1])
 
 	if #tmp_recommand_idlist[1] < MAXFRIENDNUM then
@@ -399,7 +410,7 @@ local function findexist( idlist , id )
 	end		
 
 	return false 
-end			
+end	
 		
 local function pickfriends()
    	local f = {}
@@ -408,7 +419,7 @@ local function pickfriends()
    	local tmp = {}
    	--filter id in friendlist and appliedlist
    	for k , v in pairs( friendmgr._data.avaliblelist ) do
-   		if false == findexist(friendmgr._data.friendlist, v) and false == findexist(friendmgr._data.appliedlist, v) then
+   		if false == findexist(friendmgr._data.friendlist,  v) and false == findexist(friendmgr._data.appliedlist, v) then
    		--	print( v )
    			table.insert(tmp, v.csv_id)
 		end 
@@ -418,9 +429,9 @@ local function pickfriends()
    		--TODO lower the fileter condition
    		return nil	
    	end		
-   	
+
    	recommand_idlist = tmp
-   	
+
    	local f = {}
    	if #recommand_idlist < MAXFRIENDNUM then
    		print("avalible friends is less than 10")
@@ -438,10 +449,10 @@ local function pickfriends()
 			end
 		end 	
     end		
-    
+
 	return f
 end 		
-			
+	
 function friendmgr:apply_otherfriendlist()
 	local avaliblefriends = {}
 
@@ -468,7 +479,7 @@ function friendmgr:apply_otherfriendlist()
 
 		local n = friendmgr:_createfriend( tmp )
 		assert( n )
-        	
+        
 		table.insert( avaliblefriends , n )
 	end 	
 			
