@@ -42,12 +42,12 @@ end
 
 function CMD.swap(rnk1, rnk2)
 	-- body
-	local u1 = ranking_name[rnk1]
-	local u2 = ranking_name[rnk2]
-	name_ranking[u1].ranking = rnk2
-	name_ranking[u2].ranking = rnk1
-	ranking_name[rnk1] = u2
-	ranking_name[rnk2] = u1
+	local ranking1 = leaderboardsmgr:get(rnk1):get_field("ranking")
+	local ranking2 = leaderboardsmgr:get(rnk2):get_field("ranking")
+	leaderboardsmgr:get(rnk1):set_field("ranking", ranking2)
+	leaderboardsmgr:get(rnk2):set_field("ranking", ranking1)
+	ranking_name[ranking1] = rnk2
+	ranking_name[ranking2] = rnk1
 end
 
 function CMD.enter(id, key)

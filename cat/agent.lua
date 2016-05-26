@@ -79,24 +79,12 @@ end
 
 local function flush_db(priority)
 	-- body
-	if user then
-		user:update()
-		for k,v in pairs(user) do
-			if string.match(k, "^u_[%w_]+mgr$") then
-				if v["update_db"] then
-					v:update_db(priority)
-				end
-			end
+	local modelmgr = env:get_modelmgr()
+	local u = modelmgr:get_user()
+	if u then
+		for k,v in pairs(modelmgr._data) do
+			v:update_db()
 		end
-		-- user("update")
-		-- local cm = user.u_checkin_monthmgr:get_checkin_month()
-		-- if cm then
-		-- 	cm:__update_db({"checkin_month"}, priority)
-		-- end
-		-- local ls = user.u_lilian_submgr:get_lilian_sub()
-		-- if ls then
-		-- 	ls:__update_db( {"first_lilian_time" , "start_time" , "update_time" , "used_queue_num" , "end_lilian_time" } , priority )
-		-- end
 	end
 end
 
@@ -2334,7 +2322,36 @@ function REQUEST:ara_exit(ctx, ... )
 	end
 end
 
-function REQUEST:ara_bat_ovr()
+function REQUEST:ara_choose_role_enter(ctx, ... )
+	-- body
+	local u = ctx:get_user()
+	local ret = {}
+	ret.errorcode = errorcode[1].code
+	ret.msg = errorcode[1].msg
+	ret.bat_roleid[1] = u:get_field("ara_role_id1")
+	ret.bat_roleid[2] = u:get_field("ara_role_id2")
+	ret.bat_roleid[3] = u:get_field("ara_role_id3")
+	return ret
+end
+
+function REQUEST:ara_choose_role(ctx, ... )
+	-- body
+	assert(#self.bat_roleid == 3)
+	local u = ctx:get_user()
+	u:set_field("ara_role_id1", self.bat_roleid[1])
+	u:set_field("ara_role_id1", self.bat_roleid[1])
+	u:set_field("ara_role_id1", self.bat_roleid[1])
+	local ret = {}
+	ret.errorcode = errorcode[1].code
+	ret.msg = errorcode[1].msg
+	return ret
+end
+
+function REQUEST:ara_bat_enter(ctx, ... )
+ 	-- body
+end 
+
+function REQUEST:ara_bat_exit()
 	-- body
 	local ret = {}
 	if not user then
@@ -2480,13 +2497,18 @@ function REQUEST:ara_rfh(ctx)
 	return ret
 end
 
-function REQUEST:ara_worship()
+function REQUEST:ara_worship(ctx)
 	-- body
-	local ret = {}
-	local rand = math.random()
-	if rand % 1 == 1 then
-		local id = skynet.call(game, "lua", "query_g_config", "worship_reward_id")
-		local num = skynet.call(game, "lua", "query_g_config", "worship_reward_num")
+	local leaderboards_name = skynet.getenv("leaderboards_name")
+	local ranking1 = skynet.call(leaderboards_name, "lua", "ranking", self.uid)
+	local ranking2 = skynet.call(leaderboards_name, "lua", "ranking", ctx:get_userid())
+	if ranking1 >= 100 and ranking1 > ranking2 then
+		local key = string.format("%s:%d", "g_config", 1)
+		local value = sd.query(key)
+		local id = value["worship_reward_id"]
+		local num = value["worship_reward_num"]
+		local modelmgr = ctx:get_modelmgr()
+		local u_propmgr = modelmgr:get_u_propmgr()
 		local prop = user.u_propmgr:get_by_csv_id(id)
 		prop.num = prop.num + num
 		ret.errorcode = errorcode[1].code
@@ -2496,7 +2518,7 @@ function REQUEST:ara_worship()
 		ret.errorcode = errorcode[33].code
 		ret.msg = errorcode[33].msg
 		return ret
-	end
+	end	
 end
 
 function REQUEST:ara_clg_tms_purchase()
@@ -2505,14 +2527,28 @@ function REQUEST:ara_clg_tms_purchase()
 	skynet.call()
 end
 
-function REQUEST:ara_rnk_reward_collected()
+function REQUEST:ara_rnk_reward_collected(ctx)
 	-- body
 	local ret = {}
-	local rnk = skynet.call(lp, "lua", "ranking", user.csv_id)
-	local rnk_rwd = user.u_ara_rnk_rwd:get_by_csv_id(rnk)
+	local leaderboards_name = skynet.getenv("leaderboards_name")
+	local ranking = skynet.call(leaderboards_name, "lua", "ranking", ctx:get_userid())
+	local modelmgr = ctx:get_modelmgr()
+	local u_ara_rnk_rwdmgr = modelmgr:get_u_ara_rnk_rwdmgr()
+	local seg = 0
+	if ranking < 10 then
+		seg = ranking
+	elseif ranking < 100 then
+		seg = (seg // 10 * 10)
+	elseif ranking < 1000 then
+		seg = seg // 100 * 100
+	else
+		assert(false)
+	end
+	local rnk_rwd = u_ara_rnk_rwdmgr:get_by_csv_id(seg)
 	if rnk_rwd == nil or rnk_rwd.is_collected == 0 then
-		local r = skynet.call(game, "lua", "query_g_ara_rnk_rwd", rnk)
-		r = util.parse_text(r, "(%d+%*%d+%*?)", 2)
+		local key = string.format("%s:%d", "g_ara_rnk_rwd", seg)
+		local value = sd.query(key)
+		r = util.parse_text(value["reward"], "(%d+%*%d+%*?)", 2)
 		for i,v in ipairs(r) do
 			local prop = user.u_propmgr:get_by_csv_id(v[1])
 			prop.num = prop.num + v[2]
@@ -2649,7 +2685,7 @@ skynet.register_protocol {
 	end
 }	
 	
-function CMD.friend(source, subcmd, ... )
+function CMD:friend(source, subcmd, ... )
 	-- body
 	local f = assert(friendrequest[subcmd])
 	local r =  f(friendrequest, ...)
@@ -2658,12 +2694,12 @@ function CMD.friend(source, subcmd, ... )
 	end
 end
 
-function CMD.newemail(source, subcmd , ... )
+function CMD:newemail(source, subcmd , ... )
 	local f = assert( new_emailrequest[ subcmd ] )
 	f( new_emailrequest , ... )
 end
 
-function CMD.ara_info()
+function CMD:ara_info()
 	-- body
 	local r
 	r = user.__fields
@@ -2705,7 +2741,8 @@ local function enter_ara(u, ... )
 			m = m + 1
 		end
 		ara_clg_tms_rst_tm = ara_clg_tms_rst_tm + (m * 86400)
-		u:set_ara_clg_tms_rst_tm(ara_clg_tms_rst_tm)
+
+		-- u:set_ara_clg_tms_rst_tm(ara_clg_tms_rst_tm)
 	end
 end
 
@@ -2719,10 +2756,10 @@ end
 local function login(u, ... )
 	-- body
 	enter_lp(u)
-	enter_ara(u)
+	-- enter_ara(u)
 end
 
-function CMD.signup(source, uid, sid, sct, g, d)
+function CMD:signup(source, uid, sid, sct, g, d)
 	-- body
 	skynet.error(string.format("%s is login", uid))
 	gate   = source
@@ -2761,7 +2798,7 @@ function CMD.signup(source, uid, sid, sct, g, d)
 	return true
 end
 
-function CMD.login(source, uid, sid, sct, g, d)
+function CMD:login(source, uid, sid, sct, g, d)
 	-- body
 	skynet.error(string.format("%s is login", uid))
 	gate   = source
@@ -2777,7 +2814,7 @@ function CMD.login(source, uid, sid, sct, g, d)
 	env:set_secret(secret)
 
 	local modelmgr = env:get_modelmgr()
-	user = modelmgr:load_user(uid)
+	user = modelmgr:load(uid)
 
 	local onlinetime = os.time()
 	user.ifonline = 1
@@ -2811,18 +2848,18 @@ local function logout()
 	skynet.exit()
 end
 
-function CMD.logout(source)
+function CMD:logout(source)
 	-- body
 	skynet.error(string.format("%s is logout", userid))
 	logout()
 end
 
-function CMD.afk(source)
+function CMD:afk(source)
 	-- body
 	skynet.error(string.format("AFK"))
 end
 
-function CMD.user(source, ... )
+function CMD:user(source, ... )
 	-- body
 	local u = env:get_user()
 	local r = {}
@@ -2878,7 +2915,7 @@ skynet.start(function()
 	skynet.dispatch("lua", function(_, source, command, ...)
 		print("agent is called" , command)
 		local f = CMD[command]
-		local result = f(source, ... )
+		local result = f(env, source, ... )
 		if result then
 			skynet.ret(skynet.pack(result))
 		end

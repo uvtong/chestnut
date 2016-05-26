@@ -10,7 +10,16 @@ function cls:ctor(env, ... )
 	self._data = {}
 end
 
-function cls:load_user(uid)
+function cls:load1(uid)
+	-- body
+	self:load_user(uid)
+	self:load_u_kungfu()
+	self:load_u_prop()
+	self:load_u_role()
+	self:load_u_equipment()
+end
+
+function cls:load(uid)
 	-- body
 	self:load_user(uid)
 	self:load_u_achievement()
@@ -43,12 +52,21 @@ end
 
 function cls:load_remote(uid, p )
 	-- body
-
+	self:load_user_remote(uid, p)
+	self:load_u_equipment_remote(p)
+	self:load_u_role_remote(p)
+	self:load_u_kungfu_remote(p)
 end
 
-function cls:load_enemy_local(uid)
-	-- body
 
+function cls:gen_remote( ... )
+	-- body
+	local rm = {}
+	self:gen_user_remote(rm)
+	self:gen_u_equipment_remote(rm)
+	self:gen_u_role_remote(rm)
+	self:gen_u_kungfu_remote(rm)
+	return rm
 end
 
 function cls:load_user_remote(uid, p, ... )
@@ -59,17 +77,31 @@ function cls:load_user_remote(uid, p, ... )
 		local usersmgr = cls.new()
 		env:set_usersmgr(usersmgr)
 	end
-	usersmgr:load_remote()
+	local u = p["user"]
+	usersmgr:load_remote({u})
+	local user = usersmgr:get(uid)
+	self._data["user"] = user
+	return user
+end
+
+function cls:gen_user_remote(rm, ... )
+	-- body
+	local u = self._data["user"]
+	rm["user"] = u
 end
 
 function cls:load_user(user_id)
 	-- body
-	local cls = require "models/usersmgr"
-	local usersmgr = cls.new()
-	env:set_usersmgr(usersmgr)
+	local usersmgr = self._env:get_usersmgr()
+	if usersmgr == nil then
+		local cls = require "models/usersmgr"
+	 	usersmgr = cls.new()
+		self._env:set_usersmgr(usersmgr)
+	end
 	usersmgr:load_db("pk", user_id)
 	local user = usersmgr:get(user_id)
 	self._data["user"] = user
+	self._env:set_user(user)
 	return user
 end
 
@@ -213,6 +245,26 @@ function cls:get_u_checkpoint_rcmgr( ... )
 	return self._data["u_checkpoint_rcmgr"]
 end
 
+function cls:load_u_equipment_remote(p, ... )
+	-- body
+	local u = self:get_user()
+	local cls = require "models/u_equipmentmgr"
+	local u_equipmentmgr = cls.new()
+	u_equipmentmgr:load_remote(p[t.__tname])
+	self._data[t.__tname.."mgr"] = u_equipmentmgr
+	u.u_equipmentmgr = u_equipmentmgr
+end
+
+function cls:gen_u_equipment_remote(rm, ... )
+	-- body
+	local r = {}
+	local u_equipmentmgr = self:get_u_equipmentmgr()
+	for k,v in pairs(u_equipmentmgr.__data) do
+		table.insert(r, v.__fields)
+	end
+	rm[t.__tname] = r
+end
+
 function cls:load_u_equipment()
 	-- body
 	local u = self:get_user()
@@ -228,18 +280,39 @@ function cls:get_u_equipmentmgr( ... )
 	return self._data["u_equipmentmgr"]
 end
 
+function cls:load_u_kungfu_remote(p, ... )
+	-- body
+	local u = self:get_user()
+	local cls = require "models/u_kungfumgr"
+	local u_kungfumgr = cls.new()
+	u_kungfumgr:set_user(u)
+	u_kungfumgr:load_remote(p[u_kungfumgr.__tname])
+	self._data["u_kungfumgr"] = u_kungfumgr
+	u.u_kungfumgr = u_kungfumgr
+end
+
+function cls:gen_u_kungfu_remote(rm, ... )
+	-- body
+	local r = {}
+	local u_kungfumgr = self:get_u_kunfumgr()
+	for k,v in pairs(u_kungfumgr.__data) do
+		table.insert(v.__fields)
+	end
+	rm[u_kungfumgr.__tname] = r
+end
+
 function cls:load_u_kungfu()
 	-- body
 	local u = self:get_user()
 	local cls = require "models/u_kungfumgr"
 	local u_kungfumgr = cls.new()
-	u_kungfumgr:set_user(user)
+	u_kungfumgr:set_user(u)
 	u_kungfumgr:load_db("fk", u:get_csv_id())
 	self._data["u_kungfumgr"] = u_kungfumgr
 	u.u_kungfumgr = u_kungfumgr
 end
 
-function cls:get_u_kunfumgr( ... )
+function cls:get_u_kungfumgr( ... )
  	-- body
  	return self._data["u_kungfumgr"]
  end 
@@ -321,7 +394,7 @@ function cls:load_u_lilian_sub(user)
 	local cls = require "models/u_lilian_submgr"
 	local u_lilian_submgr = cls.new()
 	u_lilian_submgr:set_user(user)
-	u_lilian_submgr:load_db("fk", user.csv_id)
+	u_lilian_submgr:load_db("fk", u:get_field("csv_id"))
 	self._data["u_lilian_submgr"] = u_lilian_submgr
 	u.u_lilian_submgr = u_lilian_submgr
 end
@@ -335,11 +408,11 @@ function cls:load_u_lilian_qg_num()
 	local u = self:get_user()
 	local cls = require "models/u_lilian_qg_nummgr"
 	local u_lilian_qg_nummgr = cls.new()
-	u_lilian_qg_nummgr:set_user(user)
+	u_lilian_qg_nummgr:set_user(u)
 	local date = os.time()
 	local sql = string.format( "select * from u_lilian_qg_num where user_id = %s and start_time < %s and %s < end_time" , u:get_csv_id(), date , date)
 	-- local nr = skynet.call( util.random_db() , "lua" , "command" , "query" , sql )
-	local nr = query.read(user.u_lilian_qg_nummgr.__rdb, "u_lilian_qg_num", sql)
+	local nr = query.read(u_lilian_qg_nummgr.__rdb, "u_lilian_qg_num", sql)
 	for i , v in ipairs( nr ) do
 		local a = u_lilian_qg_nummgr:create( v )
 		u_lilian_qg_nummgr:add( a )
@@ -357,11 +430,11 @@ function cls:load_u_lilian_phy_power()
 	local u = self:get_user()
 	local cls = require "models/u_lilian_phy_powermgr"
 	local u_lilian_phy_powermgr = cls.new()
-	u_lilian_phy_powermgr:set_user(user)
+	u_lilian_phy_powermgr:set_user(u)
 	local date = os.time()
 	local sql = string.format( "select * from u_lilian_phy_power where user_id = %s and start_time < %s and %s < end_time", u:get_csv_id(), date , date)
 	-- local nr = skynet.call( util.random_db() , "lua" , "command" , "query" , sql )
-	local nr = query.read(user.u_lilian_phy_powermgr.__rdb, "u_lilian_phy_power", sql)
+	local nr = query.read(u_lilian_phy_powermgr.__rdb, "u_lilian_phy_power", sql)
 	for i , v in ipairs( nr ) do
 		local a = u_lilian_phy_powermgr:create( v )
 		u_lilian_phy_powermgr:add( a )
@@ -381,7 +454,7 @@ function cls:load_u_prop()
 	local cls = require "models/u_propmgr"
 	local u_propmgr = cls.new()
 	u_propmgr:set_user(user)
-	u_propmgr:load_db("fk", user.csv_id)
+	u_propmgr:load_db("fk", u:get_field("csv_id"))
 	self._data["u_propmgr"] = u_propmgr
 	u.u_propmgr = u_propmgr
 end
@@ -428,8 +501,8 @@ function cls:load_u_recharge_count(user)
 	local u = self:get_user()
 	local cls = require "models/u_recharge_countmgr"
 	local u_recharge_countmgr = cls.new()
-	u_recharge_countmgr:set_user(user)
-	u_recharge_countmgr:load_db("fk", user.csv_id)
+	u_recharge_countmgr:set_user(u)
+	u_recharge_countmgr:load_db("fk", u:get_field("csv_id"))
 	self._data["u_recharge_countmgr"] = u_recharge_countmgr
 	u.u_recharge_countmgr = u_recharge_countmgr
 end
@@ -444,8 +517,8 @@ function cls:load_u_recharge_record(user)
 	local u = self:get_user()
 	local cls = require "models/u_recharge_recordmgr"
 	local u_recharge_recordmgr = cls.new()
-	u_recharge_recordmgr:set_user(user)
-	u_recharge_recordmgr:load_db("fk", user.csv_id)
+	u_recharge_recordmgr:set_user(u)
+	u_recharge_recordmgr:load_db("fk", u:get_field("csv_id"))
 	self._data["u_recharge_recordmgr"] = u_recharge_recordmgr
 	u.u_recharge_recordmgr = u_recharge_recordmgr
 end
@@ -477,7 +550,7 @@ function cls:load_u_recharge_vip_reward()
 	local cls = require "models/u_recharge_vip_rewardmgr"
 	local u_recharge_vip_rewardmgr = cls.new()
 	u_recharge_vip_rewardmgr:set_user(u)
-	u_recharge_vip_rewardmgr:load_db("fk", user.csv_id)
+	u_recharge_vip_rewardmgr:load_db("fk", u:get_field("csv_id"))
 	self._data["u_recharge_vip_rewardmgr"] = u_recharge_vip_rewardmgr
 	u.u_recharge_vip_rewardmgr = u_recharge_vip_rewardmgr
 end
@@ -487,13 +560,35 @@ function cls:get_u_recharge_vip_rewardmgr( ... )
 	return self._data["u_recharge_vip_rewardmgr"]
 end
 
-function cls:load_u_role(user)
+function cls:load_u_role_remote(p, ... )
 	-- body
 	local u = self:get_user()
 	local cls = require "models/u_rolemgr"
 	local u_rolemgr = cls.new()
 	u_rolemgr:set_user(user)
-	u_rolemgr:load_db("fk", user.csv_id)
+	local r = p[u_rolemgr.__tname]
+	u_rolemgr:load_remote(r)
+	self._data[u_rolemgr.__tname.."mgr"] = u_rolemgr
+	u.u_rolemgr = u_rolemgr
+end
+
+function cls:gen_u_role_remote(rm, ... )
+	-- body
+	local r = {}
+	local u_rolemgr = self:get_u_rolemgr()
+	for k,v in pairs(u_rolemgr.__data) do
+		table.insert(r, v.__fields)
+	end
+	rm[u_rolemgr.__tname] = r
+end
+
+function cls:load_u_role(user)
+	-- body
+	local u = self:get_user()
+	local cls = require "models/u_rolemgr"
+	local u_rolemgr = cls.new()
+	u_rolemgr:set_user(u)
+	u_rolemgr:load_db("fk", u:get_field("csv_id"))
 	self._data["u_rolemgr"] = u_rolemgr
 	u.u_rolemgr = u_rolemgr
 end
@@ -509,7 +604,7 @@ function cls:load_u_journal(user)
 	local cls = require "models/u_journalmgr"
 	local u_journalmgr = cls.new()
 	u_journalmgr:set_user(user)
-	u_journalmgr:load_db("fk", u:get_user())
+	u_journalmgr:load_db("fk", u:get_field("csv_id"))
 	self._data["u_journalmgr"] = u_journalmgr
 	u.u_journalmgr = u_journalmgr
 end
@@ -524,8 +619,8 @@ function cls:load_u_goods(user)
 	local u = self:get_user()
 	local cls = require "models/u_goodsmgr"
 	local u_goodsmgr = cls.new()
-	u_goodsmgr:set_user(user)
-	u_goodsmgr:load_db("fk", user.csv_id)
+	u_goodsmgr:set_user(u)
+	u_goodsmgr:load_db("fk", u:get_csv_id())
 	self._data["u_goodsmgr"] = u_goodsmgr
 	u.u_goodsmgr = u_goodsmgr
 end

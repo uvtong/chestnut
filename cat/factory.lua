@@ -40,7 +40,95 @@ function cls:create_ara_bat(p )
 	local tmp = {}
 	tmp["id"] = genpk_2(self._user:get_csv_id(), ser)
 	tmp["user_id"] = self._user:get_csv_id()
+	tmp["csv_id"] = ser
+	tmp["start_tm"] = p.start_tm
+	tmp["end_tm"] = p.end_tm
+	tmp["over"] = p.over
+	tmp["res"] = p.res
+	local modelmgr = self._env:get_modelemgr()
+	local u_ara = 1
+	local mgr = self
+	local entity_cls = require "u_ara_batentity"
+	local entity = entity_cls.new()
+end
 
+function cls:create_user(uid)
+	-- body
+	local game = self._env:get_game()
+	local level = skynet.call(game, "lua", "query_g_user_level", 1)
+	local vip = skynet.call(game, "lua", "query_g_recharge_vip_reward", 0)
+	local t = { 
+		csv_id= uid,
+		uname="nihao",
+		uviplevel=3,
+		config_sound=1, 
+		config_music=1, 
+		avatar=0, 
+		sign="peferct ", 
+		c_role_id=1, 
+		ifonline=0, 
+		level=level.level, 
+		combat=level.combat, 
+		defense=level.defense, 
+		critical_hit=level.critical_hit, 
+		blessing=0,
+		permission = 1,
+		group = 0, 
+		modify_uname_count=0, 
+		onlinetime=0, 
+		iconid=0, 
+		is_valid=1, 
+		recharge_rmb=0, 
+		goods_refresh_count=0, 
+		recharge_diamond=0, 
+		uvip_progress=0, 
+		checkin_num=0, 
+		checkin_reward_num=0, 
+		exercise_level=0, 
+		cgold_level=0,
+		gold_max=level.gold_max + math.floor(level.gold_max * vip.gold_max_up_p/100),
+		exp_max=level.exp_max + math.floor(level.exp_max * vip.exp_max_up_p/100),
+		equipment_enhance_success_rate_up_p=assert(vip.equipment_enhance_success_rate_up_p),
+		store_refresh_count_max=assert(vip.store_refresh_count_max),
+		prop_refresh=0,
+		arena_frozen_time=0,
+		purchase_hp_count=0, 
+		gain_gold_up_p=0,
+		gain_exp_up_p=0,
+		purchase_hp_count_max=4 ,--assert(vip.purchase_hp_count_max),
+		SCHOOL_reset_count_max=assert(vip.SCHOOL_reset_count_max),
+		SCHOOL_reset_count=0,
+		signup_time=os.time() ,
+		pemail_csv_id = 0,
+		take_diamonds=0,
+		draw_number=0 ,
+		ifxilian = 0,              -- 
+		cp_chapter=1,                 -- checkpoint progress 1
+		cp_hanging_id=0,
+		cp_battle_id=0,
+		cp_battle_chapter=0,
+		lilian_level = 1,
+		lilian_exp = 0,
+		lilian_phy_power = 120,
+		purch_lilian_phy_power = 0,
+		ara_role_id1 = 0,
+		ara_role_id2 = 0,
+		ara_role_id3 = 0,
+		ara_win_tms = 0,
+		ara_lose_tms = 0,
+		ara_tie_tms = 0,
+		ara_clg_tms = 0,
+		ara_clg_tms_last_rst = 0,
+		ara_clg_tms_pur_tms = 0,
+		ara_clg_tms_pur_tms_last_rst = 0,
+		ara_integral = 0,
+		ara_integral_last_rst = 0,
+		ara_fighting = 0,
+		ara_interface = 0,
+	}
+	local usersmgr = self._env:get_usersmgr()
+	local user = usersmgr:create_entity(t)
+	return user
 end
 
 return cls

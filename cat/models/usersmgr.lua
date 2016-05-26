@@ -390,13 +390,6 @@ function cls:ctor( ... )
 		uq = false,
 		t = "number",
 	},
-	ara_rnk = {
-		pk = false,
-		fk = false,
-		cn = "ara_rnk",
-		uq = false,
-		t = "number",
-	},
 	ara_win_tms = {
 		pk = false,
 		fk = false,
@@ -425,6 +418,13 @@ function cls:ctor( ... )
 		uq = false,
 		t = "number",
 	},
+	ara_clg_tms_last_rst = {
+		pk = false,
+		fk = false,
+		cn = "ara_clg_tms_last_rst",
+		uq = false,
+		t = "number",
+	},
 	ara_clg_tms_pur_tms = {
 		pk = false,
 		fk = false,
@@ -432,10 +432,38 @@ function cls:ctor( ... )
 		uq = false,
 		t = "number",
 	},
-	ara_clg_tms_rst_tm = {
+	ara_clg_tms_pur_tms_last_rst = {
 		pk = false,
 		fk = false,
-		cn = "ara_clg_tms_rst_tm",
+		cn = "ara_clg_tms_pur_tms_last_rst",
+		uq = false,
+		t = "number",
+	},
+	ara_integral = {
+		pk = false,
+		fk = false,
+		cn = "ara_integral",
+		uq = false,
+		t = "number",
+	},
+	ara_integral_last_rst = {
+		pk = false,
+		fk = false,
+		cn = "ara_integral_last_rst",
+		uq = false,
+		t = "number",
+	},
+	ara_fighting = {
+		pk = false,
+		fk = false,
+		cn = "ara_fighting",
+		uq = false,
+		t = "number",
+	},
+	ara_interface = {
+		pk = false,
+		fk = false,
+		cn = "ara_interface",
 		uq = false,
 		t = "number",
 	},
@@ -496,13 +524,17 @@ function cls:ctor( ... )
 	self.__head_ord[52] = self.__head["ara_role_id1"]
 	self.__head_ord[53] = self.__head["ara_role_id2"]
 	self.__head_ord[54] = self.__head["ara_role_id3"]
-	self.__head_ord[55] = self.__head["ara_rnk"]
-	self.__head_ord[56] = self.__head["ara_win_tms"]
-	self.__head_ord[57] = self.__head["ara_lose_tms"]
-	self.__head_ord[58] = self.__head["ara_tie_tms"]
-	self.__head_ord[59] = self.__head["ara_clg_tms"]
+	self.__head_ord[55] = self.__head["ara_win_tms"]
+	self.__head_ord[56] = self.__head["ara_lose_tms"]
+	self.__head_ord[57] = self.__head["ara_tie_tms"]
+	self.__head_ord[58] = self.__head["ara_clg_tms"]
+	self.__head_ord[59] = self.__head["ara_clg_tms_last_rst"]
 	self.__head_ord[60] = self.__head["ara_clg_tms_pur_tms"]
-	self.__head_ord[61] = self.__head["ara_clg_tms_rst_tm"]
+	self.__head_ord[61] = self.__head["ara_clg_tms_pur_tms_last_rst"]
+	self.__head_ord[62] = self.__head["ara_integral"]
+	self.__head_ord[63] = self.__head["ara_integral_last_rst"]
+	self.__head_ord[64] = self.__head["ara_fighting"]
+	self.__head_ord[65] = self.__head["ara_interface"]
 
 	self.__pk      = "csv_id"
 	self.__fk      = ""
