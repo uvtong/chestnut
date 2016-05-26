@@ -1185,6 +1185,8 @@ Arena_OnPrepareNextRole 90 {
     response {
         errorcode 1 : integer
         msg 2 : string
+        firstfighter 3 : integer
+        delay_time 4 : integer
     }   
 }
 

@@ -29,5 +29,5 @@ const.DRAW = 4
 const.DB_PRIORITY_1 = 1
 const.DB_PRIORITY_2 = 2
 const.DB_PRIORITY_3 = 3
-
+const.DB_DELTA      = 100 * 60
 return const

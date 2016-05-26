@@ -81,7 +81,7 @@ local function add_to_prop( t )
    					--prop = skynet.call(".game", "lua", "query_g_prop", v.propid)
    					prop.user_id = user.csv_id
    					prop.num = v.amount
-   					local prop = user.u_propmgr.create( prop )
+   					local prop = user.u_propmgr:create( prop )
    					user.u_propmgr:add( prop )
    					prop:__insert_db( const.DB_PRIORITY_2 )
    				end 	      
@@ -103,7 +103,7 @@ local function add_to_prop( t )
    				assert( p )
    				p.user_id = user.csv_id
    				p.num = v.amount
-   				local prop = user.u_propmgr.create( p )
+   				local prop = user.u_propmgr:create( p )
    				user.u_propmgr:add( prop )
    				prop:update_db()
    			end 
@@ -176,7 +176,8 @@ local ERROR = { WAI_GUA = 1 , NOT_ENOUGH_MONEY = 2 }
 	
 local function splitsubreward_bytype( typeid )
 	assert( typeid )
-
+	local sublist = {}
+	
 	local g = sd.query("g_mainreward")
 	for i,v in ipairs(g) do
 		local key = string.format("%s:%d", "g_mainreward", v)
@@ -367,7 +368,7 @@ local function onetimedraw(ctx, iffree )
 			tonetime.amount = 0;
 			tonetime.iffree = 0;
 
-			tonetime = user.u_drawmgr.create( tonetime )
+			tonetime = user.u_drawmgr:create( tonetime )
 			assert( tonetime )
 			user.u_drawmgr:add( tonetime )
 		else
@@ -445,7 +446,7 @@ local function tentimedraw(ctx)
 	assert(ctx)
 
 	local proplist = {}
-	
+
 	local key = string.format("%s:%d", "g_drawcost", drawtype.TENTIME * 1000)
 	local line = sd.query(key)
 	--local line = game.g_drawcostmgr:get_by_csv_id( drawtype.TENTIME * 1000 )

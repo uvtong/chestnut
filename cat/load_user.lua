@@ -161,28 +161,28 @@ function cls:signup(uid)
 
 	local prop = skynet.call(".game", "lua", "query_g_prop", const.GOLD)
 	prop.user_id = u.csv_id
-	prop.num = 100
+	prop.num = 100000
 	prop.id = genpk_2(prop.user_id, prop.csv_id)
 	prop = u.u_propmgr:create_entity(prop)
 	u.u_propmgr:add(prop)
 
 	prop = skynet.call(".game", "lua", "query_g_prop", const.DIAMOND)
 	prop.user_id = u.csv_id
-	prop.num = 100
+	prop.num = 100000
 	prop.id = genpk_2(prop.user_id, prop.csv_id)
 	prop = u.u_propmgr:create_entity(prop)
 	u.u_propmgr:add(prop)
 
 	prop = skynet.call(".game", "lua", "query_g_prop", const.EXP)
 	prop.user_id = u.csv_id
-	prop.num = 100
+	prop.num = 100000
 	prop.id = genpk_2(prop.user_id, prop.csv_id)
 	prop = u.u_propmgr:create_entity(prop)
 	u.u_propmgr:add(prop)
 	
 	prop = skynet.call(".game", "lua", "query_g_prop", const.LOVE)
 	prop.user_id = u.csv_id
-	prop.num = 100     
+	prop.num = 100000    
 	prop.id = genpk_2(prop.user_id, prop.csv_id)
 	prop = u.u_propmgr:create_entity(prop)
 	u.u_propmgr:add(prop)

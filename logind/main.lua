@@ -78,6 +78,8 @@ skynet.start(function()
 		-- local wgame = skynet.newservice("wgame", db)
 		-- skynet.name(".wgame", wgame)
 
+		skynet.newservice("randomdraw")
+
 		-- read
 		local game = skynet.newservice("game")
 		skynet.name(".game", game)
