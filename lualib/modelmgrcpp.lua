@@ -76,7 +76,7 @@ function cls.load_db_to_cache(t, pk)
 	end
 end     
 
-function cls.load_db(t, key, value)
+function cls.load_db_to_data(t, key, value, ... )
 	-- body
 	local sql
 	if key ~= nil then
@@ -125,6 +125,19 @@ function cls.load_db(t, key, value)
 	for i,v in ipairs(r) do
 		local o = entity.new(t, v)
 		t:add(o)
+	end
+end
+
+function cls.load_db(t, key, value)
+	-- body
+	if type(key) == nil then
+		if not t:load_cache() then
+			t:load_db_to_data()
+			t:load_data_to_cache()
+		end
+	else
+		t:load_db_to_data(key, value)
+		t:load_data_to_cache()
 	end
 end
 
@@ -342,6 +355,11 @@ end
 function cls.get_cap(self)
 	-- body
 	return self.__cap
+end
+
+function cls:get_data( ... )
+	-- body
+	return self.__data
 end
 
 function cls.clear(self)

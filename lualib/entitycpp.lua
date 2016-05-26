@@ -78,10 +78,15 @@ function cls.gen_update_sql(t, ... )
 	return sql
 end
 
+function cls.update_db(t, ... )
+	-- body
+	t:update()
+end
+
 function cls.update(t, ...)
 	-- body
 	assert(t.__fields ~= nil)
-	if false or t.__col_updated > 1 then
+	if true or t.__col_updated > 1 then
 		-- print("*************************1")
 		t.__col_updated = 0
 		-- t:set(t, ...)
@@ -131,10 +136,6 @@ function cls.update_wait(t, ...)
 	end 
 end 	
 
-function cls.update_field()
-	-- body
-end
-		
 function cls.load_data_to_stm(t, child)
 	local r = {}
 	for k,v in pairs(t) do
@@ -152,6 +153,20 @@ function cls.load_data_to_sd(t, ... )
 		local key = string.format("%s:%d", t.__tname, pk)
 		sd.new(key, t.__fields)
 	end
+end
+
+function cls.set_field(t, k, v, ... )
+	-- body
+	assert(k and v)
+	t.__ecol_updated[k] = self.__ecol_updated[k] + 1
+	if self.__ecol_updated[k] == 1 then
+		self.__col_updated = self.__col_updated + 1
+	end
+end
+
+function cls.get_field(t, k, ... )
+	-- body
+	return t.__fields[k]
 end
 
 return cls

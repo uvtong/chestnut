@@ -14,15 +14,15 @@ function cls:ctor(mgr, P, ... )
 	self.__stm   = mgr.__stm
 	self.__col_updated=0
 	self.__fields = {
-			seri = 0,
 			csv_id = 0,
 			reward = 0,
+			seri = 0,
 		}
 		
 	self.__ecol_updated = {
-			seri = 0,
 			csv_id = 0,
 			reward = 0,
+			seri = 0,
 		}
 		
 	for k,v in pairs(self.__head) do
@@ -74,6 +74,21 @@ end
 function cls:get_reward( ... )
 	-- body
 	return self.__fields.reward
+end
+
+function cls:set_seri(v, ... )
+	-- body
+	assert(v)
+	self.__ecol_updated["seri"] = self.__ecol_updated["seri"] + 1
+	if self.__ecol_updated["seri"] == 1 then
+		self.__col_updated = self.__col_updated + 1
+	end
+	self.__fields.seri = v
+end
+
+function cls:get_seri( ... )
+	-- body
+	return self.__fields.seri
 end
 
 

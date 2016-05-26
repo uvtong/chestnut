@@ -15,7 +15,6 @@ function cls:ctor( ... )
 	self._db = false
 	self._game = false
 	self._user = false
-	self._area = false
 	self._center = false
 
 	local cls = require "notification_center"	
@@ -32,6 +31,19 @@ function cls:ctor( ... )
 	cls = require "load_user"
 	local modelmgr = cls.new(self)
 	self._modelmgr = modelmgr
+
+	cls = require "arena"
+	local arena = cls.new()
+	self._arena = arena
+
+	cls = require "models/usersmgr"
+	local usersmgr = cls.new()
+	self._usersmgr = usersmgr
+end
+
+function cls:get_usersmgr( ... )
+	-- body
+	return self._usersmgr
 end
 
 function cls:get_modelmgr( ... )
@@ -166,14 +178,14 @@ function cls:set_user(v, ... )
 	self._user = v
 end
 
-function cls:get_area( ... )
+function cls:get_arena( ... )
 	-- body
-	return self._area
+	return self._arena
 end
 
-function cls:set_area(v, ... )
+function cls:set_arena(v, ... )
 	-- body
-	self._area = v
+	self._arena = v
 end
 
 function cls:raise_achievement(T)
@@ -464,76 +476,8 @@ end
 
 function cls:create_default(uid)
 	-- body
-	local level = skynet.call(self._game, "lua", "query_g_user_level", 1)
-	local vip = skynet.call(self._game, "lua", "query_g_recharge_vip_reward", 0)
-	local t = { 
-		csv_id= uid,
-		uname="nihao",
-		uviplevel=3,
-		config_sound=1, 
-		config_music=1, 
-		avatar=0, 
-		sign="peferct ", 
-		c_role_id=1, 
-		ifonline=0, 
-		level=level.level, 
-		combat=level.combat, 
-		defense=level.defense, 
-		critical_hit=level.critical_hit, 
-		blessing=0,
-		permission = 1,
-		group = 0, 
-		modify_uname_count=0, 
-		onlinetime=0, 
-		iconid=0, 
-		is_valid=1, 
-		recharge_rmb=0, 
-		goods_refresh_count=0, 
-		recharge_diamond=0, 
-		uvip_progress=0, 
-		checkin_num=0, 
-		checkin_reward_num=0, 
-		exercise_level=0, 
-		cgold_level=0,
-		gold_max=level.gold_max + math.floor(level.gold_max * vip.gold_max_up_p/100),
-		exp_max=level.exp_max + math.floor(level.exp_max * vip.exp_max_up_p/100),
-		equipment_enhance_success_rate_up_p=assert(vip.equipment_enhance_success_rate_up_p),
-		store_refresh_count_max=assert(vip.store_refresh_count_max),
-		prop_refresh=0,
-		arena_frozen_time=0,
-		purchase_hp_count=0, 
-		gain_gold_up_p=0,
-		gain_exp_up_p=0,
-		purchase_hp_count_max=4 ,--assert(vip.purchase_hp_count_max),
-		SCHOOL_reset_count_max=assert(vip.SCHOOL_reset_count_max),
-		SCHOOL_reset_count=0,
-		signup_time=os.time() ,
-		pemail_csv_id = 0,
-		take_diamonds=0,
-		draw_number=0 ,
-		ifxilian = 0,              -- 
-		cp_chapter=1,                 -- checkpoint progress 1
-		cp_hanging_id=0,
-		cp_battle_id=0,
-		cp_battle_chapter=0,
-		lilian_level = 1,
-		lilian_exp = 0,
-		lilian_phy_power = 120,
-		purch_lilian_phy_power = 0,
-		ara_role_id1 = 0,
-		ara_role_id2 = 0,
-		ara_role_id3 = 0,
-		ara_rnk = 0,
-		ara_win_tms = 0,
-		ara_lose_tms = 0,
-		ara_tie_tms = 0,
-		ara_clg_tms = 0,
-		ara_clg_tms_pur_tms = 0,
-		ara_clg_tms_rst_tm = 0,
-	}
-	local cls = require "models/usersmgr"
-	local usersmgr = cls.new()
-	local user = usersmgr:create_entity(t)
+	local factory = self._myfactory
+	local user = factory:create_user(uid)
 	return user
 end
 
@@ -738,11 +682,15 @@ function cls:signup(uid)
 	return u
 end
 
-
 function cls:ara_bat_clg( ... )
 	-- body
 	local modelmgr = self._modelmgr
 	local u = self._user
+	local ara_fighting = u:get_ara_fighting()
+	if ara_fighting == 1 then
+
+	else
+	end
 	local users_ara_batmgr = modelmgr:get_users_ara_batmgr()
 	local bat = users_ara_batmgr:get(self._userid)
 	local ara_fighting = u:get_ara_fighting()
@@ -767,6 +715,12 @@ function cls:ara_bat_ovr(win, ... )
 		local ara_integral = u:get_ara_integral()
 		ara_integral = ara_integral + 2
 		u:set_ara_integral(ara_integral)
+
+		local arena = self:get_arena()
+		local me = arena:get_me()
+		local enemy = arena:get_enemy()
+		local leaderboards_name = skynet.getenv("leaderboards_name")
+		local l = skynet.call(leaderboards_name, "lua", "swap", me:get_field("csv_id"), enemy:get_field("csv_id"))
 	elseif win == 0 then
 		local ara_tie_tms = u:get_ara_tie_tms()
 		ara_tie_tms = ara_tie_tms + 1
@@ -787,7 +741,7 @@ function cls:ara_bat_ovr(win, ... )
 	local bat = users_ara_batmgr:get(self._userid)
 	bat:set_over(1)
 	bat:set_res(win)
-	bat:update()
+	bat:update_db()
 end
 
 return cls

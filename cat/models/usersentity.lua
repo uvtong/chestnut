@@ -68,13 +68,17 @@ function cls:ctor(mgr, P, ... )
 			ara_role_id1 = 0,
 			ara_role_id2 = 0,
 			ara_role_id3 = 0,
-			ara_rnk = 0,
 			ara_win_tms = 0,
 			ara_lose_tms = 0,
 			ara_tie_tms = 0,
 			ara_clg_tms = 0,
+			ara_clg_tms_last_rst = 0,
 			ara_clg_tms_pur_tms = 0,
-			ara_clg_tms_rst_tm = 0,
+			ara_clg_tms_pur_tms_last_rst = 0,
+			ara_integral = 0,
+			ara_integral_last_rst = 0,
+			ara_fighting = 0,
+			ara_interface = 0,
 		}
 
 	self.__ecol_updated = {
@@ -132,13 +136,17 @@ function cls:ctor(mgr, P, ... )
 			ara_role_id1 = 0,
 			ara_role_id2 = 0,
 			ara_role_id3 = 0,
-			ara_rnk = 0,
 			ara_win_tms = 0,
 			ara_lose_tms = 0,
 			ara_tie_tms = 0,
 			ara_clg_tms = 0,
+			ara_clg_tms_last_rst = 0,
 			ara_clg_tms_pur_tms = 0,
-			ara_clg_tms_rst_tm = 0,
+			ara_clg_tms_pur_tms_last_rst = 0,
+			ara_integral = 0,
+			ara_integral_last_rst = 0,
+			ara_fighting = 0,
+			ara_interface = 0,
 		}
 
 	for k,v in pairs(self.__head) do
@@ -957,21 +965,6 @@ function cls:get_ara_role_id3( ... )
 	return self.__fields.ara_role_id3
 end
 
-function cls:set_ara_rnk(v, ... )
-	-- body
-	assert(v)
-	self.__ecol_updated["ara_rnk"] = self.__ecol_updated["ara_rnk"] + 1
-	if self.__ecol_updated["ara_rnk"] == 1 then
-		self.__col_updated = self.__col_updated + 1
-	end
-	self.__fields.ara_rnk = v
-end
-
-function cls:get_ara_rnk( ... )
-	-- body
-	return self.__fields.ara_rnk
-end
-
 function cls:set_ara_win_tms(v, ... )
 	-- body
 	assert(v)
@@ -1032,6 +1025,21 @@ function cls:get_ara_clg_tms( ... )
 	return self.__fields.ara_clg_tms
 end
 
+function cls:set_ara_clg_tms_last_rst(v, ... )
+	-- body
+	assert(v)
+	self.__ecol_updated["ara_clg_tms_last_rst"] = self.__ecol_updated["ara_clg_tms_last_rst"] + 1
+	if self.__ecol_updated["ara_clg_tms_last_rst"] == 1 then
+		self.__col_updated = self.__col_updated + 1
+	end
+	self.__fields.ara_clg_tms_last_rst = v
+end
+
+function cls:get_ara_clg_tms_last_rst( ... )
+	-- body
+	return self.__fields.ara_clg_tms_last_rst
+end
+
 function cls:set_ara_clg_tms_pur_tms(v, ... )
 	-- body
 	assert(v)
@@ -1047,19 +1055,79 @@ function cls:get_ara_clg_tms_pur_tms( ... )
 	return self.__fields.ara_clg_tms_pur_tms
 end
 
-function cls:set_ara_clg_tms_rst_tm(v, ... )
+function cls:set_ara_clg_tms_pur_tms_last_rst(v, ... )
 	-- body
 	assert(v)
-	self.__ecol_updated["ara_clg_tms_rst_tm"] = self.__ecol_updated["ara_clg_tms_rst_tm"] + 1
-	if self.__ecol_updated["ara_clg_tms_rst_tm"] == 1 then
+	self.__ecol_updated["ara_clg_tms_pur_tms_last_rst"] = self.__ecol_updated["ara_clg_tms_pur_tms_last_rst"] + 1
+	if self.__ecol_updated["ara_clg_tms_pur_tms_last_rst"] == 1 then
 		self.__col_updated = self.__col_updated + 1
 	end
-	self.__fields.ara_clg_tms_rst_tm = v
+	self.__fields.ara_clg_tms_pur_tms_last_rst = v
 end
 
-function cls:get_ara_clg_tms_rst_tm( ... )
+function cls:get_ara_clg_tms_pur_tms_last_rst( ... )
 	-- body
-	return self.__fields.ara_clg_tms_rst_tm
+	return self.__fields.ara_clg_tms_pur_tms_last_rst
+end
+
+function cls:set_ara_integral(v, ... )
+	-- body
+	assert(v)
+	self.__ecol_updated["ara_integral"] = self.__ecol_updated["ara_integral"] + 1
+	if self.__ecol_updated["ara_integral"] == 1 then
+		self.__col_updated = self.__col_updated + 1
+	end
+	self.__fields.ara_integral = v
+end
+
+function cls:get_ara_integral( ... )
+	-- body
+	return self.__fields.ara_integral
+end
+
+function cls:set_ara_integral_last_rst(v, ... )
+	-- body
+	assert(v)
+	self.__ecol_updated["ara_integral_last_rst"] = self.__ecol_updated["ara_integral_last_rst"] + 1
+	if self.__ecol_updated["ara_integral_last_rst"] == 1 then
+		self.__col_updated = self.__col_updated + 1
+	end
+	self.__fields.ara_integral_last_rst = v
+end
+
+function cls:get_ara_integral_last_rst( ... )
+	-- body
+	return self.__fields.ara_integral_last_rst
+end
+
+function cls:set_ara_fighting(v, ... )
+	-- body
+	assert(v)
+	self.__ecol_updated["ara_fighting"] = self.__ecol_updated["ara_fighting"] + 1
+	if self.__ecol_updated["ara_fighting"] == 1 then
+		self.__col_updated = self.__col_updated + 1
+	end
+	self.__fields.ara_fighting = v
+end
+
+function cls:get_ara_fighting( ... )
+	-- body
+	return self.__fields.ara_fighting
+end
+
+function cls:set_ara_interface(v, ... )
+	-- body
+	assert(v)
+	self.__ecol_updated["ara_interface"] = self.__ecol_updated["ara_interface"] + 1
+	if self.__ecol_updated["ara_interface"] == 1 then
+		self.__col_updated = self.__col_updated + 1
+	end
+	self.__fields.ara_interface = v
+end
+
+function cls:get_ara_interface( ... )
+	-- body
+	return self.__fields.ara_interface
 end
 
 

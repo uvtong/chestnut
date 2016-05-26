@@ -1086,14 +1086,14 @@ lilian_rewared_list 78 {
     }
 }
 
-ara_exit 79 {
-}
-
-ara_enter 80 {
+ara_enter 79 {
     response {
         errorcode 0 : integer
         msg 1 : string
     }
+}
+
+ara_exit 80 {
 }
 
 ara_rfh 81 {
@@ -1179,7 +1179,33 @@ Arena_OnPrepareNextRole 90 {
     }   
 }
 
+ara_choose_role_enter 91 {
+	response {
+		errorcode 1 : integer
+		msg 2 : string
+		bat_roleid 3 : *integer
+	}
+}
 
+ara_choose_role 92 {
+	request {
+		bat_roleid 1 : *integer
+	}
+	response {
+		errorcode 1 : integer
+		msg 2 : string
+	}
+}
+
+ara_bat_enter 93 {
+	request {
+
+	}
+}
+
+ara_bat_exit 94 {
+	
+}
 
 ]]
 

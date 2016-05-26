@@ -21,7 +21,7 @@ function cls:ctor( ... )
 	},
 	self_csv_id = {
 		pk = false,
-		fk = false,
+		fk = true,
 		cn = "self_csv_id",
 		uq = false,
 		t = "number",
@@ -81,7 +81,7 @@ function cls:ctor( ... )
 	self.__head_ord[8] = self.__head["ifrecved"]
 
 	self.__pk      = "id"
-	self.__fk      = ""
+	self.__fk      = "self_csv_id"
 	self.__rdb     = skynet.localname(skynet.getenv("gated_rdb"))
 	self.__wdb     = skynet.localname(skynet.getenv("gated_wdb"))
 	self.__stm     = false
