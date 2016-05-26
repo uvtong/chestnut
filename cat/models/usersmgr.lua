@@ -418,13 +418,6 @@ function cls:ctor( ... )
 		uq = false,
 		t = "number",
 	},
-	ara_clg_tms_last_rst = {
-		pk = false,
-		fk = false,
-		cn = "ara_clg_tms_last_rst",
-		uq = false,
-		t = "number",
-	},
 	ara_clg_tms_pur_tms = {
 		pk = false,
 		fk = false,
@@ -432,24 +425,10 @@ function cls:ctor( ... )
 		uq = false,
 		t = "number",
 	},
-	ara_clg_tms_pur_tms_last_rst = {
-		pk = false,
-		fk = false,
-		cn = "ara_clg_tms_pur_tms_last_rst",
-		uq = false,
-		t = "number",
-	},
 	ara_integral = {
 		pk = false,
 		fk = false,
 		cn = "ara_integral",
-		uq = false,
-		t = "number",
-	},
-	ara_integral_last_rst = {
-		pk = false,
-		fk = false,
-		cn = "ara_integral_last_rst",
 		uq = false,
 		t = "number",
 	},
@@ -464,6 +443,20 @@ function cls:ctor( ... )
 		pk = false,
 		fk = false,
 		cn = "ara_interface",
+		uq = false,
+		t = "number",
+	},
+	ara_rfh_cost_tms = {
+		pk = false,
+		fk = false,
+		cn = "ara_rfh_cost_tms",
+		uq = false,
+		t = "number",
+	},
+	ara_clg_cost_tms = {
+		pk = false,
+		fk = false,
+		cn = "ara_clg_cost_tms",
 		uq = false,
 		t = "number",
 	},
@@ -528,13 +521,12 @@ function cls:ctor( ... )
 	self.__head_ord[56] = self.__head["ara_lose_tms"]
 	self.__head_ord[57] = self.__head["ara_tie_tms"]
 	self.__head_ord[58] = self.__head["ara_clg_tms"]
-	self.__head_ord[59] = self.__head["ara_clg_tms_last_rst"]
-	self.__head_ord[60] = self.__head["ara_clg_tms_pur_tms"]
-	self.__head_ord[61] = self.__head["ara_clg_tms_pur_tms_last_rst"]
-	self.__head_ord[62] = self.__head["ara_integral"]
-	self.__head_ord[63] = self.__head["ara_integral_last_rst"]
-	self.__head_ord[64] = self.__head["ara_fighting"]
-	self.__head_ord[65] = self.__head["ara_interface"]
+	self.__head_ord[59] = self.__head["ara_clg_tms_pur_tms"]
+	self.__head_ord[60] = self.__head["ara_integral"]
+	self.__head_ord[61] = self.__head["ara_fighting"]
+	self.__head_ord[62] = self.__head["ara_interface"]
+	self.__head_ord[63] = self.__head["ara_rfh_cost_tms"]
+	self.__head_ord[64] = self.__head["ara_clg_cost_tms"]
 
 	self.__pk      = "csv_id"
 	self.__fk      = ""

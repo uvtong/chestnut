@@ -105,7 +105,7 @@ function cls:create_user(uid)
 		draw_number=0 ,
 		ifxilian = 0,              -- 
 		cp_chapter=1,                 -- checkpoint progress 1
-		cp_hanging_id=0,
+		cp_hanging_id=1001,
 		cp_battle_id=0,
 		cp_battle_chapter=0,
 		lilian_level = 1,
@@ -118,18 +118,31 @@ function cls:create_user(uid)
 		ara_win_tms = 0,
 		ara_lose_tms = 0,
 		ara_tie_tms = 0,
-		ara_clg_tms = 0,
-		ara_clg_tms_last_rst = 0,
-		ara_clg_tms_pur_tms = 0,
-		ara_clg_tms_pur_tms_last_rst = 0,
+		ara_clg_tms = 5,
+		ara_clg_tms_pur_tms = 5,
 		ara_integral = 0,
-		ara_integral_last_rst = 0,
 		ara_fighting = 0,
 		ara_interface = 0,
+		ara_rfh_cost_tms = 0,
+		ara_clg_cost_tms = 0,
 	}
 	local usersmgr = self._env:get_usersmgr()
 	local user = usersmgr:create_entity(t)
 	return user
 end
+
+function cls:draw_get_by_type(drawtype)
+	assert(drawtype)
+	local modelmgr = self._env:get_modelmgr()
+	local d = modelmgr:get_u_drawmgr()
+	assert(d)
+	for k, v in pairs(d.__data) do
+		if v.drawtype == drawtype then
+			return v
+		end
+	end
+
+	return nil
+end 
 
 return cls

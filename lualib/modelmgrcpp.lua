@@ -1,6 +1,6 @@
 local query = require "query"
 local json = require "cjson"
-local sharedata = require "sharedata"
+local sd = require "sharedata"
 local stm = require "stm"
 local sd_cache = {}
 
@@ -19,8 +19,8 @@ function cls.get_row_db(t, pk)
 	end
 	local r = query.read(t.__rdb, t.__tname, sql)
 	return r[1]
-end
-
+end 
+    
 function cls.set_row_cache(t, pk, value)
 	-- body
 	assert(type(pk) == t.__head[t.__pk].t)
@@ -208,15 +208,19 @@ function cls.load_db_to_sd(t)
 		else
 			assert(false)
 		end
-		sharedata.new(key, v)
+		sd.new(key, v)
 	end
 end
 
 function cls.load_data_to_sd(t)
 	-- body
+	local v = {}
 	for k,v in pairs(t.__data) do
 		v:load_data_to_sd()
+		local pk = v:get_field(v.__pk)
+		table.insert(v, pk)
 	end
+	sd.new(t.__tname, v)
 end
 
 function cls.load_data_to_stm(t, child)
@@ -301,6 +305,7 @@ end
 	
 function cls.genpk(self, csv_id)
 	-- body
+	print("******************###########", self.__tname)
 	if #self.__fk == 0 then
 		return genpk_1(csv_id)
 	else
@@ -340,7 +345,12 @@ function cls.delete(self, pk)
 		self.__count = self.__count - 1
 	end
 end 
-	
+
+function cls.get_by_chapter(self, csv_id, ... )
+	-- body
+	return self:get_by_csv_id(csv_id)
+end
+
 function cls.get_by_csv_id(self, csv_id)
 	-- body
 	print(self.__tname)

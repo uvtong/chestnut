@@ -24,6 +24,7 @@ const.ACHIEVEMENT_T_9 = 9
 const.UENTROPY = 1
 const.UEMAILENTROPY = 2
 const.PUBLIC_EMAILENTROPY = 3
+const.DRAW = 4
 
 const.DB_PRIORITY_1 = 1
 const.DB_PRIORITY_2 = 2
