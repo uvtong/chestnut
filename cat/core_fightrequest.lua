@@ -53,7 +53,7 @@ local Self = {
 			OnBattleList = {},
 		  	IfArenaInit = 0,
 		  	OnBattleSequence = 1
-		  }	  	
+		  }	  
  		  	  
 local Enemy = { 
 			FightPower = 0,  			--actually means presentfight power
@@ -342,7 +342,6 @@ local function reset(t)
 	t.MaxComboNum = 0	 
 	t.PresentComboNum = 0
 	t.TotalFightNum = 0  
-
 end 
 	
 local function reset_arena(t)
@@ -357,19 +356,19 @@ end
 function REQUEST:BeginGUQNQIACoreFight()
 	assert(self.monsterid)
 	print("BeginGUANQIACoreFight is called *******************************", self.monsterid)
-					
+	
 	FIGHT_PLACE = PLACE.GUANQIA
 
 	reset(Self)
 	reset(Enemy)
-           	
+    
 	local ret = {}
 	if not kf_common or not kf_combo then
 		get_kf_common_and_combo()
-	end
+	end 		
 
 	get_monster_fight_list(self.monsterid)
-		   	
+
 	init_attribute(_, user.c_role_id, SELF)
 	get_fight_list(_, user.c_role_id, SELF)
            	
@@ -381,7 +380,7 @@ function REQUEST:BeginGUQNQIACoreFight()
 	else   	
 		ret.firstfighter = ENEMY
 	end   	
-          	
+    		
 	return ret
 end 	  	
 		  	
@@ -389,20 +388,20 @@ local function get_on_battle_list(uid, type)
 	assert(uid and type and TmpSelf)	 	
 	if type == SELF then 
 		local idx = 1 
-		while idx <= ON_BATTLE_ROLE_NUM do
-		  	local ara_role_id = "ara_role_id" .. idx
-		  	local value = user[ara_role_id]
+		while idx <= ON_BATTLE_ROLE_NUM do 
+		  	local ara_role_id = "ara_role_id" .. idx 
+		  	local value = user[ara_role_id] 
 		  	if 0 == value then 
 		  		return false 
 		  	else 
-		  		table.insert(Self.OnBattleList, value)
+		  		table.insert(Self.OnBattleList, value) 
 		  	end 
 		end	
-	elseif type == ENEMY then
-		local sql = string.format("select ara_role_id1, ara_role_id2, ara_role_id3 from users where csv_id = %s", uid)
-		local r = skynet.call(util.random_db(), "lua", "command", "query", sql)
-		assert(#r == 3)
-          
+	elseif type == ENEMY then 
+		local sql = string.format("select ara_role_id1, ara_role_id2, ara_role_id3 from users where csv_id = %s", uid) 
+		local r = skynet.call(util.random_db(), "lua", "command", "query", sql) 
+		assert(#r == 3) 
+         
 		local idx = 1
 		while idx <= ON_BATTLE_ROLE_NUM do
 		  	local ara_role_id = "ara_role_id" .. idx
@@ -537,7 +536,7 @@ local function get_kf_id_by_prob(kflist, prob)
 end 							
   							
 --yan zheng ke hu duan chuan lai de shuju shi fou zheng que, 
---								
+--				
 local KF_TYPE = {QUANFA = 1, COMBO = 2, COMMON = 3}
   							
 --1. testify if client and server generate the same kf_id 
@@ -702,25 +701,27 @@ end
 function REQUEST:BeginArenaCoreFight()
 	assert(self.uid and self.roleid)
 	print("BeginArenaCoreFight is called **********************************", self.uid, self.roleid)
-
+	
 	FIGHT_PLACE = PLACE.ARENA
-		
+			
 	reset_arena(Self)		
 	reset_arena(Enemy)		
-
+           	
     local ret = {}								
-    											
-    --init common and combo special kf 			
-    get_kf_common_and_combo()         			
+    	   										
+    --init common and combo special kf 	
+    if not kf_combo or not kf_common then
+    	get_kf_common_and_combo()         	
+    end	   	
     --init user and enemy on_battlerole_info_list
     if not get_on_battle_list(_, SELF) then 	
     	ret.errorcode = errorcode[110].code 		
-    end 				 				  		
-    															
+    end    				 				  		
+    	   														
     if not get_on_battle_list(self.uid, ENEMY) then
     	ret.errorcode = errorcode[110],code
     end                                
-    							
+    	   						
     --get role fight_list             
 	get_fight_list(_, Self.OnBattleList[1] , SELF) 
 	get_fight_list(self.uid, Enemy.OnBattleList[1], ENEMY) 
@@ -736,30 +737,40 @@ function REQUEST:BeginArenaCoreFight()
 			   					
 	ret.errorcode = errorcode[1].code
 	ret.delay_time = START_DELAY
-
+	
 	return ret 					
 end     							
-								
+					   			
 function REQUEST:Arena_OnPrepareNextRole()
 	--assert(self.loserid)				
-	local ret = {} 					
-
-	local TmpSelf = {}  
+	local ret = {} 	   				
+                       
 	if 1 == Self.IsDead then
-		TmpSelf = Self 
+		reset(Self)
+		Self.OnBattleSequence = Self.OnBattleSequence + 1
+		get_fight_list(_, Self.OnBattleList[Self.OnBattleSequence] , SELF) 
+		init_attribute(_, Self.OnBattleList[Self.OnBattleSequence], SELF)
 	elseif 1 == Enemy.IsDead then
-		TmpSelf = Enemy 
-	end 				
-
-	TmpSelf.IsDead = 0 
-	reset(TmpSelf) 
-	TmpSelf.OnBattleSequence = TmpSelf.OnBattleSequence + 1 
-
-	ret.errorcode = errorcode[110].code 
-
-	return ret
-end 	    			
-						
+		reset(Enemy)
+		Enemy.OnBattleSequence = Enemy.OnBattleSequence + 1
+		get_fight_list(self.uid, Enemy.OnBattleList[Enemy.OnBattleSequence], ENEMY) 
+		init_attribute(self.uid, Enemy.OnBattleList[Enemy.OnBattleSequence], ENEMY)
+	else               
+		assert(false)  
+	end 			   	
+                       					 		
+	if first_fighter() then 	
+		ret.firstfighter = SELF 
+	else 						
+		ret.firstfighter = ENEMY
+	end 						
+			   					
+	ret.errorcode = errorcode[1].code
+	ret.delay_time = START_DELAY 
+                       
+	return ret          
+end 	
+	
 function REQUEST:ArenaBattleList()
 	print("ArenaBattleList is called**********************************", #self.fightlist)
 	assert(self.fightlist)

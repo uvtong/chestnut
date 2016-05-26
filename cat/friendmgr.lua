@@ -67,7 +67,7 @@ function friendmgr:_createmsg( tvals )
    -- print("_createmsg is called")
     local nm = msg:_new()
     assert( nm )
-
+    
     nm.fromid = user.csv_id
     nm.toid = tvals.toid
     nm.type = tvals.type
@@ -88,7 +88,7 @@ local function randomaddr()
 	local addr = ".db"
 	--print("addr is " .. addr )
 	assert( addr , "randomaddr failed\n" )
-
+	
 	return addr
 end	
 	
@@ -108,12 +108,12 @@ function friendmgr:_db_loadfriend( uid )
 	assert( uid )
 	local addr = randomaddr()
 	assert( addr )
-
+	
 	local t = {}
 	t.uid = uid
-
+	
 	local result = skynet.call( addr , "lua" , "command" , "select_usermsg" , t )
-
+	
 	return result
 end		
 		
@@ -139,7 +139,7 @@ function friendmgr:_db_loadavaliblefriend_idlist( uid , lowlevel , uplevel , las
     t.uplevel = uplevel
     t.lastday = lastday
     t.uid = uid
-
+    
 	local r = skynet.call( addr , "lua" , "command" , "select_loadavaliblefriendids" , t )
    	
    	if #r == nil then
@@ -150,7 +150,7 @@ end
 	
 function friendmgr:_db_applied_idlist( uid , msgtype )
 	assert( uid and msgtype )
-
+	
 	local t = {}
 	t.uid = uid
 	t.type = msgtype
@@ -497,7 +497,7 @@ local function pickfriends()
    			table.insert( tmp , v )
 		end 
    	end		
-
+   	
    	if not tmp then
    		--TODO lower the fileter condition
    		return nil	

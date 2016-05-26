@@ -26,40 +26,22 @@ function server.auth_handler(token)
 	server = crypt.base64decode(server)
 	password = crypt.base64decode(password)
 	-- judge is exits
+	print("####################################33")
 	local sql = string.format("select * from account where user = \"%s\"", user)
 	local r = query.read(".signup_db", "account", sql)
-	-- local r = skynet.call(".signup_db", "lua", "command", "query", sql)
+
 	if #r >= 1 then
 		error("has account")
 	else
-		local backup = {}
-		local id
-		local function gen_id()
-			-- body
-			local rand = math.random(1, 4)
-			if backup[rand] then
-				return false
-			end
-			local sql = string.format("select * from uid where id = %d", rand)
-			local r = skynet.call(".signup_db", "lua", "command", "query", sql)	
-			assert(#r == 1)
-			id = r.entropy
-			if id < MAX_INTEGER then
-				sql = string.format("update uid set entropy = %d where id = %d", id + 1, rand)
-				skynet.send(".signup_db", "lua", "command", "update_sql", "uid", sql, 1)		
-				id = id << 8
-				rand = rand & 255
-				id = id | rand
-				return true
-			else		
-				backup[rand] = true
-				return false
-			end
-		end
-		while gen_id() do
-		end
-		sql = string.format("insert into account (id, user, password, signuptime) values ( %d, \"%s\", \"%s\", %d)", id, user, password, os.time())
-		skynet.send(".signup_db", "lua", "command", "insert_sql", "account", sql, 1)
+		local sql = string.format("select * from uid where id = %d", 1)
+		local r = query.read(".signup_db", "uid", sql)
+		assert(#r == 1)
+		id = r[1].entropy + 1
+		sql = string.format("update uid set entropy = %d where id = %d", id, 1)
+		query.write(".signup_db", "uid", sql)
+		sql = string.format("insert into account (`id`, `user`, `password`, `signuptime`, `csv_id`) values ( %d, \"%s\", \"%s\", %d, %d)", id, user, password, os.time(), id)
+		query.write(".signup_db", "account", sql)
+		--skynet.send(".signup_db", "lua", "command", "insert_sql", "account", sql, 1)
 		return server, id
 	end
 end

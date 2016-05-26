@@ -555,33 +555,6 @@ local function print_user(user)
 	end
 end
 	
-local function __logout()
-	-- body
-	assert(user)
-	cp_exit()
-	flush_db(const.DB_PRIORITY_1)
-	loader.clear( user )
-	print_user(user)
-	user.ifonline = 0
-	user:__update_db({"ifonline"}, const.DB_PRIORITY_1)
-	dc.set(user.csv_id , nil)
-	user = nil
-end
-
-function REQUEST:logout()
-	-- body
-	local ret = {}
-	if not user then
-		ret.errorcode = errorcode[2].code
-		ret.msg = errorcode[2].msg
-		return ret
-	end
-	__logout()
-	ret.errorcode = errorcode[1].code
-	ret.msg = errorcode[1].msg
-	return ret
-end
-
 function REQUEST:role_info()
 	local ret = {}
 	if not user then
@@ -769,7 +742,7 @@ function REQUEST:use_prop(ctx)
 	return ret
 end
 
-function REQUEST:user()
+function REQUEST:user(ctx)
 	-- body
 	local ret = {}
 	print("called****************************111")
@@ -778,6 +751,10 @@ function REQUEST:user()
 		ret.msg	= errorcode[2].msg
 		return ret
 	end
+	local modelmgr = ctx:get_modelmgr()
+	local u_propmgr = modelmgr:get_u_propmgr()
+	-- assert(u_propmgr == user.u_propmgr)
+	assert(u_propmgr:get_user() == user)
 	assert(user)
 	ret.errorcode = errorcode[1].code
 	ret.msg = errorcode[1].msg
@@ -2613,6 +2590,22 @@ local function response(session, args)
     end
 end
 
+local function logout()
+	-- body
+	if gate then
+		skynet.call(gate, "lua", "logout", userid, subid)
+	end
+	skynet.exit()
+end
+
+function REQUEST:logout(ctx)
+	-- body
+	local u = ctx:get_user()
+	u:set_ifonline(0)
+	flush_db()
+	logout()
+end
+
 skynet.register_protocol {
 	name = "client",
 	id = skynet.PTYPE_CLIENT,
@@ -2732,7 +2725,8 @@ function CMD:signup(source, uid, sid, sct, g, d)
 	env:set_userid(userid)
 	env:set_subid(subid)
 	env:set_secret(secret)
-	user = env:signup(userid)
+	local modelmgr = self:get_modelmgr()
+	user = modelmgr:signup(userid)
 	
 	local onlinetime = os.time()
 	user.ifonline = 1
@@ -2797,14 +2791,6 @@ function CMD:login(source, uid, sid, sct, g, d)
 	login(user)
 	
 	return true
-end
-
-local function logout()
-	-- body
-	if gate then
-		skynet.call(gate, "lua", "logout", userid, subid)
-	end
-	skynet.exit()
 end
 
 function CMD:logout(source)

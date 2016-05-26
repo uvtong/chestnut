@@ -97,9 +97,9 @@ function cls.update(t, ...)
 	else 	
 		local tmp_sql = {}
 		local sql_first_part = string.format("call " .. "qy_insert_" .. t.__tname .. " (" )
-		print("sql_first_part is :", sql_first_part)
+		-- print("sql_first_part is :", sql_first_part)
 		table.insert(tmp_sql, sql_first_part)
-
+		
 		assert(t.__head_ord ~= nil)
 		local counter = 0
 		for k, v in ipairs(t.__head_ord) do
@@ -117,14 +117,14 @@ function cls.update(t, ...)
 			end
 		end
 		table.insert(tmp_sql, ")")
-
+		
 		local sql = table.concat(tmp_sql)
-		print(sql)
-		print(t.__wdb, t.__tname)
+		-- print(sql)
+		-- print(t.__wdb, t.__tname)
 		query.write(t.__wdb, t.__tname, sql, query.DB_PRIORITY_3)
-	end
-end
-
+	end 
+end 	
+		
 function cls.update_wait(t, ...)
 	assert(t.__fields ~= nil)
 	if true then
@@ -133,8 +133,8 @@ function cls.update_wait(t, ...)
 		-- t.__col_updated = 0
 		-- local sql = t:gen_update_sql()
 		-- query.read(t.__wdb, t.__tname, sql)
-	end
-end
+	end 
+end 	
 
 function cls.load_data_to_stm(t, child)
 	local r = {}
