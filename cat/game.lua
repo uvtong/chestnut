@@ -676,6 +676,7 @@ end
 
 function CMD.guid(csv_id)
 	-- body
+	print("########################################3", csv_id)
 	assert(type(csv_id) == "number" and csv_id > 0)
 	return guid(csv_id)
 end

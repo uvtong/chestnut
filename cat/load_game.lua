@@ -338,7 +338,7 @@ end
 
 local function load_g_randomval(game)
 	assert( nil == game.g_randomvalmgr )
-	local cls = require "models/g_randomvalmgr"
+	local cls = require "models/randomvalmgr"
 	game.g_randomvalmgr = cls.new()
 	game.g_randomvalmgr:load_db()
 	game.g_randomvalmgr:load_data_to_sd()
@@ -348,7 +348,8 @@ local _M = {}
 
 function _M.load_randomval()
 	-- body
-	load_g_randomval()
+	local game = {}
+	load_g_randomval(game)
 	return game
 end
 

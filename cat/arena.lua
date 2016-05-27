@@ -1,5 +1,5 @@
 local skynet = require "skynet"
-local dc = require "datecenter"
+local dc = require "datacenter"
 local cls = class("arena")
 
 function cls:ctor(env, ... )

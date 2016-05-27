@@ -7,37 +7,37 @@ local socket = require "socket"
 local errorcode = require "errorcode"
 local context = require "agent_context"
 local sd = require "sharedata"
-
+	  
 local send_package
 local send_request
-	
+	  	
 local REQUEST = {}
 local RESPONSE = {}
 local SUBSCRIBE = {}
 local client_fd
-	
+	  	
 local game
 local user
 local dc
-
+      
 local DAY = 24 * 60 * 60
 local drawtype = { FRIEND = 1 , ONETIME = 2 , TENTIME = 3 }
 local UPDATETIME = 17
 local PROPTYPE = { PROP = 0 , ROLE_SP = 1 }
-
+      
 local function send_package(pack)
 	local package = string.pack(">s2", pack)
 	socket.write(client_fd, package)
-end		
-
+end	  	
+      
 function REQUEST:login( u )
 	-- body
 	assert( u )
 	print( "**********************************new_drawrequest_login " )
 	user = u
-	
-end		
-		
+	  
+end	  	
+	  	
 local function getsettime()
 	local date = os.time()
 	local year = tonumber( os.date( "%Y" , date ) )
@@ -72,18 +72,19 @@ local function add_to_prop( t )
            		local prop = user.u_propmgr:get_by_csv_id( v.propid )
    				if prop then
    					prop.num = prop.num + v.amount
-   					prop:__update_db( { "num" } )
+   					prop:update_db()
    				else 
    					print( "no a role" )
    					local key = string.format("%s:%d", "g_prop", v.propid)
    					prop = sd.query(key)
    					assert(prop)	
    					--prop = skynet.call(".game", "lua", "query_g_prop", v.propid)
-   					prop.user_id = user.csv_id
+   					prop.id = genpk_2(user:get_csv_id(), prop.csv_id)
+   					prop.user_id = user:get_csv_id()
    					prop.num = v.amount
    					local prop = user.u_propmgr:create( prop )
    					user.u_propmgr:add( prop )
-   					prop:__insert_db( const.DB_PRIORITY_2 )
+   					prop:update_db()
    				end 	      
 			else 
 
@@ -94,18 +95,19 @@ local function add_to_prop( t )
 			local prop = user.u_propmgr:get_by_csv_id( v.propid )
    			if prop then
    				prop.num = prop.num + v.amount
-   				prop:__update_db( { "num" } )
-   			else 
-   				print( "propid is " , v.propid )
-   				local key = string.format("%s:%d", "g_prop", v.propid)
-   				local p = sd.query(key)
-   				--local p = game.g_propmgr:get_by_csv_id( v.propid )
-   				assert( p )
-   				p.user_id = user.csv_id
-   				p.num = v.amount
-   				local prop = user.u_propmgr:create( p )
-   				user.u_propmgr:add( prop )
    				prop:update_db()
+   			else 
+   				print( "no a role" )
+   					local key = string.format("%s:%d", "g_prop", v.propid)
+   					prop = sd.query(key)
+   					assert(prop)	
+   					--prop = skynet.call(".game", "lua", "query_g_prop", v.propid)
+   					prop.id = genpk_2(user:get_csv_id(), prop.csv_id)
+   					prop.user_id = user:get_csv_id()
+   					prop.num = v.amount
+   					local prop = user.u_propmgr:create( prop )
+   					user.u_propmgr:add( prop )
+   					prop:update_db()
    			end 
    			if v.propid == const.GOLD then
    				--context:raise_achievement(const.ACHIEVEMENT_T_2)
@@ -158,7 +160,7 @@ function REQUEST:draw(ctx)
 		local line = sd.query(key)
 		--local line = game.g_drawcostmgr:get_by_csv_id( drawtype.ONETIME * 1000 )	
 		assert( line )
-		
+			
 		local nowtime = os.time() 
 		if nowtime >= ( tonetime.srecvtime + line.cdtime ) then
 			t.lefttime = 0
@@ -177,17 +179,20 @@ local ERROR = { WAI_GUA = 1 , NOT_ENOUGH_MONEY = 2 }
 local function splitsubreward_bytype( typeid )
 	assert( typeid )
 	local sublist = {}
-	
+
 	local g = sd.query("g_mainreward")
+	print("splitsubreward_bytype", #g)
 	for i,v in ipairs(g) do
+		print(i, v)
 		local key = string.format("%s:%d", "g_mainreward", v)
 		local value = sd.query(key)
+		print(value.csv_id, typeid)
 		if value.csv_id == typeid then
-			table.insert(sublist, v)
+			table.insert(sublist, value)
 		end
 	end
 
-	print( "splitsubreward_bytype i called" )
+	print( "splitsubreward_bytype i called", #sublist )
 	return sublist
 end	
 	
@@ -196,7 +201,7 @@ local function getgroupid( list , val )
 
 	local len = #list
 	local sub = 0 --list[len].probid
-	print( len , val , #list , sub )
+	print( len , val , #list , sub , list[len])
 	for i = len , 0 , -1 do
 		if sub < val  then
 			sub = sub + list[i].probid
@@ -204,9 +209,9 @@ local function getgroupid( list , val )
 			print( "group is ************************" , list[ i + 1 ].groupid )
 			return list[i + 1].groupid
 		end 		
-	end 
-end 	
-		
+	end 	
+end 
+			
 local function getpropidlist( dtype )
 	print( "get[rp[od is called" )
 	assert( dtype )
@@ -215,6 +220,16 @@ local function getpropidlist( dtype )
 			
 	local sublist = splitsubreward_bytype( dtype * 1000 )
 	assert( sublist )
+	for k, v in pairs(sublist) do
+		print("*************************",k, v)
+		if type(v) == "table" then
+
+			for sk, sv in pairs(v) do
+				print("&&&&&&&&&&&&&&&&&&&",sk, sv)
+			end
+		
+		end
+	end
 
 	if drawtype.TENTIME == dtype then
 		print( "dtype id in getpropidlis is " .. dtype )
@@ -248,14 +263,14 @@ local function getpropidlist( dtype )
 		print( "dtype id in getpropidlis is " .. dtype )
 		local rn = skynet.call( ".randomdraw" , "lua" , "draw" , { drawtype = dtype } )
 		assert( rn )
-        
+        	
 		local id = getgroupid( sublist , rn )
 		print( "groupid is >>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>" .. id )
 		local key = string.format("%s:%d", "g_subreward", id)
 		local r = sd.query(key)
 		--local r = game.g_subrewardmgr:get_by_csv_id( id )
 		assert( r )
-		
+			
 		if PROPTYPE.ROLE_SP == r.proptype then
 			local key = string.format("%s:%d", "g_draw_role", r.propid)
 			local t = sd.query(key)
@@ -269,11 +284,11 @@ local function getpropidlist( dtype )
 			end
 		else
 			table.insert( propidlist.list , { propid = r.propid , amount = r.propnum , proptype = PROPTYPE.PROP } )
-		end
+		end 
 	end		
-        
+            
 	assert( propidlist )
-	
+			
     add_to_prop( propidlist.list )
 	print( "get propidlist successfully" )
 	return propidlist
@@ -320,7 +335,6 @@ local function frienddraw(ctx)
 			tfriend.propid = 0
 			tfriend.amount = 0
 			tfriend.iffree = 1
-
 			tfriend = user.u_drawmgr:create( tfriend )
 			assert( tfriend )
 			user.u_drawmgr:add( tfriend )	
@@ -328,14 +342,13 @@ local function frienddraw(ctx)
 			tfriend.srecvtime = date
 		end
 
-
 		print( "line price is " , line.price )
 		prop.num = prop.num - line.price
 		proplist = getpropidlist( drawtype.FRIEND )
 
 		prop:update_db()
 		isfriend = false
-		
+			
 		tfriend:update_db()
 
 		print( "update prop successfully in tentimedraw" )
@@ -353,9 +366,9 @@ local function onetimedraw(ctx, iffree )
 	local factory = ctx:get_myfactory()
 	assert(factory)
 	local tonetime = factory:draw_get_by_type( drawtype.ONETIME )    
-	
+			
 	local date = os.time()
-
+	print("***********************************************iffree", iffree)
 	if true == iffree then
 		print( "for free**********************************" )
 		if not tonetime then
@@ -406,7 +419,7 @@ local function onetimedraw(ctx, iffree )
 
 		--local line = game.g_drawcostmgr:get_by_csv_id( drawtype.ONETIME * 1000 )
 		assert( line )
-            
+        
     	local prop = user.u_propmgr:get_by_csv_id( line.cointype )
 
 		if not prop or prop.num < line.price then
@@ -432,16 +445,16 @@ local function onetimedraw(ctx, iffree )
 			end 
 			print("**********************")
 			prop:update_db()
-			
+				
 			print( "update prop successfully in tentimedraw" )
 		end	
-	end
+	end 	
 	proplist.errorcode = errorcode[ 1 ].code
 	proplist.msg = errorcode[ 1 ].msg
 
 	return proplist
-end 	
-		
+end 			
+			
 local function tentimedraw(ctx)
 	assert(ctx)
 
@@ -449,6 +462,7 @@ local function tentimedraw(ctx)
 
 	local key = string.format("%s:%d", "g_drawcost", drawtype.TENTIME * 1000)
 	local line = sd.query(key)
+	local date = os.time()
 	--local line = game.g_drawcostmgr:get_by_csv_id( drawtype.TENTIME * 1000 )
 	assert( line )
 
@@ -461,11 +475,25 @@ local function tentimedraw(ctx)
 		ret.msg = errorcode[ 16 ].msg
 
 		return ret
-	else 
+	else
 		print( "insert drawmsg over", prop.num, line.price )
 
 		prop.num = prop.num - line.price
 		prop:update_db()
+
+		ttentime = {}
+		ttentime.id = skynet.call( ".game" , "lua" , "guid" , const.DRAW )
+		ttentime.uid = user.csv_id
+		ttentime.drawtype = drawtype.TENTIME
+		ttentime.srecvtime = date
+		ttentime.propid = 0;
+		ttentime.amount = 0;
+		ttentime.iffree = 1;
+
+		ttentime = user.u_drawmgr:create( ttentime )
+		assert( ttentime )
+		--user.u_drawmgr:add( tonetime )
+		ttentime:update_db()
 
 		proplist = getpropidlist( drawtype.TENTIME )		
 	end 
@@ -475,7 +503,7 @@ local function tentimedraw(ctx)
 	proplist.msg = errorcode[ 1 ].msg
 
 	return proplist
-end 	
+end 
 						
 function REQUEST:applydraw(ctx)
 	assert(ctx)

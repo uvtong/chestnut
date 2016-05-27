@@ -20,8 +20,8 @@ function cls:create_journal( ... )
 	self._user.u_journalmgr:add(j)
 	j:update()
 	return j
-end
-
+end 	
+		
 function cls:get_today( ... )
 	-- body
 	local t = os.date("*t", os.time())
@@ -30,11 +30,11 @@ function cls:get_today( ... )
 	local j = self._user.u_journalmgr:get_by_date(sec)
 	if j then
 		return j
-	else
+	else 
 		return self:create_journal()
-	end
-end
-
+	end 
+end 	
+   		
 function cls:create_ara_bat(p )
 	-- body
 	local ser = p:get_ser()
@@ -51,8 +51,8 @@ function cls:create_ara_bat(p )
 	local mgr = self
 	local entity_cls = require "u_ara_batentity"
 	local entity = entity_cls.new()
-end
-
+end 	
+		
 function cls:create_user(uid)
 	-- body
 	local game = self._env:get_game()

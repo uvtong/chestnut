@@ -145,15 +145,15 @@ local function get_ordered_fight_list(tfightlist, reserved_fight_list, reserved_
 	end 
 		
 	print("reserved_fight_list is ***************************", #reserved_fight_list)
-							
+								
 	table.sort(reserved_fight_list, SortFunc)
 
 	for k , v in ipairs(reserved_fight_list) do
 		print("reserved idlist is ", v.g_csv_id)		 	
 		reserved_fightid_list[tostring(v.g_csv_id)] = k
 	end 										 	
-end 		 
- 
+end 
+ 	
 --huo de mei ci zi dong zhan dou de quan fa xu lie
 local function get_ordered_fight_list_to_client(sordered_fight_list, tmp_fightid_list, totalfightnum)
 	assert(sordered_fight_list and tmp_fightid_list)
@@ -436,7 +436,7 @@ local function get_attack(kf, TmpSelf, TmpEnemy)
 		totalattack = math.floor((TmpSelf.Attr.combat * 0.2 + TmpSelf.FightPower * 0.1) * (kf.effect_percent / 100) * (1 - defenceprob) * (1 + critical_heartprob))
 		print("all value in get_attack is 2", TmpSelf.Attr.combat, TmpSelf.FightPower, kf.effect_percent, defenceprob, critical_heartprob)
 	elseif 3 == kf.attack_type then 
-          
+    
 	elseif 4 == kf.attack_type then    --combo attack
 		totalattack = math.floor((TmpSelf.Attr.combat * 0.2 + TmpSelf.FightPower * 0.1) * (1 + TmpSelf.PresentComboNum * 0.1 + kingprob + critical_heartprob))
 		print("all value in get_attack is 4", TmpSelf.Attr.combat, TmpSelf.FightPower, kf.effect_percent, defenceprob, TmpSelf.PresentComboNum, kingprob)
@@ -447,7 +447,7 @@ local function get_attack(kf, TmpSelf, TmpEnemy)
 	print(" totalattack******************************* ", totalattack)
 	return totalattack
 end 	 					
-
+	
 local function get_attacheffect(kf, TmpSelf, TmpEnemy, totalattack)
 	print("in get_attacheffect**********************************", kf.addition_effect_type)
 	assert(kf and TmpSelf and TmpEnemy and totalattack) 
@@ -523,7 +523,7 @@ end
 --gen ju ke hu duan chuan lai de kf_prob lai xulie zhong zhao dao duiying de kf_id			
 local function get_kf_id_by_prob(kflist, prob) 	
   	assert(kflist and prob)						
-              	 			
+    
   	local totalprob = 0												    
   	for k, v in ipairs(kflist) do
   		totalprob = totalprob + v.prob
@@ -717,7 +717,7 @@ function REQUEST:BeginArenaCoreFight()
     if not get_on_battle_list(_, SELF) then 	
     	ret.errorcode = errorcode[110].code 		
     end    				 				  		
-    	   														
+    	   																
     if not get_on_battle_list(self.uid, ENEMY) then
     	ret.errorcode = errorcode[110],code
     end                                
@@ -764,7 +764,7 @@ function REQUEST:Arena_OnPrepareNextRole()
 	else 						
 		ret.firstfighter = ENEMY
 	end 						
-			   					
+	
 	ret.errorcode = errorcode[1].code
 	ret.delay_time = START_DELAY 
                        

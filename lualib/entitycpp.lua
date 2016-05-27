@@ -91,7 +91,7 @@ function cls.update(t, ...)
 		t.__col_updated = 0
 		-- t:set(t, ...)
 		local sql = t:gen_update_sql()
-		-- print(sql)
+		--print(sql)
 		query.write(t.__wdb, t.__tname, sql, query.DB_PRIORITY_3)
 		
 	else 	

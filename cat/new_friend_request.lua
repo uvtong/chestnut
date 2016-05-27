@@ -166,7 +166,7 @@ function REQUEST:friendlist(ctx)
 	ret.errorcode = errorcode[1].code
 	ret.heart = ctx:get_user():get_if_send_heart()
 	ret.receive = if_can_recv_heart
-
+        
 	return ret
 end 		
 		 	
@@ -179,7 +179,7 @@ end
 -- 	else 	
 -- 		receive = false
 -- 	end	 	
-		    
+	   	
 --     local fl = {}  
 --     print( "friend mgr date is " .. #friendmgr._data.friendlist )
 -- 	if 0 == #friendmgr._data.friendlist then
@@ -188,11 +188,11 @@ end
 -- 	else 	
 -- 		local settime = getsettime()
 -- 		local lowtime = settime - 60 * 60 * 24
-         	
+          	
 -- 		for k , v in pairs( friendmgr._data.friendlist ) do
 -- 			local tmp 
 -- 			--print( k , v.friendid , v.recvtime , v.sendtime )
-
+         
 -- 			local t = dc.get( v.friendid )
 -- 			if t then -- if online
 -- 				print( "online" )
@@ -240,9 +240,9 @@ end
 -- end 	
 local function get_friend_basic_info(uid)
 	assert(uid)
-
+	
 	local tmp 
-
+	
 	local t = dc.get( uid )
 	if t then -- if online
 		print( "online" )
