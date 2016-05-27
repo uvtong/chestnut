@@ -240,7 +240,7 @@ function CMD.query_g_equipment(pk)
 	elseif type(pk) == "nil" then
 		local r = {}
 		for k,v in pairs(game.g_equipmentmgr.__data) do
-			table.insert(r, v.__fields)
+			r[k] = v.__fields
 		end
 		return r
 	else
@@ -276,7 +276,7 @@ function CMD.query_g_goods(pk)
 	elseif type(pk) == "nil" then
 		local r = {}
 		for k,v in pairs(game.g_goodsmgr.__data) do
-			table.insert(r, v.__fields)
+			r[k] = v.__fields
 		end
 		return r
 	elseif type(pk) == "table" then
@@ -409,7 +409,11 @@ function CMD.query_g_recharge_vip_reward(pk)
 			error "there are insufficient data"
 		end
 	elseif type(pk) == "nil" then
-		return game.g_recharge_vip_rewardmgr.__data
+		local l = {}
+		for k,v in pairs(game.g_recharge_vip_rewardmgr.__data) do
+			l[k] = v.__fields
+		end
+		return l
 	else
 		assert(false)
 	end
@@ -549,11 +553,11 @@ function CMD.query_g_property_pool(pk)
 		end
 	elseif type(pk) == "nil" then
 		assert(game.g_property_poolmgr:get_count() > 0)
-		local r = {}
+		local l = {}
 		for k,v in pairs(game.g_property_poolmgr.__data) do
-			table.insert(r, v.__fields)
+			l[k] = v.__fields
 		end
-		return r
+		return l
 	else
 		assert(false)
 	end
@@ -574,7 +578,7 @@ function CMD.query_g_property_pool_second(pk, T)
 			local r = {}
 			for k,v in pairs(game.g_property_pool_secondmgr.__data) do
 				if v:get_property_pool_id() == T then
-					table.insert(r, v.__fields)
+					r[k] = v.__fields
 				end
 			end
 			return r

@@ -173,9 +173,7 @@ end
 function QUERY:get(k, sub)
 	-- body
 	assert(type(k) == "string")
-	print("###########################abc1", k)
 	local v = self.cache:get(k)
-	print("###########################abc2", k)
 	if v then
 		if sub ~= nil then
 			c = json.decode(v)

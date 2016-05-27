@@ -537,7 +537,7 @@ function cls:ara_rfh( ... )
 		else
 			local usersmgr = self:get_usersmgr()
 			usersmgr:load_cache(uid)
-			local u = usersmgr:get(v.uid)
+			local u = usersmgr:get(uid)
 			li["total_combat"] = 10
 			li["uname"] = u:get_field("uname")
 			table.insert(l, li)
