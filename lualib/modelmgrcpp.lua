@@ -152,7 +152,7 @@ function cls.load_cache(t, pk)
 	assert(pk)
 	if t.__head[t.__pk].t == "number" then
 		local k = string.format("%s:%d", t.__tname, pk)
-		local v = query.get(k)
+		local v = query.get(t.__rdb, k)
 		if v then
 			v = json.decode(v)
 			local r = t:create_entity(v)

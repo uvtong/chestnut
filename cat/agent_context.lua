@@ -513,9 +513,10 @@ function cls:ara_rfh( ... )
 			print('############################33', 10)
 			local usersmgr = self:get_usersmgr()
 			usersmgr:load_cache(uid)
-			local enemy = usersmgr:get(uid)
+			print('############################33', 10)
+			local u = usersmgr:get(uid)
 			li["total_combat"] = 10
-			li["uname"] = enemy:get(v.uid)
+			li["uname"] = u:get_field("uid")
 			table.insert(l, li)
 		end
 	end
@@ -530,15 +531,15 @@ function cls:ara_rfh( ... )
 		if dc.get(uid, "online") then
 			local addr = dc.get(uid, "addr")
 			local u = skynet.call(addr, "lua", "user")
-			li["total_combat"] = u.total_combat
+			li["total_combat"] = 10
 			li["uname"] = u.uname
 			table.insert(l, li)
 		else
 			local usersmgr = self:get_usersmgr()
-			usersmgr:load_cache(v.uid)
-			local enemy = usersmgr:get(v.uid)
+			usersmgr:load_cache(uid)
+			local u = usersmgr:get(v.uid)
 			li["total_combat"] = 10
-			li["uname"] = enemy:get(v.uid)
+			li["uname"] = u:get_field("uname")
 			table.insert(l, li)
 		end
 	end

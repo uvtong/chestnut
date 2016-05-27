@@ -170,21 +170,48 @@ function QUERY:set(k, v)
 	self.cache:set(k, v)
 end
 
+function QUERY:get(k, sub)
+	-- body
+	assert(type(k) == "string")
+	print("###########################abc1", k)
+	local v = self.cache:get(k)
+	print("###########################abc2", k)
+	if v then
+		if sub ~= nil then
+			c = json.decode(v)
+			if c[sub] then
+				return v[sub]
+			else
+				return false
+			end
+		else
+			return v
+		end
+	else
+		return false
+	end
+end
+
 function QUERY:hset(k, kk, vv, ... )
 	-- body
 	self.cache:hset(k, kk, vv)
 end
 
-function QUERY:get(k, sub)
+function QUERY:hget(k, kk, ... )
 	-- body
-	assert(type(k) == "string")
-	assert(type(sub) == "string")
-	local v = self.cache:get(k)
-	if sub ~= nil then
-		v = json.decode(v)
-		return v[sub]
+	local h = self.cache.hvals(k)
+	if h then
+		if kk ~= nil then
+			if h[kk] then
+				return h[kk]
+			else
+				return false
+			end
+		else
+			return h
+		end
 	else
-		return v
+		return false
 	end
 end
 
@@ -423,13 +450,13 @@ skynet.start(function ()
 	skynet.dispatch( "lua" , function( _, _, cmd, subcmd, ... )
 		if cmd == "command" then
 			local r = command(subcmd, ...)
-			if r then
+			if r ~= nil then
 				skynet.ret(skynet.pack(r))
 			end
 		else
 			local f = assert(CMD[cmd])
 			local r = f(env, subcmd, ...)
-			if r then
+			if r ~= nil then
 				skynet.ret(skynet.pack(r))
 			end
 		end
