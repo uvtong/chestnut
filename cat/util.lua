@@ -1,3 +1,4 @@
+package.path = "./../cat/?.lua;" .. package.path
 local skynet = require "skynet"
 require "skynet.manager"
 local const = require "const"
@@ -328,8 +329,12 @@ function util.get_total_property( user , uid , onbattleroleid)   -- zhijie ti sh
  	local tmpname = propertyname
  		
 	if user then
-		uequip = assert( user.u_equipmentmgr.__data )
-            
+		uequip = user.u_equipmentmgr.__data
+            for k, v in pairs(user.u_equipmentmgr.__data) do
+            	print(k, v)
+            end
+            assert(uequip ~= nil)
+            assert(false)
 		local id
 		if not onbattleroleid then
 			id = user:get_c_role_id()
@@ -347,13 +352,14 @@ function util.get_total_property( user , uid , onbattleroleid)   -- zhijie ti sh
 		end 
 	else    
 		local sql = string.format( "select * from u_equipment where user_id = %s " , uid )
-		uequip = query.read(".rdb", "u_equipment", sql)
-		--uequip = skynet.call( util.random_db() , "lua" , "command" , "query" , sql )
+		print(sql)
+		assert(false)
+		uequip = skynet.call( util.random_db() , "lua" , "command" , "query" , sql )
 		assert( uequip )
  		sql = string.format( "select * from u_role where user_id = %s " , uid )
- 		--print( sql )
- 		--roles = skynet.call( util.random_db() , "lua" , "command" , "query" , sql )
- 		roles = query:read(".rdb", "u_role", sql)
+ 		print( sql )
+ 		roles = skynet.call( util.random_db() , "lua" , "command" , "query" , sql )
+ 		--roles = query:read(".rdb", "u_role", sql)
  		assert( roles )
 		    
  		if "king" == propertyname then
@@ -362,8 +368,8 @@ function util.get_total_property( user , uid , onbattleroleid)   -- zhijie ti sh
             
  		sql = string.format( "select c_role_id , combat , defense , critical_hit , blessing , ifxilian from users where csv_id = %s " , uid )
 		print( sql )
-		--local tmp = skynet.call( util.random_db() , "lua" , "command" , "query" , sql )
-		local tmp = query(".rdb", "users", sql)
+		local tmp = skynet.call( util.random_db() , "lua" , "command" , "query" , sql )
+		--local tmp = query(".rdb", "users", sql)
 		u = tmp[ 1 ]
 		assert( u )
 
@@ -401,6 +407,7 @@ function util.get_total_property( user , uid , onbattleroleid)   -- zhijie ti sh
 		local probability = v .. "_probability"
 		print( "property is ***************************************" , probability )
 		for kk , vv in pairs( uequip ) do
+			print("************************property :", vv[ v ], vv[ probability])
 			if 0 ~= vv[ v ] then 
 				ttotal[ k ] = ttotal[ k ] + vv[ v ]
 				ttotal[ k  + 4 ] = ttotal[ k + 4 ] + vv[ probability ]
@@ -478,7 +485,7 @@ function util.get_total_property( user , uid , onbattleroleid)   -- zhijie ti sh
 	end	  
 
 	print( "final combat and percent is ************" , result[ 1 ] , result[ 2 ] , result[ 3 ] , result[ 4 ])
-
+	assert(false)
 	return result
 end  			
 			

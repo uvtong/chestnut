@@ -34,8 +34,8 @@ local FIGHT_PLACE = 0
 			  		
 local COMMON_KF = 90000
 local COMBO_KF = 100000
-local kf_common = {}
-local kf_combo = {}
+local kf_common
+local kf_combo
 local PLACE = {GUANQIA = 1, ARENA = 2}
 			  	
 local Self = {  
@@ -81,7 +81,7 @@ function REQUEST:login(u)
 	-- body   
 	assert( u )
 	print("**********************************lilianrequest_login")
-	user = u  
+	-- user = u  
 end	          
 			  
 --get who fight first, true user first, false robot first;	    	
@@ -230,11 +230,11 @@ local function get_monster_fight_list(monsterid)
 	return fight_id_list 													
 end 																		
 				
-local function get_fight_list(roleid, roletype)						
+local function get_fight_list(uid, roleid, roletype)						
 	local ret = {}															
 	local r = {}															
 	local TmpSelf 																			
-	print("get_fight_list is ******************************", roletype, SELF)
+	print("get_fight_list is ******************************hubing", roletype, SELF, roleid)
 	if roletype == SELF then
 		r = user.u_rolemgr:get_by_csv_id(roleid)
 		assert(r)
@@ -320,10 +320,11 @@ local function TmpPrintContent(t)
 end	
 	
 local function get_kf_common_and_combo()
+	print("get_kf_common_and_combo is called******************************")
 	local r = skynet.call(".game", "lua", "query_g_kungfu", COMMON_KF)
 	assert(r)
 	kf_common = r
-	
+
 	local t = skynet.call(".game", "lua", "query_g_kungfu", COMBO_KF)
 	assert(t)
 	kf_combo = t
@@ -353,7 +354,8 @@ local function reset_arena(t)
 	t.OnBattleSequence = 1
 end 		
 			
-function REQUEST:BeginGUQNQIACoreFight()
+function REQUEST:BeginGUQNQIACoreFight(ctx)
+	user = ctx:get_user()
 	assert(self.monsterid)
 	print("BeginGUANQIACoreFight is called *******************************", self.monsterid)
 	
@@ -363,6 +365,7 @@ function REQUEST:BeginGUQNQIACoreFight()
 	reset(Enemy)
     
 	local ret = {}
+	assert(kf_common == nil and kf_common == nil)
 	if not kf_common or not kf_combo then
 		get_kf_common_and_combo()
 	end 		

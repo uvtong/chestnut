@@ -63,7 +63,8 @@ local function add_to_prop( t )
 	for k , v in ipairs( t ) do
 		if v.proptype == PROPTYPE.ROLE_SP then
 			print( "get a role" )
-			local key = string.format("%s:%d", "g_role", v.propid)
+			local key = string.format("%s:%d", "g_role_coppy", v.propid)
+			print(key, v.propid)
 			g_role = sd.query(key)
 			--g_role = game.g_rolemgr:get_by_us_prop_csv_id( v.propid )
 			assert( g_role )
@@ -329,6 +330,7 @@ local function frienddraw(ctx)
 		if not tfriend then
 			tfriend = {}
 			tfriend.id = skynet.call( ".game" , "lua" , "guid" , const.DRAW )
+			print("new id is ********************", tfriend.id)
 			tfriend.uid = user.csv_id
 			tfriend.drawtype = drawtype.FRIEND 
 			tfriend.srecvtime = date
@@ -374,6 +376,7 @@ local function onetimedraw(ctx, iffree )
 		if not tonetime then
 			tonetime = {}
 			tonetime.id = skynet.call( ".game" , "lua" , "guid" , const.DRAW )
+			print("new id is ********************", tonetime.id)
 			tonetime.uid = user.csv_id
 			tonetime.drawtype = drawtype.ONETIME
 			tonetime.srecvtime = date
@@ -445,7 +448,21 @@ local function onetimedraw(ctx, iffree )
 			end 
 			print("**********************")
 			prop:update_db()
-				
+
+			local tonetime = {}
+			tonetime.id = skynet.call( ".game" , "lua" , "guid" , const.DRAW )
+			print("new id is ********************", tonetime.id)
+			tonetime.uid = user.csv_id
+			tonetime.drawtype = drawtype.ONETIME
+			tonetime.srecvtime = date
+			tonetime.propid = 0;
+			tonetime.amount = 0;
+			tonetime.iffree = 1;
+
+			tonetime = user.u_drawmgr:create( tonetime )
+			assert( tonetime )
+			--user.u_drawmgr:add( tonetime )
+			tonetime:update_db()				
 			print( "update prop successfully in tentimedraw" )
 		end	
 	end 	
@@ -453,7 +470,7 @@ local function onetimedraw(ctx, iffree )
 	proplist.msg = errorcode[ 1 ].msg
 
 	return proplist
-end 			
+end 		
 			
 local function tentimedraw(ctx)
 	assert(ctx)
@@ -481,8 +498,9 @@ local function tentimedraw(ctx)
 		prop.num = prop.num - line.price
 		prop:update_db()
 
-		ttentime = {}
+		local ttentime = {}
 		ttentime.id = skynet.call( ".game" , "lua" , "guid" , const.DRAW )
+		print("new id is ********************", ttentime.id)
 		ttentime.uid = user.csv_id
 		ttentime.drawtype = drawtype.TENTIME
 		ttentime.srecvtime = date

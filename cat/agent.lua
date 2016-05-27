@@ -2746,7 +2746,7 @@ function CMD:signup(source, uid, sid, sct, g, d)
 	login(user)
 	
 	return true
-end
+end 
 
 function CMD:login(source, uid, sid, sct, g, d)
 	-- body
@@ -2786,7 +2786,7 @@ function CMD:login(source, uid, sid, sct, g, d)
 
 	env:set_user(user)
 	login(user)
-
+	
 	return true
 end
 
