@@ -2415,13 +2415,18 @@ function REQUEST:ara_rfh(ctx)
 		j:set_ara_rfh_tms(ara_rfh_tms)
 	else
 		local u = ctx:get_user()
+		local modelmgr = ctx:get_modelmgr()
+		local u_propmgr = modelmgr:get_u_propmgr()
 		local ara_rfh_cost_tms = u:get_ara_rfh_cost_tms()
 		ara_rfh_cost_tms = ara_rfh_cost_tms + 1
 		local key = string.format("%s:%d", "g_ara_tms", ara_rfh_cost_tms)
 		local value = sd.query(key)
 		local list_refresh_cost = value["list_refresh_cost"]
+		print(list_refresh_cost)
 		local r = util.parse_text(list_refresh_cost, "(%d+%*%d+%*?)", 2)
-		local prop = u.u_propmgr:get_by_csv_id(r[1])
+		local id = tonumber(r[1][1])
+		local num = tonumber(r[1][2])
+		local prop = u_propmgr:get_by_csv_id(id)
 		local onum = prop:get_num()
 		if onum > num then
 			local nnum = onum - num
@@ -2781,11 +2786,6 @@ function CMD:login(source, uid, sid, sct, g, d)
 
 	env:set_user(user)
 	login(user)
-
-	for i=1,10 do
-		local uid = skynet.call(".game", "lua", "guid", const.DRAW)
-		print(uid)
-	end
 
 	return true
 end

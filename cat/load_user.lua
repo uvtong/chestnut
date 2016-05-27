@@ -937,7 +937,7 @@ function cls:load_u_journal(user)
 	u.u_journalmgr = u_journalmgr
 end
 
-function cls:get_u_journal( ... )
+function cls:get_u_journalmgr( ... )
 	-- body
 	return self._data["u_journalmgr"]
 end

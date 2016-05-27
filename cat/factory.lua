@@ -6,18 +6,20 @@ function cls:ctor(env, ... )
 	self._env = env
 end
 
-function cls:create_journal( ... )
+function cls:create_journal(sec, ... )
 	-- body
-	local modelmgr = self._env:get_modelemgr()
+	local modelmgr = self._env:get_modelmgr()
 	local u_journalmgr = modelmgr:get_u_journalmgr()
+	local user = modelmgr:get_user()
 	local t = {}
-	t["user_id"] = self._user:get_csv_id()
+	t["id"] = genpk_2(user:get_field("csv_id"), sec)
+	t["user_id"] = user:get_field("csv_id")
 	t["date"] = sec
 	t["goods_refresh_count"] = 0
 	t["goods_refresh_reset_count"] = 0
 	t["ara_rfh_tms"] = 5
 	t["ara_bat_ser"] = 0
-	u_journalmgr:create_entity(t)
+	local j = u_journalmgr:create_entity(t)
 	u_journalmgr:add(j)
 	j:update()
 	return j
@@ -25,19 +27,20 @@ end
 
 function cls:get_today( ... )
 	-- body
+	assert(type(self) == "table")
 	for k,v in pairs(self) do
 		print(k,v)
 	end
-	local modelmgr = self._env:get_modelemgr()
+	local modelmgr = self._env:get_modelmgr()
 	local u_journalmgr = modelmgr:get_u_journalmgr()
 	local t = os.date("*t", os.time())
 	t = { year=t.year, month=t.month, day=t.day}
 	local sec = os.time(t)
-	local j = u_journalmgr:get_csv_id(sec)
+	local j = u_journalmgr:get_by_csv_id(sec)
 	if j then
 		return j
 	else
-		return self:create_journal()
+		return self:create_journal(sec)
 	end
 end
 

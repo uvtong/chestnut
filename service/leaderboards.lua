@@ -103,42 +103,39 @@ function CMD.ranking_range(s, e)
 	assert(type(s) == "number")
 	assert(type(e) == "number")
 	assert(e > s)
+	assert(e <= top)
 	local l = {}
 	for i=s,e do
-		local id = ranking_name[i]
-		if id then
-			local r = leaderboardsmgr:get(id)
-			table.insert(l, r)
-		end
+		l[i] = ranking_name[i]
 	end
 	return l
 end
 
-function CMD.nearby(id)
+function CMD.nearby(uid)
 	-- body
 	local res = {}
-	local r = leaderboardsmgr:get(id)
-	table.insert(res, r)
-	local ranking = r.ranking
-	local _1 = ranking_name[ranking * 0.95]
-	table.insert(res, leaderboardsmgr:get(_1).__fields)
-	local _2 = ranking_name[ranking * 0.9]
-	table.insert(res, leaderboardsmgr:get(_2).__fields)
-	local _3 = ranking_name[ranking * 0.8]
-	table.insert(res, leaderboardsmgr:get(_3).__fields)
-	local _4 = ranking_name[ranking * 0.7]
-	table.insert(res, leaderboardsmgr:get(_4).__fields)
+	local lu = leaderboardsmgr:get(uid)
+	local ranking = lu:get_field("ranking")
+	res[ranking] = lu:get_field("uid")
+	local rnk = math.floor(ranking * 0.9)
+	res[rnk] = ranking_name[rnk]
+	rnk = math.floor(ranking * 0.8)
+	res[rnk] = ranking_name[rnk]
+	rnk = math.floor(ranking * 0.7)
+	res[rnk] = ranking_name[rnk]
+	rnk = math.floor(ranking * 0.6)
+	res[rnk] = ranking_name[rnk]
 	return res
 end
 
-local function print_c()
+local function update_db()
 	-- body
 	while true do 
 		print("begain to print leaderboards")
 		for i,v in ipairs(ranking_name) do
-			print(i,v)
+			-- print(i,v)
 		end
-		leaderboardsmgr:update()
+		leaderboardsmgr:update_db()
 		skynet.sleep(60 * 100)
 	end
 end
@@ -146,19 +143,22 @@ end
 skynet.start(function ()
 	-- body
 	skynet.dispatch("lua", function(_,_, command, subcmd, ...)
-		if command ~= "command" then
-			local f = CMD[command]
+		local f = CMD[command]
+		if f then
 			local r = f(subcmd, ... )
 			if r then
 				skynet.ret(skynet.pack(r))
 			end
 		else
+			error(string.format("command %s is wrong", command))
 		end
+		print(string.format("command %s is called.", command))
 	end)
 	leaderboardsmgr:load_db()
 	for k,v in pairs(leaderboardsmgr.__data) do
-		ranking_name[v.ranking] = v.uid
+		local ranking = v:get_field("ranking")
+		ranking_name[ranking] = v:get_field("uid")
 		top = top + 1
 	end
-	skynet.fork(print_c)
+	skynet.fork(update_db)
 end)

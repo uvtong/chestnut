@@ -140,6 +140,7 @@ function QUERY:read(table_name, sql)
 	-- return res
 	local db = self.db
 	local res = db:query(sql)
+	dump(res)
 	return res
 end
 
