@@ -90,19 +90,22 @@ end
 
 local function get_journal()
 	-- body
-	local t = os.date("*t", os.time())
-	t = { year=t.year, month=t.month, day=t.day}
-	local sec = os.time(t)
-	local j = user.u_journalmgr:get_by_date(sec)
-	if j then
-		return j
-	else
-		t = { user_id=user.csv_id, date=sec, goods_refresh_count=0, goods_refresh_reset_count=0}
-		j = user.u_journalmgr.create(t)
-		user.u_journalmgr:add(j)
-		j:__insert_db(const.DB_PRIORITY_1)
-		return j
-	end
+	local factory = env:get_myfactory()
+	return factory:get_today()
+
+	-- local t = os.date("*t", os.time())
+	-- t = { year=t.year, month=t.month, day=t.day}
+	-- local sec = os.time(t)
+	-- local j = user.u_journalmgr:get_by_date(sec)
+	-- if j then
+	-- 	return j
+	-- else
+	-- 	t = { user_id=user.csv_id, date=sec, goods_refresh_count=0, goods_refresh_reset_count=0}
+	-- 	j = user.u_journalmgr.create(t)
+	-- 	user.u_journalmgr:add(j)
+	-- 	j:__insert_db(const.DB_PRIORITY_1)
+	-- 	return j
+	-- end
 end
 
 local function get_prop(csv_id)
@@ -2835,6 +2838,7 @@ function CMD:login(source, uid, sid, sct, g, d)
 
 	env:set_user(user)
 	login(user)
+
 	return true
 end
 
