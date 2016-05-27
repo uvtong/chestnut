@@ -92,11 +92,10 @@ function cls.load_db_to_data(t, key, value, ... )
 					assert(false)
 				end
 			elseif key == "fk" then
-				print(t.__fk)
 				if t.__head[t.__fk].t == "string" then
 					assert(type(value) == "string")
 					sql = string.format("select * from %s where `%s` = \"%s\"", t.__tname, t.__fk, value)
-				elseif t.__head[t.__pk].t == "number" then
+				elseif t.__head[t.__fk].t == "number" then
 					assert(type(value) == "number")
 					sql = string.format("select * from %s where `%s` = %d", t.__tname, t.__fk, value)
 				else
@@ -120,6 +119,7 @@ function cls.load_db_to_data(t, key, value, ... )
 	else
 		sql = string.format("select * from %s", t.__tname)
 	end
+	print("hubing123", sql)
 	local entity = require("models/"..t.__entity)
 	local r = query.read(t.__rdb, t.__tname, sql)
 	for i,v in ipairs(r) do
