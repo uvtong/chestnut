@@ -356,7 +356,7 @@ end
 function cls:gen_user_remote(rm, ... )
 	-- body
 	local u = self._data["user"]
-	rm["user"] = u
+	rm["user"] = u.__fields
 end
 
 function cls:load_user(user_id)

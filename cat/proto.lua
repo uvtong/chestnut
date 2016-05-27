@@ -272,9 +272,9 @@ proto.c2s = sprotoparser.parse [[
 
 .enemy {
 	user 0 : user
-	equipment_list 1 : *equipment
-    kungfu_list 2 : *kungfu_content
-    rolelist 3 : *role
+	u_equipment 1 : *equipment
+    u_kungfu 2 : *kungfu_content
+    u_role 3 : *role
 }
 
 handshake 1 {

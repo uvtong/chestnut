@@ -28,9 +28,6 @@ end
 function cls:get_today( ... )
 	-- body
 	assert(type(self) == "table")
-	for k,v in pairs(self) do
-		print(k,v)
-	end
 	local modelmgr = self._env:get_modelmgr()
 	local u_journalmgr = modelmgr:get_u_journalmgr()
 	local t = os.date("*t", os.time())

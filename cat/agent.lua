@@ -2374,12 +2374,53 @@ function REQUEST:ara_choose_role_enter(ctx, ... )
 	arena:set_me(u)
 	arena:set_me_modelmgr(modelmgr)
 	arena:load_enemy(self.enemy_id)
+	local en_modelmgr = arena:get_en_modelmgr()
+	local enemy = en_modelmgr:gen_remote()
+
+	-- local en_user = en_modelmgr:get_user()
+	-- local en_u_propmgr = en_modelmgr:get_u_propmgr()
+	-- local enemy = {}
+	-- enemy.user = {
+	-- 	uname        = en_user.uname,
+ --    	uviplevel    = en_user.uviplevel,
+ --    	avatar       = en_user.avatar,
+ --    	sign         = en_user.sign,
+ --    	c_role_id    = en_user.c_role_id,
+ --    	level        = en_user.level,
+ --    	recharge_rmb = en_user.recharge_rmb,
+ --    	recharge_diamond = en_user.recharge_diamond,
+ --    	uvip_progress    = en_user.uvip_progress,
+ --    	cp_hanging_id    = en_user.cp_hanging_id,
+ --    	uexp         = assert(en_u_propmgr:get_by_csv_id(const.EXP)):get_field("num"),
+ --    	gold         = assert(en_u_propmgr:get_by_csv_id(const.GOLD)):get_field("num"),
+ --    	diamond      = assert(en_u_propmgr:get_by_csv_id(const.DIAMOND)):get_field("num"),
+ --    	love         = assert(en_u_propmgr:get_by_csv_id(const.LOVE)):get_field("num"),
+	-- }
+	-- enemy.equipment_list = {}
+
+	-- for k,v in pairs(user.u_equipmentmgr.__data) do
+	-- 	table.insert(ret.user.equipment_list, v)
+	-- end
+	-- print("called****************************333")
+	-- ret.user.kungfu_list = {}
+	-- for k,v in pairs(user.u_kungfumgr.__data) do
+	-- 	table.insert(ret.user.kungfu_list, v)
+	-- end
+	-- print("called****************************444")
+	-- ret.user.rolelist = {}
+	-- for k,v in pairs(user.u_rolemgr.__data) do
+	-- 	table.insert(ret.user.rolelist, v)
+	-- end
+
+	-- enemy.user = {}
+	local x = 1
 	local ret = {}
 	ret.errorcode = errorcode[1].code
 	ret.msg = errorcode[1].msg
 	ret.bat_roleid[1] = u:get_field("ara_role_id1")
 	ret.bat_roleid[2] = u:get_field("ara_role_id2")
 	ret.bat_roleid[3] = u:get_field("ara_role_id3")
+	ret.e = enemy
 	return ret
 end
 
