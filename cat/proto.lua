@@ -1227,6 +1227,68 @@ ara_bat_exit 94 {
 	}
 }
 
+BeginArenaCoreFight 95 {
+    request {
+        monsterid 0 : integer
+    }   
+    response {
+        errorcode 0 : integer
+        firstfighter 1 : integer
+        delay_time 2 : integer
+    }   
+} 
+
+ArenaBattleList 96 {
+    request {
+        fightlist 0 : *BattleListElem
+    }   
+    response {
+        errorcode 0 : integer
+        msg 1 : string
+    }
+}
+
+TMP_BeginGUQNQIACoreFight 97
+{
+    request
+    {
+        monsterid 1 : integer
+    }
+    response
+    {
+        errorcode 1 : integer
+        msg 2 : string
+        firstfighter 3 : integer
+        kf_id 4 : integer
+        delay_time 5 : integer
+    }
+}
+
+TMP_GuanQiaBattleList 98
+{
+    request
+    {
+        fighterid 0 : integer
+        kf_id 1 : integer
+        attcktype 2 : integer
+        isdead 3 : integer
+        kf_prob 4 : integer
+        attach_effect 5 : integer
+        kf_type 6 : integer
+        attack 7 : integer
+        random_combo_num 8 : integer
+    }
+    response
+    {
+        errorcode 1 : integer
+        msg 2 : string
+        totalattack 3 : integer
+        effect 4 : integer
+        kf_id 5 : integer
+        loser 6 : integer
+    }
+}
+
 ]]
 
 proto.s2c = sprotoparser.parse [[

@@ -711,11 +711,11 @@ function REQUEST:GuanQiaBattleList()
 			ret.loser = 0
 		end
 
-		if 1 == fightinfo.attack_type then
-			ret.kf_id = 
-		else
+		-- if 1 == fightinfo.attack_type then
+		-- 	ret.kf_id = 
+		-- else
 
-		end
+		-- end
 
 		ret.totalattack = totalattack
 		ret.effect = effect

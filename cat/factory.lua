@@ -23,8 +23,8 @@ function cls:create_journal(sec, ... )
 	u_journalmgr:add(j)
 	j:update()
 	return j
-end
-
+end 	
+		
 function cls:get_today( ... )
 	-- body
 	assert(type(self) == "table")
@@ -60,8 +60,8 @@ function cls:create_ara_bat(p )
 	local mgr = self
 	local entity_cls = require "u_ara_batentity"
 	local entity = entity_cls.new()
-end
-
+end 	
+		
 function cls:create_user(uid)
 	-- body
 	local game = self._env:get_game()
