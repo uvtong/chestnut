@@ -2781,11 +2781,6 @@ function CMD:login(source, uid, sid, sct, g, d)
 
 	env:set_user(user)
 	login(user)
-	
-	for i=1,10 do
-		local uid = skynet.call(".game", "lua", "guid", const.DRAW)
-		print("######################################abc", uid)
-	end
 
 	return true
 end

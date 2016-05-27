@@ -317,7 +317,7 @@ function VIEW:validation()
 				-- body
 				for i,v in ipairs(r) do
 					for kk,vv in pairs(v) do
-						print_table(vv)
+						exe_percudure(vv)
 					end
 				end
 			end)
@@ -342,6 +342,113 @@ function VIEW:validation_ro()
 	if self.method == "post" then
 		local table_name = self.body["table_name"]
 		print_table(table_name)
+	end
+end
+
+local function exe_percudure(table_name)
+	-- body
+	-- local sql = "select TABLE_NAME from INFORMATION_SCHEMA.TABLES where TABLE_SCHEMA = " .. '"' .. "user" .. '"' .. "and TABLE_NAME NOT like" .. "'" .. "g_%" .. "'";
+    -- print(sql)
+    -- local table_list = db:query(sql)
+
+    -- for k, v in ipairs(table_list) do
+        -- print("db_table_list value: ", v)
+        local script =  {}
+        local tmpsql1 = {}
+        local tmpsql2 = {}
+        local tmpsql3 = {}
+        local tmpsql4 = {}
+
+        local sql = string.format("select COLUMN_NAME , DATA_TYPE , COLUMN_TYPE from information_schema.`COLUMNS` where table_name = " .. '"' .. "%s" .. '";', table_name)
+        print(sql)                     
+        local col_val = query.read(".rdb", table_name, sql)
+        assert(col_val)                 
+        for k, v in ipairs(col_val) do 
+            for sk, sv in pairs(v) do  
+                if sv == "int" then 
+                    -- print("string is ")
+                end                      
+                -- print(sk, sv, type(sv))
+            end                        
+        end                            
+                        
+        --format each percudure part   
+        local idx = 0                       
+        for sk, sv in ipairs(col_val) do
+            if idx > 0 then             
+                table.insert(tmpsql1, ", ")
+                table.insert(tmpsql2, ", ")
+                table.insert(tmpsql3, ", ")
+                table.insert(tmpsql4, ", ")
+            else
+                idx = 1
+            end 
+            
+            if sv.DATA_TYPE == "varchar" then
+                table.insert(tmpsql1, string.format("IN %s %s", "in_" .. sv.COLUMN_NAME, sv.COLUMN_TYPE))
+            else
+                table.insert(tmpsql1, string.format("IN %s %s", "in_" .. sv.COLUMN_NAME, sv.DATA_TYPE))
+            end
+
+            table.insert(tmpsql2, string.format("`%s`", sv.COLUMN_NAME))
+            table.insert(tmpsql3, string.format("in_%s", sv.COLUMN_NAME))
+            table.insert(tmpsql4, string.format("`%s` = in_%s", sv.COLUMN_NAME, sv.COLUMN_NAME))
+        end 
+        
+        table.insert(tmpsql1, ")\n")
+        table.insert(tmpsql2, ")")
+        table.insert(tmpsql3, ")\n")
+        table.insert(tmpsql4, ";\n")
+
+        --chain all tmpsqlx up
+        table.insert(script, "DELIMITER $$\n")
+        table.insert(script, string.format("CREATE DEFINER=`root`@`%%` PROCEDURE `%s`(", "qy_insert_" .. table_name))
+        table.insert(script, table.concat(tmpsql1))
+        table.insert(script, "BEGIN \n")
+        table.insert(script, string.format("insert into %s (%s values (%s", table_name, table.concat(tmpsql2), table.concat(tmpsql3)))
+        table.insert(script, string.format("on duplicate key update %s", table.concat(tmpsql4)))
+        table.insert(script, "END$$ \n")
+        table.insert(script, "DELIMITER ;")
+        local percudure = table.concat(script)
+        -- print("#####################################BEGIN")
+        -- print(percudure)
+        -- print("#####################################end")
+        -- query.write(".db", table_name, percudure)
+        return percudure
+    -- end 
+end
+
+function VIEW:percudure( ... )
+	-- body
+	if self.method == "post" then
+		local r = query.read(".rdb", "all", "select table_name from information_schema.tables where table_schema='project' and table_type='base table'")
+		if r then
+			local ok, result = pcall(function ()
+				-- body
+				local state = ""
+				for i,v in ipairs(r) do
+					for kk,vv in pairs(v) do
+						local s = exe_percudure(vv)
+						state = state .. s .. "\n"
+					end
+				end
+				local addr = io.open("./../cat/cat.sql", "w")
+				addr:write(state)
+				addr:close()
+			end)
+			if ok then
+				local ret = {}
+				ret.ok = 1
+				ret.msg = "succss"
+				return ret
+			else
+				print(result)
+				local ret = {}
+				ret.ok = 0
+				ret.msg = "failture"
+				return ret
+			end
+		end
 	end
 end
 

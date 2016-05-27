@@ -3,7 +3,7 @@ package.cpath = "./../cat/luaclib/?.so;" .. package.cpath
 local skynet = require "skynet"
 require "skynet.manager"
 require "functions"
-local sharedata = require "sharedata"
+local mc = require "multicast"
 local query = require "query"
 local util = require "util"
 local loader = require "load_game"
@@ -654,10 +654,12 @@ local function guid(csv_id)
 		local t = { csv_id=csv_id, entropy=1}
 		t = game.g_uidmgr:create(t)
 		game.g_uidmgr:add(t)
-		return t.entropy
+		return t:get_field("entropy")
 	else
-		r.entropy = tonumber(r.entropy) + 1
-		return r.entropy
+		local entropy = r:get_field("entropy")
+		entropy = entropy + 1
+		r:set_field("entropy", entropy)
+		return entropy
 	end
 end
 
@@ -683,7 +685,6 @@ end
 
 local function update_db()
 	-- body
-	local x = 1
 	while true do
 		if game then
 			-- x = x + 1
@@ -697,12 +698,30 @@ local function update_db()
 	end
 end
 
-local function test(g)
+local START_SUBSCRIBE = {}
+
+function START_SUBSCRIBE.finish(source, ...)
 	-- body
-	local mgr = g.g_achievementmgr
-	for k,v in pairs(mgr) do
-		print(k,v)
-	end
+	-- flush_db(const.DB_PRIORITY_1)
+	game.g_uidmgr:update()
+	print(string.format("the node agent %d will be finished. you should clean something.", skynet.self()))
+	skynet.send(source, "lua", "exit")
+end
+
+local function start_subscribe()
+	-- body
+	local c = skynet.call(".start_service", "lua", "register")
+	local c2 = mc.new {
+		channel = c,
+		dispatch = function (channel, source, cmd, ...)
+			-- body
+			local f = START_SUBSCRIBE[cmd]
+			if f then
+				f(source, ...)
+			end
+		end
+	}
+	c2:subscribe()
 end
 
 skynet.start(function()
@@ -716,7 +735,5 @@ skynet.start(function()
 	end)
 	game = loader.load_game()
 	skynet.fork(update_db)
-	-- local r = skynet.call(".db", "lua", "select", "g_uid")
-	-- local r = skynet.call(".db", "lua", "test")
-	-- print(r)
+	start_subscribe()
 end)

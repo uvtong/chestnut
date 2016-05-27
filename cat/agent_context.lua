@@ -25,7 +25,7 @@ function cls:ctor( ... )
 	center:register(center.events.EUSER_LEVEL, self.handler_user_level, self)
 
 	cls = require "factory"
-	local myfactory = cls.new(self, self._user)
+	local myfactory = cls.new(self)
 	self._myfactory = myfactory
 
 	cls = require "load_user"
