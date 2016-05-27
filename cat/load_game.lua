@@ -344,6 +344,15 @@ local function load_g_randomval(game)
 	game.g_randomvalmgr:load_data_to_sd()
 end
 
+local function load_g_role_coppy(game)
+	-- body
+	assert(nil == game.g_role_coppymgr)
+	local cls = require "models/g_role_coppymgr"
+	game.g_role_coppymgr = cls.new()
+	game.g_role_coppymgr:load_db()
+	game.g_role_coppymgr:load_data_to_sd()
+end
+
 local _M = {}
 
 function _M.load_randomval()
@@ -394,6 +403,7 @@ function _M.load_game()
 	load_g_equipment_effect(game)
 	load_g_lilian_phy_power(game)
 	load_g_monster(game)
+	load_g_role_coppy(game)
 	return game
 end
 

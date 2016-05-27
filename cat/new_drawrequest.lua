@@ -184,10 +184,8 @@ local function splitsubreward_bytype( typeid )
 	local g = sd.query("g_mainreward")
 	print("splitsubreward_bytype", #g)
 	for i,v in ipairs(g) do
-		print(i, v)
 		local key = string.format("%s:%d", "g_mainreward", v)
 		local value = sd.query(key)
-		print(value.csv_id, typeid)
 		if value.csv_id == typeid then
 			table.insert(sublist, value)
 		end
@@ -207,7 +205,6 @@ local function getgroupid( list , val )
 		if sub < val  then
 			sub = sub + list[i].probid
 		else    
-			print( "group is ************************" , list[ i + 1 ].groupid )
 			return list[i + 1].groupid
 		end 		
 	end 	
@@ -221,16 +218,6 @@ local function getpropidlist( dtype )
 			
 	local sublist = splitsubreward_bytype( dtype * 1000 )
 	assert( sublist )
-	for k, v in pairs(sublist) do
-		print("*************************",k, v)
-		if type(v) == "table" then
-
-			for sk, sv in pairs(v) do
-				print("&&&&&&&&&&&&&&&&&&&",sk, sv)
-			end
-		
-		end
-	end
 
 	if drawtype.TENTIME == dtype then
 		print( "dtype id in getpropidlis is " .. dtype )
@@ -239,7 +226,7 @@ local function getpropidlist( dtype )
 
 		for k , v in ipairs( trn ) do
 			local id = getgroupid( sublist , v )
-			print( "reward groupid is " , id )
+			--print( "reward groupid is " , id )
 			local key = string.format("%s:%d", "g_subreward", id)
 			local r = sd.query(key)
 			--local r = game.g_subrewardmgr:get_by_csv_id( id )
