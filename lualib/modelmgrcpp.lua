@@ -144,6 +144,7 @@ function cls.load_data_to_cache(t, pk, ... )
 			v:set()
 		end
 	end
+	t.__cache_flag = true
 end
 
 function cls.load_cache(t, pk)
@@ -213,11 +214,15 @@ end
 
 function cls.update(t, ...)
 	-- body
-	for k,v in pairs(t.__data) do
-		v:update()
-		-- if v.__col_updated > 2 then
-		-- 	v("update")
-		-- end
+	if t.__cache_flag then
+		for k,v in pairs(t.__data) do
+			v:update()
+			v:set()
+		end
+	else
+		for k,v in pairs(t.__data) do
+			v:update()
+		end	
 	end
 	-- if t.self_updata then
 	-- 	t:self_updata()
