@@ -86,7 +86,7 @@ end
 function cls.update(t, ...)
 	-- body
 	assert(t.__fields ~= nil)
-	if true or t.__col_updated > 1 then
+	if false or t.__col_updated > 1 then
 		-- print("*************************1")
 		t.__col_updated = 0
 		-- t:set(t, ...)
@@ -119,7 +119,7 @@ function cls.update(t, ...)
 		table.insert(tmp_sql, ")")
 		
 		local sql = table.concat(tmp_sql)
-		-- print(sql)
+		print(sql)
 		-- print(t.__wdb, t.__tname)
 		query.write(t.__wdb, t.__tname, sql, query.DB_PRIORITY_3)
 	end 
@@ -155,13 +155,15 @@ function cls.load_data_to_sd(t, ... )
 	end
 end
 
-function cls.set_field(t, k, v, ... )
+function cls.set_field(self, k, v, ... )
 	-- body
 	assert(k and v)
-	t.__ecol_updated[k] = self.__ecol_updated[k] + 1
+	assert(type(k) == "string")
+	self.__ecol_updated[k] = self.__ecol_updated[k] + 1
 	if self.__ecol_updated[k] == 1 then
 		self.__col_updated = self.__col_updated + 1
 	end
+	self.__fields[k] = v
 end
 
 function cls.get_field(t, k, ... )

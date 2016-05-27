@@ -1,14 +1,15 @@
 local skynet = require "skynet"
 local cls = class("factory")
 
-function cls:ctor(env, user, ... )
+function cls:ctor(env, ... )
 	-- body
 	self._env = env
-	self._user = user
 end
 
 function cls:create_journal( ... )
 	-- body
+	local modelmgr = self._env:get_modelemgr()
+	local u_journalmgr = modelmgr:get_u_journalmgr()
 	local t = {}
 	t["user_id"] = self._user:get_csv_id()
 	t["date"] = sec
@@ -16,18 +17,23 @@ function cls:create_journal( ... )
 	t["goods_refresh_reset_count"] = 0
 	t["ara_rfh_tms"] = 5
 	t["ara_bat_ser"] = 0
-	j = self._user.u_journalmgr:create_entity(t)
-	self._user.u_journalmgr:add(j)
+	u_journalmgr:create_entity(t)
+	u_journalmgr:add(j)
 	j:update()
 	return j
 end
 
 function cls:get_today( ... )
 	-- body
+	for k,v in pairs(self) do
+		print(k,v)
+	end
+	local modelmgr = self._env:get_modelemgr()
+	local u_journalmgr = modelmgr:get_u_journalmgr()
 	local t = os.date("*t", os.time())
 	t = { year=t.year, month=t.month, day=t.day}
 	local sec = os.time(t)
-	local j = self._user.u_journalmgr:get_by_date(sec)
+	local j = u_journalmgr:get_csv_id(sec)
 	if j then
 		return j
 	else

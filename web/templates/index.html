@@ -19,6 +19,10 @@
             <input id="mmtext" type="text"/>
             <input id="input1" type="submit" value="abc">
         </div>
+        <div>
+            <input id="mmtext1" type="text"/>
+            <input id="input2" type="submit" value="procedure">
+        </div>
 		<p id="msg"></p>
         <script src="//code.jquery.com/jquery-1.12.0.min.js"></script>
         <script type="text/javascript" src="http://code.highcharts.com/highcharts.js"></script>
@@ -54,6 +58,24 @@
                     var table_name = $("#mmtext").val() || "";
                     $.ajax({
                         url:"/validation_ro",
+                        type:"POST",
+                        data:{ table_name:table_name},
+                        dataType:"json",
+                        success:function (resp) {
+                            // body...
+                            $("#msg").html(resp.msg);
+                        },
+                        error:function () {
+                            // body...
+                            alert("error");
+                        }
+                    });
+                });
+                $("#input2").click(function () {
+                    // body...
+                    var table_name = $("#mmtext").val() || "";
+                    $.ajax({
+                        url:"/percudure",
                         type:"POST",
                         data:{ table_name:table_name},
                         dataType:"json",
