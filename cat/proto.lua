@@ -270,6 +270,13 @@ proto.c2s = sprotoparser.parse [[
     random_combo_num 8 : integer
 }
 
+.enemy {
+	user 0 : user
+	u_equipment 1 : *equipment
+    u_kungfu 2 : *kungfu_content
+    u_role 3 : *role
+}
+
 handshake 1 {
     response {
     	errorcode 0 : integer
@@ -1103,6 +1110,10 @@ ara_enter 79 {
 }
 
 ara_exit 80 {
+	response {
+		errorcode 0 : integer
+		msg 1 : string
+	}
 }
 
 ara_rfh 81 {
@@ -1198,6 +1209,7 @@ ara_choose_role_enter 91 {
 		errorcode 1 : integer
 		msg 2 : string
 		bat_roleid 3 : *integer
+		e 4 : enemy
 	}
 }
 
@@ -1212,19 +1224,9 @@ ara_choose_role 92 {
 }
 
 ara_bat_enter 93 {
-	request {
-
-	}
-	response {
-	
-	}
 }
 
 ara_bat_exit 94 {
-	request {
-	}
-	response {
-	}
 }
 
 BeginArenaCoreFight 95 {
@@ -1286,6 +1288,14 @@ TMP_GuanQiaBattleList 98
         effect 4 : integer
         kf_id 5 : integer
         loser 6 : integer
+    }
+}
+
+ara_lp 99 {
+    response {
+        errorcode 1 : integer
+        msg 2 : string
+        lp 3 : *suser
     }
 }
 

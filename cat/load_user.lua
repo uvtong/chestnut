@@ -356,7 +356,7 @@ end
 function cls:gen_user_remote(rm, ... )
 	-- body
 	local u = self._data["user"]
-	rm["user"] = u
+	rm["user"] = u.__fields
 end
 
 function cls:load_user(user_id)
@@ -368,6 +368,7 @@ function cls:load_user(user_id)
 		self._env:set_usersmgr(usersmgr)
 	end
 	usersmgr:load_db("pk", user_id)
+	usersmgr:load_data_to_cache(user_id)
 	local user = usersmgr:get(user_id)
 	self._data["user"] = user
 	self._env:set_user(user)
@@ -584,6 +585,7 @@ function cls:load_u_equipment()
 	local cls = require "models/u_equipmentmgr"
 	local u_equipmentmgr = cls.new()
 	u_equipmentmgr:load_db("fk", u:get_csv_id())
+	u_equipmentmgr:load_data_to_cache()
 	u_equipmentmgr:set_user(u)
 	self._data["u_equipmentmgr"] = u_equipmentmgr
 	u.u_equipmentmgr = u_equipmentmgr
@@ -623,6 +625,7 @@ function cls:load_u_kungfu()
 	local u_kungfumgr = cls.new()
 	u_kungfumgr:set_user(u)
 	u_kungfumgr:load_db("fk", u:get_csv_id())
+	u_kungfumgr:load_data_to_cache()
 	u_kungfumgr:set_user(u)
 	self._data["u_kungfumgr"] = u_kungfumgr
 	u.u_kungfumgr = u_kungfumgr
@@ -917,6 +920,7 @@ function cls:load_u_role(user)
 	local u_rolemgr = cls.new()
 	u_rolemgr:set_user(u)
 	u_rolemgr:load_db("fk", u:get_field("csv_id"))
+	u_rolemgr:load_data_to_cache()
 	self._data["u_rolemgr"] = u_rolemgr
 	u.u_rolemgr = u_rolemgr
 end

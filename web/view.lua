@@ -317,7 +317,8 @@ function VIEW:validation()
 				-- body
 				for i,v in ipairs(r) do
 					for kk,vv in pairs(v) do
-						exe_percudure(vv)
+						-- exe_percudure(vv)
+						print_table(vv)
 					end
 				end
 			end)

@@ -343,7 +343,8 @@ function util.get_total_property( user , uid , onbattleroleid)   -- zhijie ti sh
 		end 
 		print("id is ************************************", id)
 		role = user.u_rolemgr:get_by_csv_id( id )
-		assert(role) 
+
+		assert(role)
 		roles = user.u_rolemgr.__data
 		u = user
             

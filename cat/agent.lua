@@ -2287,12 +2287,15 @@ function REQUEST:ara_enter(ctx, ... )
 		ara_interface = 1
 		u:set_ara_interface(ara_interface)
 		local ara_fighting = u:get_ara_fighting()
-		assert(ara_fighting == -1)
+		assert(ara_fighting == 0)
 	end
+	print("##############################1")
 	local factory = ctx:get_myfactory()
 	local j = factory:get_today()
+	print("##############################2")
 	local ara_rfh_tms = j:get_ara_rfh_tms()
 	local l = ctx:ara_rfh()
+	print("##############################3")
 	local ret = {}
 	ret.errorcode = errorcode[1].code
 	ret.msg = errorcode[1].msg
@@ -2374,12 +2377,53 @@ function REQUEST:ara_choose_role_enter(ctx, ... )
 	arena:set_me(u)
 	arena:set_me_modelmgr(modelmgr)
 	arena:load_enemy(self.enemy_id)
+	local en_modelmgr = arena:get_en_modelmgr()
+	local enemy = en_modelmgr:gen_remote()
+
+	-- local en_user = en_modelmgr:get_user()
+	-- local en_u_propmgr = en_modelmgr:get_u_propmgr()
+	-- local enemy = {}
+	-- enemy.user = {
+	-- 	uname        = en_user.uname,
+ --    	uviplevel    = en_user.uviplevel,
+ --    	avatar       = en_user.avatar,
+ --    	sign         = en_user.sign,
+ --    	c_role_id    = en_user.c_role_id,
+ --    	level        = en_user.level,
+ --    	recharge_rmb = en_user.recharge_rmb,
+ --    	recharge_diamond = en_user.recharge_diamond,
+ --    	uvip_progress    = en_user.uvip_progress,
+ --    	cp_hanging_id    = en_user.cp_hanging_id,
+ --    	uexp         = assert(en_u_propmgr:get_by_csv_id(const.EXP)):get_field("num"),
+ --    	gold         = assert(en_u_propmgr:get_by_csv_id(const.GOLD)):get_field("num"),
+ --    	diamond      = assert(en_u_propmgr:get_by_csv_id(const.DIAMOND)):get_field("num"),
+ --    	love         = assert(en_u_propmgr:get_by_csv_id(const.LOVE)):get_field("num"),
+	-- }
+	-- enemy.equipment_list = {}
+
+	-- for k,v in pairs(user.u_equipmentmgr.__data) do
+	-- 	table.insert(ret.user.equipment_list, v)
+	-- end
+	-- print("called****************************333")
+	-- ret.user.kungfu_list = {}
+	-- for k,v in pairs(user.u_kungfumgr.__data) do
+	-- 	table.insert(ret.user.kungfu_list, v)
+	-- end
+	-- print("called****************************444")
+	-- ret.user.rolelist = {}
+	-- for k,v in pairs(user.u_rolemgr.__data) do
+	-- 	table.insert(ret.user.rolelist, v)
+	-- end
+
+	-- enemy.user = {}
+	local x = 1
 	local ret = {}
 	ret.errorcode = errorcode[1].code
 	ret.msg = errorcode[1].msg
 	ret.bat_roleid[1] = u:get_field("ara_role_id1")
 	ret.bat_roleid[2] = u:get_field("ara_role_id2")
 	ret.bat_roleid[3] = u:get_field("ara_role_id3")
+	ret.e = enemy
 	return ret
 end
 
@@ -2520,6 +2564,31 @@ function REQUEST:ara_convert_pts(ctx, ... )
 	end
 end
 
+function REQUEST:ara_lp(ctx, ... )
+	-- body
+	local u = ctx:get_user()
+end
+
+local function logout()
+	-- body
+	dc.set(user.csv_id, "client_fd", client_fd)
+	dc.set(user.csv_id, "online", false)
+	dc.set(user.csv_id, "addr", 0)
+
+	if gate then
+		skynet.call(gate, "lua", "logout", userid, subid)
+	end
+	skynet.exit()
+end
+
+function REQUEST:logout(ctx)
+	-- body
+	local u = ctx:get_user()
+	u:set_ifonline(0)
+	flush_db()
+	logout()
+end
+
 local function generate_session()
 	local session = 0
 	return function () 
@@ -2597,26 +2666,6 @@ local function response(session, args)
     else
     	assert(false, "pcall failed in response!")
     end
-end
-
-local function logout()
-	-- body
-	dc.set(user.csv_id, "client_fd", client_fd)
-	dc.set(user.csv_id, "online", false)
-	dc.set(user.csv_id, "addr", 0)
-
-	if gate then
-		skynet.call(gate, "lua", "logout", userid, subid)
-	end
-	skynet.exit()
-end
-
-function REQUEST:logout(ctx)
-	-- body
-	local u = ctx:get_user()
-	u:set_ifonline(0)
-	flush_db()
-	logout()
 end
 
 skynet.register_protocol {
@@ -2786,7 +2835,16 @@ function CMD:login(source, uid, sid, sct, g, d)
 
 	env:set_user(user)
 	login(user)
+<<<<<<< HEAD
 	
+=======
+	print("############################1")
+	local u_equipmentmgr = modelmgr:get_u_equipmentmgr()
+	for k,v in pairs(u_equipmentmgr:get_data()) do
+		print(k,v)
+	end
+	-- assert(false)
+>>>>>>> 4a40e2fd4e390508c960a7d856e63dd8fd55964b
 	return true
 end
 

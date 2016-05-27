@@ -100,6 +100,7 @@ end
 
 function CMD.ranking_range(s, e)
 	-- body
+	print("########################", 6)
 	assert(type(s) == "number")
 	assert(type(e) == "number")
 	assert(e > s)
@@ -113,6 +114,7 @@ end
 
 function CMD.nearby(uid)
 	-- body
+	print("########################", 4)
 	local res = {}
 	local lu = leaderboardsmgr:get(uid)
 	local ranking = lu:get_field("ranking")
