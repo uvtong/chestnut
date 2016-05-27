@@ -209,10 +209,10 @@ proto.c2s = sprotoparser.parse [[
 }
 
 .suser {
-    csv_id 0 : integer
+    uid 0 : integer
     uname 1 : string
     total_combat 2 : integer
-    ara_rnk 3 : integer
+    ranking 3 : integer
     iconid 4 : integer
 }
 
