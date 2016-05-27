@@ -4,7 +4,7 @@ require "skynet.manager"
 local util = require "util"
 local const = require "const"
 local game
-local loader = require "loader"
+local loader = require "load_game"
 local trandom
 
 local CMD = {}
