@@ -2835,16 +2835,6 @@ function CMD:login(source, uid, sid, sct, g, d)
 
 	env:set_user(user)
 	login(user)
-<<<<<<< HEAD
-	
-=======
-	print("############################1")
-	local u_equipmentmgr = modelmgr:get_u_equipmentmgr()
-	for k,v in pairs(u_equipmentmgr:get_data()) do
-		print(k,v)
-	end
-	-- assert(false)
->>>>>>> 4a40e2fd4e390508c960a7d856e63dd8fd55964b
 	return true
 end
 
