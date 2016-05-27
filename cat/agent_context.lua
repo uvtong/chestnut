@@ -1,5 +1,6 @@
 local skynet = require "skynet"
 require "skynet.manager"
+local dc = require "datacenter"
 local const = require "const"
 
 local cls = class("agent_context")
@@ -488,47 +489,53 @@ end
 function cls:ara_rfh( ... )
 	-- body
 	local l = {}
-	local u = ctx:get_user()
+	local u = self._user
 	local leaderboards_name = skynet.getenv("leaderboards_name")
 	local r1 = skynet.call(leaderboards_name, "lua", "ranking_range", 1, 10)
 	local r2 = skynet.call(leaderboards_name, "lua", "nearby", u:get_csv_id())
 	for i,v in ipairs(r1) do
-		local r = {}
-		r["csv_id"] = v.uid
-		r["ara_rnk"] = v.ranking
-		if dc.get(v.uid, "online") then
-			local addr = dc.get(id, "addr")
+		local li = {}
+		local ranking = i
+		local uid = v
+		li.ranking = ranking
+		li.uid = uid
+		li.top = true
+		if dc.get(uid, "online") then
+			local addr = dc.get(uid, "addr")
 			local u = skynet.call(addr, "lua", "user")
-			r["total_combat"] = u.total_combat
-			r["uname"] = u.uname
-			table.insert(l, v)
+			li["total_combat"] = u.total_combat
+			li["uname"] = u.uname
+			table.insert(l, li)
 		else
-			local usersmgr = ctx:get_usersmgr()
-			usersmgr:load_cache(v.uid)
-			local enemy = usersmgr:get(v.uid)
-			r["total_combat"] = 10
-			r["uname"] = enemy:get(v.uid)
-			table.insert(l, v)
+			local usersmgr = self:get_usersmgr()
+			usersmgr:load_cache(uid)
+			local enemy = usersmgr:get(uid)
+			li["total_combat"] = 10
+			li["uname"] = enemy:get(v.uid)
+			table.insert(l, li)
 		end
 	end
 
-	for i,v in ipairs(r2) do
-		local r = {}
-		r["csv_id"] = v.uid
-		r["ara_rnk"] = v.ranking
-		if dc.get(v.uid, "online") then
-			local addr = dc.get(id, "addr")
+	for i,v in pairs(r2) do
+		local li = {}
+		local ranking = i
+		local uid = v
+		li.ranking = ranking
+		li.uid = uid
+		li.top = false
+		if dc.get(uid, "online") then
+			local addr = dc.get(uid, "addr")
 			local u = skynet.call(addr, "lua", "user")
-			r["total_combat"] = u.total_combat
-			r["uname"] = u.uname
-			table.insert(l, v)
+			li["total_combat"] = u.total_combat
+			li["uname"] = u.uname
+			table.insert(l, li)
 		else
-			local usersmgr = ctx:get_usersmgr()
+			local usersmgr = self:get_usersmgr()
 			usersmgr:load_cache(v.uid)
 			local enemy = usersmgr:get(v.uid)
-			r["total_combat"] = 10
-			r["uname"] = enemy:get(v.uid)
-			table.insert(l, v)
+			li["total_combat"] = 10
+			li["uname"] = enemy:get(v.uid)
+			table.insert(l, li)
 		end
 	end
 	return l

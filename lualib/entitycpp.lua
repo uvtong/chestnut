@@ -119,7 +119,7 @@ function cls.update(t, ...)
 		table.insert(tmp_sql, ")")
 		
 		local sql = table.concat(tmp_sql)
-		print(sql)
+		-- print(sql)
 		-- print(t.__wdb, t.__tname)
 		query.write(t.__wdb, t.__tname, sql, query.DB_PRIORITY_3)
 	end 
@@ -128,7 +128,6 @@ end
 function cls.update_wait(t, ...)
 	assert(t.__fields ~= nil)
 	if true then
-		print("called******************************************************************")
 		t:update()
 		-- t.__col_updated = 0
 		-- local sql = t:gen_update_sql()
