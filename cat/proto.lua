@@ -1291,6 +1291,14 @@ TMP_GuanQiaBattleList 98
     }
 }
 
+ara_lp 99 {
+    response {
+        errorcode 1 : integer
+        msg 2 : string
+        lp 3 : *suser
+    }
+}
+
 ]]
 
 proto.s2c = sprotoparser.parse [[

@@ -2287,12 +2287,15 @@ function REQUEST:ara_enter(ctx, ... )
 		ara_interface = 1
 		u:set_ara_interface(ara_interface)
 		local ara_fighting = u:get_ara_fighting()
-		assert(ara_fighting == -1)
+		assert(ara_fighting == 0)
 	end
+	print("##############################1")
 	local factory = ctx:get_myfactory()
 	local j = factory:get_today()
+	print("##############################2")
 	local ara_rfh_tms = j:get_ara_rfh_tms()
 	local l = ctx:ara_rfh()
+	print("##############################3")
 	local ret = {}
 	ret.errorcode = errorcode[1].code
 	ret.msg = errorcode[1].msg
@@ -2561,6 +2564,31 @@ function REQUEST:ara_convert_pts(ctx, ... )
 	end
 end
 
+function REQUEST:ara_lp(ctx, ... )
+	-- body
+	local u = ctx:get_user()
+end
+
+local function logout()
+	-- body
+	dc.set(user.csv_id, "client_fd", client_fd)
+	dc.set(user.csv_id, "online", false)
+	dc.set(user.csv_id, "addr", 0)
+
+	if gate then
+		skynet.call(gate, "lua", "logout", userid, subid)
+	end
+	skynet.exit()
+end
+
+function REQUEST:logout(ctx)
+	-- body
+	local u = ctx:get_user()
+	u:set_ifonline(0)
+	flush_db()
+	logout()
+end
+
 local function generate_session()
 	local session = 0
 	return function () 
@@ -2638,26 +2666,6 @@ local function response(session, args)
     else
     	assert(false, "pcall failed in response!")
     end
-end
-
-local function logout()
-	-- body
-	dc.set(user.csv_id, "client_fd", client_fd)
-	dc.set(user.csv_id, "online", false)
-	dc.set(user.csv_id, "addr", 0)
-
-	if gate then
-		skynet.call(gate, "lua", "logout", userid, subid)
-	end
-	skynet.exit()
-end
-
-function REQUEST:logout(ctx)
-	-- body
-	local u = ctx:get_user()
-	u:set_ifonline(0)
-	flush_db()
-	logout()
 end
 
 skynet.register_protocol {

@@ -493,6 +493,7 @@ function cls:ara_rfh( ... )
 	local leaderboards_name = skynet.getenv("leaderboards_name")
 	local r1 = skynet.call(leaderboards_name, "lua", "ranking_range", 1, 10)
 	local r2 = skynet.call(leaderboards_name, "lua", "nearby", u:get_csv_id())
+	print("############################", 7, r2)
 	for i,v in ipairs(r1) do
 		local li = {}
 		local ranking = i
@@ -500,13 +501,16 @@ function cls:ara_rfh( ... )
 		li.ranking = ranking
 		li.uid = uid
 		li.top = true
+		print('############################33', 11)
 		if dc.get(uid, "online") then
+			print('############################33', 9)
 			local addr = dc.get(uid, "addr")
 			local u = skynet.call(addr, "lua", "user")
 			li["total_combat"] = u.total_combat
 			li["uname"] = u.uname
 			table.insert(l, li)
 		else
+			print('############################33', 10)
 			local usersmgr = self:get_usersmgr()
 			usersmgr:load_cache(uid)
 			local enemy = usersmgr:get(uid)
@@ -515,7 +519,7 @@ function cls:ara_rfh( ... )
 			table.insert(l, li)
 		end
 	end
-
+	print("#########################333", 8)
 	for i,v in pairs(r2) do
 		local li = {}
 		local ranking = i
