@@ -308,7 +308,7 @@ local function collect_info_from_g_role_effect( bufferid , ttotal )
 	while i <= 8 do
 		local property_id = "property_id" .. i
 		local value = "value" .. i
-
+		
 		local index = gre[ property_id ] 
 		assert( index )
 		--print( index , gre[ value ] )
@@ -317,7 +317,7 @@ local function collect_info_from_g_role_effect( bufferid , ttotal )
 		end 
 		i = i + 1
 	end		
-end	
+end		
 	--[[ if online ( user , nil , propertyname ) , if not online ( nil , uid , propertyname )                  ]]
 function util.get_total_property( user , uid , onbattleroleid)   -- zhijie ti sheng zhan dou li gu ding zhi hai mei you ,  
 	local uequip --zhuangbei
@@ -330,11 +330,7 @@ function util.get_total_property( user , uid , onbattleroleid)   -- zhijie ti sh
  		
 	if user then
 		uequip = user.u_equipmentmgr.__data
-            for k, v in pairs(user.u_equipmentmgr.__data) do
-            	print(k, v)
-            end
-            assert(uequip ~= nil)
-            assert(false)
+        
 		local id
 		if not onbattleroleid then
 			id = user:get_c_role_id()
@@ -418,10 +414,10 @@ function util.get_total_property( user , uid , onbattleroleid)   -- zhijie ti sh
 			end
 		end		
 	end 	    
-	print("after equipment is ************************", ttotal[1], ttotal[7])
+	print("after equipment is ************************", ttotal[1], ttotal[7], ttotal[4], ttotal[8])
 	-- role battle property
 	collect_info_from_g_role_effect( role.battle_buffer_id , ttotal )
-	print("after role battle is ****************************", ttotal[1], ttotal[7])
+	print("after role battle is ****************************", ttotal[1], ttotal[7], ttotal[4], ttotal[8])
 
 	-- xilian property
 	if 1 == u.ifxilian then
@@ -440,7 +436,7 @@ function util.get_total_property( user , uid , onbattleroleid)   -- zhijie ti sh
 			i = i + 1
 		end 
 	end     
-	print("after xilian is***************************************", ttotal[1], ttotal[7])
+	print("after xilian is***************************************", ttotal[1], ttotal[7], ttotal[4], ttotal[8])
 	--role equiped kungfu property
 	local i = 1
 	while i <= 7 do 
@@ -456,7 +452,7 @@ function util.get_total_property( user , uid , onbattleroleid)   -- zhijie ti sh
 
 		i = i + 1 
 	end     
-	print("after equiped kungfu is *****************************", ttotal[1], ttotal[7])
+	print("after equiped kungfu is *****************************", ttotal[1], ttotal[7], ttotal[4], ttotal[8])
 	--user kungfu property
 	for k, v in ipairs(ukf) do
 		local gk = skynet.call( ".game" , "lua" , "query_g_kungfu" , v )
@@ -464,13 +460,13 @@ function util.get_total_property( user , uid , onbattleroleid)   -- zhijie ti sh
 		collect_info_from_g_role_effect( gk.equip_buff_id , ttotal )
 	end
 
-	print("after user kungfu is ************************************", ttotal[1], ttotal[7])
+	print("after user kungfu is ************************************", ttotal[1], ttotal[7], ttotal[4], ttotal[8])
 	--rolecollect property
 	for k , v in pairs( roles ) do
 		collect_info_from_g_role_effect( v.gather_buffer_id , ttotal )
 	end
 
-	print("after rolwcollect is ***************************************", ttotal[1], ttotal[7])
+	print("after rolwcollect is ***************************************", ttotal[1], ttotal[7], ttotal[4], ttotal[8])
 	--basic property
 	ttotal[ 1 ] = ttotal[ 1 ] + u.combat
 	ttotal[ 2 ] = ttotal[ 2 ] + u.defense
@@ -486,7 +482,6 @@ function util.get_total_property( user , uid , onbattleroleid)   -- zhijie ti sh
 	end	  
 
 	print( "final combat and percent is ************" , result[ 1 ] , result[ 2 ] , result[ 3 ] , result[ 4 ])
-	assert(false)
 	return result
 end  			
 			

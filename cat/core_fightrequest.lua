@@ -365,7 +365,6 @@ function REQUEST:BeginGUQNQIACoreFight(ctx)
 	reset(Enemy)
     
 	local ret = {}
-	assert(kf_common == nil and kf_common == nil)
 	if not kf_common or not kf_combo then
 		get_kf_common_and_combo()
 	end 		
