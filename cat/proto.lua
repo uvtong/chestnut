@@ -1106,6 +1106,7 @@ ara_enter 79 {
         ara_rfh_tms 8 : integer
         ara_rfh_cost_tms 9 : integer
         ara_clg_cost_tms 10 : integer
+        ara_rfh_cd 11 : integer
     }
 }
 
@@ -1121,6 +1122,7 @@ ara_rfh 81 {
         errorcode 0 : integer
         msg 1 : string
         ara_rmd_list 2 : *suser
+        ara_rfh_cd 3 : integer
     }
 }
 

@@ -500,6 +500,7 @@ function cls:ara_rfh( ... )
 		li.ranking = ranking
 		li.uid = uid
 		li.top = true
+		print("################################ara_rfh", li.uid)
 		local usersmgr = self._usersmgr
 		if usersmgr:get(uid) then
 			local u = usersmgr:get(uid)

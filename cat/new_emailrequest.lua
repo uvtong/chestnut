@@ -235,7 +235,7 @@ function SUBSCRIBE:email(ctx, tvals , ... ) -- get email from channl , a email t
 
 	tvals.uid = user.csv_id
 	print( "*********************************email csv_id is " , tvals.csv_id )
-	local v =user.u_new_emailmgr:recvemail( tvals )
+	local v = user.u_new_emailmgr:recvemail( tvals )
 	assert( v )
 
 	--[[local ret = {}
