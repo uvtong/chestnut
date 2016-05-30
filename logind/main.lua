@@ -82,7 +82,7 @@ skynet.start(function()
 		skynet.newservice("channel")
 
 		-- read
-		local game = skynet.newservice("game")
+		local game = skynet.uniqueservice("game")
 		skynet.name(".game", game)
 
 		skynet.newservice("simpledb")

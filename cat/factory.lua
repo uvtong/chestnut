@@ -78,7 +78,7 @@ function cls:create_user(uid)
 		combat=level.combat, 
 		defense=level.defense, 
 		critical_hit=level.critical_hit, 
-		blessing=0,
+		blessing=level.skill,
 		permission = 1,
 		group = 0, 
 		modify_uname_count=0, 

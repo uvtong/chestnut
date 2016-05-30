@@ -159,6 +159,7 @@ function cls.load_cache(t, pk)
 			t:add(r)
 		else
 			t:load_db("pk", pk)
+			t:load_data_to_cache(pk)
 		end
 	end
 end
