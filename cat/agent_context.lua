@@ -500,7 +500,13 @@ function cls:ara_rfh( ... )
 		li.ranking = ranking
 		li.uid = uid
 		li.top = true
-		if dc.get(uid, "online") then
+		local usersmgr = self._usersmgr
+		if usersmgr:get(uid) then
+			local u = usersmgr:get(uid)
+			li["total_combat"] = u:get_field("sum_combat")
+			li["uname"] = u:get_field("uname")
+			table.insert(l, li)
+		elseif dc.get(uid, "online") then
 			local addr = dc.get(uid, "addr")
 			local u = skynet.call(addr, "lua", "user")
 			li["total_combat"] = u.total_combat
@@ -522,7 +528,13 @@ function cls:ara_rfh( ... )
 		li.ranking = ranking
 		li.uid = uid
 		li.top = false
-		if dc.get(uid, "online") then
+		local usersmgr = self._usersmgr
+		if usersmgr:get(uid) then
+			local u = usersmgr:get(uid)
+			li["total_combat"] = u:get_field("sum_combat")
+			li["uname"] = u:get_field("uname")
+			table.insert(l, li)
+		elseif dc.get(uid, "online") then
 			local addr = dc.get(uid, "addr")
 			local u = skynet.call(addr, "lua", "user")
 			li["total_combat"] = 10
@@ -550,17 +562,6 @@ function cls:ara_bat_clg(enemy_id, ... )
 		u:set_ara_fighting(0)
 		return false
 	end
-
-	
-	local tmp = dc.get(self._user_id)
-	if tmp then
-		-- this node
-		local addr = tmp.addr
-		local r = skynet.call(addr, "lua", "ara_info")
-		local enemy = ctx.usersmgr.create(r)
-		-- local u_rolemgr = 
-	end
-	u:set_ara_fighting(1)
 	return true
 end
 

@@ -9,6 +9,7 @@ local const = require "const"
 local dc = require "datacenter"
 local u_emailmgr_cls = require "models/u_new_emailmgr"
 local u_emailmgr = u_emailmgr_cls.new()	
+
 local public_emailmgr_cls = require "models/public_emailmgr"
 local public_emailmgr = public_emailmgr_cls.new()
 local query = require "query"
@@ -186,6 +187,7 @@ end --]]
 	
 function CMD.send_email_to_group(source, tval , tucsv_id )
 	assert( tval and tucsv_id )
+
 	print( "send to group is called" )
 	tval.acctime = os.time() -- an integer
 	tval.isread = 0
@@ -201,13 +203,13 @@ function CMD.send_email_to_group(source, tval , tucsv_id )
 			tval[num] = 0
 		end
 	end
-	
+
 	for _ , v in ipairs( tucsv_id ) do
 		assert(v.uid)
 		tval.csv_id = skynet.call(".game", "lua" , "u_guid" , v.uid, const.UEMAILENTROPY )
 		--tval.id = skynet.call(".game", "lua", "guid", const.U_PUBLIC_EMAILENTROPY)
 		tval.uid = v.uid
-		print("********************************eamil", tval.csv_id)
+		tval.id = genpk_2(tval.uid, tval.csv_id)
 		local t = dc.get( v.uid )
 		--[[ id user online then send directly , else insert into db --]]
 		if t then 

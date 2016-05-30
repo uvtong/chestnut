@@ -123,7 +123,11 @@ function cls:signup(uid)
 	u.u_drawmgr = cls.new()
 	self._data["u_drawmgr"] = u.u_drawmgr
 	self._data["u_drawmgr"]:set_user(u)
-	-- u.u_new_emailmgr = u_new_emailmgr 
+	cls = require "models/u_new_emailmgr"
+	local u_new_emailmgr = cls.new()
+	u_new_emailmgr:set_user(u)
+	u.u_new_emailmgr = u_new_emailmgr 
+	self._data["u_new_emailmgr"] = u_new_emailmgr
 	cls = require "models/u_propmgr"
 	u.u_propmgr = cls.new()
 	self._data["u_propmgr"] = u.u_propmgr
@@ -198,15 +202,33 @@ function cls:signup(uid)
 	u.u_propmgr:update_wait()
 
 	--add email
-	local newemail = { 
-					   type = 1 , title = "new user email" , 
-					   content = "Welcome to the game" , 
-					   itemsn1 = 1 , itemnum1 = 100000 , 
-					   itemsn2 = 2 , itemnum2 = 100000 , 
-					   itemsn3 = 3 , itemnum3 = 100000
-					}  
-	skynet.send(".channel", "lua", "send_email_to_group", newemail,  { { uid = u:get_csv_id() } })
 
+	local newemail = {}
+	newemail.type = 1
+	newemail.title = "new user email"
+	newemail.content = "Welcome to the game"
+	newemail.itemsn1 = 1 
+	newemail.itemnum1 = 100000
+	newemail.itemsn2 = 2
+	newemail.itemnum2 = 100000
+	newemail.itemsn3 = 3
+	newemail.itemnum3 = 100000
+	newemail.itemsn4 = 3
+	newemail.itemnum4 = 100000
+	newemail.itemsn5 = 3
+	newemail.itemnum5 = 100000
+	newemail.acctime = os.time() -- an integer
+	newemail.isread = 0
+	newemail.isreward = 0
+	newemail.isdel = 0
+	newemail.deltime = 0
+	newemail.uid = u:get_field("csv_id")
+	newemail.csv_id = skynet.call(".game", "lua" , "u_guid" , newemail.uid, const.UEMAILENTROPY)
+	newemail.id = genpk_2(u:get_field("csv_id"), newemail.csv_id)
+	local email = self._data["u_new_emailmgr"]:create_entity(newemail)
+	self._data["u_new_emailmgr"]:add(email)
+	email:update_db()
+	
 	for i=1,8 do
 		local csv_id = i * 1000 + 1
 		local a = skynet.call(".game", "lua", "query_g_achievement", csv_id)
@@ -365,10 +387,11 @@ end
 
 function cls:load_user(user_id)
 	-- body
-	local usersmgr = self._env:get_usersmgr()
+	local usersmgr = self:get_usersmgr()
 	if usersmgr == nil then
 		local cls = require "models/usersmgr"
 	 	usersmgr = cls.new()
+	 	self._data["usersmgr"] = usersmgr
 		self._env:set_usersmgr(usersmgr)
 	end
 	usersmgr:load_db("pk", user_id)
@@ -383,7 +406,12 @@ function cls:get_user( ... )
 	-- body
 	return self._data["user"]
 end	       
-	        
+
+function cls:get_usersmgr( ... )
+	-- body
+	return self._data["usersmgr"]
+end
+
 function cls:load_u_new_friend()
 	local u = self:get_user()
 	local cls = require "models/u_new_friend"
@@ -708,7 +736,7 @@ function cls:load_u_new_email()
 end 
    
 function cls:get_u_emailmgr( ... )
-	return self._data["u_emailmgr"]
+	return self._data["u_new_emailmgr"]
 end    
 
 function cls:load_u_lilian_main()
