@@ -7,7 +7,8 @@ local util = require "util"
 local loader = require "load_game"
 local const = require "const"
 local dc = require "datacenter"
-local u_emailmgr = require "models/u_new_emailmgr"	
+local u_emailmgr_cls = require "models/u_new_emailmgr"
+local u_emailmgr = u_emailmgr_cls.new()	
 local public_emailmgr_cls = require "models/public_emailmgr"
 local public_emailmgr = public_emailmgr_cls.new()
 local query = require "query"
@@ -118,7 +119,7 @@ function CMD.send_public_email_to_all(source, tvals )
 	assert( tvals.csv_id )
 		
 	channel:publish( "email" , tvals )
-
+	
 	tvals = public_emailmgr:create( tvals )
 	assert( tvals )
 	public_emailmgr:add( tvals )
@@ -146,7 +147,7 @@ end
 	print( "channel send_email_to_all is called" )
 	
 	assert( tvals )
-
+	
 	tvals.acctime = os.time() -- an integer
 	tvals.isread = 0
 	tvals.isreward = 0
@@ -163,7 +164,7 @@ end
 			tvals[num] = 0
 		end
 	end
-
+	
 	channel:publish( "email" , tvals )
 	local sql = "select csv_id from users where ifonline = 0" -- in users , csv_id now is "uid".
 	local r = skynet.call( util.random_db() , "lua" , "command" , "query" , sql )
@@ -179,13 +180,12 @@ end
 		--ne:__insert_db()
 		table.insert( tmp , ne )	
 	end 
-
+	
 	u_emailmgr.insert_db( tmp )
 end --]]
-
+	
 function CMD.send_email_to_group(source, tval , tucsv_id )
 	assert( tval and tucsv_id )
-	assert(false)
 	print( "send to group is called" )
 	tval.acctime = os.time() -- an integer
 	tval.isread = 0
@@ -201,10 +201,11 @@ function CMD.send_email_to_group(source, tval , tucsv_id )
 			tval[num] = 0
 		end
 	end
-
+	
 	for _ , v in ipairs( tucsv_id ) do
 		assert(v.uid)
 		tval.csv_id = skynet.call(".game", "lua" , "u_guid" , v.uid, const.UEMAILENTROPY )
+		--tval.id = skynet.call(".game", "lua", "guid", const.U_PUBLIC_EMAILENTROPY)
 		tval.uid = v.uid
 		print("********************************eamil", tval.csv_id)
 		local t = dc.get( v.uid )
@@ -213,20 +214,21 @@ function CMD.send_email_to_group(source, tval , tucsv_id )
 			skynet.send( t.addr , "lua" , "newemail" , "newemail" , tval )
 		else
 			print( "get a new useremail**************************" )
+			tval.id = 
 
-			local ne = u_emailmgr.create( tval )
-			ne:__insert_db( const.DB_PRIORITY_2)
+			local ne = u_emailmgr:create( tval )
+			ne:update_db()
 		end	
 	end 	
-
+	print("send email is over****************************************************")
 end 		
-
+	
 local function load_public_email()
 	-- body
 	local sql = string.format("select * from public_email")
 	local r = query.read(".rdb", "public_email", sql)
 	assert(r.errno == nil)
-
+	
 	for i , v in ipairs ( r ) do
 		local t = public_emailmgr:create( v )
 		public_emailmgr:add( t )

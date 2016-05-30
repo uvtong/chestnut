@@ -196,7 +196,7 @@ function cls:signup(uid)
 	prop = u.u_propmgr:create_entity(prop)
 	u.u_propmgr:add(prop)
 	u.u_propmgr:update_wait()
-	
+
 	--add email
 	local newemail = { 
 					   type = 1 , title = "new user email" , 
@@ -205,8 +205,8 @@ function cls:signup(uid)
 					   itemsn2 = 2 , itemnum2 = 100000 , 
 					   itemsn3 = 3 , itemnum3 = 100000
 					}  
-	skynet.send(".channel", "lua", "send_email_to_group", newemail,  { { uid = u.csv_id } })
-	
+	skynet.send(".channel", "lua", "send_email_to_group", newemail,  { { uid = u:get_csv_id() } })
+
 	for i=1,8 do
 		local csv_id = i * 1000 + 1
 		local a = skynet.call(".game", "lua", "query_g_achievement", csv_id)
