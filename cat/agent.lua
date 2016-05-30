@@ -2576,6 +2576,7 @@ function REQUEST:ara_lp(ctx, ... )
 		li.ranking = ranking
 		li.uid = uid
 		li.top = true
+		print("#########################ara_lp", li.uid)
 		local usersmgr = ctx:get_usersmgr()
 		if usersmgr:get(uid) then
 			local u = usersmgr:get(uid)
