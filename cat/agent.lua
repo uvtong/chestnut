@@ -2292,23 +2292,20 @@ function REQUEST:ara_enter(ctx, ... )
 		local ara_fighting = u:get_ara_fighting()
 		assert(ara_fighting == 0)
 	end
-	print("##############################1")
 	local factory = ctx:get_myfactory()
 	local j = factory:get_today()
-	print("##############################2")
 	local ara_rfh_tms = j:get_ara_rfh_tms()
 	local l = ctx:ara_rfh()
-	print("##############################3")
 	local ret = {}
 	ret.errorcode = errorcode[1].code
 	ret.msg = errorcode[1].msg
 	ret.ara_rmd_list = l
-	ret.ara_win_tms = u:get_field("ara_win_tms")
-	ret.ara_lose_tms = u:get_field("ara_lose_tms")
-	ret.ara_tie_tms = u:get_field("ara_tie_tms")
-	ret.ara_clg_tms = u:get_field("ara_clg_tms")
-	ret.ara_integral = u:get_field("ara_integral")
-	ret.ara_rfh_tms = ara_rfh_tms
+	ret.ara_win_tms      = u:get_field("ara_win_tms")
+	ret.ara_lose_tms     = u:get_field("ara_lose_tms")
+	ret.ara_tie_tms      = u:get_field("ara_tie_tms")
+	ret.ara_clg_tms      = u:get_field("ara_clg_tms")
+	ret.ara_integral     = u:get_field("ara_integral")
+	ret.ara_rfh_tms      = ara_rfh_tms
 	ret.ara_rfh_cost_tms = u:get_field("ara_rfh_cost_tms")
 	ret.ara_clg_cost_tms = u:get_field("ara_clg_cost_tms")
 	return ret
@@ -2569,7 +2566,42 @@ end
 
 function REQUEST:ara_lp(ctx, ... )
 	-- body
-	local u = ctx:get_user()
+	local leaderboards_name = skynet.getenv("leaderboards_name")
+	local r1 = skynet.call(leaderboards_name, "lua", "ranking_range", 1, 10)
+	local l = {}
+	for i,v in ipairs(r1) do
+		local li = {}
+		local ranking = i
+		local uid = v
+		li.ranking = ranking
+		li.uid = uid
+		li.top = true
+		local usersmgr = ctx:get_usersmgr()
+		if usersmgr:get(uid) then
+			local u = usersmgr:get(uid)
+			li["total_combat"] = u:get_field("sum_combat")
+			li["uname"] = u:get_field("uname")
+			table.insert(l, li)
+		elseif dc.get(uid, "online") then
+			local addr = dc.get(uid, "addr")
+			local u = skynet.call(addr, "lua", "user")
+			li["total_combat"] = u["user"].sum_combat
+			li["uname"] = u["user"].uname
+			table.insert(l, li)
+		else
+			local usersmgr = ctx:get_usersmgr()
+			usersmgr:load_cache(uid)
+			local u = usersmgr:get(uid)
+			li["total_combat"] = u:get_field("sum_combat")
+			li["uname"] = u:get_field("uname")
+			table.insert(l, li)
+		end
+	end
+	local ret = {}
+	ret.errorcode = errorcode[1].code
+	ret.msg = errorcode[1].msg
+	ret.lp = l
+	return ret
 end
 
 local function logout()
@@ -2845,7 +2877,7 @@ end
 
 function CMD:logout(source)
 	-- body
-	skynet.error(string.format("%s is logout", userid))
+	skynet.error(string.format("%s is logout", self:get_userid()))
 	logout()
 end
 
@@ -2856,7 +2888,7 @@ end
 
 function CMD:user(source, ... )
 	-- body
-	local u = env:get_user()
+	local u = self:get_user()
 	local r = {}
 	r.uname = u:get_uname()
 	r.total_combat = 10

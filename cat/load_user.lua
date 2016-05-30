@@ -361,10 +361,11 @@ end
 
 function cls:load_user(user_id)
 	-- body
-	local usersmgr = self._env:get_usersmgr()
+	local usersmgr = self:get_usersmgr()
 	if usersmgr == nil then
 		local cls = require "models/usersmgr"
 	 	usersmgr = cls.new()
+	 	self._data["usersmgr"] = usersmgr
 		self._env:set_usersmgr(usersmgr)
 	end
 	usersmgr:load_db("pk", user_id)
@@ -379,7 +380,12 @@ function cls:get_user( ... )
 	-- body
 	return self._data["user"]
 end	       
-	        
+
+function cls:get_usersmgr( ... )
+	-- body
+	return self._data["usersmgr"]
+end
+
 function cls:load_u_new_friend()
 	local u = self:get_user()
 	local cls = require "models/u_new_friend"
