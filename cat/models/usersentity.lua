@@ -78,6 +78,10 @@ function cls:ctor(mgr, P, ... )
 			ara_interface = 0,
 			ara_rfh_cost_tms = 0,
 			ara_clg_cost_tms = 0,
+			sum_combat = 0,
+			sum_defense = 0,
+			sum_critical_hit = 0,
+			sum_king = 0,
 		}
 
 	self.__ecol_updated = {
@@ -145,6 +149,10 @@ function cls:ctor(mgr, P, ... )
 			ara_interface = 0,
 			ara_rfh_cost_tms = 0,
 			ara_clg_cost_tms = 0,
+			sum_combat = 0,
+			sum_defense = 0,
+			sum_critical_hit = 0,
+			sum_king = 0,
 		}
 
 	for k,v in pairs(self.__head) do
@@ -1111,6 +1119,66 @@ end
 function cls:get_ara_clg_cost_tms( ... )
 	-- body
 	return self.__fields.ara_clg_cost_tms
+end
+
+function cls:set_sum_combat(v, ... )
+	-- body
+	assert(v)
+	self.__ecol_updated["sum_combat"] = self.__ecol_updated["sum_combat"] + 1
+	if self.__ecol_updated["sum_combat"] == 1 then
+		self.__col_updated = self.__col_updated + 1
+	end
+	self.__fields.sum_combat = v
+end
+
+function cls:get_sum_combat( ... )
+	-- body
+	return self.__fields.sum_combat
+end
+
+function cls:set_sum_defense(v, ... )
+	-- body
+	assert(v)
+	self.__ecol_updated["sum_defense"] = self.__ecol_updated["sum_defense"] + 1
+	if self.__ecol_updated["sum_defense"] == 1 then
+		self.__col_updated = self.__col_updated + 1
+	end
+	self.__fields.sum_defense = v
+end
+
+function cls:get_sum_defense( ... )
+	-- body
+	return self.__fields.sum_defense
+end
+
+function cls:set_sum_critical_hit(v, ... )
+	-- body
+	assert(v)
+	self.__ecol_updated["sum_critical_hit"] = self.__ecol_updated["sum_critical_hit"] + 1
+	if self.__ecol_updated["sum_critical_hit"] == 1 then
+		self.__col_updated = self.__col_updated + 1
+	end
+	self.__fields.sum_critical_hit = v
+end
+
+function cls:get_sum_critical_hit( ... )
+	-- body
+	return self.__fields.sum_critical_hit
+end
+
+function cls:set_sum_king(v, ... )
+	-- body
+	assert(v)
+	self.__ecol_updated["sum_king"] = self.__ecol_updated["sum_king"] + 1
+	if self.__ecol_updated["sum_king"] == 1 then
+		self.__col_updated = self.__col_updated + 1
+	end
+	self.__fields.sum_king = v
+end
+
+function cls:get_sum_king( ... )
+	-- body
+	return self.__fields.sum_king
 end
 
 

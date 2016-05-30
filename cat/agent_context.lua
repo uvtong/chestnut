@@ -187,14 +187,14 @@ function cls:get_arena( ... )
 	-- body
 	return self._arena
 end
-
+                               
 function cls:set_arena(v, ... )
-	-- body
-	self._arena = v
-end
-
+	-- body                    
+	self._arena = v            
+end                            
+                               
 function cls:raise_achievement(T)
-	-- body
+	-- body                    
 	assert(T)
 	while true do 
 		local a = assert(self._user.u_achievementmgr:get_by_type(T))
@@ -437,7 +437,7 @@ function cls:role_recruit(csv_id)
 	local prop = self._user.u_propmgr:get_by_csv_id(role.us_prop_csv_id)
 	if prop and prop.num >= assert(us.us_prop_num) then
 		prop.num = prop.num - us.us_prop_num
-		role.user_id = self.user.csv_id
+		role.user_id = self._user.csv_id
 		for k,v in pairs(us) do
 			role[k] = v
 		end
@@ -448,7 +448,7 @@ function cls:role_recruit(csv_id)
 		role.k_csv_id5 = 0
 		role.k_csv_id6 = 0
 		role.k_csv_id7 = 0
-		if self.user.ifxilian == 1 then
+		if self._user.ifxilian == 1 then
 			local n, r = self.xilian(role, {role_id=role.csv_id, is_locked1=false, is_locked2=false, is_locked3=false, is_locked4=false, is_locked5=false})
 			assert(n == 0, string.format("%d locked.", n))
 			role.property_id1 = r.property_id1
@@ -473,8 +473,8 @@ function cls:role_recruit(csv_id)
 			role.property_id5 = 0
 			role.value5 = 0
 		end
-		role = self.user.u_rolemgr.create(role)
-		self.user.u_rolemgr:add(role)
+		role = self._user.u_rolemgr.create(role)
+		self._user.u_rolemgr:add(role)
 		role:__insert_db(const.DB_PRIORITY_2)
 	end
 end
@@ -562,9 +562,7 @@ function cls:ara_bat_clg(enemy_id, ... )
 		u:set_ara_fighting(0)
 		return false
 	end
-
 	return true
-	
 end
 
 function cls:ara_bat_ovr(win, ... )

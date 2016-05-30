@@ -244,7 +244,7 @@ end
 	
 function cls.create_entity(t, p)
 	-- body
-	local entity = require("models/"..t.__entity)
+	local entity = require("models/" .. t.__entity)
 	local r = entity.new(t, p)
 	return r
 end 

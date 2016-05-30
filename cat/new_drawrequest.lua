@@ -5,7 +5,7 @@ local skynet = require "skynet"
 local const = require "const"
 local socket = require "socket"
 local errorcode = require "errorcode"
-local context = require "agent_context"
+-- local context = require "agent_context"
 local sd = require "sharedata"
 	  
 local send_package
@@ -55,7 +55,7 @@ local function getsettime()
 	return settime
 end				
 		        
-local function add_to_prop( t )
+local function add_to_prop(ctx, t )
 	assert( t )  
     print( "add_to_prop is called" )
     local g_role
@@ -63,7 +63,8 @@ local function add_to_prop( t )
 	for k , v in ipairs( t ) do
 		if v.proptype == PROPTYPE.ROLE_SP then
 			print( "get a role" )
-			local key = string.format("%s:%d", "g_role", v.propid)
+			local key = string.format("%s:%d", "g_role_coppy", v.propid)
+			print(key, v.propid)
 			g_role = sd.query(key)
 			--g_role = game.g_rolemgr:get_by_us_prop_csv_id( v.propid )
 			assert( g_role )
@@ -88,8 +89,8 @@ local function add_to_prop( t )
    				end 	      
 			else 
 
-				context:role_recruit(g_role.csv_id)
-				context:raise_achievement(const.ACHIEVEMENT_T_5)
+				ctx:role_recruit(g_role.csv_id)
+				--ctx:raise_achievement(const.ACHIEVEMENT_T_5)
 			end 
 		else     
 			local prop = user.u_propmgr:get_by_csv_id( v.propid )
@@ -183,10 +184,8 @@ local function splitsubreward_bytype( typeid )
 	local g = sd.query("g_mainreward")
 	print("splitsubreward_bytype", #g)
 	for i,v in ipairs(g) do
-		print(i, v)
 		local key = string.format("%s:%d", "g_mainreward", v)
 		local value = sd.query(key)
-		print(value.csv_id, typeid)
 		if value.csv_id == typeid then
 			table.insert(sublist, value)
 		end
@@ -206,13 +205,12 @@ local function getgroupid( list , val )
 		if sub < val  then
 			sub = sub + list[i].probid
 		else    
-			print( "group is ************************" , list[ i + 1 ].groupid )
 			return list[i + 1].groupid
 		end 		
 	end 	
 end 
 			
-local function getpropidlist( dtype )
+local function getpropidlist(ctx, dtype )
 	print( "get[rp[od is called" )
 	assert( dtype )
 	local propidlist = {}
@@ -220,16 +218,6 @@ local function getpropidlist( dtype )
 			
 	local sublist = splitsubreward_bytype( dtype * 1000 )
 	assert( sublist )
-	for k, v in pairs(sublist) do
-		print("*************************",k, v)
-		if type(v) == "table" then
-
-			for sk, sv in pairs(v) do
-				print("&&&&&&&&&&&&&&&&&&&",sk, sv)
-			end
-		
-		end
-	end
 
 	if drawtype.TENTIME == dtype then
 		print( "dtype id in getpropidlis is " .. dtype )
@@ -238,7 +226,7 @@ local function getpropidlist( dtype )
 
 		for k , v in ipairs( trn ) do
 			local id = getgroupid( sublist , v )
-			print( "reward groupid is " , id )
+			--print( "reward groupid is " , id )
 			local key = string.format("%s:%d", "g_subreward", id)
 			local r = sd.query(key)
 			--local r = game.g_subrewardmgr:get_by_csv_id( id )
@@ -289,7 +277,7 @@ local function getpropidlist( dtype )
             
 	assert( propidlist )
 			
-    add_to_prop( propidlist.list )
+    add_to_prop(ctx, propidlist.list )
 	print( "get propidlist successfully" )
 	return propidlist
 end				
@@ -329,6 +317,7 @@ local function frienddraw(ctx)
 		if not tfriend then
 			tfriend = {}
 			tfriend.id = skynet.call( ".game" , "lua" , "guid" , const.DRAW )
+			print("new id is ********************", tfriend.id)
 			tfriend.uid = user.csv_id
 			tfriend.drawtype = drawtype.FRIEND 
 			tfriend.srecvtime = date
@@ -344,7 +333,7 @@ local function frienddraw(ctx)
 
 		print( "line price is " , line.price )
 		prop.num = prop.num - line.price
-		proplist = getpropidlist( drawtype.FRIEND )
+		proplist = getpropidlist(ctx, drawtype.FRIEND )
 
 		prop:update_db()
 		isfriend = false
@@ -374,6 +363,7 @@ local function onetimedraw(ctx, iffree )
 		if not tonetime then
 			tonetime = {}
 			tonetime.id = skynet.call( ".game" , "lua" , "guid" , const.DRAW )
+			print("new id is ********************", tonetime.id)
 			tonetime.uid = user.csv_id
 			tonetime.drawtype = drawtype.ONETIME
 			tonetime.srecvtime = date
@@ -402,7 +392,7 @@ local function onetimedraw(ctx, iffree )
 
 		tonetime:update_db()
 
-		proplist = getpropidlist( drawtype.ONETIME )
+		proplist = getpropidlist(ctx, drawtype.ONETIME )
 		assert( proplist )
 
 		print( "get for free successfully" )
@@ -432,7 +422,7 @@ local function onetimedraw(ctx, iffree )
 			print( "update prop is called in" )
 
 			prop.num = prop.num - line.price
-			proplist = getpropidlist( drawtype.ONETIME )
+			proplist = getpropidlist(ctx, drawtype.ONETIME )
 			
 			print( "*******************" , date , tonetime.srecvtime, tonetime.srecvtime + DAY - date )
 
@@ -445,7 +435,21 @@ local function onetimedraw(ctx, iffree )
 			end 
 			print("**********************")
 			prop:update_db()
-				
+
+			local tonetime = {}
+			tonetime.id = skynet.call( ".game" , "lua" , "guid" , const.DRAW )
+			print("new id is ********************", tonetime.id)
+			tonetime.uid = user.csv_id
+			tonetime.drawtype = drawtype.ONETIME
+			tonetime.srecvtime = date
+			tonetime.propid = 0;
+			tonetime.amount = 0;
+			tonetime.iffree = 1;
+
+			tonetime = user.u_drawmgr:create( tonetime )
+			assert( tonetime )
+			--user.u_drawmgr:add( tonetime )
+			tonetime:update_db()				
 			print( "update prop successfully in tentimedraw" )
 		end	
 	end 	
@@ -453,7 +457,7 @@ local function onetimedraw(ctx, iffree )
 	proplist.msg = errorcode[ 1 ].msg
 
 	return proplist
-end 			
+end 		
 			
 local function tentimedraw(ctx)
 	assert(ctx)
@@ -481,8 +485,9 @@ local function tentimedraw(ctx)
 		prop.num = prop.num - line.price
 		prop:update_db()
 
-		ttentime = {}
+		local ttentime = {}
 		ttentime.id = skynet.call( ".game" , "lua" , "guid" , const.DRAW )
+		print("new id is ********************", ttentime.id)
 		ttentime.uid = user.csv_id
 		ttentime.drawtype = drawtype.TENTIME
 		ttentime.srecvtime = date
@@ -491,11 +496,12 @@ local function tentimedraw(ctx)
 		ttentime.iffree = 1;
 
 		ttentime = user.u_drawmgr:create( ttentime )
+		print("create tentimedraw successfully**************************")
 		assert( ttentime )
 		--user.u_drawmgr:add( tonetime )
 		ttentime:update_db()
 
-		proplist = getpropidlist( drawtype.TENTIME )		
+		proplist = getpropidlist(ctx, drawtype.TENTIME )		
 	end 
 
 	print( "ten time draw is over" )

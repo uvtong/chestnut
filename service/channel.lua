@@ -7,8 +7,10 @@ local util = require "util"
 local loader = require "load_game"
 local const = require "const"
 local dc = require "datacenter"
-local u_emailmgr = require "models/u_emailmgr"	
-local public_emailmgr = require("models/public_emailmgr")()
+local u_emailmgr = require "models/u_new_emailmgr"	
+local public_emailmgr_cls = require "models/public_emailmgr"
+local public_emailmgr = public_emailmgr_cls.new()
+local query = require "query"
 
 local game = ".game"
 
@@ -183,6 +185,7 @@ end --]]
 
 function CMD.send_email_to_group(source, tval , tucsv_id )
 	assert( tval and tucsv_id )
+	assert(false)
 	print( "send to group is called" )
 	tval.acctime = os.time() -- an integer
 	tval.isread = 0
@@ -217,79 +220,13 @@ function CMD.send_email_to_group(source, tval , tucsv_id )
 	end 	
 
 end 		
-		
---[[function CMD:hello( tval , ... )
-	-- body	
-	print( "hello is called\n" )
-
-	--channel:publish( "email" , { emailtype = , tval )
-	local addr = util.random_db()
-
-
-	-- local t = {csv_id=util.u_guid(user_id, game, const.UEMAILENTROPY), uid=user.csv_id, type=}
-	-- tval.csv_id = 
-	-- tval.user_id = user_id
-	-- local u_emailmgr = require "u_emailmgr"
-	-- local email = u_emailmgr.create(tvalh)
-	-- email:__insert_db()
-end    		   			
-	
-local ROUTINE = { TIME = -1 , ECONTENT = {} }
---[[ ROUTINE_TIME = -1 , donot send ROUTINE_EMAIL --]]
---[[function CMD:change_routin_values( time , tval )
-	assert( time and tval )
-	ROUTINE.TIME = time
-	ROUTINE.ECONTENT = tval
-end		
-
-function CMD:start_routine( )
-end	
-		
---[[function CMD:get_emailcontent( delay_time , type , temailcontent , tuser_list )
-	if type == SEND_TYPE.TO_ALL then
-		skynet.timeout( delay_time , send_email_to_all( temailcontent ) )
-	elseif type == SEND_TYPE.TO_GROUP then
-		skynet.timeout( )	  	
-	end 					  
-	skynet.timeout(coutnfd. CMD:hello( type , {} , {} )
-end --]]						  
-
--- local function send(coutdown, count, content, type, l)
--- 	-- body
--- 	if type == QF then
--- 		skynet.send()
--- 		channel.publish(content)
--- 		skynet.timeout(cd, function function_name(ftype, content, l)
--- 			-- body
--- 			send_email_to_all()
--- 			if R[ftype].count == 0 then
--- 				os.time(R[ftype].coutdown)
-
--- 				send()
-
--- 		end)
--- 	else
--- end
-
--- function CMD.send_email(ftype, coutdown, count, content, type, l)
--- 	-- body
--- 	if ttype == "xx" then
--- 		if R[ftype] then
--- 			R[ftype].coutdown
--- 			else
--- 		R[ftype] == { coutdown = coutdown, count = count}
--- 		local s = os.time(coutdown)
--- 		local now os.time()
--- 		local cd = s - now
-
--- 	else
-	
--- end
 
 local function load_public_email()
 	-- body
-	
-	local r = skynet.call( util.random_db() , "lua", "command" , "select" , "public_email" )
+	local sql = string.format("select * from public_email")
+	local r = query.read(".rdb", "public_email", sql)
+	assert(r.errno == nil)
+
 	for i , v in ipairs ( r ) do
 		local t = public_emailmgr:create( v )
 		public_emailmgr:add( t )
@@ -315,4 +252,6 @@ skynet.start( function ()
 	load_public_email()
 	channel = mc.new()
 	skynet.fork(update_db)
+	skynet.register ".channel"
+
 end)

@@ -134,6 +134,16 @@ end
 		
 local QUERY = {}
 
+function QUERY:query(sql)
+	-- body
+	-- local res = cs1(self.db.query, db, sql)
+	-- return res
+	local db = self.db
+	local res = db:query(sql)
+	dump(res)
+	return res
+end
+
 function QUERY:read(table_name, sql)
 	-- body
 	-- local res = cs1(self.db.query, db, sql)

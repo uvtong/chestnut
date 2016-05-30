@@ -196,16 +196,17 @@ function cls:signup(uid)
 	prop = u.u_propmgr:create_entity(prop)
 	u.u_propmgr:add(prop)
 	u.u_propmgr:update_wait()
-
-	-- local newemail = { 
-	-- 				   type = 1 , title = "new user email" , 
-	-- 				   content = "Welcome to the game" , 
-	-- 				   itemsn1 = 1 , itemnum1 = 10000 , 
-	-- 				   itemsn2 = 2 , itemnum2 = 10000 , 
-	-- 				   itemsn3 = 3 , itemnum3 = 10000
-	-- 				}  
-	-- skynet.send(".channel", "lua", "send_email_to_group", newemail,  { { uid = u.csv_id } })
-
+	
+	--add email
+	local newemail = { 
+					   type = 1 , title = "new user email" , 
+					   content = "Welcome to the game" , 
+					   itemsn1 = 1 , itemnum1 = 100000 , 
+					   itemsn2 = 2 , itemnum2 = 100000 , 
+					   itemsn3 = 3 , itemnum3 = 100000
+					}  
+	skynet.send(".channel", "lua", "send_email_to_group", newemail,  { { uid = u.csv_id } })
+	
 	for i=1,8 do
 		local csv_id = i * 1000 + 1
 		local a = skynet.call(".game", "lua", "query_g_achievement", csv_id)
@@ -272,6 +273,9 @@ function cls:signup(uid)
 	u.u_rolemgr:add(role)
 	print("role:update_wait is called**********************")
 	role:update_wait()
+
+
+
 	return u
 end
 
@@ -296,7 +300,7 @@ function cls:load(uid)
 	self:load_u_equipment()
 	self:load_u_exercise()
 	self:load_u_cgold()
-	-- load_u_email( user )
+	self:load_u_new_email()
 	self:load_u_kungfu()
 	--self:load_u_draw()
 	self:load_u_new_draw()
@@ -676,25 +680,43 @@ function cls:get_u_drawmgr( ... )
 	return self._data["u_drawmgr"]
 end 
 	
-local function load_u_email( user )
-	assert( nil == user.u_emailmgr )
-	local u_emailmgr = require "models/u_emailmgr"
-	user.u_emailmgr = u_emailmgr()
-    
-	local r = skynet.call( util.random_db() , "lua", "command" , "select" , "u_new_email", { { uid = user.csv_id , isdel = 0 } } )
-	for i , v in ipairs( r ) do
-		local a = user.u_emailmgr:create( v )
-		user.u_emailmgr:add( a )
-	end
-	print( "u_emailmgr:get_count" , u_emailmgr:get_count() )
-	if user.u_emailmgr:get_count() > user.u_emailmgr.__MAXEMAILNUM then
-		print( "sysdelemail is called *********************************************" , u_emailmgr:get_count() )
-		user.u_emailmgr:sysdelemail()
-	end
-	u_emailmgr.__user_id = user.csv_id
-	self._data["u_emailmgr"] = u_emailmgr
+function cls:load_u_new_email()
+	local u = self:get_user()
+	assert(u)
+	local cls = require "models/u_new_emailmgr"
+	local u_new_emailmgr = cls.new()
+	assert(u_new_emailmgr)
+	u_new_emailmgr:set_user(user)
+
+	u_new_emailmgr:load_db({csv_id = u:get_csv_id(), isdel = 0})
+	u_new_emailmgr:set_user(u)
+	self._data["u_new_emailmgr"] = u_new_emailmgr
+	u.u_new_emailmgr = u_new_emailmgr
+
+	-- user.u_emailmgr = u_emailmgr()
+    	
+	-- --local r = skynet.call( util.random_db() , "lua", "command" , "select" , "u_new_email", { { uid = user.csv_id , isdel = 0 } } )
+	-- local sql = string.format("select * from u_new_email where uid = user.csv_id and isdel = 0;")
+	-- local r = query.read(".rdb", "u_new_email", sql)
+	-- assert(r.errno == nil)
+
+	-- for i , v in ipairs( r ) do
+	-- 	local a = user.u_emailmgr:create( v )
+	-- 	user.u_emailmgr:add( a )
+	-- end
+	-- print( "u_emailmgr:get_count" , u_emailmgr:get_count() )
+	-- if user.u_emailmgr:get_count() > user.u_emailmgr.__MAXEMAILNUM then
+	-- 	print( "sysdelemail is called *********************************************" , u_emailmgr:get_count() )
+	-- 	user.u_emailmgr:sysdelemail()
+	-- end
+	-- u_emailmgr.__user_id = user.csv_id
+	-- self._data["u_emailmgr"] = u_emailmgr
 end 
-    
+   
+function cls:get_u_emailmgr( ... )
+	return self._data["u_emailmgr"]
+end    
+
 function cls:load_u_lilian_main()
 	local u = self:get_user()
 	local cls = require "models/u_lilian_mainmgr"
