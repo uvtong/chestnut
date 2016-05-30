@@ -228,7 +228,7 @@ function cls:signup(uid)
 	local email = self._data["u_new_emailmgr"]:create_entity(newemail)
 	self._data["u_new_emailmgr"]:add(email)
 	email:update_db()
-	
+
 	for i=1,8 do
 		local csv_id = i * 1000 + 1
 		local a = skynet.call(".game", "lua", "query_g_achievement", csv_id)
@@ -710,7 +710,18 @@ function cls:load_u_new_email()
 	assert(u_new_emailmgr)
 	u_new_emailmgr:set_user(user)
 
-	u_new_emailmgr:load_db({csv_id = u:get_csv_id(), isdel = 0})
+	print("uid is ", u:get_csv_id())
+	local sql = string.format("select * from u_new_email where uid = %d and isdel = 0", u:get_csv_id())
+	print(sql)
+	local r = query.read(".rdb", "u_new_email", sql)
+	assert(r.errno == nil)
+
+	for k, v in ipairs(r) do
+		local e = u_new_emailmgr:create_entity(v)
+		assert(e)
+		u_new_emailmgr:add(e)
+	end
+
 	u_new_emailmgr:set_user(u)
 	self._data["u_new_emailmgr"] = u_new_emailmgr
 	u.u_new_emailmgr = u_new_emailmgr

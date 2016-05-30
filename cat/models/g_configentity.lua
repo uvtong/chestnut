@@ -28,6 +28,7 @@ function cls:ctor(mgr, P, ... )
 			ara_clg_tms_rst = 0,
 			ara_integral_rst = 0,
 			ara_clg_tms_pur_tms_rst = 0,
+			ara_rfh_dt = 0,
 		}
 
 	self.__ecol_updated = {
@@ -45,6 +46,7 @@ function cls:ctor(mgr, P, ... )
 			ara_clg_tms_rst = 0,
 			ara_integral_rst = 0,
 			ara_clg_tms_pur_tms_rst = 0,
+			ara_rfh_dt = 0,
 		}
 
 	for k,v in pairs(self.__head) do
@@ -261,6 +263,21 @@ end
 function cls:get_ara_clg_tms_pur_tms_rst( ... )
 	-- body
 	return self.__fields.ara_clg_tms_pur_tms_rst
+end
+
+function cls:set_ara_rfh_dt(v, ... )
+	-- body
+	assert(v)
+	self.__ecol_updated["ara_rfh_dt"] = self.__ecol_updated["ara_rfh_dt"] + 1
+	if self.__ecol_updated["ara_rfh_dt"] == 1 then
+		self.__col_updated = self.__col_updated + 1
+	end
+	self.__fields.ara_rfh_dt = v
+end
+
+function cls:get_ara_rfh_dt( ... )
+	-- body
+	return self.__fields.ara_rfh_dt
 end
 
 

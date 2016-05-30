@@ -488,6 +488,27 @@ function cls:ctor( ... )
 		uq = false,
 		t = "number",
 	},
+	ara_rfh_st = {
+		pk = false,
+		fk = false,
+		cn = "ara_rfh_st",
+		uq = false,
+		t = "number",
+	},
+	ara_rfh_cd = {
+		pk = false,
+		fk = false,
+		cn = "ara_rfh_cd",
+		uq = false,
+		t = "number",
+	},
+	ara_rfh_cd_cost_tms = {
+		pk = false,
+		fk = false,
+		cn = "ara_rfh_cd_cost_tms",
+		uq = false,
+		t = "number",
+	},
 }
 
 	self.__head_ord = {}
@@ -559,6 +580,9 @@ function cls:ctor( ... )
 	self.__head_ord[66] = self.__head["sum_defense"]
 	self.__head_ord[67] = self.__head["sum_critical_hit"]
 	self.__head_ord[68] = self.__head["sum_king"]
+	self.__head_ord[69] = self.__head["ara_rfh_st"]
+	self.__head_ord[70] = self.__head["ara_rfh_cd"]
+	self.__head_ord[71] = self.__head["ara_rfh_cd_cost_tms"]
 
 	self.__pk      = "csv_id"
 	self.__fk      = ""

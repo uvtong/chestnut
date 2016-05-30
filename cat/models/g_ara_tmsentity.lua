@@ -17,12 +17,14 @@ function cls:ctor(mgr, P, ... )
 			csv_id = 0,
 			purchase_cost = 0,
 			list_refresh_cost = 0,
+			list_cd_refresh_cost = 0,
 		}
 
 	self.__ecol_updated = {
 			csv_id = 0,
 			purchase_cost = 0,
 			list_refresh_cost = 0,
+			list_cd_refresh_cost = 0,
 		}
 
 	for k,v in pairs(self.__head) do
@@ -74,6 +76,21 @@ end
 function cls:get_list_refresh_cost( ... )
 	-- body
 	return self.__fields.list_refresh_cost
+end
+
+function cls:set_list_cd_refresh_cost(v, ... )
+	-- body
+	assert(v)
+	self.__ecol_updated["list_cd_refresh_cost"] = self.__ecol_updated["list_cd_refresh_cost"] + 1
+	if self.__ecol_updated["list_cd_refresh_cost"] == 1 then
+		self.__col_updated = self.__col_updated + 1
+	end
+	self.__fields.list_cd_refresh_cost = v
+end
+
+function cls:get_list_cd_refresh_cost( ... )
+	-- body
+	return self.__fields.list_cd_refresh_cost
 end
 
 
