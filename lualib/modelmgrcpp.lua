@@ -122,6 +122,7 @@ function cls.load_db_to_data(t, key, value, ... )
 	print("hubing123", sql)
 	local entity = require("models/"..t.__entity)
 	local r = query.read(t.__rdb, t.__tname, sql)
+	assert(#r > 0, "database don't hava data")
 	for i,v in ipairs(r) do
 		local o = entity.new(t, v)
 		t:add(o)

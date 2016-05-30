@@ -7,7 +7,6 @@ local util = require "util"
 local loader = require "load_game"
 local const = require "const"
 local dc = require "datacenter"
-local u_emailmgr = require "models/u_new_emailmgr"	
 local public_emailmgr_cls = require "models/public_emailmgr"
 local public_emailmgr = public_emailmgr_cls.new()
 local query = require "query"
@@ -185,7 +184,7 @@ end --]]
 
 function CMD.send_email_to_group(source, tval , tucsv_id )
 	assert( tval and tucsv_id )
-	assert(false)
+	-- assert(false)
 	print( "send to group is called" )
 	tval.acctime = os.time() -- an integer
 	tval.isread = 0
@@ -201,25 +200,29 @@ function CMD.send_email_to_group(source, tval , tucsv_id )
 			tval[num] = 0
 		end
 	end
-
 	for _ , v in ipairs( tucsv_id ) do
 		assert(v.uid)
 		tval.csv_id = skynet.call(".game", "lua" , "u_guid" , v.uid, const.UEMAILENTROPY )
 		tval.uid = v.uid
-		print("********************************eamil", tval.csv_id)
+		tval.id = genpk_2(tval.uid, tval.csv_id)
 		local t = dc.get( v.uid )
 		--[[ id user online then send directly , else insert into db --]]
 		if t then 
 			skynet.send( t.addr , "lua" , "newemail" , "newemail" , tval )
 		else
-			print( "get a new useremail**************************" )
-
-			local ne = u_emailmgr.create( tval )
-			ne:__insert_db( const.DB_PRIORITY_2)
+			local cls = require "models/public_emailmgr"
+			local public_emailmgr = cls.new()
+			local cls = require "models/public_emailentity"
+			local ne = cls.new(public_emailmgr, tval)
+			ne:update_db()
 		end	
 	end 	
-
 end 		
+
+function CMD.abcd( ... )
+	-- body
+	
+end
 
 local function load_public_email()
 	-- body
