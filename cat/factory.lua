@@ -154,23 +154,108 @@ function cls:draw_get_by_type(drawtype)
 
 	return nil
 end 
-
+	
 function cls:checkin_get_checkin()
 	local modelmgr = self._env:get_modelmgr()
 	assert(modelmgr)
 	local c = modelmgr:get_u_checkinmgr()
 	assert(c)
-
-	return c.__data[1]
-end
-
+	
+	for k, v in pairs(c.__data) do
+		return v.__fields
+	end
+	
+	return nil
+end 
+	
 function cls:checkin_month_get_checkin_month()
 	local modelmgr = self._env:get_modelmgr()
 	assert(modelmgr)
-	local cm = modelmgr:get_u_checkin_month()
+	local cm = modelmgr:get_u_checkin_monthmgr()
 	assert(cm)
+	
+	for k, v in pairs(cm.__data) do
+		return v.__fields
+	end
+	
+	return nil
+end  
+	
+function cls:recvemail(tvals)
+	assert(tvals)
+	local modelmgr = self.env:get_modelmgr()
+	assert(modelmgr)
+	local e = modelmgr:get_u_modelmgr()
+	assert(e)
+	
+	if self.__count >= MAXEMAILNUM then
+		self:sysdelemail()
+	end
+	
+	local newemail = self.create( tvals )
+	assert( newemail )
+	self:_add( newemail )
+	newemail:__insert_db()
+	
+	print("add email succe in recvemail\n")
+	return newemail
+end 
+	
+function _M:sysdelemail()
+	local readrewarded = {}
+	local readunrewarded = {}
+	local unread = {}
+	
+	local i = 1
+	for k ,  v in pairs( self.__data ) do
+		if i == 1 then 
+			print( type( k ) , type( v ) )
+			i = 2
+		end	
+			
+		if true == v.isread then
+			if true == v.isreward then
+				table.insert( readrewarded , v.csv_id )
+			else
+				table.insert( readunrewarded , v.csv_id )
+			end
+		else
+			table.insert( unread , { v.csv_id , v.acctime } )
+		end 
+	end	
+  --delete read and getrewarded first  
 
-	return cm.__data[1]
+	for _ , v in ipairs( readrewarded ) do
+		self.__data[ tostring( v.csv_id ) ] = nil 
+		self.__count = self.__count - 1
+	end
+
+	if self.__count <= MAXEMAILNUM then
+		return
+	end
+  -- if still more than MAXEMAILNUMM then delete read , unrewarded 	
+	for _ , v in ipairs( readunrewarded ) do
+		self.__data[ tostring( v.csv_id ) ] = nil
+		self.__count = self.__count - 1 
+	end
+	
+	if self.__count <= MAXEMAILNUM then
+		return
+	end
+ 	
+ 	-- last delete the earlist unread emails  
+	table.sort( unread , function ( a , b )  
+			return ( a.acctime < b.acctime )
+		end )
+	
+	local diff = self.__count - MAXEMAILNUM
+
+	for i = 1 , diff do
+		self.__data[ tostring( unread[ i ].csv_id ) ] = nil
+		self.__count = self.__count - 1
+	end
 end
 
+	
 return cls
+	

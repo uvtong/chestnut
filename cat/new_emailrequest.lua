@@ -56,15 +56,28 @@ function REQUEST:mails(ctx)
 		counter = counter + 1
 		local tmp = {}
 		tmp.attachs = {}
-		
-		tmp.emailid = v.csv_id
+
+		tmp.emailid = v.id
 		tmp.type = v.type
 		tmp.acctime = os.date( "%Y-%m-%d" , v.acctime )
 		tmp.isread = ( v.isread == 0 ) and true or false 
 		tmp.isreward = ( v.isreward == 0 ) and true or false 
 		tmp.title = v.title
 		tmp.content = v.content
-		tmp.attachs = v:__getallitem()
+
+		for i = 1 , 5 do
+			local id = "itemsn" .. i
+			local num = "itemnum" .. i
+		
+			if nil ~= v[id] and 0 ~= v[num] then
+				local ni = {}
+			
+				ni.itemsn = v[id]
+				ni.itemnum = v[num]
+				table.insert( tmp.attachs , ni )
+			end
+		end
+
 		tmp.iconid = v.iconid
 
 		table.insert( ret.mail_list , tmp )
@@ -102,26 +115,26 @@ function REQUEST:mail_read(ctx)
 	return ret
 end	
 		
-function REQUEST:mail_delete(ctx)
-	assert(ctx)
+-- function REQUEST:mail_delete(ctx)
+-- 	assert(ctx)
 
-	print( "****************************email_delete is called" )
-	local ret = {}
-	for k , v in pairs( self.mail_id ) do
-		print ( k , v , v.id )
-		local e =user.u_new_emailmgr:get_by_csv_id( v.id )
-		assert( e )
+-- 	print( "****************************email_delete is called" )
+-- 	local ret = {}
+-- 	for k , v in pairs( self.mail_id ) do
+-- 		print ( k , v , v.id )
+-- 		local e =user.u_new_emailmgr:get_by_csv_id( v.id )
+-- 		assert( e )
 		
-		e.isdel = 1
-		e:update_db()
-		user.u_new_emailmgr:delete_by_id( v.id )
-	end 
+-- 		e.isdel = 1
+-- 		e:update_db()
+-- 		user.u_new_emailmgr:delete_by_id( v.id )
+-- 	end 
 
-	ret.errorcode = errorcode[ 1 ].code
-	ret.msg = errorcode[ 1 ].msg
+-- 	ret.errorcode = errorcode[ 1 ].code
+-- 	ret.msg = errorcode[ 1 ].msg
 
-	return ret
-end 
+-- 	return ret
+-- end 
 	
 function REQUEST:mail_getreward(ctx)
 	assert(ctx)
@@ -130,33 +143,37 @@ function REQUEST:mail_getreward(ctx)
 	local ret = {}
 	if self.mail_id then
 		for k , v in pairs( self.mail_id ) do                         		
-			local e =user.u_new_emailmgr:get_by_csv_id( v.id )
+			local e =user.u_new_emailmgr:get( v.id )
 			assert( e )
 			if 0 == e.isreward then 	
-				local items = e:__getallitem()
-				assert( items )
-				for k , v in ipairs( items ) do
-					local prop = user.u_propmgr:get_by_csv_id( v.itemsn )
-					if prop then
-						prop.num = prop.num + v.itemnum
-					else
-						local p = game.g_propmgr:get_by_csv_id( v.itemsn )
-						p.user_id = user.csv_id
-						p.num = v.itemnum
-						local prop = user.u_propmgr.create( p )
-						user.u_propmgr:add( prop )
-						prop:update_db()
-					end
-					
-					--[[if v.itemsn == const.A_T_GOLD or v.itemsn == const.A_T_EXP then
-						raise_achievement( v.itemsn , user )
-					end--]]
-				end 
 
-				if ( 1 == e.type ) then
+				for i = 1 , 5 do
+					local id = "itemsn" .. i
+					local num = "itemnum" .. i
+		
+					if nil ~= v[id] and 0 ~= v[num] then
+						local prop = user.u_propmgr:get_by_csv_id( v[id] )
+						if prop then
+							prop.num = prop.num + v[num]
+						else
+							local p = game.g_propmgr:get_by_csv_id( v[id] )
+							p.user_id = user.csv_id
+							p.num = v[num]
+							local prop = user.u_propmgr.create( p )
+							user.u_propmgr:add( prop )
+							prop:update_db()
+						end			
+					end
+				end
+					
+					--[[if v[id] == const.A_T_GOLD or v[id] == const.A_T_EXP then
+						raise_achievement( v[id] , user )
+					end--]] 
+
+				if 1 == e.type then
 					e.isdel = 1
-					e:__update_db( { "isdel" } , const.DB_PRIORITY_1 )
-					user.u_new_emailmgr:delete_by_csv_id( e.csv_id )
+					e:update_db()
+					user.u_new_emailmgr:delete( e:get_id() )
 				else 		   
 					e.isreward = 1
 					e:update_db()
@@ -204,6 +221,7 @@ function new_emailrequest:public_email(ctx, tvals , user )
 
 	tvals.uid = user.csv_id
 	print( "*********************************email is " , tvals.csv_id )
+	assert(false)
 	local v = user.u_new_emailmgr:recvemail( tvals )
 	assert( v )
 	
@@ -217,7 +235,7 @@ function SUBSCRIBE:email(ctx, tvals , ... ) -- get email from channl , a email t
 
 	tvals.uid = user.csv_id
 	print( "*********************************email csv_id is " , tvals.csv_id )
-	local v =user.u_new_emailmgr:recvemail( tvals )
+	local v = user.u_new_emailmgr:recvemail( tvals )
 	assert( v )
 
 	--[[local ret = {}

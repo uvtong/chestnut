@@ -1,8 +1,13 @@
+package.path = "./../cat/?.lua;./../lualib/?.lua;" .. package.path
+package.cpath = "./../lua-cjson/?.so;"..package.cpath
+
 local skynet = require "skynet"
 require "skynet.manager"
 local template = require "resty.template"
 local csvreader = require "csvReader"
 local query = require "query"
+local errorcode = require "errorcode"
+local json = require "cjson"
 
 template.caching(true)
 template.precompile("index.html")
@@ -94,9 +99,12 @@ function VIEW:email()
 		c["itemnum2"] = tonumber(self.body["itemnum2"])
 		c["itemsn3"] = tonumber(self.body["itemsn3"])
 		c["itemnum3"] = assert(tonumber(self.body["itemnum3"]))
+		c["iconid"] = tonumber(tonumber(self.body["iconid"]))
+		
 		local receiver = tonumber(self.body["receiver"])
 		if send_type == 1 then
 			skynet.send(".channel", "lua", "send_email_to_group", c, {{ uid = receiver }})
+			print("********************************************send_email_to_group is called")
 			local ret = {}
 			ret.errorcode = errorcode[1].code
 			ret.msg = errorcode[1].msg
@@ -104,6 +112,7 @@ function VIEW:email()
 		elseif send_type == 2 then
 			-- assert(false)
 			skynet.send(".channel", "lua", "send_public_email_to_all", c)
+			print("********************************************send_email_to_all is called")
 			local ret = {}
 			ret.errorcode = errorcode[1].code
 			ret.msg = errorcode[1].msg
