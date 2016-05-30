@@ -110,6 +110,13 @@ function cls:ctor( ... )
 		uq = false,
 		t = "number",
 	},
+	ara_rfh_dt = {
+		pk = false,
+		fk = false,
+		cn = "ara_rfh_dt",
+		uq = false,
+		t = "number",
+	},
 }
 
 	self.__head_ord = {}
@@ -127,6 +134,7 @@ function cls:ctor( ... )
 	self.__head_ord[12] = self.__head["ara_clg_tms_rst"]
 	self.__head_ord[13] = self.__head["ara_integral_rst"]
 	self.__head_ord[14] = self.__head["ara_clg_tms_pur_tms_rst"]
+	self.__head_ord[15] = self.__head["ara_rfh_dt"]
 
 	self.__pk      = "csv_id"
 	self.__fk      = ""

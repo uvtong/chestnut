@@ -493,6 +493,10 @@ function cls:ara_rfh( ... )
 	local leaderboards_name = skynet.getenv("leaderboards_name")
 	local r1 = skynet.call(leaderboards_name, "lua", "ranking_range", 1, 10)
 	local r2 = skynet.call(leaderboards_name, "lua", "nearby", u:get_csv_id())
+	local u_ara_worshipmgr = self._modelmgr:get_u_ara_worshipmgr()
+	local t = os.date("*t", os.time())
+	t = { year=t.year, month=t.month, day=t.day}
+	local today = os.time(t)
 	for i,v in ipairs(r1) do
 		local li = {}
 		local ranking = i
@@ -500,7 +504,16 @@ function cls:ara_rfh( ... )
 		li.ranking = ranking
 		li.uid = uid
 		li.top = true
-		print("################################ara_rfh", li.uid)
+		if uid ~= self._userid then
+			local r = u_ara_worshipmgr:get_by_csv_id(uid)
+			if r:get_field("date") == today and r:get_field("worship") == 1 then
+				li.worship = true
+			else
+				li.worship = false
+			end
+		else
+			li.worship = false
+		end
 		local usersmgr = self._usersmgr
 		if usersmgr:get(uid) then
 			local u = usersmgr:get(uid)

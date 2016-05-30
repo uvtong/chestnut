@@ -214,6 +214,7 @@ proto.c2s = sprotoparser.parse [[
     total_combat 2 : integer
     ranking 3 : integer
     iconid 4 : integer
+    worship 5 : boolean
 }
 
 .checkpoint_chapter {
@@ -1136,11 +1137,12 @@ ara_clg_tms_purchase 82 {
 
 ara_worship 83 {
     request {
-        uid 0 : integer
+        uids 0 : *integer
     }    
     response {
         errorcode 0 : integer
         msg 1 : string
+        ara_rmd_list 2 : *suser
     }
 }
 

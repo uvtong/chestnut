@@ -82,6 +82,9 @@ function cls:ctor(mgr, P, ... )
 			sum_defense = 0,
 			sum_critical_hit = 0,
 			sum_king = 0,
+			ara_rfh_st = 0,
+			ara_rfh_cd = 0,
+			ara_rfh_cd_cost_tms = 0,
 		}
 
 	self.__ecol_updated = {
@@ -153,6 +156,9 @@ function cls:ctor(mgr, P, ... )
 			sum_defense = 0,
 			sum_critical_hit = 0,
 			sum_king = 0,
+			ara_rfh_st = 0,
+			ara_rfh_cd = 0,
+			ara_rfh_cd_cost_tms = 0,
 		}
 
 	for k,v in pairs(self.__head) do
@@ -1179,6 +1185,51 @@ end
 function cls:get_sum_king( ... )
 	-- body
 	return self.__fields.sum_king
+end
+
+function cls:set_ara_rfh_st(v, ... )
+	-- body
+	assert(v)
+	self.__ecol_updated["ara_rfh_st"] = self.__ecol_updated["ara_rfh_st"] + 1
+	if self.__ecol_updated["ara_rfh_st"] == 1 then
+		self.__col_updated = self.__col_updated + 1
+	end
+	self.__fields.ara_rfh_st = v
+end
+
+function cls:get_ara_rfh_st( ... )
+	-- body
+	return self.__fields.ara_rfh_st
+end
+
+function cls:set_ara_rfh_cd(v, ... )
+	-- body
+	assert(v)
+	self.__ecol_updated["ara_rfh_cd"] = self.__ecol_updated["ara_rfh_cd"] + 1
+	if self.__ecol_updated["ara_rfh_cd"] == 1 then
+		self.__col_updated = self.__col_updated + 1
+	end
+	self.__fields.ara_rfh_cd = v
+end
+
+function cls:get_ara_rfh_cd( ... )
+	-- body
+	return self.__fields.ara_rfh_cd
+end
+
+function cls:set_ara_rfh_cd_cost_tms(v, ... )
+	-- body
+	assert(v)
+	self.__ecol_updated["ara_rfh_cd_cost_tms"] = self.__ecol_updated["ara_rfh_cd_cost_tms"] + 1
+	if self.__ecol_updated["ara_rfh_cd_cost_tms"] == 1 then
+		self.__col_updated = self.__col_updated + 1
+	end
+	self.__fields.ara_rfh_cd_cost_tms = v
+end
+
+function cls:get_ara_rfh_cd_cost_tms( ... )
+	-- body
+	return self.__fields.ara_rfh_cd_cost_tms
 end
 
 
