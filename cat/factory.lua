@@ -131,6 +131,10 @@ function cls:create_user(uid)
 		ara_interface = 0,
 		ara_rfh_cost_tms = 0,
 		ara_clg_cost_tms = 0,
+		sum_combat = 0,
+		sum_defense = 0,
+		sum_critical_hit = 0,
+		sum_king = 0,
 	}
 	local usersmgr = self._env:get_usersmgr()
 	local user = usersmgr:create_entity(t)
@@ -150,5 +154,23 @@ function cls:draw_get_by_type(drawtype)
 
 	return nil
 end 
+
+function cls:checkin_get_checkin()
+	local modelmgr = self._env:get_modelmgr()
+	assert(modelmgr)
+	local c = modelmgr:get_u_checkinmgr()
+	assert(c)
+
+	return c.__data[1]
+end
+
+function cls:checkin_month_get_checkin_month()
+	local modelmgr = self._env:get_modelmgr()
+	assert(modelmgr)
+	local cm = modelmgr:get_u_checkin_month()
+	assert(cm)
+
+	return cm.__data[1]
+end
 
 return cls

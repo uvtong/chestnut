@@ -5,7 +5,7 @@ local skynet = require "skynet"
 local const = require "const"
 local socket = require "socket"
 local errorcode = require "errorcode"
-local context = require "agent_context"
+-- local context = require "agent_context"
 local sd = require "sharedata"
 	  
 local send_package
@@ -55,7 +55,7 @@ local function getsettime()
 	return settime
 end				
 		        
-local function add_to_prop( t )
+local function add_to_prop(ctx, t )
 	assert( t )  
     print( "add_to_prop is called" )
     local g_role
@@ -89,8 +89,8 @@ local function add_to_prop( t )
    				end 	      
 			else 
 
-				context:role_recruit(g_role.csv_id)
-				context:raise_achievement(const.ACHIEVEMENT_T_5)
+				ctx:role_recruit(g_role.csv_id)
+				--ctx:raise_achievement(const.ACHIEVEMENT_T_5)
 			end 
 		else     
 			local prop = user.u_propmgr:get_by_csv_id( v.propid )
@@ -210,7 +210,7 @@ local function getgroupid( list , val )
 	end 	
 end 
 			
-local function getpropidlist( dtype )
+local function getpropidlist(ctx, dtype )
 	print( "get[rp[od is called" )
 	assert( dtype )
 	local propidlist = {}
@@ -277,7 +277,7 @@ local function getpropidlist( dtype )
             
 	assert( propidlist )
 			
-    add_to_prop( propidlist.list )
+    add_to_prop(ctx, propidlist.list )
 	print( "get propidlist successfully" )
 	return propidlist
 end				
@@ -333,7 +333,7 @@ local function frienddraw(ctx)
 
 		print( "line price is " , line.price )
 		prop.num = prop.num - line.price
-		proplist = getpropidlist( drawtype.FRIEND )
+		proplist = getpropidlist(ctx, drawtype.FRIEND )
 
 		prop:update_db()
 		isfriend = false
@@ -392,7 +392,7 @@ local function onetimedraw(ctx, iffree )
 
 		tonetime:update_db()
 
-		proplist = getpropidlist( drawtype.ONETIME )
+		proplist = getpropidlist(ctx, drawtype.ONETIME )
 		assert( proplist )
 
 		print( "get for free successfully" )
@@ -422,7 +422,7 @@ local function onetimedraw(ctx, iffree )
 			print( "update prop is called in" )
 
 			prop.num = prop.num - line.price
-			proplist = getpropidlist( drawtype.ONETIME )
+			proplist = getpropidlist(ctx, drawtype.ONETIME )
 			
 			print( "*******************" , date , tonetime.srecvtime, tonetime.srecvtime + DAY - date )
 
@@ -496,11 +496,12 @@ local function tentimedraw(ctx)
 		ttentime.iffree = 1;
 
 		ttentime = user.u_drawmgr:create( ttentime )
+		print("create tentimedraw successfully**************************")
 		assert( ttentime )
 		--user.u_drawmgr:add( tonetime )
 		ttentime:update_db()
 
-		proplist = getpropidlist( drawtype.TENTIME )		
+		proplist = getpropidlist(ctx, drawtype.TENTIME )		
 	end 
 
 	print( "ten time draw is over" )

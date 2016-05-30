@@ -41,18 +41,22 @@ function REQUEST:login(u)
 	user = u
 end
 
-function REQUEST:mails()
+function REQUEST:mails(ctx)
+	assert(ctx)
+	user = ctx:get_user()
+	assert(user)
+
 	local ret = {}
 
 	ret.mail_list = {}
 
 	local counter = 0
-	for i , v in pairs( user.u_emailmgr.__data ) do
+	for i , v in pairs( user.u_new_emailmgr.__data ) do
 		print( k , v )
 		counter = counter + 1
 		local tmp = {}
 		tmp.attachs = {}
-
+		
 		tmp.emailid = v.csv_id
 		tmp.type = v.type
 		tmp.acctime = os.date( "%Y-%m-%d" , v.acctime )
@@ -64,26 +68,28 @@ function REQUEST:mails()
 		tmp.iconid = v.iconid
 
 		table.insert( ret.mail_list , tmp )
-	end 
-	
+	end 	
+				
  	ret.errorcode = errorcode[ 1 ].code
 	ret.msg = errorcode[ 1 ].msg
 	print( "mails is called already" , counter )
 
 	return ret
-end      
+end 
 	
-function REQUEST:mail_read()
+function REQUEST:mail_read(ctx)
+	assert(ctx)
+
 	print( "****************************email_read is called" )
 	local ret = {}
 	if self.mail_id then
 		for k , v in pairs( self.mail_id ) do
 			print ( k , v , v.id )
-			local e =user.u_emailmgr:get_by_csv_id( v.id )
+			local e = user.u_new_emailmgr:get_by_csv_id( v.id )
 			assert( e )
 
 			e.isread = 1
-			e:__update_db( { "isread" } , const.DB_PRIORITY_2 )
+			e:update_db()
 		end 
 
 		ret.errorcode = errorcode[ 1 ].code
@@ -93,21 +99,22 @@ function REQUEST:mail_read()
 		ret.msg = errorcode[41].msg
 	end
 
-
 	return ret
-end		
+end	
 		
-function REQUEST:mail_delete()
+function REQUEST:mail_delete(ctx)
+	assert(ctx)
+
 	print( "****************************email_delete is called" )
 	local ret = {}
 	for k , v in pairs( self.mail_id ) do
 		print ( k , v , v.id )
-		local e =user.u_emailmgr:get_by_csv_id( v.id )
+		local e =user.u_new_emailmgr:get_by_csv_id( v.id )
 		assert( e )
 		
 		e.isdel = 1
-		e:__update_db( { "isdel" } , const.DB_PRIORITY_1)
-		user.u_emailmgr:delete_by_id( v.id )
+		e:update_db()
+		user.u_new_emailmgr:delete_by_id( v.id )
 	end 
 
 	ret.errorcode = errorcode[ 1 ].code
@@ -116,12 +123,14 @@ function REQUEST:mail_delete()
 	return ret
 end 
 	
-function REQUEST:mail_getreward()
+function REQUEST:mail_getreward(ctx)
+	assert(ctx)
+
 	print( "****************************get_reward is called" )
 	local ret = {}
 	if self.mail_id then
 		for k , v in pairs( self.mail_id ) do                         		
-			local e =user.u_emailmgr:get_by_csv_id( v.id )
+			local e =user.u_new_emailmgr:get_by_csv_id( v.id )
 			assert( e )
 			if 0 == e.isreward then 	
 				local items = e:__getallitem()
@@ -136,7 +145,7 @@ function REQUEST:mail_getreward()
 						p.num = v.itemnum
 						local prop = user.u_propmgr.create( p )
 						user.u_propmgr:add( prop )
-						prop:__insert_db( const.DB_PRIORITY_2 )
+						prop:update_db()
 					end
 					
 					--[[if v.itemsn == const.A_T_GOLD or v.itemsn == const.A_T_EXP then
@@ -147,12 +156,12 @@ function REQUEST:mail_getreward()
 				if ( 1 == e.type ) then
 					e.isdel = 1
 					e:__update_db( { "isdel" } , const.DB_PRIORITY_1 )
-					user.u_emailmgr:delete_by_csv_id( e.csv_id )
-				else
+					user.u_new_emailmgr:delete_by_csv_id( e.csv_id )
+				else 		   
 					e.isreward = 1
-					e:__update_db( { "isreward" } , const.DB_PRIORITY_2 )
-				end
-			end
+					e:update_db()
+				end 		   
+			end 			   
 		end
 
 		ret.errorcode = errorcode[ 1 ].code
@@ -161,22 +170,22 @@ function REQUEST:mail_getreward()
 		ret.errorcode = errorcode[ 41 ].code
 		ret.msg = errorcode[ 41 ].msg
 	end 
-	
+		
 	return ret
-end 
-	
-function new_emailrequest:newemail( tval , ... ) -- get a email to group
-	assert( tval )
+end 	
+		
+function new_emailrequest:newemail(ctx,  tval , ... ) -- get a email to group
+	assert(ctx and tval)
 	print( "*********************************************REQUEST:newemail" )
-	
-	local v = user.u_emailmgr:recvemail( tval )
+		
+	local v = user.u_new_emailmgr:recvemail( tval )
 	assert( v )
-	
+		
 	--[[local ret = {}
 	ret.mail = {}
 	local tmp = {}
    	tmp.attachs = {}
-	
+		
     tmp.emailid = v.csv_id
     tmp.type = v.type
     tmp.acctime = os.date("%Y-%m-%d" , v.acctime)
@@ -190,17 +199,17 @@ function new_emailrequest:newemail( tval , ... ) -- get a email to group
 	send_package( send_request( "newemail" ,  ret ) )--]]
 end 
 		
-function new_emailrequest:public_email( tvals , user )
-	assert( tvals and user )
+function new_emailrequest:public_email(ctx, tvals , user )
+	assert(ctx and tvals and user )
 
 	tvals.uid = user.csv_id
 	print( "*********************************email is " , tvals.csv_id )
-	local v = user.u_emailmgr:recvemail( tvals )
+	local v = user.u_new_emailmgr:recvemail( tvals )
 	assert( v )
 	
 end 
 	
-function SUBSCRIBE:email( tvals , ... ) -- get email from channl , a email to all users 
+function SUBSCRIBE:email(ctx, tvals , ... ) -- get email from channl , a email to all users 
 	assert( tvals )
 	print( " ***********************************SUBSCRIBE:email " )
 	user.public_email = tvals.csv_id
@@ -208,7 +217,7 @@ function SUBSCRIBE:email( tvals , ... ) -- get email from channl , a email to al
 
 	tvals.uid = user.csv_id
 	print( "*********************************email csv_id is " , tvals.csv_id )
-	local v =user.u_emailmgr:recvemail( tvals )
+	local v =user.u_new_emailmgr:recvemail( tvals )
 	assert( v )
 
 	--[[local ret = {}

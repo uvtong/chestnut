@@ -240,9 +240,9 @@ end
 -- end 	
 local function get_friend_basic_info(uid)
 	assert(uid)
-	
+
 	local tmp 
-	
+
 	local t = dc.get( uid )
 	if t then -- if online
 		print( "online" )
@@ -316,12 +316,16 @@ end
 -- 		return appliedlist
 -- 	end 
 -- end	 	
-			
+				
 function REQUEST:otherfriend_list(ctx)
 	assert(ctx)
+	assert()
+	local a = pickfriends(ctx:get_user():get_u_new_friendmsgmgr())
+	assert( a )
+	print( "getback from pickfriends" )
 
 	local ret = {}
-end 	
+end 
 				
 local function init_apply_idlist(ctx)
 	assert(ctx)
@@ -412,14 +416,16 @@ local function findexist( idlist , id )
 	return false 
 end	
 		
-local function pickfriends()
+local function pickfriends(fm)
+	assert(fm)
+   	
    	local f = {}
    	local index 
    	local counter = 0
    	local tmp = {}
    	--filter id in friendlist and appliedlist
-   	for k , v in pairs( friendmgr._data.avaliblelist ) do
-   		if false == findexist(friendmgr._data.friendlist,  v) and false == findexist(friendmgr._data.appliedlist, v) then
+   	for k , v in pairs( recommand_idlist ) do
+   		if false == findexist(fm,  v) and false == findexist(apply_idlist, v) then
    		--	print( v )
    			table.insert(tmp, v.csv_id)
 		end 
@@ -438,8 +444,8 @@ local function pickfriends()
    		return recommand_idlist
    	else	
    		while true do
-	    	index = math.floor(math.random(1 , #friendmgr._data.avaliblelist))
-	    	local uid = friendmgr._data.avaliblelist[index]
+	    	index = math.floor(math.random(1 , #recommand_idlist))
+	    	local uid = recommand_idlist[index]
     		if not f[index] then
 				table.insert(f, uid)
 				counter = counter + 1
