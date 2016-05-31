@@ -2641,6 +2641,8 @@ function REQUEST:ara_convert_pts(ctx, ... )
 			v:set_field("collected", 0)
 		end
 	end
+	local props = {}
+	local cl = {}
 	local u_ara_ptsmgr = modelmgr:get_u_ara_ptsmgr()
 	local ara_integral = u:get_ara_integral()
 	if ara_integral > 0 then
@@ -2653,26 +2655,26 @@ function REQUEST:ara_convert_pts(ctx, ... )
 					tmp["csv_id"] = i
 					tmp["id"] = genpk_2(u:get_field("csv_id"), i)
 					tmp["collected"] = 1
-					
+					local entity = u_ara_ptsmgr:create_entity(tmp)
+					u_ara_ptsmgr:add(entity)
+					entity:update_db()
+					local key = string.format("%s:%d", "g_ara_pts", i)
+					local value = sd.query(key)
+					local reward = value["reward"]
+					util.parse_text(reward, "(%d+%*%d+%*?)", 2)
 				else
-				end
-				:get_field("collected")
-				if collected == nil then
+					local collected = r:get_field("collected")
+					if collected then
+						break
+					else
+						r:set_field("collected", 1)
 
-				 or collected == 0 then
-
+					end
 				end
 			end
 		end
 	end
-	if ara_integral > self.pts and self.pts > 0 then
-		if self.pts < 10 then
-			end
-		ara_integral = ara_integral - self.pts
-		u:set_ara_integral(ara_integral)
-	else
-
-	end
+	local ret = 1
 end
 
 function REQUEST:ara_lp(ctx, ... )
