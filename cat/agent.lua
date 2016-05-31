@@ -2278,6 +2278,37 @@ end
 
 function REQUEST:ara_enter(ctx, ... )
 	-- body
+	-- reset
+	local modelmgr = ctx:get_modelmgr()
+	local key = string.format("%s:%d", "g_config", 1)
+ 	local value = sd.query(key)
+	local ara_clg_tms_rst = value["ara_clg_tms_rst"]
+	local tm = os.date("*t", os.time())
+	t = { year=tm.year, month=tm.month, day=tm.day, hour=ara_clg_tms_rst}
+	local sec = os.time(t)
+	local now = os.time()
+	if now > sec then
+		local ara_clg_tms_max = value["ara_clg_tms_max"]
+		u:set_ara_clg_tms(ara_clg_tms_max)
+	end
+	local ara_integral_rst = value["ara_integral_rst"]
+	t = { year=tm.year, month=tm.month, day=tm.day, hour=ara_integral_rst}
+	local sec = os.time(t)
+	if now > sec then
+		u:set_field("ara_integral", 0)
+		local u_ara_ptsmgr = modelmgr:get_u_ara_ptsmgr()
+		for k,v in pairs(u_ara_ptsmgr:get_data()) do
+			v:set_field("collected", 0)
+		end
+	end
+	local ara_clg_tms_pur_tms_rst = value["ara_clg_tms_pur_tms_rst"]
+	t = { year=tm.year, month=tm.month, day=tm.day, hour=ara_clg_tms_pur_tms_rst}
+	local sec = os.time(t)
+	if now > sec then
+		u:set_field("ara_clg_tms_pur_tms", 0)
+	end
+
+
 	local u = ctx:get_user()
 	local ara_interface = u:get_ara_interface()
 	if ara_interface == 1 then
@@ -2302,11 +2333,11 @@ function REQUEST:ara_enter(ctx, ... )
 	local now = os.time()
 	local st = u:get_field("ara_rfh_st")
 	local walk = now - st
-	local ara_rfh_cd = value["ara_rfh_cd"]
-	if walk >= ara_rfh_cd then
+	local ara_rfh_dt = value["ara_rfh_dt"]
+	if walk >= ara_rfh_dt then
 		ara_rfh_cd = 0
 	else
-		ara_rfh_cd = ara_rfh_cd - walk
+		ara_rfh_cd = ara_rfh_dt - walk
 	end
 	u:set_field("ara_rfh_cd", ara_rfh_cd)
 	local ret = {}
@@ -2575,7 +2606,7 @@ function REQUEST:ara_rnk_reward_collected(ctx)
 		assert(false)
 	end
 	local rnk_rwd = u_ara_rnk_rwdmgr:get_by_csv_id(seg)
-	if rnk_rwd == nil or rnk_rwd.is_collected == 0 then
+	if rnk_rwd == nil or rnk_rwd:get_field("collected") == 0 then
 		local key = string.format("%s:%d", "g_ara_rnk_rwd", seg)
 		local value = sd.query(key)
 		r = util.parse_text(value["reward"], "(%d+%*%d+%*?)", 2)
@@ -2595,8 +2626,45 @@ end
 
 function REQUEST:ara_convert_pts(ctx, ... )
 	-- body
+
 	local u = ctx:get_user()
+	local modelmgr = ctx:get_modelmgr()
+
+	local tm = os.date("*t", os.time())
+	local ara_integral_rst = value["ara_integral_rst"]
+	t = { year=tm.year, month=tm.month, day=tm.day, hour=ara_integral_rst}
+	local sec = os.time(t)
+	if now > sec then
+		u:set_field("ara_integral", 0)
+		local u_ara_ptsmgr = modelmgr:get_u_ara_ptsmgr()
+		for k,v in pairs(u_ara_ptsmgr:get_data()) do
+			v:set_field("collected", 0)
+		end
+	end
+	local u_ara_ptsmgr = modelmgr:get_u_ara_ptsmgr()
 	local ara_integral = u:get_ara_integral()
+	if ara_integral > 0 then
+		for i=ara_integral,1 do
+			if i // 2 == 0 then
+				local r = u_ara_ptsmgr:get_by_csv_id(i)
+				if r == nil then
+					local tmp = {}
+					tmp["user_id"] = u:get_field("csv_id")
+					tmp["csv_id"] = i
+					tmp["id"] = genpk_2(u:get_field("csv_id"), i)
+					tmp["collected"] = 1
+					
+				else
+				end
+				:get_field("collected")
+				if collected == nil then
+
+				 or collected == 0 then
+
+				end
+			end
+		end
+	end
 	if ara_integral > self.pts and self.pts > 0 then
 		if self.pts < 10 then
 			end

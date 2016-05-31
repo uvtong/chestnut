@@ -160,6 +160,10 @@ function cls:signup(uid)
 	local u_ara_worship_rcmgr = cls.new()
 	u_ara_worship_rcmgr:set_user(u)
 	self._data["u_ara_worship_rcmgr"] = u_ara_worship_rcmgr
+	cls = require "models/u_ara_ptsmgr"
+	local u_ara_ptsmgr = cls.new()
+	u_ara_ptsmgr:set_user(u)
+	self._data["u_ara_ptsmgr"] = u_ara_ptsmgr
 
 	local r = skynet.call(".game", "lua", "query_g_equipment")
 	for k,v in pairs(r) do
@@ -361,7 +365,6 @@ function cls:load_remote(uid, p )
 	self:load_u_role_remote(p)
 	self:load_u_kungfu_remote(p)
 end
-
 
 function cls:gen_remote( ... )
 	-- body
@@ -1062,6 +1065,21 @@ end
 function cls:get_u_ara_worship_rcmgr( ... )
 	-- body
 	return self._data["u_ara_worship_rcmgr"]
+end
+
+function cls:load_u_ara_pts( ... )
+	-- body
+	local u = self:get_user()
+	local cls = require "models/u_ara_ptsmgr"
+	local u_ara_ptsmgr = cls.new()
+	u_ara_ptsmgr:set_user(u)
+	u_ara_ptsmgr:load_db("fk", u:get_field("csv_id"))
+	self._data["u_ara_ptsmgr"] = u_ara_ptsmgr
+end
+
+function cls:get_u_ara_ptsmgr( ... )
+	-- body
+	return self._data["u_ara_ptsmgr"]
 end
 
 return cls
