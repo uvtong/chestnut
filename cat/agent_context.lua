@@ -40,6 +40,15 @@ function cls:ctor( ... )
 	cls = require "models/usersmgr"
 	local usersmgr = cls.new()
 	self._usersmgr = usersmgr
+
+	cls = require "helper"
+	local helper = cls.new(self)
+	self._helper = helper
+end
+
+function cls:get_helper( ... )
+	-- body
+	return self._helper
 end
 
 function cls:get_myfactory() 
@@ -506,10 +515,22 @@ function cls:ara_rfh( ... )
 		li.top = true
 		if uid ~= self._userid then
 			local r = u_ara_worshipmgr:get_by_csv_id(uid)
-			if r:get_field("date") == today and r:get_field("worship") == 1 then
-				li.worship = true
+			if r then
+				if r:get_field("date") == today and r:get_field("worship") == 1 then
+					li.worship = true
+				else
+					li.worship = false
+				end
 			else
-				li.worship = false
+				local tmp = {}
+				tmp["user_id"] = u:get_field("csv_id")
+				tmp["ouid"] = uid
+				tmp["id"] = genpk_2(tmp["user_id"], tmp["ouid"])
+				tmp["date"] = today
+				tmp["worship"] = true
+				local t = u_ara_worshipmgr:create_entity(tmp)
+				u_ara_worshipmgr:add(t)
+				t:update_db()
 			end
 		else
 			li.worship = false

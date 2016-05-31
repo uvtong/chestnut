@@ -135,6 +135,9 @@ function cls:create_user(uid)
 		sum_defense = 0,
 		sum_critical_hit = 0,
 		sum_king = 0,
+		ara_rfh_st = 0,
+		ara_rfh_cd = 0,
+		ara_rfh_cd_cost_tms = 0,
 	}
 	local usersmgr = self._env:get_usersmgr()
 	local user = usersmgr:create_entity(t)
@@ -201,7 +204,7 @@ function cls:recvemail(tvals)
 	return newemail
 end 
 	
-function _M:sysdelemail()
+function cls:sysdelemail()
 	local readrewarded = {}
 	local readunrewarded = {}
 	local unread = {}

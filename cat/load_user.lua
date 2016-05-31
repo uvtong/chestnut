@@ -154,10 +154,11 @@ function cls:signup(uid)
 	self._data["u_rolemgr"]:set_user(u)
 	cls = require "models/u_ara_worshipmgr"
 	local u_ara_worshipmgr = cls.new()
-	u.u_ara_worshipmgr = u_ara_worshipmgr
+	u_ara_worshipmgr:set_user(u)
 	self._data["u_ara_worshipmgr"] = u_ara_worshipmgr
 	cls = require "models/u_ara_worship_rcmgr"
 	local u_ara_worship_rcmgr = cls.new()
+	u_ara_worship_rcmgr:set_user(u)
 	self._data["u_ara_worship_rcmgr"] = u_ara_worship_rcmgr
 
 	local r = skynet.call(".game", "lua", "query_g_equipment")
@@ -1043,7 +1044,7 @@ function cls:load_u_ara_worship( ... )
 	u.u_ara_worshipmgr = u_ara_worshipmgr
 end
 
-function cls:get_u_ara_worship( ... )
+function cls:get_u_ara_worshipmgr( ... )
 	-- body
 	return self._data["u_ara_worshipmgr"]
 end
