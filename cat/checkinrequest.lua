@@ -17,11 +17,10 @@ local game
 local user
 local dc
 
-	
 local function send_package(pack)
 	local package = string.pack(">s2", pack)
 	socket.write(client_fd, package)
-end		
+end	
 	
 function REQUEST:login(u)
 	-- body
@@ -284,13 +283,16 @@ local function add_to_prop( t )
 			raise_achievement( v.propid , user )
 		end--]]
 	end		
-end		
+end	
 	
 local counter = 0 
 	
-function REQUEST:checkin()
+function REQUEST:checkin(ctx)
+	assert(ctx)
 	-- body
 	print( "*-------------------------* checkin is called")
+	local factory = ctx:get_myfactory()
+	assert(factory)
 
 	local ret = {}
 
@@ -303,8 +305,11 @@ function REQUEST:checkin()
 	local today_start_time = os.time( { year = year , month = month , day = day , hour = 0 , min = 0 , sec = 0 } )
 	--local today_start_time 
 	print( "sizeof checkin is ################################" , user.u_checkinmgr:get_count() )
-	local tcheckin = user.u_checkinmgr:checkin_get_checkin()
-	local tcheckin_month = user.u_checkin_monthmgr:get_checkin_month()
+	local tcheckin = factory:checkin_get_checkin()
+	local tcheckin_month = factory:checkin_month_get_checkin_month()
+
+	-- local tcheckin = user.u_checkinmgr:checkin_get_checkin()
+	-- local tcheckin_month = user.u_checkin_monthmgr:get_checkin_month()
 	--assert( tcheckin )
 	print( tcheckin , tcheckin_month )
 	if not tcheckin then
@@ -322,7 +327,7 @@ function REQUEST:checkin()
 		checkin_mgr:add( u )
 		tcheckin = u
 		tcheckin:__insert_db()
-
+			
 		n = {}
 		n.checkin_month = 0
 		n.user_id = user.csv_id
@@ -330,7 +335,7 @@ function REQUEST:checkin()
 		u = checkin_month_mgr.create( n )
 		assert( u )
 		checkin_month_mgr:add( u )
-
+	
 		tcheckin_month = u
 		tcheckin_month:__insert_db()
 		
@@ -342,7 +347,7 @@ function REQUEST:checkin()
 			print( "date is " , date )
 			local y = string.sub( date , 1 , 4 )
 			local m = string.sub( date , 5 , 6 )
-			
+				
 			if year ~= y then
 				changed = true	
 			elseif month ~= m then
@@ -374,7 +379,9 @@ function REQUEST:checkin()
 	return ret
 end	
 	
-function REQUEST:checkin_aday()
+function REQUEST:checkin_aday(ctx)
+	assert(ctx)
+
 	print( "*-----------------------------* checkin_day is called" )
 
 	local ret = {}
@@ -382,8 +389,11 @@ function REQUEST:checkin_aday()
 	local notexeit = false
 
 	local time = os.time()
-	local tcheckin = user.u_checkinmgr:get_checkin()
-	local tcheckin_month = user.u_checkin_monthmgr:get_checkin_month()
+	local factory = ctx:get_myfactory()
+	assert(factory)
+
+	local tcheckin = factory:checkin_get_checkin()
+	local tcheckin_month = factory:checkin_month_get_checkin_month()
 	if not tcheckin then
 		tcheckin = {}
 		tcheckin_month = {}
@@ -409,7 +419,7 @@ function REQUEST:checkin_aday()
 		tcheckin.csv_id = 0
 
 		if notexeit then
-			tcheckin = user.u_checkinmgr.create( tcheckin )
+			tcheckin = user.u_checkinmgr:create( tcheckin )
 			assert( tcheckin )
 			user.u_checkinmgr:add( tcheckin )
 

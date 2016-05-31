@@ -228,7 +228,7 @@ function cls:signup(uid)
 	local email = self._data["u_new_emailmgr"]:create_entity(newemail)
 	self._data["u_new_emailmgr"]:add(email)
 	email:update_db()
-
+	
 	for i=1,8 do
 		local csv_id = i * 1000 + 1
 		local a = skynet.call(".game", "lua", "query_g_achievement", csv_id)
@@ -746,7 +746,7 @@ function cls:load_u_new_email()
 	-- self._data["u_emailmgr"] = u_emailmgr
 end 
    
-function cls:get_u_emailmgr( ... )
+function cls:get_u_new_emailmgr( ... )
 	return self._data["u_new_emailmgr"]
 end    
 
