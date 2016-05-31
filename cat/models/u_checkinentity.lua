@@ -15,18 +15,18 @@ function cls:ctor(mgr, P, ... )
 	self.__col_updated=0
 	self.__fields = {
 			id = 0,
-			csv_id = 0,
+			if_latest = 0,
 			user_id = 0,
 			u_checkin_time = 0,
-			ifcheck_in = 0,
+			update_time = 0,
 		}
 
 	self.__ecol_updated = {
 			id = 0,
-			csv_id = 0,
+			if_latest = 0,
 			user_id = 0,
 			u_checkin_time = 0,
-			ifcheck_in = 0,
+			update_time = 0,
 		}
 
 	for k,v in pairs(self.__head) do
@@ -50,19 +50,19 @@ function cls:get_id( ... )
 	return self.__fields.id
 end
 
-function cls:set_csv_id(v, ... )
+function cls:set_if_latest(v, ... )
 	-- body
 	assert(v)
-	self.__ecol_updated["csv_id"] = self.__ecol_updated["csv_id"] + 1
-	if self.__ecol_updated["csv_id"] == 1 then
+	self.__ecol_updated["if_latest"] = self.__ecol_updated["if_latest"] + 1
+	if self.__ecol_updated["if_latest"] == 1 then
 		self.__col_updated = self.__col_updated + 1
 	end
-	self.__fields.csv_id = v
+	self.__fields.if_latest = v
 end
 
-function cls:get_csv_id( ... )
+function cls:get_if_latest( ... )
 	-- body
-	return self.__fields.csv_id
+	return self.__fields.if_latest
 end
 
 function cls:set_user_id(v, ... )
@@ -95,19 +95,19 @@ function cls:get_u_checkin_time( ... )
 	return self.__fields.u_checkin_time
 end
 
-function cls:set_ifcheck_in(v, ... )
+function cls:set_update_time(v, ... )
 	-- body
 	assert(v)
-	self.__ecol_updated["ifcheck_in"] = self.__ecol_updated["ifcheck_in"] + 1
-	if self.__ecol_updated["ifcheck_in"] == 1 then
+	self.__ecol_updated["update_time"] = self.__ecol_updated["update_time"] + 1
+	if self.__ecol_updated["update_time"] == 1 then
 		self.__col_updated = self.__col_updated + 1
 	end
-	self.__fields.ifcheck_in = v
+	self.__fields.update_time = v
 end
 
-function cls:get_ifcheck_in( ... )
+function cls:get_update_time( ... )
 	-- body
-	return self.__fields.ifcheck_in
+	return self.__fields.update_time
 end
 
 

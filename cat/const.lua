@@ -26,6 +26,10 @@ const.UEMAILENTROPY = 2
 const.PUBLIC_EMAILENTROPY = 3
 const.DRAW = 4
 const.U_PUBLIC_EMAILENTROPY = 5
+const.CHECKIN = 6
+const.CHECKIN_MONTH = 7
+const.EXERCISE = 8
+const.CGOLD = 9
 
 const.DB_PRIORITY_1 = 1
 const.DB_PRIORITY_2 = 2

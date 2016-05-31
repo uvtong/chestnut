@@ -494,7 +494,7 @@ function cls:load_u_checkin()
 	local cls = require "models/u_checkinmgr"
 	local u_checkinmgr = cls.new()
 	local addr = util.random_db()
-	local sql = string.format( "select * from u_checkin where u_checkin_time = ( select u_checkin_time from u_checkin where user_id = %s ORDER BY u_checkin_time DESC limit 1 )" , u:get_csv_id())
+	local sql = string.format( "select * from u_checkin where user_id = %d and if_latest = 1", u:get_csv_id())
 	local r = query.read(".rdb", "u_checkin", sql)
 	for i,v in ipairs( r ) do
 		local a = u_checkinmgr:create( v )
@@ -515,7 +515,16 @@ function cls:load_u_checkin_month()
 	local u = self:get_user()
 	local cls = require "models/u_checkin_monthmgr"
 	local u_checkin_monthmgr = cls.new()
-	u_checkin_monthmgr:load_db("fk", u:get_csv_id())
+
+	local sql = string.format("select * from u_checkin_month where user_id = %d", u:get_csv_id())
+	local r = query.read(".rdb", "u_checkin_month", sql)
+	assert(r.errno == nil)
+
+	for k, v in ipairs(r) do
+		local a = u_checkin_monthmgr:create(v)
+		u_checkin_monthmgr:add(a)
+	end
+	
 	u_checkin_monthmgr:set_user(u)
 	self._data["u_checkin_monthmgr"] = u_checkin_monthmgr
 	u.u_checkin_monthmgr = u_checkin_monthmgr
@@ -542,7 +551,7 @@ function cls:load_u_exercise()
 	u.u_exercise_mgr = u_exercise_mgr
 end
 
-function cls:get_u_exercise( ... )
+function cls:get_u_exercisemgr( ... )
 	-- body
 	return self._data["u_exercise_mgr"]
 end

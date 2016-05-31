@@ -17,14 +17,14 @@ function cls:ctor(mgr, P, ... )
 			id = 0,
 			user_id = 0,
 			csv_id = 0,
-			is_collected = 0,
+			collected = 0,
 		}
 
 	self.__ecol_updated = {
 			id = 0,
 			user_id = 0,
 			csv_id = 0,
-			is_collected = 0,
+			collected = 0,
 		}
 
 	for k,v in pairs(self.__head) do
@@ -78,19 +78,19 @@ function cls:get_csv_id( ... )
 	return self.__fields.csv_id
 end
 
-function cls:set_is_collected(v, ... )
+function cls:set_collected(v, ... )
 	-- body
 	assert(v)
-	self.__ecol_updated["is_collected"] = self.__ecol_updated["is_collected"] + 1
-	if self.__ecol_updated["is_collected"] == 1 then
+	self.__ecol_updated["collected"] = self.__ecol_updated["collected"] + 1
+	if self.__ecol_updated["collected"] == 1 then
 		self.__col_updated = self.__col_updated + 1
 	end
-	self.__fields.is_collected = v
+	self.__fields.collected = v
 end
 
-function cls:get_is_collected( ... )
+function cls:get_collected( ... )
 	-- body
-	return self.__fields.is_collected
+	return self.__fields.collected
 end
 
 

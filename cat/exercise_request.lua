@@ -56,153 +56,27 @@ local function push_achievement(achievement)
 	send_package(send_request("finish_achi", ret))
 end
 
-local function raise_achievement(type, user)
-	-- body
-	if type == "combat" then
-	elseif type == const.A_T_GOLD then -- 2
-		repeat
-			local a = assert(user.u_achievementmgr:get_by_type(const.A_T_GOLD))
-			if a.is_valid == 0 then
-				break
-			end
-			local gold = user.u_propmgr:get_by_csv_id(const.GOLD) -- abain prop by type (type -- csv_id -- prop.id)		
-			local progress = gold.num / a.c_num
-			if progress >= 1 then -- success
-				a.finished = 100
-				a.reward_collected = 0			
-				-- insert achievement rc	
-				local rc = user.u_achievement_rcmgr.create(a)
-				user.u_achievement_rcmgr:add(rc)
-				rc:__insert_db()
-
-				if string.match(a.unlock_next_csv_id, "%d*%*%d*") then
-					local k1 = string.gsub(a.unlock_next_csv_id, "(%d*)%*(%d*)", "%1")
-					local k2 = string.gsub(a.unlock_next_csv_id, "(%d*)%*(%d*)", "%2")
-					
-					local a1 = skynet.call(".game", "lua", "query_g_achievement", k1)
-					a1.user_id = user.csv_id
-					a1.finished = 100
-					a1.is_unlock = 1
-					a1.reward_collected = 0
-					a1 = user.u_achievement_rcmgr.create(a1)
-					user.u_achievement_rcmgr:add(a1)
-					a1:__insert_db()
-
-					if tonumber(k2) == 0 then
-						a.is_valid = 0
-						a:__update_db({"is_valid"})	
-						break
-					else
-						local ga = assert(game.g_achievementmgr:get_by_csv_id(k2))
-						a.csv_id = ga.csv_id
-						a.finished = 0
-						a.c_num = ga.c_num
-						a.unlock_next_csv_id = ga.unlock_next_csv_id
-						-- a.is_unlock = 1
-						a:__update_db({"csv_id", "finished", "c_num", "unlock_next_csv_id", "is_valid"})	
-					end
-				else
-					local ga = assert(game.g_achievementmgr:get_by_csv_id(a.unlock_next_csv_id))
-					a.csv_id = ga.csv_id
-					a.finished = 0
-					a.c_num = ga.c_num
-					a.unlock_next_csv_id = ga.unlock_next_csv_id
-					a.is_unlock = 1
-					a:__update_db({"csv_id", "finished", "c_num", "unlock_next_csv_id", "is_unlock"})	
-				end
-			else
-				a.finished = progress * 100
-				a.finished = math.floor(a.finished)
-				a:__update_db({"finished"})
-				break
-			end
-		until false
-	elseif type == const.A_T_EXP then
-		repeat
-			local a = assert(user.u_achievementmgr:get_by_type(type))
-			if a.is_valid == 0 then
-				break
-			end
-			local prop = user.u_propmgr:get_by_csv_id(const.EXP) -- abain prop by type (type -- csv_id -- prop.id)		
-			local progress = prop.num / a.c_num
-			if progress >= 1 then -- success
-				a.finished = 100
-				a.reward_collected = 0
-				push_achievement(a)
-				
-				-- insert achievement rc	
-				local rc = user.u_achievement_rcmgr.create(a)
-				user.u_achievement_rcmgr:add(rc)
-				rc:__insert_db()
-
-				if string.match(a.unlock_next_csv_id, "%d*%*%d*") then
-					local k1 = string.gsub(a.unlock_next_csv_id, "(%d*)%*(%d*)", "%1")
-					local k2 = string.gsub(a.unlock_next_csv_id, "(%d*)%*(%d*)", "%2")
-					
-					local a1 = game.g_achievementmgr:get_by_csv_id(k1)
-					a1.user_id = user.csv_id
-					a1.finished = 100
-					a1.is_unlock = 1
-					a1.reward_collected = 0
-					a1 = user.u_achievement_rcmgr.create(a1)
-					user.u_achievement_rcmgr:add(a1)
-					a1:__insert_db()
-
-					if tonumber(k2) == 0 then
-						a.is_valid = 0
-						a:__update_db({"is_valid"})	
-						break
-					else
-						local ga = assert(game.g_achievementmgr:get_by_csv_id(k2))
-						a.csv_id = ga.csv_id
-						a.finished = 0
-						a.c_num = ga.c_num
-						a.unlock_next_csv_id = ga.unlock_next_csv_id
-						-- a.is_unlock = 1
-						a:__update_db({"csv_id", "finished", "c_num", "unlock_next_csv_id", "is_valid"})	
-					end
-
-				else
-					local ga = assert(game.g_achievementmgr:get_by_csv_id(a.unlock_next_csv_id))
-					a.csv_id = ga.csv_id
-					a.finished = 0
-					a.c_num = ga.c_num
-					a.unlock_next_csv_id = ga.unlock_next_csv_id
-					a.is_unlock = 1
-					a:__update_db({"csv_id", "finished", "c_num", "unlock_next_csv_id", "is_unlock"})	
-				end
-			else
-				a.finished = progress * 100
-				a.finished = math.floor(a.finished)
-				a:__update_db({"finished"})
-				break
-			end
-		until false
-	elseif type == "level" then
-	end
-end
-
 function REQUEST:login(u)
 	-- body
 	assert( u )
 	print( "**********************************exerciserequest_login " )
 	user = u
-	
-	--local t = game.g_daily_taskmgr:get_one() -- may be changed
-	-- local t = skynet.call(".game", "lua", "query_g_daily_task")
-	-- assert( t )
-	-- record_date = Split( t.update_time , "|" )
-	-- time_first = tonumber( string.sub( record_date[ 1 ] , 1 , 2 ) )
-	-- time_second = tonumber( string.sub( record_date[ 2 ] , 1 , 2 ) )
 
-	-- exercise_time = #record_date
-	
+	local t = skynet.call(".game", "lua", "query_g_daily_task")
+	assert( t )
+	record_date = Split( t.update_time , "|" )
+	--print( record_date[ 1 ] , record_date[ 2 ] , record_date[ 3 ] )
+	time_first = tonumber( string.sub( record_date[ 1 ] , 1 , 2 ) )
+	time_second = tonumber( string.sub( record_date[ 2 ] , 1 , 2 ) )
 
-	-- if 3 == exercise_time then
-	-- 	time_third = tonumber( string.sub( record_date[ 3 ] , 1 , 2 ) )
-	-- end 
+	exercise_time = #record_date
+	assert(exercise_time > 0)
 
-	-- print( time_first , time_second , time_third )
+	if 3 == cgold_time then
+		time_third = tonumber( string.sub( record_date[ 3 ] , 1 , 2 ) )
+	end 
+
+
 end		
 	
 -- msg: **ifexercise_t * 1 can check , --0 can not exercise**
@@ -236,29 +110,32 @@ local function get_exercise_reward( t )
 	return ret
 end	
 		
-local function add_to_prop( t )
-	assert( t )
+local function add_to_prop(ctx, t)
+	assert(ctx and t)
 
 	for k , v in ipairs( t ) do
-		local prop = user.u_propmgr:get_by_csv_id( v.propid )
+		local prop = ctx:get_modelmgr():get_u_propmgr():get_by_csv_id( v.propid )
 		if prop then
-			prop.num = prop.num + v.amount
-			prop:__update_db({"num"})
+			prop:set_field("num", prop:get_field("num") + v.amount)
+			prop:update_db()
+			-- prop:__update_db({"num"})
 		else
-			--print( "propid is " , v.propid )
-			local p = game.g_propmgr:get_by_csv_id( v.propid )
+			print( "propid is " , v.propid )
+			local p = skynet.call(".game", "lua", "query_g_prop", v.propid)
+			--local p = game.g_propmgr:get_by_csv_id( v.propid )
+			assert(p)
 			p.user_id = user.csv_id
 			p.num = v.amount
-			local prop = user.u_propmgr.create(p)
-			user.u_propmgr:add(prop)
-			prop:__insert_db( const.DB_PRIORITY_2 )
+			p.id = genpk_2(p.user_id, p.csv_id)
+			local prop = ctx:get_modelmgr():get_u_propmgr():create(p)
+			ctx:get_modelmgr():get_u_propmgr():add(prop)
+			prop:update_db()
 		end
-
 		--[[if v.propid == const.A_T_GOLD or v.propid == const.A_T_EXP then
 			raise_achievement( v.propid , user )
 		end--]]
 	end		
-end			
+end	
 		
 local function judge_time_quantum( time , lastlength ) -- msg: judge which time_quantum does last_exercise_time in 
 	--[[ 
@@ -324,12 +201,16 @@ local function judge_time_quantum( time , lastlength ) -- msg: judge which time_
 	return stage , lefttime 
 end 	
 		
-function REQUEST:exercise()
+function REQUEST:exercise(ctx)
+	assert(ctx)
+
 	-- body
 	print( "*-------------------------* exercise is called")
 
 	local ret = {}
-	local texercise = user.u_exercise_mgr:get_exercise()
+	local helper = ctx:get_helper()
+	assert(helper)
+	local texercise = helper:exercise_get_exercise()
 
 	if not texercise then
 		print( "***********************not exist texercise" )
@@ -340,58 +221,64 @@ function REQUEST:exercise()
 	else 	
 		print( "***********************exist texercise" )
 		local time = os.time()
-		local laststage = judge_time_quantum( texercise.exercise_time , texercise.time_length )
-		local newstage , lefttime = judge_time_quantum( time , texercise.time_length )
+		local laststage = judge_time_quantum( texercise:get_exercise_time() , texercise:get_time_length() )
+		local newstage , lefttime = judge_time_quantum( time , texercise:get_time_length() )
 			
 		if 0 == laststage or newstage ~= laststage then
 			ret.ifexercise = true
 			ret.lefttime = 0
-			ret.exercise_level = user.exercise_level
+			ret.exercise_level = ctx:get_user().exercise_level
 			ifexercise = 1
 		else
 			ret.ifexercise = false
 			ret.lefttime = lefttime
-			ret.exercise_level = user.exercise_level
+			ret.exercise_level = ctx:get_user().exercise_level
 			ifexercise = 0
 		end 
 	end     
 	print( "lefttime is >>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>" , ret.lefttime )
 	return ret
 end			
-			
-function REQUEST:exercise_once()
+				
+function REQUEST:exercise_once(ctx)
+	assert(ctx)
 	print( "*-----------------------------* exercise_day is called" )
 
 	local ret = {}
 	local time = os.time()
 	local notexist = false
 
-	local texercise = user.u_exercise_mgr:get_exercise()
-	if not texercise then
-		notexist = true
-		texercise = {}
-	end 
+	local helper = ctx:get_helper()
+	assert(helper)
+	local texercise = helper:exercise_get_exercise()
+
 	print( "esercise_level is *********************" ,  self.exercise_level , ifexercise )
-	if 0 == ifexercise or self.exercise_level ~= user.exercise_level then
+	if 0 == ifexercise or self.exercise_level ~= ctx:get_user():get_exercise_level() then
 		ret.errorcode = errorcode[ 61 ].code
 		ret.msg = errorcode[ 61 ].msg
 		--should logout
-	else 	                           
+	else
+		if texercise then
+			texercise:set_is_latest(0)
+			texercise:update_db()
+			ctx:get_modelmgr():get_u_exercisemgr():delete(texercise:get_id())
+		end
+
+		texercise = {}
+		texercise.id = skynet.call(".game", "lua", "guid", const.EXERCISE)
 		texercise.user_id = user.csv_id
 		texercise.exercise_time = time
 		texercise.exercise_type = self.exercise_type
 		texercise.time_length = exercise_time
-			
-		if notexist then
-			texercise = user.u_exercise_mgr.create( texercise )
-			assert( texercise )
-			user.u_exercise_mgr:add( texercise )
-		end 
-
-		texercise:__insert_db( const.DB_PRIORITY_2 )
-
+		texercise.if_latest = 1
+				
+		texercise = ctx:get_modelmgr():get_u_exercisemgr():create( texercise )
+		assert( texercise )
+		ctx:get_modelmgr():get_u_exercisemgr():add( texercise )
+		texercise:update_db()
+		
 		local t = get_g_exercise( self.daily_type * 10 + self.exercise_type )
-		local prop = user.u_propmgr:get_by_csv_id( t.cost_id )
+		local prop = ctx:get_modelmgr():get_u_propmgr():get_by_csv_id( t.cost_id )
 		if not prop or prop.num < t.cost_amount then
 			ret.errorcode = errorcode[ 16 ].code
 			ret.msg = errorcode[ 16 ].msg
@@ -399,16 +286,17 @@ function REQUEST:exercise_once()
 			print( "************************************can exercise reward" )
 			ifexercise = 0
 			print( "cost money is ********************************" , t.cost_id , t.cost_amount , t.level_up  )
-			prop.num = prop.num - t.cost_amount
-			prop:__update_db( { "num" } )
+			prop:set_field("num", prop:get_field("num") - t.cost_amount)
+			prop:update_db()
 
-			
-			add_to_prop( get_exercise_reward( t ) )	
-			user.exercise_level = user.exercise_level + t.level_up
-			
+			add_to_prop(ctx, get_exercise_reward( t ) )	
+
+			ctx:get_user().exercise_level = ctx:get_user().exercise_level + t.level_up
+			ctx:get_user():update_db()
+
 			ret.errorcode = errorcode[ 1 ].code
 			ret.msg = errorcode[ 1 ].msg 
-			local sta , lefttime = judge_time_quantum( time , texercise.time_length )
+			local sta , lefttime = judge_time_quantum( time , texercise:get_time_length() )
 			print( sta , lefttime )
 			ret.lefttime = lefttime 
 		end 

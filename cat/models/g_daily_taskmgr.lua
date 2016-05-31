@@ -13,7 +13,7 @@ function cls:ctor( ... )
 	self.__tname   = "g_daily_task"
 	self.__head    = {
 	id = {
-		pk = true,
+		pk = false,
 		fk = false,
 		cn = "id",
 		uq = false,
@@ -27,7 +27,7 @@ function cls:ctor( ... )
 		t = "string",
 	},
 	type = {
-		pk = false,
+		pk = true,
 		fk = false,
 		cn = "type",
 		uq = false,
@@ -96,7 +96,7 @@ function cls:ctor( ... )
 	self.__head_ord[9] = self.__head["level_up"]
 	self.__head_ord[10] = self.__head["cost_id"]
 
-	self.__pk      = "id"
+	self.__pk      = "type"
 	self.__fk      = ""
 	self.__rdb     = skynet.localname(skynet.getenv("gated_rdb"))
 	self.__wdb     = skynet.localname(skynet.getenv("gated_wdb"))

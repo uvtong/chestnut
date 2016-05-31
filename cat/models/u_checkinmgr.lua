@@ -19,10 +19,10 @@ function cls:ctor( ... )
 		uq = false,
 		t = "number",
 	},
-	csv_id = {
+	if_latest = {
 		pk = false,
 		fk = false,
-		cn = "csv_id",
+		cn = "if_latest",
 		uq = false,
 		t = "number",
 	},
@@ -40,10 +40,10 @@ function cls:ctor( ... )
 		uq = false,
 		t = "number",
 	},
-	ifcheck_in = {
+	update_time = {
 		pk = false,
 		fk = false,
-		cn = "ifcheck_in",
+		cn = "update_time",
 		uq = false,
 		t = "number",
 	},
@@ -51,10 +51,10 @@ function cls:ctor( ... )
 
 	self.__head_ord = {}
 		self.__head_ord[1] = self.__head["id"]
-	self.__head_ord[2] = self.__head["csv_id"]
+	self.__head_ord[2] = self.__head["if_latest"]
 	self.__head_ord[3] = self.__head["user_id"]
 	self.__head_ord[4] = self.__head["u_checkin_time"]
-	self.__head_ord[5] = self.__head["ifcheck_in"]
+	self.__head_ord[5] = self.__head["update_time"]
 
 	self.__pk      = "id"
 	self.__fk      = "user_id"

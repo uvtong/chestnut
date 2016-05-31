@@ -28,7 +28,7 @@ local cgold_request = require "cgold_request"
 local kungfurequest = require "kungfurequest"
 local new_drawrequest = require "new_drawrequest"
 local lilian_request = require "lilian_request"
-local core_fightrequest = require "core_fightrequest"
+local core_fight_3 = require "core_fight_3"
 
 
 table.insert(M, checkinrequest )
@@ -38,7 +38,7 @@ table.insert(M, new_emailrequest )
 table.insert(M, kungfurequest )
 table.insert(M, new_drawrequest )
 table.insert(M, lilian_request )
-table.insert(M, core_fightrequest)
+table.insert(M, core_fight_3)
 
 -- service internal context
 
@@ -496,11 +496,8 @@ local function get_public_email(ctx)
 	local r = skynet.call( ".channel" , "lua" , "agent_get_public_email" , user.csv_id , user.pemail_csv_id , user.signup_time )
 	assert( r )
 
-	for k,v in pairs(ctx) do
-		print(k,v)
-	end
 	if #r >= 1 then
-		print("user.pemail_csv_id is ", user.pemail_csv_id)
+		print("user.pemail_csv_id is ", user.pemail_csv_id, r[1].pemail_csv_id)
 		user.pemail_csv_id = r[1].pemail_csv_id
 		user:update_db()
 	end

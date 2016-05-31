@@ -64,28 +64,30 @@ function CMD.agent_get_public_email(source, ucsv_id , pemail_csv_id , signup_tim
 	print( "agent_get_public_email****************************** is called" )
 	print( ucsv_id , pemail_csv_id , signup_time )
 	assert( ucsv_id and pemail_csv_id and signup_time )
-	
+
 	local tmp = {}
 	for i = #totalemail , 1 , -1 do
 		local t = (public_emailmgr:get(totalemail[i])).__fields
-		
+
 		if 0 == pemail_csv_id then
 			if t.acctime >= signup_time then
-				tmp.pemail_csv_id = t.csv_id -- record public email id
+				t.pemail_csv_id = t.csv_id -- record public email id
 	 			t.csv_id = skynet.call( ".game" , "lua" , "u_guid" , ucsv_id , const.UEMAILENTROPY ) -- change pemail_csv_id into user's email csv_id
 				table.insert(tmp, t)
 			else 
 				break
 			end 
 		else 	
-			if t.csv_id ~= pemail_csv_id then
+			if t.csv_id > pemail_csv_id then
+				t.pemail_csv_id = t.csv_id -- record public email id
+	 			t.csv_id = skynet.call( ".game" , "lua" , "u_guid" , ucsv_id , const.UEMAILENTROPY )
 				table.insert(tmp, t)
 			else
 				break
 			end
 		end    
 	end 	
-	
+
 	return tmp
 	-- local counter = 1
 	-- local sign 

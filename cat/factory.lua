@@ -167,7 +167,7 @@ function cls:checkin_get_checkin()
 	assert(c)
 
 	for k, v in pairs(c.__data) do
-		return v.__fields
+		return v
 	end
 
 	return nil
@@ -180,7 +180,7 @@ function cls:checkin_month_get_checkin_month()
 	assert(cm)
 
 	for k, v in pairs(cm.__data) do
-		return v.__fields
+		return v
 	end
 
 	return nil

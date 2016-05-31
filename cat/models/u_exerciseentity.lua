@@ -19,6 +19,7 @@ function cls:ctor(mgr, P, ... )
 			exercise_time = 0,
 			exercise_type = 0,
 			time_length = 0,
+			if_latest = 0,
 		}
 
 	self.__ecol_updated = {
@@ -27,6 +28,7 @@ function cls:ctor(mgr, P, ... )
 			exercise_time = 0,
 			exercise_type = 0,
 			time_length = 0,
+			if_latest = 0,
 		}
 
 	for k,v in pairs(self.__head) do
@@ -108,6 +110,21 @@ end
 function cls:get_time_length( ... )
 	-- body
 	return self.__fields.time_length
+end
+
+function cls:set_if_latest(v, ... )
+	-- body
+	assert(v)
+	self.__ecol_updated["if_latest"] = self.__ecol_updated["if_latest"] + 1
+	if self.__ecol_updated["if_latest"] == 1 then
+		self.__col_updated = self.__col_updated + 1
+	end
+	self.__fields.if_latest = v
+end
+
+function cls:get_if_latest( ... )
+	-- body
+	return self.__fields.if_latest
 end
 
 

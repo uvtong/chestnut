@@ -118,7 +118,7 @@ function CMD.query_g_checkpoint_chapter(pk)
 	end
 end
 
-function CMD.query_g_daily_task(pk)
+function CMD.query_g_daily_task_by_id(pk)
 	-- body
 	if type(pk) == "number" then
 		local r = game.g_daily_taskmgr:get_by_csv_id(pk)
@@ -292,12 +292,10 @@ function CMD.query_g_goods(pk)
 end
 
 function CMD:query_g_daily_task()
-	local r = game.g_daily_taskmgr:get_one()
-	if r then
-		return r.__fields
-	else
-		assert(false)
+	for k, v in pairs(game.g_daily_taskmgr.__data) do
+		return v.__fields
 	end
+	assert(false)
 end
 
 function CMD.query_g_goods_refresh_cost(pk)
