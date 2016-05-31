@@ -941,9 +941,10 @@ function REQUEST:shop_all()
 			v.inventory = v.inventory_init
 			v.countdown = 0
 			v.st = 0
-			tmp = user.u_goodsmgr.create(v)
+			v.id = genpk_2(v.user_id, v.csv_id)
+			tmp = user.u_goodsmgr:create(v)
 			user.u_goodsmgr:add(tmp)
-			tmp:__insert_db(const.DB_PRIORITY_2)
+			tmp:update_db()
 		end
 		for kk,vv in pairs(tmp) do
 			v[kk] = vv
@@ -2285,7 +2286,34 @@ end
 
 function REQUEST:ara_enter(ctx, ... )
 	-- body
+	-- reset
 	local u = ctx:get_user()
+	local modelmgr = ctx:get_modelmgr()
+	local key = string.format("%s:%d", "g_config", 1)
+ 	local config = sd.query(key)
+	local tm = os.date("*t", os.time())
+	local t = { year=tm.year, month=tm.month, day=tm.day, hour=config.ara_clg_tms_rst}
+	local sec = os.time(t)
+	local now = os.time()
+	if now > sec then
+		u:set_ara_clg_tms(config.ara_clg_tms_max)
+	end
+	-- reset integral
+	local t = { year=tm.year, month=tm.month, day=tm.day, hour=config.ara_integral_rst}
+	local sec = os.time(t)
+	if now > sec then
+		u:set_field("ara_integral", 0)
+		local u_ara_ptsmgr = modelmgr:get_u_ara_ptsmgr()
+		for k,v in pairs(u_ara_ptsmgr:get_data()) do
+			v:set_field("collected", 0)
+		end
+	end
+	local t = { year=tm.year, month=tm.month, day=tm.day, hour=config.ara_clg_tms_pur_tms_rst}
+	local sec = os.time(t)
+	if now > sec then
+		u:set_field("ara_clg_tms_pur_tms", 0)
+	end
+
 	local ara_interface = u:get_ara_interface()
 	if ara_interface == 1 then
 		local ara_fighting = u:get_ara_fighting()
@@ -2293,6 +2321,18 @@ function REQUEST:ara_enter(ctx, ... )
 			-- ctx:
 			ctx:ara_bat_ovr(-1)
 			u:set_ara_fighting(0)
+			local ret = {}
+			ret.errorcode        = errorcode[151].code
+			ret.msg              = errorcode[151].msg
+			ret.ara_win_tms      = u:get_field("ara_win_tms")
+			ret.ara_lose_tms     = u:get_field("ara_lose_tms")
+			ret.ara_tie_tms      = u:get_field("ara_tie_tms")
+			ret.ara_clg_tms      = u:get_field("ara_clg_tms")
+			ret.ara_integral     = u:get_field("ara_integral")
+			ret.ara_rfh_tms      = ara_rfh_tms
+			ret.ara_rfh_cost_tms = u:get_field("ara_rfh_cost_tms")
+			ret.ara_clg_cost_tms = u:get_field("ara_clg_cost_tms")
+			ret.ara_rfh_cd       = ara_rfh_cd
 		end
 	else
 		ara_interface = 1
@@ -2309,13 +2349,47 @@ function REQUEST:ara_enter(ctx, ... )
 	local now = os.time()
 	local st = u:get_field("ara_rfh_st")
 	local walk = now - st
-	local ara_rfh_cd = value["ara_rfh_cd"]
-	if walk >= ara_rfh_cd then
+	local ara_rfh_dt = value["ara_rfh_dt"]
+	if walk >= ara_rfh_dt then
 		ara_rfh_cd = 0
 	else
-		ara_rfh_cd = ara_rfh_cd - walk
+		ara_rfh_cd = ara_rfh_dt - walk
 	end
 	u:set_field("ara_rfh_cd", ara_rfh_cd)
+
+	local u_ara_ptsmgr = modelmgr:get_u_ara_ptsmgr()
+	local cl = {}
+	for i,v in ipairs(const.ARA_PTS) do
+		local rc = u_ara_ptsmgr:get_by_csv_id(v)
+		if rc then
+			local cl_li = {}
+			cl_li["integral"] = v
+			cl_li["collected"] = (rc:get_field("collected") == 1 and true or false)
+			table.insert(cl, cl_li)
+		else
+			local cl_li = {}
+			cl_li["integral"] = v
+			cl_li["collected"] = false
+			table.insert(cl, cl_li)
+		end
+	end
+	local u_ara_rnk_rwdmgr = modelmgr:get_u_ara_rnk_rwdmgr()
+	local rl = {}
+	for i,v in ipairs(const.ARA_RNK_RWD) do
+		local rc = u_ara_rnk_rwdmgr:get_by_csv_id(v)
+		if rc then
+			local rl_li = {}
+			rl_li["ranking"] = v
+			rl_li["collected"] = (rc:get_field("collected") == 1 and true or false)
+			table.insert(rl, rl_li)
+		else
+			local rl_li = {}
+			rl_li["ranking"] = v
+			rl_li["collected"] = false
+			table.insert(rl, rl_li)
+		end
+	end
+
 	local ret = {}
 	ret.errorcode        = errorcode[1].code
 	ret.msg              = errorcode[1].msg
@@ -2329,6 +2403,8 @@ function REQUEST:ara_enter(ctx, ... )
 	ret.ara_rfh_cost_tms = u:get_field("ara_rfh_cost_tms")
 	ret.ara_clg_cost_tms = u:get_field("ara_clg_cost_tms")
 	ret.ara_rfh_cd       = ara_rfh_cd
+	ret.cl = cl
+	ret.rl = rl
 	return ret
 end
 
@@ -2581,37 +2657,167 @@ function REQUEST:ara_rnk_reward_collected(ctx)
 	else
 		assert(false)
 	end
+	local u_propmgr = modelmgr:get_u_propmgr()
+	local rl = {}
 	local rnk_rwd = u_ara_rnk_rwdmgr:get_by_csv_id(seg)
-	if rnk_rwd == nil or rnk_rwd.is_collected == 0 then
+	if rnk_rwd == nil then
+		local tmp = {}
+		tmp["user_id"] = u:get_field("csv_id")
+		tmp["csv_id"] = seg
+		tmp["id"] = genpk_2(u:get_field("csv_id"), seg)
+		tmp["collected"] = 1
+
 		local key = string.format("%s:%d", "g_ara_rnk_rwd", seg)
 		local value = sd.query(key)
-		r = util.parse_text(value["reward"], "(%d+%*%d+%*?)", 2)
-		for i,v in ipairs(r) do
-			local prop = user.u_propmgr:get_by_csv_id(v[1])
-			prop.num = prop.num + v[2]
+		local reward = util.parse_text(value["reward"], "(%d+%*%d+%*?)", 2)
+		for i,v in ipairs(reward) do
+			local prop = u_propmgr:get_by_csv_id(v[1])
+			if prop then
+				prop:set_field("num", prop:get_field("num") + v[2])
+			else
+				local key = string.format("%s:%d", "g_prop", v[1])
+				local prop = sd.query(key)
+				prop["user_id"] = u:get_field("csv_id")
+				prop["num"] = v[2]
+				prop["id"] = genpk_2(v:get_field("csv_id"), v[2])
+				prop = u_propmgr:create_entity(prop)
+				u_propmgr:add(prop)
+				prop:update_db()
+			end
 		end
-		ret.errorcode = errorcode[1].code
-		ret.msg = errorcode[1].msg
-		return ret
 	else
-		ret.errorcode = errorcode[38].code
-		ret.msg = errorcode[38].msg
-		return ret
+		rnk_rwd:set_field("collected", 1)
+
+		local key = string.format("%s:%d", "g_ara_rnk_rwd", seg)
+		local value = sd.query(key)
+		local reward = util.parse_text(value["reward"], "(%d+%*%d+%*?)", 2)
+		for i,v in ipairs(reward) do
+			local prop = u_propmgr:get_by_csv_id(v[1])
+			if prop then
+				prop:set_field("num", prop:get_field("num") + v[2])
+			else
+				local key = string.format("%s:%d", "g_prop", v[1])
+				local prop = sd.query(key)
+				prop["user_id"] = u:get_field("csv_id")
+				prop["num"] = v[2]
+				prop["id"] = genpk_2(v:get_field("csv_id"), v[2])
+				prop = u_propmgr:create_entity(prop)
+				u_propmgr:add(prop)
+				prop:update_db()
+			end
+		end
+
 	end
+	ret.errorcode = errorcode[1].code
+	ret.msg = errorcode[1].msg
+	return ret
 end
 
 function REQUEST:ara_convert_pts(ctx, ... )
 	-- body
 	local u = ctx:get_user()
-	local ara_integral = u:get_ara_integral()
-	if ara_integral > self.pts and self.pts > 0 then
-		if self.pts < 10 then
-			end
-		ara_integral = ara_integral - self.pts
-		u:set_ara_integral(ara_integral)
-	else
-
+	local modelmgr = ctx:get_modelmgr()
+	local key = string.format("%s:%d", "g_config", 1)
+ 	local config = sd.query(key)
+	local tm = os.date("*t", os.time())
+	local t = { year=tm.year, month=tm.month, day=tm.day, hour=config.ara_integral_rst}
+	local sec = os.time(t)
+	local now = os.time()
+	if now > sec then
+		u:set_field("ara_integral", 0)
+		local u_ara_ptsmgr = modelmgr:get_u_ara_ptsmgr()
+		for k,v in pairs(u_ara_ptsmgr:get_data()) do
+			v:set_field("collected", 0)
+		end
 	end
+	local u_propmgr = modelmgr:get_u_propmgr()
+	local props = {}
+	local cl = {}
+	local u_ara_ptsmgr = modelmgr:get_u_ara_ptsmgr()
+	local ara_integral = u:get_ara_integral()
+	if ara_integral > 0 then
+		for i=ara_integral,1 do
+			if i // 2 == 0 then
+				local r = u_ara_ptsmgr:get_by_csv_id(i)
+				if r == nil then
+					local tmp = {}
+					tmp["user_id"] = u:get_field("csv_id")
+					tmp["csv_id"] = i
+					tmp["id"] = genpk_2(u:get_field("csv_id"), i)
+					tmp["collected"] = 1
+					local entity = u_ara_ptsmgr:create_entity(tmp)
+					u_ara_ptsmgr:add(entity)
+					entity:update_db()
+					local key = string.format("%s:%d", "g_ara_pts", i)
+					local ara_pts = sd.query(key)
+					local reward = util.parse_text(ara_pts.reward, "(%d+%*%d+%*?)", 2)
+					for i,v in ipairs(reward) do
+						local prop = u_propmgr:get_by_csv_id(v[1])
+						if prop then
+							prop:set_field("csv_id", prop:get_field("csv_id") + v[2])
+						else
+							local key = string.format("%s:%d", "g_prop", v[1])
+							local prop = sd.query(key)
+							prop["user_id"] = u:get_field("csv_id")
+							prop["num"] = v[2]
+							prop["id"] = genpk_2(v:get_field("csv_id"), v[2])
+							prop = u_propmgr:create_entity(prop)
+							u_propmgr:add(prop)
+							prop:update_db()
+						end
+						local prop_li = {}
+						prop_li["csv_id"] = prop:get_field("csv_id")
+						prop_li["num"] = prop:get_field("num")
+						table.insert(props, prop_li)
+					end
+					local cl_li = {}
+					cl_li["internal"] = i
+					cl_li["collected"] = true
+					table.insert(cl, cl_li)
+				else
+					local collected = r:get_field("collected")
+					if collected then
+						break
+					else
+						r:set_field("collected", 1)
+						local key = string.format("%s:%d", "g_ara_pts", i)
+						local value = sd.query(key)
+						local reward = value["reward"]
+						local reward = util.parse_text(reward, "(%d+%*%d+%*?)", 2)
+						for i,v in ipairs(reward) do
+							local prop = u_propmgr:get_by_csv_id(v[1])
+							if prop then
+								prop:set_field("csv_id", prop:get_field("csv_id") + v[2])
+							else
+								local key = string.format("%s:%d", "g_prop", v[1])
+								local prop = sd.query(key)
+								prop["user_id"] = u:get_field("csv_id")
+								prop["num"] = v[2]
+								prop["id"] = genpk_2(v:get_field("csv_id"), v[2])
+								prop = u_propmgr:create_entity(prop)
+								u_propmgr:add(prop)
+								prop:update_db()
+							end
+							local prop_li = {}
+							prop_li["csv_id"] = prop:get_field("csv_id")
+							prop_li["num"] = prop:get_field("num")
+							table.insert(props, prop_li)
+						end
+						local cl_li = {}
+						cl_li["internal"] = i
+						cl_li["collected"] = true
+						table.insert(cl, cl_li)
+					end
+				end
+			end
+		end
+	end
+	local ret = {}
+	ret.errorcode = errorcode[1].code
+	ret.msg = errorcode[1].msg
+	ret.props = props
+	ret.cl = cl
+	return ret
 end
 
 function REQUEST:ara_lp(ctx, ... )

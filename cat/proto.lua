@@ -278,6 +278,16 @@ proto.c2s = sprotoparser.parse [[
     u_role 3 : *role
 }
 
+.integral_reward {
+    integral 0 : integer
+    collected 1 : boolean
+}
+
+.rnk_reward {
+    ranking 0 : integer
+    collected 1 : boolean
+}
+
 handshake 1 {
     response {
     	errorcode 0 : integer
@@ -1108,6 +1118,8 @@ ara_enter 79 {
         ara_rfh_cost_tms 9 : integer
         ara_clg_cost_tms 10 : integer
         ara_rfh_cd 11 : integer
+        cl 12 : *integral_reward 
+        rl 13 : *rnk_reward
     }
 }
 
@@ -1150,6 +1162,7 @@ ara_rnk_reward_collected 84 {
     response {
         errorcode 0 : integer
         msg 1 : string
+        props 2 : *prop
     }
 }
 
@@ -1181,11 +1194,11 @@ ara_convert_pts 87 {
     response {
         errorcode 0 : integer
         msg 1 : string
+        props 2 : *prop
     }
 }
 
-OnNormalExitCoreFight 88 {
-    
+OnNormalExitCoreFight 88 { 
 }
 
 OnReEnterCoreFight 89 {

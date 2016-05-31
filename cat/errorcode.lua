@@ -84,4 +84,5 @@ errorcode[112] = {code = 112, msg = "wrong data"}
 
 
 errorcode[150] = {code = 150, msg = "not enough role"}
+errorcode[151] = {code = 151, msg = "last ara not finished"}
 return errorcode
