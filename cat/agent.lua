@@ -934,9 +934,10 @@ function REQUEST:shop_all()
 			v.inventory = v.inventory_init
 			v.countdown = 0
 			v.st = 0
-			tmp = user.u_goodsmgr.create(v)
+			v.id = genpk_2(v.user_id, v.csv_id)
+			tmp = user.u_goodsmgr:create(v)
 			user.u_goodsmgr:add(tmp)
-			tmp:__insert_db(const.DB_PRIORITY_2)
+			tmp:update_db()
 		end
 		for kk,vv in pairs(tmp) do
 			v[kk] = vv
@@ -2279,20 +2280,19 @@ end
 function REQUEST:ara_enter(ctx, ... )
 	-- body
 	-- reset
+	local u = ctx:get_user()
 	local modelmgr = ctx:get_modelmgr()
 	local key = string.format("%s:%d", "g_config", 1)
- 	local value = sd.query(key)
-	local ara_clg_tms_rst = value["ara_clg_tms_rst"]
+ 	local config = sd.query(key)
 	local tm = os.date("*t", os.time())
-	t = { year=tm.year, month=tm.month, day=tm.day, hour=ara_clg_tms_rst}
+	local t = { year=tm.year, month=tm.month, day=tm.day, hour=config.ara_clg_tms_rst}
 	local sec = os.time(t)
 	local now = os.time()
 	if now > sec then
-		local ara_clg_tms_max = value["ara_clg_tms_max"]
-		u:set_ara_clg_tms(ara_clg_tms_max)
+		u:set_ara_clg_tms(config.ara_clg_tms_max)
 	end
-	local ara_integral_rst = value["ara_integral_rst"]
-	t = { year=tm.year, month=tm.month, day=tm.day, hour=ara_integral_rst}
+	-- reset integral
+	local t = { year=tm.year, month=tm.month, day=tm.day, hour=config.ara_integral_rst}
 	local sec = os.time(t)
 	if now > sec then
 		u:set_field("ara_integral", 0)
@@ -2301,15 +2301,12 @@ function REQUEST:ara_enter(ctx, ... )
 			v:set_field("collected", 0)
 		end
 	end
-	local ara_clg_tms_pur_tms_rst = value["ara_clg_tms_pur_tms_rst"]
-	t = { year=tm.year, month=tm.month, day=tm.day, hour=ara_clg_tms_pur_tms_rst}
+	local t = { year=tm.year, month=tm.month, day=tm.day, hour=config.ara_clg_tms_pur_tms_rst}
 	local sec = os.time(t)
 	if now > sec then
 		u:set_field("ara_clg_tms_pur_tms", 0)
 	end
 
-
-	local u = ctx:get_user()
 	local ara_interface = u:get_ara_interface()
 	if ara_interface == 1 then
 		local ara_fighting = u:get_ara_fighting()
@@ -2317,6 +2314,18 @@ function REQUEST:ara_enter(ctx, ... )
 			-- ctx:
 			ctx:ara_bat_ovr(-1)
 			u:set_ara_fighting(0)
+			local ret = {}
+			ret.errorcode        = errorcode[151].code
+			ret.msg              = errorcode[151].msg
+			ret.ara_win_tms      = u:get_field("ara_win_tms")
+			ret.ara_lose_tms     = u:get_field("ara_lose_tms")
+			ret.ara_tie_tms      = u:get_field("ara_tie_tms")
+			ret.ara_clg_tms      = u:get_field("ara_clg_tms")
+			ret.ara_integral     = u:get_field("ara_integral")
+			ret.ara_rfh_tms      = ara_rfh_tms
+			ret.ara_rfh_cost_tms = u:get_field("ara_rfh_cost_tms")
+			ret.ara_clg_cost_tms = u:get_field("ara_clg_cost_tms")
+			ret.ara_rfh_cd       = ara_rfh_cd
 		end
 	else
 		ara_interface = 1
@@ -2348,12 +2357,12 @@ function REQUEST:ara_enter(ctx, ... )
 		if rc then
 			local cl_li = {}
 			cl_li["integral"] = v
-			cl_li["collected"] = rc:get_field("collected")
+			cl_li["collected"] = (rc:get_field("collected") == 1 and true or false)
 			table.insert(cl, cl_li)
 		else
 			local cl_li = {}
 			cl_li["integral"] = v
-			cl_li["collected"] = 0
+			cl_li["collected"] = false
 			table.insert(cl, cl_li)
 		end
 	end
@@ -2364,12 +2373,12 @@ function REQUEST:ara_enter(ctx, ... )
 		if rc then
 			local rl_li = {}
 			rl_li["ranking"] = v
-			rl_li["collected"] = rc:get_field("collected")
+			rl_li["collected"] = (rc:get_field("collected") == 1 and true or false)
 			table.insert(rl, rl_li)
 		else
 			local rl_li = {}
 			rl_li["ranking"] = v
-			rl_li["collected"] = 0
+			rl_li["collected"] = false
 			table.insert(rl, rl_li)
 		end
 	end
@@ -2692,23 +2701,21 @@ function REQUEST:ara_rnk_reward_collected(ctx)
 		end
 
 	end
-
 	ret.errorcode = errorcode[1].code
 	ret.msg = errorcode[1].msg
 	return ret
-
 end
 
 function REQUEST:ara_convert_pts(ctx, ... )
 	-- body
-
 	local u = ctx:get_user()
 	local modelmgr = ctx:get_modelmgr()
-
+	local key = string.format("%s:%d", "g_config", 1)
+ 	local config = sd.query(key)
 	local tm = os.date("*t", os.time())
-	local ara_integral_rst = value["ara_integral_rst"]
-	t = { year=tm.year, month=tm.month, day=tm.day, hour=ara_integral_rst}
+	local t = { year=tm.year, month=tm.month, day=tm.day, hour=config.ara_integral_rst}
 	local sec = os.time(t)
+	local now = os.time()
 	if now > sec then
 		u:set_field("ara_integral", 0)
 		local u_ara_ptsmgr = modelmgr:get_u_ara_ptsmgr()
@@ -2735,9 +2742,8 @@ function REQUEST:ara_convert_pts(ctx, ... )
 					u_ara_ptsmgr:add(entity)
 					entity:update_db()
 					local key = string.format("%s:%d", "g_ara_pts", i)
-					local value = sd.query(key)
-					local reward = value["reward"]
-					local reward = util.parse_text(reward, "(%d+%*%d+%*?)", 2)
+					local ara_pts = sd.query(key)
+					local reward = util.parse_text(ara_pts.reward, "(%d+%*%d+%*?)", 2)
 					for i,v in ipairs(reward) do
 						local prop = u_propmgr:get_by_csv_id(v[1])
 						if prop then
