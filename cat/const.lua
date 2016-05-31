@@ -33,11 +33,21 @@ const.DB_PRIORITY_3 = 3
 const.DB_DELTA      = 100 * 60
 
 const.ARA_PTS = {}
-
 for i=1,20 do
 	if i // 2 == 0 then
 		table.insert(const.ARA_PTS, i)
 	end
+end
+
+const.ARA_RNK_RWD = {}
+for i=1,9 do
+	table.insert(const.ARA_RNK_RWD, i)
+end
+for i=10,99,10 do
+	table.insert(const.ARA_RNK_RWD, i)
+end
+for i=100,999,100 do
+	table.insert(const.ARA_RNK_RWD, i)
 end
 
 return const

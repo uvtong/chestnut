@@ -284,7 +284,7 @@ proto.c2s = sprotoparser.parse [[
 }
 
 .rnk_reward {
-    ranking 0 : integral
+    ranking 0 : integer
     collected 1 : boolean
 }
 

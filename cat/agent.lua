@@ -2340,6 +2340,40 @@ function REQUEST:ara_enter(ctx, ... )
 		ara_rfh_cd = ara_rfh_dt - walk
 	end
 	u:set_field("ara_rfh_cd", ara_rfh_cd)
+
+	local u_ara_ptsmgr = modelmgr:get_u_ara_ptsmgr()
+	local cl = {}
+	for i,v in ipairs(const.ARA_PTS) do
+		local rc = u_ara_ptsmgr:get_by_csv_id(v)
+		if rc then
+			local cl_li = {}
+			cl_li["integral"] = v
+			cl_li["collected"] = rc:get_field("collected")
+			table.insert(cl, cl_li)
+		else
+			local cl_li = {}
+			cl_li["integral"] = v
+			cl_li["collected"] = 0
+			table.insert(cl, cl_li)
+		end
+	end
+	local u_ara_rnk_rwdmgr = modelmgr:get_u_ara_rnk_rwdmgr()
+	local rl = {}
+	for i,v in ipairs(const.ARA_RNK_RWD) do
+		local rc = u_ara_rnk_rwdmgr:get_by_csv_id(v)
+		if rc then
+			local rl_li = {}
+			rl_li["ranking"] = v
+			rl_li["collected"] = rc:get_field("collected")
+			table.insert(rl, rl_li)
+		else
+			local rl_li = {}
+			rl_li["ranking"] = v
+			rl_li["collected"] = 0
+			table.insert(rl, rl_li)
+		end
+	end
+
 	local ret = {}
 	ret.errorcode        = errorcode[1].code
 	ret.msg              = errorcode[1].msg
@@ -2353,6 +2387,8 @@ function REQUEST:ara_enter(ctx, ... )
 	ret.ara_rfh_cost_tms = u:get_field("ara_rfh_cost_tms")
 	ret.ara_clg_cost_tms = u:get_field("ara_clg_cost_tms")
 	ret.ara_rfh_cd       = ara_rfh_cd
+	ret.cl = cl
+	ret.rl = rl
 	return ret
 end
 
@@ -2605,23 +2641,62 @@ function REQUEST:ara_rnk_reward_collected(ctx)
 	else
 		assert(false)
 	end
+	local u_propmgr = modelmgr:get_u_propmgr()
+	local rl = {}
 	local rnk_rwd = u_ara_rnk_rwdmgr:get_by_csv_id(seg)
-	if rnk_rwd == nil or rnk_rwd:get_field("collected") == 0 then
+	if rnk_rwd == nil then
+		local tmp = {}
+		tmp["user_id"] = u:get_field("csv_id")
+		tmp["csv_id"] = seg
+		tmp["id"] = genpk_2(u:get_field("csv_id"), seg)
+		tmp["collected"] = 1
+
 		local key = string.format("%s:%d", "g_ara_rnk_rwd", seg)
 		local value = sd.query(key)
-		r = util.parse_text(value["reward"], "(%d+%*%d+%*?)", 2)
-		for i,v in ipairs(r) do
-			local prop = user.u_propmgr:get_by_csv_id(v[1])
-			prop.num = prop.num + v[2]
+		local reward = util.parse_text(value["reward"], "(%d+%*%d+%*?)", 2)
+		for i,v in ipairs(reward) do
+			local prop = u_propmgr:get_by_csv_id(v[1])
+			if prop then
+				prop:set_field("num", prop:get_field("num") + v[2])
+			else
+				local key = string.format("%s:%d", "g_prop", v[1])
+				local prop = sd.query(key)
+				prop["user_id"] = u:get_field("csv_id")
+				prop["num"] = v[2]
+				prop["id"] = genpk_2(v:get_field("csv_id"), v[2])
+				prop = u_propmgr:create_entity(prop)
+				u_propmgr:add(prop)
+				prop:update_db()
+			end
 		end
-		ret.errorcode = errorcode[1].code
-		ret.msg = errorcode[1].msg
-		return ret
 	else
-		ret.errorcode = errorcode[38].code
-		ret.msg = errorcode[38].msg
-		return ret
+		rnk_rwd:set_field("collected", 1)
+
+		local key = string.format("%s:%d", "g_ara_rnk_rwd", seg)
+		local value = sd.query(key)
+		local reward = util.parse_text(value["reward"], "(%d+%*%d+%*?)", 2)
+		for i,v in ipairs(reward) do
+			local prop = u_propmgr:get_by_csv_id(v[1])
+			if prop then
+				prop:set_field("num", prop:get_field("num") + v[2])
+			else
+				local key = string.format("%s:%d", "g_prop", v[1])
+				local prop = sd.query(key)
+				prop["user_id"] = u:get_field("csv_id")
+				prop["num"] = v[2]
+				prop["id"] = genpk_2(v:get_field("csv_id"), v[2])
+				prop = u_propmgr:create_entity(prop)
+				u_propmgr:add(prop)
+				prop:update_db()
+			end
+		end
+
 	end
+
+	ret.errorcode = errorcode[1].code
+	ret.msg = errorcode[1].msg
+	return ret
+
 end
 
 function REQUEST:ara_convert_pts(ctx, ... )
@@ -2641,6 +2716,7 @@ function REQUEST:ara_convert_pts(ctx, ... )
 			v:set_field("collected", 0)
 		end
 	end
+	local u_propmgr = modelmgr:get_u_propmgr()
 	local props = {}
 	local cl = {}
 	local u_ara_ptsmgr = modelmgr:get_u_ara_ptsmgr()
@@ -2661,20 +2737,74 @@ function REQUEST:ara_convert_pts(ctx, ... )
 					local key = string.format("%s:%d", "g_ara_pts", i)
 					local value = sd.query(key)
 					local reward = value["reward"]
-					util.parse_text(reward, "(%d+%*%d+%*?)", 2)
+					local reward = util.parse_text(reward, "(%d+%*%d+%*?)", 2)
+					for i,v in ipairs(reward) do
+						local prop = u_propmgr:get_by_csv_id(v[1])
+						if prop then
+							prop:set_field("csv_id", prop:get_field("csv_id") + v[2])
+						else
+							local key = string.format("%s:%d", "g_prop", v[1])
+							local prop = sd.query(key)
+							prop["user_id"] = u:get_field("csv_id")
+							prop["num"] = v[2]
+							prop["id"] = genpk_2(v:get_field("csv_id"), v[2])
+							prop = u_propmgr:create_entity(prop)
+							u_propmgr:add(prop)
+							prop:update_db()
+						end
+						local prop_li = {}
+						prop_li["csv_id"] = prop:get_field("csv_id")
+						prop_li["num"] = prop:get_field("num")
+						table.insert(props, prop_li)
+					end
+					local cl_li = {}
+					cl_li["internal"] = i
+					cl_li["collected"] = true
+					table.insert(cl, cl_li)
 				else
 					local collected = r:get_field("collected")
 					if collected then
 						break
 					else
 						r:set_field("collected", 1)
-
+						local key = string.format("%s:%d", "g_ara_pts", i)
+						local value = sd.query(key)
+						local reward = value["reward"]
+						local reward = util.parse_text(reward, "(%d+%*%d+%*?)", 2)
+						for i,v in ipairs(reward) do
+							local prop = u_propmgr:get_by_csv_id(v[1])
+							if prop then
+								prop:set_field("csv_id", prop:get_field("csv_id") + v[2])
+							else
+								local key = string.format("%s:%d", "g_prop", v[1])
+								local prop = sd.query(key)
+								prop["user_id"] = u:get_field("csv_id")
+								prop["num"] = v[2]
+								prop["id"] = genpk_2(v:get_field("csv_id"), v[2])
+								prop = u_propmgr:create_entity(prop)
+								u_propmgr:add(prop)
+								prop:update_db()
+							end
+							local prop_li = {}
+							prop_li["csv_id"] = prop:get_field("csv_id")
+							prop_li["num"] = prop:get_field("num")
+							table.insert(props, prop_li)
+						end
+						local cl_li = {}
+						cl_li["internal"] = i
+						cl_li["collected"] = true
+						table.insert(cl, cl_li)
 					end
 				end
 			end
 		end
 	end
-	local ret = 1
+	local ret = {}
+	ret.errorcode = errorcode[1].code
+	ret.msg = errorcode[1].msg
+	ret.props = props
+	ret.cl = cl
+	return ret
 end
 
 function REQUEST:ara_lp(ctx, ... )
