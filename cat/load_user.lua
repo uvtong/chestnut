@@ -152,6 +152,14 @@ function cls:signup(uid)
 	u.u_rolemgr = cls.new()
 	self._data["u_rolemgr"] = u.u_rolemgr
 	self._data["u_rolemgr"]:set_user(u)
+	cls = require "models/u_ara_worshipmgr"
+	local u_ara_worshipmgr = cls.new()
+	u_ara_worshipmgr:set_user(u)
+	self._data["u_ara_worshipmgr"] = u_ara_worshipmgr
+	cls = require "models/u_ara_worship_rcmgr"
+	local u_ara_worship_rcmgr = cls.new()
+	u_ara_worship_rcmgr:set_user(u)
+	self._data["u_ara_worship_rcmgr"] = u_ara_worship_rcmgr
 
 	local r = skynet.call(".game", "lua", "query_g_equipment")
 	for k,v in pairs(r) do
@@ -341,6 +349,8 @@ function cls:load(uid)
 	self:load_u_lilian_phy_power(user)
 	--self:load_u_new_friend()
 	--self:load_u_new_friendmsg()
+	self:load_u_ara_worship()
+	self:load_u_ara_worship_rc()
 	return self:get_user()
 end 
 	
@@ -1021,6 +1031,37 @@ end
 function cls:get_u_goodsmgr( ... )
 	-- body
 	return self._data["u_goodsmgr"]
+end
+
+function cls:load_u_ara_worship( ... )
+	-- body
+	local u = self:get_user()
+	local cls = require "models/u_ara_worshipmgr"
+	local u_ara_worshipmgr = cls.new()
+	u_ara_worshipmgr:set_user(u)
+	u_ara_worshipmgr:load_db("fk", u:get_csv_id())
+	self._data["u_ara_worshipmgr"] = u_ara_worshipmgr
+	u.u_ara_worshipmgr = u_ara_worshipmgr
+end
+
+function cls:get_u_ara_worshipmgr( ... )
+	-- body
+	return self._data["u_ara_worshipmgr"]
+end
+
+function cls:load_u_ara_worship_rc( ... )
+	-- body
+	local u = self:get_user()
+	local cls = require "models/u_ara_worship_rcmgr"
+	local u_ara_worship_rcmgr = cls.new()
+	u_ara_worship_rcmgr:set_user(u)
+	self._data["u_ara_worship_rcmgr"] = u_ara_worship_rcmgr
+	u.u_ara_worship_rcmgr = u_ara_worship_rcmgr
+end
+
+function cls:get_u_ara_worship_rcmgr( ... )
+	-- body
+	return self._data["u_ara_worship_rcmgr"]
 end
 
 return cls

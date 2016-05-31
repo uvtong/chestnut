@@ -40,6 +40,15 @@ function cls:ctor( ... )
 	cls = require "models/usersmgr"
 	local usersmgr = cls.new()
 	self._usersmgr = usersmgr
+
+	cls = require "helper"
+	local helper = cls.new(self)
+	self._helper = helper
+end
+
+function cls:get_helper( ... )
+	-- body
+	return self._helper
 end
 
 function cls:get_myfactory() 
@@ -493,6 +502,10 @@ function cls:ara_rfh( ... )
 	local leaderboards_name = skynet.getenv("leaderboards_name")
 	local r1 = skynet.call(leaderboards_name, "lua", "ranking_range", 1, 10)
 	local r2 = skynet.call(leaderboards_name, "lua", "nearby", u:get_csv_id())
+	local u_ara_worshipmgr = self._modelmgr:get_u_ara_worshipmgr()
+	local t = os.date("*t", os.time())
+	t = { year=t.year, month=t.month, day=t.day}
+	local today = os.time(t)
 	for i,v in ipairs(r1) do
 		local li = {}
 		local ranking = i
@@ -500,7 +513,28 @@ function cls:ara_rfh( ... )
 		li.ranking = ranking
 		li.uid = uid
 		li.top = true
-		print("################################ara_rfh", li.uid)
+		if uid ~= self._userid then
+			local r = u_ara_worshipmgr:get_by_csv_id(uid)
+			if r then
+				if r:get_field("date") == today and r:get_field("worship") == 1 then
+					li.worship = true
+				else
+					li.worship = false
+				end
+			else
+				local tmp = {}
+				tmp["user_id"] = u:get_field("csv_id")
+				tmp["ouid"] = uid
+				tmp["id"] = genpk_2(tmp["user_id"], tmp["ouid"])
+				tmp["date"] = today
+				tmp["worship"] = true
+				local t = u_ara_worshipmgr:create_entity(tmp)
+				u_ara_worshipmgr:add(t)
+				t:update_db()
+			end
+		else
+			li.worship = false
+		end
 		local usersmgr = self._usersmgr
 		if usersmgr:get(uid) then
 			local u = usersmgr:get(uid)
