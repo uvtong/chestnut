@@ -1,6 +1,6 @@
 local cls = class("module")
 
-function cls:test( ... )
+function cls:init( ... )
 	-- body
 end
 
