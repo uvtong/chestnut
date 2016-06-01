@@ -1289,15 +1289,7 @@ TMP_GuanQiaBattleList 98
 {
     request
     {
-        fighterid 0 : integer
-        kf_id 1 : integer
-        attcktype 2 : integer
-        isdead 3 : integer
-        kf_prob 4 : integer
-        attach_effect 5 : integer
-        kf_type 6 : integer
-        attack 7 : integer
-        random_combo_num 8 : integer
+        fightinfo 0 : *BattleListElem
     }
     response
     {

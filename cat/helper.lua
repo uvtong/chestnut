@@ -59,7 +59,7 @@ function cls:lilian_qg_num_clear_by_settime(settime)
 		end
 	end
 end 
-
+	
 function cls:lilian_qg_num_get_lilian_num_list()
 	local ret = {}
 
@@ -70,9 +70,26 @@ function cls:lilian_qg_num_get_lilian_num_list()
 
 	for k, v in pairs(e.__data) do
 		table.insert(ret, {quanguan_id = v:get_quanguan_id(), num = v:get_num(), reset_num = v:get_reset_num()})
-	end
+	end 
 
 	return ret
+end 	
+		
+function cls:lilian_main_get_by_quanguan_id(quanguan_id)
+	assert(quanguan_id)
+
+	local modelmgr = self._env:get_modelmgr()
+	assert(modelmgr)
+	local e = modelmgr:get_u_lilian_mainmgr()
+	assert(e)
+
+	for k, v in pairs(e.__data) do
+		if v:get_quanguan_id() == quanguan_id then
+			return v
+		end
+	end	
+
+	return nil
 end 
 	
 return cls

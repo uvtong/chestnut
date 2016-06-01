@@ -111,6 +111,20 @@ local function judge_arise_type(kf, totalfightnum)
 	print("judge_arise_type is *************************************", kf.arise_type , sign)
 	return sign 
 end 
+
+local function get_kf_id_by_prob(kflist, prob) 	
+  	assert(kflist and prob)						
+    
+  	local totalprob = 0												    
+  	for k, v in ipairs(kflist) do
+  		totalprob = totalprob + v.prob
+  		if prob <= totalprob then
+  			return v.kf_id 	
+  		end  				
+  	end 	 				
+             				
+  	return false 			
+end 	
 	
 --judge if arise_count is true	
 local function judge_arise_count(kf)
@@ -358,7 +372,7 @@ local function reset_arena(t)
 	t.OnBattleSequence = 1
 end 	 	
 		 	
-function REQUEST:BeginGUQNQIACoreFight()
+function REQUEST:TMP_BeginGUQNQIACoreFight()
 	assert(self.monsterid)
 	print("BeginGUANQIACoreFight is called *******************************", self.monsterid)
 		 			
@@ -399,6 +413,7 @@ function REQUEST:BeginGUQNQIACoreFight()
 	ret.errorcode = errorcode[1].code
 	ret.delay_time = START_DELAY
                  	
+   
 	return ret
 end 	  	
 		  	
@@ -688,8 +703,8 @@ end
 --  print("GuanQia_OnPrepareNextMonster*****************")
 --  end  	 			   
 		     			   
-function REQUEST:GuanQiaBattleList()
-	print("BattleList is called ****************************", #self.fightlist)
+function REQUEST:TMP_GuanQiaBattleList()
+	--print("BattleList is called ****************************", #self.fightlist)
 	assert(self.fightinfo)
 	local ret = {}   	
 		                 
