@@ -59,7 +59,7 @@ end
 
 -- 	return false , mid
 -- end 		
-			
+				
 function CMD.agent_get_public_email(source, ucsv_id , pemail_csv_id , signup_time )
 	print( "agent_get_public_email****************************** is called" )
 	print( ucsv_id , pemail_csv_id , signup_time )
@@ -69,14 +69,24 @@ function CMD.agent_get_public_email(source, ucsv_id , pemail_csv_id , signup_tim
 	for i = #totalemail , 1 , -1 do
 		local t = (public_emailmgr:get(totalemail[i])).__fields
 
-		if t.acctime >= signup_time then
-			tmp.pemail_csv_id = t.csv_id -- record public email id
-	 		t.csv_id = skynet.call( ".game" , "lua" , "u_guid" , ucsv_id , const.UEMAILENTROPY ) -- change pemail_csv_id into user's email csv_id
-			table.insert(tmp, t)
-		else
-			break
-		end
-	end
+		if 0 == pemail_csv_id then
+			if t.acctime >= signup_time then
+				t.pemail_csv_id = t.csv_id -- record public email id
+	 			t.csv_id = skynet.call( ".game" , "lua" , "u_guid" , ucsv_id , const.UEMAILENTROPY ) -- change pemail_csv_id into user's email csv_id
+				table.insert(tmp, t)
+			else 
+				break
+			end 
+		else 	
+			if t.csv_id > pemail_csv_id then
+				t.pemail_csv_id = t.csv_id -- record public email id
+	 			t.csv_id = skynet.call( ".game" , "lua" , "u_guid" , ucsv_id , const.UEMAILENTROPY )
+				table.insert(tmp, t)
+			else
+				break
+			end
+		end    
+	end 	
 
 	return tmp
 	-- local counter = 1
@@ -220,7 +230,7 @@ function CMD.send_email_to_group(source, tval , tucsv_id )
 		assert(v.uid)
 		tval.csv_id = skynet.call(".game", "lua" , "u_guid" , v.uid, const.UEMAILENTROPY )
 		tval.uid = v.uid
-		tval.id = genpk2(tval.uid, tval.csv_id)
+		tval.id = genpk_2(tval.uid, tval.csv_id)
 		print("********************************eamil", tval.csv_id)
 		local t = dc.get( v.uid )
 		--[[ id user online then send directly , else insert into db --]]

@@ -274,7 +274,7 @@ end
 function cls.add(self, u)
  	-- body
  	assert((u and self.__pk), self.__pk)
- 	print(u[self.__pk], self.__data[ u[self.__pk] ])
+ 	print(self.__data[ u[self.__pk] ], u[self.__pk], self.__data[ u[self.__pk] ])
  	assert(self.__data[ u[self.__pk] ] == nil, u[self.__pk], self.__data[ u[self.__pk] ])
  	self.__data[ u[self.__pk] ] = u
  	self.__count = self.__count + 1

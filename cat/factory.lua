@@ -1,5 +1,7 @@
 local skynet = require "skynet"
 local cls = class("factory")
+local MAXEMAILNUM = 50
+
 
 function cls:ctor(env, ... )
 	-- body
@@ -163,11 +165,11 @@ function cls:checkin_get_checkin()
 	assert(modelmgr)
 	local c = modelmgr:get_u_checkinmgr()
 	assert(c)
-	
+
 	for k, v in pairs(c.__data) do
-		return v.__fields
+		return v
 	end
-	
+
 	return nil
 end 
 	
@@ -176,46 +178,44 @@ function cls:checkin_month_get_checkin_month()
 	assert(modelmgr)
 	local cm = modelmgr:get_u_checkin_monthmgr()
 	assert(cm)
-	
+
 	for k, v in pairs(cm.__data) do
-		return v.__fields
+		return v
 	end
-	
+
 	return nil
-end  
+end 
 	
-function cls:recvemail(tvals)
+function cls:email_recvemail(tvals)
+	assert(tvals)
+	local modelmgr = self._env:get_modelmgr()
+	assert(modelmgr)
+	local e = modelmgr:get_u_new_emailmgr()
+	assert(e)
+
+	
+	if e:get_count() >= MAXEMAILNUM then
+		--cls:email_sysdelemail()
+	end
+
+	local newemail = e:create( tvals )
+	assert( newemail )
+	e:add( newemail )
+	newemail:update_db()
+
+	print("add email succe in recvemail\n")
+	return newemail
+end 
+	
+function cls:email_sysdelemail()
 	assert(tvals)
 	local modelmgr = self.env:get_modelmgr()
 	assert(modelmgr)
 	local e = modelmgr:get_u_modelmgr()
 	assert(e)
 	
-	if self.__count >= MAXEMAILNUM then
-		self:sysdelemail()
-	end
-	
-	local newemail = self.create( tvals )
-	assert( newemail )
-	self:_add( newemail )
-	newemail:__insert_db()
-	
-	print("add email succe in recvemail\n")
-	return newemail
-end 
-	
-function cls:sysdelemail()
-	local readrewarded = {}
-	local readunrewarded = {}
-	local unread = {}
-	
 	local i = 1
 	for k ,  v in pairs( self.__data ) do
-		if i == 1 then 
-			print( type( k ) , type( v ) )
-			i = 2
-		end	
-			
 		if true == v.isread then
 			if true == v.isreward then
 				table.insert( readrewarded , v.csv_id )

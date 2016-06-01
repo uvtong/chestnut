@@ -129,13 +129,13 @@ end
 -- 		e:update_db()
 -- 		user.u_new_emailmgr:delete_by_id( v.id )
 -- 	end 
-
+			
 -- 	ret.errorcode = errorcode[ 1 ].code
 -- 	ret.msg = errorcode[ 1 ].msg
-
+			
 -- 	return ret
--- end 
-	
+-- end  	
+			
 function REQUEST:mail_getreward(ctx)
 	assert(ctx)
 
@@ -143,22 +143,22 @@ function REQUEST:mail_getreward(ctx)
 	local ret = {}
 	if self.mail_id then
 		for k , v in pairs( self.mail_id ) do                         		
-			local e =user.u_new_emailmgr:get( v.id )
-			assert( e )
+			local e = user.u_new_emailmgr:get( v )
+			assert(e)
 			if 0 == e.isreward then 	
-
+ 				
 				for i = 1 , 5 do
 					local id = "itemsn" .. i
 					local num = "itemnum" .. i
-		
-					if nil ~= v[id] and 0 ~= v[num] then
-						local prop = user.u_propmgr:get_by_csv_id( v[id] )
+		    
+					if nil ~= e[id] and 0 ~= e[num] then
+						local prop = user.u_propmgr:get_by_csv_id( e[id] )
 						if prop then
-							prop.num = prop.num + v[num]
+							prop.num = prop.num + e[num]
 						else
-							local p = game.g_propmgr:get_by_csv_id( v[id] )
+							local p = game.g_propmgr:get_by_csv_id( e[id] )
 							p.user_id = user.csv_id
-							p.num = v[num]
+							p.num = e[num]
 							local prop = user.u_propmgr.create( p )
 							user.u_propmgr:add( prop )
 							prop:update_db()
@@ -202,7 +202,7 @@ function new_emailrequest:newemail(ctx,  tval , ... ) -- get a email to group
 	ret.mail = {}
 	local tmp = {}
    	tmp.attachs = {}
-		
+	
     tmp.emailid = v.csv_id
     tmp.type = v.type
     tmp.acctime = os.date("%Y-%m-%d" , v.acctime)
@@ -216,24 +216,25 @@ function new_emailrequest:newemail(ctx,  tval , ... ) -- get a email to group
 	send_package( send_request( "newemail" ,  ret ) )--]]
 end 
 		
-function new_emailrequest:public_email(ctx, tvals , user )
-	assert(ctx and tvals and user )
+function new_emailrequest:public_email(factory, tvals , user )
+	assert(tvals and user )
 
 	tvals.uid = user.csv_id
 	print( "*********************************email is " , tvals.csv_id )
-	assert(false)
-	local v = user.u_new_emailmgr:recvemail( tvals )
+
+	local v = factory:email_recvemail( tvals )
 	assert( v )
 	
 end 
 	
-function SUBSCRIBE:email(ctx, tvals , ... ) -- get email from channl , a email to all users 
-	assert( tvals )
+function SUBSCRIBE:email(ctx,tvals , ... ) -- get email from channl , a email to all users 
+	assert( ctx and tvals )
 	print( " ***********************************SUBSCRIBE:email " )
-	user.public_email = tvals.csv_id
-	tvals.csv_id = skynet.call( ".game" , "lua" , "u_guid" , user.csv_id , const.UEMAILENTROPY )
+	--user.public_email = tvals.csv_id
+	tvals.csv_id = skynet.call( ".game" , "lua" , "u_guid" , ctx:get_user():get_csv_id() , const.UEMAILENTROPY )
 
-	tvals.uid = user.csv_id
+	tvals.uid = ctx:get_user():get_csv_id()
+	tvals.id = genpk_2(tvals.uid, tvals.csv_id)
 	print( "*********************************email csv_id is " , tvals.csv_id )
 	local v = user.u_new_emailmgr:recvemail( tvals )
 	assert( v )
@@ -242,7 +243,7 @@ function SUBSCRIBE:email(ctx, tvals , ... ) -- get email from channl , a email t
 	ret.mail = {}
 	local tmp = {}
    	tmp.attachs = {}
-
+	
     tmp.emailid = v.csv_id
     tmp.type = v.type
     tmp.acctime = os.date("%Y-%m-%d" , v.acctime)
@@ -254,8 +255,8 @@ function SUBSCRIBE:email(ctx, tvals , ... ) -- get email from channl , a email t
 	tmp.iconid = v.iconid
 	ret.mail = tmp
 	send_package( send_request( "newemail" ,  ret ) )--]]
-end
-
+end 
+	
 function RESPONSE:abd()
 	-- body
 end

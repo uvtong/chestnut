@@ -100,7 +100,7 @@ function VIEW:email()
 		c["itemsn3"] = tonumber(self.body["itemsn3"])
 		c["itemnum3"] = assert(tonumber(self.body["itemnum3"]))
 		c["iconid"] = tonumber(tonumber(self.body["iconid"]))
-		
+
 		local receiver = tonumber(self.body["receiver"])
 		if send_type == 1 then
 			skynet.send(".channel", "lua", "send_email_to_group", c, {{ uid = receiver }})
@@ -370,7 +370,6 @@ local function exe_percudure(table_name)
         local tmpsql4 = {}
 
         local sql = string.format("select COLUMN_NAME , DATA_TYPE , COLUMN_TYPE from information_schema.`COLUMNS` where table_name = " .. '"' .. "%s" .. '";', table_name)
-        print(sql)                     
         local col_val = query.read(".rdb", table_name, sql)
         assert(col_val)                 
         for k, v in ipairs(col_val) do 
@@ -412,6 +411,7 @@ local function exe_percudure(table_name)
 
         --chain all tmpsqlx up
         table.insert(script, "DELIMITER $$\n")
+        table.insert(script, string.format("DROP PROCEDURE IF EXISTS `%s` $$\n ", table_name))
         table.insert(script, string.format("CREATE DEFINER=`root`@`%%` PROCEDURE `%s`(", "qy_insert_" .. table_name))
         table.insert(script, table.concat(tmpsql1))
         table.insert(script, "BEGIN \n")

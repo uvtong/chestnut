@@ -28,7 +28,7 @@ local cgold_request = require "cgold_request"
 local kungfurequest = require "kungfurequest"
 local new_drawrequest = require "new_drawrequest"
 local lilian_request = require "lilian_request"
-local core_fightrequest = require "core_fightrequest"
+local core_fight_3 = require "core_fight_3"
 
 
 table.insert(M, checkinrequest )
@@ -38,7 +38,7 @@ table.insert(M, new_emailrequest )
 table.insert(M, kungfurequest )
 table.insert(M, new_drawrequest )
 table.insert(M, lilian_request )
-table.insert(M, core_fightrequest)
+table.insert(M, core_fight_3)
 
 -- service internal context
 
@@ -334,27 +334,31 @@ function SUBSCRIBE.update_db()
 	flush_db(const.DB_PRIORITY_3)
 end
 
+-- function SUBSCRIBE.( ... )
+-- 	-- body
+-- end
+
 local function subscribe( )
 	-- body
 	local c = skynet.call(".channel", "lua", "agent_start")
-	local c2 = mc.new {
-		channel = c,
-		dispatch = function ( channel, source, cmd, tvals , ... )
-			-- body
+	local c2 = mc.new { 			
+		channel = c,			
+		dispatch = function ( channel, source, cmd, tvals, ... )
+			-- body 			
 			if SUBSCRIBE[cmd] then
 				local f = SUBSCRIBE[cmd]
-				f(tvals, ...)
-			else
+				f(tvals, ...)	
+			else 				
 				for k,v in pairs(M) do
 					if v.SUBSCRIBE[cmd] then
 						local f = assert(v.SUBSCRIBE[cmd])
-						f(SUBSCRIBE, tvals, ...)
+						f(env, tvals, ...)
 						break		
 					end
 				end
 			end
 		end
-	}
+	} 
 	c2:subscribe()
 end
 
@@ -463,17 +467,20 @@ function REQUEST:achievement_reward_collect()
 	return ret
 end 
     
-local function get_public_email()
+local function get_public_email(ctx)
 	local r = skynet.call( ".channel" , "lua" , "agent_get_public_email" , user.csv_id , user.pemail_csv_id , user.signup_time )
 	assert( r )
 
 	if #r >= 1 then
+		print("user.pemail_csv_id is ", user.pemail_csv_id, r[1].pemail_csv_id)
 		user.pemail_csv_id = r[1].pemail_csv_id
+		user:update_db()
 	end
 
 	for k , v in ipairs( r ) do		
 		v.pemail_csv_id = nil
-		new_emailrequest:public_email( v , user )
+		v.id = genpk_2(ctx:get_user():get_csv_id(), v.csv_id)
+		new_emailrequest:public_email(ctx:get_myfactory(), v , user )
 	end 
 end    	
 	 	
@@ -3089,7 +3096,7 @@ function CMD:login(source, uid, sid, sct, g, d)
 	self:set_user(user)
 	self:login(user)
 
-	--get_public_email()
+	get_public_email(self)
 	return true
 end
 
@@ -3144,8 +3151,8 @@ local function start_subscribe()
 		end
 	}
 	c2:subscribe()
-end
-
+end 
+	
 local function start()
 	-- body
 	host = sprotoloader.load(1):host "package"
@@ -3154,8 +3161,8 @@ local function start()
 	env:set_host(host)
 	env:set_send_request(send_request)
 	env:set_game(".game")
-end
-
+end 
+	
 skynet.start(function()
 	skynet.dispatch("lua", function(_, source, command, ...)
 		print("agent is called" , command)
@@ -3167,6 +3174,6 @@ skynet.start(function()
 	end)
 	skynet.fork(update_db)
 	start()
-	-- subscribe()
+	subscribe()
 	start_subscribe()
 end)
