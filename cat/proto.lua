@@ -1289,7 +1289,7 @@ TMP_GuanQiaBattleList 98
 {
     request
     {
-        fightinfo 0 : *BattleListElem
+        fightinfo 0 : BattleListElem
     }
     response
     {
