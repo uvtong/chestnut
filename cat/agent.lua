@@ -468,19 +468,21 @@ function REQUEST:achievement_reward_collect()
 end 
     
 local function get_public_email(ctx)
-	local r = skynet.call( ".channel" , "lua" , "agent_get_public_email" , user.csv_id , user.pemail_csv_id , user.signup_time )
+	assert(ctx)
+
+	local r = skynet.call( ".channel" , "lua" , "agent_get_public_email" , ctx:get_user():get_csv_id() , ctx:get_user():get_pemail_csv_id() , ctx:get_user():get_signup_time() )
 	assert( r )
 
 	if #r >= 1 then
-		print("user.pemail_csv_id is ", user.pemail_csv_id, r[1].pemail_csv_id)
-		user.pemail_csv_id = r[1].pemail_csv_id
-		user:update_db()
+		print("user.pemail_csv_id is ", ctx:get_user():get_pemail_csv_id(), r[1].pemail_csv_id)
+		ctx:get_user():set_pemail_csv_id(r[1].pemail_csv_id)
+		--user:update_db()
 	end
 
 	for k , v in ipairs( r ) do		
 		v.pemail_csv_id = nil
 		v.id = genpk_2(ctx:get_user():get_csv_id(), v.csv_id)
-		new_emailrequest:public_email(ctx:get_myfactory(), v , user )
+		new_emailrequest:public_email(ctx:get_myfactory(), v , ctx:get_user() )
 	end 
 end    	
 	 	

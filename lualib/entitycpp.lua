@@ -119,7 +119,7 @@ function cls.update(t, ...)
 		table.insert(tmp_sql, ")")
 		
 		local sql = table.concat(tmp_sql)
-		-- print(sql)
+		print(sql)
 		-- print(t.__wdb, t.__tname)
 		query.write(t.__wdb, t.__tname, sql, query.DB_PRIORITY_3)
 	end 

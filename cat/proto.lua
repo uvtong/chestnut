@@ -43,7 +43,7 @@ proto.c2s = sprotoparser.parse [[
 }
 
 .mail {	
-	emailid 0 : integer
+	emailid 0 : long
 	type 1 : integer
 	iconid 2 : integer
 	acctime 3 : string

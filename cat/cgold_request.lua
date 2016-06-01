@@ -252,8 +252,8 @@ function REQUEST:c_gold_once(ctx)
 	-- if not tcgold then
 	-- 	notexist = true
 	-- 	tcgold = {}
-	-- end 
-	
+	-- end 	
+			
 	print( ifcgold , self , self.c_gold_type ,  self.c_gold_level , ctx:get_user().cgold_level )
 	if 0 == ifcgold or self.c_gold_level ~= ctx:get_user().cgold_level then
 		ret.errorcode = errorcode[ 1 ].code
@@ -265,8 +265,8 @@ function REQUEST:c_gold_once(ctx)
 			tcgold:update_db()
 
 			ctx:get_modelmgr():get_u_cgoldmgr():delete(tcgold:get_id())
-		end
-
+		end 
+			
 		tcgold = {}
 		tcgold.id = skynet.call(".game", "lua", "guid", const.CGOLD)
 		tcgold.user_id = user.csv_id
@@ -279,9 +279,9 @@ function REQUEST:c_gold_once(ctx)
 		tcgold = ctx:get_modelmgr():get_u_cgoldmgr():create( tcgold )
 		assert( tcgold )
 		ctx:get_modelmgr():get_u_cgoldmgr():add( tcgold )
-
+		
 		tcgold:update_db()
-
+		
 		local t = get_g_cgold( self.daily_type * 10 + self.c_gold_type )
 		local prop = ctx:get_modelmgr():get_u_propmgr():get_by_csv_id( t.cost_id )
 		if not prop or prop:get_num() < t.cost_amount then
@@ -296,8 +296,10 @@ function REQUEST:c_gold_once(ctx)
 			prop:update_db()
 			
 			add_to_prop(ctx, get_cgold_reward( t ) )	
-			ctx:get_user().cgold_level = ctx:get_user().cgold_level + t.level_up
-			ctx:get_user():update_db()
+
+			--ctx:get_user().cgold_level = ctx:get_user().cgold_level + t.level_up
+			ctx:get_user():set_cgold_level(ctx:get_user():get_cgold_level() + t.level_up)
+			--ctx:get_user():update_db()
 
 			ret.errorcode = errorcode[ 1 ].code
 			ret.msg = errorcode[ 1 ].msg 

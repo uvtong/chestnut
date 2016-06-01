@@ -72,7 +72,7 @@ function REQUEST:login(u)
 	exercise_time = #record_date
 	assert(exercise_time > 0)
 
-	if 3 == cgold_time then
+	if 3 == exercise_time then
 		time_third = tonumber( string.sub( record_date[ 3 ] , 1 , 2 ) )
 	end 
 
@@ -83,7 +83,9 @@ end
 local function get_g_exercise( type )
 	assert( type )
 	print( "type is " , type )
-	local t = game.g_daily_taskmgr:get_by_type( type )
+	local t = skynet.call(".game", "lua", "query_g_daily_task_by_id", type)
+
+	--local t = game.g_daily_taskmgr:get_by_type( type )
 	assert( t )
 
 	return t
@@ -259,10 +261,10 @@ function REQUEST:exercise_once(ctx)
 		--should logout
 	else
 		if texercise then
-			texercise:set_is_latest(0)
+			texercise:set_if_latest(0)
 			texercise:update_db()
 			ctx:get_modelmgr():get_u_exercisemgr():delete(texercise:get_id())
-		end
+		end 
 
 		texercise = {}
 		texercise.id = skynet.call(".game", "lua", "guid", const.EXERCISE)
@@ -271,18 +273,18 @@ function REQUEST:exercise_once(ctx)
 		texercise.exercise_type = self.exercise_type
 		texercise.time_length = exercise_time
 		texercise.if_latest = 1
-				
+					
 		texercise = ctx:get_modelmgr():get_u_exercisemgr():create( texercise )
 		assert( texercise )
 		ctx:get_modelmgr():get_u_exercisemgr():add( texercise )
 		texercise:update_db()
-		
+
 		local t = get_g_exercise( self.daily_type * 10 + self.exercise_type )
 		local prop = ctx:get_modelmgr():get_u_propmgr():get_by_csv_id( t.cost_id )
 		if not prop or prop.num < t.cost_amount then
 			ret.errorcode = errorcode[ 16 ].code
 			ret.msg = errorcode[ 16 ].msg
-		else
+		else 
 			print( "************************************can exercise reward" )
 			ifexercise = 0
 			print( "cost money is ********************************" , t.cost_id , t.cost_amount , t.level_up  )
@@ -291,9 +293,10 @@ function REQUEST:exercise_once(ctx)
 
 			add_to_prop(ctx, get_exercise_reward( t ) )	
 
-			ctx:get_user().exercise_level = ctx:get_user().exercise_level + t.level_up
-			ctx:get_user():update_db()
+			ctx:get_user():set_exercise_level(ctx:get_user():get_exercise_level() + t.level_up)
+			--ctx:get_user().exercise_level = ctx:get_user().exercise_level + t.level_up
 
+			--ctx:get_user():update_db()
 			ret.errorcode = errorcode[ 1 ].code
 			ret.msg = errorcode[ 1 ].msg 
 			local sta , lefttime = judge_time_quantum( time , texercise:get_time_length() )
