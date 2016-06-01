@@ -331,7 +331,7 @@ end
 
 function SUBSCRIBE.update_db()
 	-- body
-	flush_db(const.DB_PRIORITY_3)
+	env:flush_db(const.DB_PRIORITY_3)
 end
 
 -- function SUBSCRIBE.( ... )
@@ -2406,241 +2406,47 @@ end
 
 function REQUEST:ara_rnk_reward_collected(ctx)
 	-- body
-	local ret = {}
-	local leaderboards_name = skynet.getenv("leaderboards_name")
-	local ranking = skynet.call(leaderboards_name, "lua", "ranking", ctx:get_userid())
-	local u = ctx:get_user()
-	local modelmgr = ctx:get_modelmgr()
-	local u_ara_rnk_rwdmgr = modelmgr:get_u_ara_rnk_rwdmgr()
-	local seg = 0
-	if ranking < 10 then
-		seg = ranking
-	elseif ranking < 100 then
-		seg = (seg // 10 * 10)
-	elseif ranking < 1000 then
-		seg = seg // 100 * 100
+	local m = ctx:get_module("arena")
+	local ok, result = pcall(m.ara_rnk_reward_collected, m, self)
+	if ok then
+		return result 
 	else
-		assert(false)
+		skynet.error(result)
+		local ret = {}
+		ret.errorcode = errorcode[29].code
+		ret.msg = errorcode[29].msg
+		return ret
 	end
-	local u_propmgr = modelmgr:get_u_propmgr()
-	local props = {}
-	local rl = {}
-	local rnk_rwd = u_ara_rnk_rwdmgr:get_by_csv_id(seg)
-	if rnk_rwd == nil then
-		local tmp = {}
-		tmp["user_id"] = u:get_field("csv_id")
-		tmp["csv_id"] = seg
-		tmp["id"] = genpk_2(u:get_field("csv_id"), seg)
-		tmp["collected"] = 1
-
-		local key = string.format("%s:%d", "g_ara_rnk_rwd", seg)
-		local value = sd.query(key)
-		local reward = util.parse_text(value["reward"], "(%d+%*%d+%*?)", 2)
-		for i,v in ipairs(reward) do
-			local prop = u_propmgr:get_by_csv_id(v[1])
-			if prop then
-				prop:set_field("num", prop:get_field("num") + v[2])
-			else
-				local key = string.format("%s:%d", "g_prop", v[1])
-				local prop = sd.query(key)
-				prop["user_id"] = u:get_field("csv_id")
-				prop["num"] = v[2]
-				prop["id"] = genpk_2(v:get_field("csv_id"), v[2])
-				prop = u_propmgr:create_entity(prop)
-				u_propmgr:add(prop)
-				prop:update_db()
-			end
-			local prop_li = {}
-			prop_li["csv_id"] = prop:get_field("csv_id")
-			prop_li["num"] = prop:get_field("num")
-			table.insert(props, prop_li)
-		end
-	else
-		if rnk_rwd:get_field("collected") == 1 then
-			local ret = {}
-			ret.errorcode = errorcode[152].code
-			ret.msg = errorcode[152].msg
-			return ret
-		else
-			rnk_rwd:set_field("collected", 1)
-
-			local key = string.format("%s:%d", "g_ara_rnk_rwd", seg)
-			local value = sd.query(key)
-			local reward = util.parse_text(value["reward"], "(%d+%*%d+%*?)", 2)
-			for i,v in ipairs(reward) do
-				local prop = u_propmgr:get_by_csv_id(v[1])
-				if prop then
-					prop:set_field("num", prop:get_field("num") + v[2])
-				else
-					local key = string.format("%s:%d", "g_prop", v[1])
-					local prop = sd.query(key)
-					prop["user_id"] = u:get_field("csv_id")
-					prop["num"] = v[2]
-					prop["id"] = genpk_2(v:get_field("csv_id"), v[2])
-					prop = u_propmgr:create_entity(prop)
-					u_propmgr:add(prop)
-					prop:update_db()
-				end
-				local prop_li = {}
-				prop_li["csv_id"] = prop:get_field("csv_id")
-				prop_li["num"] = prop:get_field("num")
-				table.insert(props, prop_li)
-			end
-		end
-	end
-	ret.errorcode = errorcode[1].code
-	ret.msg = errorcode[1].msg
-	ret.props = props
-	ret.rl = rl
-	return ret
 end
 
 function REQUEST:ara_convert_pts(ctx, ... )
 	-- body
-	local u = ctx:get_user()
-	local modelmgr = ctx:get_modelmgr()
-	local key = string.format("%s:%d", "g_config", 1)
- 	local config = sd.query(key)
-	local tm = os.date("*t", os.time())
-	local t = { year=tm.year, month=tm.month, day=tm.day, hour=config.ara_integral_rst}
-	local sec = os.time(t)
-	local now = os.time()
-	if now > sec then
-		u:set_field("ara_integral", 0)
-		local u_ara_ptsmgr = modelmgr:get_u_ara_ptsmgr()
-		for k,v in pairs(u_ara_ptsmgr:get_data()) do
-			v:set_field("collected", 0)
-		end
+	local m = ctx:get_module("arena")
+	local ok, result = pcall(m.ara_convert_pts, m, self)
+	if ok then
+		return result 
+	else
+		skynet.error(result)
+		local ret = {}
+		ret.errorcode = errorcode[29].code
+		ret.msg = errorcode[29].msg
+		return ret
 	end
-	local u_propmgr = modelmgr:get_u_propmgr()
-	local props = {}
-	local cl = {}
-	local u_ara_ptsmgr = modelmgr:get_u_ara_ptsmgr()
-	local ara_integral = u:get_ara_integral()
-	if ara_integral > 0 then
-		for i=ara_integral,1 do
-			if i // 2 == 0 then
-				local r = u_ara_ptsmgr:get_by_csv_id(i)
-				if r == nil then
-					local tmp = {}
-					tmp["user_id"] = u:get_field("csv_id")
-					tmp["csv_id"] = i
-					tmp["id"] = genpk_2(u:get_field("csv_id"), i)
-					tmp["collected"] = 1
-					local entity = u_ara_ptsmgr:create_entity(tmp)
-					u_ara_ptsmgr:add(entity)
-					entity:update_db()
-					local key = string.format("%s:%d", "g_ara_pts", i)
-					local ara_pts = sd.query(key)
-					local reward = util.parse_text(ara_pts.reward, "(%d+%*%d+%*?)", 2)
-					for i,v in ipairs(reward) do
-						local prop = u_propmgr:get_by_csv_id(v[1])
-						if prop then
-							prop:set_field("csv_id", prop:get_field("csv_id") + v[2])
-						else
-							local key = string.format("%s:%d", "g_prop", v[1])
-							local prop = sd.query(key)
-							prop["user_id"] = u:get_field("csv_id")
-							prop["num"] = v[2]
-							prop["id"] = genpk_2(v:get_field("csv_id"), v[2])
-							prop = u_propmgr:create_entity(prop)
-							u_propmgr:add(prop)
-							prop:update_db()
-						end
-						local prop_li = {}
-						prop_li["csv_id"] = prop:get_field("csv_id")
-						prop_li["num"] = prop:get_field("num")
-						table.insert(props, prop_li)
-					end
-					local cl_li = {}
-					cl_li["internal"] = i
-					cl_li["collected"] = true
-					table.insert(cl, cl_li)
-				else
-					local collected = r:get_field("collected")
-					if collected then
-						break
-					else
-						r:set_field("collected", 1)
-						local key = string.format("%s:%d", "g_ara_pts", i)
-						local value = sd.query(key)
-						local reward = value["reward"]
-						local reward = util.parse_text(reward, "(%d+%*%d+%*?)", 2)
-						for i,v in ipairs(reward) do
-							local prop = u_propmgr:get_by_csv_id(v[1])
-							if prop then
-								prop:set_field("csv_id", prop:get_field("csv_id") + v[2])
-							else
-								local key = string.format("%s:%d", "g_prop", v[1])
-								local prop = sd.query(key)
-								prop["user_id"] = u:get_field("csv_id")
-								prop["num"] = v[2]
-								prop["id"] = genpk_2(v:get_field("csv_id"), v[2])
-								prop = u_propmgr:create_entity(prop)
-								u_propmgr:add(prop)
-								prop:update_db()
-							end
-							local prop_li = {}
-							prop_li["csv_id"] = prop:get_field("csv_id")
-							prop_li["num"] = prop:get_field("num")
-							table.insert(props, prop_li)
-						end
-						local cl_li = {}
-						cl_li["internal"] = i
-						cl_li["collected"] = true
-						table.insert(cl, cl_li)
-					end
-				end
-			end
-		end
-	end
-	local ret = {}
-	ret.errorcode = errorcode[1].code
-	ret.msg = errorcode[1].msg
-	ret.props = props
-	ret.cl = cl
-	return ret
 end
 
 function REQUEST:ara_lp(ctx, ... )
 	-- body
-	local leaderboards_name = skynet.getenv("leaderboards_name")
-	local r1 = skynet.call(leaderboards_name, "lua", "ranking_range", 1, 10)
-	local l = {}
-	for i,v in ipairs(r1) do
-		local li = {}
-		local ranking = i
-		local uid = v
-		li.ranking = ranking
-		li.uid = uid
-		li.top = true
-		print("#########################ara_lp", li.uid)
-		local usersmgr = ctx:get_usersmgr()
-		if usersmgr:get(uid) then
-			local u = usersmgr:get(uid)
-			li["total_combat"] = u:get_field("sum_combat")
-			li["uname"] = u:get_field("uname")
-			table.insert(l, li)
-		elseif dc.get(uid, "online") then
-			local addr = dc.get(uid, "addr")
-			local u = skynet.call(addr, "lua", "user")
-			li["total_combat"] = u["user"].sum_combat
-			li["uname"] = u["user"].uname
-			table.insert(l, li)
-		else
-			local usersmgr = ctx:get_usersmgr()
-			usersmgr:load_cache(uid)
-			local u = usersmgr:get(uid)
-			li["total_combat"] = u:get_field("sum_combat")
-			li["uname"] = u:get_field("uname")
-			table.insert(l, li)
-		end
+	local m = ctx:get_module("arena")
+	local ok, result = pcall(m.ara_lp, m, self)
+	if ok then
+		return result 
+	else
+		skynet.error(result)
+		local ret = {}
+		ret.errorcode = errorcode[29].code
+		ret.msg = errorcode[29].msg
+		return ret
 	end
-	local ret = {}
-	ret.errorcode = errorcode[1].code
-	ret.msg = errorcode[1].msg
-	ret.lp = l
-	return ret
 end
 
 function REQUEST:logout(ctx)
