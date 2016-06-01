@@ -13,12 +13,13 @@ end
 
 function cls:signup(uid)
 	-- body
-	print("**********************************", uid)
-	local u =  self._env:create_default(uid)
-	u:update_wait()
-	self._data["user"] = u
-
+	
 	local cls
+	cls = require "models/usersmgr"
+	local usersmgr = cls.new()
+	self._data["usersmgr"] = usersmgr
+	self._env:set_usersmgr(usersmgr)
+	
 	cls = require "models/u_achievementmgr"
 	u.u_achievementmgr = cls.new()
 	self._data["u_achievementmgr"] = u.u_achievementmgr
@@ -169,6 +170,12 @@ function cls:signup(uid)
 	u_ara_rnk_rwdmgr:set_user(u)
 	self._data["u_ara_rnk_rwdmgr"] = u_ara_rnk_rwdmgr
 
+	local factory = self:get_myfactory()
+	local u = factory:create_user(uid)
+	u:update_wait()
+	self._data["user"] = u
+	self._env:set_user(u)
+
 	local r = skynet.call(".game", "lua", "query_g_equipment")
 	for k,v in pairs(r) do
 		local equip = skynet.call(".game", "lua", "query_g_equipment_enhance", v.csv_id*1000+v.level)
@@ -311,8 +318,6 @@ function cls:signup(uid)
 	u.u_rolemgr:add(role)
 	print("role:update_wait is called**********************")
 	role:update_wait()
-
-
 
 	return u
 end
