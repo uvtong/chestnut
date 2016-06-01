@@ -1163,6 +1163,7 @@ ara_rnk_reward_collected 84 {
         errorcode 0 : integer
         msg 1 : string
         props 2 : *prop
+        rl 3 : *rnk_reward
     }
 }
 
@@ -1195,6 +1196,7 @@ ara_convert_pts 87 {
         errorcode 0 : integer
         msg 1 : string
         props 2 : *prop
+        cl 3 : *integral_reward 
     }
 }
 
