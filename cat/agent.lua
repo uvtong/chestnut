@@ -2261,145 +2261,32 @@ end
 
 function REQUEST:ara_enter(ctx, ... )
 	-- body
-	-- reset
-	local u = ctx:get_user()
-	local modelmgr = ctx:get_modelmgr()
-	local key = string.format("%s:%d", "g_config", 1)
- 	local config = sd.query(key)
-	local tm = os.date("*t", os.time())
-	local t = { year=tm.year, month=tm.month, day=tm.day, hour=config.ara_clg_tms_rst}
-	local sec = os.time(t)
-	local now = os.time()
-	if now > sec then
-		u:set_ara_clg_tms(config.ara_clg_tms_max)
-	end
-	-- reset integral
-	local t = { year=tm.year, month=tm.month, day=tm.day, hour=config.ara_integral_rst}
-	local sec = os.time(t)
-	if now > sec then
-		u:set_field("ara_integral", 0)
-		local u_ara_ptsmgr = modelmgr:get_u_ara_ptsmgr()
-		for k,v in pairs(u_ara_ptsmgr:get_data()) do
-			v:set_field("collected", 0)
-		end
-	end
-	local t = { year=tm.year, month=tm.month, day=tm.day, hour=config.ara_clg_tms_pur_tms_rst}
-	local sec = os.time(t)
-	if now > sec then
-		u:set_field("ara_clg_tms_pur_tms", 0)
-	end
-
-	local ara_interface = u:get_ara_interface()
-	if ara_interface == 1 then
-		local ara_fighting = u:get_ara_fighting()
-		if ara_fighting == 1 then
-			-- ctx:
-			ctx:ara_bat_ovr(-1)
-			u:set_ara_fighting(0)
-			local ret = {}
-			ret.errorcode        = errorcode[151].code
-			ret.msg              = errorcode[151].msg
-			ret.ara_win_tms      = u:get_field("ara_win_tms")
-			ret.ara_lose_tms     = u:get_field("ara_lose_tms")
-			ret.ara_tie_tms      = u:get_field("ara_tie_tms")
-			ret.ara_clg_tms      = u:get_field("ara_clg_tms")
-			ret.ara_integral     = u:get_field("ara_integral")
-			ret.ara_rfh_tms      = ara_rfh_tms
-			ret.ara_rfh_cost_tms = u:get_field("ara_rfh_cost_tms")
-			ret.ara_clg_cost_tms = u:get_field("ara_clg_cost_tms")
-			ret.ara_rfh_cd       = ara_rfh_cd
-		end
+	local m = ctx:get_module("arena")
+	local ok, result = pcall(m.ara_enter, m, self)
+	if ok then
+		return result 
 	else
-		ara_interface = 1
-		u:set_ara_interface(ara_interface)
-		local ara_fighting = u:get_ara_fighting()
-		assert(ara_fighting == 0)
+		skynet.error(result)
+		local ret = {}
+		ret.errorcode = errorcode[29].code
+		ret.msg = errorcode[29].msg
+		return ret
 	end
-	local factory = ctx:get_myfactory()
-	local j = factory:get_today()
-	local ara_rfh_tms = j:get_ara_rfh_tms()
-	local l = ctx:ara_rfh()
-	local key = string.format("%s:%d", "g_config", 1)
-	local value = sd.query(key)
-	local now = os.time()
-	local st = u:get_field("ara_rfh_st")
-	local walk = now - st
-	local ara_rfh_dt = value["ara_rfh_dt"]
-	if walk >= ara_rfh_dt then
-		ara_rfh_cd = 0
-	else
-		ara_rfh_cd = ara_rfh_dt - walk
-	end
-	u:set_field("ara_rfh_cd", ara_rfh_cd)
-
-	local u_ara_ptsmgr = modelmgr:get_u_ara_ptsmgr()
-	local cl = {}
-	for i,v in ipairs(const.ARA_PTS) do
-		local rc = u_ara_ptsmgr:get_by_csv_id(v)
-		if rc then
-			local cl_li = {}
-			cl_li["integral"] = v
-			cl_li["collected"] = (rc:get_field("collected") == 1 and true or false)
-			table.insert(cl, cl_li)
-		else
-			local cl_li = {}
-			cl_li["integral"] = v
-			cl_li["collected"] = false
-			table.insert(cl, cl_li)
-		end
-	end
-	local u_ara_rnk_rwdmgr = modelmgr:get_u_ara_rnk_rwdmgr()
-	local rl = {}
-	for i,v in ipairs(const.ARA_RNK_RWD) do
-		local rc = u_ara_rnk_rwdmgr:get_by_csv_id(v)
-		if rc then
-			local rl_li = {}
-			rl_li["ranking"] = v
-			rl_li["collected"] = (rc:get_field("collected") == 1 and true or false)
-			table.insert(rl, rl_li)
-		else
-			local rl_li = {}
-			rl_li["ranking"] = v
-			rl_li["collected"] = false
-			table.insert(rl, rl_li)
-		end
-	end
-
-	local ret = {}
-	ret.errorcode        = errorcode[1].code
-	ret.msg              = errorcode[1].msg
-	ret.ara_rmd_list     = l
-	ret.ara_win_tms      = u:get_field("ara_win_tms")
-	ret.ara_lose_tms     = u:get_field("ara_lose_tms")
-	ret.ara_tie_tms      = u:get_field("ara_tie_tms")
-	ret.ara_clg_tms      = u:get_field("ara_clg_tms")
-	ret.ara_integral     = u:get_field("ara_integral")
-	ret.ara_rfh_tms      = ara_rfh_tms
-	ret.ara_rfh_cost_tms = u:get_field("ara_rfh_cost_tms")
-	ret.ara_clg_cost_tms = u:get_field("ara_clg_cost_tms")
-	ret.ara_rfh_cd       = ara_rfh_cd
-	ret.cl = cl
-	ret.rl = rl
-	return ret
 end
 
 function REQUEST:ara_exit(ctx, ... )
 	-- body
-	local u = ctx:get_user()
-	local ara_interface = u:get_ara_interface()
-	if ara_interface == 1 then
-		local ara_fighting = u:get_ara_fighting()
-		if ara_fighting == 1 then
-			ctx:ara_bat_ovr(-1)
-			u:set_ara_fighting(0)
-		end
+	local m = ctx:get_module("arena")
+	local ok, result = pcall(m.ara_exit, m, self)
+	if ok then
+		return result 
 	else
-		u:set_ara_interface(0)
+		skynet.error(result)
+		local ret = {}
+		ret.errorcode = errorcode[29].code
+		ret.msg = errorcode[29].msg
+		return ret
 	end
-	local ret = {}
-	ret.errorcode = errorcode[1].code
-	ret.msg = errorcode[1].msg
-	return ret
 end
 
 function REQUEST:ara_choose_role_enter(ctx, ... )
@@ -2463,15 +2350,17 @@ end
 
 function REQUEST:ara_choose_role(ctx, ... )
 	-- body
-	assert(#self.bat_roleid == 3)
-	local u = ctx:get_user()
-	u:set_field("ara_role_id1", self.bat_roleid[1])
-	u:set_field("ara_role_id1", self.bat_roleid[1])
-	u:set_field("ara_role_id1", self.bat_roleid[1])
-	local ret = {}
-	ret.errorcode = errorcode[1].code
-	ret.msg = errorcode[1].msg
-	return ret
+	local m = ctx:get_module("arena")
+	local ok, result = pcall(m.ara_choose_role, m, self)
+	if ok then
+		return result 
+	else
+		skynet.error(result)
+		local ret = {}
+		ret.errorcode = errorcode[29].code
+		ret.msg = errorcode[29].msg
+		return ret
+	end
 end
 
 function REQUEST:ara_bat_enter(ctx, ... )
@@ -2485,134 +2374,32 @@ end
 function REQUEST:ara_rfh(ctx)
 	-- body
 	-- first test when to reset
-	local u = ctx:get_user()
-	local ara_rfh_cd = u:get_field("ara_rfh_cd")
-	if ara_rfh_cd > 0 then
-		local ara_rfh_cd_cost_tms = u:get_field("ara_rfh_cd_cost_tms")
-		ara_rfh_cd_cost_tms = ara_rfh_cd_cost_tms + 1
-		local tms = ara_rfh_cd_cost_tms
-		if tms < 10 then
-		elseif tms < 100 then
-			tms = tms // 10 * 10
-		elseif tms < 1000 then
-			tms = tms // 100 * 100
-		end
-		local key = string.format("%s:%d", "g_ara_tms", tms)
-		local value = sd.query(key)
-		local list_cd_refresh_cost = value["list_cd_refresh_cost"]
-		local r = util.parse_text(list_cd_refresh_cost, "(%d+%*%d+%*?)", 2)
-		local id = tonumber(r[1][1])
-		local num = tonumber(r[1][2])
-		local prop = u_propmgr:get_by_csv_id(id)
-		local onum = prop:get_num()
-		if onum > num then
-			local nnum = onum - num
-			prop:set_num(nnum)
-			u:set_field("ara_rfh_cd_cost_tms", ara_rfh_cd_cost_tms)
-			u:set_field("ara_rfh_cd", 0)
-			local ret = {}
-			ret.errorcode = errorcode[1].code
-			ret.msg = errorcode[1].msg
-			ret.ara_rfh_cd = 0
-			return ret
-		else
-			local ret = {}
-			ret.errorcode = errorcode[31].code
-			ret.msg = errorcode[31].msg
-			return ret
-		end
-	else	
-		local factory = ctx:get_myfactory()
-		local j = factory:get_today()
-		local ara_rfh_tms = j:get_ara_rfh_tms()
-		if ara_rfh_tms > 0 then
-			ara_rfh_tms = ara_rfh_tms - 1
-			j:set_ara_rfh_tms(ara_rfh_tms)
-		else
-			
-			local modelmgr = ctx:get_modelmgr()
-			local u_propmgr = modelmgr:get_u_propmgr()
-			local ara_rfh_cost_tms = u:get_ara_rfh_cost_tms()
-			ara_rfh_cost_tms = ara_rfh_cost_tms + 1
-			local key = string.format("%s:%d", "g_ara_tms", ara_rfh_cost_tms)
-			local value = sd.query(key)
-			local list_refresh_cost = value["list_refresh_cost"]
-			print(list_refresh_cost)
-			local r = util.parse_text(list_refresh_cost, "(%d+%*%d+%*?)", 2)
-			local id = tonumber(r[1][1])
-			local num = tonumber(r[1][2])
-			local prop = u_propmgr:get_by_csv_id(id)
-			local onum = prop:get_num()
-			if onum > num then
-				local nnum = onum - num
-				prop:set_num(nnum)
-			else
-				local ret = {}
-				ret.errorcode = errorcode[31].code
-				ret.msg = errorcode[31].msg
-				return ret
-			end
-		end
-		local l = ctx:ara_rfh()
+	local m = ctx:get_module("arena")
+	local ok, result = pcall(m.ara_choose_role, m, self)
+	if ok then
+		return result 
+	else
+		skynet.error(result)
 		local ret = {}
-		ret.errorcode = errorcode[1].code
-		ret.msg = errorcode[1].msg
-		ret.ara_rmd_list = l
+		ret.errorcode = errorcode[29].code
+		ret.msg = errorcode[29].msg
 		return ret
 	end
 end
 
 function REQUEST:ara_worship(ctx)
 	-- body
-	local modelmgr = ctx:get_modelmgr()
-	local u_ara_worshipmgr = modelmgr:get_u_ara_worshipmgr()
-	local t = os.date("*t", os.time())
-	t = { year=t.year, month=t.month, day=t.day}
-	local today = os.time(t)
-	local leaderboards_name = skynet.getenv("leaderboards_name")
-	local ranking2 = skynet.call(leaderboards_name, "lua", "ranking", ctx:get_userid())
-	local l = {}
-	for i,v in ipairs(self.uids) do
-		local li = {}
-		li.uid = v
-		local r = u_ara_worshipmgr:get_by_csv_id(v)
-		if r:get_field("date") == today and r:get_field("worship") == 1 then
-			li.worship = true
-		else
-			local ranking1 = skynet.call(leaderboards_name, "lua", "ranking", v)
-			if ranking1 >= 100 and ranking1 > ranking2 then
-				local key = string.format("%s:%d", "g_config", 1)
-				local value = sd.query(key)
-				local id = value["worship_reward_id"]
-				local num = value["worship_reward_num"]
-				local u_propmgr = modelmgr:get_u_propmgr()
-				local prop = user.u_propmgr:get_by_csv_id(id)
-				prop.num = prop.num + num
-				if r:get_field("date") ~= today then
-					local u_ara_worship_rc = modelmgr:get_u_ara_worship_rcmgr()
-					local rc = u_ara_worship_rc:create_entity(r.__fields)
-					rc:update_db()
-					r:set_field("date", today)
-					r:set_field("worship", 1)
-				else
-					r:set_field("worship", 1)
-				end
-				li.worship = true
-				ret.errorcode = errorcode[1].code
-				ret.msg = errorcode[1].msg
-				return ret
-			else
-				li.worship = false
-				ret.errorcode = errorcode[33].code
-				ret.msg = errorcode[33].msg
-				return ret
-			end
-		end
-	end
-	local ret = {}
-	ret.errorcode = errorcode[1].code
-	ret.msg = errorcode[1].msg
-	return ret
+	local m = ctx:get_module("arena")
+	local ok, result = pcall(m.ara_worship, m, self)
+	if ok then
+		return result 
+	else
+		skynet.error(result)
+		local ret = {}
+		ret.errorcode = errorcode[29].code
+		ret.msg = errorcode[29].msg
+		return ret
+	end	
 end
 
 function REQUEST:ara_rnk_reward_collected(ctx)
