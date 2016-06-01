@@ -345,16 +345,18 @@ function REQUEST:checkin(ctx)
 
 		--if tcheckin.update_time < date then
 		if tcheckin.__fields.u_checkin_time + 30 < os.time() then -- tmp 30 sec can checkin 
+			print("************************************************1", tcheckin.__fields.u_checkin_time)
 			ret.ifcheckin_t = true
 			--tcheckin.ifcheck_in = 1
 		else
+			print("************************************************2", tcheckin.__fields.u_checkin_time)
 			ret.ifcheckin_t = false
 			--tcheckin.ifcheck_in = 0
 		end
 		
 		ret.monthamount = tcheckin_month.__fields.checkin_month 
 	end 
-	print( user.checkin_num , ret.rewardnum )
+	print( ctx:get_user().checkin_num , ret.rewardnum )
 	ret.totalamount = ctx:get_user().checkin_num
 	ret.rewardnum = ctx:get_user().checkin_reward_num
 
@@ -384,7 +386,8 @@ function REQUEST:checkin_aday(ctx)
 	-- 	notexeit = true
 	-- end 			
 
-	if tcheckin and tcheckin.__fields.update_time >= time then
+	--if tcheckin and tcheckin.__fields.update_time >= time then
+	if false then
 		if 0 == counter then
 			ret.errorcode = errorcode[ 61 ].code
 			ret.msg = errorcode[ 61 ].msg
@@ -457,7 +460,7 @@ function REQUEST:checkin_aday(ctx)
 			-- tcheckin:__insert_db( const.DB_PRIORITY_2 )
 			ctx:get_user():set_checkin_num(ctx:get_user():get_checkin_num() + 1)
 			--user.checkin_num  = user.checkin_num + 1
-		
+			
 			print( "*********************************user_checkin_num " , user.checkin_num )
 			local t = get_g_checkin_by_csv_id( time , tcheckin_month.__fields.checkin_month )
 			add_to_prop(ctx, get_aday_reward( t ) )

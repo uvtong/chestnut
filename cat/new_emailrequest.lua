@@ -51,19 +51,19 @@ function REQUEST:mails(ctx)
 	ret.mail_list = {}
 
 	local counter = 0
-	for i , v in pairs( user.u_new_emailmgr.__data ) do
+	for i , v in pairs( ctx:get_user().u_new_emailmgr.__data ) do
 		print( k , v )
 		counter = counter + 1
 		local tmp = {}
 		tmp.attachs = {}
-
-		tmp.emailid = v.id
-		tmp.type = v.type
-		tmp.acctime = os.date( "%Y-%m-%d" , v.acctime )
-		tmp.isread = ( v.isread == 0 ) and true or false 
-		tmp.isreward = ( v.isreward == 0 ) and true or false 
-		tmp.title = v.title
-		tmp.content = v.content
+		print(v.id)
+		tmp.emailid = v:get_id()
+		tmp.type = v:get_type()
+		tmp.acctime = os.date( "%Y-%m-%d" , v:get_acctime() )
+		tmp.isread = ( v:get_isread() == 0 ) and true or false 
+		tmp.isreward = ( v:get_isreward() == 0 ) and true or false 
+		tmp.title = v:get_title()
+		tmp.content = v:get_content()
 
 		for i = 1 , 5 do
 			local id = "itemsn" .. i
@@ -78,7 +78,7 @@ function REQUEST:mails(ctx)
 			end
 		end
 
-		tmp.iconid = v.iconid
+		--tmp.iconid = v:get_iconid()
 
 		table.insert( ret.mail_list , tmp )
 	end 	
@@ -142,8 +142,9 @@ function REQUEST:mail_getreward(ctx)
 	print( "****************************get_reward is called" )
 	local ret = {}
 	if self.mail_id then
-		for k , v in pairs( self.mail_id ) do                         		
-			local e = user.u_new_emailmgr:get( v )
+		for k , v in pairs( self.mail_id ) do       
+			print(v, v.id)                  		
+			local e = user.u_new_emailmgr:get( v.id )
 			assert(e)
 			if 0 == e.isreward then 	
  				
