@@ -3,7 +3,6 @@ package.cpath = "../lua-cjson/?.so;"..package.cpath
 local skynet = require "skynet"
 require "functions"
 local assert = assert
-local table_name = ...
 local cls = require "models/ara_leaderboardsmgr"
 leaderboardsmgr = cls.new()
 
@@ -50,35 +49,20 @@ function CMD.swap(rnk1, rnk2)
 	ranking_name[ranking2] = rnk1
 end
 
-function CMD.enter(id, key)
+function CMD.push(uid, key)
 	-- body
-	assert(false)
-	local idx = bsearch(k)
-	local l = #ranking_name
-	local p = l
-	while p >= idx do
-		ranking_name[p+1] = ranking_name[p]
-		p = p - 1
-	end
-	ranking_name[p] = id
-	name_ranking[id] = { id = id, ranking=p, key=k}
-	return p
-end
-
-function CMD.push(id, key)
-	-- body
-	local u = leaderboardsmgr:get(id)
+	assert(type(uid) == "number")
+	local u = leaderboardsmgr:get(uid)
 	if u then
-		return u.ranking
+		return u:get_field("ranking")
 	else
 		top = top + 1
 		local ranking = top
-		ranking_name[ranking] = id
-		local tmp = {
-			uid = id,
-			ranking = ranking,
-			k = key
-		}
+		ranking_name[ranking] = uid
+		local tmp = {}
+		tmp["uid"] = uid
+		tmp["ranking"] = ranking
+		tmp["k"] = key
 		local o = leaderboardsmgr:create_entity(tmp)
 		leaderboardsmgr:add(o)
 		o:update()
@@ -86,35 +70,32 @@ function CMD.push(id, key)
 	end
 end
 
-function CMD.ranking(id)
+function CMD.ranking(uid)
 	-- body
-	assert(id)
-	return assert(name_ranking[id].ranking)
+	return leaderboardsmgr:get(uid):get_field("ranking")
 end
 
-function CMD.name(rnk)
+-- return uid
+function CMD.name(ranking)
 	-- body
-	assert(rnk)
-	return assert(ranking_name[rnk])
+	return ranking_name(ranking)
 end
 
-function CMD.ranking_range(s, e)
+function CMD.ranking_range(start, stop)
 	-- body
-	print("########################", 6)
-	assert(type(s) == "number")
-	assert(type(e) == "number")
-	assert(e > s)
-	assert(e <= top)
-	local l = {}
-	for i=s,e do
-		l[i] = ranking_name[i]
+	assert(type(start) == "number")
+	assert(type(stop) == "number")
+	assert(stop > start)
+	assert(stop <= top)
+	local res = {}
+	for i=start,stop do
+		res[i] = ranking_name[i]
 	end
-	return l
+	return res
 end
 
 function CMD.nearby(uid)
 	-- body
-	print("########################", 4)
 	local res = {}
 	local lu = leaderboardsmgr:get(uid)
 	local ranking = lu:get_field("ranking")

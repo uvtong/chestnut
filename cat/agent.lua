@@ -77,35 +77,10 @@ local function send_package(pack)
 	socket.write(client_fd, package)
 end
 
-local function flush_db(priority)
-	-- body
-	local modelmgr = env:get_modelmgr()
-	local u = modelmgr:get_user()
-	if u then
-		for k,v in pairs(modelmgr._data) do
-			v:update_db()
-		end
-	end
-end
-
 local function get_journal()
 	-- body
 	local factory = env:get_myfactory()
 	return factory:get_today()
-
-	-- local t = os.date("*t", os.time())
-	-- t = { year=t.year, month=t.month, day=t.day}
-	-- local sec = os.time(t)
-	-- local j = user.u_journalmgr:get_by_date(sec)
-	-- if j then
-	-- 	return j
-	-- else
-	-- 	t = { user_id=user.csv_id, date=sec, goods_refresh_count=0, goods_refresh_reset_count=0}
-	-- 	j = user.u_journalmgr.create(t)
-	-- 	user.u_journalmgr:add(j)
-	-- 	j:__insert_db(const.DB_PRIORITY_1)
-	-- 	return j
-	-- end
 end
 
 local function get_prop(csv_id)
@@ -2444,7 +2419,7 @@ function REQUEST:ara_choose_role_enter(ctx, ... )
  		local value = sd.query(key)
  		local ara_clg_tms_rst = value["ara_clg_tms_rst"]
 		local t = os.date("*t", os.time())
-		t = { year=t.year, month=t.month, day=t.day, hour=ara_clg_tms_rst}
+		local t = { year=t.year, month=t.month, day=t.day, hour=ara_clg_tms_rst}
 		local sec = os.time(t)
 		local now = os.time()
 		if now > sec then
@@ -2647,6 +2622,7 @@ function REQUEST:ara_rnk_reward_collected(ctx)
 	local ret = {}
 	local leaderboards_name = skynet.getenv("leaderboards_name")
 	local ranking = skynet.call(leaderboards_name, "lua", "ranking", ctx:get_userid())
+	local u = ctx:get_user()
 	local modelmgr = ctx:get_modelmgr()
 	local u_ara_rnk_rwdmgr = modelmgr:get_u_ara_rnk_rwdmgr()
 	local seg = 0
@@ -2660,6 +2636,7 @@ function REQUEST:ara_rnk_reward_collected(ctx)
 		assert(false)
 	end
 	local u_propmgr = modelmgr:get_u_propmgr()
+	local props = {}
 	local rl = {}
 	local rnk_rwd = u_ara_rnk_rwdmgr:get_by_csv_id(seg)
 	if rnk_rwd == nil then
@@ -2686,32 +2663,48 @@ function REQUEST:ara_rnk_reward_collected(ctx)
 				u_propmgr:add(prop)
 				prop:update_db()
 			end
+			local prop_li = {}
+			prop_li["csv_id"] = prop:get_field("csv_id")
+			prop_li["num"] = prop:get_field("num")
+			table.insert(props, prop_li)
 		end
 	else
-		rnk_rwd:set_field("collected", 1)
+		if rnk_rwd:get_field("collected") == 1 then
+			local ret = {}
+			ret.errorcode = errorcode[152].code
+			ret.msg = errorcode[152].msg
+			return ret
+		else
+			rnk_rwd:set_field("collected", 1)
 
-		local key = string.format("%s:%d", "g_ara_rnk_rwd", seg)
-		local value = sd.query(key)
-		local reward = util.parse_text(value["reward"], "(%d+%*%d+%*?)", 2)
-		for i,v in ipairs(reward) do
-			local prop = u_propmgr:get_by_csv_id(v[1])
-			if prop then
-				prop:set_field("num", prop:get_field("num") + v[2])
-			else
-				local key = string.format("%s:%d", "g_prop", v[1])
-				local prop = sd.query(key)
-				prop["user_id"] = u:get_field("csv_id")
-				prop["num"] = v[2]
-				prop["id"] = genpk_2(v:get_field("csv_id"), v[2])
-				prop = u_propmgr:create_entity(prop)
-				u_propmgr:add(prop)
-				prop:update_db()
+			local key = string.format("%s:%d", "g_ara_rnk_rwd", seg)
+			local value = sd.query(key)
+			local reward = util.parse_text(value["reward"], "(%d+%*%d+%*?)", 2)
+			for i,v in ipairs(reward) do
+				local prop = u_propmgr:get_by_csv_id(v[1])
+				if prop then
+					prop:set_field("num", prop:get_field("num") + v[2])
+				else
+					local key = string.format("%s:%d", "g_prop", v[1])
+					local prop = sd.query(key)
+					prop["user_id"] = u:get_field("csv_id")
+					prop["num"] = v[2]
+					prop["id"] = genpk_2(v:get_field("csv_id"), v[2])
+					prop = u_propmgr:create_entity(prop)
+					u_propmgr:add(prop)
+					prop:update_db()
+				end
+				local prop_li = {}
+				prop_li["csv_id"] = prop:get_field("csv_id")
+				prop_li["num"] = prop:get_field("num")
+				table.insert(props, prop_li)
 			end
 		end
-
 	end
 	ret.errorcode = errorcode[1].code
 	ret.msg = errorcode[1].msg
+	ret.props = props
+	ret.rl = rl
 	return ret
 end
 
@@ -2863,24 +2856,12 @@ function REQUEST:ara_lp(ctx, ... )
 	return ret
 end
 
-local function logout()
-	-- body
-	dc.set(user.csv_id, "client_fd", client_fd)
-	dc.set(user.csv_id, "online", false)
-	dc.set(user.csv_id, "addr", 0)
-
-	if gate then
-		skynet.call(gate, "lua", "logout", userid, subid)
-	end
-	skynet.exit()
-end
-
 function REQUEST:logout(ctx)
 	-- body
 	local u = ctx:get_user()
 	u:set_ifonline(0)
-	flush_db()
-	logout()
+	
+	self:logout()
 end
 
 local function generate_session()
@@ -3033,22 +3014,8 @@ local function enter_ara(u, ... )
 			m = m + 1
 		end
 		ara_clg_tms_rst_tm = ara_clg_tms_rst_tm + (m * 86400)
-
 		-- u:set_ara_clg_tms_rst_tm(ara_clg_tms_rst_tm)
 	end
-end
-
-local function enter_lp(u)
-	-- body
-	print(user.csv_id, "**********************enter_lp")
-	local lp = skynet.getenv("leaderboards_name")
-	skynet.call(lp, "lua", "push", u.csv_id, u.csv_id)
-end
-
-local function login(u, ... )
-	-- body
-	enter_lp(u)
-	-- enter_ara(u)
 end
 
 function CMD:signup(source, uid, sid, sct, g, d)
@@ -3086,7 +3053,7 @@ function CMD:signup(source, uid, sid, sct, g, d)
 	dc.set(user.csv_id, "addr", skynet.self())
 	env:set_user(user)
 
-	login(user)
+	self:login(user)
 
 	
 	return true
@@ -3128,8 +3095,8 @@ function CMD:login(source, uid, sid, sct, g, d)
 	dc.set(user.csv_id, "online", true)
 	dc.set(user.csv_id, "addr", skynet.self())
 
-	env:set_user(user)
-	login(user)
+	self:set_user(user)
+	self:login(user)
 
 	get_public_email(self)
 	return true
@@ -3138,7 +3105,7 @@ end
 function CMD:logout(source)
 	-- body
 	skynet.error(string.format("%s is logout", self:get_userid()))
-	logout()
+	self:logout()
 end
 
 function CMD:afk(source)
@@ -3158,7 +3125,7 @@ end
 local function update_db()
 	-- body
 	while true do
-		flush_db(const.DB_PRIORITY_3)
+		env:flush_db(const.DB_PRIORITY_3)
 		skynet.sleep(100 * 60) -- 1ti == 0.01s
 	end
 end

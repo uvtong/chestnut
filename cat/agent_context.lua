@@ -640,4 +640,40 @@ function cls:ara_bat_ovr(win, ... )
 	-- bat:update_db()
 end
 
+function cls:login( ... )
+	-- body
+	local u = self:get_user()
+	local lp = skynet.getenv("leaderboards_name")
+	skynet.call(lp, "lua", "push", u:get_field('csv_id'), u:get_field("sum_combat"))
+end
+
+function cls:logout()
+	-- body
+
+	self:flush_db()
+	
+	local u = self:get_user()
+
+	dc.set(u:get_field("csv_id"), "client_fd", client_fd)
+	dc.set(u:get_field("csv_id"), "online", false)
+	dc.set(u:get_field("csv_id"), "addr", 0)
+
+	local gate = self._gate
+	if gate then
+		skynet.call(gate, "lua", "logout", self._userid, self._subid)
+	end
+	skynet.exit()
+end
+
+function cls:flush_db(priority)
+	-- body
+	local modelmgr = self._modelmgr
+	local u = modelmgr:get_user()
+	if u then
+		for k,v in pairs(modelmgr._data) do
+			v:update_db()
+		end
+	end
+end
+
 return cls
