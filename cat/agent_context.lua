@@ -33,10 +33,6 @@ function cls:ctor( ... )
 	local modelmgr = cls.new(self)
 	self._modelmgr = modelmgr
 
-	cls = require "arena"
-	local arena = cls.new()
-	self._arena = arena
-
 	cls = require "models/usersmgr"
 	local usersmgr = cls.new()
 	self._usersmgr = usersmgr
@@ -44,6 +40,17 @@ function cls:ctor( ... )
 	cls = require "helper"
 	local helper = cls.new(self)
 	self._helper = helper
+
+	self._m = {}
+	cls = require "arenamodule"
+	local m = cls.new()
+	self._m["arena"] = m
+end
+
+function cls:get_module(k, ... )
+	-- body
+	assert(type(k) == "string")
+	return self._m[k]
 end
 
 function cls:get_helper( ... )
