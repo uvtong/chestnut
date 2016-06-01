@@ -1909,7 +1909,7 @@ function REQUEST:xilian_ok()
 	return ret
 end   
 
-function REQUEST:checkpoint_chapter()
+function REQUEST:checkpoint_chapter(ctx)
 	-- body
 	local m = ctx:get_module("checkpoint")
 	local ok, result = pcall(m.checkpoint_chapter, m, self)
@@ -1924,7 +1924,7 @@ function REQUEST:checkpoint_chapter()
 	end
 end
 
-function REQUEST:checkpoint_hanging()
+function REQUEST:checkpoint_hanging(ctx)
 	-- body
 	local m = ctx:get_module("checkpoint")
 	local ok, result = pcall(m.checkpoint_hanging, m, self)
@@ -1940,7 +1940,7 @@ function REQUEST:checkpoint_hanging()
 end
 
 -- alone 
-function REQUEST:checkpoint_hanging_choose()
+function REQUEST:checkpoint_hanging_choose(ctx)
 	-- body
 	local m = ctx:get_module("checkpoint")
 	local ok, result = pcall(m.checkpoint_hanging_choose, m, self)
@@ -1955,7 +1955,7 @@ function REQUEST:checkpoint_hanging_choose()
 	end
 end
 
-function REQUEST:checkpoint_battle_exit()
+function REQUEST:checkpoint_battle_exit(ctx)
 	-- body
 	local m = ctx:get_module("checkpoint")
 	local ok, result = pcall(m.checkpoint_battle_exit, m, self)
@@ -1970,7 +1970,7 @@ function REQUEST:checkpoint_battle_exit()
 	end
 end
 
-function REQUEST:checkpoint_battle_enter()
+function REQUEST:checkpoint_battle_enter(ctx)
 	-- body
 	local m = ctx:get_module("checkpoint")
 	local ok, result = pcall(m.checkpoint_battle_enter, m, self)
@@ -1985,7 +1985,7 @@ function REQUEST:checkpoint_battle_enter()
 	end
 end
 
-function REQUEST:checkpoint_exit()
+function REQUEST:checkpoint_exit(ctx)
  	-- body
  	local m = ctx:get_module("checkpoint")
 	local ok, result = pcall(m.checkpoint_exit, m, self)

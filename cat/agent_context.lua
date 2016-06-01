@@ -41,6 +41,9 @@ function cls:ctor( ... )
 	cls = require "arenamodule"
 	local m = cls.new(self)
 	self._m["arena"] = m
+	cls = require "checkpointmodule"
+	local m = cls.new(self)
+	self._m["checkpoint"] = m
 end
 
 function cls:get_module(k, ... )

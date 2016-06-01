@@ -150,9 +150,10 @@ function cls:signup(uid)
 	self._data["u_recharge_vip_rewardmgr"] = u.u_recharge_vip_rewardmgr
 	self._data["u_recharge_vip_rewardmgr"]:set_user(u)
 	cls = require "models/u_rolemgr"
-	u.u_rolemgr = cls.new()
-	self._data["u_rolemgr"] = u.u_rolemgr
-	self._data["u_rolemgr"]:set_user(u)
+	local u_rolemgr = cls.new()
+	u_rolemgr:set_user(u)
+	u.u_rolemgr = u_rolemgr
+	self._data["u_rolemgr"] = u_rolemgr
 	cls = require "models/u_ara_worshipmgr"
 	local u_ara_worshipmgr = cls.new()
 	u_ara_worshipmgr:set_user(u)
@@ -316,7 +317,8 @@ function cls:signup(uid)
 	role.id = genpk_2(role.user_id, role.csv_id)
 	role = u.u_rolemgr:create_entity(role)
 	u.u_rolemgr:add(role)
-	print("role:update_wait is called**********************")
+	u:set_field("ara_role_id1", role:get_field("csv_id"))
+	
 	role:update_wait()
 
 	return u
