@@ -202,7 +202,10 @@ function cls:set_user(v, ... )
 end
 
 function cls:raise_achievement(T)
-	-- body                    
+	-- body  
+	if true then
+		return
+	end                 
 	assert(T)
 	while true do 
 		local a = assert(self._user.u_achievementmgr:get_by_type(T))

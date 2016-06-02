@@ -1,7 +1,8 @@
 local skynet = require "skynet"
-local cls = class("factory")
+local sd = require "sharedata"
 local MAXEMAILNUM = 50
 
+local cls = class("factory")
 
 function cls:ctor(env, ... )
 	-- body
@@ -260,6 +261,26 @@ function cls:email_sysdelemail()
 	end
 end
 
+function cls:get_prop(csv_id, ... )
+	-- body
+	local user = self._env:get_user()
+	local modelmgr = self._env:get_modelmgr()
+	local u_propmgr = modelmgr:get_u_propmgr()
+	local p = u_propmgr:get_by_csv_id(csv_id)
+	if p then
+		return p
+	else
+		local key = string.format("%s:%d", "g_prop", csv_id)
+		local p = sd.query(key)
+		p.user_id = user:get_field("csv_id")
+		p.num = 0
+		p.id = genpk_2(p.user_id, p.csv_id)
+		p = u_propmgr:create(p)
+		user.u_propmgr:add(p)
+		p:update_db()
+		return p
+	end
+end
 	
 return cls
 	
