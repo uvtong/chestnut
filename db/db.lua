@@ -131,55 +131,76 @@ local function connect_redis(conf)
 	}
 	return redis.connect(c)	
 end	
-		
+
 local QUERY = {}
 
 function QUERY:query(sql)
 	-- body
 	-- local res = cs1(self.db.query, db, sql)
 	-- return res
+	local flag = true
+	local function check_error(sql, ... )
+		-- body
+		if flag then
+			error(sql)
+		end
+	end
+	skynet.timeout(100*60, check_error)
+
 	local db = self.db
 	local res = db:query(sql)
 	dump(res)
 	if res.errno ~= nil then
 		error "db error"
 	end
+	flag = false
+
 	return res
 end
 
 function QUERY:read(table_name, sql)
 	-- body
-	-- local res = cs1(self.db.query, db, sql)
-	-- return res
+	local flag = true
+	local function check_error(sql, ... )
+		-- body
+		if flag then
+			error(sql)
+		end
+	end
+	skynet.timeout(100*60, check_error)
+
 	local db = self.db
 	local res = db:query(sql)
 	dump(res)
 	if res.errno ~= nil then
 		error "db error"
 	end
+
+	flag = false
+
 	return res
 end
 
 function QUERY:write(table_name, sql, priority)
 	-- body
+	local flag = true
+	local function check_error(sql, ... )
+		-- body
+		if flag then
+			error(sql)
+		end
+	end
+	skynet.timeout(100*60, check_error)
+
+
 	local db = self.db
 	local res = db:query(sql)
-	dump(res)
+	print(dump(res))
 	if res.errno ~= nil then
 		error "db error"
 	end
-	-- local res = cs1(self.db.query, db, sql)
-	-- return res
-	-- print("QUERY:write", sql)
-	-- assert(table_name and sql and priority)
-	-- assert(priority <= self.DB_PRIORITY_3 and priority >= self.DB_PRIORITY_1)
-	-- Queue.enqueue(self.priority_queue[priority].Q, { table_name=table_name, sql=sql})
-	-- if priority <= self.c_priority then
-	-- 	self.c_priority = priority
-	-- 	-- skynet.yield() -- 
-	-- 	local co = self.priority_queue[self.c_priority].co
-	-- 	skynet.wakeup(co)
-	-- end
+
+	flag = false
 end
 
 function QUERY:set(k, v)
