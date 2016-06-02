@@ -880,14 +880,14 @@ function REQUEST:lilian_purch_phy_power(ctx)
 	--local _, left =  get_phy_power(date)
 	print("user.lilian_phy_power + r" ,ctx:get_user().lilian_phy_power , ctx:get_user().lilian_phy_power + r , g.phy_power )
 	
-	ctx:get_user():set_purch_lilian_phy_power()
-	user.purch_lilian_phy_power = user.purch_lilian_phy_power + r
+	ctx:get_user():set_purch_lilian_phy_power(ctx:get_user():get_field("purch_lilian_phy_power") + r)
+	--user.purch_lilian_phy_power = user.purch_lilian_phy_power + r
 	
 	ret.errorcode = errorcode[1].code
 	ret.msg = errorcode[1].msg
-	ret.phy_power = user.lilian_phy_power + user.purch_lilian_phy_power
+	ret.phy_power = ctx:get_user():get_field("lilian_phy_power") + ctx:get_user():get_field("purch_lilian_phy_power")
 	--ret.left_cd_time = left
-	print( "lilian_purch_phy_power is called**********************************sdasdasd" , user.lilian_phy_power , user.purch_lilian_phy_power,ret.phy_power )
+	print( "lilian_purch_phy_power is called**********************************sdasdasd" , ctx:get_user():get_field("lilian_phy_power") , ctx:get_user():get_field("purch_lilian_phy_power"),ret.phy_power )
 	return ret
 end 
 	
@@ -960,8 +960,8 @@ function REQUEST:lilian_inc(ctx)
 	return ret
 end
 				
-function REQUEST:lilian_reset_quanguan()
-	assert( self.quanguan_id )
+function REQUEST:lilian_reset_quanguan(ctx)
+	assert( ctx and self.quanguan_id )
 	print( "lilian_reset_quanguan is called**********************************" )
 
 	local ret = {}
