@@ -5,7 +5,7 @@ local errorcode = require "errorcode"
 local const = require "const"
 local util = require "util"
 local super = require "module"
-local cls = class("arenamodule", super)
+local cls = class("shopmodule", super)
 
 function cls:ctor(env, ... )
 	-- body
@@ -14,7 +14,6 @@ end
 
 function cls:refersh(csv_id, gg, ... )
 	-- body
-
 end
 
 function cls:shop_all(args, ... )
