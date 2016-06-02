@@ -141,6 +141,7 @@ function cls:create_user(uid)
 		ara_rfh_cd = 0,
 		ara_rfh_cd_cost_tms = 0,
 		ara_clg_tms_pur_tms = 0,
+		draw_num = 0,
 	}
 	local usersmgr = self._env:get_usersmgr()
 	local user = usersmgr:create_entity(t)

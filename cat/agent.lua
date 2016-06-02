@@ -417,7 +417,7 @@ function REQUEST:achievement_reward_collect()
 				prop.user_id = user.csv_id
 				prop.num = num1
 				prop = user.u_propmgr.create(prop)
-
+				
 				prop:__insert_db(const.DB_PRIORITY_2)
 			end
 		end
@@ -449,21 +449,21 @@ function REQUEST:achievement_reward_collect()
 	ret.msg = errorcode[26].msg
 	return ret
 end 
-    
+	
 local function get_public_email(ctx)
 	assert(ctx)
-
+	
 	local r = skynet.call( ".channel" , "lua" , "agent_get_public_email" , ctx:get_user():get_csv_id() , ctx:get_user():get_pemail_csv_id() , ctx:get_user():get_signup_time() )
 	assert( r )
 	local pemail_csv_id = ctx:get_user():get_pemail_csv_id()
 	local sign = false
-
+	
 	if #r >= 1 then
 		pemail_csv_id = r[1].pemail_csv_id
 		print("user.pemail_csv_id is ", ctx:get_user():get_pemail_csv_id(), r[1].pemail_csv_id)
 		sign = true
 	end
-
+	
 	for k , v in ipairs( r ) do		
 		v.pemail_csv_id = nil
 		v.id = genpk_2(ctx:get_user():get_csv_id(), v.csv_id)

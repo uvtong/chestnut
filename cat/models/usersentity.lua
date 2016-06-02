@@ -87,6 +87,7 @@ function cls:ctor(mgr, P, ... )
 			ara_clg_tms_rsttm = 0,
 			ara_clg_cost_rsttm = 0,
 			ara_integral_rsttm = 0,
+			draw_num = 0,
 		}
 
 	self.__ecol_updated = {
@@ -163,6 +164,7 @@ function cls:ctor(mgr, P, ... )
 			ara_clg_tms_rsttm = 0,
 			ara_clg_cost_rsttm = 0,
 			ara_integral_rsttm = 0,
+			draw_num = 0,
 		}
 
 	for k,v in pairs(self.__head) do
@@ -1264,6 +1266,21 @@ end
 function cls:get_ara_integral_rsttm( ... )
 	-- body
 	return self.__fields.ara_integral_rsttm
+end
+
+function cls:set_draw_num(v, ... )
+	-- body
+	assert(v)
+	self.__ecol_updated["draw_num"] = self.__ecol_updated["draw_num"] + 1
+	if self.__ecol_updated["draw_num"] == 1 then
+		self.__col_updated = self.__col_updated + 1
+	end
+	self.__fields.draw_num = v
+end
+
+function cls:get_draw_num( ... )
+	-- body
+	return self.__fields.draw_num
 end
 
 

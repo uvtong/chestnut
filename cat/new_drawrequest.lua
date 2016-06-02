@@ -299,11 +299,11 @@ local function frienddraw(ctx)
 	--local line = ctx:get_game().g_drawcostmgr:get_by_csv_id( drawtype.FRIEND * 1000 )	
 	assert( line )
 
-	local prop = user.u_propmgr:get_by_csv_id( line.cointype )
+	local prop = ctx:get_user().u_propmgr:get_by_csv_id( line.cointype )
 	print( "***************************line.cointype is " , line.cointype )
 
 	local tfriend = factory:draw_get_by_type( drawtype.FRIEND )
-	if not prop or prop.num < line.price then
+	if not prop or prop:get_field("num") < line.price then
 		print( "money is less then price" , prop.num, line.price)
 		local ret = {}
 		ret.errorcode = errorcode[ 16 ].code
@@ -318,21 +318,22 @@ local function frienddraw(ctx)
 			tfriend = {}
 			tfriend.id = skynet.call( ".game" , "lua" , "guid" , const.DRAW )
 			print("new id is ********************", tfriend.id)
-			tfriend.uid = user.csv_id
+			tfriend.uid = ctx:get_user():get_field("csv_id")
 			tfriend.drawtype = drawtype.FRIEND 
 			tfriend.srecvtime = date
 			tfriend.propid = 0
 			tfriend.amount = 0
 			tfriend.iffree = 1
-			tfriend = user.u_drawmgr:create( tfriend )
+			tfriend = ctx:get_user().u_drawmgr:create( tfriend )
 			assert( tfriend )
-			user.u_drawmgr:add( tfriend )	
+			ctx:get_user().u_drawmgr:add( tfriend )	
 		else
 			tfriend.srecvtime = date
 		end
 
 		print( "line price is " , line.price )
-		prop.num = prop.num - line.price
+		prop:set_num(prop:get_num() - line.price)
+		--prop.num = prop.num - line.price
 		proplist = getpropidlist(ctx, drawtype.FRIEND )
 
 		prop:update_db()
@@ -364,30 +365,30 @@ local function onetimedraw(ctx, iffree )
 			tonetime = {}
 			tonetime.id = skynet.call( ".game" , "lua" , "guid" , const.DRAW )
 			print("new id is ********************", tonetime.id)
-			tonetime.uid = user.csv_id
+			tonetime.uid = ctx:get_user().csv_id
 			tonetime.drawtype = drawtype.ONETIME
 			tonetime.srecvtime = date
 			tonetime.propid = 0;
 			tonetime.amount = 0;
 			tonetime.iffree = 0;
 
-			tonetime = user.u_drawmgr:create( tonetime )
+			tonetime = ctx:get_user().u_drawmgr:create( tonetime )
 			assert( tonetime )
-			user.u_drawmgr:add( tonetime )
+			ctx:get_user().u_drawmgr:add( tonetime )
 		else
 			local key = string.format("%s:%d", "g_drawcost", drawtype.ONETIME * 1000)
 			local line = sd.query(key)
 
 			assert( line )
 
-			if date < ( tonetime.srecvtime + line.cdtime ) then
+			if date < ( tonetime:get_srecvtime() + line.cdtime ) then
 				proplist.errorcode = errorcode[ 61 ].code
 				proplist.msg = errorcode[ 61 ].msg
 			
 				return proplist
 			end
-
-			tonetime.srecvtime = date
+			tonetime:set_srecvtime(date)
+			--tonetime.srecvtime = date
 		end 
 
 		tonetime:update_db()
@@ -410,28 +411,28 @@ local function onetimedraw(ctx, iffree )
 		--local line = game.g_drawcostmgr:get_by_csv_id( drawtype.ONETIME * 1000 )
 		assert( line )
         
-    	local prop = user.u_propmgr:get_by_csv_id( line.cointype )
+    	local prop = ctx:get_user().u_propmgr:get_by_csv_id( line.cointype )
 
-		if not prop or prop.num < line.price then
+		if not prop or prop:get_num() < line.price then
 			local ret = {}
 			ret.errorcode = errorcode[ 16 ].code
 			ret.msg = errorcode[ 16 ].msg
 			
 			return ret
 		else
-			print( "update prop is called in" )
-
-			prop.num = prop.num - line.price
+			print( "update prop is called in*****************************" )
+			prop:set_num(prop:get_num() - line.price)
+			--prop.num = prop.num - line.price
 			proplist = getpropidlist(ctx, drawtype.ONETIME )
 			
-			print( "*******************" , date , tonetime.srecvtime, tonetime.srecvtime + DAY - date )
+			print( "*******************" , date , tonetime:get_srecvtime(), tonetime:get_field("srecvtime") + DAY - date )
 
-			if date > tonetime.srecvtime + DAY then
+			if date > tonetime:get_field("srecvtime") + DAY then
 				print( " >>>>>>>>" )
 				proplist.lefttime = 0
 			else
 				print( "<<<<<<<<" )
-				proplist.lefttime = tonetime.srecvtime + DAY - date
+				proplist.lefttime = tonetime:get_field("srecvtime") + DAY - date
 			end 
 			print("**********************")
 			prop:update_db()
@@ -439,14 +440,14 @@ local function onetimedraw(ctx, iffree )
 			local tonetime = {}
 			tonetime.id = skynet.call( ".game" , "lua" , "guid" , const.DRAW )
 			print("new id is ********************", tonetime.id)
-			tonetime.uid = user.csv_id
+			tonetime.uid = ctx:get_user():get_field("csv_id")
 			tonetime.drawtype = drawtype.ONETIME
 			tonetime.srecvtime = date
 			tonetime.propid = 0;
 			tonetime.amount = 0;
 			tonetime.iffree = 1;
 
-			tonetime = user.u_drawmgr:create( tonetime )
+			tonetime = ctx:get_user().u_drawmgr:create( tonetime )
 			assert( tonetime )
 			--user.u_drawmgr:add( tonetime )
 			tonetime:update_db()				
@@ -470,32 +471,33 @@ local function tentimedraw(ctx)
 	--local line = game.g_drawcostmgr:get_by_csv_id( drawtype.TENTIME * 1000 )
 	assert( line )
 
-    local prop = user.u_propmgr:get_by_csv_id( line.cointype )
+    local prop = ctx:get_user().u_propmgr:get_by_csv_id( line.cointype )
 
-	if not prop or prop.num < line.price then
-		print( "not enough money in tentime" , prop.num, line.price)
+	if not prop or prop:get_num() < line.price then
+		print( "not enough money in tentime" , prop:get_num(), line.price)
 		local ret = {}
 		ret.errorcode = errorcode[ 16 ].code
 		ret.msg = errorcode[ 16 ].msg
 
 		return ret
 	else
-		print( "insert drawmsg over", prop.num, line.price )
+		print( "insert drawmsg over", prop:get_num(), line.price )
 
-		prop.num = prop.num - line.price
+		prop:set_num(prop:get_num() - line.price)
+		--prop.num = prop.num - line.price
 		prop:update_db()
 
 		local ttentime = {}
 		ttentime.id = skynet.call( ".game" , "lua" , "guid" , const.DRAW )
 		print("new id is ********************", ttentime.id)
-		ttentime.uid = user.csv_id
+		ttentime.uid = ctx:get_user():get_field("csv_id")
 		ttentime.drawtype = drawtype.TENTIME
 		ttentime.srecvtime = date
 		ttentime.propid = 0;
 		ttentime.amount = 0;
 		ttentime.iffree = 1;
 
-		ttentime = user.u_drawmgr:create( ttentime )
+		ttentime = ctx:get_user().u_drawmgr:create( ttentime )
 		print("create tentimedraw successfully**************************")
 		assert( ttentime )
 		--user.u_drawmgr:add( tonetime )
@@ -524,9 +526,12 @@ function REQUEST:applydraw(ctx)
 
 	if 1 == ret.errorcode then
 		if self.drawtype == 3 then
-			user.draw_number = user.draw_number + 10
+			ctx:get_user():set_field("draw_num", ctx:get_user():get_draw_num() + 10)
+			--ctx:get_user():set_draw_num(ctx:get_user():get_draw_num() + 10)
+			--user.draw_number = user.draw_number + 10
 		else
-			user.draw_number = user.draw_number + 1
+			ctx:get_user():set_field("draw_num", ctx:get_user():get_draw_num() + 1)
+			--user.draw_number = user.draw_number + 1
 		end
 		--context:raise_achievement(const.ACHIEVEMENT_T_8)
 	end

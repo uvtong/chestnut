@@ -247,18 +247,20 @@ function SUBSCRIBE:email(ctx, tvals , ... ) -- get email from channl , a email t
 	print("***********************************SUBSCRIBE:email")
 	local factory = ctx:get_myfactory()
 	assert(factory)
-	--user.public_email = tvals.csv_id
+
+	--update the pemail_csvid
 	ctx:get_user():set_pemail_csv_id(tvals.csv_id)
-	ctx:get_user():update_db()
-	
+	ctx:get_user():update_db()		
+
+	--asign the tvals.csv_id a new csv_id
 	tvals.csv_id = skynet.call( ".game" , "lua" , "u_guid" , ctx:get_user():get_csv_id() , const.UEMAILENTROPY )
-	
+
 	tvals.uid = ctx:get_user():get_csv_id()
 	tvals.id = genpk_2(tvals.uid, tvals.csv_id)
 	print( "*********************************email csv_id is " , tvals.csv_id )
 	local v = factory:email_recvemail(tvals)
 	assert(v)
-	
+
 	--[[local ret = {}
 	ret.mail = {}
 	local tmp = {}
@@ -279,18 +281,16 @@ end
 	
 function RESPONSE:abd()
 	-- body
-end
-
-
-
+end 
+	
 function new_emailrequest.start(c, s, g, d, ...)
 	-- body
 	client_fd = c
 	send_request = s
 	game = g
 	dc = d
-end
-
+end 
+	
 function new_emailrequest.disconnect()
 	-- body
 end
