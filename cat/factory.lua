@@ -140,12 +140,13 @@ function cls:create_user(uid)
 		ara_rfh_st = 0,
 		ara_rfh_cd = 0,
 		ara_rfh_cd_cost_tms = 0,
+		ara_clg_tms_pur_tms = 0,
 	}
 	local usersmgr = self._env:get_usersmgr()
 	local user = usersmgr:create_entity(t)
 	return user
-end
-
+end 
+	
 function cls:draw_get_by_type(drawtype)
 	assert(drawtype)
 	local modelmgr = self._env:get_modelmgr()
@@ -178,11 +179,11 @@ function cls:checkin_month_get_checkin_month()
 	assert(modelmgr)
 	local cm = modelmgr:get_u_checkin_monthmgr()
 	assert(cm)
-
+	
 	for k, v in pairs(cm.__data) do
 		return v
 	end
-
+	
 	return nil
 end 
 	
@@ -192,17 +193,16 @@ function cls:email_recvemail(tvals)
 	assert(modelmgr)
 	local e = modelmgr:get_u_new_emailmgr()
 	assert(e)
-
 	
 	if e:get_count() >= MAXEMAILNUM then
 		--cls:email_sysdelemail()
 	end
-
+	
 	local newemail = e:create( tvals )
 	assert( newemail )
 	e:add( newemail )
 	newemail:update_db()
-
+	
 	print("add email succe in recvemail\n")
 	return newemail
 end 

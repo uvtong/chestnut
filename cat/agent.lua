@@ -326,7 +326,7 @@ end
 -- end
 
 local function subscribe( )
-	-- body
+	-- body				
 	local c = skynet.call(".channel", "lua", "agent_start")
 	local c2 = mc.new { 			
 		channel = c,			
@@ -339,26 +339,27 @@ local function subscribe( )
 				for k,v in pairs(M) do
 					if v.SUBSCRIBE[cmd] then
 						local f = assert(v.SUBSCRIBE[cmd])
-						f(env, tvals, ...)
+						assert(env and tvals and env:get_user() == false)
+						f(_, env, tvals, ...)
 						break		
-					end
-				end
-			end
-		end
-	} 
-	c2:subscribe()
-end
-
+					end 
+				end 	
+			end 		
+		end 			
+	} 					
+	c2:subscribe() 		
+end 					
+						
 function REQUEST:achievement()
-	-- body
-	local ret = {}
-	if not user then
+	-- body				
+	local ret = {} 		
+	if not user then 	
 		ret.errorcode = errorcode[2].code
 		ret.msg = errorcode[2].msg
-		return ret
-	end
-	assert(user)
-	local l = {}
+		return ret 		
+	end 					
+	assert(user) 		
+	local l = {} 		
 	for i=1,const.ACHIEVEMENT_T_SUM do
 		local flag = false
 		for j=1,11 do
@@ -1909,7 +1910,7 @@ function REQUEST:xilian_ok()
 	return ret
 end   
 
-function REQUEST:checkpoint_chapter()
+function REQUEST:checkpoint_chapter(ctx)
 	-- body
 	local m = ctx:get_module("checkpoint")
 	local ok, result = pcall(m.checkpoint_chapter, m, self)
@@ -1924,7 +1925,7 @@ function REQUEST:checkpoint_chapter()
 	end
 end
 
-function REQUEST:checkpoint_hanging()
+function REQUEST:checkpoint_hanging(ctx)
 	-- body
 	local m = ctx:get_module("checkpoint")
 	local ok, result = pcall(m.checkpoint_hanging, m, self)
@@ -1940,7 +1941,7 @@ function REQUEST:checkpoint_hanging()
 end
 
 -- alone 
-function REQUEST:checkpoint_hanging_choose()
+function REQUEST:checkpoint_hanging_choose(ctx)
 	-- body
 	local m = ctx:get_module("checkpoint")
 	local ok, result = pcall(m.checkpoint_hanging_choose, m, self)
@@ -1955,7 +1956,7 @@ function REQUEST:checkpoint_hanging_choose()
 	end
 end
 
-function REQUEST:checkpoint_battle_exit()
+function REQUEST:checkpoint_battle_exit(ctx)
 	-- body
 	local m = ctx:get_module("checkpoint")
 	local ok, result = pcall(m.checkpoint_battle_exit, m, self)
@@ -1970,7 +1971,7 @@ function REQUEST:checkpoint_battle_exit()
 	end
 end
 
-function REQUEST:checkpoint_battle_enter()
+function REQUEST:checkpoint_battle_enter(ctx)
 	-- body
 	local m = ctx:get_module("checkpoint")
 	local ok, result = pcall(m.checkpoint_battle_enter, m, self)
@@ -1985,7 +1986,7 @@ function REQUEST:checkpoint_battle_enter()
 	end
 end
 
-function REQUEST:checkpoint_exit()
+function REQUEST:checkpoint_exit(ctx)
  	-- body
  	local m = ctx:get_module("checkpoint")
 	local ok, result = pcall(m.checkpoint_exit, m, self)

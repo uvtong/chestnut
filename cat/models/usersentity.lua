@@ -72,12 +72,11 @@ function cls:ctor(mgr, P, ... )
 			ara_lose_tms = 0,
 			ara_tie_tms = 0,
 			ara_clg_tms = 0,
-			ara_clg_tms_pur_tms = 0,
+			ara_clg_cost_tms = 0,
 			ara_integral = 0,
 			ara_fighting = 0,
 			ara_interface = 0,
 			ara_rfh_cost_tms = 0,
-			ara_clg_cost_tms = 0,
 			sum_combat = 0,
 			sum_defense = 0,
 			sum_critical_hit = 0,
@@ -85,6 +84,9 @@ function cls:ctor(mgr, P, ... )
 			ara_rfh_st = 0,
 			ara_rfh_cd = 0,
 			ara_rfh_cd_cost_tms = 0,
+			ara_clg_tms_rsttm = 0,
+			ara_clg_cost_rsttm = 0,
+			ara_integral_rsttm = 0,
 		}
 
 	self.__ecol_updated = {
@@ -146,12 +148,11 @@ function cls:ctor(mgr, P, ... )
 			ara_lose_tms = 0,
 			ara_tie_tms = 0,
 			ara_clg_tms = 0,
-			ara_clg_tms_pur_tms = 0,
+			ara_clg_cost_tms = 0,
 			ara_integral = 0,
 			ara_fighting = 0,
 			ara_interface = 0,
 			ara_rfh_cost_tms = 0,
-			ara_clg_cost_tms = 0,
 			sum_combat = 0,
 			sum_defense = 0,
 			sum_critical_hit = 0,
@@ -159,6 +160,9 @@ function cls:ctor(mgr, P, ... )
 			ara_rfh_st = 0,
 			ara_rfh_cd = 0,
 			ara_rfh_cd_cost_tms = 0,
+			ara_clg_tms_rsttm = 0,
+			ara_clg_cost_rsttm = 0,
+			ara_integral_rsttm = 0,
 		}
 
 	for k,v in pairs(self.__head) do
@@ -1037,19 +1041,19 @@ function cls:get_ara_clg_tms( ... )
 	return self.__fields.ara_clg_tms
 end
 
-function cls:set_ara_clg_tms_pur_tms(v, ... )
+function cls:set_ara_clg_cost_tms(v, ... )
 	-- body
 	assert(v)
-	self.__ecol_updated["ara_clg_tms_pur_tms"] = self.__ecol_updated["ara_clg_tms_pur_tms"] + 1
-	if self.__ecol_updated["ara_clg_tms_pur_tms"] == 1 then
+	self.__ecol_updated["ara_clg_cost_tms"] = self.__ecol_updated["ara_clg_cost_tms"] + 1
+	if self.__ecol_updated["ara_clg_cost_tms"] == 1 then
 		self.__col_updated = self.__col_updated + 1
 	end
-	self.__fields.ara_clg_tms_pur_tms = v
+	self.__fields.ara_clg_cost_tms = v
 end
 
-function cls:get_ara_clg_tms_pur_tms( ... )
+function cls:get_ara_clg_cost_tms( ... )
 	-- body
-	return self.__fields.ara_clg_tms_pur_tms
+	return self.__fields.ara_clg_cost_tms
 end
 
 function cls:set_ara_integral(v, ... )
@@ -1110,21 +1114,6 @@ end
 function cls:get_ara_rfh_cost_tms( ... )
 	-- body
 	return self.__fields.ara_rfh_cost_tms
-end
-
-function cls:set_ara_clg_cost_tms(v, ... )
-	-- body
-	assert(v)
-	self.__ecol_updated["ara_clg_cost_tms"] = self.__ecol_updated["ara_clg_cost_tms"] + 1
-	if self.__ecol_updated["ara_clg_cost_tms"] == 1 then
-		self.__col_updated = self.__col_updated + 1
-	end
-	self.__fields.ara_clg_cost_tms = v
-end
-
-function cls:get_ara_clg_cost_tms( ... )
-	-- body
-	return self.__fields.ara_clg_cost_tms
 end
 
 function cls:set_sum_combat(v, ... )
@@ -1230,6 +1219,51 @@ end
 function cls:get_ara_rfh_cd_cost_tms( ... )
 	-- body
 	return self.__fields.ara_rfh_cd_cost_tms
+end
+
+function cls:set_ara_clg_tms_rsttm(v, ... )
+	-- body
+	assert(v)
+	self.__ecol_updated["ara_clg_tms_rsttm"] = self.__ecol_updated["ara_clg_tms_rsttm"] + 1
+	if self.__ecol_updated["ara_clg_tms_rsttm"] == 1 then
+		self.__col_updated = self.__col_updated + 1
+	end
+	self.__fields.ara_clg_tms_rsttm = v
+end
+
+function cls:get_ara_clg_tms_rsttm( ... )
+	-- body
+	return self.__fields.ara_clg_tms_rsttm
+end
+
+function cls:set_ara_clg_cost_rsttm(v, ... )
+	-- body
+	assert(v)
+	self.__ecol_updated["ara_clg_cost_rsttm"] = self.__ecol_updated["ara_clg_cost_rsttm"] + 1
+	if self.__ecol_updated["ara_clg_cost_rsttm"] == 1 then
+		self.__col_updated = self.__col_updated + 1
+	end
+	self.__fields.ara_clg_cost_rsttm = v
+end
+
+function cls:get_ara_clg_cost_rsttm( ... )
+	-- body
+	return self.__fields.ara_clg_cost_rsttm
+end
+
+function cls:set_ara_integral_rsttm(v, ... )
+	-- body
+	assert(v)
+	self.__ecol_updated["ara_integral_rsttm"] = self.__ecol_updated["ara_integral_rsttm"] + 1
+	if self.__ecol_updated["ara_integral_rsttm"] == 1 then
+		self.__col_updated = self.__col_updated + 1
+	end
+	self.__fields.ara_integral_rsttm = v
+end
+
+function cls:get_ara_integral_rsttm( ... )
+	-- body
+	return self.__fields.ara_integral_rsttm
 end
 
 

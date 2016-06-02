@@ -826,7 +826,7 @@ function cls:load_u_lilian_qg_num()
 	local u_lilian_qg_nummgr = cls.new()
 	u_lilian_qg_nummgr:set_user(u)
 	local date = os.time()
-	local sql = string.format( "select * from u_lilian_qg_num where user_id = %s and start_time < %s and %s < end_time" , u:get_csv_id(), date , date)
+	local sql = string.format( "select * from u_lilian_qg_num where user_id = %d and start_time < %d and %d < end_time" , u:get_csv_id(), date , date)
 	-- local nr = skynet.call( util.random_db() , "lua" , "command" , "query" , sql )
 	local nr = query.read(u_lilian_qg_nummgr.__rdb, "u_lilian_qg_num", sql)
 	for i , v in ipairs( nr ) do
@@ -836,26 +836,27 @@ function cls:load_u_lilian_qg_num()
 	u_lilian_qg_nummgr:set_user(u)
 	self._data["u_lilian_qg_nummgr"] = u_lilian_qg_nummgr
 	u.u_lilian_qg_nummgr = u_lilian_qg_nummgr
-end
-
+end 
+	
 function cls:get_u_lilian_qg_nummgr( ... )
 	-- body
 	return self._data["u_lilian_qg_nummgr"]
-end
-
+end 
+	
 function cls:load_u_lilian_phy_power()
 	local u = self:get_user()
 	local cls = require "models/u_lilian_phy_powermgr"
 	local u_lilian_phy_powermgr = cls.new()
 	u_lilian_phy_powermgr:set_user(u)
 	local date = os.time()
-	local sql = string.format( "select * from u_lilian_phy_power where user_id = %s and start_time < %s and %s < end_time", u:get_csv_id(), date , date)
+	local sql = string.format( "select * from u_lilian_phy_power where user_id = %d and start_time < %d and %d < end_time", u:get_csv_id(), date , date)
 	-- local nr = skynet.call( util.random_db() , "lua" , "command" , "query" , sql )
 	local nr = query.read(u_lilian_phy_powermgr.__rdb, "u_lilian_phy_power", sql)
 	for i , v in ipairs( nr ) do
 		local a = u_lilian_phy_powermgr:create( v )
 		u_lilian_phy_powermgr:add( a )
 	end
+	
 	u_lilian_phy_powermgr:set_user(u)
 	self._data["u_lilian_phy_powermgr"] = u_lilian_phy_powermgr
 	u.u_lilian_phy_powermgr = u_lilian_phy_powermgr
