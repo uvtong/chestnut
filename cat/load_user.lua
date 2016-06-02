@@ -19,7 +19,13 @@ function cls:signup(uid)
 	local usersmgr = cls.new()
 	self._data["usersmgr"] = usersmgr
 	self._env:set_usersmgr(usersmgr)
-	
+
+	local factory = self._env:get_myfactory()
+	local u = factory:create_user(uid)
+	u:update_wait()
+	self._data["user"] = u
+	self._env:set_user(u)
+
 	cls = require "models/u_achievementmgr"
 	u.u_achievementmgr = cls.new()
 	self._data["u_achievementmgr"] = u.u_achievementmgr
@@ -170,12 +176,6 @@ function cls:signup(uid)
 	u_ara_rnk_rwdmgr = cls.new()
 	u_ara_rnk_rwdmgr:set_user(u)
 	self._data["u_ara_rnk_rwdmgr"] = u_ara_rnk_rwdmgr
-
-	local factory = self:get_myfactory()
-	local u = factory:create_user(uid)
-	u:update_wait()
-	self._data["user"] = u
-	self._env:set_user(u)
 
 	local r = skynet.call(".game", "lua", "query_g_equipment")
 	for k,v in pairs(r) do
