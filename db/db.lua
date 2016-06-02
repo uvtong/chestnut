@@ -195,7 +195,7 @@ function QUERY:write(table_name, sql, priority)
 
 	local db = self.db
 	local res = db:query(sql)
-	print(dump(res))
+	-- print(dump(res))
 	if res.errno ~= nil then
 		error "db error"
 	end
