@@ -109,7 +109,7 @@ function cls:lilian_qg_num_get_by_quanguan_id(quanguan_id)
 	return nil
 end 
 
-function cls:lilian_phy_power()
+function cls:lilian_phy_power_get_one()
 	local modelmgr = self._env:get_modelmgr()
 	assert(modelmgr)
 	local e = modelmgr:get_u_lilian_phy_powermgr()
@@ -122,5 +122,14 @@ function cls:lilian_phy_power()
 	return nil
 end
 		
+function cls:lilian_phy_power_clear()
+	local modelmgr = self._env:get_modelmgr()
+	assert(modelmgr)
+	local e = modelmgr:get_u_lilian_phy_powermgr()
+	assert(e)
+
+	e:clear()
+end
+
 return cls
 		

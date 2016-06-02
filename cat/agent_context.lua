@@ -499,11 +499,12 @@ function cls:login( ... )
 	local u = self:get_user()
 	local lp = skynet.getenv("leaderboards_name")
 	skynet.call(lp, "lua", "push", u:get_field('csv_id'), u:get_field("sum_combat"))
+
+	
 end
 
 function cls:logout()
 	-- body
-
 	self:flush_db()
 	
 	local u = self:get_user()

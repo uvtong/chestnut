@@ -854,7 +854,7 @@ function REQUEST:lilian_purch_phy_power(ctx)
 			end 
 		end 	
 	end 		
-
+	
 	assert( ifpurch == true )
 	local p = {}
 	p.id = skynet.call(".game", "lua", "guid", const.LILIAN_PHY_POWER)
@@ -864,19 +864,19 @@ function REQUEST:lilian_purch_phy_power(ctx)
 	p.end_time = settime + ADAY
 	p.purch_time = date
 	p.num = pn + 1 
-
+	
 	p = ctx:get_user().u_lilian_phy_powermgr:create( p )
 	assert( p )
 	ctx:get_user().u_lilian_phy_powermgr:add( p )
 	p:update_db()
-
+	
 	prop:set_num( prop:get_num() - t.dioment)
 	--prop.num = prop.num - t.dioment	
 	local r = skynet.call( ".game" , "lua" , "query_g_config" , "purch_phy_power" )
 	assert( r )
 	local g = skynet.call( ".game" , "lua" , "query_g_lilian_level" , user.lilian_level )
 	assert( g )
-
+	
 	--local _, left =  get_phy_power(date)
 	print("user.lilian_phy_power + r" ,ctx:get_user().lilian_phy_power , ctx:get_user().lilian_phy_power + r , g.phy_power )
 	
@@ -890,37 +890,37 @@ function REQUEST:lilian_purch_phy_power(ctx)
 	print( "lilian_purch_phy_power is called**********************************sdasdasd" , user.lilian_phy_power , user.purch_lilian_phy_power,ret.phy_power )
 	return ret
 end 
-
+	
 local INC_TYPE = { LILIAN = 1 , EVENT = 2 }
 local CONSUMU_PER_SEC = 2
-
+	
 function REQUEST:lilian_inc(ctx)
 	assert(ctx)
-
+	
 	assert( self.quanguan_id and self.inc_type )
 	print( "lilian_inc is called*****************************" , self.quanguan_id , self.inc_type )
 	local ret = {}
 	local date = os.time()
 	local helper = ctx:get_helper()
-
+	
 	local r = helper:lilian_main_get_by_quanguan_id(self.quanguan_id)
 	assert( r ) 
-
+	
 	local not_enough_prop = false
 	--cost 	
 	local prop = ctx:get_user().u_propmgr:get_by_csv_id( const.DIAMOND )
 	local total_consume = 0
 	local tl = 0
-
+	
 	if self.inc_type == INC_TYPE.LILIAN then
 		if date > r.end_time then
 			ret.errorcode = errorcode[91].code
-
+	
 			return ret
 		else
 			tl = r:get_end_time() - date
 			print( "in lilian *************************************" , r:get_end_time() , date , r:get_end_time() - date , CONSUMU_PER_SEC , tl, total_consume )
-
+			
 			assert( tl >= 0 )
 			total_consume = tl * CONSUMU_PER_SEC
 
