@@ -363,17 +363,17 @@ function CMD.start(ctx, conf)
 	}
 	ctx.cache = connect_redis(cache_conf)
 	frienddb.getvalue(ctx.db, ctx.cache)
-	local Q1 = Queue.new(128)
-	local Q2 = Queue.new(128)
-	local Q3 = Queue.new(128)
+	-- local Q1 = Queue.new(128)
+	-- local Q2 = Queue.new(128)
+	-- local Q3 = Queue.new(128)
 	
-	local co1 = skynet.fork(train, ctx, ctx.DB_PRIORITY_1)
-	local co2 = skynet.fork(train, ctx, ctx.DB_PRIORITY_2)
-	local co3 = skynet.fork(train, ctx, ctx.DB_PRIORITY_3)
+	-- local co1 = skynet.fork(train, ctx, ctx.DB_PRIORITY_1)
+	-- local co2 = skynet.fork(train, ctx, ctx.DB_PRIORITY_2)
+	-- local co3 = skynet.fork(train, ctx, ctx.DB_PRIORITY_3)
 
-	ctx.priority_queue[ctx.DB_PRIORITY_1] = { Q = Q1, co = co1}
-	ctx.priority_queue[ctx.DB_PRIORITY_2] = { Q = Q2, co = co2}
-	ctx.priority_queue[ctx.DB_PRIORITY_3] = { Q = Q3, co = co3}
+	-- ctx.priority_queue[ctx.DB_PRIORITY_1] = { Q = Q1, co = co1}
+	-- ctx.priority_queue[ctx.DB_PRIORITY_2] = { Q = Q2, co = co2}
+	-- ctx.priority_queue[ctx.DB_PRIORITY_3] = { Q = Q3, co = co3}
 	return true
 end
 
@@ -459,13 +459,13 @@ skynet.start(function ()
 		if cmd == "command" then
 			local r = command(subcmd, ...)
 			if r ~= nil then
-				skynet.ret(skynet.pack(r))
+				skynet.retpack(r)
 			end
 		else
 			local f = assert(CMD[cmd])
 			local r = f(env, subcmd, ...)
 			if r ~= nil then
-				skynet.ret(skynet.pack(r))
+				skynet.retpack(r)
 			end
 		end
 	end)

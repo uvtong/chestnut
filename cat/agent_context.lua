@@ -47,6 +47,9 @@ function cls:ctor( ... )
 	cls = require "shopmodule"
 	local m = cls.new(self)
 	self._m["shop"] = m
+	cls = require "rolemodule"
+	local m = cls.new(self)
+	self._m["role"] = m
 end
 
 function cls:get_module(k, ... )

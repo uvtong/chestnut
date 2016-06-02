@@ -489,16 +489,22 @@ end
 
 function cls:ara_choose_role(args, ... )
 	-- body
-	assert(#self.bat_roleid == 3)
 	local ctx = self._env
 	local u = ctx:get_user()
-	u:set_field("ara_role_id1", args.bat_roleid[1])
-	u:set_field("ara_role_id2", args.bat_roleid[2])
-	u:set_field("ara_role_id3", args.bat_roleid[3])
-	local ret = {}
-	ret.errorcode = errorcode[1].code
-	ret.msg = errorcode[1].msg
-	return ret
+	if #args.bat_roleid == 3 then
+		u:set_field("ara_role_id1", args.bat_roleid[1])
+		u:set_field("ara_role_id2", args.bat_roleid[2])
+		u:set_field("ara_role_id3", args.bat_roleid[3])
+		local ret = {}
+		ret.errorcode = errorcode[1].code
+		ret.msg = errorcode[1].msg
+		return ret
+	else
+		local ret = {}
+		ret.errorcode = errorcode[36].code
+		ret.msg = errorcode[36].msg
+		return ret
+	end
 end
 
 function cls:ara_rfh(args)

@@ -1265,74 +1265,17 @@ function REQUEST:role_all()
     return ret
 end
 
-function REQUEST:role_recruit()
+function REQUEST:role_recruit(ctx)
 	-- body
-	local ret = {}
-	if not ret then
-		ret.errorcode = errorcode[2].code
-		ret.msg = errorcode[2].msg
-		return ret
-	end
-	assert(self.csv_id)
-	assert(user.u_rolemgr:get_by_csv_id(self.csv_id) == nil)
-	local role = skynet.call(game, "lua", "query_g_role", self.csv_id)
-	local us = skynet.call(game, "lua", "query_g_role_star", role.csv_id*1000 + role.star)
-	local prop = user.u_propmgr:get_by_csv_id(role.us_prop_csv_id)
-	if prop and prop.num >= assert(us.us_prop_num) then
-		prop.num = prop.num - us.us_prop_num
-		prop:update_db({"num"})
-		role.user_id = user.csv_id
-		for k,v in pairs(us) do
-			role[k] = v
-		end
-		role.k_csv_id1 = 0
-		role.k_csv_id2 = 0
-		role.k_csv_id3 = 0
-		role.k_csv_id4 = 0
-		role.k_csv_id5 = 0
-		role.k_csv_id6 = 0
-		role.k_csv_id7 = 0
-		if user.ifxilian == 1 then
-			local n, r = xilian(role, {role_id=role.csv_id, is_locked1=false, is_locked2=false, is_locked3=false, is_locked4=false, is_locked5=false})
-			assert(n == 0, string.format("%d locked.", n))
-			role.property_id1 = r.property_id1
-			role.value1 = r.value1
-			role.property_id2 = r.property_id2
-			role.value2 = r.value2
-			role.property_id3 = r.property_id3
-			role.value3 = r.value3
-			role.property_id4 = r.property_id4
-			role.value4 = r.value4
-			role.property_id5 = r.property_id5
-			role.value5 = r.value5
-		else
-			role.property_id1 = 0
-			role.value1 = 0
-			role.property_id2 = 0
-			role.value2 = 0
-			role.property_id3 = 0
-			role.value3 = 0
-			role.property_id4 = 0
-			role.value4 = 0
-			role.property_id5 = 0
-			role.value5 = 0
-		end
-		role = user.u_rolemgr.create(role)
-		user.u_rolemgr:add(role)
-		role:__insert_db(const.DB_PRIORITY_2)
-		ctx:raise_achievement(const.ACHIEVEMENT_T_5)
-		ret.errorcode = errorcode[1].code
-		ret.msg = errorcode[1].msg
-		ret.r = {
-			csv_id = role.csv_id,
-			is_possessed = true,
-			star = role.star,
-			u_us_prop_num = prop.num
-		}
-		return ret
+	local m = ctx:get_module("role")
+	local ok, result = pcall(m.role_recruit, m, self)
+	if ok then
+		return result 
 	else
-		ret.errorcode = errorcode[3].code
-		ret.msg = errorcode[3].msg
+		skynet.error(result)
+		local ret = {}
+		ret.errorcode = errorcode[29].code
+		ret.msg = errorcode[29].msg
 		return ret
 	end
 end
@@ -2081,9 +2024,9 @@ end
 
 local START_SUBSCRIBE = {}
 
-function START_SUBSCRIBE.finish(source, ...)
+function START_SUBSCRIBE:finish(source, ...)
 	-- body
-	flush_db(const.DB_PRIORITY_1)
+	self:flush_db(const.DB_PRIORITY_1)
 	print(string.format("the node agent %d will be finished. you should clean something.", skynet.self()))
 	skynet.send(source, "lua", "exit")
 end
@@ -2097,7 +2040,7 @@ local function start_subscribe()
 			-- body
 			local f = START_SUBSCRIBE[cmd]
 			if f then
-				f(source, ...)
+				f(env, source, ...)
 			end
 		end
 	}
