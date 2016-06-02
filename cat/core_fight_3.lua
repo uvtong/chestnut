@@ -318,7 +318,7 @@ local function init_attribute(uid, roleid, inittype)
 	end	
 		
 	print("basic property is************************************", t[1], t[2], t[3], t[4])
-end			
+end	
 	
 local function TmpPrintContent(t)
 	assert(t)
@@ -394,10 +394,10 @@ function REQUEST:TMP_BeginGUQNQIACoreFight()
     -- who fight first
     local TmpSelf
     if first_fighter() then
-		ret.firstfighter = SELF
+		ret.firstfighter = user.c_role_id
 		TmpSelf = Self
 	else   	
-		ret.firstfighter = ENEMY
+		ret.firstfighter = self.monsterid
 		TmpSelf = Enemy
 	end  
 
@@ -413,7 +413,7 @@ function REQUEST:TMP_BeginGUQNQIACoreFight()
 	ret.errorcode = errorcode[1].code
 	ret.delay_time = START_DELAY
                  	
-   
+
 	return ret
 end 	  	
 		  	
@@ -429,24 +429,24 @@ local function get_on_battle_list(uid, type)
 		  	else 
 		  		table.insert(Self.OnBattleList, value)
 		  	end 
-		end	
+		end	                 
 	elseif type == ENEMY then
 		local sql = string.format("select ara_role_id1, ara_role_id2, ara_role_id3 from users where csv_id = %s", uid)
 		local r = skynet.call(util.random_db(), "lua", "command", "query", sql)
-		assert(#r == 3)
-          
-		local idx = 1
+		assert(#r == 3)       
+                             
+		local idx = 1        
 		while idx <= ON_BATTLE_ROLE_NUM do
 		  	local ara_role_id = "ara_role_id" .. idx
 		  	local value = r[1][ara_role_id]
 		  	if 0 == value then 
 		  		return false 
-		  	else 
+		  	else 			 
 		  		table.insert(Enemy.OnBattleList, value)
-		  	end 
-		end
-	else  
-		assert(false)
+		  	end              
+		end                  
+	else                      
+		assert(false)         
 	end   
    	
 	return true
@@ -461,6 +461,11 @@ local function get_attack(kf, TmpSelf, TmpEnemy)
 	local critical_heartprob = 	TmpSelf.Attr.critical_hit / (TmpSelf.Attr.critical_hit + 100) 	-- self critical_hitprob
 	local kingprob = TmpSelf.Attr.king / (TmpSelf.Attr.king + 100) 								--self kingprob
 	print("kingprobis ",kingprob, kf.attack_type) 
+	
+	for k, v in pairs(kf) do
+		print(k, v)
+	end
+	
 	if 1 == kf.attack_type then --common attack
 		totalattack = math.floor((TmpSelf.Attr.combat * 0.2 + TmpSelf.FightPower * 0.1) * (kf.effect_percent / 100) * (1 - defenceprob) * (1 + kingprob ))
 		print("all value in get_attack is1 ", TmpSelf.Attr.combat, TmpSelf.FightPower, kf.effect_percent, defenceprob,kingprob)
@@ -655,7 +660,7 @@ local function do_verify(v, userroleid)
 				 	 
 			TmpEnemy.PresentComboNum = 0 
 		end      			
-        		 	 		
+        
 		local isdead = 0 
 		print("totalattack is ********************************", totalattack, v.attack) 
         		            	
@@ -735,6 +740,8 @@ function REQUEST:TMP_GuanQiaBattleList()
 		ret.totalattack = totalattack
 		ret.effect = effect
 		ret.kf_id = kf_id
+		assert(self.fightinfo.fighttype == 1 and kf_id == 0)
+		print("ret.kf_id is ********************************************************", kf_id)
 	end 			       				
                            
 	ret.errorcode = errorcode[1].code

@@ -310,44 +310,40 @@ function SUBSCRIBE.update_db()
 	env:flush_db(const.DB_PRIORITY_3)
 end
 
--- function SUBSCRIBE.( ... )
--- 	-- body
--- end
-
 local function subscribe( )
-	-- body
+	-- body				
 	local c = skynet.call(".channel", "lua", "agent_start")
 	local c2 = mc.new { 			
 		channel = c,			
 		dispatch = function ( channel, source, cmd, tvals, ... )
-			-- body 			
-			if SUBSCRIBE[cmd] then
-				local f = SUBSCRIBE[cmd]
-				f(tvals, ...)	
+			-- body 
+			local f = SUBSCRIBE[cmd]
+			if f ~= nil then
+				f(env, tvals, ...)	
 			else 				
 				for k,v in pairs(M) do
 					if v.SUBSCRIBE[cmd] then
 						local f = assert(v.SUBSCRIBE[cmd])
-						f(env, tvals, ...)
+						f(_, env, tvals, ...)
 						break		
-					end
-				end
-			end
-		end
-	} 
-	c2:subscribe()
-end
-
+					end 
+				end 	
+			end 		
+		end 			
+	} 					
+	c2:subscribe() 		
+end 					
+						
 function REQUEST:achievement()
-	-- body
-	local ret = {}
-	if not user then
+	-- body				
+	local ret = {} 		
+	if not user then 	
 		ret.errorcode = errorcode[2].code
 		ret.msg = errorcode[2].msg
-		return ret
-	end
-	assert(user)
-	local l = {}
+		return ret 		
+	end 					
+	assert(user) 		
+	local l = {} 		
 	for i=1,const.ACHIEVEMENT_T_SUM do
 		local flag = false
 		for j=1,11 do
@@ -448,11 +444,13 @@ local function get_public_email(ctx)
 
 	local r = skynet.call( ".channel" , "lua" , "agent_get_public_email" , ctx:get_user():get_csv_id() , ctx:get_user():get_pemail_csv_id() , ctx:get_user():get_signup_time() )
 	assert( r )
+	local pemail_csv_id = ctx:get_user():get_pemail_csv_id()
+	local sign = false
 
 	if #r >= 1 then
+		pemail_csv_id = r[1].pemail_csv_id
 		print("user.pemail_csv_id is ", ctx:get_user():get_pemail_csv_id(), r[1].pemail_csv_id)
-		ctx:get_user():set_pemail_csv_id(r[1].pemail_csv_id)
-		--user:update_db()
+		sign = true
 	end
 
 	for k , v in ipairs( r ) do		
@@ -460,6 +458,11 @@ local function get_public_email(ctx)
 		v.id = genpk_2(ctx:get_user():get_csv_id(), v.csv_id)
 		new_emailrequest:public_email(ctx:get_myfactory(), v , ctx:get_user() )
 	end 
+
+	if sign then
+		ctx:get_user():set_pemail_csv_id(pemail_csv_id)
+		ctx:get_user():update_db()
+	end
 end    	
 	 	
 function REQUEST:login()
@@ -2037,8 +2040,14 @@ function CMD:login(source, uid, sid, sct, g, d)
 
 	self:set_user(user)
 	self:login(user)
+	subscribe()
 
 	get_public_email(self)
+	print("#####################################123ab")
+	print("************************************8", self:get_userid())
+
+	
+
 	return true
 end
 
@@ -2116,6 +2125,5 @@ skynet.start(function()
 	end)
 	skynet.fork(update_db)
 	start()
-	subscribe()
 	start_subscribe()
 end)

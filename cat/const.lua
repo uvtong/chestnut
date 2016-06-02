@@ -30,6 +30,7 @@ const.CHECKIN = 6
 const.CHECKIN_MONTH = 7
 const.EXERCISE = 8
 const.CGOLD = 9
+const.LILIAN_SUB = 10
 
 const.DB_PRIORITY_1 = 1
 const.DB_PRIORITY_2 = 2

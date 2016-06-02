@@ -28,7 +28,8 @@ function CMD.agent_start(source)
 	if register_updatedb[source] then
 		return 0 		
 	else 				
-		register_updatedb[source] = true
+		
+
 		return channel.channel
 	end
 end			
@@ -78,6 +79,7 @@ function CMD.agent_get_public_email(source, ucsv_id , pemail_csv_id , signup_tim
 				break
 			end 
 		else 	
+			print("sdfsdfsdfsdfffffffffffffffff", t.csv_id, pemail_csv_id)
 			if t.csv_id > pemail_csv_id then
 				t.pemail_csv_id = t.csv_id -- record public email id
 	 			t.csv_id = skynet.call( ".game" , "lua" , "u_guid" , ucsv_id , const.UEMAILENTROPY )

@@ -74,7 +74,7 @@ function cls:lilian_qg_num_get_lilian_num_list()
 
 	return ret
 end 	
-		
+	
 function cls:lilian_main_get_by_quanguan_id(quanguan_id)
 	assert(quanguan_id)
 
@@ -92,18 +92,44 @@ function cls:lilian_main_get_by_quanguan_id(quanguan_id)
 	return nil
 end 
 	
+function cls:lilian_qg_num_get_by_quanguan_id(quanguan_id)
+	assert(quanguan_id)
+
+	local modelmgr = self._env:get_modelmgr()
+	assert(modelmgr)
+	local e = modelmgr:get_u_lilian_qg_nummgr()
+	assert(e)
+
+	for k, v in pairs(e.__data) do
+		if v:get_quanguan_id() == quanguan_id then
+			return v
+		end
+	end	
+
+	return nil
+end 
+
+function cls:lilian_phy_power_get_one()
+	local modelmgr = self._env:get_modelmgr()
+	assert(modelmgr)
+	local e = modelmgr:get_u_lilian_phy_powermgr()
+	assert(e)	
+
+	for k, v in pairs(e.__data) do
+		return v
+	end
+
+	return nil
+end
+		
+function cls:lilian_phy_power_clear()
+	local modelmgr = self._env:get_modelmgr()
+	assert(modelmgr)
+	local e = modelmgr:get_u_lilian_phy_powermgr()
+	assert(e)
+
+	e:clear()
+end
+
 return cls
-
-
-
-
-
-
-
-
-
-
-
-
-
-
+		

@@ -31,7 +31,9 @@ local ENEMY = 2
 local START_DELAY = 3 --sec
 local CERTAIN_SEQUENCE_KF = 3
 local FIGHT_PLACE = 0 
-			  		
+local FIGHT_ERROR_RANGE = 20
+local ATTACH_EFFECT_ERROR_RANGE = 10			
+
 local COMMON_KF = 90000
 local COMBO_KF = 100000
 local kf_common
@@ -71,12 +73,12 @@ local Enemy = {
 			IfArenaInit = 0,			--if Arenainited
 			OnBattleSequence = 1 		--di ji ge shang zhen de jue se 
 		  } 
-
+		  
 local function send_package(pack)
 	local package = string.pack(">s2", pack)
 	socket.write(client_fd, package)
 end	  		   	
-	          
+	
 function REQUEST:login(u)
 	-- body   
 	assert( u )
@@ -89,11 +91,25 @@ local function first_fighter()
 	return ( 0 == math.random(100) % 2 )                      
 end 	
 	
+local function if_in_fight_error_range(cdamange, sdamange)
+	assert(cdamange and sdamange)
+	local diff = cdamange - sdamange
+	
+	return -FIGHT_ERROR_RANGE <= diff and diff <= FIGHT_ERROR_RANGE
+end 
+	
+local function if_in_attach_effect_error_range(cdamange, sdamange)
+	assert(cdamange and sdamange)
+	
+	local diff = cdamange - sdamange
+	return -ATTACH_EFFECT_ERROR_RANGE <= diff and diff <= ATTACH_EFFECT_ERROR_RANGE
+end	
+	
 --judge if arise_type is true	
 local function judge_arise_type(kf, totalfightnum)
 	assert(kf and totalfightnum)
 	local sign = false
-
+	
 	if 0 == kf.arise_type then
 		sign = true
 	elseif 1 == kf.arise_type then
