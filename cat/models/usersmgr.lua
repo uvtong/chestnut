@@ -523,6 +523,13 @@ function cls:ctor( ... )
 		uq = false,
 		t = "number",
 	},
+	draw_num = {
+		pk = false,
+		fk = false,
+		cn = "draw_num",
+		uq = false,
+		t = "number",
+	},
 }
 
 	self.__head_ord = {}
@@ -599,6 +606,7 @@ function cls:ctor( ... )
 	self.__head_ord[71] = self.__head["ara_clg_tms_rsttm"]
 	self.__head_ord[72] = self.__head["ara_clg_cost_rsttm"]
 	self.__head_ord[73] = self.__head["ara_integral_rsttm"]
+	self.__head_ord[74] = self.__head["draw_num"]
 
 	self.__pk      = "csv_id"
 	self.__fk      = ""
