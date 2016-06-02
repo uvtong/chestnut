@@ -790,15 +790,16 @@ function cls:load_u_lilian_main()
 	local cls = require "models/u_lilian_mainmgr"
 	local u_lilian_mainmgr = cls.new()
 	u_lilian_mainmgr:set_user(user)
-	u_lilian_mainmgr:load_db({ user_id = u:get_csv_id(), iffinished = 0 })
+	-- u_lilian_mainmgr:load_db({ user_id = u:get_csv_id(), iffinished = 0 })
+	local sql = string.format("select * from u_lilian_main where `iffinished` = 0 and `user_id` = %d", u:get_field("csv_id"))
+	local r = query.read(".rdb", "u_lilian_main", sql)
+	for k,v in pairs(r) do
+		local entity = u_lilian_mainmgr:create_entity(v)
+		u_lilian_mainmgr:add(entity)
+	end
 	u_lilian_mainmgr:set_user(u)
 	self._data["u_lilian_mainmgr"] = u_lilian_mainmgr
 	u.u_lilian_mainmgr = u_lilian_mainmgr
-	-- local nr = skynet.call( util.random_db() , "lua" , "command" , "select" , "u_lilian_mai\-n" , { { user_id = user.csv_id , iffinished = 0 } } )
-	-- for i , v in ipairs( nr ) do
-	-- 	local a = user.u_lilian_mainmgr:create( v )
-	-- 	user.u_lilian_mainmgr:add( a )
-	-- end
 end 	
 		
 function cls:get_u_lilian_mainmgr( ... )

@@ -141,6 +141,9 @@ function QUERY:query(sql)
 	local db = self.db
 	local res = db:query(sql)
 	dump(res)
+	if res.errno ~= nil then
+		error "db error"
+	end
 	return res
 end
 
@@ -151,6 +154,9 @@ function QUERY:read(table_name, sql)
 	local db = self.db
 	local res = db:query(sql)
 	dump(res)
+	if res.errno ~= nil then
+		error "db error"
+	end
 	return res
 end
 
@@ -159,6 +165,9 @@ function QUERY:write(table_name, sql, priority)
 	local db = self.db
 	local res = db:query(sql)
 	dump(res)
+	if res.errno ~= nil then
+		error "db error"
+	end
 	-- local res = cs1(self.db.query, db, sql)
 	-- return res
 	-- print("QUERY:write", sql)

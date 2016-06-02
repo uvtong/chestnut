@@ -102,7 +102,7 @@ local function get_goods(csv_id)
 		p.st = 0
 		p = user.u_goodsmgr.create(p)
 		user.u_goodsmgr:add(p)
-		p:__insert_db(const.DB_PRIORITY_2)
+		p:update_db(const.DB_PRIORITY_2)
 	end
 end
 
@@ -407,7 +407,7 @@ function REQUEST:achievement_reward_collect()
 				prop.num = num1
 				prop = user.u_propmgr.create(prop)
 				
-				prop:__insert_db(const.DB_PRIORITY_2)
+				prop:update_db(const.DB_PRIORITY_2)
 			end
 		end
 		local next = user.u_achievement_rcmgr:get_by_csv_id(a_src.unlock_next_csv_id)
@@ -957,7 +957,7 @@ function REQUEST:recharge_purchase()
 		else
 			rc = user.u_recharge_countmgr.create({user_id=user.csv_id, csv_id=v.csv_id, count=1})
 			user.u_recharge_countmgr:add(rc)
-			rc:__insert_db(const.DB_PRIORITY_2)
+			rc:update_db(const.DB_PRIORITY_2)
 			local diamond = user.u_propmgr:get_by_csv_id(const.DIAMOND)
 			diamond.num = diamond.num + (assert(goods.diamond) + assert(goods.first)) * v.num
 			diamond:update_db({"num"})
@@ -965,7 +965,7 @@ function REQUEST:recharge_purchase()
 		local t = {user_id=assert(user.csv_id), csv_id=assert(v.csv_id), num=assert(v.num), dt=os.time()}
 		rr = user.u_recharge_recordmgr.create(t)
 		user.u_recharge_recordmgr:add(rr)
-		rr:__insert_db(const.DB_PRIORITY_2)
+		rr:update_db(const.DB_PRIORITY_2)
 
 		-----------------------------
 		local user_vip_max
@@ -1102,7 +1102,7 @@ function REQUEST:recharge_vip_reward_collect()
 					prop.num = assert(v[2])
 					prop = user.u_propmgr.create(prop)
 					user.u_propmgr:add(prop)
-					prop:__insert_db(const.DB_PRIORITY_2)
+					prop:update_db(const.DB_PRIORITY_2)
 				end
 			end
 			rc.collected = 1
@@ -1124,7 +1124,7 @@ function REQUEST:recharge_vip_reward_collect()
 		local t = {user_id=user.csv_id, vip=self.vip, collected=1, purchased=0}	
 		rc = user.u_recharge_vip_rewardmgr.create(t)
 		user.u_recharge_vip_rewardmgr:add(rc)
-		rc:__insert_db(const.DB_PRIORITY_2)
+		rc:update_db(const.DB_PRIORITY_2)
 		ret.errorcode = errorcode[1].code
 		ret.msg = errorcode[1].msg
 		ret.vip = user.uviplevel
@@ -1374,7 +1374,7 @@ function REQUEST:recharge_vip_reward_purchase()
  					prop.num = assert(v[2])
  					prop = user.u_propmgr.create(prop)
  					user.u_propmgr:add(prop)
- 					prop:__insert_db(const.DB_PRIORITY_2)
+ 					prop:update_db(const.DB_PRIORITY_2)
  					table.insert(l, { csv_id=prop.csv_id, num=prop.num})
  				end
  			end
@@ -1408,14 +1408,14 @@ function REQUEST:recharge_vip_reward_purchase()
 				prop.num = assert(v[2])
 				prop = user.u_propmgr.create(prop)
 				user.u_propmgr:add(prop)
-				prop:__insert_db(const.DB_PRIORITY_2)
+				prop:update_db(const.DB_PRIORITY_2)
 				table.insert(l, { csv_id=prop.csv_id, num=prop.num})
  			end
  		end
  		local t = { user_id=user.csv_id, vip=self.vip, collected=0, purchased=1}
  		rc = user.u_recharge_vip_rewardmgr.create(t)
  		user.u_recharge_vip_rewardmgr:add(rc)
- 		rc:__insert_db(const.DB_PRIORITY_2)
+ 		rc:update_db(const.DB_PRIORITY_2)
  		ret.errorcode = errorcode[1].code
  		ret.msg = errorcode[1].msg
  		ret.l = l
