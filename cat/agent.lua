@@ -751,6 +751,7 @@ function REQUEST:user(ctx)
     	diamond = assert(user.u_propmgr:get_by_csv_id(const.DIAMOND)).num,
     	love = assert(user.u_propmgr:get_by_csv_id(const.LOVE)).num,
 	}
+	ret.user.uviplevel = (1 << 48)
 	print("called****************************222")
 	ret.user.equipment_list = {}
 	for k,v in pairs(user.u_equipmentmgr.__data) do
@@ -873,143 +874,32 @@ function REQUEST:user_upgrade(ctx)
 	end
 end
 
-function REQUEST:shop_all()
+function REQUEST:shop_all(ctx)
 	-- body
-	local ret = {}
-	if not user then
-		ret.errorcode = errorcode[2].code
-		ret.msg	= errorcode[2].msg
+	local m = ctx:get_module("shop")
+	local ok, result = pcall(m.shop_all, m, self)
+	if ok then
+		return result 
+	else
+		skynet.error(result)
+		local ret = {}
+		ret.errorcode = errorcode[29].code
+		ret.msg = errorcode[29].msg
 		return ret
 	end
-	assert(user)
-	local r = skynet.call(game, "lua", "query_g_goods")
-	local ll = {}
-	for k,v in pairs(r) do
-		local tmp = user.u_goodsmgr:get_by_csv_id(v.csv_id)
-		if tmp then
-			if tmp.inventory == 0 then
-				local now = os.time()
-				local walk = os.difftime(now, tmp.st)
-				if walk > v.cd then
-					tmp.inventory = v.inventory_init
-					tmp.countdown = 0
-					tmp.st = 0
-					tmp:__update_db({"inventory", "countdown", "st"})
-				else
-					tmp.countdown = v.cd - walk
-					tmp:__update_db({"countdown"})
-				end
-			end
-		else
-			v.user_id = user.csv_id
-			v.inventory = v.inventory_init
-			v.countdown = 0
-			v.st = 0
-			v.id = genpk_2(v.user_id, v.csv_id)
-			tmp = user.u_goodsmgr:create(v)
-			user.u_goodsmgr:add(tmp)
-			tmp:update_db()
-		end
-		for kk,vv in pairs(tmp) do
-			v[kk] = vv
-		end
-		table.insert(ll, v)
-	end
-	ret.errorcode = errorcode[1].code
-	ret.msg = errorcode[1].msg
-	ret.l = ll
-	ret.goods_refresh_count = assert(get_journal().goods_refresh_count)
-	ret.store_refresh_count_max = assert(user.store_refresh_count_max)
-	return ret
 end
 
-function REQUEST:shop_refresh()
+function REQUEST:shop_refresh(ctx)
 	-- body
-	local ret = {}
-	if not user then
-		ret.errorcode = errorcode[2].code
-		ret.msg = errorcode[2].msg
-		return ret
-	end
-	assert(user)
-	local j = assert(get_journal())
-	local gg = assert(skynet.call(game, "lua", "query_g_goods", self.goods_id))
-	local ug = user.u_goodsmgr:get_by_csv_id(self.goods_id)
-	if ug.inventory == 0 then
-		local now = os.time()
-		local walk = now - ug.st
-		if walk < gg.cd then
-			-- judge refersh count
-			print("****8ajfal", j.goods_refresh_count, user.store_refresh_count_max)
-			if j.goods_refresh_count >= assert(user.store_refresh_count_max) then
-				ug.countdown = gg.cd - walk
-				ug:__update_db({ "countdown"})
-				ret.errorcode = errorcode[5].code
-				ret.msg = errorcode[5].msg
-				ret.l = { goods}
-				ret.goods_refresh_count  = assert(j.goods_refresh_count)
-				ret.store_refresh_count_max = assert(user.store_refresh_count_max)
-				return ret
-			end
-			local rc = assert(skynet.call(game, "lua", "query_g_goods_refresh_cost", j.goods_refresh_count + 1))
-			local prop = get_prop(rc.currency_type)
-			if prop.num > rc.currency_num then
-				print("abc")
-				prop.num = prop.num - rc.currency_num
-				prop:__update_db({"num"})
-				j.goods_refresh_count = j.goods_refresh_count + 1
-				j:__update_db({"goods_refresh_count"})
-				ug.inventory = gg.inventory_init
-				ug.countdown = 0
-				ug.st = 0
-				ug:__update_db({"inventory", "countdown", "st"})
-				ret.errorcode = errorcode[1].code
-				ret.msg = errorcode[1].msg
-				for k,v in pairs(ug) do
-					gg[k] = ug[k]
-				end
-				ret.l = { gg }
-				ret.goods_refresh_count = assert(j.goods_refresh_count)
-				ret.store_refresh_count_max = assert(user.store_refresh_count_max)
-				return ret
-			else
-				print("chjalkf")
-				goods.countdown = gg.cd - walk
-				goods:__update_db({"countdown"})
-				for k,v in pairs(ug) do
-					gg[k] = ug[k]
-				end
-				ret.errorcode = errorcode[6].code
-				ret.msg = errorcode[6].msg
-				ret.l = { gg}
-				ret.goods_refresh_count = assert(j.goods_refresh_count)
-				ret.store_refresh_count_max = assert(user.store_refresh_count_max)
-				return ret	
-			end
-		else
-			ug.inventory = gg.inventory_init
-			ug.countdown = gg.cd - walk
-			ug:__update_db({"inventory", "countdown"})
-			for k,v in pairs(ug) do
-				gg[k] = ug[k]
-			end
-			ret.errorcode = errorcode[7].code
-			ret.msg = errorcode[7].msg
-			ret.l = { goods}
-			ret.goods_refresh_count = assert(j.goods_refresh_count)
-			ret.store_refresh_count_max = assert(user.store_refresh_count_max)
-			return ret
-		end
+	local m = ctx:get_module("shop")
+	local ok, result = pcall(m.shop_refresh, m, self)
+	if ok then
+		return result 
 	else
-		assert(ug.inventory > 0)
-		ret.errorcode = errorcode[8].code
-		ret.msg = errorcode[8].msg
-		for k,v in pairs(ug) do
-			gg[k] = ug[k]
-		end
-		ret.l = { gg }
-		ret.goods_refresh_count = assert(j.goods_refresh_count)
-		ret.store_refresh_count_max = assert(user.store_refresh_count_max)
+		skynet.error(result)
+		local ret = {}
+		ret.errorcode = errorcode[29].code
+		ret.msg = errorcode[29].msg
 		return ret
 	end
 end

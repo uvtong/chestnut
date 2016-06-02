@@ -72,7 +72,9 @@ end
 
 function CMD.ranking(uid)
 	-- body
-	return leaderboardsmgr:get(uid):get_field("ranking")
+	local ranking = leaderboardsmgr:get(uid):get_field("ranking")
+	assert(ranking > 0, ranking)
+	return ranking
 end
 
 -- return uid

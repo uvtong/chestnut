@@ -418,10 +418,10 @@ function cls:ctor( ... )
 		uq = false,
 		t = "number",
 	},
-	ara_clg_tms_pur_tms = {
+	ara_clg_cost_tms = {
 		pk = false,
 		fk = false,
-		cn = "ara_clg_tms_pur_tms",
+		cn = "ara_clg_cost_tms",
 		uq = false,
 		t = "number",
 	},
@@ -450,13 +450,6 @@ function cls:ctor( ... )
 		pk = false,
 		fk = false,
 		cn = "ara_rfh_cost_tms",
-		uq = false,
-		t = "number",
-	},
-	ara_clg_cost_tms = {
-		pk = false,
-		fk = false,
-		cn = "ara_clg_cost_tms",
 		uq = false,
 		t = "number",
 	},
@@ -506,6 +499,27 @@ function cls:ctor( ... )
 		pk = false,
 		fk = false,
 		cn = "ara_rfh_cd_cost_tms",
+		uq = false,
+		t = "number",
+	},
+	ara_clg_tms_rsttm = {
+		pk = false,
+		fk = false,
+		cn = "ara_clg_tms_rsttm",
+		uq = false,
+		t = "number",
+	},
+	ara_clg_cost_rsttm = {
+		pk = false,
+		fk = false,
+		cn = "ara_clg_cost_rsttm",
+		uq = false,
+		t = "number",
+	},
+	ara_integral_rsttm = {
+		pk = false,
+		fk = false,
+		cn = "ara_integral_rsttm",
 		uq = false,
 		t = "number",
 	},
@@ -570,19 +584,21 @@ function cls:ctor( ... )
 	self.__head_ord[56] = self.__head["ara_lose_tms"]
 	self.__head_ord[57] = self.__head["ara_tie_tms"]
 	self.__head_ord[58] = self.__head["ara_clg_tms"]
-	self.__head_ord[59] = self.__head["ara_clg_tms_pur_tms"]
+	self.__head_ord[59] = self.__head["ara_clg_cost_tms"]
 	self.__head_ord[60] = self.__head["ara_integral"]
 	self.__head_ord[61] = self.__head["ara_fighting"]
 	self.__head_ord[62] = self.__head["ara_interface"]
 	self.__head_ord[63] = self.__head["ara_rfh_cost_tms"]
-	self.__head_ord[64] = self.__head["ara_clg_cost_tms"]
-	self.__head_ord[65] = self.__head["sum_combat"]
-	self.__head_ord[66] = self.__head["sum_defense"]
-	self.__head_ord[67] = self.__head["sum_critical_hit"]
-	self.__head_ord[68] = self.__head["sum_king"]
-	self.__head_ord[69] = self.__head["ara_rfh_st"]
-	self.__head_ord[70] = self.__head["ara_rfh_cd"]
-	self.__head_ord[71] = self.__head["ara_rfh_cd_cost_tms"]
+	self.__head_ord[64] = self.__head["sum_combat"]
+	self.__head_ord[65] = self.__head["sum_defense"]
+	self.__head_ord[66] = self.__head["sum_critical_hit"]
+	self.__head_ord[67] = self.__head["sum_king"]
+	self.__head_ord[68] = self.__head["ara_rfh_st"]
+	self.__head_ord[69] = self.__head["ara_rfh_cd"]
+	self.__head_ord[70] = self.__head["ara_rfh_cd_cost_tms"]
+	self.__head_ord[71] = self.__head["ara_clg_tms_rsttm"]
+	self.__head_ord[72] = self.__head["ara_clg_cost_rsttm"]
+	self.__head_ord[73] = self.__head["ara_integral_rsttm"]
 
 	self.__pk      = "csv_id"
 	self.__fk      = ""

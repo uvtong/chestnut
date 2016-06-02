@@ -162,6 +162,7 @@ function cls.set_field(self, k, v, ... )
 	if self.__ecol_updated[k] == 1 then
 		self.__col_updated = self.__col_updated + 1
 	end
+	assert(self.__fields[k] ~= nil, "key must be existence.")
 	self.__fields[k] = v
 end
 

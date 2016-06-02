@@ -411,7 +411,7 @@ local function exe_percudure(table_name)
 
         --chain all tmpsqlx up
         table.insert(script, "DELIMITER $$\n")
-        table.insert(script, string.format("DROP PROCEDURE IF EXISTS `%s` $$\n ", table_name))
+        table.insert(script, string.format("DROP PROCEDURE IF EXISTS `%s` $$\n ", "qy_insert_" .. table_name))
         table.insert(script, string.format("CREATE DEFINER=`root`@`%%` PROCEDURE `%s`(", "qy_insert_" .. table_name))
         table.insert(script, table.concat(tmpsql1))
         table.insert(script, "BEGIN \n")
@@ -459,6 +459,14 @@ function VIEW:percudure( ... )
 				return ret
 			end
 		end
+	end
+end
+
+function VIEW:addrole( ... )
+	-- body
+	if self.method == "post" then
+		local uid = self.body["uid"]
+		
 	end
 end
 
