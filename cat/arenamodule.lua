@@ -476,6 +476,44 @@ function cls:ara_choose_role_enter(args, ... )
 	self._me = u
 	self._me_modelmgr = modelmgr
 	self:load_enemy(args.enemy_id)
+	local enemy = {}
+	enemy.csv_id = self._enemy:get_field("csv_id")
+	enemy.uname  = self._enemy:get_field("uname")
+	enemy.avatar = self._enemy:get_field("avatar")
+	enemy.ara_role_id1 = self._enemy:get_field("ara_role_id1")
+	enemy.ara_role_id2 = self._enemy:get_field("ara_role_id2")
+	enemy.ara_role_id3 = self._enemy:get_field("ara_role_id3")
+	enemy.sum_combat   = self._enemy:get_field("sum_combat")
+	enemy.sum_combat   = self._enemy:get_field("sum_defense")
+	enemy.sum_critical_hit = self._enemy:get_field("sum_critical_hit")
+	enemy.sum_king     = self._enemy:get_field("sum_king")
+	local en_rolemgr   = self._en_modelmgr:get_u_rolemgr()
+	local en_role1     = en_rolemgr:get_by_csv_id(enemy.ara_role_id1)
+	local en_role1_l   = {}
+	for i=1,7 do
+		local key = string.format("%s:%d", string.format("k_csv_id%d", i))
+		local kf_id = en_role1:get_field(key)
+		table.insert(en_role1_l, kf_id)
+	end
+
+	local en_role2     = en_rolemgr:get_by_csv_id(enemy.ara_role_id2)
+	local en_role2_l   = {}
+	for i=1,7 do
+		local key = string.format("%s:%d", string.format("k_csv_id%d", i))
+		local kf_id = en_role2:get_field(key)
+		table.insert(en_role2_l, kf_id)
+	end
+
+	local en_role3     = en_rolemgr:get_by_csv_id(enemy.ara_role_id3)
+	local en_role3_l   = {}
+	for i=1,7 do
+		local key = string.format("%s:%d", string.format("k_csv_id%d", i))
+		local kf_id = en_role3:get_field(key)
+		table.insert(en_role3_l, kf_id)
+	end
+	enemy.ara_role_id1_kf = en_role1_l
+	enemy.ara_role_id2_kf = en_role2_l
+	enemy.ara_role_id3_kf = en_role3_l
 
 	local ret = {}
 	ret.errorcode = errorcode[1].code
@@ -483,7 +521,7 @@ function cls:ara_choose_role_enter(args, ... )
 	ret.bat_roleid[1] = u:get_field("ara_role_id1")
 	ret.bat_roleid[2] = u:get_field("ara_role_id2")
 	ret.bat_roleid[3] = u:get_field("ara_role_id3")
-	ret.e = self._en_modelmgr:gen_remote()
+	ret.e = enemy
 	return ret
 end
 

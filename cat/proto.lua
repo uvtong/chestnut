@@ -206,6 +206,13 @@ proto.c2s = sprotoparser.parse [[
     cp_chapter 19 : integer
     lilian_level 20 : integer
     ara_rnk 21 : integer
+    ara_role_id1 22 : integer
+    ara_role_id2 23 : integer
+    ara_role_id3 24 : integer
+    sum_combat   25 : integer
+    sum_defense  26 : integer
+    sum_critical_hit 27 : integer
+    sum_king     28 : integer
 }
 
 .suser {
@@ -272,10 +279,19 @@ proto.c2s = sprotoparser.parse [[
 }
 
 .enemy {
-	user 0 : user
-	u_equipment 1 : *equipment
-    u_kungfu 2 : *kungfu_content
-    u_role 3 : *role
+    csv_id        0 : integer
+	uname         1 : string 
+    avatar        2 : integer
+    ara_role_id1  3 : integer
+    ara_role_id2  4 : integer
+    ara_role_id3  5 : integer
+    sum_combat    6 : integer
+    sum_defense   7 : integer
+    sum_critical_hit 8 : integer
+    sum_king      9 : integer
+    ara_role_id1_kf 10 : *integer
+    ara_role_id2_kf 11 : *integer
+    ara_role_id3_kf 12 : *integer
 }
 
 .integral_reward {
