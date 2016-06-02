@@ -262,7 +262,6 @@ end
 	
 function cls.genpk(self, csv_id)
 	-- body
-	print("******************###########", self.__tname)
 	if #self.__fk == 0 then
 		return genpk_1(csv_id)
 	else

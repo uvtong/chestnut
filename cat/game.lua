@@ -427,7 +427,11 @@ function CMD.query_g_role(pk)
 			error "there are insufficient data"
 		end
 	elseif type(pk) == "nil" then
-		return game.g_rolemgr.__data
+		local l = {}
+		for k,v in pairs(game.g_rolemgr.__data) do
+			l[k] = v.__fields
+		end
+		return l
 	else
 		assert(false)
 	end

@@ -3,6 +3,7 @@ local dc = require "datacenter"
 local sd = require "sharedata"
 local errorcode = require "errorcode"
 local const = require "const"
+local util = require "util"
 local super = require "module"
 local cls = class("arenamodule", super)
 
@@ -86,6 +87,161 @@ function cls:unload_enemy(uid, ... )
 	end
 end
 
+function cls:timeout( ... )
+	-- body
+end
+
+function cls:receive_award( ... )
+	-- body
+end
+
+function cls:ara_rfh_( ... )
+	-- body
+	local l = {}
+	local u = self._env:get_user()
+	local modelmgr = self._env:get_modelmgr()
+	local usersmgr = self._env:get_usersmgr()
+	local leaderboards_name = skynet.getenv("leaderboards_name")
+	local r1 = skynet.call(leaderboards_name, "lua", "ranking_range", 1, 10)
+	local r2 = skynet.call(leaderboards_name, "lua", "nearby", u:get_csv_id())
+	local u_ara_worshipmgr = modelmgr:get_u_ara_worshipmgr()
+	local t = os.date("*t", os.time())
+	t = { year=t.year, month=t.month, day=t.day}
+	local today = os.time(t)
+	for i,v in ipairs(r1) do
+		local li = {}
+		local ranking = i
+		local uid = v
+		li.ranking = ranking
+		li.uid = uid
+		li.top = true
+		if uid ~= self._userid then
+			local r = u_ara_worshipmgr:get_by_csv_id(uid)
+			if r then
+				if r:get_field("date") == today and r:get_field("worship") == 1 then
+					li.worship = true
+				else
+					li.worship = false
+				end
+			else
+				local tmp = {}
+				tmp["user_id"] = u:get_field("csv_id")
+				tmp["ouid"] = uid
+				tmp["id"] = genpk_2(tmp["user_id"], tmp["ouid"])
+				tmp["date"] = today
+				tmp["worship"] = true
+				local t = u_ara_worshipmgr:create_entity(tmp)
+				u_ara_worshipmgr:add(t)
+				t:update_db()
+			end
+		else
+			li.worship = false
+		end
+		
+		if usersmgr:get(uid) then
+			local u = usersmgr:get(uid)
+			li["total_combat"] = u:get_field("sum_combat")
+			li["uname"] = u:get_field("uname")
+			table.insert(l, li)
+		elseif dc.get(uid, "online") then
+			local addr = dc.get(uid, "addr")
+			local u = skynet.call(addr, "lua", "user")
+			li["total_combat"] = u.total_combat
+			li["uname"] = u.uname
+			table.insert(l, li)
+		else
+			local usersmgr = self._env:get_usersmgr()
+			usersmgr:load_cache(uid)
+			local u = usersmgr:get(uid)
+			li["total_combat"] = 10
+			li["uname"] = u:get_field("uname")
+			table.insert(l, li)
+		end
+	end
+	for i,v in pairs(r2) do
+		local li = {}
+		local ranking = i
+		local uid = v
+		li.ranking = ranking
+		li.uid = uid
+		li.top = false
+		if usersmgr:get(uid) then
+			local u = usersmgr:get(uid)
+			li["total_combat"] = u:get_field("sum_combat")
+			li["uname"] = u:get_field("uname")
+			table.insert(l, li)
+		elseif dc.get(uid, "online") then
+			local addr = dc.get(uid, "addr")
+			local u = skynet.call(addr, "lua", "user")
+			li["total_combat"] = 10
+			li["uname"] = u.uname
+			table.insert(l, li)
+		else
+			usersmgr:load_cache(uid)
+			local u = usersmgr:get(uid)
+			li["total_combat"] = 10
+			li["uname"] = u:get_field("uname")
+			table.insert(l, li)
+		end
+	end
+	return l
+end
+
+function cls:ara_bat_clg(enemy_id, ... )
+	-- body
+	local modelmgr = self._env:get_modelmgr()
+	local u = self._env:get_user()
+	local ara_fighting = u:get_ara_fighting()
+	if ara_fighting == 1 then
+		self:ara_bat_ovr(-1)
+		u:set_ara_fighting(0)
+		return false
+	else
+		u:set_field("ara_fighting", 1)
+		return true
+	end
+end
+
+function cls:ara_bat_ovr(win, ... )
+	-- body
+	local modelmgr = self._env:get_modelmgr()
+	local u = self._user
+	if win == 1 then
+		local ara_win_tms = u:get_ara_win_tms()
+		ara_win_tms = ara_win_tms + 1
+		u:set_ara_win_tms(ara_win_tms)
+		local ara_integral = u:get_ara_integral()
+		ara_integral = ara_integral + 2
+		u:set_ara_integral(ara_integral)
+
+		local arena = self:get_arena()
+		local me = arena:get_me()
+		local enemy = arena:get_enemy()
+		local leaderboards_name = skynet.getenv("leaderboards_name")
+		local l = skynet.call(leaderboards_name, "lua", "swap", me:get_field("csv_id"), enemy:get_field("csv_id"))
+	elseif win == 0 then
+		local ara_tie_tms = u:get_ara_tie_tms()
+		ara_tie_tms = ara_tie_tms + 1
+		u:set_ara_tie_tms(ara_tie_tms)
+		local ara_integral = u:get_ara_integral()
+		ara_integral = ara_integral + 2
+		u:set_ara_integral(ara_integral)
+	elseif win == -1 then
+		local ara_lose_tms = u:get_ara_lose_tms()
+		ara_lose_tms = ara_lose_tms + 1
+		u:set_ara_lose_tms(ara_lose_tms)
+		ara_integral = ara_integral + 1
+		u:set_ara_integral(ara_integral)
+	end
+	u:set_ara_fighting(0)
+	local now = os.time()
+	local users_ara_batmgr = modelmgr:get_users_ara_batmgr()
+	-- local bat = users_ara_batmgr:get(self._userid)
+	-- bat:set_over(1)
+	-- bat:set_res(win)
+	-- bat:update_db()
+end
+
 function cls:ara_enter(args, ... )
 	-- body
 	local ctx = self._env
@@ -93,27 +249,49 @@ function cls:ara_enter(args, ... )
 	local modelmgr = ctx:get_modelmgr()
 	local key = string.format("%s:%d", "g_config", 1)
  	local config = sd.query(key)
-	local tm = os.date("*t", os.time())
-	local t = { year=tm.year, month=tm.month, day=tm.day, hour=config.ara_clg_tms_rst}
-	local sec = os.time(t)
+ 	local tm = os.date("*t", os.time())
 	local now = os.time()
-	if now > sec then
+
+	local sec = u:get_field("ara_clg_tms_rsttm")
+	if sec == 0 then
+		local t = { year=tm.year, month=tm.month, day=tm.day, hour=config.ara_clg_tms_rst}
+		sec = os.time(t)
+	end
+	
+	if now - sec >= 3600 then
+		local t = { year=tm.year, month=tm.month, day=tm.day, hour=config.ara_clg_tms_rst}
+		sec = os.time(t)
+		u:set_field("ara_clg_tms_rsttm", sec)
 		u:set_ara_clg_tms(config.ara_clg_tms_max)
 	end
+
 	-- reset integral
-	local t = { year=tm.year, month=tm.month, day=tm.day, hour=config.ara_integral_rst}
-	local sec = os.time(t)
-	if now > sec then
+	local sec = u:get_field("ara_integral_rsttm")
+	if sec == 0 then
+		local t = { year=tm.year, month=tm.month, day=tm.day, hour=config.ara_integral_rst}
+		sec = os.time(t)
+	end
+	if now - sec >= 3600 then
+		local t = { year=tm.year, month=tm.month, day=tm.day, hour=config.ara_integral_rst}
+		sec = os.time(t)
+		u:set_field("ara_integral_rsttm", sec)
 		u:set_field("ara_integral", 0)
 		local u_ara_ptsmgr = modelmgr:get_u_ara_ptsmgr()
 		for k,v in pairs(u_ara_ptsmgr:get_data()) do
 			v:set_field("collected", 0)
 		end
 	end
-	local t = { year=tm.year, month=tm.month, day=tm.day, hour=config.ara_clg_tms_pur_tms_rst}
+
 	local sec = os.time(t)
-	if now > sec then
-		u:set_field("ara_clg_tms_pur_tms", 0)
+	if sec == 0 then
+		local t = { year=tm.year, month=tm.month, day=tm.day, hour=config.ara_clg_tms_pur_tms_rst}
+		sec = os.time(t)
+	end
+	if now - sec >= 3600 then
+		local t = { year=tm.year, month=tm.month, day=tm.day, hour=config.ara_clg_tms_pur_tms_rst}
+		sec = os.time(t)
+		u:set_field("ara_clg_cost_rsttm", sec)
+		u:set_field("ara_clg_cost_tms", 0)
 	end
 
 	local ara_interface = u:get_ara_interface()
@@ -121,7 +299,7 @@ function cls:ara_enter(args, ... )
 		local ara_fighting = u:get_ara_fighting()
 		if ara_fighting == 1 then
 			-- ctx:
-			ctx:ara_bat_ovr(-1)
+			self:ara_bat_ovr(-1)
 			u:set_ara_fighting(0)
 			local ret = {}
 			ret.errorcode        = errorcode[151].code
@@ -135,6 +313,7 @@ function cls:ara_enter(args, ... )
 			ret.ara_rfh_cost_tms = u:get_field("ara_rfh_cost_tms")
 			ret.ara_clg_cost_tms = u:get_field("ara_clg_cost_tms")
 			ret.ara_rfh_cd       = ara_rfh_cd
+			return ret
 		end
 	else
 		ara_interface = 1
@@ -142,16 +321,16 @@ function cls:ara_enter(args, ... )
 		local ara_fighting = u:get_ara_fighting()
 		assert(ara_fighting == 0)
 	end
+
 	local factory = ctx:get_myfactory()
 	local j = factory:get_today()
-	local ara_rfh_tms = j:get_ara_rfh_tms()
+	local ara_rfh_tms = j:get_field("ara_rfh_tms")
+
 	local l = self:ara_rfh_()
-	local key = string.format("%s:%d", "g_config", 1)
-	local value = sd.query(key)
-	local now = os.time()
+	
 	local st = u:get_field("ara_rfh_st")
 	local walk = now - st
-	local ara_rfh_dt = value["ara_rfh_dt"]
+	local ara_rfh_dt = config["ara_rfh_dt"]
 	if walk >= ara_rfh_dt then
 		ara_rfh_cd = 0
 	else
@@ -199,12 +378,33 @@ function cls:ara_enter(args, ... )
 	ret.ara_win_tms      = u:get_field("ara_win_tms")
 	ret.ara_lose_tms     = u:get_field("ara_lose_tms")
 	ret.ara_tie_tms      = u:get_field("ara_tie_tms")
-	ret.ara_clg_tms      = u:get_field("ara_clg_tms")
 	ret.ara_integral     = u:get_field("ara_integral")
+	ret.ara_clg_tms      = u:get_field("ara_clg_tms")
+	ret.ara_clg_cost_tms = u:get_field("ara_clg_cost_tms")
+	ret.ara_clg_cost_tms_cost = {}
+	local key = string.format("%s:%d", "g_ara_tms", u:get_field("ara_clg_cost_tms") + 1)
+	local ara_tms = sd.query(key)
+	local reward = util.parse_text(ara_tms.purchase_cost, "(%d+%*%d+%*?)", 2)
+	ret.ara_clg_cost_tms_cost["csv_id"] = reward[1][1]
+	ret.ara_clg_cost_tms_cost["num"] = reward[1][1]
+
 	ret.ara_rfh_tms      = ara_rfh_tms
 	ret.ara_rfh_cost_tms = u:get_field("ara_rfh_cost_tms")
-	ret.ara_clg_cost_tms = u:get_field("ara_clg_cost_tms")
+	ret.ara_rfh_cost_tms_cost = {}
+	local key = string.format("%s:%d", "g_ara_tms", u:get_field("ara_rfh_cost_tms") + 1)
+	local ara_tms = sd.query(key)
+	local reward = util.parse_text(ara_tms.list_refresh_cost, "(%d+%*%d+%*?)", 2)
+	ret.ara_rfh_cost_tms_cost["csv_id"] = reward[1][1]
+	ret.ara_rfh_cost_tms_cost["num"] = reward[1][1]
+
 	ret.ara_rfh_cd       = ara_rfh_cd
+	local key = string.format("%s:%d", "g_ara_tms", u:get_field("ara_rfh_cd_cost_tms") + 1)
+	local ara_tms = sd.query(key)
+	local reward = util.parse_text(ara_tms.list_cd_refresh_cost, "(%d+%*%d+%*?)", 2)
+	ret.ara_rfh_cd_cost = {}
+	ret.ara_rfh_cd_cost["csv_id"] = reward[1][1]
+	ret.ara_rfh_cd_cost["num"] = reward[1][1]
+
 	ret.cl = cl
 	ret.rl = rl
 	return ret
@@ -218,7 +418,7 @@ function cls:ara_exit(args, ... )
 	if ara_interface == 1 then
 		local ara_fighting = u:get_ara_fighting()
 		if ara_fighting == 1 then
-			ctx:ara_bat_ovr(-1)
+			self:ara_bat_ovr(-1)
 			u:set_ara_fighting(0)
 		end
 	else
@@ -228,155 +428,6 @@ function cls:ara_exit(args, ... )
 	ret.errorcode = errorcode[1].code
 	ret.msg = errorcode[1].msg
 	return ret
-end
-
-function cls:timeout( ... )
-	-- body
-end
-
-function cls:ara_rfh_( ... )
-	-- body
-	local l = {}
-	local u = self._env:get_user()
-	local leaderboards_name = skynet.getenv("leaderboards_name")
-	local r1 = skynet.call(leaderboards_name, "lua", "ranking_range", 1, 10)
-	local r2 = skynet.call(leaderboards_name, "lua", "nearby", u:get_csv_id())
-	local u_ara_worshipmgr = self._modelmgr:get_u_ara_worshipmgr()
-	local t = os.date("*t", os.time())
-	t = { year=t.year, month=t.month, day=t.day}
-	local today = os.time(t)
-	for i,v in ipairs(r1) do
-		local li = {}
-		local ranking = i
-		local uid = v
-		li.ranking = ranking
-		li.uid = uid
-		li.top = true
-		if uid ~= self._userid then
-			local r = u_ara_worshipmgr:get_by_csv_id(uid)
-			if r then
-				if r:get_field("date") == today and r:get_field("worship") == 1 then
-					li.worship = true
-				else
-					li.worship = false
-				end
-			else
-				local tmp = {}
-				tmp["user_id"] = u:get_field("csv_id")
-				tmp["ouid"] = uid
-				tmp["id"] = genpk_2(tmp["user_id"], tmp["ouid"])
-				tmp["date"] = today
-				tmp["worship"] = true
-				local t = u_ara_worshipmgr:create_entity(tmp)
-				u_ara_worshipmgr:add(t)
-				t:update_db()
-			end
-		else
-			li.worship = false
-		end
-		local usersmgr = self._usersmgr
-		if usersmgr:get(uid) then
-			local u = usersmgr:get(uid)
-			li["total_combat"] = u:get_field("sum_combat")
-			li["uname"] = u:get_field("uname")
-			table.insert(l, li)
-		elseif dc.get(uid, "online") then
-			local addr = dc.get(uid, "addr")
-			local u = skynet.call(addr, "lua", "user")
-			li["total_combat"] = u.total_combat
-			li["uname"] = u.uname
-			table.insert(l, li)
-		else
-			local usersmgr = self:get_usersmgr()
-			usersmgr:load_cache(uid)
-			local u = usersmgr:get(uid)
-			li["total_combat"] = 10
-			li["uname"] = u:get_field("uname")
-			table.insert(l, li)
-		end
-	end
-	for i,v in pairs(r2) do
-		local li = {}
-		local ranking = i
-		local uid = v
-		li.ranking = ranking
-		li.uid = uid
-		li.top = false
-		local usersmgr = self._usersmgr
-		if usersmgr:get(uid) then
-			local u = usersmgr:get(uid)
-			li["total_combat"] = u:get_field("sum_combat")
-			li["uname"] = u:get_field("uname")
-			table.insert(l, li)
-		elseif dc.get(uid, "online") then
-			local addr = dc.get(uid, "addr")
-			local u = skynet.call(addr, "lua", "user")
-			li["total_combat"] = 10
-			li["uname"] = u.uname
-			table.insert(l, li)
-		else
-			local usersmgr = self:get_usersmgr()
-			usersmgr:load_cache(uid)
-			local u = usersmgr:get(uid)
-			li["total_combat"] = 10
-			li["uname"] = u:get_field("uname")
-			table.insert(l, li)
-		end
-	end
-	return l
-end
-
-function cls:ara_bat_clg(enemy_id, ... )
-	-- body
-	local modelmgr = self._env:get_modelmgr()
-	local u = self._env:get_user()
-	local ara_fighting = u:get_ara_fighting()
-	if ara_fighting == 1 then
-		self:ara_bat_ovr(-1)
-		u:set_ara_fighting(0)
-		return false
-	end
-	return true
-end
-
-function cls:ara_bat_ovr(win, ... )
-	-- body
-	local modelmgr = self._env:get_modelmgr()
-	local u = self._user
-	if win == 1 then
-		local ara_win_tms = u:get_ara_win_tms()
-		ara_win_tms = ara_win_tms + 1
-		u:set_ara_win_tms(ara_win_tms)
-		local ara_integral = u:get_ara_integral()
-		ara_integral = ara_integral + 2
-		u:set_ara_integral(ara_integral)
-
-		local arena = self:get_arena()
-		local me = arena:get_me()
-		local enemy = arena:get_enemy()
-		local leaderboards_name = skynet.getenv("leaderboards_name")
-		local l = skynet.call(leaderboards_name, "lua", "swap", me:get_field("csv_id"), enemy:get_field("csv_id"))
-	elseif win == 0 then
-		local ara_tie_tms = u:get_ara_tie_tms()
-		ara_tie_tms = ara_tie_tms + 1
-		u:set_ara_tie_tms(ara_tie_tms)
-		local ara_integral = u:get_ara_integral()
-		ara_integral = ara_integral + 2
-		u:set_ara_integral(ara_integral)
-	elseif win == -1 then
-		local ara_lose_tms = u:get_ara_lose_tms()
-		ara_lose_tms = ara_lose_tms + 1
-		u:set_ara_lose_tms(ara_lose_tms)
-		ara_integral = ara_integral + 1
-		u:set_ara_integral(ara_integral)
-	end
-	u:set_ara_fighting(0)
-	local now = os.time()
-	local users_ara_batmgr = modelmgr:get_users_ara_batmgr()
-	-- local bat = users_ara_batmgr:get(self._userid)
-	-- bat:set_over(1)
-	-- bat:set_res(win)
-	-- bat:update_db()
 end
 
 function cls:ara_choose_role_enter(args, ... )
@@ -439,6 +490,7 @@ end
 function cls:ara_choose_role(args, ... )
 	-- body
 	assert(#self.bat_roleid == 3)
+	local ctx = self._env
 	local u = ctx:get_user()
 	u:set_field("ara_role_id1", args.bat_roleid[1])
 	u:set_field("ara_role_id2", args.bat_roleid[2])
@@ -532,6 +584,7 @@ end
 
 function cls:ara_worship(args)
 	-- body
+	local u = self._env:get_user()
 	local ctx = self._env
 	local modelmgr = ctx:get_modelmgr()
 	local u_ara_worshipmgr = modelmgr:get_u_ara_worshipmgr()
@@ -586,10 +639,12 @@ end
 
 function cls:ara_rnk_reward_collected(args)
 	-- body
+	local u = self._env:get_user()
 	local ctx = self._env
 	local ret = {}
 	local leaderboards_name = skynet.getenv("leaderboards_name")
 	local ranking = skynet.call(leaderboards_name, "lua", "ranking", ctx:get_userid())
+	assert(ranking > 0, "ranking must be more than 0")
 	local u = ctx:get_user()
 	local modelmgr = ctx:get_modelmgr()
 	local u_ara_rnk_rwdmgr = modelmgr:get_u_ara_rnk_rwdmgr()
@@ -597,23 +652,18 @@ function cls:ara_rnk_reward_collected(args)
 	if ranking < 10 then
 		seg = ranking
 	elseif ranking < 100 then
-		seg = (seg // 10 * 10)
+		seg = (ranking // 10 * 10)
 	elseif ranking < 1000 then
-		seg = seg // 100 * 100
+		seg = ranking // 100 * 100
 	else
-		assert(false)
+		assert(false, "ranking out of range.")
 	end
 	local u_propmgr = modelmgr:get_u_propmgr()
 	local props = {}
 	local rl = {}
 	local rnk_rwd = u_ara_rnk_rwdmgr:get_by_csv_id(seg)
 	if rnk_rwd == nil then
-		local tmp = {}
-		tmp["user_id"] = u:get_field("csv_id")
-		tmp["csv_id"] = seg
-		tmp["id"] = genpk_2(u:get_field("csv_id"), seg)
-		tmp["collected"] = 1
-
+		-- receive award
 		local key = string.format("%s:%d", "g_ara_rnk_rwd", seg)
 		local value = sd.query(key)
 		local reward = util.parse_text(value["reward"], "(%d+%*%d+%*?)", 2)
@@ -623,10 +673,10 @@ function cls:ara_rnk_reward_collected(args)
 				prop:set_field("num", prop:get_field("num") + v[2])
 			else
 				local key = string.format("%s:%d", "g_prop", v[1])
-				local prop = sd.query(key)
+				prop = sd.query(key)
 				prop["user_id"] = u:get_field("csv_id")
 				prop["num"] = v[2]
-				prop["id"] = genpk_2(v:get_field("csv_id"), v[2])
+				prop["id"] = genpk_2(u:get_field("csv_id"), prop.csv_id)
 				prop = u_propmgr:create_entity(prop)
 				u_propmgr:add(prop)
 				prop:update_db()
@@ -636,6 +686,15 @@ function cls:ara_rnk_reward_collected(args)
 			prop_li["num"] = prop:get_field("num")
 			table.insert(props, prop_li)
 		end
+
+		local tmp = {}
+		tmp["user_id"] = u:get_field("csv_id")
+		tmp["csv_id"] = seg
+		tmp["id"] = genpk_2(u:get_field("csv_id"), seg)
+		tmp["collected"] = 1
+		local entity = u_ara_rnk_rwdmgr:create_entity(tmp)
+		u_ara_rnk_rwdmgr:add(entity)
+		entity:update_db()
 	else
 		if rnk_rwd:get_field("collected") == 1 then
 			local ret = {}
@@ -643,8 +702,6 @@ function cls:ara_rnk_reward_collected(args)
 			ret.msg = errorcode[152].msg
 			return ret
 		else
-			rnk_rwd:set_field("collected", 1)
-
 			local key = string.format("%s:%d", "g_ara_rnk_rwd", seg)
 			local value = sd.query(key)
 			local reward = util.parse_text(value["reward"], "(%d+%*%d+%*?)", 2)
@@ -654,10 +711,10 @@ function cls:ara_rnk_reward_collected(args)
 					prop:set_field("num", prop:get_field("num") + v[2])
 				else
 					local key = string.format("%s:%d", "g_prop", v[1])
-					local prop = sd.query(key)
+					prop = sd.query(key)
 					prop["user_id"] = u:get_field("csv_id")
 					prop["num"] = v[2]
-					prop["id"] = genpk_2(v:get_field("csv_id"), v[2])
+					prop["id"] = genpk_2(v:get_field("csv_id"), prop.csv_id)
 					prop = u_propmgr:create_entity(prop)
 					u_propmgr:add(prop)
 					prop:update_db()
@@ -667,6 +724,7 @@ function cls:ara_rnk_reward_collected(args)
 				prop_li["num"] = prop:get_field("num")
 				table.insert(props, prop_li)
 			end
+			rnk_rwd:set_field("collected", 1)
 		end
 	end
 	ret.errorcode = errorcode[1].code
@@ -678,7 +736,9 @@ end
 
 function cls:ara_convert_pts(args, ... )
 	-- body
+	local ctx = self._env
 	local u = ctx:get_user()
+	local ctx = self._env
 	local modelmgr = ctx:get_modelmgr()
 	local key = string.format("%s:%d", "g_config", 1)
  	local config = sd.query(key)
@@ -785,6 +845,7 @@ end
 
 function cls:ara_lp(args, ... )
 	-- body
+	local u = self._env:get_user()
 	local ctx = self._env
 	local leaderboards_name = skynet.getenv("leaderboards_name")
 	local r1 = skynet.call(leaderboards_name, "lua", "ranking_range", 1, 10)

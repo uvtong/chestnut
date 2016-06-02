@@ -1112,14 +1112,17 @@ ara_enter 79 {
         ara_win_tms 3 : integer
         ara_lose_tms 4 : integer
         ara_tie_tms 5 : integer
-        ara_clg_tms 6 : integer
-        ara_integral 7 : integer
-        ara_rfh_tms 8 : integer
-        ara_rfh_cost_tms 9 : integer
-        ara_clg_cost_tms 10 : integer
-        ara_rfh_cd 11 : integer
-        cl 12 : *integral_reward 
-        rl 13 : *rnk_reward
+        ara_integral 6 : integer
+        ara_clg_tms 7 : integer
+        ara_clg_cost_tms 8 : integer
+        ara_clg_cost_tms_cost 9 : prop
+        ara_rfh_tms 10 : integer
+        ara_rfh_cost_tms 11 : integer
+        ara_rfh_cost_tms_cost 12 : prop
+        ara_rfh_cd 13 : integer
+        ara_rfh_cd_cost 14 : prop
+        cl 15 : *integral_reward 
+        rl 16 : *rnk_reward
     }
 }
 
