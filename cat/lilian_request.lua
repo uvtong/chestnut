@@ -245,7 +245,7 @@ local function deal_finish_lilian(ctx, tr )
 	assert( ll )	
 	print( "user.lilain_exp , ll.experience" , ctx:get_user():get_field("lilian_exp") , ll.experience )
 	if ctx:get_user():get_field("lilian_exp") >= ll.experience then
-		ctx:get_user():set_field("lilian_level", ctx:get_user():get_field("lilian_level"), + 1)
+		ctx:get_user():set_field("lilian_level", ctx:get_user():get_field("lilian_level") + 1)
 		ctx:get_user():set_field("lilian_exp", ctx:get_user():get_field("lilian_exp") + 1)
 		tr:set_field("iflevel_up", 1)
 		tr:update_db()
