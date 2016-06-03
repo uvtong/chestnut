@@ -799,9 +799,9 @@ function REQUEST:Arena_OnPrepareNextRole()
 	
 	ret.errorcode = errorcode[1].code
 	ret.delay_time = START_DELAY 
-                       
+    
 	return ret          
-end 	
+end 
 	
 function REQUEST:ArenaBattleList()
 	print("ArenaBattleList is called**********************************", #self.fightlist)
@@ -818,7 +818,7 @@ function REQUEST:ArenaBattleList()
 			return ret
 		end
 	end 				
-
+	
 	ret.errorcode = errorcode[1].code
 	return ret	
 end 

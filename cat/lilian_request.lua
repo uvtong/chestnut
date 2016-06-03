@@ -172,7 +172,7 @@ end
 				
 local function get_lilian_reward( tr )
 	local ret = {}
-	assert( tr.quanguan_id )
+	assert( tr:get_field("quanguan_id"))
 	local r = skynet.call( ".game" , "lua" , "query_g_lilian_quanguan" , tr:get_field("quanguan_id") )
 	assert( r )
 	-- quanguan reward
@@ -221,59 +221,72 @@ end
 	
 local function deal_finish_lilian(ctx, tr )
 	print( "deal finish_lilian is called**************************************" )
-	assert(ctx and tr and tr.if_lilian_reward ~= 0 )
+	assert(ctx and tr and tr:get_field("if_lilian_reward") ~= 0 )
 
-	local r = skynet.call( ".game" , "lua" , "query_g_lilian_quanguan" , tr.quanguan_id )
+	local r = skynet.call( ".game" , "lua" , "query_g_lilian_quanguan" , tr:get_field("quanguan_id") )
 	assert( r )
 
-	local reward = get_part_reward( tr.lilian_reward , "(%d+%*%d+%*?)" , 2 )
+	local reward = get_part_reward( tr:get_field("lilian_reward") , "(%d+%*%d+%*?)" , 2 )
 	add_to_prop(ctx, reward )
 
-	user.lilian_exp = user.lilian_exp + r.reward_exp --may trigger level up
+	ctx:get_user():set_field("lilian_exp", ctx:get_user():get_field("lilian_exp") + r.reward_exp)
+	--user.lilian_exp = user.lilian_exp + r.reward_exp --may trigger level up
 
 	--invitation reward
-	local ir = skynet.call( ".game" , "lua" , "query_g_lilian_invitation" , tr.invitation_id )
+	local ir = skynet.call( ".game" , "lua" , "query_g_lilian_invitation" , tr:get_field("invitation_id") )
 	assert( ir )
 	reward = {}
 	reward = get_part_reward( ir.reward , "(%d+%*%d+%*?)" , 2 )
 	add_to_prop(ctx, reward )
 
 	--judge if can levelup
-	assert( user.lilian_level ~= 0 )
-	local ll = skynet.call( ".game" , "lua" , "query_g_lilian_level" , user.lilian_level )	
+	assert( ctx:get_user():get_field("lilian_level") ~= 0 )
+	local ll = skynet.call( ".game" , "lua" , "query_g_lilian_level" , ctx:get_user():get_field("lilian_level") )	
 	assert( ll )	
-	print( "user.lilain_exp , ll.experience" , user.lilian_exp , ll.experience )
-	if user.lilian_exp >= ll.experience then
-		user.lilian_level = user.lilian_level + 1
-		user.lilian_exp = user.lilian_exp - ll.experience
-		tr.iflevel_up = 1
-		tr:__update_db( { "iflevel_up" }, const.DB_PRIORITY_2 )
+	print( "user.lilain_exp , ll.experience" , ctx:get_user():get_field("lilian_exp") , ll.experience )
+	if ctx:get_user():get_field("lilian_exp") >= ll.experience then
+		ctx:get_user():set_field("lilian_level", ctx:get_user():get_field("lilian_level") + 1)
+		ctx:get_user():set_field("lilian_exp", ctx:get_user():get_field("lilian_exp") + 1)
+		tr:set_field("iflevel_up", 1)
+		tr:update_db()
+
+		-- user.lilian_level = user.lilian_level + 1
+		-- user.lilian_exp = user.lilian_exp - ll.experience
+		-- tr.iflevel_up = 1
+		-- tr:__update_db( { "iflevel_up" }, const.DB_PRIORITY_2 )
 	end
 
 	return reward
 end 
 		
 local function deal_finish_event(ctx, tr )
-	assert( tr )
+	assert(ctx and tr)
 	local reward = get_event_reward( tr )
 	add_to_prop(ctx, reward)
-	local r = assert( user.u_lilian_submgr.__data[1] )
+	local helper = ctx:get_helper()
+	assert(helper)
+
+	local r = helper:lilian_sub_get_lilian_sub()
+	assert(r)
+
+	--local r = assert( user.u_lilian_submgr.__data[1] )
 	--update used queue num
-	if r.start_time <= tr.start_time and tr.start_time <= r.update_time then 
-		r.used_queue_num = r.used_queue_num - 1
-		print( "finish event is called " , r.used_queue_num )
-		r:__update_db( { "used_queue_num" } , const.DB_PRIORITY_2 )
+	if r:get_field("start_time") <= tr:get_field("start_time") and tr:get_field("start_time") <= r:get_field("update_time") then 
+		r:set_field("used_queue_num", r:get_field("used_queue_num") - 1)
+		--r.used_queue_num = r.used_queue_num - 1
+		print( "finish event is called " , r:get_field("used_queue_num") )
+		r:update_db()
 	end 
-	print( "tr.iffiniseed in deal_finish_event is " , tr.iffiniseed )
+	print( "tr.iffiniseed in deal_finish_event is " , tr:get_field("iffinised") )
 	
 	return reward
 end 	
 		
-local function trigger_event( tr )
-	assert( tr )
+local function trigger_event(ctx, tr)
+	assert(ctx and tr)
 	local rand_num = math.random( 10000 ) % 100 
 	local iftrigger = false
-	local lq = skynet.call( ".game" , "lua" , "query_g_lilian_quanguan" , tr.quanguan_id )
+	local lq = skynet.call( ".game" , "lua" , "query_g_lilian_quanguan" , tr:get_field("quanguan_id") )
 	assert( lq )	
 
 	print( "randnom is *************************" , rand_num )
@@ -285,15 +298,20 @@ local function trigger_event( tr )
 		random = math.random( #te )
 	    local t = skynet.call( ".game" , "lua" , "query_g_lilian_event" , te[random][1] )
 		assert( t )
-		local ll = skynet.call( ".game" , "lua" , "query_g_lilian_level" , user.lilian_level )
+		local ll = skynet.call( ".game" , "lua" , "query_g_lilian_level" , ctx:ge_user():get_field("lilian_level") )
 		assert( ll )
-			
-		tr.if_trigger_event = 1
-		tr.eventid = te[random][1]
-		tr:__update_db( { "if_trigger_event" , "eventid" } , const.DB_PRIORITY_2 ) 
-		tr.event_end_time = math.floor( t.cd_time * ( 1 - ll.dec_weikun_time / 100 ) )                --get final eventtime
+		
+		tr:set_field("if_trigger_event", 1)
+		tr:set_field("eventid", te[random][1])
+		tr:set_field("event_end_time", math.floor( t.cd_time * (1 - ll.dec_weikun_time / 100 )))		
+		tr:update_db()
+
+		-- tr.if_trigger_event = 1
+		-- tr.eventid = te[random][1]
+		-- tr:__update_db( { "if_trigger_event" , "eventid" } , const.DB_PRIORITY_2 ) 
+		-- tr.event_end_time = math.floor( t.cd_time * ( 1 - ll.dec_weikun_time / 100 ) )                --get final eventtime
 		iftrigger = true
-		print( "trigger a event *******************************************" , tr.eventid )
+		print( "trigger a event *******************************************" , tr:get_field("eventid") )
 	end 	
 
 	return iftrigger        
@@ -758,7 +776,7 @@ function REQUEST:lilian_get_reward_list(ctx)
 				local sign = false
 
 				if 0 == IF_TRIGGER_EVENT then
-					sign = trigger_event( r )
+					sign = trigger_event(ctx, r )
 
 					if sign then
 						print( "trigger event finished " , sign , IF_TRIGGER_EVENT)
