@@ -19,27 +19,29 @@ local SUBSCRIBE = {}
 local client_fd
 local func_gs
 local table_gs = {}
-	  	
-local game 
-local user 
-local dc 
+	  	        
+local game       
+local user      
+local dc        
 local record_date = {} 
-	
+				
 local QuanFaNum = 7
-local SELF = 1
-local ENEMY = 2
+local SELF = 1  
+local ENEMY = 2 
 local START_DELAY = 3 --sec
 local CERTAIN_SEQUENCE_KF = 3
 local FIGHT_PLACE = 0 
-local FIGHT_ERROR_RANGE = 20
-local ATTACH_EFFECT_ERROR_RANGE = 10			
-
+local FIGHT_ERROR_RANGE = 5         --each kf attack heart
+local ATTACH_EFFECT_ERROR_RANGE = 10	-- attach-effect attack heart 
+local FINAL_ERROR_RANGE = 5		    --when game is over , if c and s donot have the same result , judge the range
+			    
 local COMMON_KF = 90000
 local COMBO_KF = 100000
-local kf_common
-local kf_combo
+local kf_common 
+local kf_combo  
 local PLACE = {GUANQIA = 1, ARENA = 2}
-			  	
+local ERROR_RANGE_TYPE = {KF_HEART = 1, ATTACH_EFFECT_HEART = 2, FINAL = 3}
+
 local Self = {  
 			FightPower = 0,  --actually means presentfight power
 		    MaxComboNum = 0, 
@@ -55,8 +57,8 @@ local Self = {
 			OnBattleList = {},
 		  	IfArenaInit = 0,
 		  	OnBattleSequence = 1
-		  }	  
- 		  	  
+		  }	    
+ 		  	    
 local Enemy = { 
 			FightPower = 0,  			--actually means presentfight power
 		    MaxComboNum = 0, 			--maxcomboNum in this battle  
@@ -72,13 +74,13 @@ local Enemy = {
 			OnBattleList = {},			--store chosen battle role_id 	
 			IfArenaInit = 0,			--if Arenainited
 			OnBattleSequence = 1 		--di ji ge shang zhen de jue se 
-		  } 
-		  
+		  }   
+		  	  	
 local function send_package(pack)
 	local package = string.pack(">s2", pack)
 	socket.write(client_fd, package)
 end	  		   	
-	
+			  
 function REQUEST:login(u)
 	-- body   
 	assert( u )
@@ -89,21 +91,23 @@ end
 --get who fight first, true user first, false robot first;	    	
 local function first_fighter()		
 	return ( 0 == math.random(100) % 2 )                      
-end 	
+end
 	
-local function if_in_fight_error_range(cdamange, sdamange)
-	assert(cdamange and sdamange)
-	local diff = cdamange - sdamange
-	
-	return -FIGHT_ERROR_RANGE <= diff and diff <= FIGHT_ERROR_RANGE
+local function if_in_error_range(camount, samount, type)
+	assert(camount and samount and type)
+
+	local diff = camount - samount
+
+	if type == ERROR_RANGE_TYPE.KF_HEART then
+		return -FIGHT_ERROR_RANGE <= diff and diff <= FIGHT_ERROR_RANGE	
+	elseif type == ERROR_RANGE_TYPE.ATTACH_EFFECT_HEART then 
+		return -ATTACH_EFFECT_ERROR_RANGE <= diff and diff <= ATTACH_EFFECT_ERROR_RANGE
+	elseif type == ERROR_RANGE_TYPE.FINAL then
+		return -FINAL_ERROR_RANGE <= diff and diff <= FINAL_ERROR_RANGE
+	else
+		error "wrong judge in if_in_error_range"
+	end
 end 
-	
-local function if_in_attach_effect_error_range(cdamange, sdamange)
-	assert(cdamange and sdamange)
-	
-	local diff = cdamange - sdamange
-	return -ATTACH_EFFECT_ERROR_RANGE <= diff and diff <= ATTACH_EFFECT_ERROR_RANGE
-end	
 	
 --judge if arise_type is true	
 local function judge_arise_type(kf, totalfightnum)
@@ -141,11 +145,11 @@ local function judge_arise_count(kf)
 	print("judge_arise_count is *************************************", kf.actual_fight_num, kf.arise_count, sign)
 	return sign 
 end 
- 
+
 local function SortFunc(ta, tb) 
 	return ta.arise_probability < tb.arise_probability 
 end 
- 
+
 --huo de wan jia shang zhen jue se de sou you zhu dong quan fa , bing an zhao chu fa gai lv pai xu
 local function get_ordered_fight_list(tfightlist, reserved_fight_list, reserved_fightid_list)
 	assert(tfightlist and reserved_fight_list)
@@ -464,7 +468,7 @@ local function get_attack(kf, TmpSelf, TmpEnemy)
           
 	print(" totalattack******************************* ", totalattack)
 	return totalattack
-end 	 					
+end 
 	
 local function get_attacheffect(kf, TmpSelf, TmpEnemy, totalattack)
 	print("in get_attacheffect**********************************", kf.addition_effect_type)
@@ -479,7 +483,7 @@ local function get_attacheffect(kf, TmpSelf, TmpEnemy, totalattack)
 		 		break
 		 	end 
 		end 	
-         
+        
 		TmpEnemy.TmpFightIdList = {}
 		get_ordered_fight_list_to_client(TmpEnemy.FightList, TmpEnemy.TmpFightIdList, TmpEnemy.TotalFightNum)
 		TmpEnemy.IsAffectedNextTime = 1
@@ -488,6 +492,7 @@ local function get_attacheffect(kf, TmpSelf, TmpEnemy, totalattack)
 		for k, v in ipairs(TmpEnemy.TmpFightIdList) do
 		 	print(k, v )
 		end 
+
 	elseif 2 == kf.addition_effect_type then
 		effect = math.floor(totalattack * (kf.addition_prog / 100) )
 		TmpSelf.FightPower = TmpSelf.FightPower + effect
@@ -642,46 +647,52 @@ local function do_verify(v, userroleid)
 			else 	
 				assert(false) 
 			end 		
-				
+					
 			TmpEnemy.PresentComboNum = 0 
-		end 	
+		end 		
         			
 		local isdead = 0 
 		print("totalattack is ********************************", totalattack, v.attack) 
         assert(totalattack == v.attack) 
-		if totalattack == v.attack then	
+
+		--if totalattack == v.attack then	
+		if if_in_error_range(v.attack, totalattack, ERROR_RANGE_TYPE.KF_HEART) then
 			local left = TmpEnemy.FightPower - totalattack 
 			print("left is ****************", left, left > 0 ) 
 			if left > 0 then 
 				TmpEnemy.FightPower = TmpEnemy.FightPower - totalattack 
 				print("TmpEnemy.FightPower - totalattack > 0", TmpEnemy.FightPower, totalattack)                 
 				local effect = get_attacheffect(kf, TmpSelf, TmpEnemy, totalattack)
-				if effect ~= v.attach_effect then
-					assert(effect == v.attach_effect)
-					return false
-				end
-            
+				--if effect ~= v.attach_effect then
+					
+				if 1 ~= kf.addition_effect_type then
+					if not if_in_error_range(v.attach_effect, effect, ERROR_RANGE_TYPE.ATTACH_EFFECT_HEART) then
+						return false
+					end
+				end 
+            																
 				if 1 == TmpSelf.IsDead then                                            
 			   	 	isdead = (TmpSelf == Self) and SELF or ENEMY
 				elseif 1 == TmpEnemy.IsDead then 
-				 	isdead = (TmpEnemy == Enemy) and ENEMY or SELF                                                      
+				    isdead = ((TmpEnemy == Enemy) and ENEMY) or SELF                                                      
 				end 
-            
+            	   														
 				if v.attcktype == 1 and v.kf_type == KF_TYPE.QUANFA then
-					kf.actual_fight_num = kf.actual_fight_num + 1
-					TmpSelf.TotalFightNum = TmpSelf.TotalFightNum + 1
-				end
-			else 
+				   	kf.actual_fight_num = kf.actual_fight_num + 1      	 
+				   	TmpSelf.TotalFightNum = TmpSelf.TotalFightNum + 1   
+				end 														
+			else   	
 				TmpEnemy.IsDead = 1 
-				isdead = (TmpEnemy == Enemy) and ENEMY or SELF		
-			end 	
+				isdead = ((TmpEnemy == Enemy) and ENEMY) or SELF		
+			end    	
 			print("isdead is ", isdead)
 			print("v.isdead is ", v.isdead)
 			print("Selffightpower is **********************", TmpSelf.FightPower)
 			print("Enemyfightpower is *************************", TmpEnemy.FightPower)
 			if v.isdead ~= 0 then
-				if isdead == v.isdead then
-				 	return true					
+				--TODO  judge FINAL_ERROR_RANGE
+				if isdead == v.isdead then 
+				   	return true	
 				else 
 				 	return false
 				end	 
