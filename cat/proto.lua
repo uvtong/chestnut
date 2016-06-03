@@ -285,13 +285,21 @@ proto.c2s = sprotoparser.parse [[
     ara_role_id1  3 : integer
     ara_role_id2  4 : integer
     ara_role_id3  5 : integer
-    sum_combat    6 : integer
-    sum_defense   7 : integer
-    sum_critical_hit 8 : integer
-    sum_king      9 : integer
+    ara_r1_sum_combat    6 : integer
+    ara_r1_sum_defense   7 : integer
+    ara_r1_sum_critical_hit 8 : integer
+    ara_r1_sum_king      9 : integer
     ara_role_id1_kf 10 : *integer
     ara_role_id2_kf 11 : *integer
     ara_role_id3_kf 12 : *integer
+    ara_r2_sum_combat    6 : integer
+    ara_r2_sum_defense   7 : integer
+    ara_r2_sum_critical_hit 8 : integer
+    ara_r2_sum_king      9 : integer
+    ara_r3_sum_combat    6 : integer
+    ara_r3_sum_defanse   7 : integer
+    ara_r3_sum_critical_hit 8 : integer
+    ara_r3_sum_king      9 : integer
 }
 
 .integral_reward {

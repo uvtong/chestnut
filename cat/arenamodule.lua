@@ -187,6 +187,35 @@ function cls:ara_rfh_( ... )
 	return l
 end
 
+function cls:calculate_ara_role( ... )
+	-- body
+	local user = self._env:get_user()
+	local ara_role_id1 = user:get_field("ara_role_id1")
+	local ok, result = pcall(util.get_total_property, user, nil, ara_role_id1)
+	if ok then
+		user:set_field("ara_r1_sum_combat", result[1])
+		user:set_field("ara_r1_sum_defense", result[2])
+		user:set_field("ara_r1_sum_critical_hit", result[3])
+		user:set_field("ara_r1_sum_king", result[4])	
+	end
+	local ara_role_id2 = user:get_field("ara_role_id2")
+	local ok, result = pcall(util.get_total_property, user, nil, ara_role_id2)
+	if ok then
+		user:set_field("ara_r2_sum_combat", result[1])
+		user:set_field("ara_r2_sum_defense", result[2])
+		user:set_field("ara_r2_sum_critical_hit", result[3])
+		user:set_field("ara_r2_sum_king", result[4])	
+	end
+	local ara_role_id3 = user:get_field("ara_role_id3")
+	local ok, result = pcall(util.get_total_property, user, nil, ara_role_id3)
+	if ok then
+		user:set_field("ara_r3_sum_combat", result[1])
+		user:set_field("ara_r3_sum_defense", result[2])
+		user:set_field("ara_r3_sum_critical_hit", result[3])
+		user:set_field("ara_r3_sum_king", result[4])	
+	end
+end
+
 function cls:ara_bat_clg(enemy_id, ... )
 	-- body
 	local modelmgr = self._env:get_modelmgr()
@@ -494,10 +523,21 @@ function cls:ara_choose_role_enter(args, ... )
 	enemy.ara_role_id1 = self._enemy:get_field("ara_role_id1")
 	enemy.ara_role_id2 = self._enemy:get_field("ara_role_id2")
 	enemy.ara_role_id3 = self._enemy:get_field("ara_role_id3")
-	enemy.sum_combat   = self._enemy:get_field("sum_combat")
-	enemy.sum_combat   = self._enemy:get_field("sum_defense")
-	enemy.sum_critical_hit = self._enemy:get_field("sum_critical_hit")
-	enemy.sum_king     = self._enemy:get_field("sum_king")
+	enemy.ara_r1_sum_combat   = self._enemy:get_field("ara_r1_sum_combat")
+	enemy.ara_r1_sum_combat   = self._enemy:get_field("ara_r1_sum_defense")
+	enemy.ara_r1_sum_critical_hit = self._enemy:get_field("ara_r1_sum_critical_hit")
+	enemy.ara_r1_sum_king     = self._enemy:get_field("ara_r1_sum_king")
+
+	enemy.ara_r2_sum_combat   = self._enemy:get_field("ara_r2_sum_combat")
+	enemy.ara_r2_sum_combat   = self._enemy:get_field("ara_r2_sum_defense")
+	enemy.ara_r2_sum_critical_hit = self._enemy:get_field("ara_r2_sum_critical_hit")
+	enemy.ara_r2_sum_king     = self._enemy:get_field("ara_r2_sum_king")
+
+	enemy.ara_r3_sum_combat   = self._enemy:get_field("ara_r3_sum_combat")
+	enemy.ara_r3_sum_combat   = self._enemy:get_field("ara_r3_sum_defense")
+	enemy.ara_r3_sum_critical_hit = self._enemy:get_field("ara_r3_sum_critical_hit")
+	enemy.ara_r3_sum_king     = self._enemy:get_field("ara_r3_sum_king")
+
 	local en_rolemgr   = self._en_modelmgr:get_u_rolemgr()
 	print("############################################3", en_rolemgr:get_count())
 
@@ -574,6 +614,7 @@ function cls:ara_choose_role(args, ... )
 		u:set_field("ara_role_id1", args.bat_roleid[1])
 		u:set_field("ara_role_id2", args.bat_roleid[2])
 		u:set_field("ara_role_id3", args.bat_roleid[3])
+		self:calculate_ara_role()
 		local ret = {}
 		ret.errorcode = errorcode[1].code
 		ret.msg = errorcode[1].msg
