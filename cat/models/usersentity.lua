@@ -77,10 +77,10 @@ function cls:ctor(mgr, P, ... )
 			ara_fighting = 0,
 			ara_interface = 0,
 			ara_rfh_cost_tms = 0,
-			sum_combat = 0,
-			sum_defense = 0,
-			sum_critical_hit = 0,
-			sum_king = 0,
+			ara_r1_sum_combat = 0,
+			ara_r1_sum_defense = 0,
+			ara_r1_sum_critical_hit = 0,
+			ara_r1_sum_king = 0,
 			ara_rfh_st = 0,
 			ara_rfh_cd = 0,
 			ara_rfh_cd_cost_tms = 0,
@@ -88,6 +88,14 @@ function cls:ctor(mgr, P, ... )
 			ara_clg_cost_rsttm = 0,
 			ara_integral_rsttm = 0,
 			draw_num = 0,
+			ara_r2_sum_combat = 0,
+			ara_r2_sum_defense = 0,
+			ara_r2_sum_critical_hit = 0,
+			ara_r2_sum_king = 0,
+			ara_r3_sum_combat = 0,
+			ara_r3_sum_defense = 0,
+			ara_r3_sum_critical_hit = 0,
+			ara_r3_sum_king = 0,
 		}
 
 	self.__ecol_updated = {
@@ -154,10 +162,10 @@ function cls:ctor(mgr, P, ... )
 			ara_fighting = 0,
 			ara_interface = 0,
 			ara_rfh_cost_tms = 0,
-			sum_combat = 0,
-			sum_defense = 0,
-			sum_critical_hit = 0,
-			sum_king = 0,
+			ara_r1_sum_combat = 0,
+			ara_r1_sum_defense = 0,
+			ara_r1_sum_critical_hit = 0,
+			ara_r1_sum_king = 0,
 			ara_rfh_st = 0,
 			ara_rfh_cd = 0,
 			ara_rfh_cd_cost_tms = 0,
@@ -165,6 +173,14 @@ function cls:ctor(mgr, P, ... )
 			ara_clg_cost_rsttm = 0,
 			ara_integral_rsttm = 0,
 			draw_num = 0,
+			ara_r2_sum_combat = 0,
+			ara_r2_sum_defense = 0,
+			ara_r2_sum_critical_hit = 0,
+			ara_r2_sum_king = 0,
+			ara_r3_sum_combat = 0,
+			ara_r3_sum_defense = 0,
+			ara_r3_sum_critical_hit = 0,
+			ara_r3_sum_king = 0,
 		}
 
 	for k,v in pairs(self.__head) do
@@ -1118,64 +1134,64 @@ function cls:get_ara_rfh_cost_tms( ... )
 	return self.__fields.ara_rfh_cost_tms
 end
 
-function cls:set_sum_combat(v, ... )
+function cls:set_ara_r1_sum_combat(v, ... )
 	-- body
 	assert(v)
-	self.__ecol_updated["sum_combat"] = self.__ecol_updated["sum_combat"] + 1
-	if self.__ecol_updated["sum_combat"] == 1 then
+	self.__ecol_updated["ara_r1_sum_combat"] = self.__ecol_updated["ara_r1_sum_combat"] + 1
+	if self.__ecol_updated["ara_r1_sum_combat"] == 1 then
 		self.__col_updated = self.__col_updated + 1
 	end
-	self.__fields.sum_combat = v
+	self.__fields.ara_r1_sum_combat = v
 end
 
-function cls:get_sum_combat( ... )
+function cls:get_ara_r1_sum_combat( ... )
 	-- body
-	return self.__fields.sum_combat
+	return self.__fields.ara_r1_sum_combat
 end
 
-function cls:set_sum_defense(v, ... )
+function cls:set_ara_r1_sum_defense(v, ... )
 	-- body
 	assert(v)
-	self.__ecol_updated["sum_defense"] = self.__ecol_updated["sum_defense"] + 1
-	if self.__ecol_updated["sum_defense"] == 1 then
+	self.__ecol_updated["ara_r1_sum_defense"] = self.__ecol_updated["ara_r1_sum_defense"] + 1
+	if self.__ecol_updated["ara_r1_sum_defense"] == 1 then
 		self.__col_updated = self.__col_updated + 1
 	end
-	self.__fields.sum_defense = v
+	self.__fields.ara_r1_sum_defense = v
 end
 
-function cls:get_sum_defense( ... )
+function cls:get_ara_r1_sum_defense( ... )
 	-- body
-	return self.__fields.sum_defense
+	return self.__fields.ara_r1_sum_defense
 end
 
-function cls:set_sum_critical_hit(v, ... )
+function cls:set_ara_r1_sum_critical_hit(v, ... )
 	-- body
 	assert(v)
-	self.__ecol_updated["sum_critical_hit"] = self.__ecol_updated["sum_critical_hit"] + 1
-	if self.__ecol_updated["sum_critical_hit"] == 1 then
+	self.__ecol_updated["ara_r1_sum_critical_hit"] = self.__ecol_updated["ara_r1_sum_critical_hit"] + 1
+	if self.__ecol_updated["ara_r1_sum_critical_hit"] == 1 then
 		self.__col_updated = self.__col_updated + 1
 	end
-	self.__fields.sum_critical_hit = v
+	self.__fields.ara_r1_sum_critical_hit = v
 end
 
-function cls:get_sum_critical_hit( ... )
+function cls:get_ara_r1_sum_critical_hit( ... )
 	-- body
-	return self.__fields.sum_critical_hit
+	return self.__fields.ara_r1_sum_critical_hit
 end
 
-function cls:set_sum_king(v, ... )
+function cls:set_ara_r1_sum_king(v, ... )
 	-- body
 	assert(v)
-	self.__ecol_updated["sum_king"] = self.__ecol_updated["sum_king"] + 1
-	if self.__ecol_updated["sum_king"] == 1 then
+	self.__ecol_updated["ara_r1_sum_king"] = self.__ecol_updated["ara_r1_sum_king"] + 1
+	if self.__ecol_updated["ara_r1_sum_king"] == 1 then
 		self.__col_updated = self.__col_updated + 1
 	end
-	self.__fields.sum_king = v
+	self.__fields.ara_r1_sum_king = v
 end
 
-function cls:get_sum_king( ... )
+function cls:get_ara_r1_sum_king( ... )
 	-- body
-	return self.__fields.sum_king
+	return self.__fields.ara_r1_sum_king
 end
 
 function cls:set_ara_rfh_st(v, ... )
@@ -1281,6 +1297,126 @@ end
 function cls:get_draw_num( ... )
 	-- body
 	return self.__fields.draw_num
+end
+
+function cls:set_ara_r2_sum_combat(v, ... )
+	-- body
+	assert(v)
+	self.__ecol_updated["ara_r2_sum_combat"] = self.__ecol_updated["ara_r2_sum_combat"] + 1
+	if self.__ecol_updated["ara_r2_sum_combat"] == 1 then
+		self.__col_updated = self.__col_updated + 1
+	end
+	self.__fields.ara_r2_sum_combat = v
+end
+
+function cls:get_ara_r2_sum_combat( ... )
+	-- body
+	return self.__fields.ara_r2_sum_combat
+end
+
+function cls:set_ara_r2_sum_defense(v, ... )
+	-- body
+	assert(v)
+	self.__ecol_updated["ara_r2_sum_defense"] = self.__ecol_updated["ara_r2_sum_defense"] + 1
+	if self.__ecol_updated["ara_r2_sum_defense"] == 1 then
+		self.__col_updated = self.__col_updated + 1
+	end
+	self.__fields.ara_r2_sum_defense = v
+end
+
+function cls:get_ara_r2_sum_defense( ... )
+	-- body
+	return self.__fields.ara_r2_sum_defense
+end
+
+function cls:set_ara_r2_sum_critical_hit(v, ... )
+	-- body
+	assert(v)
+	self.__ecol_updated["ara_r2_sum_critical_hit"] = self.__ecol_updated["ara_r2_sum_critical_hit"] + 1
+	if self.__ecol_updated["ara_r2_sum_critical_hit"] == 1 then
+		self.__col_updated = self.__col_updated + 1
+	end
+	self.__fields.ara_r2_sum_critical_hit = v
+end
+
+function cls:get_ara_r2_sum_critical_hit( ... )
+	-- body
+	return self.__fields.ara_r2_sum_critical_hit
+end
+
+function cls:set_ara_r2_sum_king(v, ... )
+	-- body
+	assert(v)
+	self.__ecol_updated["ara_r2_sum_king"] = self.__ecol_updated["ara_r2_sum_king"] + 1
+	if self.__ecol_updated["ara_r2_sum_king"] == 1 then
+		self.__col_updated = self.__col_updated + 1
+	end
+	self.__fields.ara_r2_sum_king = v
+end
+
+function cls:get_ara_r2_sum_king( ... )
+	-- body
+	return self.__fields.ara_r2_sum_king
+end
+
+function cls:set_ara_r3_sum_combat(v, ... )
+	-- body
+	assert(v)
+	self.__ecol_updated["ara_r3_sum_combat"] = self.__ecol_updated["ara_r3_sum_combat"] + 1
+	if self.__ecol_updated["ara_r3_sum_combat"] == 1 then
+		self.__col_updated = self.__col_updated + 1
+	end
+	self.__fields.ara_r3_sum_combat = v
+end
+
+function cls:get_ara_r3_sum_combat( ... )
+	-- body
+	return self.__fields.ara_r3_sum_combat
+end
+
+function cls:set_ara_r3_sum_defense(v, ... )
+	-- body
+	assert(v)
+	self.__ecol_updated["ara_r3_sum_defense"] = self.__ecol_updated["ara_r3_sum_defense"] + 1
+	if self.__ecol_updated["ara_r3_sum_defense"] == 1 then
+		self.__col_updated = self.__col_updated + 1
+	end
+	self.__fields.ara_r3_sum_defense = v
+end
+
+function cls:get_ara_r3_sum_defense( ... )
+	-- body
+	return self.__fields.ara_r3_sum_defense
+end
+
+function cls:set_ara_r3_sum_critical_hit(v, ... )
+	-- body
+	assert(v)
+	self.__ecol_updated["ara_r3_sum_critical_hit"] = self.__ecol_updated["ara_r3_sum_critical_hit"] + 1
+	if self.__ecol_updated["ara_r3_sum_critical_hit"] == 1 then
+		self.__col_updated = self.__col_updated + 1
+	end
+	self.__fields.ara_r3_sum_critical_hit = v
+end
+
+function cls:get_ara_r3_sum_critical_hit( ... )
+	-- body
+	return self.__fields.ara_r3_sum_critical_hit
+end
+
+function cls:set_ara_r3_sum_king(v, ... )
+	-- body
+	assert(v)
+	self.__ecol_updated["ara_r3_sum_king"] = self.__ecol_updated["ara_r3_sum_king"] + 1
+	if self.__ecol_updated["ara_r3_sum_king"] == 1 then
+		self.__col_updated = self.__col_updated + 1
+	end
+	self.__fields.ara_r3_sum_king = v
+end
+
+function cls:get_ara_r3_sum_king( ... )
+	-- body
+	return self.__fields.ara_r3_sum_king
 end
 
 
