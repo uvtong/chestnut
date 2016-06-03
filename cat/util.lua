@@ -2,8 +2,9 @@ package.path = "./../cat/?.lua;" .. package.path
 local skynet = require "skynet"
 require "skynet.manager"
 local const = require "const"
-local util = {}
 local query = require "query"
+local util = {}
+
 
 function util.random_db()
 	-- body

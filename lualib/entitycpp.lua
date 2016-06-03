@@ -120,7 +120,9 @@ function cls.update(t, ...)
 		
 		local sql = table.concat(tmp_sql)
 		--print(sql)
-		-- print(t.__wdb, t.__tname)
+		-- if t.__tname == "users" and t.__fields[t.__pk] == 602 then
+		-- 	error "abc"
+		-- end
 		query.write(t.__wdb, t.__tname, sql, query.DB_PRIORITY_3)
 	end 
 end 	
@@ -163,6 +165,11 @@ function cls.set_field(self, k, v, ... )
 		self.__col_updated = self.__col_updated + 1
 	end
 	assert(self.__fields[k] ~= nil, "key must be existence.")
+	-- if self.__tname == "users" and self.__fields[self.__pk] == 602 then
+	-- 	if k == "ara_role_id3" then
+	-- 		error "abc"
+	-- 	end
+	-- end
 	self.__fields[k] = v
 end
 

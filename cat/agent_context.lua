@@ -2,6 +2,7 @@ local skynet = require "skynet"
 require "skynet.manager"
 local dc = require "datacenter"
 local const = require "const"
+local util = require "util"
 
 local cls = class("agent_context")
 
@@ -50,6 +51,9 @@ function cls:ctor( ... )
 	cls = require "rolemodule"
 	local m = cls.new(self)
 	self._m["role"] = m
+	cls = require "rechargemodule"
+	local m = cls.new(self)
+	self._m["recharge"] = m
 end
 
 function cls:get_module(k, ... )
@@ -505,6 +509,12 @@ function cls:login( ... )
 	local u = self:get_user()
 	local lp = skynet.getenv("leaderboards_name")
 	skynet.call(lp, "lua", "push", u:get_field('csv_id'), u:get_field("sum_combat"))
+
+	local t = util.get_total_property(u)
+	u:set_field("sum_combat", t[1])
+	u:set_field("sum_defense", t[2])
+	u:set_field("sum_critical_hit", t[3])
+	u:set_field("sum_king", t[4])
 end
 
 function cls:logout()

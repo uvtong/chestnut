@@ -60,8 +60,8 @@ end
 function cls:load_enemy(uid, ... )
 	-- body
 	if dc.get(uid, "online") then
-		local modelmgr_cls = require "load_user"
-		local modelmgr = modelmgr_cls.new()
+		local cls = require "load_user"
+		local modelmgr = cls.new(self._env)
 		local addr = dc.get(uid, "addr")
 		local r = skynet.call(addr, "lua", "ara_user")
 		modelmgr:load_remote(uid, r)
@@ -70,7 +70,7 @@ function cls:load_enemy(uid, ... )
 		self:set_en_modelmgr(modelmgr)
 	else
 		local cls = require "load_user"
-		local modelmgr = cls.new()
+		local modelmgr = cls.new(self._env)
 		modelmgr:load1(uid)
 		local user = modelmgr:get_user("user")
 		self:set_enemy(user)
@@ -432,10 +432,17 @@ end
 
 function cls:ara_choose_role_enter(args, ... )
 	-- body
+	if args.enemy_id == nil then
+		local ret = {}
+		ret.errorcode = errorcode[27].code
+		ret.msg = errorcode[27].msg
+		return ret
+	end
+	local ctx = self._env
 	local u = ctx:get_user()
 	local modelmgr = ctx:get_modelmgr()
 	local u_rolemgr = modelmgr:get_u_rolemgr()
-	if u_rolemgr:get_count() <= 3 then
+	if u_rolemgr:get_count() < 3 then
 		local ret = {}
 		ret.errorcode = errorcode[150].code
 		ret.msg = errorcode[150].msg
@@ -464,6 +471,7 @@ function cls:ara_choose_role_enter(args, ... )
 				local num = prop:get_field("num") - r[2]
 				prop:set_field("num", num)
 			else
+				print("####################################5")
 				local ret = {}
 				ret.errorcode = errorcode[31].code
 				ret.msg = errorcode[31].msg
@@ -476,6 +484,9 @@ function cls:ara_choose_role_enter(args, ... )
 	self._me = u
 	self._me_modelmgr = modelmgr
 	self:load_enemy(args.enemy_id)
+	print("############################################1", args.enemy_id)
+	print("############################################2", self._enemy:get_field("csv_id"))
+	assert(self._enemy:get_field("csv_id") == args.enemy_id, args.enemy_id)
 	local enemy = {}
 	enemy.csv_id = self._enemy:get_field("csv_id")
 	enemy.uname  = self._enemy:get_field("uname")
@@ -488,26 +499,55 @@ function cls:ara_choose_role_enter(args, ... )
 	enemy.sum_critical_hit = self._enemy:get_field("sum_critical_hit")
 	enemy.sum_king     = self._enemy:get_field("sum_king")
 	local en_rolemgr   = self._en_modelmgr:get_u_rolemgr()
+	print("############################################3", en_rolemgr:get_count())
+
+	if en_rolemgr:get_count() < 3 then
+		local ret = {}
+		ret.errorcode = errorcode[150].code
+		ret.msg = errorcode[150].msg
+		return ret
+	end
 	local en_role1     = en_rolemgr:get_by_csv_id(enemy.ara_role_id1)
+	if en_role1 == nil then
+		print("############################################4", enemy.ara_role_id1)
+		local ret = {}
+		ret.errorcode = errorcode[153].code
+		ret.msg = errorcode[153].msg
+		return ret
+	end
 	local en_role1_l   = {}
 	for i=1,7 do
-		local key = string.format("%s:%d", string.format("k_csv_id%d", i))
+		local key = string.format("k_csv_id%d", i)
 		local kf_id = en_role1:get_field(key)
 		table.insert(en_role1_l, kf_id)
 	end
 
 	local en_role2     = en_rolemgr:get_by_csv_id(enemy.ara_role_id2)
+	if en_role2 == nil then
+		print("############################################5", enemy.ara_role_id5)
+		local ret = {}
+		ret.errorcode = errorcode[153].code
+		ret.msg = errorcode[153].msg
+		return ret
+	end
 	local en_role2_l   = {}
 	for i=1,7 do
-		local key = string.format("%s:%d", string.format("k_csv_id%d", i))
+		local key = string.format("k_csv_id%d", i)
 		local kf_id = en_role2:get_field(key)
 		table.insert(en_role2_l, kf_id)
 	end
 
 	local en_role3     = en_rolemgr:get_by_csv_id(enemy.ara_role_id3)
+	if en_role3 == nil then
+		print("############################################6", enemy.ara_role_id6)
+		local ret = {}
+		ret.errorcode = errorcode[153].code
+		ret.msg = errorcode[153].msg
+		return ret
+	end
 	local en_role3_l   = {}
 	for i=1,7 do
-		local key = string.format("%s:%d", string.format("k_csv_id%d", i))
+		local key = string.format("k_csv_id%d", i)
 		local kf_id = en_role3:get_field(key)
 		table.insert(en_role3_l, kf_id)
 	end
@@ -518,6 +558,7 @@ function cls:ara_choose_role_enter(args, ... )
 	local ret = {}
 	ret.errorcode = errorcode[1].code
 	ret.msg = errorcode[1].msg
+	ret.bat_roleid = {}
 	ret.bat_roleid[1] = u:get_field("ara_role_id1")
 	ret.bat_roleid[2] = u:get_field("ara_role_id2")
 	ret.bat_roleid[3] = u:get_field("ara_role_id3")
@@ -910,9 +951,9 @@ function cls:ara_lp(args, ... )
 			table.insert(l, li)
 		elseif dc.get(uid, "online") then
 			local addr = dc.get(uid, "addr")
-			local u = skynet.call(addr, "lua", "user")
-			li["total_combat"] = u["user"].sum_combat
-			li["uname"] = u["user"].uname
+			local r = skynet.call(addr, "lua", "user")
+			li["total_combat"] = r["user"].sum_combat
+			li["uname"]        = r["user"].uname
 			table.insert(l, li)
 		else
 			local usersmgr = ctx:get_usersmgr()

@@ -73,6 +73,13 @@ function cls:role_recruit(args)
 		user.u_rolemgr:add(role)
 		role:update_db()
 
+		if user:get_field("ara_role_id1") == 0 then
+			user:set_field("ara_role_id1", role:get_field("csv_id"))
+		elseif user:get_field("ara_role_id2") == 0 then
+			user:set_field("ara_role_id2", role:get_field("csv_id"))
+		elseif user:get_field("ara_role_id3") == 0 then
+			user:set_field("ara_role_id3", role:get_field("csv_id"))
+		end
 		self._env:raise_achievement(const.ACHIEVEMENT_T_5)
 
 		prop:set_field("num", prop:get_field("num") - us.us_prop_num)
@@ -92,6 +99,80 @@ function cls:role_recruit(args)
 		ret.msg = errorcode[3].msg
 		return ret
 	end
+end
+
+function cls:role_battle(args)
+	-- body
+	local user = self._env:get_user()
+	local ret = {}
+	if not user then
+		ret.errorcode = errorcode[2].code
+		ret.msg = errorcode[2].msg
+		return ret
+	end
+	assert(user.u_rolemgr:get_by_csv_id(args.csv_id))
+	user:set_field("c_role_id", args.csv_id)
+	ret.errorcode = errorcode[1].code
+	ret.msg = errorcode[1].msg
+	return ret
+end
+
+function cls:role_all(args)
+	-- body
+	local ret = {}
+	local user = self._env:get_user()
+	local game = self._env:get_game()
+	if not user then
+		ret.errorcode = errorcode[2].code
+		ret.msg = errorcode[2].msg
+		return ret
+	end
+	local l = {}
+	local r = skynet.call(game, "lua", "query_g_role")
+	for k,v in pairs(r) do
+		local item = {}
+		item.csv_id = v.csv_id
+		item.star = v.star
+		item.u_us_prop_num = v.u_us_prop_num
+		local role = user.u_rolemgr:get_by_csv_id(v.csv_id)
+		if role then
+			item.is_possessed = true
+			item.property_id1 = role.property_id1
+			item.value1       = role.value1
+			item.property_id2 = role.property_id2
+			item.value2       = role.value2
+			item.property_id3 = role.property_id3
+			item.value3       = role.value3
+			item.property_id4 = role.property_id4
+			item.value4       = role.value4
+			item.property_id5 = role.property_id5
+			item.value5       = role.value5
+		else
+			item.is_possessed = false
+			item.property_id1 = 0
+			item.value1       = 0
+			item.property_id2 = 0
+			item.value2       = 0
+			item.property_id3 = 0
+			item.value3       = 0
+			item.property_id4 = 0
+			item.value4       = 0
+			item.property_id5 = 0
+			item.value5       = 0
+		end
+
+		local prop = user.u_propmgr:get_by_csv_id(v.us_prop_csv_id)
+		if prop then
+			item.u_us_prop_num = prop:get_field("num")
+		else
+			item.u_us_prop_num = 0
+		end
+		table.insert(l, item)
+	end
+	ret.errorcode = errorcode[1].code
+	ret.msg = errorcode[1].msg
+	ret.l = l
+    return ret
 end
 
 return cls

@@ -378,7 +378,7 @@ function REQUEST:achievement()
     return ret
 end
 
-function REQUEST:achievement_reward_collect()
+function REQUEST:achievement_reward_collect(ctx)
 	-- body
 	local ret = {}
 	if not user then
@@ -1028,39 +1028,19 @@ function REQUEST:recharge_purchase()
 	return ret
 end
 
-function REQUEST:recharge_vip_reward_all()
+function REQUEST:recharge_vip_reward_all(ctx)
 	-- body
-	local ret = {}
-	if not user then
-		ret.errorcode = errorcode[2].code
-		ret.msg = errorcode[2].msg
+	local m = ctx:get_module("recharge")
+	local ok, result = pcall(m.recharge_vip_reward_all, m, self)
+	if ok then
+		return result 
+	else
+		skynet.error(result)
+		local ret = {}
+		ret.errorcode = errorcode[29].code
+		ret.msg = errorcode[29].msg
 		return ret
 	end
-	assert(user)
-	local a = skynet.call(game, "lua", "query_g_recharge_vip_reward")
-	local l = {}
-	for k,v in pairs(a) do
-		local r = {}
-		r.vip = v.vip
-		r.props = {}
-		local t = util.parse_text(v.rewared, "%d+%*%d+%*?", 2)
-		for i,v in ipairs(t) do
-			table.insert(r.props, { csv_id=v[1], num=v[2]})
-		end
-		local reward = user.u_recharge_vip_rewardmgr:get_by_vip(v.vip)
-		if reward then
-			r.collected = (reward.collected == 1) and true or false
-			r.purchased = (reward.purchased == 1) and true or false
-		else
-			r.collected = false
-			r.purchased = false
-		end
-		table.insert(l, r)
-	end
-	ret.errorcode = errorcode[1].code
-	ret.msg = errorcode[1].msg
-	ret.reward = l
-	return ret
 end
 
 function REQUEST:recharge_vip_reward_collect()
@@ -1237,32 +1217,19 @@ function REQUEST:equipment_all()
 	return ret
 end
 
-function REQUEST:role_all()
+function REQUEST:role_all(ctx)
 	-- body
-	local ret = {}
-	if not user then
-		ret.errorcode = errorcode[2].code
-		ret.msg = errorcode[2].msg
+	local m = ctx:get_module("role")
+	local ok, result = pcall(m.role_all, m, self)
+	if ok then
+		return result 
+	else
+		skynet.error(result)
+		local ret = {}
+		ret.errorcode = errorcode[29].code
+		ret.msg = errorcode[29].msg
 		return ret
 	end
-	local l = {}
-	local r = skynet.call(game, "lua", "query_g_role")
-	for k,v in pairs(r) do
-		local role = user.u_rolemgr:get_by_csv_id(v.csv_id)
-		if role then
-			role.is_possessed = true
-		else
-			role = v
-			role.is_possessed = false
-		end
-		local prop = user.u_propmgr:get_by_csv_id(role.us_prop_csv_id)
-		role.u_us_prop_num = prop and prop.num or 0
-		table.insert(l, role)
-	end
-	ret.errorcode = errorcode[1].code
-	ret.msg = errorcode[1].msg
-	ret.l = l
-    return ret
 end
 
 function REQUEST:role_recruit(ctx)
@@ -1280,19 +1247,19 @@ function REQUEST:role_recruit(ctx)
 	end
 end
 
-function REQUEST:role_battle()
+function REQUEST:role_battle(ctx)
 	-- body
-	local ret = {}
-	if not user then
-		ret.errorcode = errorcode[2].code
-		ret.msg = errorcode[2].msg
+	local m = ctx:get_module("role")
+	local ok, result = pcall(m.role_battle, m, self)
+	if ok then
+		return result 
+	else
+		skynet.error(result)
+		local ret = {}
+		ret.errorcode = errorcode[29].code
+		ret.msg = errorcode[29].msg
 		return ret
 	end
-	assert(user.u_rolemgr:get_by_csv_id(self.csv_id))
-	user.c_role_id = self.csv_id
-	ret.errorcode = errorcode[1].code
-	ret.msg = errorcode[1].msg
-	return ret
 end
 
 function REQUEST:user_sign()
@@ -1631,7 +1598,7 @@ end
 function REQUEST:ara_choose_role_enter(ctx, ... )
 	-- body
 	local m = ctx:get_module("arena")
-	local ok, result = pcall(m.ara_exit, m, self)
+	local ok, result = pcall(m.ara_choose_role_enter, m, self)
 	if ok then
 		return result 
 	else
@@ -1670,7 +1637,7 @@ function REQUEST:ara_rfh(ctx)
 	-- body
 	-- first test when to reset
 	local m = ctx:get_module("arena")
-	local ok, result = pcall(m.ara_choose_role, m, self)
+	local ok, result = pcall(m.ara_rfh, m, self)
 	if ok then
 		return result 
 	else
@@ -1746,8 +1713,7 @@ function REQUEST:logout(ctx)
 	-- body
 	local u = ctx:get_user()
 	u:set_ifonline(0)
-	
-	self:logout()
+	ctx:logout()
 end
 
 local function generate_session()
@@ -1878,6 +1844,12 @@ function CMD:ara_user(source)
 	-- body
 	local modelmgr = self:get_modelmgr()
 	local r = modelmgr:gen_remote()
+	print("###################################################ara_user")
+	for k,v in pairs(r) do
+		for kk,v in pairs(v) do
+			print(kk,vv)
+		end
+	end
 	return r
 end
 
