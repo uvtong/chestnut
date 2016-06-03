@@ -503,8 +503,8 @@ function CMD.query_g_user_level(pk)
 	else
 		assert(false)
 	end
-end
-
+end 
+	
 function CMD.query_g_lilian_phy_power(pk)
 	assert(pk)
 	if type(pk) == "number" then
@@ -519,8 +519,8 @@ function CMD.query_g_lilian_phy_power(pk)
 	else
 		assert(false)
 	end
-end
-
+end 
+	
 function CMD.query_g_config(pk)
 	-- body
 	if type(pk) == "string" then
@@ -530,8 +530,8 @@ function CMD.query_g_config(pk)
 		local ptr = tptr.topointer(r)
 		return ptr
 	end
-end
-
+end 
+	
 function CMD.query_g_xilian_cost(pk)
 	-- body
 	if type(pk) == "number" then

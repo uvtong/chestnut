@@ -148,6 +148,7 @@ function QUERY:query(sql)
 	skynet.timeout(100*60, check_error)
 
 	local db = self.db
+	print(sql)
 	local res = db:query(sql)
 	dump(res)
 	if res.errno ~= nil then
@@ -170,6 +171,7 @@ function QUERY:read(table_name, sql)
 	skynet.timeout(100*60, check_error)
 
 	local db = self.db
+	print(sql)
 	local res = db:query(sql)
 	dump(res)
 	if res.errno ~= nil then

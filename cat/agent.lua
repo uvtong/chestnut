@@ -28,7 +28,7 @@ local cgold_request = require "cgold_request"
 local kungfurequest = require "kungfurequest"
 local new_drawrequest = require "new_drawrequest"
 local lilian_request = require "lilian_request"
-local core_fight_3 = require "core_fight_3"
+local core_fightrequest = require "core_fightrequest"
 
 
 table.insert(M, checkinrequest )
@@ -38,7 +38,7 @@ table.insert(M, new_emailrequest )
 table.insert(M, kungfurequest )
 table.insert(M, new_drawrequest )
 table.insert(M, lilian_request )
-table.insert(M, core_fight_3)
+table.insert(M, core_fightrequest)
 
 -- service internal context
 

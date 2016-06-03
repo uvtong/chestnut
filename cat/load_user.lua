@@ -177,7 +177,6 @@ function cls:signup(uid)
 	u_ara_rnk_rwdmgr:set_user(u)
 	self._data["u_ara_rnk_rwdmgr"] = u_ara_rnk_rwdmgr
 
-
 	local r = skynet.call(".game", "lua", "query_g_equipment")
 	for k,v in pairs(r) do
 		local equip = skynet.call(".game", "lua", "query_g_equipment_enhance", v.csv_id*1000+v.level)
