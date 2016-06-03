@@ -196,7 +196,13 @@ function cls:calculate_ara_role( ... )
 		user:set_field("ara_r1_sum_combat", result[1])
 		user:set_field("ara_r1_sum_defense", result[2])
 		user:set_field("ara_r1_sum_critical_hit", result[3])
-		user:set_field("ara_r1_sum_king", result[4])	
+		user:set_field("ara_r1_sum_king", result[4])
+		print("ara_r1_sum_combat", result[1])
+		print("ara_r1_sum_combat", result[2])
+		print("ara_r1_sum_critical_hit", result[3])
+		print("ara_r1_sum_king", result[4])	
+	else
+		error "abc"
 	end
 	local ara_role_id2 = user:get_field("ara_role_id2")
 	local ok, result = pcall(util.get_total_property, user, nil, ara_role_id2)
@@ -204,7 +210,9 @@ function cls:calculate_ara_role( ... )
 		user:set_field("ara_r2_sum_combat", result[1])
 		user:set_field("ara_r2_sum_defense", result[2])
 		user:set_field("ara_r2_sum_critical_hit", result[3])
-		user:set_field("ara_r2_sum_king", result[4])	
+		user:set_field("ara_r2_sum_king", result[4])
+	else	
+		error "abc"
 	end
 	local ara_role_id3 = user:get_field("ara_role_id3")
 	local ok, result = pcall(util.get_total_property, user, nil, ara_role_id3)
@@ -213,7 +221,10 @@ function cls:calculate_ara_role( ... )
 		user:set_field("ara_r3_sum_defense", result[2])
 		user:set_field("ara_r3_sum_critical_hit", result[3])
 		user:set_field("ara_r3_sum_king", result[4])	
+	else
+		error "abc"
 	end
+	user:update_db()
 end
 
 function cls:ara_bat_clg(enemy_id, ... )
