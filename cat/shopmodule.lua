@@ -88,6 +88,7 @@ function cls:shop_refresh(args, ... )
 	-- body
 	local ret = {}
 	local user = self._env:get_user()
+	local game = self._env:get_game()
 	local factory = self._env:get_myfactory()
 	if not user then
 		local ret = {}
@@ -113,7 +114,7 @@ function cls:shop_refresh(args, ... )
 		local walk = now - ug.st
 		if walk < gg.cd then
 			-- judge refersh count
-			if j.goods_refresh_count >= assert(user.store_refresh_count_max) then
+			if j.goods_refresh_count > assert(user.store_refresh_count_max) then
 				local countdown = gg.cd - walk
 				item.inventory = inventory
 				item.countdown = countdown
@@ -123,43 +124,49 @@ function cls:shop_refresh(args, ... )
 				ret.goods_refresh_count  = assert(j.goods_refresh_count)
 				ret.store_refresh_count_max = assert(user.store_refresh_count_max)
 				return ret
-			end
-			local rc = assert(skynet.call(game, "lua", "query_g_goods_refresh_cost", j.goods_refresh_count + 1))
-			local prop = self._env:get_prop(rc.currency_type)
-			if prop.num >= rc.currency_num then
-				prop:set_field("num", prop:get_field("num") - rc.currency_num)
-				prop:update_db()
-				j:set_field("goods_refresh_count", j:get_field("goods_refresh_count") + 1)
-				j:update_db()
-
-				ug.inventory = gg.inventory_init
-				ug.countdown = 0
-				ug.st = 0
-				ug:update_db()
-				item.inventory = ug.inventory
-				item.countdown = 0
-
-				ret.errorcode = errorcode[1].code
-				ret.msg = errorcode[1].msg
-				ret.l = { item }
-				ret.goods_refresh_count = assert(j.goods_refresh_count)
-				ret.store_refresh_count_max = assert(user.store_refresh_count_max)
-				return ret
 			else
-				item.inventory = inventory
-				item.countdown = gg.cd - walk
+				local rc = assert(skynet.call(game, "lua", "query_g_goods_refresh_cost", j.goods_refresh_count + 1))
+				local prop = factory:get_prop(rc.currency_type)
+				if prop.num >= rc.currency_num then
+					
+					ug:set_field("inventory", gg.inventory_init)
+					ug:set_field("countdown", 0)
+					ug:set_field("st", 0)
+					ug:update_db()
 
-				ret.errorcode = errorcode[6].code
-				ret.msg = errorcode[6].msg
-				ret.l = { item}
-				ret.goods_refresh_count = assert(j.goods_refresh_count)
-				ret.store_refresh_count_max = assert(user.store_refresh_count_max)
-				return ret	
-			end
+					item.inventory = ug.inventory
+					item.countdown = 0
+
+					prop:set_field("num", prop:get_field("num") - rc.currency_num)
+					prop:update_db()
+
+					j:set_field("goods_refresh_count", j:get_field("goods_refresh_count") + 1)
+					j:update_db()
+
+					ret.errorcode = errorcode[1].code
+					ret.msg = errorcode[1].msg
+					ret.l = { item }
+					ret.goods_refresh_count = assert(j.goods_refresh_count)
+					ret.store_refresh_count_max = assert(user.store_refresh_count_max)
+					return ret
+				else
+					item.inventory = inventory
+					item.countdown = gg.cd - walk
+
+					ret.errorcode = errorcode[6].code
+					ret.msg = errorcode[6].msg
+					ret.l = { item}
+					ret.goods_refresh_count = assert(j.goods_refresh_count)
+					ret.store_refresh_count_max = assert(user.store_refresh_count_max)
+					return ret	
+				end
+			end	
 		else
 			ug:set_field("inventory", gg.inventory_init)
-			local countdown = gg.cd - walk
+			ug:set_field("st", 0)
+			ug:update_db()
 
+			local countdown = 0
 			item.inventory = gg.inventory_init
 			item.countdown = countdown
 

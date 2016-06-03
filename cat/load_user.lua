@@ -226,7 +226,6 @@ function cls:signup(uid)
 	u.u_propmgr:update_wait()
 
 	--add email
-
 	local newemail = {}
 	newemail.type = 1
 	newemail.title = "new user email"
@@ -326,6 +325,10 @@ end
 
 function cls:load1(uid)
 	-- body
+	cls = require "models/usersmgr"
+	local usersmgr = cls.new()
+	self._data["usersmgr"] = usersmgr
+
 	self:load_user(uid)
 	self:load_u_kungfu()
 	self:load_u_prop()
@@ -335,6 +338,11 @@ end
 
 function cls:load(uid)
 	-- body
+	local cls = require "models/usersmgr"
+	local usersmgr = cls.new()
+	self._data["usersmgr"] = usersmgr
+	self._env:set_usersmgr(usersmgr)
+
 	self:load_user(uid)
 	self:load_u_achievement()
 	self:load_u_achievement_rc()
@@ -373,6 +381,10 @@ end
 	
 function cls:load_remote(uid, p )
 	-- body
+	cls = require "models/usersmgr"
+	local usersmgr = cls.new()
+	self._data["usersmgr"] = usersmgr
+	
 	self:load_user_remote(uid, p)
 	self:load_u_equipment_remote(p)
 	self:load_u_role_remote(p)
@@ -391,11 +403,11 @@ end
 
 function cls:load_user_remote(uid, p, ... )
 	-- body
-	local usersmgr = env:get_usersmgr()
+	local usersmgr = self:get_usersmgr()
 	if usersmgr == nil then
 		local cls = require "models/usersmgr"
 		local usersmgr = cls.new()
-		env:set_usersmgr(usersmgr)
+		self._env:set_usersmgr(usersmgr)
 	end
 
 	local u = p["user"]
@@ -630,9 +642,9 @@ function cls:load_u_equipment_remote(p, ... )
 	local u = self:get_user()
 	local cls = require "models/u_equipmentmgr"
 	local u_equipmentmgr = cls.new()
-	u_equipmentmgr:load_remote(p[t.__tname])
+	u_equipmentmgr:load_remote(p[u_equipmentmgr.__tname])
 	u_equipmentmgr:set_user(u)
-	self._data[t.__tname.."mgr"] = u_equipmentmgr
+	self._data[u_equipmentmgr.__tname.."mgr"] = u_equipmentmgr
 	u.u_equipmentmgr = u_equipmentmgr
 end
 
@@ -643,7 +655,7 @@ function cls:gen_u_equipment_remote(rm, ... )
 	for k,v in pairs(u_equipmentmgr.__data) do
 		table.insert(r, v.__fields)
 	end
-	rm[t.__tname] = r
+	rm[u_equipmentmgr.__tname] = r
 end
 
 function cls:load_u_equipment()
@@ -670,7 +682,6 @@ function cls:load_u_kungfu_remote(p, ... )
 	local u_kungfumgr = cls.new()
 	u_kungfumgr:set_user(u)
 	u_kungfumgr:load_remote(p[u_kungfumgr.__tname])
-	u_kungfumgr:set_user(u)
 	self._data["u_kungfumgr"] = u_kungfumgr
 	u.u_kungfumgr = u_kungfumgr
 end
@@ -678,9 +689,9 @@ end
 function cls:gen_u_kungfu_remote(rm, ... )
 	-- body
 	local r = {}
-	local u_kungfumgr = self:get_u_kunfumgr()
+	local u_kungfumgr = self:get_u_kungfumgr()
 	for k,v in pairs(u_kungfumgr.__data) do
-		table.insert(v.__fields)
+		table.insert(r, v.__fields)
 	end
 	rm[u_kungfumgr.__tname] = r
 end

@@ -391,7 +391,11 @@ function CMD.query_g_recharge(pk)
 			error "there are insufficient data"
 		end
 	elseif type(pk) == "nil" then
-		return game.g_rechargemgr.__data
+		local l = {}
+		for k,v in pairs(game.g_rechargemgr.__data) do
+			l[k] = v.__fields
+		end
+		return l
 	else
 		assert(false)
 	end

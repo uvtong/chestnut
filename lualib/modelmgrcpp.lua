@@ -86,6 +86,7 @@ function cls.load_db_to_data(t, key, value, ... )
 					assert(type(value) == "string")
 					sql = string.format("select * from %s where `%s` = \"%s\"", t.__tname, t.__pk, value)
 				elseif t.__head[t.__pk].t == "number" then
+					print(key, value, t.__tname)
 					assert(type(value) == "number")
 					sql = string.format("select * from %s where `%s` = %d", t.__tname, t.__pk, value)
 				else
@@ -302,6 +303,11 @@ function cls.delete(self, pk)
 		self.__count = self.__count - 1
 	end
 end 
+
+function cls.get_by_vip(self, csv_id, ... )
+	-- body
+	return self:get_by_csv_id(csv_id)
+end
 
 function cls.get_by_chapter(self, csv_id, ... )
 	-- body
