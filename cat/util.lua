@@ -351,7 +351,6 @@ function util.get_total_property( user , uid , onbattleroleid)   -- zhijie ti sh
 	else    
 		local sql = string.format( "select * from u_equipment where user_id = %s " , uid )
 		print(sql)
-		assert(false)
 		uequip = skynet.call( util.random_db() , "lua" , "command" , "query" , sql )
 		assert( uequip )
  		sql = string.format( "select * from u_role where user_id = %s " , uid )
@@ -388,10 +387,10 @@ function util.get_total_property( user , uid , onbattleroleid)   -- zhijie ti sh
  		end
  		assert( role )
 
- 		sql = string.format("select csv_id from u_kungfu where user_id = %s", user.csv_id)
+ 		sql = string.format("select csv_id from u_kungfu where user_id = %s", uid)
  		--print(sql)
  		--local tmp = skynet.call( util.random_db() , "lua" , "command" , "query" , sql )
- 		local tmp = query:read(".rdb", "u_kungfu", sql)
+ 		local tmp = query.read(".rdb", "u_kungfu", sql)
  		for k , v in ipairs(tmp) do
  			table.insert(ukf, v.g_csv_id)
  		end

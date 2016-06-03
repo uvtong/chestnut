@@ -34,6 +34,7 @@ local FIGHT_PLACE = 0
 local FIGHT_ERROR_RANGE = 5         --each kf attack heart
 local ATTACH_EFFECT_ERROR_RANGE = 10	-- attach-effect attack heart 
 local FINAL_ERROR_RANGE = 5		    --when game is over , if c and s donot have the same result , judge the range
+local ON_BATTLE_ROLE_NUM = 3
 			    
 local COMMON_KF = 90000
 local COMBO_KF = 100000
@@ -85,7 +86,7 @@ function REQUEST:login(u)
 	-- body   
 	assert( u )
 	print("**********************************lilianrequest_login")
-	-- user = u  
+	user = u  
 end	          
 			  
 --get who fight first, true user first, false robot first;	    	
@@ -407,7 +408,7 @@ function REQUEST:BeginGUQNQIACoreFight(ctx)
 end 	  	
 		  	
 local function get_on_battle_list(uid, type)	 		
-	assert(uid and type and TmpSelf)	 	
+	--assert(uid and type)	 	
 	if type == SELF then 
 		local idx = 1 
 		while idx <= ON_BATTLE_ROLE_NUM do 
@@ -418,11 +419,12 @@ local function get_on_battle_list(uid, type)
 		  	else 
 		  		table.insert(Self.OnBattleList, value) 
 		  	end 
+		  	idx = idx + 1
 		end	
 	elseif type == ENEMY then 
 		local sql = string.format("select ara_role_id1, ara_role_id2, ara_role_id3 from users where csv_id = %s", uid) 
 		local r = skynet.call(util.random_db(), "lua", "command", "query", sql) 
-		assert(#r == 3) 
+		assert(#r ~= 3) 
          
 		local idx = 1
 		while idx <= ON_BATTLE_ROLE_NUM do
@@ -433,6 +435,7 @@ local function get_on_battle_list(uid, type)
 		  	else 
 		  		table.insert(Enemy.OnBattleList, value)
 		  	end 
+		  	idx = idx + 1
 		end
 	else  
 		assert(false)
@@ -653,7 +656,7 @@ local function do_verify(v, userroleid)
         			
 		local isdead = 0 
 		print("totalattack is ********************************", totalattack, v.attack) 
-        assert(totalattack == v.attack) 
+       -- assert(totalattack == v.attack) 
 
 		--if totalattack == v.attack then	
 		if if_in_error_range(v.attack, totalattack, ERROR_RANGE_TYPE.KF_HEART) then
@@ -728,8 +731,8 @@ function REQUEST:GuanQiaBattleList()
 end 				
 			
 function REQUEST:BeginArenaCoreFight()
-	assert(self.uid and self.roleid)
-	print("BeginArenaCoreFight is called **********************************", self.uid, self.roleid)
+	assert(self.monsterid )
+	print("BeginArenaCoreFight is called **********************************", self.monsterid, self.roleid)
 	
 	FIGHT_PLACE = PLACE.ARENA
 			
@@ -747,16 +750,16 @@ function REQUEST:BeginArenaCoreFight()
     	ret.errorcode = errorcode[110].code 		
     end    				 				  		
     	   																
-    if not get_on_battle_list(self.uid, ENEMY) then
+    if not get_on_battle_list(self.monsterid, ENEMY) then
     	ret.errorcode = errorcode[110],code
     end                                
     	   						
     --get role fight_list             
 	get_fight_list(_, Self.OnBattleList[1] , SELF) 
-	get_fight_list(self.uid, Enemy.OnBattleList[1], ENEMY) 
+	get_fight_list(self.monsterid, Enemy.OnBattleList[1], ENEMY) 
 	--init basic attribute             
 	init_attribute(_, Self.OnBattleList[1], SELF) 
-	init_attribute(self.uid, Enemy.OnBattleList[1], ENEMY) 
+	init_attribute(self.monsterid, Enemy.OnBattleList[1], ENEMY) 
 						 		
 	if first_fighter() then 	
 		ret.firstfighter = SELF 
