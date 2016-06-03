@@ -255,7 +255,7 @@ local function deal_finish_lilian(ctx, tr )
 		-- tr.iflevel_up = 1
 		-- tr:__update_db( { "iflevel_up" }, const.DB_PRIORITY_2 )
 	end
-
+	
 	return reward
 end 
 		
