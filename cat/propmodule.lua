@@ -127,6 +127,7 @@ function cls:use_prop(args)
 					local p = assert(factory:get_prop(v[1]))
 					p:set_field("num", (v[2] * use_prop_num))
 					p:update_db()
+					
 					local item = {}
 					item.csv_id = v[1]
 					item.num = p:get_field("num")
@@ -135,7 +136,11 @@ function cls:use_prop(args)
 				end
 			end
 			assert(f)
-		end	
+		end
+
+		prop:set_field("num", prop:get_field("num") - use_prop_num)
+		prop:update_db()
+
 		ret.errorcode = errorcode[1].code
 		ret.msg	= errorcode[1].msg
 		ret.props = l

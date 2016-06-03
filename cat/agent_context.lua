@@ -513,16 +513,9 @@ function cls:login( ... )
 	local lp = skynet.getenv("leaderboards_name")
 	skynet.call(lp, "lua", "push", u:get_field('csv_id'), u:get_field("sum_combat"))
 
-	local t = util.get_total_property(u)
-	u:set_field("sum_combat", t[1])
-	u:set_field("sum_defense", t[2])
-	u:set_field("sum_critical_hit", t[3])
-	u:set_field("sum_king", t[4])
+	local m = self._m["arena"]
+	m:calculate_ara_role()
 
-	print("sum_combat", t[1])
-	print("sum_defense", t[2])
-	print("sum_critical_hit", t[3])
-	
 end
 
 function cls:logout()
