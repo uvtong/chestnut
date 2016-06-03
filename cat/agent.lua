@@ -550,102 +550,17 @@ end
 
 function REQUEST:use_prop(ctx)
 	-- body
-	local ret = {}
-	if not user then
-		ret.errorcode = errorcode[2].code
-		ret.msg = errorcode[2].msg
-		return ret
-	end
-	assert(user)
-	assert(#self.props == 1)
-	local l = {}
-	local prop = assert(get_prop(self.props[1].csv_id))
-	if self.props[1].num > 0 then
-		-- get
-		prop.num = prop.num + v.num
-		prop.update_db({"num"})
-		table.insert(l, prop)
-	elseif self.props[1].num < 0 then
-		-- consume
-		local num = math.abs(self.props[1].num)
-		if prop.num < num then
-			ret.errorcode = errorcode[16].code
-			ret.msg = errorcode[16].msg
-			return ret
-		end
-		prop.num = prop.num + self.props[1].num
-		prop:update_db({"num"})
-		table.insert(l, prop)
-		if assert(prop.use_type) == 0 then
-			ret.errorcode = errorcode[28].code
-			ret.msg = errorcode[28].msg
-			return ret
-		elseif assert(prop.use_type) == 1 then -- exp 
-			local e = user.u_propmgr:get_by_csv_id(const.EXP)
-			e.num = e.num + (tonumber(prop.pram1) * num)
-			e:update_db({"num"})
-			table.insert(l, e)
-			ctx:raise_achievement(const.ACHIEVEMENT_T_3)
-		elseif assert(prop.use_type) == 2 then -- gold
-			local g = user.u_propmgr:get_by_csv_id(const.GOLD)
-			g.num = g.num + (tonumber(prop.pram1) * num)
-			g:update_db({"num"})
-			table.insert(l, g)
-			ctx:raise_achievement(const.ACHIEVEMENT_T_2)
-		elseif assert(prop.use_type) == 3 then
-			local r = util.parse_text(prop.pram1)
-			print("length of r", #r)
-			for k,v in pairs(r) do
-				if v[1] == const.GOLD then
-					local prop = user.u_propmgr:get_by_csv_id(const.GOLD)
-					prop.num = prop.num + (v[2] * num)
-					prop:update_db({"num"})
-					table.insert(l, prop)
-					ctx:raise_achievement(const.ACHIEVEMENT_T_2)
-				elseif v[1] == const.EXP then
-					local prop = user.u_propmgr:get_by_csv_id(v[1])
-					prop.num = prop.num + (v[2] * num)
-					prop:update_db({"num"})
-					table.insert(l, prop)
-					ctx:raise_achievement(const.ACHIEVEMENT_T_3)
-				else
-					local prop = get_prop(v[1])
-					prop.num = prop.num + (v[2] * num)
-					prop:update_db({"num"})
-					table.insert(l, prop)
-				end
-			end
-		elseif assert(prop.use_type) == 4 then
-			local f = false
-			local r = util.parse_text(prop.pram1, "(%d+%*%d+%*%d+%*?)", 3)
-			local total = 0
-			for i,v in ipairs(r) do
-				v.min = total
-				total = total + assert(v[3])
-				v.max = total
-			end
-			local rand = math.random(1, total-1)
-			for i,v in ipairs(r) do
-				if rand >= v.min and rand < v.max then
-					f = true
-					local prop = assert(get_prop(v[1]))
-					prop.num = prop.num + (v[2] * num)
-					prop:update_db({"num"})
-					table.insert(l, prop)
-					break
-				end
-			end
-			assert(f)
-		end	
+	local m = ctx:get_module("prop")
+	local ok, result = pcall(m.use_prop, m, self)
+	if ok then
+		return result 
 	else
-		ret.errorcode = errorcode[27].code
-		ret.msg = errorcode[27].msg
+		skynet.error(result)
+		local ret = {}
+		ret.errorcode = errorcode[29].code
+		ret.msg = errorcode[29].msg
 		return ret
 	end
-	ret.errorcode = errorcode[1].code
-	ret.msg	= errorcode[1].msg
-	ret.props = l
-	return ret
 end
 
 function REQUEST:user(ctx)

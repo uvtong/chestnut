@@ -541,7 +541,7 @@ function cls:flush_db(priority)
 	local u = modelmgr:get_user()
 	if u then
 		for k,v in pairs(modelmgr._data) do
-			print("#####################################################flush_db")
+			-- print("#####################################################flush_db")
 			v:update_db()
 		end
 	end

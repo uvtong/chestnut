@@ -202,7 +202,7 @@ function cls:calculate_ara_role( ... )
 		print("ara_r1_sum_critical_hit", result[3])
 		print("ara_r1_sum_king", result[4])	
 	else
-		error "abc"
+		-- error "abc"
 	end
 	local ara_role_id2 = user:get_field("ara_role_id2")
 	local ok, result = pcall(util.get_total_property, user, nil, ara_role_id2)
@@ -212,7 +212,7 @@ function cls:calculate_ara_role( ... )
 		user:set_field("ara_r2_sum_critical_hit", result[3])
 		user:set_field("ara_r2_sum_king", result[4])
 	else	
-		error "abc"
+		-- error "abc"
 	end
 	local ara_role_id3 = user:get_field("ara_role_id3")
 	local ok, result = pcall(util.get_total_property, user, nil, ara_role_id3)
@@ -222,7 +222,7 @@ function cls:calculate_ara_role( ... )
 		user:set_field("ara_r3_sum_critical_hit", result[3])
 		user:set_field("ara_r3_sum_king", result[4])	
 	else
-		error "abc"
+		-- error "abc"
 	end
 	user:update_db()
 end
@@ -535,17 +535,17 @@ function cls:ara_choose_role_enter(args, ... )
 	enemy.ara_role_id2 = self._enemy:get_field("ara_role_id2")
 	enemy.ara_role_id3 = self._enemy:get_field("ara_role_id3")
 	enemy.ara_r1_sum_combat   = self._enemy:get_field("ara_r1_sum_combat")
-	enemy.ara_r1_sum_combat   = self._enemy:get_field("ara_r1_sum_defense")
+	enemy.ara_r1_sum_defense   = self._enemy:get_field("ara_r1_sum_defense")
 	enemy.ara_r1_sum_critical_hit = self._enemy:get_field("ara_r1_sum_critical_hit")
 	enemy.ara_r1_sum_king     = self._enemy:get_field("ara_r1_sum_king")
 
 	enemy.ara_r2_sum_combat   = self._enemy:get_field("ara_r2_sum_combat")
-	enemy.ara_r2_sum_combat   = self._enemy:get_field("ara_r2_sum_defense")
+	enemy.ara_r2_sum_defense   = self._enemy:get_field("ara_r2_sum_defense")
 	enemy.ara_r2_sum_critical_hit = self._enemy:get_field("ara_r2_sum_critical_hit")
 	enemy.ara_r2_sum_king     = self._enemy:get_field("ara_r2_sum_king")
 
 	enemy.ara_r3_sum_combat   = self._enemy:get_field("ara_r3_sum_combat")
-	enemy.ara_r3_sum_combat   = self._enemy:get_field("ara_r3_sum_defense")
+	enemy.ara_r3_sum_defense   = self._enemy:get_field("ara_r3_sum_defense")
 	enemy.ara_r3_sum_critical_hit = self._enemy:get_field("ara_r3_sum_critical_hit")
 	enemy.ara_r3_sum_king     = self._enemy:get_field("ara_r3_sum_king")
 
