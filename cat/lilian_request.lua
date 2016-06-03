@@ -7,6 +7,7 @@ local const = require "const"
 local socket = require "socket"
 local skynet = require "skynet"
 local queue = require "skynet.queue"
+local sd = require "sharedata"
 
 local UPDATETIME = 16 --daily update time 
 																																			
@@ -127,7 +128,10 @@ local function add_to_prop(ctx, tprop )
 			--prop.num = prop.num + v.propnum
 			prop:update_db()
 		else
-			local p = game.g_propmgr:get_by_csv_id( v.propid )
+			local key = string.format("%s:%d", g_prop, v.propid)
+			local p = sd:query(key)
+			assert(p)
+			--local p = game.g_propmgr:get_by_csv_id( v.propid )
 			p.user_id = ctx:get_user():get_field("csv_id")
 			p.num = v.propnum
 			p.id = genpk_2(p.user_id, p.csv_id)
@@ -199,7 +203,7 @@ local function get_event_reward( tr )
 	assert( r )
 
 	if 1 == tr:get_field("if_trigger_event") then
-		local te = util.parse_text( r:get_field("trigger_event") , "(%d+%*?)" , 1 )
+		local te = util.parse_text( r.trigger_event , "(%d+%*?)" , 1 )
 		assert( te )
 
 		local random = math.random( #te )
@@ -298,7 +302,7 @@ local function trigger_event(ctx, tr)
 		random = math.random( #te )
 	    local t = skynet.call( ".game" , "lua" , "query_g_lilian_event" , te[random][1] )
 		assert( t )
-		local ll = skynet.call( ".game" , "lua" , "query_g_lilian_level" , ctx:ge_user():get_field("lilian_level") )
+		local ll = skynet.call( ".game" , "lua" , "query_g_lilian_level" , ctx:get_user():get_field("lilian_level") )
 		assert( ll )
 		
 		tr:set_field("if_trigger_event", 1)
@@ -601,7 +605,7 @@ function REQUEST:start_lilian(ctx)
 				nr:update_db()
          	    
 		 		prop:set_num(prop:get_num() - 1)
-
+		 		prop:update_db()
 
 		 		--prop.num = prop.num - 1
 		 		rs:set_used_queue_num(rs:get_used_queue_num() + 1)
