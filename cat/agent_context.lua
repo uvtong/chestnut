@@ -54,6 +54,9 @@ function cls:ctor( ... )
 	cls = require "rechargemodule"
 	local m = cls.new(self)
 	self._m["recharge"] = m
+	cls = require "propmodule"
+	local m = cls.new(self)
+	self._m["prop"] = m
 end
 
 function cls:get_module(k, ... )
@@ -515,6 +518,11 @@ function cls:login( ... )
 	u:set_field("sum_defense", t[2])
 	u:set_field("sum_critical_hit", t[3])
 	u:set_field("sum_king", t[4])
+
+	print("sum_combat", t[1])
+	print("sum_defense", t[2])
+	print("sum_critical_hit", t[3])
+	
 end
 
 function cls:logout()

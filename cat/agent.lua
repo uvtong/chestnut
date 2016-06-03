@@ -303,8 +303,6 @@ local function xilian(role, t)
 	return n, ret
 end
 
-
-
 function SUBSCRIBE.update_db()
 	-- body
 	env:flush_db(const.DB_PRIORITY_3)
@@ -465,63 +463,6 @@ local function get_public_email(ctx)
 	end
 end    	
 	 	
-function REQUEST:login()
-	assert(false)
-	assert((#self.account > 1 and #self.password > 1), string.format("from client account:%s, password:%s incorrect.", self.account, self.password))
-	local ret = {}
-	if user then
-		if user.uaccount == self.account and user.upassword == self.password then
-			ret.errorcode  = errorcode[14].code
-			ret.msg = errorcode[14].msg
-			return ret
-		else
-			user.ifonline = 0
-			flush_db(const.DB_PRIORITY_1)
-			dc.set(user.csv_id, nil)
-			loader.clear(user)
-			user = nil
-		end
-	end
-	local condition = {{ uaccount = self.account, upassword = self.password }}
-	local addr = util.random_db()
-	local r = skynet.call(addr, "lua", "command", "select", "users", condition)
-	if #r == 0  then
-		ret.errorcode = errorcode[15].code
-		ret.msg = errorcode[15].msg
-		return ret
-	elseif #r == 1 then
-		local usersmgr = require "models/usersmgr"
-		user = usersmgr.create(r[1])
-		if dc.get(user.csv_id) then
-			skynet.error("user %d is logged in the agent %d", user.csv_id, dc.get(user.csv_id).addr)
-			user = nil
-			ret.errorcode = errorcode[14].code
-			ret.msg = errorcode[14].msg
-			return ret
-		end
-		--load public email
-		print("get_public_email is called********************************")
-		assert(false)
-	else
-		assert(false)
-	end 
-end	
-	
-local function print_user(user)
-	assert(user)
-	print( "print_user is called" )
-	for k ,v in pairs(user) do
-		if string.match(k, "^u_[%w_]+mgr$") then
-			local t = {}
-			for sk , sv in pairs(v.__data) do
-				table.insert(t, sk .. "--" .. tostring(sv) )
-			end
-			print(string.format( "%s:%s", k, table.concat(t, ",") ))
-		end
-		print( k , v )		
-	end
-end
-	
 function REQUEST:role_info()
 	local ret = {}
 	if not user then
@@ -592,21 +533,19 @@ function REQUEST:wake()
 	assert(false)
 end		
 
-function REQUEST:props()
+function REQUEST:props(ctx)
 	-- body
-	local ret = {}
-	if not user then
-		ret.errorcode = errorcode[2].code
-		ret.msg = errorcode[2].msg
+	local m = ctx:get_module("prop")
+	local ok, result = pcall(m.props, m, self)
+	if ok then
+		return result 
+	else
+		skynet.error(result)
+		local ret = {}
+		ret.errorcode = errorcode[29].code
+		ret.msg = errorcode[29].msg
 		return ret
 	end
-	assert(user)
-	local l = {}
-	for k,v in pairs(user.u_propmgr.__data) do
-		table.insert(l, v)
-	end
-	ret.l = l
-	return ret
 end
 
 function REQUEST:use_prop(ctx)
@@ -911,121 +850,34 @@ function REQUEST:shop_purchase(ctx)
 	end
 end
 
-function REQUEST:recharge_all()
+function REQUEST:recharge_all(ctx)
 	-- body
-	local ret = {}
-	if not user then
-		ret.errorcode = errorcode[2].code
-		ret.msg = errorcode[2].msg
+	local m = ctx:get_module("recharge")
+	local ok, result = pcall(m.recharge_all, m, self)
+	if ok then
+		return result 
+	else
+		skynet.error(result)
+		local ret = {}
+		ret.errorcode = errorcode[29].code
+		ret.msg = errorcode[29].msg
 		return ret
 	end
-	local l = {}
-	local r = skynet.call(game, "lua", "query_g_recharge")
-	for k,v in pairs(r) do
-		table.insert(l, v)
-	end
-	ret.errorcode = errorcode[1].code
-	ret.msg = errorcode[1].msg
-	ret.l = l
-	return ret
 end
 
-function REQUEST:recharge_purchase()
+function REQUEST:recharge_purchase(ctx)
 	-- body
-	local ret = {}
-	if not user then
-		ret.errorcode = errorcode[2].code
-		ret.msg = errorcode[2].msg
+	local m = ctx:get_module("recharge")
+	local ok, result = pcall(m.recharge_purchase, m, self)
+	if ok then
+		return result 
+	else
+		skynet.error(result)
+		local ret = {}
+		ret.errorcode = errorcode[29].code
+		ret.msg = errorcode[29].msg
 		return ret
 	end
-	assert(self.g)
-	for i,v in ipairs(self.g) do
-		local goods = skynet.call(game, "lua", "query_g_recharge", v.csv_id)
-		assert(user.recharge_rmb)
-		assert(user.recharge_diamond)
-		user.recharge_rmb = user.recharge_rmb + goods.rmb * v.num
-		user.recharge_diamond = user.recharge_diamond + goods.diamond * v.num
-		user:update_db({"recharge_rmb", "recharge_diamond"}, const.DB_PRIORITY_2)
-		local rc = user.u_recharge_countmgr:get_by_csv_id(v.csv_id)
-		if rc then
-			rc.count = rc.count + 1
-			assert(rc.count > 1)
-			rc:update_db({"count"})
-			local diamond = user.u_propmgr:get_by_csv_id(const.DIAMOND)
-			diamond.num = diamond.num + ((goods.diamond + goods.gift) * v.num)
-			diamond:update_db({"num"})
-		else
-			rc = user.u_recharge_countmgr.create({user_id=user.csv_id, csv_id=v.csv_id, count=1})
-			user.u_recharge_countmgr:add(rc)
-			rc:update_db(const.DB_PRIORITY_2)
-			local diamond = user.u_propmgr:get_by_csv_id(const.DIAMOND)
-			diamond.num = diamond.num + (assert(goods.diamond) + assert(goods.first)) * v.num
-			diamond:update_db({"num"})
-		end
-		local t = {user_id=assert(user.csv_id), csv_id=assert(v.csv_id), num=assert(v.num), dt=os.time()}
-		rr = user.u_recharge_recordmgr.create(t)
-		user.u_recharge_recordmgr:add(rr)
-		rr:update_db(const.DB_PRIORITY_2)
-
-		-----------------------------
-		local user_vip_max
-		local ptr = skynet.call(game, "lua", "query_g_config")
-		tptr.createtable(ptr)
-		for _,k,v in tptr.pairs(ptr) do
-			if k == "user_vip_max" then
-				user_vip_max = v
-				break
-			end
-		end
-		assert(user_vip_max)
-		repeat
-			if user.uviplevel >= user_vip_max then
-				break
-			end
-			local condition = skynet.call(game, "lua", "query_g_recharge_vip_reward", user.uviplevel + 1)
-			local progress = user.recharge_diamond / condition.diamond
-			if progress >= 1 then
-				assert(user.exp_max)
-				assert(user.gold_max)
-				assert(user.exp_max)
-				assert(user.equipment_enhance_success_rate_up_p)
-				user.uviplevel = user.uviplevel + 1
-				user.exp_max = user.exp_max + math.floor(user.exp_max * (condition.exp_max_up_p))
-				user.gold_max = user.gold_max + math.floor(user.gold_max * (condition.gold_max_up_p))
-				user.equipment_enhance_success_rate_up_p = assert(condition.equipment_enhance_success_rate_up_p)
-				user.store_refresh_count_max = assert(condition.store_refresh_count_max)
-				user.prop_refresh = user.prop_refresh - math.floor(user.prop_refresh * (condition.prop_refresh_reduction_p/100))
-				user.arena_frozen_time = user.arena_frozen_time - math.floor(user.arena_frozen_time * (condition.arena_frozen_time_reduction_p/100))
-				user.gain_exp_up_p = assert(condition.gain_exp_up_p)
-				user.gain_gold_up_p = assert(condition.gain_gold_up_p)
-				user.purchase_hp_count_max = assert(condition.purchase_hp_count_max)
-			else
-				user.uvip_progress = math.floor(progress * 100)
-				user:update_db({"uvip_progress"}, const.DB_PRIORITY_2)
-				break
-			end
-		until false
-	end
-	ret.errorcode = errorcode[1].code
-	ret.msg = errorcode[1].msg
-	ret.u = {
-		uname = user.uname,
-    	uviplevel = user.uviplevel,
-    	uexp = user.u_propmgr:get_by_csv_id(const.EXP).num,
-    	config_sound = (user.config_sound == 1) and true or false,
-    	config_music = (user.config_music == 1) and true or false,
-    	avatar = user.avatar,
-    	sign = user.sign,
-    	c_role_id = user.c_role_id,
-    	gold = user.u_propmgr:get_by_csv_id(const.GOLD).num,
-    	diamond = user.u_propmgr:get_by_csv_id(const.DIAMOND).num,
-    	recharge_total = user.recharge_rmb,
-    	recharge_progress = user.uvip_progress,
-    	recharge_diamond = user.recharge_diamond,
-    	love = user.u_propmgr:get_by_csv_id(const.LOVE).num,
-    	level = user.level
-	}
-	return ret
 end
 
 function REQUEST:recharge_vip_reward_all(ctx)
