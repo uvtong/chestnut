@@ -453,31 +453,31 @@ function cls:ctor( ... )
 		uq = false,
 		t = "number",
 	},
-	sum_combat = {
+	ara_r1_sum_combat = {
 		pk = false,
 		fk = false,
-		cn = "sum_combat",
+		cn = "ara_r1_sum_combat",
 		uq = false,
 		t = "number",
 	},
-	sum_defense = {
+	ara_r1_sum_defense = {
 		pk = false,
 		fk = false,
-		cn = "sum_defense",
+		cn = "ara_r1_sum_defense",
 		uq = false,
 		t = "number",
 	},
-	sum_critical_hit = {
+	ara_r1_sum_critical_hit = {
 		pk = false,
 		fk = false,
-		cn = "sum_critical_hit",
+		cn = "ara_r1_sum_critical_hit",
 		uq = false,
 		t = "number",
 	},
-	sum_king = {
+	ara_r1_sum_king = {
 		pk = false,
 		fk = false,
-		cn = "sum_king",
+		cn = "ara_r1_sum_king",
 		uq = false,
 		t = "number",
 	},
@@ -527,6 +527,62 @@ function cls:ctor( ... )
 		pk = false,
 		fk = false,
 		cn = "draw_num",
+		uq = false,
+		t = "number",
+	},
+	ara_r2_sum_combat = {
+		pk = false,
+		fk = false,
+		cn = "ara_r2_sum_combat",
+		uq = false,
+		t = "number",
+	},
+	ara_r2_sum_defense = {
+		pk = false,
+		fk = false,
+		cn = "ara_r2_sum_defense",
+		uq = false,
+		t = "number",
+	},
+	ara_r2_sum_critical_hit = {
+		pk = false,
+		fk = false,
+		cn = "ara_r2_sum_critical_hit",
+		uq = false,
+		t = "number",
+	},
+	ara_r2_sum_king = {
+		pk = false,
+		fk = false,
+		cn = "ara_r2_sum_king",
+		uq = false,
+		t = "number",
+	},
+	ara_r3_sum_combat = {
+		pk = false,
+		fk = false,
+		cn = "ara_r3_sum_combat",
+		uq = false,
+		t = "number",
+	},
+	ara_r3_sum_defense = {
+		pk = false,
+		fk = false,
+		cn = "ara_r3_sum_defense",
+		uq = false,
+		t = "number",
+	},
+	ara_r3_sum_critical_hit = {
+		pk = false,
+		fk = false,
+		cn = "ara_r3_sum_critical_hit",
+		uq = false,
+		t = "number",
+	},
+	ara_r3_sum_king = {
+		pk = false,
+		fk = false,
+		cn = "ara_r3_sum_king",
 		uq = false,
 		t = "number",
 	},
@@ -596,10 +652,10 @@ function cls:ctor( ... )
 	self.__head_ord[61] = self.__head["ara_fighting"]
 	self.__head_ord[62] = self.__head["ara_interface"]
 	self.__head_ord[63] = self.__head["ara_rfh_cost_tms"]
-	self.__head_ord[64] = self.__head["sum_combat"]
-	self.__head_ord[65] = self.__head["sum_defense"]
-	self.__head_ord[66] = self.__head["sum_critical_hit"]
-	self.__head_ord[67] = self.__head["sum_king"]
+	self.__head_ord[64] = self.__head["ara_r1_sum_combat"]
+	self.__head_ord[65] = self.__head["ara_r1_sum_defense"]
+	self.__head_ord[66] = self.__head["ara_r1_sum_critical_hit"]
+	self.__head_ord[67] = self.__head["ara_r1_sum_king"]
 	self.__head_ord[68] = self.__head["ara_rfh_st"]
 	self.__head_ord[69] = self.__head["ara_rfh_cd"]
 	self.__head_ord[70] = self.__head["ara_rfh_cd_cost_tms"]
@@ -607,6 +663,14 @@ function cls:ctor( ... )
 	self.__head_ord[72] = self.__head["ara_clg_cost_rsttm"]
 	self.__head_ord[73] = self.__head["ara_integral_rsttm"]
 	self.__head_ord[74] = self.__head["draw_num"]
+	self.__head_ord[75] = self.__head["ara_r2_sum_combat"]
+	self.__head_ord[76] = self.__head["ara_r2_sum_defense"]
+	self.__head_ord[77] = self.__head["ara_r2_sum_critical_hit"]
+	self.__head_ord[78] = self.__head["ara_r2_sum_king"]
+	self.__head_ord[79] = self.__head["ara_r3_sum_combat"]
+	self.__head_ord[80] = self.__head["ara_r3_sum_defense"]
+	self.__head_ord[81] = self.__head["ara_r3_sum_critical_hit"]
+	self.__head_ord[82] = self.__head["ara_r3_sum_king"]
 
 	self.__pk      = "csv_id"
 	self.__fk      = ""
