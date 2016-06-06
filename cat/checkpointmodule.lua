@@ -34,34 +34,47 @@ end
 
 function cls:hanging()
 	-- body
+
+	local l = {}
+
 	local user = self._env:get_user()
 	local game = self._env:get_game()
 
-	local r = skynet.call(game, "lua", "query_g_checkpoint", user.cp_hanging_id)
-	assert(r)
-	local cp_rc = user.u_checkpoint_rcmgr:get_by_csv_id(user.cp_hanging_id)
-	assert(cp_rc)
-	local now = os.time()
-	-- cac hanging 
-	local walk = now - cp_rc.hanging_starttime + cp_rc.hanging_walk
-	cp_rc.hanging_starttime = now
-	cp_rc.hanging_walk = (walk % r.cd)
-	local n = walk / r.cd
-	local l = {}
-	local prop = user.u_propmgr:get_by_csv_id(const.GOLD)
-	prop.num = math.floor(prop.num + (n * r.gain_gold))
-	table.insert(l, prop)
-	prop = user.u_propmgr:get_by_csv_id(const.EXP)
-	prop.num = math.floor(prop.num + (n * r.gain_exp))
-	table.insert(l, prop)
-	-- cac drop
-	walk = now - cp_rc.hanging_drop_starttime + cp_rc.hanging_drop_walk
-	cp_rc.hanging_drop_starttime = now
-	cp_rc.hanging_drop_walk = (walk % r.cd)
-	n = walk / 100
-	prop = user.u_propmgr:get_by_csv_id(r.drop)
-	prop.num = prop.num + 1
-	table.insert(l, prop)
+	local ochapter = user:get_field("cp_chapter")
+	local otype = user:get_field("cp_type")
+	local ocheckpoint = user:get_field("cp_checkpoint")
+	local ocsv_id = self:gen_csv_id(ochapter, otype, ocheckpoint)
+
+	local key = string.format("%s:%d", "g_checkpoint", ocsv_id)
+	local g_cp_rc = sd.query(key)
+
+	local cp_rc = u_checkpoint_rcmgr:get_by_csv_id(ocsv_id)   -- unlock
+	local hanging_walk = cp_rc:get_field("hanging_walk")
+	hanging_walk = hanging_walk + (now - cp_rc:get_field("hanging_starttime"))
+	
+	local prop = u_propmgr:get_by_csv_id(const.GOLD)
+	local num = prop:get_field("num") + g_cp_rc.gain_gold * hanging_walk
+	prop:set_field("num", num)
+	local item = {}
+	item.csv_id = const.GOLD
+	item.num = num
+	table.insert(l, item)
+
+	prop = u_propmgr:get_by_csv_id(const.EXP)
+	num = prop:get_field("num") + g_cp_rc.gain_exp * hanging_walk
+	prop:set_field("num", num)
+	local item = {}
+	item.csv_id = const.GOLD
+	item.num = num
+	table.insert(l, item)
+
+	cp_rc:set_field("hanging_walk", 0)
+	cp_rc:set_field("hanging_starttime", 0)
+
+	local hanging_drop_walk = cp_rc:get_field("hanging_drop_walk")
+	hanging_drop_walk = hanging_drop_walk + (now - cp_rc:get_field("hanging_drop_starttime"))
+	cp_rc:set_field("hanging_drop_starttime", 0)
+
 	return l
 end
 
@@ -71,81 +84,80 @@ function cls:choose(chapter, type, checkpoint, csv_id, now)
 	local user = self._env:get_user()
 	local modelmgr = self._env:get_modelmgr()
 	local u_checkpoint_rcmgr = modelmgr:get_u_checkpoint_rcmgr()
+	local u_propmgr = modelmgr:get_u_propmgr()
 	local ochapter = user:get_field("cp_chapter")
 	local otype = user:get_field("cp_type")
 	local ocheckpoint = user:get_field("cp_checkpoint")
 	local ocsv_id = self:gen_csv_id(ochapter, otype, ocheckpoint)
-	local cp_rc = u_checkpoint_rcmgr:get_by_csv_id(ocsv_id)   -- unlock 
+	local cp_rc = u_checkpoint_rcmgr:get_by_csv_id(ocsv_id)   -- unlock
+	local hanging_walk = cp_rc:get_field("hanging_walk")
+	hanging_walk = hanging_walk + (now - cp_rc:get_field("hanging_starttime"))
+	
+	local key = string.format("%s:%d", "g_checkpoint", ocsv_id)
+	local g_cp_rc = sd.query(key)
+
+	local prop = u_propmgr:get_by_csv_id(const.GOLD)
+	local num = prop:get_field("num") + g_cp_rc.gain_gold * hanging_walk
+	prop:set_field("num", num)
+
+	prop = u_propmgr:get_by_csv_id(const.EXP)
+	num = prop:get_field("num") + g_cp_rc.gain_exp * hanging_walk
+	prop:set_field("num", num)
+
+	cp_rc:set_field("hanging_walk", 0)
+	cp_rc:set_field("hanging_starttime", 0)
+
+	local hanging_drop_walk = cp_rc:get_field("hanging_drop_walk")
+	hanging_drop_walk = hanging_drop_walk + (now - cp_rc:get_field("hanging_drop_starttime"))
+	cp_rc:set_field("hanging_drop_starttime", 0)
+
+	-- hanging_drop_walk
+
 	if cp_rc:get_field("passed") == 0 then
 		if cp_rc:get_field("cd_finished") == 1 then
-			cp_rc:set_field("cd_starttime", now)
 		else
-
+			local walk = now - cp_rc:get_field("cd_starttime")
+			walk = cp_rc:get_field("cd_walk") + walk
+			if walk >= g_cp_rc.cd then
+				cp_rc:set_field("cd_walk", walk)
+				cp_rc:set_field("cd_finished", 1)
+			else
+				cp_rc:set_field("cd_walk", walk)
+			end
+			cp_rc:set_field("cd_starttime", 0)
 		end
-	else
-
 	end
-	if cp_rc:get_field("cd_finished") == 1 then
 
 	user:set_field("cp_chapter", chapter)
 	user:set_field("cp_type", type)
-	user:set_field("cp_id", id)
-
-	local ret = {}
-
-	if user.cp_hanging_id > 0 then
-		if user.cp_hanging_id ~= csv_id then
-			local ok, result = pcall(hanging)
-			if not ok then
-				skynet.error(result)
-				ret.errorcode = errorcode[29].code
-				ret.msg = errorcode[29].msg
-				return false, ret
-			end
-			local cp_rc = user.u_checkpoint_rcmgr:get_by_csv_id(user.cp_hanging_id)
-			cp_rc.hanging_starttime = 0
-			cp_rc.hanging_drop_starttime = 0
-			user.cp_hanging_id = csv_id
-		end
+	user:set_field("cp_checkpoint", checkpoint)	
+	local cp_rc = u_checkpoint_rcmgr:get_by_csv_id(csv_id)   -- unlock 
+	cp_rc:set_field("hanging_starttime", now)
+	cp_rc:set_field("hanging_drop_starttime", now)
+	if cp_rc:get_field("passed") == 1 then
+		local ret = {}
+		ret.errorcode = errorcode[1].code
+		ret.msg = errorcode[1].msg
+		return ret
 	else
-		-- reslove this time hanging
-		user.cp_hanging_id = csv_id
-		local cp_rc = user.u_checkpoint_rcmgr:get_by_csv_id(csv_id) 
-		cp_rc.hanging_starttime = now
-		cp_rc.hanging_drop_starttime = now
-	end
-
-	-- in the n
-	if user.cp_battle_id > 0 then
-		if user.cp_battle_id ~= csv_id then
-			local cp_rc = user.u_checkpoint_rcmgr:get_by_csv_id(user.cp_battle_id)
-			if cp_rc.cd_finished == 0 then
-				cp_rc.cd_walk = cp_rc.cd_walk + (now - cp_rc.cd_starttime)
-				cp_rc.cd_starttime = 0
-				local r = skynet.call(game, "lua", "query_g_checkpoint", csv_id)
-				if cp_rc.cd_walk >= r.cd then
-					cp_rc.cd_finished = 1
-				end
-			end	
-			user.cp_battle_id = 0
-			user.cp_battle_chapter = 0
+		if cp_rc:get_field("cd_finished") == 1 then
+			local ret = {}
+			ret.errorcode = errorcode[1].code
+			ret.msg = errorcode[1].msg
+			ret.passed = 0
+			ret.cd = 0
+			return ret
+		else
+			local key = string.format("%s:%d", "g_checkpoint", csv_id)
+			local g_cp_rc = sd.query(key)
+			cp_rc:set_field("cd_starttime", now)
+			local ret = {}
+			ret.errorcode = errorcode[1].code
+			ret.msg = errorcode[1].msg
+			ret.passed = 0
+			ret.cd = g_cp_rc.cd - cp_rc:get_field("cd_walk")
+			return ret
 		end
-	end
-	return true
-end
-
-function cls:cp_exit()
-	-- body
-	local user = self._env:get_user()
-	if user.cp_battle_id > 0 then
- 		local cp_rc = user.u_checkpoint_rcmgr:get_by_csv_id(user.cp_battle_id)
- 		if cp_rc.cd_finished == 0 then
- 			local now = os.time()
-			cp_rc.cd_walk = cp_rc.cd_walk + (now - cp_rc.cd_starttime)
-			cp_rc.cd_starttime = 0
-		end
-		user:set_field("cp_battle_id", 0)
-		user:set_field("cp_battle_chapter", 0)
 	end
 end
 
@@ -165,31 +177,27 @@ function cls:checkpoint_chapter(args)
 	ret.chapter = u:get_field("cp_chapter")
 	ret.type = u:get_field("cp_type")
 	ret.checkpoint = u:get_field("cp_id")
+	ret.drop_id1 = u:get_field("cp_drop_id1")
+	ret.drop_id2 = u:get_field("cp_drop_id2")
+	ret.drop_id3 = u:get_field("cp_drop_id3")
 	return ret
 end
 
 function cls:checkpoint_hanging(args, ... )
 	-- body
-	local ret = {}
+	local user = self._env:get_user()
 	if not user then
+		local ret = {}
 		ret.errorcode = errorcode[2].code
 		ret.msg = errorcode[2].msg
 		return ret
 	end
 	-- enter
-	if user.cp_hanging_id > 0 then 
-		local ok, result = pcall(hanging, self)
-		if ok then
-			ret.errorcode = errorcode[1].code
-			ret.msg = errorcode[1].msg
-			ret.props = result
-			return ret
-		else
-			ret.errorcode = errorcode[29].code
-			ret.msg = errorcode[29].msg
-			return ret
-		end
+	local ok, result = pcall(self.hanging, self)
+	if ok then
+		return result
 	else
+		local ret = {}
 		ret.errorcode = errorcode[34].code
 		ret.msg = errorcode[34].msg
 		return ret
@@ -389,74 +397,15 @@ end
 
 function cls:checkpoint_battle_enter(args, ... )
 	-- body
+	local user = self._env:get_user()
+	local cp_fighting = user:get_field("cp_fighting")
+	if cp_fighting == 1 then
+	else
+	end
 	local ret = {}
-	assert(user ~= nil, "user is nil")
-	assert(self.chapter <= user.cp_chapter)
-	assert(self.csv_id == user.cp_hanging_id, string.format("self.csv_id:%d, user.cp_hanging_id:%d", self.csv_id, user.cp_hanging_id))
-	-- check 
-	local cp = user.u_checkpointmgr:get_by_csv_id(self.chapter)
-	if self.type == 0 then
-		assert(self.checkpoint == cp.chapter_type0)
-	elseif self.type == 1 then
-		assert(self.checkpoint == cp.chapter_type1)
-	elseif self.type == 2 then
-		assert(self.checkpoint == cp.chapter_type2)
-	else
-		ret.errorcode = errorcode[35].code
-		ret.msg = errorcode[35].msg
-		return ret
-	end
-	local now = os.time()
-	if user.cp_battle_id == 0 then
-		user.cp_battle_id = self.csv_id
-		user.cp_battle_chapter = self.chapter
-		local cp_rc = user.u_checkpoint_rcmgr:get_by_csv_id(self.csv_id)
-		assert(cp_rc.cd_starttime == 0)
-		if cp_rc.cd_finished == 1 then
-			ret.errorcode = errorcode[1].code
-			ret.msg = errorcode[1].msg
-			return ret
-		else
-			cp_rc.cd_starttime = now
-			local r = skynet.call(game, "lua", "query_g_checkpoint", self.csv_id)
-			if r.cd - cp_rc.cd_walk > 0 then
-				ret.errorcode = errorcode[1].code
-				ret.msg = errorcode[1].msg
-				ret.cd = r.cd - cp_rc.cd_walk
-				return ret
-			else
-				cp_rc.cd_starttime = 0
-				cp_rc.cd_finished = 1
-				ret.errorcode = errorcode[1].code
-				ret.msg = errorcode[1].msg
-				ret.cd = 0
-				return ret
-			end
-		end
-	else
-		assert(user.cp_battle_id == self.csv_id)
-		assert(user.cp_battle_chapter == self.chapter)
-		local cp_rc = user.u_checkpoint_rcmgr:get_by_csv_id(self.csv_id)
-		assert(cp_rc.cd_starttime > 0, string.format("cd_starttime:%d", cp_rc.cd_starttime))
-		assert(cp_rc.cd_finished == 0)
-		local walk = now - cp_rc.cd_starttime + cp_rc.cd_walk
-		cp_rc.cd_walk = walk
-		cp_rc.cd_starttime = now
-		local r = skynet.call(game, "lua", "query_g_checkpoint", self.csv_id)
-		if r.cd - cp_rc.cd_walk > 0 then
-			ret.errorcode = errorcode[1].code
-			ret.msg = errorcode[1].msg
-			ret.cd = r.cd - cp_rc.cd_walk
-			return ret
-		else
-			cp_rc.cd_starttime = 0
-			cp_rc.cd_finished = 1
-			ret.errorcode = errorcode[1].code
-			ret.msg = errorcode[1].msg
-			ret.cd = 0
-			return ret
-		end
-	end
+	ret.errorcode = errorcode[1].code
+	ret.msg = errorcode[1].msg
+	return ret
 end
 
 function cls:checkpoint_exit(args, ... )
@@ -467,10 +416,37 @@ function cls:checkpoint_exit(args, ... )
  		ret.msg = errorcode[2].msg
  		return ret
  	end
- 	self:cp_exit()
 	ret.errorcode = errorcode[1].code
  	ret.msg = errorcode[1].msg
 	return ret
+end
+
+
+function cls:checkpoint_drop_collect(args, ... )
+	-- body
+	local user = self._env:get_user()
+	local modelmgr = self._env:get_modelmgr()
+	local u_propmgr = modelmgr:get_u_propmgr()
+	local factory = self._env:get_myfactory()
+	if #args.drop_slot <= 3 then
+		for i,v in ipairs(args.drop_slot) do
+			local key = string.format("cp_drop_id%d", v)
+			local drop_id = user:get_field(key)
+			assert(drop_id ~= 0)
+			local prop = factory:get_prop(drop_id)
+			prop:set_field("num", prop:get_field("num") + 1)
+			user:set_field(key, 0)
+		end
+		local ret = {}
+		ret.errorcode = errorcode[1].code
+		ret.msg = errorcode[1].msg
+		return ret
+	else
+		local ret = {}
+		ret.errorcode = errorcode[37].code
+		ret.msg = errorcode[37].msg
+		return ret
+	end
 end
 
 return cls

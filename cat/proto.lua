@@ -941,6 +941,9 @@ checkpoint_chapter 63 {
         chapter 3 : integer
         type 4 : integer
         checkpoint 5 : integer
+        drop_id1 6 : integer
+        drop_id2 7 : integer
+        drop_id3 8 : integer
 	}
 }
 
@@ -977,7 +980,7 @@ checkpoint_hanging_choose 66 {
     response {
         errorcode 0 : integer
         msg 1 : string
-        passed 2 : integer
+        passed 2 : boolean
         cd 3 : integer
     }
 }
@@ -992,7 +995,6 @@ checkpoint_battle_enter 67 {
     response { 
         errorcode 0 : integer
         msg 1 : string
-        cd 2 : integer
     }
 }
 
@@ -1354,7 +1356,15 @@ checkpoint_battle_play 100 {
     }
 } 
 
-checkpoint
+checkpoint_drop_collect 101 {
+    request {
+        drop_slot 0 : *integer
+    }
+    response {
+        errorcode 0 : integer
+        msg 1 : string
+    }
+}
 
 ]]
 
