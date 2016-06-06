@@ -227,6 +227,71 @@ function cls:calculate_ara_role( ... )
 	user:update_db()
 end
 
+function cls:ara_rst_clg_tms( ... )
+	-- body
+	local key = string.format("%s:%d", "g_config", 1)
+ 	local config = sd.query(key)
+	local u = self._env:get_user()
+	local tm = os.date("*t", os.time())
+	local now = os.time()
+	local sec = u:get_field("ara_clg_tms_rsttm")
+	if sec == 0 then
+		local t = { year=tm.year, month=tm.month, day=tm.day, hour=config.ara_clg_tms_rst}
+		sec = os.time(t)
+	end
+	if now - sec >= 3600 then
+		local t = { year=tm.year, month=tm.month, day=tm.day, hour=config.ara_clg_tms_rst}
+		sec = os.time(t)
+		u:set_field("ara_clg_tms_rsttm", sec)
+		u:set_ara_clg_tms(config.ara_clg_tms_max)
+	end
+end
+
+function cls:ara_rst_integral( ... )
+	-- body
+	local u = self._env:get_user()
+	local modelmgr = self._env:get_modelmgr()
+	local key = string.format("%s:%d", "g_config", 1)
+ 	local config = sd.query(key)
+	local tm = os.date("*t", os.time())
+	local now = os.time()
+	local sec = u:get_field("ara_integral_rsttm")
+	if sec == 0 then
+		local t = { year=tm.year, month=tm.month, day=tm.day, hour=config.ara_integral_rst}
+		sec = os.time(t)
+	end
+	if now - sec >= 3600 then
+		local t = { year=tm.year, month=tm.month, day=tm.day, hour=config.ara_integral_rst}
+		sec = os.time(t)
+		u:set_field("ara_integral_rsttm", sec)
+		u:set_field("ara_integral", 0)
+		local u_ara_ptsmgr = modelmgr:get_u_ara_ptsmgr()
+		for k,v in pairs(u_ara_ptsmgr:get_data()) do
+			v:set_field("collected", 0)
+		end
+	end
+end
+
+function cls:ara_rst_clg_cost_tms( ... )
+	-- body
+	local key = string.format("%s:%d", "g_config", 1)
+ 	local config = sd.query(key)
+	local u = self._env:get_user()
+	local tm = os.date("*t", os.time())
+	local now = os.time()
+	local sec = u:get_field("ara_clg_cost_rsttm")
+	if sec == 0 then
+		local t = { year=tm.year, month=tm.month, day=tm.day, hour=config.ara_clg_tms_pur_tms_rst}
+		sec = os.time(t)
+	end
+	if now - sec >= 3600 then
+		local t = { year=tm.year, month=tm.month, day=tm.day, hour=config.ara_clg_tms_pur_tms_rst}
+		sec = os.time(t)
+		u:set_field("ara_clg_cost_rsttm", sec)
+		u:set_field("ara_clg_cost_tms", 0)
+	end
+end
+
 function cls:ara_bat_clg(enemy_id, ... )
 	-- body
 	local modelmgr = self._env:get_modelmgr()
@@ -287,52 +352,22 @@ function cls:ara_enter(args, ... )
 	local ctx = self._env
 	local u = ctx:get_user()
 	local modelmgr = ctx:get_modelmgr()
+	local factory = ctx:get_myfactory()
+	local u_ara_rnk_rwdmgr = modelmgr:get_u_ara_rnk_rwdmgr()
+	local u_ara_ptsmgr = modelmgr:get_u_ara_ptsmgr()
+
 	local key = string.format("%s:%d", "g_config", 1)
  	local config = sd.query(key)
  	local tm = os.date("*t", os.time())
 	local now = os.time()
 
-	local sec = u:get_field("ara_clg_tms_rsttm")
-	if sec == 0 then
-		local t = { year=tm.year, month=tm.month, day=tm.day, hour=config.ara_clg_tms_rst}
-		sec = os.time(t)
-	end
-	
-	if now - sec >= 3600 then
-		local t = { year=tm.year, month=tm.month, day=tm.day, hour=config.ara_clg_tms_rst}
-		sec = os.time(t)
-		u:set_field("ara_clg_tms_rsttm", sec)
-		u:set_ara_clg_tms(config.ara_clg_tms_max)
-	end
+	self:ara_rst_clg_cost_tms()
+
+	-- reset clg tms
+	self:ara_rst_clg_tms()
 
 	-- reset integral
-	local sec = u:get_field("ara_integral_rsttm")
-	if sec == 0 then
-		local t = { year=tm.year, month=tm.month, day=tm.day, hour=config.ara_integral_rst}
-		sec = os.time(t)
-	end
-	if now - sec >= 3600 then
-		local t = { year=tm.year, month=tm.month, day=tm.day, hour=config.ara_integral_rst}
-		sec = os.time(t)
-		u:set_field("ara_integral_rsttm", sec)
-		u:set_field("ara_integral", 0)
-		local u_ara_ptsmgr = modelmgr:get_u_ara_ptsmgr()
-		for k,v in pairs(u_ara_ptsmgr:get_data()) do
-			v:set_field("collected", 0)
-		end
-	end
-
-	local sec = os.time(t)
-	if sec == 0 then
-		local t = { year=tm.year, month=tm.month, day=tm.day, hour=config.ara_clg_tms_pur_tms_rst}
-		sec = os.time(t)
-	end
-	if now - sec >= 3600 then
-		local t = { year=tm.year, month=tm.month, day=tm.day, hour=config.ara_clg_tms_pur_tms_rst}
-		sec = os.time(t)
-		u:set_field("ara_clg_cost_rsttm", sec)
-		u:set_field("ara_clg_cost_tms", 0)
-	end
+	self:ara_rst_integral()
 
 	local ara_interface = u:get_ara_interface()
 	if ara_interface == 1 then
@@ -362,7 +397,6 @@ function cls:ara_enter(args, ... )
 		assert(ara_fighting == 0)
 	end
 
-	local factory = ctx:get_myfactory()
 	local j = factory:get_today()
 	local ara_rfh_tms = j:get_field("ara_rfh_tms")
 
@@ -378,7 +412,7 @@ function cls:ara_enter(args, ... )
 	end
 	u:set_field("ara_rfh_cd", ara_rfh_cd)
 
-	local u_ara_ptsmgr = modelmgr:get_u_ara_ptsmgr()
+	
 	local cl = {}
 	for i,v in ipairs(const.ARA_PTS) do
 		local rc = u_ara_ptsmgr:get_by_csv_id(v)
@@ -394,7 +428,7 @@ function cls:ara_enter(args, ... )
 			table.insert(cl, cl_li)
 		end
 	end
-	local u_ara_rnk_rwdmgr = modelmgr:get_u_ara_rnk_rwdmgr()
+	
 	local rl = {}
 	for i,v in ipairs(const.ARA_RNK_RWD) do
 		local rc = u_ara_rnk_rwdmgr:get_by_csv_id(v)
@@ -421,6 +455,7 @@ function cls:ara_enter(args, ... )
 	ret.ara_integral     = u:get_field("ara_integral")
 	ret.ara_clg_tms      = u:get_field("ara_clg_tms")
 	ret.ara_clg_cost_tms = u:get_field("ara_clg_cost_tms")
+
 	ret.ara_clg_cost_tms_cost = {}
 	local key = string.format("%s:%d", "g_ara_tms", u:get_field("ara_clg_cost_tms") + 1)
 	local ara_tms = sd.query(key)
@@ -478,54 +513,54 @@ function cls:ara_choose_role_enter(args, ... )
 		ret.msg = errorcode[27].msg
 		return ret
 	end
+
 	local ctx = self._env
 	local u = ctx:get_user()
 	local modelmgr = ctx:get_modelmgr()
 	local u_rolemgr = modelmgr:get_u_rolemgr()
+	local factory = self._env:get_myfactory()
+	
 	if u_rolemgr:get_count() < 3 then
 		local ret = {}
 		ret.errorcode = errorcode[150].code
 		ret.msg = errorcode[150].msg
 		return ret
 	else
-		local key = string.format("%s:%d", "g_config", 1)
- 		local config = sd.query(key)
-		local tm = os.date("*t", os.time())
-		local t = { year=tm.year, month=tm.month, day=tm.day, hour=config.ara_clg_tms_rst}
-		local sec = os.time(t)
-		local now = os.time()
-		if now > sec then
-			u:set_ara_clg_tms(config.ara_clg_tms_max)
-		end
+
+		self:ara_rst_clg_tms()
+		self:ara_rst_clg_cost_tms()
+
 		local ara_clg_tms = u:get_field("ara_clg_tms")
 		if ara_clg_tms <= 0 then
 			local ara_clg_cost_tms = u:get_field("ara_clg_cost_tms")
 			ara_clg_cost_tms = ara_clg_cost_tms + 1
+			u:set_field("ara_clg_cost_tms", ara_clg_cost_tms)
+
 			local key = string.format("%s:%d", "g_ara_tms", ara_clg_cost_tms)
 			local clg_cost_tms = sd.query(key)
 			local purchase_cost = clg_cost_tms["purchase_cost"]
 			local r = util.parse_text(purchase_cost, "(%d+%*%d+%*?)", 2)
-			local u_propmgr = modelmgr:get_u_propmgr()
-			local prop = u_propmgr:get_by_csv_id(r[1])
-			if prop:get_field("num") > r[2] then
-				local num = prop:get_field("num") - r[2]
+
+			local prop = factory:get_prop(r[1][1])
+			if prop:get_field("num") > r[1][2] then
+				local num = prop:get_field("num") - r[1][2]
 				prop:set_field("num", num)
 			else
-				print("####################################5")
 				local ret = {}
 				ret.errorcode = errorcode[31].code
 				ret.msg = errorcode[31].msg
 				return ret
 			end
+		else
+			ara_clg_tms = ara_clg_tms - 1
+			u:set_field("ara_clg_tms", ara_clg_tms)
 		end
 	end
-	local u = self._env:get_user()
-	local modelmgr = self._env:get_modelmgr()
+	
 	self._me = u
 	self._me_modelmgr = modelmgr
 	self:load_enemy(args.enemy_id)
-	print("############################################1", args.enemy_id)
-	print("############################################2", self._enemy:get_field("csv_id"))
+
 	assert(self._enemy:get_field("csv_id") == args.enemy_id, args.enemy_id)
 	local enemy = {}
 	enemy.csv_id = self._enemy:get_field("csv_id")
@@ -875,25 +910,16 @@ function cls:ara_convert_pts(args, ... )
 	-- body
 	local ctx = self._env
 	local u = ctx:get_user()
-	local ctx = self._env
 	local modelmgr = ctx:get_modelmgr()
-	local key = string.format("%s:%d", "g_config", 1)
- 	local config = sd.query(key)
-	local tm = os.date("*t", os.time())
-	local t = { year=tm.year, month=tm.month, day=tm.day, hour=config.ara_integral_rst}
-	local sec = os.time(t)
-	local now = os.time()
-	if now > sec then
-		u:set_field("ara_integral", 0)
-		local u_ara_ptsmgr = modelmgr:get_u_ara_ptsmgr()
-		for k,v in pairs(u_ara_ptsmgr:get_data()) do
-			v:set_field("collected", 0)
-		end
-	end
+	local u_ara_ptsmgr = modelmgr:get_u_ara_ptsmgr()
 	local u_propmgr = modelmgr:get_u_propmgr()
+	local factory = self._env:get_myfactory()
+
+	self:ara_rst_integral()
+
 	local props = {}
 	local cl = {}
-	local u_ara_ptsmgr = modelmgr:get_u_ara_ptsmgr()
+	
 	local ara_integral = u:get_ara_integral()
 	if ara_integral > 0 then
 		for i=ara_integral,1 do
@@ -912,6 +938,10 @@ function cls:ara_convert_pts(args, ... )
 					local ara_pts = sd.query(key)
 					local reward = util.parse_text(ara_pts.reward, "(%d+%*%d+%*?)", 2)
 					for i,v in ipairs(reward) do
+
+						local prop = factory:get_prop(v[1])
+						prop:set_field("num", prop:get_field("csv_id") + v[2])
+
 						local prop = u_propmgr:get_by_csv_id(v[1])
 						if prop then
 							prop:set_field("csv_id", prop:get_field("csv_id") + v[2])

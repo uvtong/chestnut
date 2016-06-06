@@ -294,6 +294,24 @@ function cls:get_prop(csv_id, ... )
 		return p
 	end
 end
-	
+
+function cls:get_goods(csv_id, ... )
+	-- body
+	local user = self._env:get_user()
+	local p = user.u_goodsmgr:get_by_csv_id(csv_id)
+	if p then
+		return p
+	else
+		p = skynet.call(game, "lua", "query_g_goods", csv_id)
+		p.user_id = user.csv_id
+		p.inventory = p.inventory_init
+		p.countdown = 0
+		p.st = 0
+		p = user.u_goodsmgr.create(p)
+		user.u_goodsmgr:add(p)
+		p:update_db(const.DB_PRIORITY_2)
+	end
+end
+
 return cls
 	

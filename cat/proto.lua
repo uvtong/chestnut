@@ -938,6 +938,9 @@ checkpoint_chapter 63 {
 		errorcode 0 : integer
 		msg 1 : string
 		l 2 : *checkpoint_chapter
+        chapter 3 : integer
+        type 4 : integer
+        checkpoint 5 : integer
 	}
 }
 
@@ -975,6 +978,7 @@ checkpoint_hanging_choose 66 {
         errorcode 0 : integer
         msg 1 : string
         passed 2 : integer
+        cd 3 : integer
     }
 }
 
@@ -1252,20 +1256,20 @@ ara_choose_role_enter 91 {
         enemy_id 1 : integer
     }
 	response {
-		errorcode 1 : integer
-		msg 2 : string
-		bat_roleid 3 : *integer
-		e 4 : enemy
+		errorcode 0 : integer
+		msg 1 : string
+		bat_roleid 2 : *integer
+		e 3 : enemy
 	}
 }
 
 ara_choose_role 92 {
 	request {
-		bat_roleid 1 : *integer
+		bat_roleid 0 : *integer
 	}
 	response {
-		errorcode 1 : integer
-		msg 2 : string
+		errorcode 0 : integer
+		msg 1 : string
 	}
 }
 
@@ -1300,15 +1304,15 @@ TMP_BeginGUQNQIACoreFight 97
 {
     request
     {
-        monsterid 1 : integer
+        monsterid 0 : integer
     }
     response
     {
-        errorcode 1 : integer
-        msg 2 : string
-        firstfighter 3 : integer
-        kf_id 4 : integer
-        delay_time 5 : integer
+        errorcode 0 : integer
+        msg 1 : string
+        firstfighter 2 : integer
+        kf_id 3 : integer
+        delay_time 4 : integer
     }
 }
 
@@ -1331,11 +1335,26 @@ TMP_GuanQiaBattleList 98
 
 ara_lp 99 {
     response {
-        errorcode 1 : integer
-        msg 2 : string
-        lp 3 : *suser
+        errorcode 0 : integer
+        msg 1 : string
+        lp 2 : *suser
     }
 }
+
+checkpoint_battle_play 100 {
+    request {
+        chapter 0 : integer
+        type 1 : integer
+        checkpoint 2 : integer
+    }
+    response {
+        errorcode 0 : integer
+        msg 1 : string
+        cd 2 : integer
+    }
+} 
+
+checkpoint
 
 ]]
 

@@ -42,9 +42,9 @@ function cls:ctor( ... )
 	cls = require "arenamodule"
 	local m = cls.new(self)
 	self._m["arena"] = m
-	cls = require "checkpointmodule"
-	local m = cls.new(self)
-	self._m["checkpoint"] = m
+	-- cls = require "checkpointmodule"
+	-- local m = cls.new(self)
+	-- self._m["checkpoint"] = m
 	cls = require "shopmodule"
 	local m = cls.new(self)
 	self._m["shop"] = m
@@ -57,6 +57,9 @@ function cls:ctor( ... )
 	cls = require "propmodule"
 	local m = cls.new(self)
 	self._m["prop"] = m
+	cls = require "achievementmodule"
+	local m = cls.new(self)
+	self._m["achievement"] = m
 end
 
 function cls:get_module(k, ... )
@@ -212,61 +215,12 @@ function cls:set_user(v, ... )
 end
 
 function cls:raise_achievement(T)
-	-- body  
-	if true then
-		return
-	end                 
-	assert(T)
-	while true do 
-		local a = assert(self._user.u_achievementmgr:get_by_type(T))
-		if a.unlock_next_csv_id == 0 then
-			break
-		end
-		local finished
-		if T == const.ACHIEVEMENT_T_2 then
-			finished = self._user.u_propmgr:get_by_csv_id(const.GOLD).num
-		elseif T == const.ACHIEVEMENT_T_3 then
-			finished = self._user.u_propmgr:get_by_csv_id(const.EXP).num
-		elseif T == const.ACHIEVEMENT_T_4 then
-			finished = self._user.take_diamonds
-		elseif T == const.ACHIEVEMENT_T_5 then
-			finished = self._user.u_rolemgr:get_count()
-		elseif T == const.ACHIEVEMENT_T_6 then
-			finished = self._user.u_checkpointmgr:get_by_csv_id(0).chapter
-		elseif T == const.ACHIEVEMENT_T_7 then
-			finished = self._user.level
-		elseif T == const.ACHIEVEMENT_T_8 then
-			finished = self._user.draw_number
-		elseif T == const.ACHIEVEMENT_T_9 then
-			finished = self._user.u_kungfumgr:get_count()
-		else
-			assert(false)
-		end
-		local progress = finished / a.c_num
-		if progress >= 1 then
-			local tmp = {}
-			for k,v in pairs(a) do
-				tmp[k] = v
-			end
-			tmp.finished = 100
-			tmp.reward_collected = 0
-			self:push_achievement(a)
-
-			local rc = self._user.u_achievement_rcmgr:create(tmp)
-			self._user.u_achievement_rcmgr:add(rc)
-			rc:__insert_db(const.DB_PRIORITY_2)
-
-			assert(type(a.unlock_next_csv_id), string.format("%s", type(a.unlock_next_csv_id)))
-			local ga = skynet.call(self._game, "lua", "query_g_achievement", a.unlock_next_csv_id)
-			a.csv_id = ga.csv_id
-			a.finished = 0
-			a.c_num = ga.c_num
-			a.unlock_next_csv_id = ga.unlock_next_csv_id
-			a.is_unlock = 1
-		else
-			a.finished = math.floor(progress * 100)
-			break
-		end
+	-- body 
+	local m = self._m["achievement"]
+	local ok, result = pcall(m.raise_achievement, m, T)
+	if ok then
+	else
+		skynet.error(result)
 	end
 end
 
@@ -512,7 +466,7 @@ function cls:login( ... )
 	-- body
 	local u = self:get_user()
 	local lp = skynet.getenv("leaderboards_name")
-	skynet.call(lp, "lua", "push", u:get_field('csv_id'), u:get_field("sum_combat"))
+	skynet.call(lp, "lua", "push", u:get_field('csv_id'), u:get_field("csv_id"))
 
 	local m = self._m["arena"]
 	m:calculate_ara_role()
