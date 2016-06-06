@@ -4,17 +4,34 @@ local sd = require "sharedata"
 local errorcode = require "errorcode"
 local const = require "const"
 local super = require "module"
-local cls = class("arenamodule", super)
+local cls = class("checkpointmodule", super)
 
 function cls:ctor(env, ... )
 	-- body
 	self._env = env
 end
 
+function cls:cp_progress( ... )
+	-- body
+	local modelmgr = self._env:get_modelmgr()
+	local u_checkpointmgr = modelmgr:get_u_checkpointmgr()
+	local r = {}
+	for k,v in pairs(u_checkpointmgr.__data) do
+		local item = {}
+		item.chapter = v:get_field("chapter")
+		item.chapter_type0 = v:get_field("chapter_type0")
+		item.chapter_type1 = v:get_field("chapter_type1")
+		item.chapter_type2 = v:get_field("chapter_type2")
+		table.insert(r, item)
+	end
+	return r
+end
+
 function cls:hanging()
 	-- body
 	local user = self._env:get_user()
 	local game = self._env:get_game()
+
 	local r = skynet.call(game, "lua", "query_g_checkpoint", user.cp_hanging_id)
 	assert(r)
 	local cp_rc = user.u_checkpoint_rcmgr:get_by_csv_id(user.cp_hanging_id)
@@ -116,10 +133,7 @@ function cls:checkpoint_chapter(args)
 	end
 	ret.errorcode = errorcode[1].code
 	ret.msg = errorcode[1].code
-	ret.l = {}
-	for k,v in pairs(u.u_checkpointmgr.__data) do
-		table.insert(ret.l, v)
-	end
+	ret.l = self:cp_progress()
 	return ret
 end
 

@@ -175,4 +175,47 @@ function cls:role_all(args)
     return ret
 end
 
+function cls:role_info(args)
+	local user = self._env:get_user()
+	local modelmgr = self._env:get_modelmgr()
+	local u_propmgr = modelmgr:get_u_propmgr()
+	local ret = {}
+	if not user then
+		ret.errorcode = errorcode[2].code
+		ret.msg = errorcode[2].msg
+		return ret
+	end
+	if args.role_id == nil then
+		ret.errorcode = errorcode[27].code
+		ret.msg = errorcode[27].msg
+		return ret
+	end
+	local role = assert(user.u_rolemgr:get_by_csv_id(self.role_id))
+	ret.errorcode = errorcode[1].code
+	ret.msg = errorcode[1].msg
+	local r = {}
+	r.csv_id = role:get_field("csv_id")
+	r.is_possessed = true
+	r.star = role:get_field("star")
+	r.u_us_prop_num = role:get_field("u_us_prop_num")
+	r.property_id1 = role:get_field("property_id1")
+	r.value1       = role:get_field("value1")
+	r.property_id2 = role:get_field("property_id2")
+	r.value2       = role:get_field("value2")
+	r.property_id3 = role:get_field("property_id3")
+	r.value3       = role:get_field("value3")
+	r.property_id4 = role:get_field("property_id4")
+	r.value4       = role:get_field("value4")
+	r.property_id5 = role:get_field("property_id5")
+	r.value5       = role:get_field("value5")
+	local prop = u_propmgr:get_by_csv_id(role:get_field("us_prop_csv_id"))
+	if prop then
+		r.u_us_prop_num = prop:get_field("num")
+	else
+		r.u_us_prop_num = 0
+	end
+	ret.r = r
+	return ret
+end	
+
 return cls

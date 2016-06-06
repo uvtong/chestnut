@@ -52,6 +52,7 @@ end
 function CMD.push(uid, key)
 	-- body
 	assert(type(uid) == "number")
+	
 	local u = leaderboardsmgr:get(uid)
 	if u then
 		return u:get_field("ranking")

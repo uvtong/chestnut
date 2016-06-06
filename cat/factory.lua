@@ -134,15 +134,25 @@ function cls:create_user(uid)
 		ara_interface = 0,
 		ara_rfh_cost_tms = 0,
 		ara_clg_cost_tms = 0,
-		sum_combat = 0,
-		sum_defense = 0,
-		sum_critical_hit = 0,
-		sum_king = 0,
+		ara_r1_sum_combat = 0,
+		ara_r1_sum_defense = 0,
+		ara_r1_sum_critical_hit = 0,
+		ara_r1_sum_king = 0,
 		ara_rfh_st = 0,
 		ara_rfh_cd = 0,
 		ara_rfh_cd_cost_tms = 0,
-		ara_clg_tms_pur_tms = 0,
+		ara_clg_tms_rsttm = 0,
+		ara_clg_cost_rsttm = 0,
+		ara_integral_rsttm = 0,
 		draw_num = 0,
+		ara_r2_sum_combat = 0,
+		ara_r2_sum_defense = 0,
+		ara_r2_sum_critical_hit = 0,
+		ara_r2_sum_king = 0,
+		ara_r3_sum_combat = 0,
+		ara_r3_sum_defense = 0,
+		ara_r3_sum_critical_hit = 0,
+		ara_r3_sum_king = 0,
 	}
 	local usersmgr = self._env:get_usersmgr()
 	local user = usersmgr:create_entity(t)
@@ -281,6 +291,24 @@ function cls:get_prop(csv_id, ... )
 		return p
 	end
 end
-	
+
+function cls:get_goods(csv_id, ... )
+	-- body
+	local user = self._env:get_user()
+	local p = user.u_goodsmgr:get_by_csv_id(csv_id)
+	if p then
+		return p
+	else
+		p = skynet.call(game, "lua", "query_g_goods", csv_id)
+		p.user_id = user.csv_id
+		p.inventory = p.inventory_init
+		p.countdown = 0
+		p.st = 0
+		p = user.u_goodsmgr.create(p)
+		user.u_goodsmgr:add(p)
+		p:update_db(const.DB_PRIORITY_2)
+	end
+end
+
 return cls
 	

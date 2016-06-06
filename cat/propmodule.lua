@@ -103,7 +103,7 @@ function cls:use_prop(args)
 				local item = {}
 				item.csv_id = v[1]
 				item.num = p:get_field("num")
-				table.insert(item)
+				table.insert(l, item)
 
 				if v[1] == const.GOLD then
 					self._env:raise_achievement(const.ACHIEVEMENT_T_2)
@@ -114,6 +114,7 @@ function cls:use_prop(args)
 		elseif assert(prop.use_type) == 4 then
 			local f = false
 			local r = util.parse_text(prop:get_field("pram1"), "(%d+%*%d+%*%d+%*?)", 3)
+
 			local total = 0
 			for i,v in ipairs(r) do
 				v.min = total
@@ -125,21 +126,29 @@ function cls:use_prop(args)
 				if rand >= v.min and rand < v.max then
 					f = true
 					local p = assert(factory:get_prop(v[1]))
-					p:set_field("num", (v[2] * use_prop_num))
+					p:set_field("num", p:get_field("num") + (v[2] * use_prop_num))
 					p:update_db()
 					
 					local item = {}
 					item.csv_id = v[1]
 					item.num = p:get_field("num")
-					table.insert(l, p)
+					table.insert(l, item)
 					break
 				end
 			end
 			assert(f)
+		else
+			ret.errorcode = errorcode[28].code
+			ret.msg = errorcode[28].msg
+			return ret
 		end
 
 		prop:set_field("num", prop:get_field("num") - use_prop_num)
 		prop:update_db()
+		local item = {}
+		item.csv_id = prop:get_field("csv_id")
+		item.num = prop:get_field("num")
+		table.insert(l, item)
 
 		ret.errorcode = errorcode[1].code
 		ret.msg	= errorcode[1].msg

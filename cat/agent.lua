@@ -91,19 +91,8 @@ end
 
 local function get_goods(csv_id)
 	-- body
-	local p = user.u_goodsmgr:get_by_csv_id(csv_id)
-	if p then
-		return p
-	else
-		p = skynet.call(game, "lua", "query_g_goods", csv_id)
-		p.user_id = user.csv_id
-		p.inventory = p.inventory_init
-		p.countdown = 0
-		p.st = 0
-		p = user.u_goodsmgr.create(p)
-		user.u_goodsmgr:add(p)
-		p:update_db(const.DB_PRIORITY_2)
-	end
+	local factory = env:get_myfactory()
+	return factory:get_goods(csv_id)
 end
 
 local function store_refresh_reset_count()
@@ -332,109 +321,34 @@ local function subscribe( )
 	c2:subscribe() 		
 end 					
 						
-function REQUEST:achievement()
+function REQUEST:achievement(ctx)
 	-- body				
-	local ret = {} 		
-	if not user then 	
-		ret.errorcode = errorcode[2].code
-		ret.msg = errorcode[2].msg
-		return ret 		
-	end 					
-	assert(user) 		
-	local l = {} 		
-	for i=1,const.ACHIEVEMENT_T_SUM do
-		local flag = false
-		for j=1,11 do
-			local T = i + 1
-			local idx = i * 1000 + j
-			local a = user.u_achievement_rcmgr:get_by_csv_id(idx)
-			if a then
-				if a.reward_collected ~= 1 then
-					flag = true
-				end
-			else
-				a = assert(user.u_achievementmgr:get_by_type(T))
-				assert(a.csv_id == idx, string.format("T: %d, idx: %d", T, idx))
-				flag = true
-			end
-			if flag then
-				local tmp = {}
-				for k,v in pairs(a) do
-					tmp[k] =v
-				end
-				tmp.reward_collected = false
-				tmp.is_unlock = true
-				table.insert(l, tmp)
-				break
-			end
-		end
-		assert(flag)
+	local m = ctx:get_module("achievement")
+	local ok, result = pcall(m.achievement, m, self)
+	if ok then
+		return result 
+	else
+		skynet.error(result)
+		local ret = {}
+		ret.errorcode = errorcode[29].code
+		ret.msg = errorcode[29].msg
+		return ret
 	end
-	ret.errorcode = errorcode[1].code
-    ret.msg = errorcode[1].msg
-    ret.achis = l
-    return ret
 end
 
 function REQUEST:achievement_reward_collect(ctx)
 	-- body
-	local ret = {}
-	if not user then
-		ret.errorcode = errorcode[2].code
-		ret.msg = errorcode[2].msg
+	local m = ctx:get_module("achievement")
+	local ok, result = pcall(m.achievement_reward_collect, m, self)
+	if ok then
+		return result 
+	else
+		skynet.error(result)
+		local ret = {}
+		ret.errorcode = errorcode[29].code
+		ret.msg = errorcode[29].msg
 		return ret
 	end
-	assert(user)
-	assert(self.csv_id)
-	local a = user.u_achievement_rcmgr:get_by_csv_id(self.csv_id)
-	if a and a.finished == 100 and a.reward_collected == 0 then
-		a.reward_collected = 1
-		local a_src = skynet.call(game, "lua", "query_g_achievement", a.csv_id)
-		if a_src.type == 2 then
-			local csv_id1 = string.gsub(a_src.reward, "(%d*)%*(%d*)", "%1")
-			local num1 = string.gsub(a_src.reward, "(%d*)%*(%d*)", "%2")
-			local prop = get_prop(csv_id1)
-
-			local prop = user.u_propmgr:get_by_csv_id(csv_id1)
-			if prop then
-				prop.num = prop.num + num1
-				prop:update_db({"num"})
-			else
-				prop = game.g_propmgr:get_by_csv_id(csv_id1)
-				prop.user_id = user.csv_id
-				prop.num = num1
-				prop = user.u_propmgr.create(prop)
-				
-				prop:update_db(const.DB_PRIORITY_2)
-			end
-		end
-		local next = user.u_achievement_rcmgr:get_by_csv_id(a_src.unlock_next_csv_id)
-		if next then
-			ret.next = {}
-			for k,v in pairs(next) do
-				ret.next[k] = v
-			end
-			ret.next.reward_collected = (next.reward_collected == 1) and true or false
-			ret.next.is_unlock = (next.is_unlock == 1) and true or false
-		else
-			next = user.u_achievementmgr:get_by_type(a_src.type)
-			if a_src.unlock_next_csv_id ~= 0 then
-				assert(next.csv_id == a_src.unlock_next_csv_id, string.format("%d, %d", next.csv_id, a_src.unlock_next_csv_id))
-			end
-			ret.next = {}
-			for k,v in pairs(next) do
-				ret.next[k] = v
-			end
-			ret.next.reward_collected = false
-			ret.next.is_unlock = true
-		end
-		ret.errorcode = errorcode[1].code
-		ret.msg = errorcode[1].msg
-		return ret
-	end
-	ret.errorcode = errorcode[26].code
-	ret.msg = errorcode[26].msg
-	return ret
 end 
 	
 local function get_public_email(ctx)
@@ -464,26 +378,17 @@ local function get_public_email(ctx)
 end    	
 	 	
 function REQUEST:role_info()
-	local ret = {}
-	if not user then
-		ret.errorcode = errorcode[2].code
-		ret.msg = errorcode[2].msg
+	local m = ctx:get_module("role")
+	local ok, result = pcall(m.role_info, m, self)
+	if ok then
+		return result 
+	else
+		skynet.error(result)
+		local ret = {}
+		ret.errorcode = errorcode[29].code
+		ret.msg = errorcode[29].msg
 		return ret
 	end
-	assert(user)
-	assert(self.role_id)
-	local role = assert(user.u_rolemgr:get_by_csv_id(self.role_id))
-	ret.errorcode = errorcode[1].code
-	ret.msg = errorcode[1].msg
-	ret.r = role
-	ret.r.is_possessed = true
-	local prop = user.u_propmgr:get_by_csv_id(role.us_prop_csv_id)
-	if prop then
-		ret.r.u_us_prop_num = prop.num
-	else
-		ret.r.u_us_prop_num = 0
-	end
-	return ret
 end	
 
 function REQUEST:choose_role()
