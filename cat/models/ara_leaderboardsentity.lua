@@ -26,6 +26,7 @@ function cls:ctor(mgr, P, ... )
 		}
 
 	for k,v in pairs(self.__head) do
+		print(k, v)
 		self.__fields[k] = assert(P[k], string.format("no exist %s", k))
 	end
 	return self

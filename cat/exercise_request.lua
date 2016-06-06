@@ -126,7 +126,7 @@ local function add_to_prop(ctx, t)
 			local p = skynet.call(".game", "lua", "query_g_prop", v.propid)
 			--local p = game.g_propmgr:get_by_csv_id( v.propid )
 			assert(p)
-			p.user_id = user.csv_id
+			p.user_id = ctx:get_user():get_field("csv_id")
 			p.num = v.amount
 			p.id = genpk_2(p.user_id, p.csv_id)
 			local prop = ctx:get_modelmgr():get_u_propmgr():create(p)
@@ -213,28 +213,28 @@ function REQUEST:exercise(ctx)
 	local helper = ctx:get_helper()
 	assert(helper)
 	local texercise = helper:exercise_get_exercise()
-
+		
 	if not texercise then
 		print( "***********************not exist texercise" )
 		ret.ifexercise = true
 		ret.lefttime = 0
-		ret.exercise_level = 0
+		ret.exercise_level = ctx:get_user():get_field("exercise_level")
 		ifexercise = 1
 	else 	
 		print( "***********************exist texercise" )
 		local time = os.time()
-		local laststage = judge_time_quantum( texercise:get_exercise_time() , texercise:get_time_length() )
-		local newstage , lefttime = judge_time_quantum( time , texercise:get_time_length() )
-			
+		local laststage = judge_time_quantum( texercise:get_exercise_time() , texercise:get_field("time_length"))
+		local newstage , lefttime = judge_time_quantum( time , texercise:get_field("time_length"))
+		
 		if 0 == laststage or newstage ~= laststage then
 			ret.ifexercise = true
 			ret.lefttime = 0
-			ret.exercise_level = ctx:get_user().exercise_level
+			ret.exercise_level = ctx:get_user():get_field("exercise_level")
 			ifexercise = 1
 		else
 			ret.ifexercise = false
 			ret.lefttime = lefttime
-			ret.exercise_level = ctx:get_user().exercise_level
+			ret.exercise_level = ctx:get_user():get_field("exercise_level")
 			ifexercise = 0
 		end 
 	end     
@@ -255,7 +255,7 @@ function REQUEST:exercise_once(ctx)
 	local texercise = helper:exercise_get_exercise()
 
 	print( "esercise_level is *********************" ,  self.exercise_level , ifexercise )
-	if 0 == ifexercise or self.exercise_level ~= ctx:get_user():get_exercise_level() then
+	if 0 == ifexercise or self.exercise_level ~= ctx:get_user():get_field("exercise_level") then
 		ret.errorcode = errorcode[ 61 ].code
 		ret.msg = errorcode[ 61 ].msg
 		--should logout
@@ -263,12 +263,12 @@ function REQUEST:exercise_once(ctx)
 		if texercise then
 			texercise:set_if_latest(0)
 			texercise:update_db()
-			ctx:get_modelmgr():get_u_exercisemgr():delete(texercise:get_id())
+			ctx:get_modelmgr():get_u_exercisemgr():delete(texercise:get_field("id"))
 		end 
 
 		texercise = {}
 		texercise.id = skynet.call(".game", "lua", "guid", const.EXERCISE)
-		texercise.user_id = user.csv_id
+		texercise.user_id = ctx:get_user():get_field("csv_id")
 		texercise.exercise_time = time
 		texercise.exercise_type = self.exercise_type
 		texercise.time_length = exercise_time
@@ -293,13 +293,13 @@ function REQUEST:exercise_once(ctx)
 
 			add_to_prop(ctx, get_exercise_reward( t ) )	
 
-			ctx:get_user():set_exercise_level(ctx:get_user():get_exercise_level() + t.level_up)
+			ctx:get_user():set_exercise_level(ctx:get_user():get_field("exercise_level") + t.level_up)
 			--ctx:get_user().exercise_level = ctx:get_user().exercise_level + t.level_up
 
 			--ctx:get_user():update_db()
 			ret.errorcode = errorcode[ 1 ].code
 			ret.msg = errorcode[ 1 ].msg 
-			local sta , lefttime = judge_time_quantum( time , texercise:get_time_length() )
+			local sta , lefttime = judge_time_quantum( time , texercise:get_field("time_length"))
 			print( sta , lefttime )
 			ret.lefttime = lefttime 
 		end 
