@@ -448,10 +448,11 @@ function cls:role_recruit(csv_id)
 			role.property_id5 = 0
 			role.value5 = 0
 		end
-		role = self._user.u_rolemgr.create(role)
+		role.id = genpk_2(self._userid, role.csv_id)           
+		role = self._user.u_rolemgr:create(role)
 		self._user.u_rolemgr:add(role)
-		role:__insert_db(const.DB_PRIORITY_2)
-	end
+		role:update_db()
+	end                 
 end
 
 function cls:create_default(uid)

@@ -320,24 +320,17 @@ function cls:ctor( ... )
 		uq = false,
 		t = "number",
 	},
-	cp_hanging_id = {
+	cp_type = {
 		pk = false,
 		fk = false,
-		cn = "cp_hanging_id",
+		cn = "cp_type",
 		uq = false,
 		t = "number",
 	},
-	cp_battle_id = {
+	cp_checkpoint = {
 		pk = false,
 		fk = false,
-		cn = "cp_battle_id",
-		uq = false,
-		t = "number",
-	},
-	cp_battle_chapter = {
-		pk = false,
-		fk = false,
-		cn = "cp_battle_chapter",
+		cn = "cp_checkpoint",
 		uq = false,
 		t = "number",
 	},
@@ -586,6 +579,34 @@ function cls:ctor( ... )
 		uq = false,
 		t = "number",
 	},
+	cp_id = {
+		pk = false,
+		fk = false,
+		cn = "cp_id",
+		uq = false,
+		t = "number",
+	},
+	cp_drop_id1 = {
+		pk = false,
+		fk = false,
+		cn = "cp_drop_id1",
+		uq = false,
+		t = "number",
+	},
+	cp_drop_id2 = {
+		pk = false,
+		fk = false,
+		cn = "cp_drop_id2",
+		uq = false,
+		t = "number",
+	},
+	cp_drop_id3 = {
+		pk = false,
+		fk = false,
+		cn = "cp_drop_id3",
+		uq = false,
+		t = "number",
+	},
 }
 
 	self.__head_ord = {}
@@ -633,44 +654,47 @@ function cls:ctor( ... )
 	self.__head_ord[42] = self.__head["draw_number"]
 	self.__head_ord[43] = self.__head["ifxilian"]
 	self.__head_ord[44] = self.__head["cp_chapter"]
-	self.__head_ord[45] = self.__head["cp_hanging_id"]
-	self.__head_ord[46] = self.__head["cp_battle_id"]
-	self.__head_ord[47] = self.__head["cp_battle_chapter"]
-	self.__head_ord[48] = self.__head["lilian_level"]
-	self.__head_ord[49] = self.__head["lilian_exp"]
-	self.__head_ord[50] = self.__head["lilian_phy_power"]
-	self.__head_ord[51] = self.__head["purch_lilian_phy_power"]
-	self.__head_ord[52] = self.__head["ara_role_id1"]
-	self.__head_ord[53] = self.__head["ara_role_id2"]
-	self.__head_ord[54] = self.__head["ara_role_id3"]
-	self.__head_ord[55] = self.__head["ara_win_tms"]
-	self.__head_ord[56] = self.__head["ara_lose_tms"]
-	self.__head_ord[57] = self.__head["ara_tie_tms"]
-	self.__head_ord[58] = self.__head["ara_clg_tms"]
-	self.__head_ord[59] = self.__head["ara_clg_cost_tms"]
-	self.__head_ord[60] = self.__head["ara_integral"]
-	self.__head_ord[61] = self.__head["ara_fighting"]
-	self.__head_ord[62] = self.__head["ara_interface"]
-	self.__head_ord[63] = self.__head["ara_rfh_cost_tms"]
-	self.__head_ord[64] = self.__head["ara_r1_sum_combat"]
-	self.__head_ord[65] = self.__head["ara_r1_sum_defense"]
-	self.__head_ord[66] = self.__head["ara_r1_sum_critical_hit"]
-	self.__head_ord[67] = self.__head["ara_r1_sum_king"]
-	self.__head_ord[68] = self.__head["ara_rfh_st"]
-	self.__head_ord[69] = self.__head["ara_rfh_cd"]
-	self.__head_ord[70] = self.__head["ara_rfh_cd_cost_tms"]
-	self.__head_ord[71] = self.__head["ara_clg_tms_rsttm"]
-	self.__head_ord[72] = self.__head["ara_clg_cost_rsttm"]
-	self.__head_ord[73] = self.__head["ara_integral_rsttm"]
-	self.__head_ord[74] = self.__head["draw_num"]
-	self.__head_ord[75] = self.__head["ara_r2_sum_combat"]
-	self.__head_ord[76] = self.__head["ara_r2_sum_defense"]
-	self.__head_ord[77] = self.__head["ara_r2_sum_critical_hit"]
-	self.__head_ord[78] = self.__head["ara_r2_sum_king"]
-	self.__head_ord[79] = self.__head["ara_r3_sum_combat"]
-	self.__head_ord[80] = self.__head["ara_r3_sum_defense"]
-	self.__head_ord[81] = self.__head["ara_r3_sum_critical_hit"]
-	self.__head_ord[82] = self.__head["ara_r3_sum_king"]
+	self.__head_ord[45] = self.__head["cp_type"]
+	self.__head_ord[46] = self.__head["cp_checkpoint"]
+	self.__head_ord[47] = self.__head["lilian_level"]
+	self.__head_ord[48] = self.__head["lilian_exp"]
+	self.__head_ord[49] = self.__head["lilian_phy_power"]
+	self.__head_ord[50] = self.__head["purch_lilian_phy_power"]
+	self.__head_ord[51] = self.__head["ara_role_id1"]
+	self.__head_ord[52] = self.__head["ara_role_id2"]
+	self.__head_ord[53] = self.__head["ara_role_id3"]
+	self.__head_ord[54] = self.__head["ara_win_tms"]
+	self.__head_ord[55] = self.__head["ara_lose_tms"]
+	self.__head_ord[56] = self.__head["ara_tie_tms"]
+	self.__head_ord[57] = self.__head["ara_clg_tms"]
+	self.__head_ord[58] = self.__head["ara_clg_cost_tms"]
+	self.__head_ord[59] = self.__head["ara_integral"]
+	self.__head_ord[60] = self.__head["ara_fighting"]
+	self.__head_ord[61] = self.__head["ara_interface"]
+	self.__head_ord[62] = self.__head["ara_rfh_cost_tms"]
+	self.__head_ord[63] = self.__head["ara_r1_sum_combat"]
+	self.__head_ord[64] = self.__head["ara_r1_sum_defense"]
+	self.__head_ord[65] = self.__head["ara_r1_sum_critical_hit"]
+	self.__head_ord[66] = self.__head["ara_r1_sum_king"]
+	self.__head_ord[67] = self.__head["ara_rfh_st"]
+	self.__head_ord[68] = self.__head["ara_rfh_cd"]
+	self.__head_ord[69] = self.__head["ara_rfh_cd_cost_tms"]
+	self.__head_ord[70] = self.__head["ara_clg_tms_rsttm"]
+	self.__head_ord[71] = self.__head["ara_clg_cost_rsttm"]
+	self.__head_ord[72] = self.__head["ara_integral_rsttm"]
+	self.__head_ord[73] = self.__head["draw_num"]
+	self.__head_ord[74] = self.__head["ara_r2_sum_combat"]
+	self.__head_ord[75] = self.__head["ara_r2_sum_defense"]
+	self.__head_ord[76] = self.__head["ara_r2_sum_critical_hit"]
+	self.__head_ord[77] = self.__head["ara_r2_sum_king"]
+	self.__head_ord[78] = self.__head["ara_r3_sum_combat"]
+	self.__head_ord[79] = self.__head["ara_r3_sum_defense"]
+	self.__head_ord[80] = self.__head["ara_r3_sum_critical_hit"]
+	self.__head_ord[81] = self.__head["ara_r3_sum_king"]
+	self.__head_ord[82] = self.__head["cp_id"]
+	self.__head_ord[83] = self.__head["cp_drop_id1"]
+	self.__head_ord[84] = self.__head["cp_drop_id2"]
+	self.__head_ord[85] = self.__head["cp_drop_id3"]
 
 	self.__pk      = "csv_id"
 	self.__fk      = ""

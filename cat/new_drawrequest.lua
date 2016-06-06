@@ -68,11 +68,13 @@ local function add_to_prop(ctx, t )
 			g_role = sd.query(key)
 			--g_role = game.g_rolemgr:get_by_us_prop_csv_id( v.propid )
 			assert( g_role )
-			local u_role = user.u_rolemgr:get_by_csv_id( g_role.csv_id )
+			local u_role = ctx:get_user().u_rolemgr:get_by_csv_id( g_role.csv_id )
 			if u_role then
-           		local prop = user.u_propmgr:get_by_csv_id( v.propid )
+				print("u_role is not nil")
+           		local prop = ctx:get_user().u_propmgr:get_by_csv_id( v.propid )
    				if prop then
-   					prop.num = prop.num + v.amount
+   					print("prop is not nil")
+   					prop:set_field("num", prop:get_field("num") + v.amount)
    					prop:update_db()
    				else 
    					print( "no a role" )
@@ -80,22 +82,23 @@ local function add_to_prop(ctx, t )
    					prop = sd.query(key)
    					assert(prop)	
    					--prop = skynet.call(".game", "lua", "query_g_prop", v.propid)
-   					prop.id = genpk_2(user:get_csv_id(), prop.csv_id)
-   					prop.user_id = user:get_csv_id()
+   					prop.user_id = ctx:get_user():get_field("csv_id")
    					prop.num = v.amount
-   					local prop = user.u_propmgr:create( prop )
-   					user.u_propmgr:add( prop )
+   					prop.id = genpk_2(prop.user_id, prop.csv_id)
+   					print("create role is called", prop.id)
+   					local prop = ctx:get_user().u_propmgr:create( prop )
+   					ctx:get_user().u_propmgr:add( prop )
    					prop:update_db()
    				end 	      
 			else 
-
+				print("do not have the role", g_role.csv_id)
 				ctx:role_recruit(g_role.csv_id)
 				--ctx:raise_achievement(const.ACHIEVEMENT_T_5)
 			end 
 		else     
-			local prop = user.u_propmgr:get_by_csv_id( v.propid )
+			local prop = ctx:get_user().u_propmgr:get_by_csv_id( v.propid )
    			if prop then
-   				prop.num = prop.num + v.amount
+   				prop:set_field("num", prop:get_field("num") + v.amount)
    				prop:update_db()
    			else 
    				print( "no a role" )
@@ -103,11 +106,12 @@ local function add_to_prop(ctx, t )
    					prop = sd.query(key)
    					assert(prop)	
    					--prop = skynet.call(".game", "lua", "query_g_prop", v.propid)
-   					prop.id = genpk_2(user:get_csv_id(), prop.csv_id)
-   					prop.user_id = user:get_csv_id()
+   					prop.user_id = ctx:get_user():get_field("csv_id")
    					prop.num = v.amount
-   					local prop = user.u_propmgr:create( prop )
-   					user.u_propmgr:add( prop )
+   					prop.id = genpk_2(prop.user_id, prop.csv_id)
+   					print("create prop is called", prop.id)
+   					local prop = ctx:get_user().u_propmgr:create( prop )
+   					ctx:get_user().u_propmgr:add( prop )
    					prop:update_db()
    			end 
    			if v.propid == const.GOLD then
@@ -134,13 +138,13 @@ function REQUEST:draw(ctx)
    	local settime = getsettime() 					
    													
    	local v = {} 									
-   	if not tfrienddraw or ( tfrienddraw.srecvtime < settime - 60 * 60 * 24 ) or ( tfrienddraw.srecvtime < settime  and os.time() > settime ) then
+   	if not tfrienddraw or ( tfrienddraw:get_field("srecvtime") < settime - 60 * 60 * 24 ) or ( tfrienddraw:get_field("srecvtime") < settime  and os.time() > settime ) then
    		print( "tfrienddraw is nil " , tfrienddraw )
    		v.drawtype = drawtype.FRIEND 				
    		v.drawnum = 0 								
    		isfriend = true 							
    	else 											
-   		print( "can not friend draw " , tfrienddraw.srecvtime )
+   		print( "can not friend draw " , tfrienddraw:get_field("srecvtime") )
    		v.drawtype = drawtype.FRIEND 				
    		v.drawnum = 1 								
    		isfriend = false 							
@@ -163,11 +167,11 @@ function REQUEST:draw(ctx)
 		assert( line )
 			
 		local nowtime = os.time() 
-		if nowtime >= ( tonetime.srecvtime + line.cdtime ) then
+		if nowtime >= ( tonetime:get_field("srecvtime") + line.cdtime ) then
 			t.lefttime = 0
 			t.drawnum = 1
 		else
-			t.lefttime = tonetime.srecvtime + line.cdtime - nowtime -- nowtime - srecvtime
+			t.lefttime = tonetime:get_field("srecvtime") + line.cdtime - nowtime -- nowtime - srecvtime
 		end
 	end	
 	table.insert( ret.list , t )			
@@ -304,7 +308,7 @@ local function frienddraw(ctx)
 
 	local tfriend = factory:draw_get_by_type( drawtype.FRIEND )
 	if not prop or prop:get_field("num") < line.price then
-		print( "money is less then price" , prop.num, line.price)
+		print( "money is less then price" , prop:get_field("num"), line.price)
 		local ret = {}
 		ret.errorcode = errorcode[ 16 ].code
 		ret.msg = errorcode[ 16 ].msg
@@ -365,7 +369,7 @@ local function onetimedraw(ctx, iffree )
 			tonetime = {}
 			tonetime.id = skynet.call( ".game" , "lua" , "guid" , const.DRAW )
 			print("new id is ********************", tonetime.id)
-			tonetime.uid = ctx:get_user().csv_id
+			tonetime.uid = ctx:get_user():get_field("csv_id")
 			tonetime.drawtype = drawtype.ONETIME
 			tonetime.srecvtime = date
 			tonetime.propid = 0;
@@ -381,13 +385,13 @@ local function onetimedraw(ctx, iffree )
 
 			assert( line )
 
-			if date < ( tonetime:get_srecvtime() + line.cdtime ) then
+			if date < ( tonetime:get_field("srecvtime") + line.cdtime ) then
 				proplist.errorcode = errorcode[ 61 ].code
 				proplist.msg = errorcode[ 61 ].msg
 			
 				return proplist
 			end
-			tonetime:set_srecvtime(date)
+			tonetime:set_field("srecvtime", date)
 			--tonetime.srecvtime = date
 		end 
 
@@ -413,7 +417,7 @@ local function onetimedraw(ctx, iffree )
         
     	local prop = ctx:get_user().u_propmgr:get_by_csv_id( line.cointype )
 
-		if not prop or prop:get_num() < line.price then
+		if not prop or prop:get_field("num") < line.price then
 			local ret = {}
 			ret.errorcode = errorcode[ 16 ].code
 			ret.msg = errorcode[ 16 ].msg
@@ -425,7 +429,7 @@ local function onetimedraw(ctx, iffree )
 			--prop.num = prop.num - line.price
 			proplist = getpropidlist(ctx, drawtype.ONETIME )
 			
-			print( "*******************" , date , tonetime:get_srecvtime(), tonetime:get_field("srecvtime") + DAY - date )
+			print( "*******************", date , tonetime:get_field("srecvtime"), tonetime:get_field("srecvtime") + DAY - date )
 
 			if date > tonetime:get_field("srecvtime") + DAY then
 				print( " >>>>>>>>" )
@@ -473,17 +477,17 @@ local function tentimedraw(ctx)
 
     local prop = ctx:get_user().u_propmgr:get_by_csv_id( line.cointype )
 
-	if not prop or prop:get_num() < line.price then
-		print( "not enough money in tentime" , prop:get_num(), line.price)
+	if not prop or prop:get_field("num") < line.price then
+		print( "not enough money in tentime" , prop:get_field("num"), line.price)
 		local ret = {}
 		ret.errorcode = errorcode[ 16 ].code
 		ret.msg = errorcode[ 16 ].msg
 
 		return ret
 	else
-		print( "insert drawmsg over", prop:get_num(), line.price )
+		print( "insert drawmsg over", prop:get_field("num"), line.price )
 
-		prop:set_num(prop:get_num() - line.price)
+		prop:set_field("num", prop:get_field("num") - line.price)
 		--prop.num = prop.num - line.price
 		prop:update_db()
 
@@ -537,7 +541,7 @@ function REQUEST:applydraw(ctx)
 	end
 	return assert( ret )
 end		
-
+	
 function RESPONSE:abc()
 	-- body	
 end			

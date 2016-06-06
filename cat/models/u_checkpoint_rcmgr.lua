@@ -40,6 +40,13 @@ function cls:ctor( ... )
 		uq = false,
 		t = "number",
 	},
+	cd_walk = {
+		pk = false,
+		fk = false,
+		cn = "cd_walk",
+		uq = false,
+		t = "number",
+	},
 	cd_starttime = {
 		pk = false,
 		fk = false,
@@ -51,13 +58,6 @@ function cls:ctor( ... )
 		pk = false,
 		fk = false,
 		cn = "cd_finished",
-		uq = false,
-		t = "number",
-	},
-	cd_walk = {
-		pk = false,
-		fk = false,
-		cn = "cd_walk",
 		uq = false,
 		t = "number",
 	},
@@ -96,9 +96,9 @@ function cls:ctor( ... )
 	self.__head_ord[2] = self.__head["user_id"]
 	self.__head_ord[3] = self.__head["csv_id"]
 	self.__head_ord[4] = self.__head["passed"]
-	self.__head_ord[5] = self.__head["cd_starttime"]
-	self.__head_ord[6] = self.__head["cd_finished"]
-	self.__head_ord[7] = self.__head["cd_walk"]
+	self.__head_ord[5] = self.__head["cd_walk"]
+	self.__head_ord[6] = self.__head["cd_starttime"]
+	self.__head_ord[7] = self.__head["cd_finished"]
 	self.__head_ord[8] = self.__head["hanging_starttime"]
 	self.__head_ord[9] = self.__head["hanging_walk"]
 	self.__head_ord[10] = self.__head["hanging_drop_starttime"]

@@ -119,7 +119,7 @@ local function add_to_prop(ctx, t)
 			local p = skynet.call(".game", "lua", "query_g_prop", v.propid)
 			--local p = game.g_propmgr:get_by_csv_id( v.propid )
 			assert(p)
-			p.user_id = user.csv_id
+			p.user_id = ctx:get_user():get_field("csv_id")
 			p.num = v.amount
 			p.id = genpk_2(p.user_id, p.csv_id)
 			local prop = ctx:get_modelmgr():get_u_propmgr():create(p)
@@ -212,25 +212,25 @@ function REQUEST:c_gold(ctx)
 		print( "***********************not exist tcgold" )
 		ret.ifc_gold = true
 		ret.lefttime = 0
-		ret.c_gold_level = 0
+		ret.c_gold_level = ctx:get_user():get_field("cgold_level")
 		ifcgold = 1
 	else 	
 		print( "***********************exist tcgold" )
 		local time = os.time()
-		local laststage = judge_time_quantum( tcgold:get_cgold_time() , tcgold:get_time_length() )
+		local laststage = judge_time_quantum( tcgold:get_cgold_time() , tcgold:get_time_length())
 		local newstage , lefttime = judge_time_quantum( time , tcgold:get_time_length() )
-			
+		
 		if 0 == laststage or newstage ~= laststage then
 			ret.ifc_gold = true
 			ret.lefttime = 0
-			print( "user.cgold_level" , ctx:get_user().cgold_level  )
-			ret.c_gold_level = ctx:get_user().cgold_level
+			print( "user.cgold_level" , ctx:get_user():get_field("cgold_level"))
+			ret.c_gold_level = ctx:get_user():get_field("cgold_level")
 			ifcgold = 1
 		else
 			ret.ifc_gold = false
 			ret.lefttime = lefttime
-			print( "user.cgold_level" , ctx:get_user().cgold_level  )
-			ret.c_gold_level = ctx:get_user().cgold_level
+			print( "user.cgold_level" , ctx:get_user():get_field("cgold_level"))
+			ret.c_gold_level = ctx:get_user():get_field("cgold_level")
 			ifcgold = 0
 		end 
 	end     
@@ -254,8 +254,8 @@ function REQUEST:c_gold_once(ctx)
 	-- 	tcgold = {}
 	-- end 	
 			
-	print( ifcgold , self , self.c_gold_type ,  self.c_gold_level , ctx:get_user().cgold_level )
-	if 0 == ifcgold or self.c_gold_level ~= ctx:get_user().cgold_level then
+	print( ifcgold , self , self.c_gold_type ,  self.c_gold_level , ctx:get_user():get_field("cgold_level") )
+	if 0 == ifcgold or self.c_gold_level ~= ctx:get_user():get_field("cgold_level") then
 		ret.errorcode = errorcode[ 1 ].code
 		ret.msg = errorcode[ 1 ].msg
 		--should logou
@@ -284,7 +284,7 @@ function REQUEST:c_gold_once(ctx)
 		
 		local t = get_g_cgold( self.daily_type * 10 + self.c_gold_type )
 		local prop = ctx:get_modelmgr():get_u_propmgr():get_by_csv_id( t.cost_id )
-		if not prop or prop:get_num() < t.cost_amount then
+		if not prop or prop:get_field("num") < t.cost_amount then
 			ret.ok = false
 			ret.errorcode = errorcode[ 16 ].code
 			ret.msg = errorcode[ 16 ].msg
@@ -298,12 +298,12 @@ function REQUEST:c_gold_once(ctx)
 			add_to_prop(ctx, get_cgold_reward( t ) )	
 
 			--ctx:get_user().cgold_level = ctx:get_user().cgold_level + t.level_up
-			ctx:get_user():set_cgold_level(ctx:get_user():get_cgold_level() + t.level_up)
+			ctx:get_user():set_field("cgold_level", ctx:get_user():get_field("cgold_level") + t.level_up)
 			--ctx:get_user():update_db()
 
 			ret.errorcode = errorcode[ 1 ].code
 			ret.msg = errorcode[ 1 ].msg 
-			local _ , lefttime = judge_time_quantum( time , tcgold:get_time_length() )
+			local _ , lefttime = judge_time_quantum( time , tcgold:get_field("time_length"))
 			--print( sta , lefttime )
 			ret.lefttime = lefttime 
 		end 

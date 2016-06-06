@@ -58,9 +58,8 @@ function cls:ctor(mgr, P, ... )
 			draw_number = 0,
 			ifxilian = 0,
 			cp_chapter = 0,
-			cp_hanging_id = 0,
-			cp_battle_id = 0,
-			cp_battle_chapter = 0,
+			cp_type = 0,
+			cp_checkpoint = 0,
 			lilian_level = 0,
 			lilian_exp = 0,
 			lilian_phy_power = 0,
@@ -96,6 +95,10 @@ function cls:ctor(mgr, P, ... )
 			ara_r3_sum_defense = 0,
 			ara_r3_sum_critical_hit = 0,
 			ara_r3_sum_king = 0,
+			cp_id = 0,
+			cp_drop_id1 = 0,
+			cp_drop_id2 = 0,
+			cp_drop_id3 = 0,
 		}
 
 	self.__ecol_updated = {
@@ -143,9 +146,8 @@ function cls:ctor(mgr, P, ... )
 			draw_number = 0,
 			ifxilian = 0,
 			cp_chapter = 0,
-			cp_hanging_id = 0,
-			cp_battle_id = 0,
-			cp_battle_chapter = 0,
+			cp_type = 0,
+			cp_checkpoint = 0,
 			lilian_level = 0,
 			lilian_exp = 0,
 			lilian_phy_power = 0,
@@ -181,6 +183,10 @@ function cls:ctor(mgr, P, ... )
 			ara_r3_sum_defense = 0,
 			ara_r3_sum_critical_hit = 0,
 			ara_r3_sum_king = 0,
+			cp_id = 0,
+			cp_drop_id1 = 0,
+			cp_drop_id2 = 0,
+			cp_drop_id3 = 0,
 		}
 
 	for k,v in pairs(self.__head) do
@@ -849,49 +855,34 @@ function cls:get_cp_chapter( ... )
 	return self.__fields.cp_chapter
 end
 
-function cls:set_cp_hanging_id(v, ... )
+function cls:set_cp_type(v, ... )
 	-- body
 	assert(v)
-	self.__ecol_updated["cp_hanging_id"] = self.__ecol_updated["cp_hanging_id"] + 1
-	if self.__ecol_updated["cp_hanging_id"] == 1 then
+	self.__ecol_updated["cp_type"] = self.__ecol_updated["cp_type"] + 1
+	if self.__ecol_updated["cp_type"] == 1 then
 		self.__col_updated = self.__col_updated + 1
 	end
-	self.__fields.cp_hanging_id = v
+	self.__fields.cp_type = v
 end
 
-function cls:get_cp_hanging_id( ... )
+function cls:get_cp_type( ... )
 	-- body
-	return self.__fields.cp_hanging_id
+	return self.__fields.cp_type
 end
 
-function cls:set_cp_battle_id(v, ... )
+function cls:set_cp_checkpoint(v, ... )
 	-- body
 	assert(v)
-	self.__ecol_updated["cp_battle_id"] = self.__ecol_updated["cp_battle_id"] + 1
-	if self.__ecol_updated["cp_battle_id"] == 1 then
+	self.__ecol_updated["cp_checkpoint"] = self.__ecol_updated["cp_checkpoint"] + 1
+	if self.__ecol_updated["cp_checkpoint"] == 1 then
 		self.__col_updated = self.__col_updated + 1
 	end
-	self.__fields.cp_battle_id = v
+	self.__fields.cp_checkpoint = v
 end
 
-function cls:get_cp_battle_id( ... )
+function cls:get_cp_checkpoint( ... )
 	-- body
-	return self.__fields.cp_battle_id
-end
-
-function cls:set_cp_battle_chapter(v, ... )
-	-- body
-	assert(v)
-	self.__ecol_updated["cp_battle_chapter"] = self.__ecol_updated["cp_battle_chapter"] + 1
-	if self.__ecol_updated["cp_battle_chapter"] == 1 then
-		self.__col_updated = self.__col_updated + 1
-	end
-	self.__fields.cp_battle_chapter = v
-end
-
-function cls:get_cp_battle_chapter( ... )
-	-- body
-	return self.__fields.cp_battle_chapter
+	return self.__fields.cp_checkpoint
 end
 
 function cls:set_lilian_level(v, ... )
@@ -1417,6 +1408,66 @@ end
 function cls:get_ara_r3_sum_king( ... )
 	-- body
 	return self.__fields.ara_r3_sum_king
+end
+
+function cls:set_cp_id(v, ... )
+	-- body
+	assert(v)
+	self.__ecol_updated["cp_id"] = self.__ecol_updated["cp_id"] + 1
+	if self.__ecol_updated["cp_id"] == 1 then
+		self.__col_updated = self.__col_updated + 1
+	end
+	self.__fields.cp_id = v
+end
+
+function cls:get_cp_id( ... )
+	-- body
+	return self.__fields.cp_id
+end
+
+function cls:set_cp_drop_id1(v, ... )
+	-- body
+	assert(v)
+	self.__ecol_updated["cp_drop_id1"] = self.__ecol_updated["cp_drop_id1"] + 1
+	if self.__ecol_updated["cp_drop_id1"] == 1 then
+		self.__col_updated = self.__col_updated + 1
+	end
+	self.__fields.cp_drop_id1 = v
+end
+
+function cls:get_cp_drop_id1( ... )
+	-- body
+	return self.__fields.cp_drop_id1
+end
+
+function cls:set_cp_drop_id2(v, ... )
+	-- body
+	assert(v)
+	self.__ecol_updated["cp_drop_id2"] = self.__ecol_updated["cp_drop_id2"] + 1
+	if self.__ecol_updated["cp_drop_id2"] == 1 then
+		self.__col_updated = self.__col_updated + 1
+	end
+	self.__fields.cp_drop_id2 = v
+end
+
+function cls:get_cp_drop_id2( ... )
+	-- body
+	return self.__fields.cp_drop_id2
+end
+
+function cls:set_cp_drop_id3(v, ... )
+	-- body
+	assert(v)
+	self.__ecol_updated["cp_drop_id3"] = self.__ecol_updated["cp_drop_id3"] + 1
+	if self.__ecol_updated["cp_drop_id3"] == 1 then
+		self.__col_updated = self.__col_updated + 1
+	end
+	self.__fields.cp_drop_id3 = v
+end
+
+function cls:get_cp_drop_id3( ... )
+	-- body
+	return self.__fields.cp_drop_id3
 end
 
 

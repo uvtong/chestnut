@@ -18,9 +18,9 @@ function cls:ctor(mgr, P, ... )
 			user_id = 0,
 			csv_id = 0,
 			passed = 0,
+			cd_walk = 0,
 			cd_starttime = 0,
 			cd_finished = 0,
-			cd_walk = 0,
 			hanging_starttime = 0,
 			hanging_walk = 0,
 			hanging_drop_starttime = 0,
@@ -32,9 +32,9 @@ function cls:ctor(mgr, P, ... )
 			user_id = 0,
 			csv_id = 0,
 			passed = 0,
+			cd_walk = 0,
 			cd_starttime = 0,
 			cd_finished = 0,
-			cd_walk = 0,
 			hanging_starttime = 0,
 			hanging_walk = 0,
 			hanging_drop_starttime = 0,
@@ -107,6 +107,21 @@ function cls:get_passed( ... )
 	return self.__fields.passed
 end
 
+function cls:set_cd_walk(v, ... )
+	-- body
+	assert(v)
+	self.__ecol_updated["cd_walk"] = self.__ecol_updated["cd_walk"] + 1
+	if self.__ecol_updated["cd_walk"] == 1 then
+		self.__col_updated = self.__col_updated + 1
+	end
+	self.__fields.cd_walk = v
+end
+
+function cls:get_cd_walk( ... )
+	-- body
+	return self.__fields.cd_walk
+end
+
 function cls:set_cd_starttime(v, ... )
 	-- body
 	assert(v)
@@ -135,21 +150,6 @@ end
 function cls:get_cd_finished( ... )
 	-- body
 	return self.__fields.cd_finished
-end
-
-function cls:set_cd_walk(v, ... )
-	-- body
-	assert(v)
-	self.__ecol_updated["cd_walk"] = self.__ecol_updated["cd_walk"] + 1
-	if self.__ecol_updated["cd_walk"] == 1 then
-		self.__col_updated = self.__col_updated + 1
-	end
-	self.__fields.cd_walk = v
-end
-
-function cls:get_cd_walk( ... )
-	-- body
-	return self.__fields.cd_walk
 end
 
 function cls:set_hanging_starttime(v, ... )

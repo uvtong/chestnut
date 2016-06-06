@@ -300,7 +300,7 @@ local function init_attribute(uid, roleid, inittype)
 	local t = {}
 		
 	if inittype == SELF then
-		t = util.get_total_property(user, _, _)
+		t = util.get_total_property(user, _, roleid)
 		assert(t)
 				
 		Self.Attr.combat = t[1] or 0

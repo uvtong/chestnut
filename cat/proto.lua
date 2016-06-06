@@ -1362,7 +1362,6 @@ checkpoint_drop_collect 101 {
     }
     response {
         errorcode 0 : integer
-        msg 1 : string
     }
 }
 

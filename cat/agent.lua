@@ -1237,6 +1237,20 @@ function REQUEST:checkpoint_exit(ctx)
 	end
 end
 
+function REQUEST:checkpoint_drop_collect(ctx, ... )
+	-- body
+	local m = ctx:get_module("checkpoint")
+	local ok, result = pcall(m.checkpoint_drop_collect, m, self)
+	if ok then
+		return result 
+	else
+		skynet.error(result)
+		local ret = {}
+		ret.errorcode = errorcode[29].code
+		return ret
+	end
+end
+
 function REQUEST:ara_enter(ctx, ... )
 	-- body
 	local m = ctx:get_module("arena")
