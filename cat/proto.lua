@@ -1354,8 +1354,6 @@ checkpoint_battle_play 100 {
     }
 } 
 
-checkpoint
-
 ]]
 
 proto.s2c = sprotoparser.parse [[
