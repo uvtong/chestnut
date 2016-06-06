@@ -113,10 +113,13 @@ function cls:create_user(uid)
 		take_diamonds=0,
 		draw_number=0 ,
 		ifxilian = 0,              -- 
-		cp_chapter=1,                 -- checkpoint progress 1
-		cp_hanging_id=1001,
-		cp_battle_id=0,
-		cp_battle_chapter=0,
+		cp_chapter=1,
+		cp_type = 0,
+		cp_id = 1,
+		cp_checkpoint = 1,
+		cp_drop_id1 = 0,
+		cp_drop_id2 = 0,
+		cp_drop_id3 = 0,
 		lilian_level = 1,
 		lilian_exp = 0,
 		lilian_phy_power = 120,

@@ -11,6 +11,11 @@ function cls:ctor(env, ... )
 	self._env = env
 end
 
+function cls:gen_csv_id(chapter, type, checkpoint, ... )
+	-- body
+	return chapter*1000+type*100+checkpoint
+end
+
 function cls:cp_progress( ... )
 	-- body
 	local modelmgr = self._env:get_modelmgr()
@@ -60,11 +65,34 @@ function cls:hanging()
 	return l
 end
 
-function cls:choose(csv_id, now)
+function cls:choose(chapter, type, checkpoint, csv_id, now)
 	-- body
 	-- first resolve last hanging
-	assert(now)
+	local user = self._env:get_user()
+	local modelmgr = self._env:get_modelmgr()
+	local u_checkpoint_rcmgr = modelmgr:get_u_checkpoint_rcmgr()
+	local ochapter = user:get_field("cp_chapter")
+	local otype = user:get_field("cp_type")
+	local ocheckpoint = user:get_field("cp_checkpoint")
+	local ocsv_id = self:gen_csv_id(ochapter, otype, ocheckpoint)
+	local cp_rc = u_checkpoint_rcmgr:get_by_csv_id(ocsv_id)   -- unlock 
+	if cp_rc:get_field("passed") == 0 then
+		if cp_rc:get_field("cd_finished") == 1 then
+			cp_rc:set_field("cd_starttime", now)
+		else
+
+		end
+	else
+
+	end
+	if cp_rc:get_field("cd_finished") == 1 then
+
+	user:set_field("cp_chapter", chapter)
+	user:set_field("cp_type", type)
+	user:set_field("cp_id", id)
+
 	local ret = {}
+
 	if user.cp_hanging_id > 0 then
 		if user.cp_hanging_id ~= csv_id then
 			local ok, result = pcall(hanging)
@@ -134,6 +162,9 @@ function cls:checkpoint_chapter(args)
 	ret.errorcode = errorcode[1].code
 	ret.msg = errorcode[1].code
 	ret.l = self:cp_progress()
+	ret.chapter = u:get_field("cp_chapter")
+	ret.type = u:get_field("cp_type")
+	ret.checkpoint = u:get_field("cp_id")
 	return ret
 end
 
@@ -168,48 +199,107 @@ end
 function cls:checkpoint_hanging_choose(args, ... )
 	-- body
 	local user = self._env:get_user()
-	local ret = {}
-	assert(user, "user is nil")
+	local game = self._env:get_game()
+	local modelmgr = self._env:get_modelmgr()
+	local u_checkpointmgr = modelmgr:get_u_checkpointmgr()
 	assert(self.chapter*1000+self.type*100+self.checkpoint == self.csv_id)
 	-- must <= cp_chapter
-	assert(self.chapter <= user.cp_chapter)
-	-- judge chapter 
-	local now = os.time()
-	local cp = user.u_checkpointmgr:get_by_csv_id(self.chapter)
-	local cp_chapter = skynet.call(game, "lua", "query_g_checkpoint_chapter", self.chapter)
-	if self.type == 0 then
-		assert(self.checkpoint <= cp_chapter.type0_max)
-		assert(self.checkpoint <= cp.chapter_type0)
-		local ok, result = choose(self.csv_id, now)
-		if not ok then
-			return result 
-		end
-	elseif self.type == 1 then
-		assert(self.checkpoint <= cp_chapter.type1_max, string.format("checkpoint:%d from client > cp_chapter.type1_max:%d", self.checkpoint, cp_chapter.type1_max))
-		assert(self.checkpoint <= cp.chapter_type1)
-		local ok, result = choose(self.csv_id, now)
-		if not ok then
-			return result 
-		end
-	elseif self.type == 2 then
-		assert(self.checkpoint <= cp_chapter.type2_max, string.format("checkpoint:%d from client > cp_chapter.type1_max:%d", self.checkpoint, cp_chapter.type2_max))
-		assert(self.checkpoint <= cp.chapter_type2)
-		local ok, result = choose(self.csv_id, now)
-		if not ok then
-			return result 
-		end
-	else
-		error("wrong checkpoint type")
+	if args.chapter > user:get_field("cp_chapter") and args.chapter <= 0 then
+		local ret = {}
 		ret.errorcode = errorcode[37].code
-		ret.msg = errorcode[37].msg
+		ret.msg  = errorcode[37].msg
 		return ret
+	else
+		local now = os.time()
+		local cp = user.u_checkpointmgr:get_by_csv_id(args.chapter)
+		if args.type == 0 then
+			if args.checkpoint <= cp.chapter_type0 then
+				local ok, result = pcall(self.choose, self, args.chapter, args.type, args.checkpoint, args.csv_id, now)
+				if ok then
+					return result 
+				else
+					local ret = {}
+					ret.errorcode = errorcode[37].code
+					ret.msg  = errorcode[37].msg
+					return ret
+				end
+			else
+				local ret = {}
+				ret.errorcode = errorcode[37].code
+				ret.msg = errorcode[37].msg
+				return ret
+			end
+		elseif self.type == 1 then
+			if args.checkpoint <= cp.chapter_type1 then
+				local ok, result = pcall(self.choose, self, args.chapter, args.type, args.checkpoint, args.csv_id, now)
+				if ok then
+					return result 
+				else
+					local ret = {}
+					ret.errorcode = errorcode[37].code
+					ret.msg  = errorcode[37].msg
+					return ret
+				end
+			else
+				local ret = {}
+				ret.errorcode = errorcode[37].code
+				ret.msg = errorcode[37].msg
+				return ret
+			end
+		elseif self.type == 2 then
+			if args.checkpoint <= cp.chapter_type1 then
+				local ok, result = pcall(self.choose, self, args.chapter, args.type, args.checkpoint, args.csv_id, now)
+				if ok then
+					return result 
+				else
+					local ret = {}
+					ret.errorcode = errorcode[37].code
+					ret.msg  = errorcode[37].msg
+					return ret
+				end
+			else
+				local ret = {}
+				ret.errorcode = errorcode[37].code
+				ret.msg = errorcode[37].msg
+				return ret
+			end
+		else
+			local ret = {}
+			ret.errorcode = errorcode[37].code
+			ret.msg = errorcode[37].msg
+			return ret
+		end
 	end
+end
+
+function cls:checkpoint_battle_play(args, ... )
+	-- body
+	local user = self._env:get_user()
+	local modelmgr = self._env:get_modelmgr()
+	local u_checkpoint_rcmgr = modelmgr:get_u_checkpoint_rcmgr()
+	local chapter = user:get_field('cp_chapter')
+	local type = user:get_field("cp_type")
+	local checkpoint = user:get_field("cp_checkpoint")
+	assert(chapter == args.chapter)
+	assert(type == args.type)
+	assert(checkpoint == args.checkpoint)
+	local csv_id = self:gen_csv_id(chapter, type, checkpoint)
+	local cp_rc = u_checkpoint_rcmgr:get_by_csv_id(csv_id)
+	assert(cp_rc:get_field("passed") == 0)
+	assert(cp_rc:get_field("cd_finished") == 0)
+	local now = os.time()
+	cp_rc:set_field("cd_starttime", now)
+	cp_rc:set_field("cd_walk", 0)
+	local key = string.format("%s:%d", "g_checkpoint", csv_id)
+	local g_cp_rc = sd.query(key)
+	local ret = {}
 	ret.errorcode = errorcode[1].code
 	ret.msg = errorcode[1].msg
+	ret.cd = g_cp_rc.cd
 	return ret
 end
 
-function cls:checkpoint_battle_exit()
+function cls:checkpoint_battle_exit(args)
 	-- body
 	local ret = {}
 	assert(user ~= nil, "user is nil")
