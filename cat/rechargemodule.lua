@@ -194,4 +194,171 @@ function cls:recharge_all(args)
 	return ret
 end
 
+function cls:recharge_vip_reward_collect(args)
+	-- body
+	local user = self._env:get_user()
+	local ret = {}
+	if not user then
+		ret.errorcode = errorcode[2].code
+		ret.msg = errorcode[2].msg
+		return ret
+	end
+	if args.vip == 0 then
+		ret.errorcode = errorcode[20].code
+		ret.msg = errorcode[20].msg
+		return ret
+	end
+	if args.vip ~= user:get_field("uviplevel") then
+		ret.errorcode = errorcode[21].code
+		ret.msg = errorcode[21].msg
+		return ret
+	end
+	local rc = user.u_recharge_vip_rewardmgr:get_by_vip(self.vip)
+	if rc then
+		if rc.collected == 1 then
+			ret.errorcode = errorcode[22].code
+			ret.msg = errorcode[22].msg
+			return ret
+		else
+			local reward = skynet.call(game, "lua", "query_g_recharge_vip_reward", self.vip)
+			local t = util.parse_text(reward.rewared, "%d+%*%d+%*?", 2)
+			for i,v in ipairs(t) do
+				local prop = user.u_propmgr:get_by_csv_id(v[1])
+				if prop then
+					prop.num = prop.num + assert(v[2])
+					prop:update_db({"num"})
+				else
+					prop = skynet.call(game, "lua", "query_g_prop", v[1])
+					prop.user_id = user.csv_id
+					prop.num = assert(v[2])
+					prop = user.u_propmgr.create(prop)
+					user.u_propmgr:add(prop)
+					prop:update_db(const.DB_PRIORITY_2)
+				end
+			end
+			rc.collected = 1
+			rc:update_db({"collected"})
+			ret.errorcode = errorcode[1].code
+			ret.msg = errorcode[1].msg
+			ret.vip = user.uviplevel
+			ret.collected = true
+			return ret
+		end
+	else
+		local reward = skynet.call(game, "lua", "query_g_recharge_vip_reward", self.vip)
+		local t = util.parse_text(reward.rewared, "%d+%*%d+%*?", 2)
+		for i,v in ipairs(t) do
+			local prop = get_prop(v[1])
+			prop.num = prop.num + assert(v[2])
+			prop:update_db({"num"})
+		end
+		local t = {user_id=user.csv_id, vip=self.vip, collected=1, purchased=0}	
+		rc = user.u_recharge_vip_rewardmgr.create(t)
+		user.u_recharge_vip_rewardmgr:add(rc)
+		rc:update_db(const.DB_PRIORITY_2)
+		ret.errorcode = errorcode[1].code
+		ret.msg = errorcode[1].msg
+		ret.vip = user.uviplevel
+		ret.collected = true
+		return ret
+	end
+end
+
+function cls:recharge_vip_reward_purchase(args)
+ 	-- body
+ 	-- 0. success
+ 	-- 1. offline
+ 	-- 2. your vip don't
+ 	-- 3. has purchased
+ 	local ret = {}
+ 	if not user then
+ 		ret.errorcode = errorcode[2].code
+ 		ret.msg = errorcode[2].msg
+ 		return ret
+ 	end
+ 	assert(self.vip > 0)
+ 	if self.vip > user.uviplevel then
+ 		ret.errorcode = errorcode[21].code
+ 		ret.msg = errorcode[21].msg
+ 		return ret
+ 	end
+ 	local l = {}
+ 	local rc = user.u_recharge_vip_rewardmgr:get_by_vip(self.vip)
+ 	if rc then
+ 		if rc.purchased == 1 then
+ 			ret.errorcode = errorcode[25].code
+ 			ret.msg = errorcode[25].msg
+ 			return ret
+ 		else
+ 			local reward = skynet.call(game, "lua", "query_g_recharge_vip_reward", self.vip)
+ 			local prop = user.u_propmgr:get_by_csv_id(const.DIAMOND)
+ 			if prop.num < reward.purchasable_diamond then
+ 				ret.errorcode = errorcode[6].code
+ 				ret.msg = errorcode[6].msg
+ 				return ret
+ 			end
+ 			prop.num = prop.num - reward.purchasable_diamond
+ 			prop:update_db({"num"})
+ 			local r = util.parse_text(reward.purchasable_gift, "%d+%*%d+%*?", 2)
+ 			for i,v in ipairs(r) do
+ 				prop = user.u_propmgr:get_by_csv_id(v[1])
+ 				if prop then
+ 					prop.num = prop.num + assert(v[2])
+ 					prop:update_db({"num"})
+ 					table.insert(l, { csv_id=prop.csv_id, num=prop.num})
+ 				else
+ 					prop = skynet.call(game, "lua", "query_g_prop", v[1])
+ 					prop.user_id = user.csv_id
+ 					prop.num = assert(v[2])
+ 					prop = user.u_propmgr.create(prop)
+ 					user.u_propmgr:add(prop)
+ 					prop:update_db(const.DB_PRIORITY_2)
+ 					table.insert(l, { csv_id=prop.csv_id, num=prop.num})
+ 				end
+ 			end
+ 			rc.purchased = 1
+ 			rc:update_db({"purchased"})
+ 			ret.errorcode = errorcode[1].code
+ 			ret.msg = errorcode[1].msg
+ 			ret.l = l
+ 			return ret
+ 		end
+ 	else
+ 		local reward = skynet.call(game, "lua", "query_g_recharge_vip_reward", self.vip)
+ 		local prop = user.u_propmgr:get_by_csv_id(const.DIAMOND)
+ 		if prop.num < reward.purchasable_diamond then
+ 			ret.errorcode = errorcode[6].code
+ 			ret.msg = errorcode[6].msg
+ 			return ret
+ 		end
+ 		prop.num = prop.num - reward.purchasable_diamond
+ 		prop:update_db({"num"})
+ 		local r = util.parse_text(reward.purchasable_gift, "%d+%*%d+%*?", 2)
+ 		for i,v in ipairs(r) do
+ 			prop = user.u_propmgr:get_by_csv_id(v[1])
+ 			if prop then
+ 				prop.num = prop.num + assert(v[2])
+ 				prop:update_db({"num"})
+ 				table.insert(l, { csv_id=prop.csv_id, num=prop.num})
+ 			else
+				prop = skynet.call(game, "lua", "query_g_prop", v[1])
+				prop.user_id = user.csv_id
+				prop.num = assert(v[2])
+				prop = user.u_propmgr.create(prop)
+				user.u_propmgr:add(prop)
+				prop:update_db(const.DB_PRIORITY_2)
+				table.insert(l, { csv_id=prop.csv_id, num=prop.num})
+ 			end
+ 		end
+ 		local t = { user_id=user.csv_id, vip=self.vip, collected=0, purchased=1}
+ 		rc = user.u_recharge_vip_rewardmgr.create(t)
+ 		user.u_recharge_vip_rewardmgr:add(rc)
+ 		rc:update_db(const.DB_PRIORITY_2)
+ 		ret.errorcode = errorcode[1].code
+ 		ret.msg = errorcode[1].msg
+ 		ret.l = l
+ 		return ret
+ 	end
+end
+
 return cls

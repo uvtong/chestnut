@@ -114,182 +114,7 @@ end
 
 local function xilian(role, t)
 	-- body
-	assert(type(t) == "table")
-	local ret = {}
-	local property_pool = skynet.call(game, "lua", "query_g_property_pool")
-	local last = 0
-	local sum = 0
-	for k,v in pairs(property_pool) do
-		v.min = last
-		sum = sum + v.probability
-		v.max = sum
-	end
-	local n = 0
-	if t.is_locked1 then
-		n = n + 1
-		ret.property_id1 = role.property_id1
-		ret.value1 = role.value1
-	else
-		local property_pool_id
-		local rand = math.random(0, sum-1)
-		for k,v in pairs(property_pool) do
-			if rand >= v.min and rand < v.max then
-				property_pool_id = v.property_pool_id
-				break
-			end
-		end
-		assert(property_pool_id)
-		property_pool_id = 1
-		local last1 = 0
-		local sum1 = 0
-		local second = skynet.call(game, "lua", "query_g_property_pool_second", 0, property_pool_id)
-		for i,v in ipairs(second) do
-			v.min = last1
-			sum1 = sum1 + v.probability
-			v.max = sum1
-		end
-		rand = math.random(0, sum1-1)
-		for i,v in ipairs(second) do
-			if rand >= v.min and rand < v.max then
-				ret.property_id1 = v.property_id
-				ret.value1 = v.value
-				break
-			end
-		end
-	end
-
-	if t.is_locked2 then
-		n = n + 1
-		ret.property_id2 = role.property_id2
-		ret.value2 = role.value2
-	else
-		local property_pool_id
-		local rand = math.random(0, sum-1)
-		for k,v in pairs(property_pool) do
-			if rand >= v.min and rand < v.max then
-				property_pool_id = v.property_pool_id
-				break
-			end
-		end
-		assert(property_pool_id)
-		property_pool_id = 1
-		local last1 = 0
-		local sum1 = 0
-		local second = skynet.call(game, "lua", "query_g_property_pool_second", 0, property_pool_id)
-		for i,v in ipairs(second) do
-			v.min = last1
-			sum1 = sum1 + v.probability
-			v.max = sum1
-		end
-		rand = math.random(0, sum1-1)
-		for i,v in ipairs(second) do
-			if rand >= v.min and rand < v.max then
-				ret.property_id2 = v.property_id
-				ret.value2 = v.value
-				break
-			end
-		end
-	end
-
-	if t.is_locked3 then
-		n = n + 1
-		ret.property_id3 = role.property_id3
-		ret.value3 = role.value3
-	else
-		local property_pool_id
-		local rand = math.random(0, sum-1)
-		for k,v in pairs(property_pool) do
-			if rand >= v.min and rand < v.max then
-				property_pool_id = v.property_pool_id
-				break
-			end
-		end
-		assert(property_pool_id)
-		property_pool_id = 1
-		local last1 = 0
-		local sum1 = 0
-		local second = skynet.call(game, "lua", "query_g_property_pool_second", 0, property_pool_id)
-		for i,v in ipairs(second) do
-			v.min = last1
-			sum1 = sum1 + v.probability
-			v.max = sum1
-		end
-		rand = math.random(0, sum1-1)
-		for i,v in ipairs(second) do
-			if rand >= v.min and rand < v.max then
-				ret.property_id3 = v.property_id
-				ret.value3 = v.value
-				break
-			end
-		end
-	end
-
-	if t.is_locked4 then
-		n = n + 1
-		ret.property_id4 = role.property_id4
-		ret.value4 = role.value4
-	else
-		local property_pool_id
-		local rand = math.random(0, sum-1)
-		for k,v in pairs(property_pool) do
-			if rand >= v.min and rand < v.max then
-				property_pool_id = v.property_pool_id
-				break
-			end
-		end
-		assert(property_pool_id)
-		property_pool_id = 1
-		local last1 = 0
-		local sum1 = 0
-		local second = skynet.call(game, "lua", "query_g_property_pool_second", 0, property_pool_id)
-		for i,v in ipairs(second) do
-			v.min = last1
-			sum1 = sum1 + v.probability
-			v.max = sum1
-		end
-		rand = math.random(0, sum1-1)
-		for i,v in ipairs(second) do
-			if rand >= v.min and rand < v.max then
-				ret.property_id4 = v.property_id
-				ret.value4 = v.value
-				break
-			end
-		end
-	end
-
-	if t.is_locked5 then
-		n = n + 1
-		ret.property_id5 = role.property_id5
-		ret.value5 = role.value5
-	else
-		local property_pool_id
-		local rand = math.random(0, sum-1)
-		for k,v in pairs(property_pool) do
-			if rand >= v.min and rand < v.max then
-				property_pool_id = v.property_pool_id
-				break
-			end
-		end
-		assert(property_pool_id)
-		property_pool_id = 1
-		local last1 = 0
-		local sum1 = 0
-		local second = skynet.call(game, "lua", "query_g_property_pool_second", 0, property_pool_id)
-		for i,v in ipairs(second) do
-			v.min = last1
-			sum1 = sum1 + v.probability
-			v.max = sum1
-		end
-		rand = math.random(0, sum1-1)
-		for i,v in ipairs(second) do
-			if rand >= v.min and rand < v.max then
-				ret.property_id5 = v.property_id
-				ret.value5 = v.value
-				break
-			end
-		end
-	end
-	return n, ret
+	return env:xilian(role, t)
 end
 
 function SUBSCRIBE.update_db()
@@ -396,40 +221,15 @@ function REQUEST:choose_role()
 end	
 	
 function REQUEST:role_upgrade_star()
-	local ret = {}
-	if not user then
-		ret.errorcode = errorcode[2].code
-		ret.msg = errorcode[2].msg
-		return ret
-	end
-	assert(self.role_csv_id)
-	local role = assert(user.u_rolemgr:get_by_csv_id(self.role_csv_id))
-	local prop = user.u_propmgr:get_by_csv_id(role.us_prop_csv_id)
-	local role_star = skynet.call(game, "lua", "query_g_role_star", role.csv_id*1000+role.star+1)
-	if prop and prop.num >= role_star.us_prop_num then
-		prop.num = prop.num - role_star.us_prop_num
-		prop:update_db({"num"})
-		role.star = role_star.star
-		-- role.us_prop_csv_id = assert(role_star.us_prop_csv_id)
-		role.us_prop_num = assert(role_star.us_prop_num)
-		role.sharp = assert(role_star.sharp)
-		role.skill_csv_id = assert(role_star.skill_csv_id)
-		role.gather_buffer_id = assert(role_star.gather_buffer_id)
-		role.battle_buffer_id = assert(role_star.battle_buffer_id)
-		role:update_db({"star", "us_prop_num", "sharp", "skill_csv_id", "gather_buffer_id", "battle_buffer_id"})
-		-- return
-		ret.errorcode = errorcode[1].code
-		ret.msg = errorcode[1].msg
-		ret.r = {
-			csv_id = role.csv_id,
-			is_possessed = true,
-			star = role.star,
-    		u_us_prop_num = prop.num
-		}
-		return ret
+	local m = ctx:get_module("role")
+	local ok, result = pcall(m.role_upgrade_star, m, self)
+	if ok then
+		return result 
 	else
-		ret.errorcode = errorcode[3].code
-		ret.msg = errorcode[3].msg
+		skynet.error(result)
+		local ret = {}
+		ret.errorcode = errorcode[29].code
+		ret.msg = errorcode[29].msg
 		return ret
 	end
 end
@@ -470,158 +270,61 @@ end
 
 function REQUEST:user(ctx)
 	-- body
-	local ret = {}
-	print("called****************************111")
-	if not user then
-		ret.errorcode = errorcode[2].code
-		ret.msg	= errorcode[2].msg
+	local m = ctx:get_module("user")
+	local ok, result = pcall(m.user, m, self)
+	if ok then
+		return result 
+	else
+		skynet.error(result)
+		local ret = {}
+		ret.errorcode = errorcode[29].code
+		ret.msg = errorcode[29].msg
 		return ret
 	end
-	local modelmgr = ctx:get_modelmgr()
-	local u_propmgr = modelmgr:get_u_propmgr()
-	-- assert(u_propmgr == user.u_propmgr)
-	assert(u_propmgr:get_user() == user)
-	assert(user)
-	ret.errorcode = errorcode[1].code
-	ret.msg = errorcode[1].msg
-	ret.user = {
-		uname = user.uname,
-    	uviplevel = user.uviplevel,
-    	config_sound = (user.config_sound == 1) and true or false,
-    	config_music = (user.config_music == 1) and true or false,
-    	avatar = user.avatar,
-    	sign = user.sign,
-    	c_role_id = user.c_role_id,
-    	level = user.level,
-    	recharge_rmb = user.recharge_rmb,
-    	recharge_diamond = user.recharge_diamond,
-    	uvip_progress = user.uvip_progress,
-    	cp_hanging_id = user.cp_hanging_id,
-    	uexp = assert(user.u_propmgr:get_by_csv_id(const.EXP)).num,
-    	gold = assert(user.u_propmgr:get_by_csv_id(const.GOLD)).num,
-    	diamond = assert(user.u_propmgr:get_by_csv_id(const.DIAMOND)).num,
-    	love = assert(user.u_propmgr:get_by_csv_id(const.LOVE)).num,
-	}
-	ret.user.uviplevel = (1 << 48)
-	print("called****************************222")
-	ret.user.equipment_list = {}
-	for k,v in pairs(user.u_equipmentmgr.__data) do
-		table.insert(ret.user.equipment_list, v)
-	end
-	print("called****************************333")
-	ret.user.kungfu_list = {}
-	for k,v in pairs(user.u_kungfumgr.__data) do
-		table.insert(ret.user.kungfu_list, v)
-	end
-	print("called****************************444")
-	ret.user.rolelist = {}
-	for k,v in pairs(user.u_rolemgr.__data) do
-		table.insert(ret.user.rolelist, v)
-	end
-	print("called****************************555")
-	return ret
 end
 
-function REQUEST:user_can_modify_name()
+function REQUEST:user_can_modify_name(ctx)
 	-- body
-	local ret = {}
-	if not user then
-		ret.errorcode = errorcode[2].code
-		ret.msg = errorcode[2].msg
+	local m = ctx:get_module("user")
+	local ok, result = pcall(m.user_can_modify_name, m, self)
+	if ok then
+		return result 
+	else
+		skynet.error(result)
+		local ret = {}
+		ret.errorcode = errorcode[29].code
+		ret.msg = errorcode[29].msg
 		return ret
 	end
-	if user.modify_uname_count >= 1 then
-		ret.errorcode = errorcode[17].code
-		ret.msg = errorcode[17].msg
-	else
-		ret.errorcode = errorcode[1].code
-		ret.msg = errorcode[1].msg
-	end
-	return ret
 end
 
-function REQUEST:user_modify_name()
+function REQUEST:user_modify_name(ctx)
 	-- body
-	local ret = {}
-	if not user then
-		ret.errorcode = errorcode[2].code
-		ret.msg	= errorcode[2].msg
-		return ret
-	end
-	if user.modify_uname_count >= 1 then
-		local prop = user.u_propmgr:get_by_csv_id(const.DIAMOND)
-		if prop.num >= 100 then
-			prop.num = prop.num - 100
-			prop:update_db({"num"})
-			user.uname = self.name
-			user.modify_uname_count = user.modify_uname_count + 1
-			user:update_db({"modify_uname_count", "uname"}, const.DB_PRIORITY_2)
-			ret.errorcode = errorcode[1].code
-			ret.msg = errorcode[1].msg
-			return ret
-		else
-			ret.errorcode = errorcode[6].code
-			ret.msg = errorcode[6].msg
-			return ret
-		end
+	local m = ctx:get_module("user")
+	local ok, result = pcall(m.user_modify_name, m, self)
+	if ok then
+		return result 
 	else
-		user.uname = self.name
-		user.modify_uname_count = user.modify_uname_count + 1
-		user:update_db({"modify_uname_count", "uname"}, const.DB_PRIORITY_2)
-		ret.errorcode = errorcode[1].code
-		ret.msg = errorcode[1].msg
+		skynet.error(result)
+		local ret = {}
+		ret.errorcode = errorcode[29].code
+		ret.msg = errorcode[29].msg
 		return ret
 	end
 end
 
 function REQUEST:user_upgrade(ctx)
 	-- body
-	local ret = {}
-	if not user then
-		ret.errorcode = errorcode[2].code
-		ret.msg = errorcode[2].msg
-		return ret
-	end
-	assert(user)
-	local user_level_max
-	local xilian_begain_level
-	local ptr = skynet.call(game, "lua", "query_g_config")
-	tptr.createtable(ptr)
-	for _,k,v in tptr.pairs(ptr) do
-		if k == "user_level_max" then
-			user_level_max = v
-		elseif k == "xilian_begain_level" then
-			xilian_begain_level = v
-		end
-	end
-	if user.level + 1 >= user_level_max then
-		ret.errorcode = errorcode[30].code
-		ret.msg = errorcode[30].msg
-		return ret
+	local m = ctx:get_module("user")
+	local ok, result = pcall(m.user_upgrade, m, self)
+	if ok then
+		return result 
 	else
-		local L = skynet.call(game, "lua", "query_g_user_level", user.level + 1)
-		local prop = user.u_propmgr:get_by_csv_id(const.EXP)
-		if prop.num >= tonumber(L.exp) then
-			prop.num = prop.num - L.exp
-			user.level = L.level
-			user.combat = L.combat
-			user.defense = L.defense
-			user.critical_hit = L.critical_hit
-			user.blessing = L.skill              -- blessing.
-			user.gold_max = assert(L.gold_max)
-			user.exp_max = assert(L.exp_max)
-			if user.level >= xilian_begain_level then
-				user.ifxilian = 1
-			end
-			ctx:raise_achievement(const.ACHIEVEMENT_T_7)
-			ret.errorcode = errorcode[1].code
-			ret.msg = errorcode[1].msg
-			return ret
-		else
-			ret.errorcode = errorcode[19].code
-			ret.msg	= errorcode[19].msg
-			return ret
-		end
+		skynet.error(result)
+		local ret = {}
+		ret.errorcode = errorcode[29].code
+		ret.msg = errorcode[29].msg
+		return ret
 	end
 end
 
@@ -717,176 +420,63 @@ end
 
 function REQUEST:recharge_vip_reward_collect()
 	-- body
-	local ret = {}
-	if not user then
-		ret.errorcode = errorcode[2].code
-		ret.msg = errorcode[2].msg
-		return ret
-	end
-	if self.vip == 0 then
-		ret.errorcode = errorcode[20].code
-		ret.msg = errorcode[20].msg
-		return ret
-	end
-	if self.vip > user.uviplevel then
-		ret.errorcode = errorcode[21].code
-		ret.msg = errorcode[21].msg
-		return ret
-	end
-	assert(user)
-	local rc = user.u_recharge_vip_rewardmgr:get_by_vip(self.vip)
-	if rc then
-		if rc.collected == 1 then
-			ret.errorcode = errorcode[22].code
-			ret.msg = errorcode[22].msg
-			return ret
-		else
-			local reward = skynet.call(game, "lua", "query_g_recharge_vip_reward", self.vip)
-			local t = util.parse_text(reward.rewared, "%d+%*%d+%*?", 2)
-			for i,v in ipairs(t) do
-				local prop = user.u_propmgr:get_by_csv_id(v[1])
-				if prop then
-					prop.num = prop.num + assert(v[2])
-					prop:update_db({"num"})
-				else
-					prop = skynet.call(game, "lua", "query_g_prop", v[1])
-					prop.user_id = user.csv_id
-					prop.num = assert(v[2])
-					prop = user.u_propmgr.create(prop)
-					user.u_propmgr:add(prop)
-					prop:update_db(const.DB_PRIORITY_2)
-				end
-			end
-			rc.collected = 1
-			rc:update_db({"collected"})
-			ret.errorcode = errorcode[1].code
-			ret.msg = errorcode[1].msg
-			ret.vip = user.uviplevel
-			ret.collected = true
-			return ret
-		end
+	local m = ctx:get_module("recharge")
+	local ok, result = pcall(m.recharge_vip_reward_collect, m, self)
+	if ok then
+		return result 
 	else
-		local reward = skynet.call(game, "lua", "query_g_recharge_vip_reward", self.vip)
-		local t = util.parse_text(reward.rewared, "%d+%*%d+%*?", 2)
-		for i,v in ipairs(t) do
-			local prop = get_prop(v[1])
-			prop.num = prop.num + assert(v[2])
-			prop:update_db({"num"})
-		end
-		local t = {user_id=user.csv_id, vip=self.vip, collected=1, purchased=0}	
-		rc = user.u_recharge_vip_rewardmgr.create(t)
-		user.u_recharge_vip_rewardmgr:add(rc)
-		rc:update_db(const.DB_PRIORITY_2)
-		ret.errorcode = errorcode[1].code
-		ret.msg = errorcode[1].msg
-		ret.vip = user.uviplevel
-		ret.collected = true
+		skynet.error(result)
+		local ret = {}
+		ret.errorcode = errorcode[29].code
+		ret.msg = errorcode[29].msg
+		return ret
+	end
+end
+
+function REQUEST:recharge_vip_reward_purchase()
+ 	-- body
+ 	local m = ctx:get_module("recharge")
+	local ok, result = pcall(m.recharge_vip_reward_purchase, m, self)
+	if ok then
+		return result 
+	else
+		skynet.error(result)
+		local ret = {}
+		ret.errorcode = errorcode[29].code
+		ret.msg = errorcode[29].msg
 		return ret
 	end
 end
 
 function REQUEST:equipment_enhance()
 	-- body
-	assert(self.csv_id, string.format("from client the value is: %s", type(self.csv_id)))
-	local ret = {}
-	if not user then
-		ret.errorcode = errorcode[2].code
-		ret.msg = errorcode[2].msg
-		return ret
-	end
-	local e = assert(user.u_equipmentmgr:get_by_csv_id(self.csv_id))
-	if e.csv_id == 1 then
-		local last = user.u_equipmentmgr:get_by_csv_id(4)
-		assert(e.level == last.level)
+	local m = ctx:get_module("equipment")
+	local ok, result = pcall(m.equipment_enhance, m, self)
+	if ok then
+		return result 
 	else
-		local last = user.u_equipmentmgr:get_by_csv_id(e.csv_id - 1)
-		assert(e.level < last.level)
-	end
-	local ee = skynet.call(game, "lua", "query_g_equipment_enhance", e.csv_id*1000 + e.level + 1)
-	if ee.level > user.level then
-		ret.errorcode = errorcode[23].code
-		ret.msg = errorcode[23].msg
+		skynet.error(result)
+		local ret = {}
+		ret.errorcode = errorcode[29].code
+		ret.msg = errorcode[29].msg
 		return ret
-	end
-	local currency = user.u_propmgr:get_by_csv_id(ee.currency_type)
-	if currency.num < ee.currency_num then
-		ret.errorcode = errorcode[6].code
-		ret.msg = errorcode[6].msg
-		return ret
-	else
-		assert(currency.num >= ee.currency_num)
-		local r = math.random(0, 100)
-		if r < e.enhance_success_rate + (e.enhance_success_rate * user.equipment_enhance_success_rate_up_p/100) then
-			currency.num = currency.num - ee.currency_num
-			assert(currency.num > 0)
-			currency:update_db({"num"})
-			for k,v in pairs(e) do
-				if ee[k] then
-					e[k] = ee[kk]
-				end
-			end	
-			ret.errorcode = errorcode[1].code
-			ret.msg = errorcode[1].msg
-			ret.e = {}
-			ret.e.csv_id = assert(e.csv_id)
-			ret.e.level = assert(e.level)
-			ret.e.combat = assert(e.combat)
-			ret.e.defense = assert(e.defense)
-			ret.e.critical_hit = assert(e.critical_hit)
-			ret.e.king = assert(e.king)
-			ret.e.combat_probability = assert(e.combat_probability)
-			ret.e.defense_probability = assert(e.defense_probability)
-			ret.e.critical_hit_probability = assert(e.critical_hit_probability)
-			ret.e.defense_probability = assert(e.defense_probability)
-			ret.e.enhance_success_rate = assert(e.enhance_success_rate)
-			if e.csv_id == 4 and e.level % 10 == 0 then
-				local equip_effect = skynet.call(game, "lua", "query_g_equipment_effect", e.level)
-				ret.is_valid = true
-				ret.effect = equip_effect.effect
-				return ret
-			else
-				ret.is_valid = false
-				ret.effect = 0
-				return ret
-			end
-		else
-			ret.errorcode = errorcode[24].code
-			ret.msg = errorcode[24].msg
-			return ret
-		end
 	end
 end
 
 function REQUEST:equipment_all()
 	-- body
 	-- 1 offline 
-	local ret = {}
-	if not user then
-		ret.errorcode = errorcode[2].code
-		ret.msg = errorcode[2].msg
+	local m = ctx:get_module("equipment")
+	local ok, result = pcall(m.equipment_all, m, self)
+	if ok then
+		return result 
+	else
+		skynet.error(result)
+		local ret = {}
+		ret.errorcode = errorcode[29].code
+		ret.msg = errorcode[29].msg
 		return ret
 	end
-	local l = {}
-	for k,v in pairs(user.u_equipmentmgr.__data) do
-		local e = {
-			csv_id = assert(v.csv_id),
-			level = assert(v.level),
-			combat = assert(v.combat),
-			defense = assert(v.defense),
-			critical_hit = assert(v.critical_hit),
-			king = assert(v.king),
-			combat_probability = assert(v.combat_probability),
-			critical_hit_probability = assert(v.critical_hit_probability),
-			defense_probability = assert(v.defense_probability),
-			king_probability = assert(v.king_probability),
-			enhance_success_rate = assert(v.enhance_success_rate)
-		}
-		table.insert(l, e)
-	end
-	ret.errorcode = errorcode[1].code
-	ret.msg = errorcode[1].msg
-	ret.l = l
-	return ret
 end
 
 function REQUEST:role_all(ctx)
@@ -965,102 +555,7 @@ function REQUEST:user_random_name()
 	return ret
 end
 
-function REQUEST:recharge_vip_reward_purchase()
- 	-- body
- 	-- 0. success
- 	-- 1. offline
- 	-- 2. your vip don't
- 	-- 3. has purchased
- 	local ret = {}
- 	if not user then
- 		ret.errorcode = errorcode[2].code
- 		ret.msg = errorcode[2].msg
- 		return ret
- 	end
- 	assert(self.vip > 0)
- 	if self.vip > user.uviplevel then
- 		ret.errorcode = errorcode[21].code
- 		ret.msg = errorcode[21].msg
- 		return ret
- 	end
- 	local l = {}
- 	local rc = user.u_recharge_vip_rewardmgr:get_by_vip(self.vip)
- 	if rc then
- 		if rc.purchased == 1 then
- 			ret.errorcode = errorcode[25].code
- 			ret.msg = errorcode[25].msg
- 			return ret
- 		else
- 			local reward = skynet.call(game, "lua", "query_g_recharge_vip_reward", self.vip)
- 			local prop = user.u_propmgr:get_by_csv_id(const.DIAMOND)
- 			if prop.num < reward.purchasable_diamond then
- 				ret.errorcode = errorcode[6].code
- 				ret.msg = errorcode[6].msg
- 				return ret
- 			end
- 			prop.num = prop.num - reward.purchasable_diamond
- 			prop:update_db({"num"})
- 			local r = util.parse_text(reward.purchasable_gift, "%d+%*%d+%*?", 2)
- 			for i,v in ipairs(r) do
- 				prop = user.u_propmgr:get_by_csv_id(v[1])
- 				if prop then
- 					prop.num = prop.num + assert(v[2])
- 					prop:update_db({"num"})
- 					table.insert(l, { csv_id=prop.csv_id, num=prop.num})
- 				else
- 					prop = skynet.call(game, "lua", "query_g_prop", v[1])
- 					prop.user_id = user.csv_id
- 					prop.num = assert(v[2])
- 					prop = user.u_propmgr.create(prop)
- 					user.u_propmgr:add(prop)
- 					prop:update_db(const.DB_PRIORITY_2)
- 					table.insert(l, { csv_id=prop.csv_id, num=prop.num})
- 				end
- 			end
- 			rc.purchased = 1
- 			rc:update_db({"purchased"})
- 			ret.errorcode = errorcode[1].code
- 			ret.msg = errorcode[1].msg
- 			ret.l = l
- 			return ret
- 		end
- 	else
- 		local reward = skynet.call(game, "lua", "query_g_recharge_vip_reward", self.vip)
- 		local prop = user.u_propmgr:get_by_csv_id(const.DIAMOND)
- 		if prop.num < reward.purchasable_diamond then
- 			ret.errorcode = errorcode[6].code
- 			ret.msg = errorcode[6].msg
- 			return ret
- 		end
- 		prop.num = prop.num - reward.purchasable_diamond
- 		prop:update_db({"num"})
- 		local r = util.parse_text(reward.purchasable_gift, "%d+%*%d+%*?", 2)
- 		for i,v in ipairs(r) do
- 			prop = user.u_propmgr:get_by_csv_id(v[1])
- 			if prop then
- 				prop.num = prop.num + assert(v[2])
- 				prop:update_db({"num"})
- 				table.insert(l, { csv_id=prop.csv_id, num=prop.num})
- 			else
-				prop = skynet.call(game, "lua", "query_g_prop", v[1])
-				prop.user_id = user.csv_id
-				prop.num = assert(v[2])
-				prop = user.u_propmgr.create(prop)
-				user.u_propmgr:add(prop)
-				prop:update_db(const.DB_PRIORITY_2)
-				table.insert(l, { csv_id=prop.csv_id, num=prop.num})
- 			end
- 		end
- 		local t = { user_id=user.csv_id, vip=self.vip, collected=0, purchased=1}
- 		rc = user.u_recharge_vip_rewardmgr.create(t)
- 		user.u_recharge_vip_rewardmgr:add(rc)
- 		rc:update_db(const.DB_PRIORITY_2)
- 		ret.errorcode = errorcode[1].code
- 		ret.msg = errorcode[1].msg
- 		ret.l = l
- 		return ret
- 	end
-end
+
 
 local xilian_lock = 0
 local xilian_role_id = 0
