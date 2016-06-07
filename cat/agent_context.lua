@@ -63,9 +63,9 @@ function cls:ctor( ... )
 	cls = require "usermodule"
 	local m = cls.new(self)
 	self._m["user"] = m
-	cls = require "equipment"
+	cls = require "equipmentmodule"
 	local m = cls.new(self)
-	self._m["user"] = m
+	self._m["equipment"] = m
 
 end
 
