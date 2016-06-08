@@ -256,8 +256,13 @@ end
 
 function cls.create(t, p, ...)
 	-- body
-	local entity = require("models/"..t.__entity)
-	local r = entity.new(t, p)
+	return t:create_entity(p)
+end
+
+function cls.create_entity(self, p )
+	-- body
+	local entity_cls = require("models/"..t.__entity)
+	local r = entity_cls.new(self, p)
 	return r
 end
 

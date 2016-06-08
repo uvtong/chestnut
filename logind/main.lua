@@ -11,13 +11,13 @@ skynet.start(function()
 	local signupd = skynet.getenv("signupd")
 	if signupd  then
 		local conf = {
-			db_host     = "192.168.1.116",
-			db_port     = 3306,
+			db_host = skynet.getenv("db_host") or "192.168.1.116",
+			db_port = skynet.getenv("db_port") or 3306,
 			db_database = "user",
-			db_user     = "root",
-			db_password = "yulei",
-			cache_host  = "192.168.1.116",
-			cache_port  = 6379,
+			db_user = skynet.getenv("db_user") or "root",
+			db_password = skynet.getenv("db_password") or "yulei",
+			cache_host = skynet.getenv("cache_host") or "192.168.1.116",
+			cache_port = skynet.getenv("cache_port") or 6379
 		}
 		local db = skynet.newservice("db", "signup_db")
 		assert(skynet.call(db, "lua", "start", conf))
@@ -31,13 +31,13 @@ skynet.start(function()
 	local logind = skynet.getenv("logind")
 	if logind then
 		local conf = {
-			db_host     = "192.168.1.116",
-			db_port     = 3306,
+			db_host = skynet.getenv("db_host") or "192.168.1.116",
+			db_port = skynet.getenv("db_port") or 3306,
 			db_database = "user",
-			db_user     = "root",
-			db_password = "yulei",
-			cache_host  = "192.168.1.116",
-			cache_port  = 6379,
+			db_user = skynet.getenv("db_user") or "root",
+			db_password = skynet.getenv("db_password") or "yulei",
+			cache_host = skynet.getenv("cache_host") or "192.168.1.116",
+			cache_port = skynet.getenv("cache_port") or 6379
 		}
 
 		local db = skynet.newservice("db", "logind_db")

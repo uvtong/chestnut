@@ -4,5 +4,5 @@
 #echo $2
 #bash redis.sh
 cd ./../../skynet
-./skynet ./../host/sh/crazy_config.m1
+./skynet ./../host/sh/crazy_m1.config
 
