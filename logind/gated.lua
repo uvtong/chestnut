@@ -106,7 +106,7 @@ function server.send_request_handler(uid, subid, message)
 	if u then
 		local username = msgserver.username(uid, id, servername)
 		assert(u.username == username)
-		local ok, result = pcall(msgserver.send_request, u.username, msg)
+		local ok, result = pcall(msgserver.send_request, u.username, message)
 		if not ok then
 			skynet.error(result)
 		end

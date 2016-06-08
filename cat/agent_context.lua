@@ -1,5 +1,4 @@
 local skynet = require "skynet"
-require "skynet.manager"
 local dc = require "datacenter"
 local const = require "const"
 local util = require "util"
@@ -66,7 +65,6 @@ function cls:ctor( ... )
 	cls = require "equipmentmodule"
 	local m = cls.new(self)
 	self._m["equipment"] = m
-
 end
 
 function cls:get_module(k, ... )

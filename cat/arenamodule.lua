@@ -105,8 +105,8 @@ function cls:ara_rfh_( ... )
 	local r1 = skynet.call(leaderboards_name, "lua", "ranking_range", 1, 10)
 	local r2 = skynet.call(leaderboards_name, "lua", "nearby", u:get_csv_id())
 	local u_ara_worshipmgr = modelmgr:get_u_ara_worshipmgr()
-	local t = os.date("*t", os.time())
-	t = { year=t.year, month=t.month, day=t.day}
+	local tm = os.date("*t", os.time())
+	local t = { year=tm.year, month=tm.month, day=tm.day}
 	local today = os.time(t)
 	for i,v in ipairs(r1) do
 		local li = {}
