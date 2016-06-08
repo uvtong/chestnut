@@ -9,6 +9,7 @@ local urls = require "urls"
 local json = require "cjson"
 local table = table
 local string = string
+local static_cache = {}
 
 local mode = ...
 
@@ -25,28 +26,32 @@ end
 local function parse( ... )
 	-- body
 	local str = tostring( ... )
-	local r = {}	
-	local function split( str )
-		-- body
-		local p = string.find(str, "=")
-		local key = string.sub(str, 1, p - 1)
-		local value = string.sub(str, p + 1)
-		r[key] = value
- 	end
-	local s = 1
-	repeat
-		local p = string.find(str, "&", s)
-		if p ~= nil then 
-			local frg =	string.sub(str, s, p - 1)
-			s = p + 1
-			split(frg)
-		else
-			local frg =	string.sub(str, s)
-			split(frg)
-			break
-		end
-	until false
-	return r
+	if str and #str > 0 then
+		local r = {}	
+		local function split( str )
+			-- body
+			local p = string.find(str, "=")
+			local key = string.sub(str, 1, p - 1)
+			local value = string.sub(str, p + 1)
+			r[key] = value
+	 	end
+		local s = 1
+		repeat
+			local p = string.find(str, "&", s)
+			if p ~= nil then 
+				local frg =	string.sub(str, s, p - 1)
+				s = p + 1
+				split(frg)
+			else
+				local frg =	string.sub(str, s)
+				split(frg)
+				break
+			end
+		until false
+		return r
+	else
+		return 
+	end
 end
 
 local function parse_file( header, boundary, body )
@@ -113,17 +118,21 @@ local function route( id, code, url, method, header, body )
 	local bodyfunc
 	local path, query = urllib.parse(url)
 	if method == "GET" then
-		local suffix = string.gsub(path, "(.*)/[^/]*%.(%w+)", "%2")
-		if suffix == "js" or suffix == "css" then
-			local fpath = "../web/statics" .. path
-			local fd = io.open(fpath, "r")
-			if fd == nil then
-				print(fpath)
-				error "fpath is wrong"
+		if string.match(path, "^/[%w%./-]+%.%w+") then
+			if static_cache[path] then
+				bodyfunc = static_cache[path]
 			else
-				local ret = fd:read("*a")
-				fd:close()
-				bodyfunc = ret	
+				local fpath = "../web/statics" .. path
+				local fd = io.open(fpath, "r")
+				if fd == nil then
+					print(fpath)
+					error "fpath is wrong"
+				else
+					local ret = fd:read("*a")
+					fd:close()
+					bodyfunc = ret	
+					static_cache[path] = bodyfunc
+				end
 			end
 		else
 			for k,v in pairs(urls) do
@@ -135,15 +144,15 @@ local function route( id, code, url, method, header, body )
 					if ok then
 						bodyfunc = res
 					else
-						print(res)
-						statuscode = 301
-						bodyfunc = "404"
-						headerd["Location"] = "/404"		
+						bodyfunc = string.fromat("error from server %s", res)
 					end
 					break
 				end
 			end
 			if not bodyfunc then
+				print(path)
+				error "123"
+				skynet.error("no matching url.")
 				bodyfunc = "404"
 				statuscode = 301
 				headerd["Location"] = "/404"
@@ -162,10 +171,7 @@ local function route( id, code, url, method, header, body )
 					if ok then
 						bodyfunc = res
 					else
-						print(res)
-						statuscode = 301
-						bodyfunc = "404"
-						headerd["Location"] = "/404"		
+						bodyfunc = string.fromat("error from server %s", res)
 					end
 				elseif flag == "post" then
 					local args = {}
@@ -175,10 +181,7 @@ local function route( id, code, url, method, header, body )
 					if ok then
 						bodyfunc = res
 					else
-						print(res)
-						statuscode = 301
-						bodyfunc = "404"
-						headerd["Location"] = "/404"
+						bodyfunc = string.fromat("error from server %s", res)
 					end
 				else
 					assert(false)
@@ -187,19 +190,25 @@ local function route( id, code, url, method, header, body )
 			end
 		end
 		if bodyfunc == nil then
+			error "123"
+			skynet.error("no matching url.")
 			statuscode = 301
 			bodyfunc = "404"
 			headerd["Location"] = "/404"
 		end
 	else
+		error "now don't support others method"
 		statuscode = 301
 		bodyfunc = "404"
 		headerd["Location"] = "/404"
 	end
 	if type(bodyfunc) == "table" then
 		bodyfunc = json.encode(bodyfunc)
+	elseif type(bodyfunc) == "string" then
+	else
+		print(type(bodyfunc))
+		error "now don't support others type."
 	end
-	assert(type(bodyfunc) == "string" or type(bodyfunc) == "function")
 	return response(id, statuscode, bodyfunc, headerd)
 end 
 
