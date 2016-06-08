@@ -1,0 +1,114 @@
+<!DOCTYPE html>
+<html>
+	<head>
+		<meta charset="utf-8" />
+    	<title>React Tutorial</title>
+    	<script src="https://cdnjs.cloudflare.com/ajax/libs/react/15.1.0/react.js"></script>
+    	<script src="https://cdnjs.cloudflare.com/ajax/libs/react/15.1.0/react-dom.js"></script>
+    	<script src="https://cdnjs.cloudflare.com/ajax/libs/babel-core/5.8.23/browser.min.js"></script>
+    	<script src="https://cdnjs.cloudflare.com/ajax/libs/jquery/2.2.0/jquery.min.js"></script>
+    	<script src="https://cdnjs.cloudflare.com/ajax/libs/remarkable/1.6.2/remarkable.min.js"></script>
+    	<script type="text/javascript" src="http://code.highcharts.com/highcharts.js"></script>
+	</head>
+	<body>
+		<div id="container" style="width:100%; height:400px;"></div>
+        <h1>{{message}}</h1>
+		<div>
+			<a href="/user">user</a>
+			<a href="/role">role</a>
+            <a href="/email">email</a>
+            <a href="/props">props</a>
+		</div>
+        <div>
+            <input id="mtext" type="text"/>
+            <input id="valid" type="submit" value="submit" />    
+        </div>
+        <div>
+            <input id="mmtext" type="text"/>
+            <input id="input1" type="submit" value="abc">
+        </div>
+        <div>
+            <input id="mmtext1" type="text"/>
+            <input id="input2" type="submit" value="procedure">
+        </div>
+		<p id="msg"></p>
+		<div id="content"></div>
+		<script src="https://fb.me/react-15.1.0.js"></script>
+		<script src="https://fb.me/react-dom-15.1.0.js"></script>
+        <script src="//code.jquery.com/jquery-1.12.0.min.js"></script>
+        <script type="text/javascript" src="http://code.highcharts.com/highcharts.js"></script>
+        <script type="text/javascript">
+            $(function () { 
+                $('#container').highcharts({
+                    chart: { type: 'bar' },
+                    title: { text: 'Fruit Consumption' },
+                    xAxis: { categories: ['Apples', 'Bananas', 'Oranges'] },
+                    yAxis: { title: { text: 'Fruit eaten' } },
+                    series: [{ name:'Jane', data:[1, 0, 4]}, { name:'John', data:[5, 7, 3]}]
+                });
+            });
+            $(document).ready(function(){
+                $("#valid").click(function(){
+                    var table_name = $("#mtext").val() || "";
+                    $.ajax({
+                        url:"/validation",
+                        type:"POST",
+                        data:{ table_name:table_name},
+                        dataType:"json",
+                        success:function(resp) {
+                            $("#msg").html(resp.msg);
+                        },
+                        error:function() {
+                            alert("error");
+                        }
+                    })
+                });
+                $("#input1").click(function () {
+                    // body...
+                    debugger
+                    var table_name = $("#mmtext").val() || "";
+                    $.ajax({
+                        url:"/validation_ro",
+                        type:"POST",
+                        data:{ table_name:table_name},
+                        dataType:"json",
+                        success:function (resp) {
+                            // body...
+                            $("#msg").html(resp.msg);
+                        },
+                        error:function () {
+                            // body...
+                            alert("error");
+                        }
+                    });
+                });
+                $("#input2").click(function () {
+                    // body...
+                    var table_name = $("#mmtext").val() || "";
+                    $.ajax({
+                        url:"/percudure",
+                        type:"POST",
+                        data:{ table_name:table_name},
+                        dataType:"json",
+                        success:function (resp) {
+                            // body...
+                            $("#msg").html(resp.msg);
+                        },
+                        error:function () {
+                            // body...
+                            alert("error");
+                        }
+                    });
+                });
+            });
+        </script>
+        <script type="text/babel" src="tutorial1.js"></script>
+        <script type="text/babel">
+        	ReactDOM.render(
+        		<h1>Hello, world!</h1>
+        		document.getElementById('example')
+        	);
+        </script>
+
+	</body>
+</html>
