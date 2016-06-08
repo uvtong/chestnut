@@ -1,9 +1,22 @@
 local skynet = require "skynet"
 
-local id = 1
-
 local CMD = {}
 
+function CMD.enter_room( ... )
+	-- body
+end
+
+function CMD.ready( ... )
+	-- body
+end
+
+function CMD.mp( ... )
+	-- body
+end
+
+function CMD.am( ... )
+	-- body
+end
 
 skynet.start(function ()
 	-- body
