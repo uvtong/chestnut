@@ -1,4 +1,8 @@
 local skynet = require "skynet"
+local userid1 = 0
+local userid2 = 1
+local userid2 = 1
+
 
 local CMD = {}
 
@@ -6,7 +10,7 @@ function CMD.enter_room( ... )
 	-- body
 end
 
-function CMD.ready( ... )
+function CMD.ready(uid, ... )
 	-- body
 end
 
@@ -15,6 +19,18 @@ function CMD.mp( ... )
 end
 
 function CMD.am( ... )
+	-- body
+end
+
+function CMD.rob( ... )
+	-- body
+end
+
+function CMD.lead( ... )
+	-- body
+end
+
+function CMD.deal_cards( ... )
 	-- body
 end
 
