@@ -266,7 +266,6 @@ send_package(fd, handshake .. ":" .. crypt.base64encode(hmac))
 print(readpackage())
 
 
-
 while true do
 	dispatch_package()
 	local cmd = socket.readstdin()

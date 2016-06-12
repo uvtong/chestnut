@@ -1,11 +1,6 @@
 package.path = "./../cat/?.lua;../lualib/?.lua;" .. package.path
 package.cpath = "./../cat/luaclib/?.so;" .. package.cpath
 local skynet = require "skynet"
-require "skynet.manager"
-require "functions"
-rdb = skynet.localname(".rdb")
-wdb = skynet.localname(".db")
-local netpack = require "netpack"
 local socket = require "socket"
 local sproto = require "sproto"
 local sprotoloader = require "sprotoloader"
@@ -14,103 +9,13 @@ local dc = require "datacenter"
 local util = require "util"
 local errorcode = require "errorcode"
 local const = require "const"
-local tptr = require "tablepointer"
 local context = require "agent_context"
-
-local friendrequest = require "friendrequest"
-local friendmgr = require "friendmgr"
-
-local M = {}
-local new_emailrequest = require "new_emailrequest"
-local checkinrequest = require "checkinrequest"
-local exercise_request = require "exercise_request"
-local cgold_request = require "cgold_request"
-local kungfurequest = require "kungfurequest"
-local new_drawrequest = require "new_drawrequest"
-local lilian_request = require "lilian_request"
-local core_fightrequest = require "core_fightrequest"
-
-
-table.insert(M, checkinrequest )
-table.insert(M, exercise_request )
-table.insert(M, cgold_request )
-table.insert(M, new_emailrequest )
-table.insert(M, kungfurequest )
-table.insert(M, new_drawrequest )
-table.insert(M, lilian_request )
-table.insert(M, core_fightrequest)
-
--- service internal context
-
-
-local host
-local send_request
-local gate
-local userid, subid
-local secret
-local db
-local game
-local user
-local stm = require "stm"
-local sharemap = require "sharemap"
-local sd = require "sharedata"
-local env = context.new()
 
 
 local CMD       = {}
 local REQUEST   = {}
 local RESPONSE  = {}
 local SUBSCRIBE = {}
-
-local func_gs 
-local table_gs = {}
-
-local leaderboards_name = skynet.getenv("leaderboards_name")
-local lb = skynet.localname(leaderboards_name)
-
-local global_response_session = 1
-
-local function send_package(pack)
-	-- body
-
-	local package = string.pack(">s2", pack)
-	socket.write(client_fd, package)
-end
-
-local function get_journal()
-	-- body
-	local factory = env:get_myfactory()
-	return factory:get_today()
-end
-
-local function get_prop(csv_id)
-	-- body
-	local factory = env:get_myfactory()
-	return factory:get_prop(csv_id)
-end
-
-local function get_goods(csv_id)
-	-- body
-	local factory = env:get_myfactory()
-	return factory:get_goods(csv_id)
-end
-
-local function store_refresh_reset_count()
-	-- body
-	-- could refresh the cd of the goods.
-	local j = get_journal()
-	if j.goods_refresh_reset_count ~= 1 then
-		local hour = os.date("%H")
-		local min = os.date("%M")
-		local sec = os.date("%S")
-		local goods_refresh_reset_h = skynet.call("SIMPLEDB", "lua", "GET", "goods_refresh_reset_h")
-		if tonumber(hour) > goods_refresh_reset_h then
-			j.goods_refresh_count = 0
-			j.goods_refresh_reset_count = 1
-			j:update_db({"goods_refresh_count", "goods_refresh_reset_count"})
-		end
-	end
-end
 
 local function xilian(role, t)
 	-- body
@@ -145,7 +50,7 @@ local function subscribe( )
 	} 					
 	c2:subscribe() 		
 end 					
-						
+				
 function REQUEST:achievement(ctx)
 	-- body				
 	local m = ctx:get_module("achievement")

@@ -120,9 +120,6 @@ function cls.update(t, ...)
 		
 		local sql = table.concat(tmp_sql)
 		--print(sql)
-		-- if t.__tname == "users" and t.__fields[t.__pk] == 602 then
-		-- 	error "abc"
-		-- end
 		query.write(t.__wdb, t.__tname, sql, query.DB_PRIORITY_3)
 	end 
 end 	
