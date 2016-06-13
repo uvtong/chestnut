@@ -3,55 +3,62 @@ include platform.mk
 LUA_CLIB_PATH ?= luaclib
 CSERVICE_PATH ?= cservice
 SERVICE_SRC_PATH ?= service-src
-TABLEPOINTER_PATH ?= ../tablepointer
+CLIB_SRC_PATH ?= lualib-src
 
-SKYNET_BUILD_PATH ?= .
+CRAB_PATH ?= ./3rd/crab
+LSOCKET_PATH ?= ./3rd/lsocket
+LUA_PATH ?= ./3rd/lua
+LUA_CJSON_PATH ?= ./3rd/lua-cjson
+LUA_SNAPSHOT_PATH ?= ./3rd/lua-snapshot
+LUA_SOCKET_PATH ?= ./3rd/lua-socket
+LUA_ZSET_PATH ?= ./3rd/lua-sset
+REDIS_PATH ?= ./3rd/redis
+SKYNET_PATH ?= ./3rd/skynet
 
 CFLAGS = -g -O2 -Wall -I$(LUA_INC) $(MYCFLAGS)
 
 # lua
 
-LUA_STATICLIB := ../skynet/3rd/lua/liblua.a
+LUA_STATICLIB := $(LUA_PATH)/liblua.a
 LUA_LIB ?= $(LUA_STATICLIB)
-LUA_INC ?= ../skynet/3rd/lua
+LUA_INC ?= $(LUA_PATH)
 
 $(LUA_STATICLIB):
-	cd ../3rd/lua && $(MAKE) CC='$(CC) -std=gnu99' $(PLAT)
+	cd ./3rd/lua && $(MAKE) CC='$(CC) -std=gnu99' $(PLAT)
 
-JEMALLOC_STATICLIB := ../skynet/3rd/jemalloc/lib/libjemalloc_pic.a
-JEMALLOC_INC := ../skynet/3rd/jemalloc/include/jemalloc
+# crab
+CRAB := $(CRAB_PATH)/crab.so
+$(CRAB):
+	cd $(CRAB_PATH) && $(MAKE)
 
-all: jemalloc
-	
-.PHONY: jemalloc update3rd
+#lsocket
+LSOCKET := $(LSOCKET_PATH)/lsocket.so
+$(LSOCKET):
+	cd $(LSOCKET_PATH) && $(MAKE)
 
-MALLOC_STATICLIB := $(JEMALLOC_STATICLIB)
+#lua-cjson
+LUA_CJSON := $(LUA_CJSON_PATH)/cjson.so
+$(LUA_CJSON):
+	cd $(LUA_CJSON_PATH) && $(MAKE)
 
-$(JEMALLOC_STATICLIB): ../skynet/3rd/jemalloc/Makefile
-	cd 3rd/jemalloc && $(MAKE) CC=$(CC) 
+#lua-snapshot
+LUA_SNAPSHOT := $(LUA_SNAPSHOT)/snapshot.so
+$(LUA_SNAPSHOT):
+	cd $(LUA_SNAPSHOT_PATH) && $(MAKE)
 
-../skynet/3rd/jemalloc/autogen.sh:
-	git submodule update --init
+#lua-socket
+LUA_SOCKET := $(LUA_SOCKET_PATH)/packagesocket.so
+$(LUA_SOCKET):
+	cd $(LUA_SOCKET_PATH) && $(MAKE)
 
-../skynet/3rd/jemalloc/Makefile: | ./../skynet/3rd/jemalloc/autogen.sh
-	cd ../skynet/3rd/jemalloc && ./autogen.sh --with-jemalloc-prefix=je_ --disable-valgrind
+#lua-zset
+LUA_ZSET := $(LUA_ZSET_PATH)/skiplist.so
+$(LUA_ZSET):
+	cd $(LUA_ZSET_PATH) && $(MAKE)
 
-jemalloc: $(MALLOC_STATICLIB)
-
-update3rd:
-	rm -rf ./../skynet/3rd/jemalloc && git submodule update --init
-
-# cat
-CSERVICE = catlogger
-LUA_CLIB = tablepointer
-
-TEST_SRC = test.c
-
-all: \
-	$(LUA_CLIB_PATH)/test \
-	$(foreach v, $(CSERVICE), $(CSERVICE_PATH)/$(v).so) \
-	$(foreach v, $(LUA_CLIB), $(LUA_CLIB_PATH)/$(v).so)
-
+SKYNET := $(SKYNET_PATH)/skynet
+$(SKYNET):
+	cd $(SKYNET_PATH) && $(MAKE) $(PLAT)	
 
 $(LUA_CLIB_PATH):
 	mkdir $(LUA_CLIB_PATH)
@@ -59,26 +66,17 @@ $(LUA_CLIB_PATH):
 $(CSERVICE_PATH):
 	mkdir $(CSERVICE_PATH)
 
-$(LUA_CLIB_PATH)/test: $(foreach v, $(TEST_SRC), lualib-src/$(v))
-	$(CC) -std=c99 $(CFLAGS) -o $@ $^ -Ilualib-src
+LUA_QUEUE := $(LUA_CLIB_PATH)/queue.so
+$(LUA_QUEUE): $(CLIB_SRC_PATH)/lua-queue.c
+	$(CC) $(CFLAGS) $(SHARED) -I$(LUA_PATH) $^ -o $@
 
-define CSERVICE_TEMP
-  $$(CSERVICE_PATH)/$(1).so : service-src/service_$(1).c | $$(CSERVICE_PATH)
-	$$(CC) $$(CFLAGS) $$(SHARED) $$< -o $$@ -I../skynet/skynet-src
-endef
+all: $(LUA_STATICLIB) $(CRAB) $(LSOCKET) $(LUA_CJSON) $(LUA_SNAPSHOT) $(LUA_SOCKET) $(LUA_ZSET) $(SKYNET)
 
-$(foreach v, $(CSERVICE), $(eval $(call CSERVICE_TEMP,$(v))))
+.PHONY: update3rd clean cleanall
 
-$(LUA_CLIB_PATH)/tablepointer.so: $(TABLEPOINTER_PATH)/tablepointer.c | $(LUA_CLIB_PATH)
-	$(CC) $(CFLAGS) $(SHARED) $^ -o $@ -I$(LUA_INC) -L$(LUA_INC) -llua
+update3rd:
+	git submodule update --init
 
+cleanall:
+	rm -rf $(LUA_STATICLIB) $(CRAB) $(LSOCKET) $(LUA_CJSON) $(LUA_SNAPSHOT) $(LUA_SOCKET) $(LUA_ZSET) $(SKYNET)
 
-clean:
-	rm -f $(CSERVICE_PATH)/*.so $(LUA_CLIB_PATH)/*.so $(LUA_CLIB_PATH)
-
-cleanall: clean
-ifneq (, $(wildcard ../skynet/3rd/jemalloc/Makefile))
-	cd ../skynet/3rd/jemalloc && $(MAKE) clean
-endif
-	cd ../skynet/3rd/lua && $(MAKE) clean
-	rm -f $(LUA_STATICLIB)
