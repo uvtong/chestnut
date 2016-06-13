@@ -11,7 +11,7 @@ LUA_PATH ?= ./3rd/lua
 LUA_CJSON_PATH ?= ./3rd/lua-cjson
 LUA_SNAPSHOT_PATH ?= ./3rd/lua-snapshot
 LUA_SOCKET_PATH ?= ./3rd/lua-socket
-LUA_ZSET_PATH ?= ./3rd/lua-sset
+LUA_ZSET_PATH ?= ./3rd/lua-zset
 REDIS_PATH ?= ./3rd/redis
 SKYNET_PATH ?= ./3rd/skynet
 
