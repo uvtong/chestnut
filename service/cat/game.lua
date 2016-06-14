@@ -1,13 +1,8 @@
-package.path = "./../cat/?.lua;./../cat/lualib/?.lua;./../lualib/?.lua;" .. package.path
-package.cpath = "./../cat/luaclib/?.so;" .. package.cpath
 local skynet = require "skynet"
-require "skynet.manager"
-require "functions"
 local mc = require "multicast"
 local query = require "query"
 local util = require "util"
 local loader = require "load_game"
-local tptr = require "tablepointer"
 local const = require "const"
 local game
 

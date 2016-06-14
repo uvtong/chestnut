@@ -1,10 +1,4 @@
-package.path = "./../cat/?.lua;../lualib/?.lua;" .. package.path
-package.cpath = "./../cat/luaclib/?.so;" .. package.cpath
 local skynet = require "skynet"
-require "skynet.manager"
-require "functions"
-rdb = skynet.localname(".rdb")
-wdb = skynet.localname(".db")
 local netpack = require "netpack"
 local socket = require "socket"
 local sproto = require "sproto"
@@ -14,7 +8,6 @@ local dc = require "datacenter"
 local util = require "util"
 local errorcode = require "errorcode"
 local const = require "const"
-local tptr = require "tablepointer"
 local context = require "agent_context"
 
 local friendrequest = require "friendrequest"
