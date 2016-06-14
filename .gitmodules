@@ -29,3 +29,6 @@
 [submodule "3rd/redis"]
 	path = 3rd/redis
 	url = https://github.com/antirez/redis
+[submodule "3rd/lua-sharedata"]
+	path = 3rd/lua-sharedata
+	url = https://github.com/mephostopilis/lua-sharedata
