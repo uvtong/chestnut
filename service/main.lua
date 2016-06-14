@@ -4,10 +4,14 @@ local sprotoloader = require "sprotoloader"
 local assert = assert
 
 skynet.start(function()
+	local log = skynet.uniqueservice("log")
+	skynet.call(log, "lua", "start")
+
 	skynet.uniqueservice("protoloader")
 	local console = skynet.newservice("console")
-	-- skynet.newservice("debug_console",8000)
+	skynet.newservice("debug_console",8000)
 	skynet.newservice("start")
+
 	local signupd = skynet.getenv("signupd")
 	if signupd  then
 		local conf = {
@@ -109,6 +113,7 @@ skynet.start(function()
 			--nodelay = true,
 		})
 	end
-
+	
+	LOG_INFO("#########################################123654")
 	skynet.exit()
 end)

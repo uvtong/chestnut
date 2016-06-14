@@ -66,11 +66,20 @@ $(LUA_CLIB_PATH):
 $(CSERVICE_PATH):
 	mkdir $(CSERVICE_PATH)
 
+LOG = $(LUA_CLIB_PATH)/log.so
+$(LOG): lualib-src/lua-log.c | $(LUA_CLIB_PATH)
+	$(CC) $(CFLAGS) $(SHARED) $^ -o $@ 
+
+CATLOGGER = $(CSERVICE_PATH)/catlogger.so
+$(CATLOGGER): service-src/service_catlogger.c | $(CSERVICE_PATH)
+	$(CC) $(CFLAGS) $(SHARED) $< -o $@ -I./3rd/skynet/skynet-src
+
+
 LUA_QUEUE := $(LUA_CLIB_PATH)/queue.so
 $(LUA_QUEUE): $(CLIB_SRC_PATH)/lua-queue.c
 	$(CC) $(CFLAGS) $(SHARED) -I$(LUA_PATH) $^ -o $@
 
-all: $(LUA_STATICLIB) $(CRAB) $(LSOCKET) $(LUA_CJSON) $(LUA_SNAPSHOT) $(LUA_SOCKET) $(LUA_ZSET) $(SKYNET)
+all: $(LUA_STATICLIB) $(CRAB) $(LSOCKET) $(LUA_CJSON) $(LUA_SNAPSHOT) $(LUA_SOCKET) $(LUA_ZSET) $(LOG) $(CATLOGGER)
 
 .PHONY: update3rd clean cleanall
 
