@@ -78,11 +78,11 @@ function friendrequest:recvheart()
 	return ret
 end		
 		
-function friendrequest:sendheart()
-	print( "sendheart is called in request ^^^^^^^^^^^^^^^^^^^" )
-	--print( self.hl.totalamount )
-	local ret = friendmgr:sendheart( self.hl , self.totalamount )
-	return ret
+function friendrequest:sendheart() 
+	print( "sendheart is called in request ^^^^^^^^^^^^^^^^^^^" ) 
+	--print( self.hl.totalamount ) 
+	local ret = friendmgr:sendheart( self.hl , self.totalamount ) 
+	return ret 
 end	
 	
 function friendrequest:findfriend()

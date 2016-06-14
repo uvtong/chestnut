@@ -173,6 +173,9 @@ function QUERY:read(table_name, sql)
 	local res = db:query(sql)
 	dump(res)
 	if res.errno ~= nil then
+		for k, v in pairs(res) do
+			print(k, v)
+		end
 		error "db error"
 	end
 

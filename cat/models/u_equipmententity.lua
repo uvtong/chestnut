@@ -26,9 +26,6 @@ function cls:ctor(mgr, P, ... )
 			combat_probability = 0,
 			defense_probability = 0,
 			king_probability = 0,
-			enhance_success_rate = 0,
-			currency_type = 0,
-			currency_num = 0,
 		}
 
 	self.__ecol_updated = {
@@ -44,9 +41,6 @@ function cls:ctor(mgr, P, ... )
 			combat_probability = 0,
 			defense_probability = 0,
 			king_probability = 0,
-			enhance_success_rate = 0,
-			currency_type = 0,
-			currency_num = 0,
 		}
 
 	for k,v in pairs(self.__head) do
@@ -233,51 +227,6 @@ end
 function cls:get_king_probability( ... )
 	-- body
 	return self.__fields.king_probability
-end
-
-function cls:set_enhance_success_rate(v, ... )
-	-- body
-	assert(v)
-	self.__ecol_updated["enhance_success_rate"] = self.__ecol_updated["enhance_success_rate"] + 1
-	if self.__ecol_updated["enhance_success_rate"] == 1 then
-		self.__col_updated = self.__col_updated + 1
-	end
-	self.__fields.enhance_success_rate = v
-end
-
-function cls:get_enhance_success_rate( ... )
-	-- body
-	return self.__fields.enhance_success_rate
-end
-
-function cls:set_currency_type(v, ... )
-	-- body
-	assert(v)
-	self.__ecol_updated["currency_type"] = self.__ecol_updated["currency_type"] + 1
-	if self.__ecol_updated["currency_type"] == 1 then
-		self.__col_updated = self.__col_updated + 1
-	end
-	self.__fields.currency_type = v
-end
-
-function cls:get_currency_type( ... )
-	-- body
-	return self.__fields.currency_type
-end
-
-function cls:set_currency_num(v, ... )
-	-- body
-	assert(v)
-	self.__ecol_updated["currency_num"] = self.__ecol_updated["currency_num"] + 1
-	if self.__ecol_updated["currency_num"] == 1 then
-		self.__col_updated = self.__col_updated + 1
-	end
-	self.__fields.currency_num = v
-end
-
-function cls:get_currency_num( ... )
-	-- body
-	return self.__fields.currency_num
 end
 
 

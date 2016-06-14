@@ -61,6 +61,20 @@ function cls:ctor( ... )
 		uq = false,
 		t = "number",
 	},
+	updatetime = {
+		pk = false,
+		fk = false,
+		cn = "updatetime",
+		uq = false,
+		t = "number",
+	},
+	is_latest = {
+		pk = false,
+		fk = false,
+		cn = "is_latest",
+		uq = false,
+		t = "number",
+	},
 }
 
 	self.__head_ord = {}
@@ -71,6 +85,8 @@ function cls:ctor( ... )
 	self.__head_ord[5] = self.__head["propid"]
 	self.__head_ord[6] = self.__head["amount"]
 	self.__head_ord[7] = self.__head["iffree"]
+	self.__head_ord[8] = self.__head["updatetime"]
+	self.__head_ord[9] = self.__head["is_latest"]
 
 	self.__pk      = "id"
 	self.__fk      = "uid"

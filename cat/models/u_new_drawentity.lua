@@ -21,6 +21,8 @@ function cls:ctor(mgr, P, ... )
 			propid = 0,
 			amount = 0,
 			iffree = 0,
+			updatetime = 0,
+			is_latest = 0,
 		}
 
 	self.__ecol_updated = {
@@ -31,6 +33,8 @@ function cls:ctor(mgr, P, ... )
 			propid = 0,
 			amount = 0,
 			iffree = 0,
+			updatetime = 0,
+			is_latest = 0,
 		}
 
 	for k,v in pairs(self.__head) do
@@ -142,6 +146,36 @@ end
 function cls:get_iffree( ... )
 	-- body
 	return self.__fields.iffree
+end
+
+function cls:set_updatetime(v, ... )
+	-- body
+	assert(v)
+	self.__ecol_updated["updatetime"] = self.__ecol_updated["updatetime"] + 1
+	if self.__ecol_updated["updatetime"] == 1 then
+		self.__col_updated = self.__col_updated + 1
+	end
+	self.__fields.updatetime = v
+end
+
+function cls:get_updatetime( ... )
+	-- body
+	return self.__fields.updatetime
+end
+
+function cls:set_is_latest(v, ... )
+	-- body
+	assert(v)
+	self.__ecol_updated["is_latest"] = self.__ecol_updated["is_latest"] + 1
+	if self.__ecol_updated["is_latest"] == 1 then
+		self.__col_updated = self.__col_updated + 1
+	end
+	self.__fields.is_latest = v
+end
+
+function cls:get_is_latest( ... )
+	-- body
+	return self.__fields.is_latest
 end
 
 

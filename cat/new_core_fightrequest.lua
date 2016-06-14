@@ -9,36 +9,36 @@ local skynet = require "skynet"
 local queue = require "skynet.queue"
 										  	
 local cs
-	  			  	
+	   			  	
 local send_package
 local send_request
-	
+	  
 local REQUEST = {}
 local RESPONSE = {}
 local SUBSCRIBE = {}
 local client_fd
 local func_gs
 local table_gs = {}
-	
+	  
 local game 
 local user 
 local dc 
 local record_date = {} 
-	 
+	  
 local QuanFaNum = 7
 local SELF = 1
 local ENEMY = 2
 local START_DELAY = 3 --sec
 local CERTAIN_SEQUENCE_KF = 3
 local FIGHT_PLACE = 0 
-	 
+	  
 local COMMON_KF = 90000
 local COMBO_KF = 100000
 local kf_common 
 local kf_combo  
 local PLACE = {GUANQIA = 1, ARENA = 2}
 local myctx
-
+      
 local Self = {  
 			FightPower = 0,  --actually means presentfight power
 		    MaxComboNum = 0, 
@@ -71,24 +71,25 @@ local Enemy = {
 			OnBattleList = {},			--store chosen battle role_id 	
 			IfArenaInit = 0,			--if Arenainited
 			OnBattleSequence = 1 		--di ji ge shang zhen de jue se 
-		  }    	
+		  } 	    	
+
 local function send_package(pack)
 	local package = string.pack(">s2", pack)
 	socket.write(client_fd, package)
 end	  		   	
-	
-function REQUEST:login(u, ctx)
-	-- body
-	assert( u )
-	print("**********************************lilianrequest_login")
-	user = u
-end	
-	
+			
+function REQUEST:login(u)
+	-- body 
+	-- assert(u)
+	-- print("**********************************lilianrequest_login")
+	-- user = u
+end			
+			
 --get who fight first, true user first, false robot first;	    	
 local function first_fighter()		
-	return ( 0 == math.random(100) % 2 )                      
-end 	
-	
+	return (0 == math.random(100) % 2)                      
+end 		
+			
 --judeg if arise_type is true	
 local function judge_arise_type(kf, totalfightnum)
 	assert(kf and totalfightnum)
@@ -102,7 +103,7 @@ local function judge_arise_type(kf, totalfightnum)
 		sign =  Enemy.FightPower < math.floor(Enemy.Attr.combat * (kf.arise_param / 100))
 	elseif 3 == kf.arise_type then
 		sign = (totalfightnum + 1) == kf.arise_param
-	else
+	else 
 		assert(false)
 	end 		
 	print("judge_arise_type is *************************************", kf.arise_type , sign)
@@ -346,8 +347,12 @@ end
 						  
 local function get_monster_battle_list(guanqiaid)
 	assert(guanqiaid)	  
-	local r = skynet.call(".game", "lua", "query_g_checkpoint", guanqiaid)
-	assert(r)			  
+	local key = string.format("%s:%d", "g_checkpoint", guanqiaid)
+	local r = sd.query(key)
+	assert(r)
+
+	-- local r = skynet.call(".game", "lua", "query_g_checkpoint", guanqiaid)
+	-- assert(r)			  
 
 	local index = 1
 	while index < FIXED_MONSTER_NUM do
@@ -359,7 +364,7 @@ local function get_monster_battle_list(guanqiaid)
 		index = index + 1
 	end 
 end		
-		  	
+			
 local function get_on_battle_list(user, type)
 	assert(user and type)	
 
@@ -648,7 +653,7 @@ end
 			
 function REQUEST:BeginGUQNQIACoreFight(ctx)
 	assert(self.monsterid and ctx)
-    								
+    	
 	print("BeginGUANQIACoreFight is called *******************************", self.monsterid)
 
 	FIGHT_PLACE = PLACE.GUANQIA
@@ -657,7 +662,7 @@ function REQUEST:BeginGUQNQIACoreFight(ctx)
 	reset_arena(Enemy)
    			
 	local ret = {}	
-	
+		
 	if not kf_common or not kf_combo then							
 		get_kf_common_and_combo()
 	end 	
@@ -754,7 +759,7 @@ function REQUEST:BeginArenaCoreFight(ctx)
     end
 
     --init user and enemy on_battlerole_info_list
-    if not get_on_battle_list(ctx.me SELF) then   	
+    if not get_on_battle_list(ctx.me, SELF) then   	
     	ret.errorcode = errorcode[110].code 	  	
     end 				 				  		  	
     											  					

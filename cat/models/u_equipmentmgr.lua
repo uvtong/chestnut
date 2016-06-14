@@ -96,27 +96,6 @@ function cls:ctor( ... )
 		uq = false,
 		t = "number",
 	},
-	enhance_success_rate = {
-		pk = false,
-		fk = false,
-		cn = "enhance_success_rate",
-		uq = false,
-		t = "number",
-	},
-	currency_type = {
-		pk = false,
-		fk = false,
-		cn = "currency_type",
-		uq = false,
-		t = "number",
-	},
-	currency_num = {
-		pk = false,
-		fk = false,
-		cn = "currency_num",
-		uq = false,
-		t = "number",
-	},
 }
 
 	self.__head_ord = {}
@@ -132,9 +111,6 @@ function cls:ctor( ... )
 	self.__head_ord[10] = self.__head["combat_probability"]
 	self.__head_ord[11] = self.__head["defense_probability"]
 	self.__head_ord[12] = self.__head["king_probability"]
-	self.__head_ord[13] = self.__head["enhance_success_rate"]
-	self.__head_ord[14] = self.__head["currency_type"]
-	self.__head_ord[15] = self.__head["currency_num"]
 
 	self.__pk      = "id"
 	self.__fk      = "user_id"

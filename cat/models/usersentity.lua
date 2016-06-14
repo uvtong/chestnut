@@ -60,6 +60,11 @@ function cls:ctor(mgr, P, ... )
 			cp_chapter = 0,
 			cp_type = 0,
 			cp_checkpoint = 0,
+			cp_id = 0,
+			cp_drop_id1 = 0,
+			cp_drop_id2 = 0,
+			cp_drop_id3 = 0,
+			cp_fighting = 0,
 			lilian_level = 0,
 			lilian_exp = 0,
 			lilian_phy_power = 0,
@@ -95,10 +100,8 @@ function cls:ctor(mgr, P, ... )
 			ara_r3_sum_defense = 0,
 			ara_r3_sum_critical_hit = 0,
 			ara_r3_sum_king = 0,
-			cp_id = 0,
-			cp_drop_id1 = 0,
-			cp_drop_id2 = 0,
-			cp_drop_id3 = 0,
+			daily_recv_heart = 0,
+			friend_update_time = 0,
 		}
 
 	self.__ecol_updated = {
@@ -148,6 +151,11 @@ function cls:ctor(mgr, P, ... )
 			cp_chapter = 0,
 			cp_type = 0,
 			cp_checkpoint = 0,
+			cp_id = 0,
+			cp_drop_id1 = 0,
+			cp_drop_id2 = 0,
+			cp_drop_id3 = 0,
+			cp_fighting = 0,
 			lilian_level = 0,
 			lilian_exp = 0,
 			lilian_phy_power = 0,
@@ -183,10 +191,8 @@ function cls:ctor(mgr, P, ... )
 			ara_r3_sum_defense = 0,
 			ara_r3_sum_critical_hit = 0,
 			ara_r3_sum_king = 0,
-			cp_id = 0,
-			cp_drop_id1 = 0,
-			cp_drop_id2 = 0,
-			cp_drop_id3 = 0,
+			daily_recv_heart = 0,
+			friend_update_time = 0,
 		}
 
 	for k,v in pairs(self.__head) do
@@ -885,6 +891,81 @@ function cls:get_cp_checkpoint( ... )
 	return self.__fields.cp_checkpoint
 end
 
+function cls:set_cp_id(v, ... )
+	-- body
+	assert(v)
+	self.__ecol_updated["cp_id"] = self.__ecol_updated["cp_id"] + 1
+	if self.__ecol_updated["cp_id"] == 1 then
+		self.__col_updated = self.__col_updated + 1
+	end
+	self.__fields.cp_id = v
+end
+
+function cls:get_cp_id( ... )
+	-- body
+	return self.__fields.cp_id
+end
+
+function cls:set_cp_drop_id1(v, ... )
+	-- body
+	assert(v)
+	self.__ecol_updated["cp_drop_id1"] = self.__ecol_updated["cp_drop_id1"] + 1
+	if self.__ecol_updated["cp_drop_id1"] == 1 then
+		self.__col_updated = self.__col_updated + 1
+	end
+	self.__fields.cp_drop_id1 = v
+end
+
+function cls:get_cp_drop_id1( ... )
+	-- body
+	return self.__fields.cp_drop_id1
+end
+
+function cls:set_cp_drop_id2(v, ... )
+	-- body
+	assert(v)
+	self.__ecol_updated["cp_drop_id2"] = self.__ecol_updated["cp_drop_id2"] + 1
+	if self.__ecol_updated["cp_drop_id2"] == 1 then
+		self.__col_updated = self.__col_updated + 1
+	end
+	self.__fields.cp_drop_id2 = v
+end
+
+function cls:get_cp_drop_id2( ... )
+	-- body
+	return self.__fields.cp_drop_id2
+end
+
+function cls:set_cp_drop_id3(v, ... )
+	-- body
+	assert(v)
+	self.__ecol_updated["cp_drop_id3"] = self.__ecol_updated["cp_drop_id3"] + 1
+	if self.__ecol_updated["cp_drop_id3"] == 1 then
+		self.__col_updated = self.__col_updated + 1
+	end
+	self.__fields.cp_drop_id3 = v
+end
+
+function cls:get_cp_drop_id3( ... )
+	-- body
+	return self.__fields.cp_drop_id3
+end
+
+function cls:set_cp_fighting(v, ... )
+	-- body
+	assert(v)
+	self.__ecol_updated["cp_fighting"] = self.__ecol_updated["cp_fighting"] + 1
+	if self.__ecol_updated["cp_fighting"] == 1 then
+		self.__col_updated = self.__col_updated + 1
+	end
+	self.__fields.cp_fighting = v
+end
+
+function cls:get_cp_fighting( ... )
+	-- body
+	return self.__fields.cp_fighting
+end
+
 function cls:set_lilian_level(v, ... )
 	-- body
 	assert(v)
@@ -1410,64 +1491,34 @@ function cls:get_ara_r3_sum_king( ... )
 	return self.__fields.ara_r3_sum_king
 end
 
-function cls:set_cp_id(v, ... )
+function cls:set_daily_recv_heart(v, ... )
 	-- body
 	assert(v)
-	self.__ecol_updated["cp_id"] = self.__ecol_updated["cp_id"] + 1
-	if self.__ecol_updated["cp_id"] == 1 then
+	self.__ecol_updated["daily_recv_heart"] = self.__ecol_updated["daily_recv_heart"] + 1
+	if self.__ecol_updated["daily_recv_heart"] == 1 then
 		self.__col_updated = self.__col_updated + 1
 	end
-	self.__fields.cp_id = v
+	self.__fields.daily_recv_heart = v
 end
 
-function cls:get_cp_id( ... )
+function cls:get_daily_recv_heart( ... )
 	-- body
-	return self.__fields.cp_id
+	return self.__fields.daily_recv_heart
 end
 
-function cls:set_cp_drop_id1(v, ... )
+function cls:set_friend_update_time(v, ... )
 	-- body
 	assert(v)
-	self.__ecol_updated["cp_drop_id1"] = self.__ecol_updated["cp_drop_id1"] + 1
-	if self.__ecol_updated["cp_drop_id1"] == 1 then
+	self.__ecol_updated["friend_update_time"] = self.__ecol_updated["friend_update_time"] + 1
+	if self.__ecol_updated["friend_update_time"] == 1 then
 		self.__col_updated = self.__col_updated + 1
 	end
-	self.__fields.cp_drop_id1 = v
+	self.__fields.friend_update_time = v
 end
 
-function cls:get_cp_drop_id1( ... )
+function cls:get_friend_update_time( ... )
 	-- body
-	return self.__fields.cp_drop_id1
-end
-
-function cls:set_cp_drop_id2(v, ... )
-	-- body
-	assert(v)
-	self.__ecol_updated["cp_drop_id2"] = self.__ecol_updated["cp_drop_id2"] + 1
-	if self.__ecol_updated["cp_drop_id2"] == 1 then
-		self.__col_updated = self.__col_updated + 1
-	end
-	self.__fields.cp_drop_id2 = v
-end
-
-function cls:get_cp_drop_id2( ... )
-	-- body
-	return self.__fields.cp_drop_id2
-end
-
-function cls:set_cp_drop_id3(v, ... )
-	-- body
-	assert(v)
-	self.__ecol_updated["cp_drop_id3"] = self.__ecol_updated["cp_drop_id3"] + 1
-	if self.__ecol_updated["cp_drop_id3"] == 1 then
-		self.__col_updated = self.__col_updated + 1
-	end
-	self.__fields.cp_drop_id3 = v
-end
-
-function cls:get_cp_drop_id3( ... )
-	-- body
-	return self.__fields.cp_drop_id3
+	return self.__fields.friend_update_time
 end
 
 

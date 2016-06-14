@@ -214,7 +214,7 @@ function cls:signup(uid)
 	prop.id = genpk_2(prop.user_id, prop.csv_id)
 	prop = u.u_propmgr:create_entity(prop)
 	u.u_propmgr:add(prop)
-	
+		
 	--add invitation
 	prop = skynet.call(".game", "lua" , "query_g_prop" , 50007)
 	assert( prop )
@@ -223,7 +223,65 @@ function cls:signup(uid)
 	prop.id = genpk_2(prop.user_id, prop.csv_id)
 	prop = u.u_propmgr:create_entity(prop)
 	u.u_propmgr:add(prop)
+
+	prop = skynet.call(".game", "lua", "query_g_prop", 10001)
+	assert(prop)
+	prop.user_id = u.csv_id
+	prop.num = 100000
+	prop.id = genpk_2(prop.user_id, prop.csv_id)
+	prop = u.u_propmgr:create_entity(prop)
+	u.u_propmgr:add(prop)
+
+	prop = skynet.call(".game", "lua", "query_g_prop", 10002)
+	assert(prop)
+	prop.user_id = u.csv_id
+	prop.num = 100000
+	prop.id = genpk_2(prop.user_id, prop.csv_id)
+	prop = u.u_propmgr:create_entity(prop)
+	u.u_propmgr:add(prop)
+
+	prop = skynet.call(".game", "lua", "query_g_prop", 10003)
+	assert(prop)
+	prop.user_id = u.csv_id
+	prop.num = 100000
+	prop.id = genpk_2(prop.user_id, prop.csv_id)
+	prop = u.u_propmgr:create_entity(prop)
+	u.u_propmgr:add(prop)
+
+	prop = skynet.call(".game", "lua", "query_g_prop", 10004)
+	assert(prop)
+	prop.user_id = u.csv_id
+	prop.num = 100000
+	prop.id = genpk_2(prop.user_id, prop.csv_id)
+	prop = u.u_propmgr:create_entity(prop)
+	u.u_propmgr:add(prop)
+
+	prop = skynet.call(".game", "lua", "query_g_prop", 10005)
+	assert(prop)
+	prop.user_id = u.csv_id
+	prop.num = 100000
+	prop.id = genpk_2(prop.user_id, prop.csv_id)
+	prop = u.u_propmgr:create_entity(prop)
+	u.u_propmgr:add(prop)
+
+	prop = skynet.call(".game", "lua", "query_g_prop", 10006)
+	assert(prop)
+	prop.user_id = u.csv_id
+	prop.num = 100000
+	prop.id = genpk_2(prop.user_id, prop.csv_id)
+	prop = u.u_propmgr:create_entity(prop)
+	u.u_propmgr:add(prop)
+
+	prop = skynet.call(".game", "lua", "query_g_prop", 10007)
+	assert(prop)
+	prop.user_id = u.csv_id
+	prop.num = 100000
+	prop.id = genpk_2(prop.user_id, prop.csv_id)
+	prop = u.u_propmgr:create_entity(prop)
+	u.u_propmgr:add(prop)
+
 	u.u_propmgr:update_wait()
+
 
 	--add email
 	local newemail = {}
@@ -370,8 +428,8 @@ function cls:load(uid)
 	self:load_u_lilian_sub(user)
 	self:load_u_lilian_qg_num(user)
 	self:load_u_lilian_phy_power(user)
-	--self:load_u_new_friend()
-	--self:load_u_new_friendmsg()
+	self:load_u_new_friend()
+	self:load_u_new_friendmsg()
 	self:load_u_ara_worship()
 	self:load_u_ara_worship_rc()
 	self:load_u_ara_pts()
@@ -389,8 +447,8 @@ function cls:load_remote(uid, p )
 	self:load_u_equipment_remote(p)
 	self:load_u_role_remote(p)
 	self:load_u_kungfu_remote(p)
-end
-
+end 
+	
 function cls:gen_remote( ... )
 	-- body
 	local rm = {}
@@ -399,8 +457,8 @@ function cls:gen_remote( ... )
 	self:gen_u_role_remote(rm)
 	self:gen_u_kungfu_remote(rm)
 	return rm
-end
-
+end 
+	
 function cls:load_user_remote(uid, p, ... )
 	-- body
 	local usersmgr = self:get_usersmgr()
@@ -444,15 +502,15 @@ function cls:get_user( ... )
 	-- body
 	return self._data["user"]
 end	       
-
+	
 function cls:get_usersmgr( ... )
 	-- body
 	return self._data["usersmgr"]
-end
-
+end 
+	
 function cls:load_u_new_friend()
 	local u = self:get_user()
-	local cls = require "models/u_new_friend"
+	local cls = require "models/u_new_friendmgr"
 	local u_new_friendmgr = cls.new()
 	u_new_friendmgr:load_db("fk", u:get_csv_id())
 	u_new_friendmgr:set_user(u)
@@ -460,27 +518,27 @@ function cls:load_u_new_friend()
 	u.u_new_friendmgr = u_new_friendmgr
 end              
                
-function cls:get_u_new_friend()
-        return self._data["u_new_friendmgr"]
+function cls:get_u_new_friendmgr()
+	return self._data["u_new_friendmgr"]
 end              
                
-function cls:load_u_new_friendmgs()
+function cls:load_u_new_friendmsg()
     local u = self:get_user()
 	local cls = require "models/u_new_friendmsgmgr"
 	local u_new_friendmsgmgr = cls.new()
 	u_new_friendmsgmgr:set_user(u)
-	local sql = string.format("select * from u_new_friendmsg where (fromid = %d and isread = 0) or (toid = %d and isread = 0)", u:get_csv_id())
+	local sql = string.format("select * from u_new_friendmsg where (fromid = %d and isread = 0 and type = 1) or (toid = %d and isread = 0 and type = 1)", u:get_csv_id(), u:get_csv_id())
 	local r = query.read(".rdb", "u_new_friendmsg", sql)
 	assert(r.errno == nil) --if query failed, return errno, badresult, sqlstate, err
 	for k, v in ipairs(r) do
-	       	local a = u_new_friendmsgmgr:create_entity( v )
-	       	user.u_new_friendmsgmgr:add( a )		
+       	local a = u_new_friendmsgmgr:create_entity( v )
+       	u_new_friendmsgmgr:add( a )		
 	end    
 	self._data["u_new_friendmsgmgr"] = u_new_friendmsgmgr
 	u.u_new_friendmsgmgr = u_new_friendmsgmgr
 end     
 	
-function cls:get_u_new_friendmsg()
+function cls:get_u_new_friendmsgmgr()
 	return self._data["u_new_friendmsgmgr"]
 end 	
 				
@@ -493,8 +551,8 @@ function cls:load_u_achievement()
 	u_achievementmgr:set_user(u)
 	self._data["u_achievementmgr"] = u_achievementmgr
 	u.u_achievementmgr = u_achievementmgr
-end
-
+end 
+	
 function cls:get_u_achievementmgr( ... )
 	-- body
 	return self._data["u_achievementmgr"]
@@ -719,8 +777,8 @@ function cls:load_u_new_draw()
 	local cls = require "models/u_new_drawmgr"
 	local u_drawmgr = cls.new()
 	u_drawmgr:set_user(user)
-	
-	local sql1 = string.format( "select * from u_new_draw where srecvtime = ( select srecvtime from u_new_draw where uid = %s and drawtype = 1 ORDER BY srecvtime DESC limit 1 )" , u:get_csv_id())
+	local sql1 = string.format("select * from u_new_draw where uid = %d and is_latest = 1", u:get_csv_id())
+	--local sql1 = string.format( "select * from u_new_draw where srecvtime = ( select srecvtime from u_new_draw where uid = %s and drawtype = 1 ORDER BY srecvtime DESC limit 1 )" , u:get_csv_id())
 	local r = query.read(".rdb", "u_new_draw", sql1)
 	for i , v in ipairs( r ) do
 		--print( " has number" )
@@ -729,16 +787,16 @@ function cls:load_u_new_draw()
 		u_drawmgr:add( draw )
 	end
 	
-	local sql2 = string.format( "select * from u_new_draw where srecvtime = ( select srecvtime from u_new_draw where uid = %s and drawtype = 2 ORDER BY srecvtime DESC limit 1 )" , u:get_csv_id())
-	-- local t = skynet.call( util.random_db() , "lua" , "command" , "query" , sql2 )
-	local t = query.read(".rdb", "u_new_draw", sql2)
-	for i , v in ipairs(t) do
-		--print( " has number" )
-		local draw = u_drawmgr:create(v)
-		assert(draw)
-		u_drawmgr:add(draw)
-	end 
-	u_drawmgr:set_user(u)
+	-- local sql2 = string.format( "select * from u_new_draw where srecvtime = ( select srecvtime from u_new_draw where uid = %s and drawtype = 2 ORDER BY srecvtime DESC limit 1 )" , u:get_csv_id())
+	-- -- local t = skynet.call( util.random_db() , "lua" , "command" , "query" , sql2 )
+	-- local t = query.read(".rdb", "u_new_draw", sql2)
+	-- for i , v in ipairs(t) do
+	-- 	--print( " has number" )
+	-- 	local draw = u_drawmgr:create(v)
+	-- 	assert(draw)
+	-- 	u_drawmgr:add(draw)
+	-- end 
+	-- u_drawmgr:set_user(u)
 	self._data["u_drawmgr"] = u_drawmgr
 	u.u_drawmgr = u_drawmgr
 end	

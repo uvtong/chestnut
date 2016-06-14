@@ -46,9 +46,12 @@ errorcode[40] = { code = 40, msg = "not enough chllenge times."}
 errorcode[41] = { code = 41 , msg = "not email in maillist" }
 
 --kungfu
+
 errorcode[51] = { code = 51 , msg = "kongfu not exist" }
 errorcode[52] = { code = 52 , msg = "kungfu level not match" }
+
 --friend
+errorcode[60] = {code = 60, msg = "to many friends"}
 errorcode[ 61 ] = { code = 61 , msg = "you wai gua" }
 errorcode[ 62 ] = { code = 62 , msg = "checkin already" } 
 errorcode[ 63 ] = { code = 63 , msg = "can not apply yourself" }

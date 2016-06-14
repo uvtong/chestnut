@@ -85,18 +85,18 @@ end
 function cls:get_modelmgr( ... )
 	-- body
 	return self._modelmgr
-end
-
+end 
+	
 function cls:set_usersmgr(v, ... )
 	-- body
 	self._usersmgr = v
-end
-
+end 
+	
 function cls:get_usersmgr( ... )
 	-- body
 	return self._usersmgr
-end
-
+end 
+	
 function cls:get_myfactory( ... )
 	-- body
 	return self._myfactory
@@ -239,15 +239,15 @@ function cls:xilian(role, t)
 	local n = 0
 	if t.is_locked1 then
 		n = n + 1
-		ret.property_id1 = role.property_id1
-		ret.value1 = role.value1
-	else
-		local property_pool_id
-		local rand = math.random(0, sum-1)
-		for k,v in pairs(property_pool) do
-			if rand >= v.min and rand < v.max then
+		ret.property_id1 = role.property_id1         
+		ret.value1 = role.value1                     
+	else                                             
+		local property_pool_id                       
+		local rand = math.random(0, sum-1)           
+		for k,v in pairs(property_pool) do           
+			if rand >= v.min and rand < v.max then   
 				property_pool_id = v.property_pool_id
-				break
+				break                                
 			end
 		end
 		assert(property_pool_id)
@@ -500,6 +500,12 @@ function cls:flush_db(priority)
 			v:update_db()
 		end
 	end
+end
+
+function cls:send_package(tag, args, ... ) 
+	-- body 							   
+	local c = self._send_request(tag, args)
+	skynet.send(self._gate, "lua", "send_request_handler", self._userid, self._subid, c)
 end
 
 return cls
