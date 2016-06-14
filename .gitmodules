@@ -1,15 +1,34 @@
-[submodule "skynet"]
-	path = skynet
+	
+[submodule "3rd/skynet"]
+	path = 3rd/skynet
 	url = https://github.com/cloudwu/skynet
-[submodule "tablepointer"]
-	path = tablepointer
-	url = https://github.com/cloudwu/tablepointer
-[submodule "skynet-client"]
-	path = skynet-client
-	url = https://github.com/mephostopilis/skynet-client
-[submodule "pbc"]
-	path = pbc
-	url = https://github.com/cloudwu/pbc
-[submodule "lua-cjson"]
-	path = lua-cjson
+[submodule "3rd/lua-snapshot"]
+	path = 3rd/lua-snapshot
+	url = https://github.com/cloudwu/lua-snapshot
+[submodule "3rd/lua-cjson"]
+	path = 3rd/lua-cjson
 	url = https://github.com/cloudwu/lua-cjson
+[submodule "3rd/lsocket"]
+	path = 3rd/lsocket
+	url = https://github.com/cloudwu/lsocket
+[submodule "3rd/lua-socket"]
+	path = 3rd/lua-socket
+	url = https://github.com/mephostopilis/lua-socket
+[submodule "3rd/skynet-client"]
+	path = 3rd/skynet-client
+	url = https://github.com/mephostopilis/skynet-client
+[submodule "3rd/crab"]
+	path = 3rd/crab
+	url = https://github.com/xjdrew/crab
+[submodule "3rd/lua-zset"]
+	path = 3rd/lua-zset
+	url = https://github.com/xjdrew/lua-zset
+[submodule "3rd/lua"]
+	path = 3rd/lua
+	url = https://github.com/mephostopilis/lua
+[submodule "3rd/redis"]
+	path = 3rd/redis
+	url = https://github.com/antirez/redis
+[submodule "3rd/lua-sharedata"]
+	path = 3rd/lua-sharedata
+	url = https://github.com/mephostopilis/lua-sharedata
