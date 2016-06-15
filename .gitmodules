@@ -14,9 +14,6 @@
 [submodule "3rd/lua-socket"]
 	path = 3rd/lua-socket
 	url = https://github.com/mephostopilis/lua-socket
-[submodule "3rd/skynet-client"]
-	path = 3rd/skynet-client
-	url = https://github.com/mephostopilis/skynet-client
 [submodule "3rd/crab"]
 	path = 3rd/crab
 	url = https://github.com/xjdrew/crab
@@ -32,3 +29,6 @@
 [submodule "3rd/lua-sharedata"]
 	path = 3rd/lua-sharedata
 	url = https://github.com/mephostopilis/lua-sharedata
+
+
+
