@@ -15,7 +15,7 @@ end
 function cls:user(args, ... )
 	-- body
 	local user = self._env:get_user()
-	local modelmgr = ctx:get_modelmgr()
+	local modelmgr = self._env:get_modelmgr()
 	local u_propmgr = modelmgr:get_u_propmgr()
 
 	local ret = {}

@@ -186,7 +186,7 @@ local function get_public_email(ctx)
 	end
 	
 	for k , v in ipairs( r ) do		
-		v.id = genpk_2(v.uid, genpk_3(2, v.pemail_csv_id))
+		v.id = genpk_2(ctx:get_user():get_field("csv_id"), genpk_3(2, v.pemail_csv_id))
 		v.pemail_csv_id = nil
 		new_emailrequest:public_email(ctx:get_myfactory(), v , ctx:get_user() )
 	end 
