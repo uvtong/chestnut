@@ -41,9 +41,9 @@ function cls:ctor( ... )
 	cls = require "arenamodule"
 	local m = cls.new(self)
 	self._m["arena"] = m
-	-- cls = require "checkpointmodule"
-	-- local m = cls.new(self)
-	-- self._m["checkpoint"] = m
+	cls = require "checkpointmodule"
+	local m = cls.new(self)
+	self._m["checkpoint"] = m
 	cls = require "shopmodule"
 	local m = cls.new(self)
 	self._m["shop"] = m
