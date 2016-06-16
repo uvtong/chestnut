@@ -45,60 +45,114 @@ function cls:user(args, ... )
     	diamond = u_propmgr:get_by_csv_id(const.DIAMOND):get_field("num"),
     	love = u_propmgr:get_by_csv_id(const.LOVE):get_field("num"),
 	}
-	ret.user.equipment_list = 1
-	-- local u_equipmentmgr = modelmgr:get_u_equipmentmgr()
-	-- for k,v in pairs(u_equipmentmgr.__data) do
-	-- 	local item = {}
-	-- 	item.csv_id = v:get_field("csv_id")
-	-- 	item.level = v:get_field("level")
-	-- 	item.combat = v:get_field("combat")
-	-- 	item.defense = v:get_field("defense")
-	-- 	item.critical_hit = v:get_field("critical_hit")
-	-- 	item.king = v:get_field("king")
-	-- 	item.critical_hit_probability = v:get_field("critical_hit_probability")
-	-- 	item.combat_probability = v:get_field("combat_probability")
-	-- 	item.defense_probability = v:get_field("defense_probability")
-	-- 	item.king_probability = v:get_field("king_probability")
-	-- 	item.enhance_success_rate = v:get_field("enhance_success_rate")
-	-- 	table.insert(ret.user.equipment_list, item)
-	-- end
+	ret.user.equipment_list = {}
+	local u_equipmentmgr = modelmgr:get_u_equipmentmgr()
+	if u_equipmentmgr:get_count() > 0 then
+		for k,v in pairs(u_equipmentmgr.__data) do
+			local item = {}
+			item.csv_id = v:get_field("csv_id")
+			item.level = v:get_field("level")
+			item.combat = v:get_field("combat")
+			item.defense = v:get_field("defense")
+			item.critical_hit = v:get_field("critical_hit")
+			item.king = v:get_field("king")
+			item.critical_hit_probability = v:get_field("critical_hit_probability")
+			item.combat_probability = v:get_field("combat_probability")
+			item.defense_probability = v:get_field("defense_probability")
+			item.king_probability = v:get_field("king_probability")
+			item.enhance_success_rate = v:get_field("enhance_success_rate")
+			table.insert(ret.user.equipment_list, item)
+		end
+	else
+		local item = {}
+		item.csv_id = 0
+		item.level = 0
+		item.combat = 0
+		item.defense = 0
+		item.critical_hit = 0
+		item.king = 0
+		item.critical_hit_probability = 0
+		item.combat_probability = 0
+		item.defense_probability = 0
+		item.king_probability = 0
+		item.enhance_success_rate = 0
+		table.insert(ret.user.equipment_list, item)
+	end
 
 	ret.user.kungfu_list = {}
 	local u_kungfumgr = modelmgr:get_u_kungfumgr()
-	for k,v in pairs(u_kungfumgr.__data) do
+	if u_kungfumgr:get_count() > 0 then
+		for k,v in pairs(u_kungfumgr.__data) do
+			local item = {}
+			item.csv_id = v:get_field("csv_id")
+			item.k_level = v:get_field("level")
+			item.k_type = v:get_field("type")
+			item.k_sp_num = u_propmgr:get_by_csv_id(v:get_field("sp_id")):get_field("num")
+			table.insert(ret.user.kungfu_list, item)
+		end
+	else
 		local item = {}
-		item.csv_id = v:get_field("csv_id")
-		item.k_level = v:get_field("level")
-		item.k_type = v:get_field("type")
-		item.k_sp_num = u_propmgr:get_by_csv_id(v:get_field("sp_id")):get_field("num")
+		item.csv_id = 0
+		item.k_level = 0
+		item.k_type = 0
+		item.k_sp_num = 0
 		table.insert(ret.user.kungfu_list, item)
 	end
 	
 	ret.user.rolelist = {}
 	local u_rolemgr = modelmgr:get_u_rolemgr()
-	for k,v in pairs(u_rolemgr.__data) do
+	if u_rolemgr:get_count() > 0 then
+		for k,v in pairs(u_rolemgr.__data) do
+			local item = {}
+			item.csv_id = v:get_field("csv_id")
+			item.is_possessed = true
+			item.star = v:get_field("star")
+			item.u_us_prop_num = factory:get_prop(v:get_field("us_prop_csv_id")):get_field("num")
+			item.property_id1 = v:get_field("property_id1")
+			item.value1 = v:get_field("value1")
+			item.property_id2 = v:get_field("property_id2")
+			item.value2 = v:get_field("value2")
+			item.property_id3 = v:get_field("property_id3")
+			item.value3 = v:get_field("value3")
+			item.property_id4 = v:get_field("property_id4")
+			item.value4 = v:get_field("value4")
+			item.property_id5 = v:get_field("property_id5")
+			item.value5 = v:get_field("value5")
+
+			table.insert(ret.user.rolelist, item)
+		end
+	else
 		local item = {}
-		item.csv_id = v:get_field("csv_id")
-		item.is_possessed = true
-		item.star = v:get_field("star")
-		item.u_us_prop_num = factory:get_prop(v:get_field("us_prop_csv_id")):get_field("num")
-		item.property_id1 = v:get_field("property_id1")
-		item.value1 = v:get_field("value1")
-		item.property_id2 = v:get_field("property_id2")
-		item.value2 = v:get_field("value2")
-		item.property_id3 = v:get_field("property_id3")
-		item.value3 = v:get_field("value3")
-		item.property_id4 = v:get_field("property_id4")
-		item.value4 = v:get_field("value4")
-		item.property_id5 = v:get_field("property_id5")
-		item.value5 = v:get_field("value5")
+		item.csv_id = 0
+		item.is_possessed = false
+		item.star = 0
+		item.u_us_prop_num = 0
+		item.property_id1 = 0
+		item.value1 = 0
+		item.property_id2 = 0
+		item.value2 = 0
+		item.property_id3 = 0
+		item.value3 = 0
+		item.property_id4 = 0
+		item.value4 = 0
+		item.property_id5 = 0
+		item.value5 = 0
 
 		table.insert(ret.user.rolelist, item)
 	end
+	local _1 = {}
+	_1.uid = 0
+	_1.uname = "tmp"
+	_1.total_combat = 0
+	_1.ranking = 0
+	_1.iconid = 0
+	_1.worship = false
 
 	ret.ara_leaderboards = {}
+	table.insert(ret.ara_leaderboards, _1)
 	ret.ara_rmd_list = {}
-	
+	table.insert(ret.ara_rmd_list, _1)
+
 	return ret
 end
 

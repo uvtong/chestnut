@@ -200,7 +200,7 @@ proto.c2s = sprotoparser.parse [[
     gold 13 : integer
     diamond 14 : integer
     love 15 : integer
-    equipment_list 16 : integer
+    equipment_list 16 : *equipment
     kungfu_list 17 : *kungfu_content
     rolelist 18 : *role
     cp_chapter 19 : integer
