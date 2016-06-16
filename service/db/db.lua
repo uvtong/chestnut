@@ -197,6 +197,7 @@ function QUERY:write(table_name, sql, priority)
 	local res = db:query(sql)
 	-- print(dump(res))
 	if res.errno ~= nil then
+		skynet.error(sql)
 		error "db error"
 	end
 

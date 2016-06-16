@@ -74,7 +74,6 @@ CATLOGGER = $(CSERVICE_PATH)/catlogger.so
 $(CATLOGGER): service-src/service_catlogger.c | $(CSERVICE_PATH)
 	$(CC) $(CFLAGS) $(SHARED) $< -o $@ -I./3rd/skynet/skynet-src
 
-
 LUA_QUEUE := $(LUA_CLIB_PATH)/queue.so
 $(LUA_QUEUE): $(CLIB_SRC_PATH)/lua-queue.c
 	$(CC) $(CFLAGS) $(SHARED) -I$(LUA_PATH) $^ -o $@
@@ -85,6 +84,9 @@ all: $(LUA_STATICLIB) $(CRAB) $(LSOCKET) $(LUA_CJSON) $(LUA_SNAPSHOT) $(LUA_SOCK
 
 update3rd:
 	git submodule update --init
+
+clean:
+
 
 cleanall:
 	rm -rf $(LUA_STATICLIB) $(CRAB) $(LSOCKET) $(LUA_CJSON) $(LUA_SNAPSHOT) $(LUA_SOCKET) $(LUA_ZSET) $(SKYNET)

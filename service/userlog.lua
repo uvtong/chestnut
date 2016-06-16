@@ -6,7 +6,8 @@ skynet.register_protocol {
 	id = skynet.PTYPE_TEXT,
 	unpack = skynet.tostring,
 	dispatch = function(_, address, msg)
-		print(string.format(":%08x(%.2f): %s", address, skynet.time(), msg))
+		-- print(string.format("[:%08x][%.2f]: %s", address, skynet.time(), msg))
+		print(string.format("[:%08x][%s]: %s", address, os.date(), msg))
 	end
 }
 

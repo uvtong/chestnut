@@ -17,7 +17,7 @@ local VIEW = {}
 local function path( filename )
 	-- body
 	assert(type(filename) == "string")
-	return "../web/templates/" .. filename
+	return "../../service/web/templates/" .. filename
 end
 
 function VIEW:index()

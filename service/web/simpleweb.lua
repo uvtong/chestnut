@@ -1,4 +1,4 @@
-package.path = "../web/?.lua;../web/lualib/?.lua;../lualib/?.lua;"..package.path
+package.path = "./../../service/web/?.lua;./../../service/web/lualib/?.lua;./../../lualib/?.lua;"..package.path
 package.cpath = "../lua-cjson/?.so;" .. package.cpath
 local skynet = require "skynet"
 local socket = require "socket"
@@ -122,7 +122,7 @@ local function route( id, code, url, method, header, body )
 			if static_cache[path] then
 				bodyfunc = static_cache[path]
 			else
-				local fpath = "../web/statics" .. path
+				local fpath = "../../service/web/statics" .. path
 				local fd = io.open(fpath, "r")
 				if fd == nil then
 					print(fpath)
