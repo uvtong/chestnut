@@ -22,6 +22,7 @@ function cls:ctor(mgr, P, ... )
 			heartamount = 0,
 			update_time = 0,
 			ifrecved = 0,
+			ifsent = 0,
 		}
 
 	self.__ecol_updated = {
@@ -33,6 +34,7 @@ function cls:ctor(mgr, P, ... )
 			heartamount = 0,
 			update_time = 0,
 			ifrecved = 0,
+			ifsent = 0,
 		}
 
 	for k,v in pairs(self.__head) do
@@ -159,6 +161,21 @@ end
 function cls:get_ifrecved( ... )
 	-- body
 	return self.__fields.ifrecved
+end
+
+function cls:set_ifsent(v, ... )
+	-- body
+	assert(v)
+	self.__ecol_updated["ifsent"] = self.__ecol_updated["ifsent"] + 1
+	if self.__ecol_updated["ifsent"] == 1 then
+		self.__col_updated = self.__col_updated + 1
+	end
+	self.__fields.ifsent = v
+end
+
+function cls:get_ifsent( ... )
+	-- body
+	return self.__fields.ifsent
 end
 
 

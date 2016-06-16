@@ -68,6 +68,13 @@ function cls:ctor( ... )
 		uq = false,
 		t = "number",
 	},
+	ifsent = {
+		pk = false,
+		fk = false,
+		cn = "ifsent",
+		uq = false,
+		t = "number",
+	},
 }
 
 	self.__head_ord = {}
@@ -79,6 +86,7 @@ function cls:ctor( ... )
 	self.__head_ord[6] = self.__head["heartamount"]
 	self.__head_ord[7] = self.__head["update_time"]
 	self.__head_ord[8] = self.__head["ifrecved"]
+	self.__head_ord[9] = self.__head["ifsent"]
 
 	self.__pk      = "id"
 	self.__fk      = "self_csv_id"

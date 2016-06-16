@@ -15,53 +15,90 @@ end
 function cls:user(args, ... )
 	-- body
 	local user = self._env:get_user()
-	local modelmgr = ctx:get_modelmgr()
+	local modelmgr = self._env:get_modelmgr()
 	local u_propmgr = modelmgr:get_u_propmgr()
-
+	local factory = self._env:get_myfactory()
 	local ret = {}
 	if not user then
 		ret.errorcode = errorcode[2].code
 		ret.msg	= errorcode[2].msg
 		return ret
 	end
-	
-	-- assert(u_propmgr == user.u_propmgr)
-	assert(u_propmgr:get_user() == user)
 	assert(user)
 	ret.errorcode = errorcode[1].code
 	ret.msg = errorcode[1].msg
 	ret.user = {
-		uname = user.uname,
-    	uviplevel = user.uviplevel,
-    	config_sound = (user.config_sound == 1) and true or false,
-    	config_music = (user.config_music == 1) and true or false,
-    	avatar = user.avatar,
-    	sign = user.sign,
-    	c_role_id = user.c_role_id,
-    	level = user.level,
-    	recharge_rmb = user.recharge_rmb,
-    	recharge_diamond = user.recharge_diamond,
-    	uvip_progress = user.uvip_progress,
-    	cp_hanging_id = user.cp_hanging_id,
-    	uexp = assert(user.u_propmgr:get_by_csv_id(const.EXP)).num,
-    	gold = assert(user.u_propmgr:get_by_csv_id(const.GOLD)).num,
-    	diamond = assert(user.u_propmgr:get_by_csv_id(const.DIAMOND)).num,
-    	love = assert(user.u_propmgr:get_by_csv_id(const.LOVE)).num,
+		uname = user:get_field("uname"),
+    	uviplevel = user:get_field("uviplevel"),
+    	config_sound = (user:get_field("config_sound") == 1) and true or false,
+    	config_music = (user:get_field("config_music") == 1) and true or false,
+    	avatar = user:get_field("avatar"),
+    	sign = user:get_field("sign"),
+    	c_role_id = user:get_field("c_role_id"),
+    	level = user:get_field("level"),
+    	recharge_rmb = user:get_field("recharge_rmb"),
+    	recharge_diamond = user:get_field("recharge_rmb"),
+    	uvip_progress = user:get_field("uvip_progress"),
+    	cp_hanging_id = user:get_field("cp_hanging_id"),
+    	uexp = u_propmgr:get_by_csv_id(const.EXP):get_field("num"),
+    	gold = u_propmgr:get_by_csv_id(const.GOLD):get_field("num"),
+    	diamond = u_propmgr:get_by_csv_id(const.DIAMOND):get_field("num"),
+    	love = u_propmgr:get_by_csv_id(const.LOVE):get_field("num"),
 	}
-	ret.user.equipment_list = {}
-	for k,v in pairs(user.u_equipmentmgr.__data) do
-		table.insert(ret.user.equipment_list, v)
-	end
+	ret.user.equipment_list = 1
+	-- local u_equipmentmgr = modelmgr:get_u_equipmentmgr()
+	-- for k,v in pairs(u_equipmentmgr.__data) do
+	-- 	local item = {}
+	-- 	item.csv_id = v:get_field("csv_id")
+	-- 	item.level = v:get_field("level")
+	-- 	item.combat = v:get_field("combat")
+	-- 	item.defense = v:get_field("defense")
+	-- 	item.critical_hit = v:get_field("critical_hit")
+	-- 	item.king = v:get_field("king")
+	-- 	item.critical_hit_probability = v:get_field("critical_hit_probability")
+	-- 	item.combat_probability = v:get_field("combat_probability")
+	-- 	item.defense_probability = v:get_field("defense_probability")
+	-- 	item.king_probability = v:get_field("king_probability")
+	-- 	item.enhance_success_rate = v:get_field("enhance_success_rate")
+	-- 	table.insert(ret.user.equipment_list, item)
+	-- end
+
 	ret.user.kungfu_list = {}
-	for k,v in pairs(user.u_kungfumgr.__data) do
-		table.insert(ret.user.kungfu_list, v)
+	local u_kungfumgr = modelmgr:get_u_kungfumgr()
+	for k,v in pairs(u_kungfumgr.__data) do
+		local item = {}
+		item.csv_id = v:get_field("csv_id")
+		item.k_level = v:get_field("level")
+		item.k_type = v:get_field("type")
+		item.k_sp_num = u_propmgr:get_by_csv_id(v:get_field("sp_id")):get_field("num")
+		table.insert(ret.user.kungfu_list, item)
 	end
-	print("called****************************444")
+	
 	ret.user.rolelist = {}
-	for k,v in pairs(user.u_rolemgr.__data) do
-		table.insert(ret.user.rolelist, v)
+	local u_rolemgr = modelmgr:get_u_rolemgr()
+	for k,v in pairs(u_rolemgr.__data) do
+		local item = {}
+		item.csv_id = v:get_field("csv_id")
+		item.is_possessed = true
+		item.star = v:get_field("star")
+		item.u_us_prop_num = factory:get_prop(v:get_field("us_prop_csv_id")):get_field("num")
+		item.property_id1 = v:get_field("property_id1")
+		item.value1 = v:get_field("value1")
+		item.property_id2 = v:get_field("property_id2")
+		item.value2 = v:get_field("value2")
+		item.property_id3 = v:get_field("property_id3")
+		item.value3 = v:get_field("value3")
+		item.property_id4 = v:get_field("property_id4")
+		item.value4 = v:get_field("value4")
+		item.property_id5 = v:get_field("property_id5")
+		item.value5 = v:get_field("value5")
+
+		table.insert(ret.user.rolelist, item)
 	end
-	print("called****************************555")
+
+	ret.ara_leaderboards = {}
+	ret.ara_rmd_list = {}
+	
 	return ret
 end
 

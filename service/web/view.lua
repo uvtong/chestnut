@@ -305,14 +305,14 @@ end
 		
 		local s = require("entitycppt")
 		local entitycls = table_name.."entity"
-		local addr = io.open(dir.."models/"..table_name.."entity.lua", "w")
+		local addr = io.open("./../../service/cat/models/" ..table_name.."entity.lua", "w")
 		local content = string.format(s, entitycls, fields, count, "string.format(\"no exist %s\", k)", funcs)
 		addr:write(content)
 		addr:close()
 
 		local s = require("modelcppt")
 		local mgrcls = table_name.."mgr"
-		local addr = io.open(dir.."models/"..table_name.."mgr.lua", "w")
+		local addr = io.open("./../../service/cat/models/"..table_name.."mgr.lua", "w")
 		local content = string.format(s, mgrcls, table_name, head, head_ord, pk, fk, entitycls)
 		addr:write(content)
 		addr:close()
