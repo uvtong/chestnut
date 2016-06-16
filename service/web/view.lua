@@ -1,8 +1,4 @@
-package.path = "./../cat/?.lua;./../lualib/?.lua;" .. package.path
-package.cpath = "./../lua-cjson/?.so;"..package.cpath
-
 local skynet = require "skynet"
-require "skynet.manager"
 local template = require "resty.template"
 local csvreader = require "csvReader"
 local query = require "query"
@@ -13,6 +9,11 @@ template.caching(true)
 template.precompile("index.html")
 
 local VIEW = {}
+
+local function root(filename, ... )
+	-- body
+	return "../../"..filename
+end
 
 local function path( filename )
 	-- body
@@ -431,6 +432,7 @@ end
 function VIEW:percudure( ... )
 	-- body
 	if self.method == "post" then
+		print("abcedf")
 		local r = query.read(".rdb", "all", "select table_name from information_schema.tables where table_schema='project' and table_type='base table'")
 		if r then
 			local ok, result = pcall(function ()
@@ -442,7 +444,7 @@ function VIEW:percudure( ... )
 						state = state .. s .. "\n"
 					end
 				end
-				local addr = io.open("./../cat/cat.sql", "w")
+				local addr = io.open(root("config/cat/cat.sql"), "w")
 				addr:write(state)
 				addr:close()
 			end)
@@ -486,6 +488,14 @@ end
 function VIEW:_404()
 	-- body
 	return "404"
+end
+
+function VIEW:tool( ... )
+	-- body
+	if self.method == "get" then
+		local func = template.compile( path( "tool.html" ) )
+		return func { message = "hello, world."}
+	end
 end
 
 return VIEW

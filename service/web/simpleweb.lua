@@ -125,8 +125,7 @@ local function route( id, code, url, method, header, body )
 				local fpath = "../../service/web/statics" .. path
 				local fd = io.open(fpath, "r")
 				if fd == nil then
-					print(fpath)
-					error "fpath is wrong"
+					skynet.error(string.format("fpath is wrong, %s", fpath))
 				else
 					local ret = fd:read("*a")
 					fd:close()
