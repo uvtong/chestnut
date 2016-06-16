@@ -281,7 +281,7 @@ local function get_fight_list(uid, roleid, roletype)
 		end
 		idx = idx + 1
 	end 
-
+	
 	--assert(Self.FightList == Enemy.FightLIst)
 	for k, v in ipairs(TmpSelf.FightList) do
 		print(k, v.g_csv_id)
@@ -302,7 +302,7 @@ local function init_attribute(uid, roleid, inittype)
 	if inittype == SELF then
 		t = util.get_total_property(user, _, roleid)
 		assert(t)
-				
+		
 		Self.Attr.combat = t[1] or 0
 		Self.Attr.defence = t[2] or 0
 		Self.Attr.critical_hit = t[3] or 0

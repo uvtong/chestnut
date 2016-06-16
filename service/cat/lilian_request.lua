@@ -36,7 +36,8 @@ local function send_package(pack)
 	local package = string.pack(">s2", pack)
 	socket.write(client_fd, package)
 end		
-		
+
+--THIS FUNC MEANS LAST UPDATE_TIME, + ADAY GET NEW UPDATE_TIME
 local function getsettime()
 	local date = os.time()
 	local year = tonumber( os.date( "%Y" , date ) )
@@ -53,32 +54,33 @@ local function getsettime()
 		
 	return settime
 end		
-		
-local function update()
+				
+local function update(ctx)
+	assert(ctx)
+
 	print( "timeout update is called **************************************" )
-	local session = func_gs()
-	table_gs[tostring(session)] = "lilian_update"
-	send_package( send_request( "lilian_update" , nil, session , _) )
+	-- local session = func_gs()
+	-- table_gs[tostring(session)] = "lilian_update"
+	-- send_package( send_request( "lilian_update" , nil, session , _) )
+	ctx:send_package("lilian_update")
 end 	
-		
+	
 local function daily_update()
 	print( "daily update is called" )
 	local date = os.time()
 	local settime = getsettime()
-
+          
 	skynet.timeout( ( settime + ADAY - date ) * 100, update )
 	--skynet.sleep( 5 * 100 )
 	--daily_update()
-end 	
-		
+end 	  
+		  
 function REQUEST:login(u)
 	-- body
 	assert( u )
-	print( "**********************************lilianrequest_login " )
+	print("**********************************lilianrequest_login")
 	user = u
-	--cs = queue()
-	--assert( cs )
-end		
+end		  
 		
 -- recover phy_power
 local function get_phy_power(ctx, date )
@@ -91,7 +93,7 @@ local function get_phy_power(ctx, date )
 	assert(helper)
 	local rs = helper:lilian_sub_get_lilian_sub()
 	assert(rs)
-
+	print("r.phy_power is ", r.phy_power, ctx:get_user():get_field("lilian_phy_power"))
 	if r.phy_power > ctx:get_user():get_field("lilian_phy_power") then
 		local diff = (date - rs:get_field("first_lilian_time")) / FIXED_STEP
 		--local diff = ( date - user.u_lilian_submgr.__data[ 1 ].first_lilian_time ) / FIXED_STEP	
@@ -99,22 +101,16 @@ local function get_phy_power(ctx, date )
 
 		if ctx:get_user():get_field("lilian_phy_power") + math.floor( diff ) >= r.phy_power then
 			ctx:get_user():set_field("lilian_phy_power", r.phy_power)
-			--user.lilian_phy_power = r.phy_power
 			iffull = true
 		else
 			ctx:get_user():set_field("lilian_phy_power", math.floor(diff) + ctx:get_user():get_field("lilian_phy_power"))
-			--user.lilian_phy_power = user.lilian_phy_power + math.floor( diff )
 		end
 		rs:set_field("first_lilian_time", date)
 		rs:set_field("end_lilian_time", date + FIXED_STEP)
 		rs:update_db()
 
-		-- user.u_lilian_submgr.__data[1].first_lilian_time = date
-		-- user.u_lilian_submgr.__data[1].end_lilian_time = date + FIXED_STEP
-		-- user.u_lilian_submgr.__data[1]:__update_db( { "first_lilian_time" , "end_lilian_time" } , const.DB_PRIORITY_2 )
 		print( "get_phy_power is ended*************************************" , ctx:get_user():get_field("lilian_phy_power") , diff , date  , left )
 	end 			
-
 	return iffull , FIXED_STEP - left;
 end 	
 	
@@ -123,24 +119,21 @@ local function add_to_prop(ctx, tprop )
 
 	for k , v in ipairs( tprop ) do
 		print( k , v ,v.propnum)
-		local prop = ctx:get_user().u_propmgr:get_by_csv_id( v.propid )
+		local prop = ctx:get_modelmgr():get_u_propmgr():get_by_csv_id( v.propid )
 		if prop then
 			prop:set_field("num", prop:get_field("num") + v.propnum)
-			--prop.num = prop.num + v.propnum
-			prop:update_db()
 		else
 			local key = string.format("%s:%d", "g_prop", v.propid)
 
 			local p = sd.query(key)
 			assert(p)
-			--local p = game.g_propmgr:get_by_csv_id( v.propid )
 			p.user_id = ctx:get_user():get_field("csv_id")
 			p.num = v.propnum
 			p.id = genpk_2(p.user_id, p.csv_id)
-			local prop = ctx:get_user().u_propmgr:create( p )
-			ctx:get_user().u_propmgr:add( prop )
-			prop:update_db()
+			local prop = ctx:get_modelmgr():get_u_propmgr():create( p )
+			ctx:get_modelmgr():get_u_propmgr():add( prop )
 		end
+		prop:update_db()
 		-- TRIGGER ACHIEVEMENT
 	end 
 end 	
@@ -186,12 +179,11 @@ local function get_lilian_reward( tr )
 	local lilian_reward 
 	reward , lilian_reward = get_part_reward( r.reward , "(%d+%*%d+%*%d+%*?)" , 3 )
 	if lilian_reward then
-		tr:set_lilian_reward(lilian_reward)
+		tr:set_field("lilian_reward", lilian_reward)
 	else
-		tr:set_lilian_reward(0)
+		tr:set_field("lilian_reward", 0)
 	end
-	tr:set_if_lilian_reward(1)
-	--tr.if_lilian_reward = 1
+	tr:set_field("if_lilian_reward", 1)
 	tr:update_db()
 
 	return reward
@@ -221,7 +213,6 @@ local function get_event_reward( tr )
 		
 		tr:set_field("event_reward", event_reward)	
 		tr:set_field("if_event_reward", 1)
-		--tr.if_event_reward = 1
 		print( "ifeventreward and eventreazrd is " , tr:get_field("if_event_reward") , tr:get_field("event_reward") )
 		tr:update_db()
 	end 
@@ -236,13 +227,12 @@ local function deal_finish_lilian(ctx, tr )
 	local r = skynet.call( ".game" , "lua" , "query_g_lilian_quanguan" , tr:get_field("quanguan_id") )
 	assert( r )
 
-	local reward = get_part_reward( tr:get_field("lilian_reward") , "(%d+%*%d+%*?)" , 2 )
+	local reward = get_part_reward( tr:get_field("lilian_reward") , "(%d+%*%d+%*?)" , 2)
 	print("get_part_reward is over")
 
-	add_to_prop(ctx, reward )
+	add_to_prop(ctx, reward)
 	print("add_to_prop is over")
 	ctx:get_user():set_field("lilian_exp", ctx:get_user():get_field("lilian_exp") + r.reward_exp)
-	--user.lilian_exp = user.lilian_exp + r.reward_exp --may trigger level up
 
 	--invitation reward
 	local ir = skynet.call( ".game" , "lua" , "query_g_lilian_invitation" , tr:get_field("invitation_id") )
@@ -264,10 +254,6 @@ local function deal_finish_lilian(ctx, tr )
 			tr:set_field("iflevel_up", 1)
 			tr:update_db()
 		end
-		-- user.lilian_level = user.lilian_level + 1
-		-- user.lilian_exp = user.lilian_exp - ll.experience
-		-- tr.iflevel_up = 1
-		-- tr:__update_db( { "iflevel_up" }, const.DB_PRIORITY_2 )
 	end
 	
 	return reward
@@ -283,11 +269,9 @@ local function deal_finish_event(ctx, tr )
 	local r = helper:lilian_sub_get_lilian_sub()
 	assert(r)
 
-	--local r = assert( user.u_lilian_submgr.__data[1] )
 	--update used queue num
 	if r:get_field("start_time") <= tr:get_field("start_time") and tr:get_field("start_time") <= r:get_field("update_time") then 
 		r:set_field("used_queue_num", r:get_field("used_queue_num") - 1)
-		--r.used_queue_num = r.used_queue_num - 1
 		print( "finish event is called " , r:get_field("used_queue_num") )
 		r:update_db()
 	end 
@@ -320,10 +304,6 @@ local function trigger_event(ctx, tr)
 		tr:set_field("event_end_time", math.floor( t.cd_time * (1 - ll.dec_weikun_time / 100 )))		
 		tr:update_db()
 
-		-- tr.if_trigger_event = 1
-		-- tr.eventid = te[random][1]
-		-- tr:__update_db( { "if_trigger_event" , "eventid" } , const.DB_PRIORITY_2 ) 
-		-- tr.event_end_time = math.floor( t.cd_time * ( 1 - ll.dec_weikun_time / 100 ) )                --get final eventtime
 		iftrigger = true
 		print( "trigger a event *******************************************" , tr:get_field("eventid") )
 	end 	
@@ -345,9 +325,7 @@ local function get_reward_lilist(ctx, tr , rtype )
 		local tmp = helper:lilian_sub_get_lilian_sub()
 		assert(tmp)
 
-		--local tmp = assert( user.u_lilian_submgr.__data[1] )
 		tmp:set_field("used_queue_num", tmp:get_field("used_queue_num") - 1)
-		--tmp.used_queue_num = tmp.used_queue_num - 1
 		tmp:update_db()
 
 	elseif 2 == rtype then
@@ -371,7 +349,7 @@ function REQUEST:get_lilian_info(ctx)
 	assert(ctx)
 	-- body 
 	print( "*-------------------------* get_lilian_info is called" )
-					
+						
 	local ret = {}
 	ret.basic_info = {}
 	local date = os.time()
@@ -382,7 +360,7 @@ function REQUEST:get_lilian_info(ctx)
     local r = helper:lilian_sub_get_lilian_sub()
 
     --judge if there is a lilian that triggered a event not finished,only one can trigger event
-    for k , v in pairs( ctx:get_user().u_lilian_mainmgr.__data ) do
+    for k , v in pairs( ctx:get_modelmgr():get_u_lilian_mainmgr().__data ) do
     	local t = v.__fields
     	assert(t)
     	if 1 == t.if_trigger_event and date < t.event_end_time then
@@ -393,7 +371,7 @@ function REQUEST:get_lilian_info(ctx)
 
 	--if quanguan can lilian
 	--u_lilian_mainmgr records each lilian that is not finised 
-	for k , v in pairs( ctx:get_user().u_lilian_mainmgr.__data ) do
+	for k , v in pairs( ctx:get_modelmgr():get_u_lilian_mainmgr().__data ) do
 		local f = v.__fields
 		local tmp = {}
 		local date = os.time()
@@ -402,7 +380,6 @@ function REQUEST:get_lilian_info(ctx)
 		if date >= f.end_time then
 			print( "if_lilian_reward" , f.if_lilian_finished , f.if_trigger_event)
 			if 0 == f.if_lilian_finished then
-				--tmp.reward = deal_finish_lilian( v )
 				print( "send lilian reward **************************************" )
 				tmp.reward = get_reward_lilist(ctx,  v , 1 )
 				tmp.if_lilian_reward = 1				
@@ -450,7 +427,6 @@ function REQUEST:get_lilian_info(ctx)
 			local fqn = skynet.call( ".game" , "lua" , "query_g_lilian_level" , ctx:get_user():get_field("lilian_level") )
 			r:set_start_time (settime)
 			r:set_update_time(r:get_start_time() + ADAY)
-			--r.update_time = r:get_start_time() + ADAY
 			r:set_used_queue_num(0)
 			r:update_db()
 			helper:lilian_qg_num_clear_by_settime( settime )
@@ -458,14 +434,14 @@ function REQUEST:get_lilian_info(ctx)
 		print("get liain laievel************", ctx:get_user():get_field("lilian_level"))
 		local t = skynet.call( ".game" , "lua" , "query_g_lilian_level" , ctx:get_user():get_field("lilian_level") )
 		assert( t )		
-		if ctx:get_user().lilian_phy_power >= t.phy_power then
+		if ctx:get_user():get_field("lilian_phy_power") >= t.phy_power then
 			ret.phy_power_left_cd_time = 0
 		else       		
-			if date >= r:get_end_lilian_time() then
+			if date >= r:get_field("end_lilian_time") then
 				local _ , left = get_phy_power(ctx, date)
 				ret.phy_power_left_cd_time = left
 			else 			
-				ret.phy_power_left_cd_time = r:get_end_lilian_time()- date
+				ret.phy_power_left_cd_time = r:get_field("end_lilian_time")- date
 			end 			
 		end     
 	end         
@@ -477,12 +453,12 @@ function REQUEST:get_lilian_info(ctx)
 	ret.phy_power = ctx:get_user():get_field("lilian_phy_power") + ctx:get_user():get_field("purch_lilian_phy_power")
 	ret.lilian_exp = ctx:get_user():get_field("lilian_exp")
 	print( "error is called ********************************" , errorcode[1].code , ctx:get_user():get_field("lilian_phy_power") )
-	ret.purch_phy_power_num = ctx:get_user().u_lilian_phy_powermgr:get_count()
+	ret.purch_phy_power_num = ctx:get_modelmgr():get_u_lilian_phy_powermgr():get_count()
 	ret.present_phy_power_num = ctx:get_user():get_field("lilian_phy_power")
 	ret.errorcode = errorcode[ 1 ].code
 	ret.msg = errorcode[ 1 ].msg
 
-	daily_update()
+	--daily_update()
 
 	return ret  
 end			
@@ -505,27 +481,33 @@ function REQUEST:start_lilian(ctx)
 	local settime = getsettime()
 	local total_delay_time = 0
 
-	if rm then    	
+	if rm then   
+	print("1111111111111111111111111111111111111") 	
 		ret.errorcode = errorcode[81].code
 		ret.msg = errorcode[81].msg
 
 		return ret  
 	else 			
+		print("22222222222222222222222222222222222222222")
 		if 1 == IF_TRIGGER_EVENT then
 			ret.errorcode = errorcode[85].code
 			ret.msg = errorcode[85].msg
 
 			return ret 	
 		else 			
-			local prop = ctx:get_user().u_propmgr:get_by_csv_id( self.invitation_id )
+			print("3333333333333333333333333333333333333333333333")
+			local prop = ctx:get_modelmgr():get_u_propmgr():get_by_csv_id( self.invitation_id )
 
 			if ctx:get_user():get_field("lilian_level") < lq.open_level or ctx:get_user():get_field("lilian_phy_power") + ctx:get_user():get_field("purch_lilian_phy_power") < lq.need_phy_power or not prop or prop:get_field("num") <= 0 then  -- leck an invitation condigion judge.
+				print("444444444444444444444444444444444444444444444")
 				ret.errorcode = errorcode[82].code
 				ret.msg = errorcode[82].msg
 
 				return ret
 			else		
+				print("5555555555555555555555555555555555555555555555555555")
 				if not rs then
+					print("66666666666666666666666666666666666666666666666666")
 					rs = {}
 					rs.id = skynet.call(".game", "lua", "guid", const.LILIAN_SUB)
 					rs.csv_id = ctx:get_user():get_field("csv_id")
@@ -536,24 +518,23 @@ function REQUEST:start_lilian(ctx)
 					print( "queue num in level is " , fqn.queue )
 					rs.used_queue_num = 0 --fqn.queue
 
-					rs = ctx:get_user().u_lilian_submgr:create( rs )
+					rs = ctx:get_modelmgr():get_u_lilian_submgr():create( rs )
 					assert( rs )
-					ctx:get_user().u_lilian_submgr:add( rs )
+					ctx:get_modelmgr():get_u_lilian_submgr():add( rs )
 					rs:update_db()
 
 				else 	
-					if settime > rs:get_start_time() then
+					print("77777777777777777777777777777777777777777777777")
+					if settime > rs:get_field("start_time") then
+						print("8888888888888888888888888888888888888888888888888")
 						rs:set_field("start_time", settime)
 						rs:set_field("update_time", rs:get_field("start_time") + ADAY)
 						rs:set_field("used_queue_num", 0)
-
-						-- rs:set_start_time(settime)
-						-- rs:set_update_time(rs:get_start_time() + ADAY)
-						-- rs:set_used_queue_num(0)  --fqn.queue
 						rs:update_db()
 					end  
 					print( "compared used_queue_num*******************************" , rs:get_field("used_queue_num"), fqn.queue )
 					if rs:get_field("used_queue_num") >= fqn.queue then
+						print("9999999999999999999999999999999999999999999999999999999")
 						ret.errorcode = errorcode[84].code
 						ret.msg = errorcode[84].msg
                                    
@@ -568,14 +549,11 @@ function REQUEST:start_lilian(ctx)
 			 					   	
 				local t = helper:lilian_qg_num_get_by_quanguan_id( self.quanguan_id )
 				if t and t:get_field("start_time") == settime then
+					print("10101010101010101010101101010101010101")
 					t:set_field("num", t:get_field("num") + 1)
 					lilian_num = t:get_field("num")
-
-					-- t:set_num(t:get_num() + 1)
-					-- lilian_num = t:get_num()
-					-- t.num = t.num + 1
-					-- lilian_num = t.num
-				else                
+				else   
+				print("11 11 11 11 11 11 11 11 11 11 11 11 ")             
 					local lqgn = {}
 					lqgn.id = skynet.call(".game", "lua", "guid", const.LILIAN_QG_NUM)
 					lqgn.user_id = ctx:get_user():get_field("csv_id")
@@ -586,9 +564,9 @@ function REQUEST:start_lilian(ctx)
 					lqgn.csv_id = self.quanguan_id  + lqgn.start_time
 					lqgn.reset_num = 0
 
-					lqgn = ctx:get_user().u_lilian_qg_nummgr:create( lqgn )
+					lqgn = ctx:get_modelmgr():get_u_lilian_qg_nummgr():create( lqgn )
 					assert(lqgn)
-					ctx:get_user().u_lilian_qg_nummgr:add( lqgn )
+					ctx:get_modelmgr():get_u_lilian_qg_nummgr():add( lqgn )
 					lqgn:update_db()
 
 					lilian_num = lqgn:get_field("num")
@@ -605,7 +583,6 @@ function REQUEST:start_lilian(ctx)
 				nr.if_trigger_event = 0
 				nr.event_end_time = 0
 				nr.eventid = 0   
-				--nr.if_trigger_event , nr.event_end_time , nr.eventid = get_total_delay_time( lq , fqn )
 				nr.iflevel_up = 0
 				nr.csv_id = self.quanguan_id + nr.start_time + lilian_num
 				nr.event_start_time = 0
@@ -618,35 +595,32 @@ function REQUEST:start_lilian(ctx)
 				nr.event_reward = 0
 
 				print( "start_time and end_time is " , nr.start_time , nr.end_time  , os.time() )
-				nr = ctx:get_user().u_lilian_mainmgr:create( nr )
-				ctx:get_user().u_lilian_mainmgr:add( nr )
+				nr = ctx:get_modelmgr():get_u_lilian_mainmgr():create( nr )
+				ctx:get_modelmgr():get_u_lilian_mainmgr():add( nr )
 				nr:update_db()
          	    prop:set_field("num", prop:get_field("num") - 1)
-		 		--prop:set_num(prop:get_num() - 1)
 		 		prop:update_db()
 
-		 		--prop.num = prop.num - 1
 		 		rs:set_field("used_queue_num", rs:get_field("used_queue_num") + 1)
-		 		--rs:set_used_queue_num(rs:get_used_queue_num() + 1)
 		 		print( "start_lilian is called sub**********" , rs:get_field("used_queue_num"))
 		 		rs:update_db()
 
 		 		if ctx:get_user():get_field("lilian_phy_power") >= lq.need_phy_power then
 		 			ctx:get_user():set_field("lilian_phy_power", ctx:get_user():get_field("lilian_phy_power") - lq.need_phy_power)
 		 		else
-		 			ctx:get_user():set_purch_lilian_phy_power(ctx:get_user():get_purch_lilian_phy_power() + lq.need_phy_power)
+		 			ctx:get_user():set_purch_lilian_phy_power(ctx:get_user():get_field("purch_lilian_phy_power") + lq.need_phy_power)
 		 			ctx:get_user():set_lilian_phy_power(0) 
 		 		end
 		 		ctx:get_user():update_db()
-		 		print( "user.lilian_phy_power is **********************************" , ctx:get_user().lilian_phy_power , rs:get_used_queue_num() , lq.need_phy_power)
+		 		print( "user.lilian_phy_power is **********************************" , ctx:get_user():get_field("lilian_phy_power") , rs:get_field("used_queue_num") , lq.need_phy_power)
 			end 	
 		end  	
 	end 
 	ret.errorcode = errorcode[1].code
 	ret.msg = errorcode[1].msg		
-	ret.left_cd_time = math.floor( lq.time * ( 1 - fqn.dec_lilian_time / 100 ) )
+	ret.left_cd_time = math.floor(lq.time * (1 - fqn.dec_lilian_time / 100))
 
-	print( "ret.left_cd_time is ********************************" , ret.left_cd_time , ret.lilian_phy_power, ret.lilian_level )
+	print("ret.left_cd_time is ********************************" , ret.left_cd_time , ret.lilian_phy_power, ret.lilian_level)
 	return ret                     
 end		 			              
 	
@@ -701,9 +675,6 @@ local function inc_lilian(ctx, r , date )
                       
 		r:set_field("if_canceled", 1)
 		r:set_field("end_time", date)
-                     
-		-- r.if_canceled = 1
-		-- r.end_time = date
 		r:update_db()
 	end 			 
                      
@@ -714,7 +685,7 @@ local function inc_event(ctx, r , date )
 	assert( ctx and r and date )
 	local ret = {}
 
-	if 1 == r:get_iffinished() then
+	if 1 == r:get_field("iffinished") then
 		ret.errorcode = errorcode[87].code
 		ret.msg = errorcode[87].msg
 		return ret
@@ -729,9 +700,6 @@ local function inc_event(ctx, r , date )
 
 		r:set_field("if_event_canceled", 1)
 		r:set_field("event_end_time", date)
-
-		-- r.if_event_canceled = 1
-		-- r.event_end_time = date 
 		r:update_db()
 	end 	
 
@@ -749,7 +717,6 @@ function REQUEST:lilian_rewared_list(ctx)
 	assert( r )
 
 	if DELAY_TYPE.LILIAN == self.rtype then
-
 		if date >= r:get_field("end_time") then
 			ret.reward = get_reward_lilist(ctx, r, self.rtype)
 			ret.invitation_id = r:get_field("invitation_id")
@@ -789,6 +756,7 @@ function REQUEST:lilian_get_reward_list(ctx)
 
 	if DELAY_TYPE.LILIAN == self.reward_type then
 		if 1 == r:get_field("if_lilian_finished") then
+			print("lilian is finished*********************************************")
 			ret.errorcode = errorcode[86].code
 			ret.msg = errorcode[86].msg
 			return ret
@@ -814,12 +782,8 @@ function REQUEST:lilian_get_reward_list(ctx)
 				end
 
 				if not sign then
-					--[[local tmp = assert( user.u_lilian_submgr.__data[1] )
-					tmp.used_queue_num = tmp.used_queue_num - 1
-					tmp:__update_db( { "used_queue_num" } , const.DB_PRIORITY_2 )--]]
 					ret.if_trigger_event = 0
 					r:set_field("iffinished", 1)
-					--r.iffinished = 1
 				end
 				print( "finished is " , r:get_field("iffinished"))
 				ret.if_lilian_finished = r:get_field("if_lilian_finished")
@@ -829,31 +793,31 @@ function REQUEST:lilian_get_reward_list(ctx)
 				ret.lilian_exp = ctx:get_user():get_field("lilian_exp")
 				ret.errorcode = errorcode[1].code
 			else
+				print("noet end**************************")
 				ret.errorcode = errorcode[81].code
 				ret.left_cd_time = r:get_field("end_time") - date
 			end 
 
 			r:set_field("if_lilian_finished", 1)
-			--r.if_lilian_finished = 1
 			r:update_db()
 
 			if 1 == r:get_field("iffinished") then
 				print( "delete finished is called8888888****************************" )
 				r:update_db()
-				--user.u_lilian_mainmgr:delete_by_csv_id( r.quanguan_id )
+				helper:lilian_main_delete_by_id(r:get_field("id"))
 			end 
 		end 	
 	elseif DELAY_TYPE.EVENT == self.reward_type then
 		if 1 == r:get_field("iffinished") then
+			print("event is finished*********************************************")
 			ret.errorcode = errorcode[87].code
 			ret.msg = errorcode[87].msg
 			return ret
 		else    
-			print( "in event_reward********************************" , date , r:get_event_end_time() , date >= r:get_event_end_time() )
+			print( "in event_reward********************************")
 			if date >= r:get_field("event_end_time") then
 				deal_finish_event(ctx,  r )
 				print( "deal_finish_event is finished ********************************" )
-				--IF_TRIGGER_EVENT = 0
 				ret.iffinished = 1
 				ret.if_event_reward = 1
 				ret.eventid = r:get_field("eventid")
@@ -861,15 +825,15 @@ function REQUEST:lilian_get_reward_list(ctx)
 
 				print( "delete finished is called8888888****************************" )
 				r:set_field("iffinished", 1)
-				--r.iffinished = 1
 				r:update_db()
-				--user.u_lilian_mainmgr:delete_by_csv_id( r.quanguan_id )
+				helper:lilian_main_delete_by_id(r:get_field("id"))
 			else
 				ret.errorcode = errorcode[81].code
 				ret.left_cd_time = r:get_field("event_end_time") - date
 			end 
 		end 	
 	else     	
+		print("noet end**************************")
 		ret.errorcode = errorcode[88].code
 		ret.msg = errorcode[88].msg
 	end    		
@@ -886,9 +850,9 @@ function REQUEST:lilian_purch_phy_power(ctx)
 	local helper = ctx:get_helper()
 	assert(helper)		 	
 
-	local pn = ctx:get_user().u_lilian_phy_powermgr:get_count()
+	local pn = ctx:get_modelmgr():get_u_lilian_phy_powermgr():get_count()
 	local settime = getsettime()
-	local prop = ctx:get_user().u_propmgr:get_by_csv_id( const.DIAMOND )
+	local prop = ctx:get_modelmgr():get_u_propmgr():get_by_csv_id( const.DIAMOND )
 	local t = skynet.call( ".game" , "lua" , "query_g_lilian_phy_power" , pn + 1 )
 	local date = os.time()
 								
@@ -901,7 +865,6 @@ function REQUEST:lilian_purch_phy_power(ctx)
 		assert( r )
 		if r:get_field("start_time") < settime then
 			helper:lilian_phy_power_clear()
-			--user.u_lilian_phy_powermgr:clear()
 			ifpurch = true
 		else    
 			if pn >= ctx:get_user():get_field("purchase_hp_count_max") then
@@ -932,30 +895,28 @@ function REQUEST:lilian_purch_phy_power(ctx)
 	p.purch_time = date
 	p.num = pn + 1 
 	
-	p = ctx:get_user().u_lilian_phy_powermgr:create( p )
+	p = ctx:get_modelmgr():get_u_lilian_phy_powermgr():create( p )
 	assert( p )
-	ctx:get_user().u_lilian_phy_powermgr:add( p )
+	ctx:get_modelmgr():get_u_lilian_phy_powermgr():add( p )
 	p:update_db()
 	
 	prop:set_field("num", prop:get_field("num") - t.dioment)	
 
-	--prop:set_num( prop:get_num() - t.dioment)
-	--prop.num = prop.num - t.dioment	
 	local r = skynet.call( ".game" , "lua" , "query_g_config" , "purch_phy_power" )
 	assert( r )
 	local g = skynet.call( ".game" , "lua" , "query_g_lilian_level" , ctx:get_user():get_field("lilian_level") )
 	assert( g )
 	
-	--local _, left =  get_phy_power(date)
 	print("user.lilian_phy_power + r" ,ctx:get_user():get_field("lilian_phy_power") , ctx:get_user():get_field("lilian_phy_power") + r , g.phy_power )
 	
-	ctx:get_user():set_purch_lilian_phy_power(ctx:get_user():get_field("purch_lilian_phy_power") + r)
-	--user.purch_lilian_phy_power = user.purch_lilian_phy_power + r
+	ctx:get_user():set_field("purch_lilian_phy_power", ctx:get_user():get_field("purch_lilian_phy_power") + r)
 	
+	prop:update_db()
+	ctx:get_user():update_db()
+
 	ret.errorcode = errorcode[1].code
 	ret.msg = errorcode[1].msg
 	ret.phy_power = ctx:get_user():get_field("lilian_phy_power") + ctx:get_user():get_field("purch_lilian_phy_power")
-	--ret.left_cd_time = left
 	print( "lilian_purch_phy_power is called**********************************sdasdasd" , ctx:get_user():get_field("lilian_phy_power") , ctx:get_user():get_field("purch_lilian_phy_power"),ret.phy_power )
 	return ret
 end 
@@ -965,50 +926,50 @@ local CONSUMU_PER_SEC = 2
 	
 function REQUEST:lilian_inc(ctx)
 	assert(ctx)
-	
+			
 	assert( self.quanguan_id and self.inc_type )
 	print( "lilian_inc is called*****************************" , self.quanguan_id , self.inc_type )
 	local ret = {}
 	local date = os.time()
 	local helper = ctx:get_helper()
-	
+			
 	local r = helper:lilian_main_get_by_quanguan_id(self.quanguan_id)
 	assert( r ) 
-	
+			
 	local not_enough_prop = false
 	--cost 	
-	local prop = ctx:get_user().u_propmgr:get_by_csv_id( const.DIAMOND )
+	local prop = ctx:get_modelmgr():get_u_propmgr():get_by_csv_id( const.DIAMOND )
 	local total_consume = 0
 	local tl = 0
-	
+			
 	if self.inc_type == INC_TYPE.LILIAN then
-		if date > r.end_time then
+		if date > r:get_field("end_time") then
 			ret.errorcode = errorcode[91].code
-	
+			
 			return ret
 		else
-			tl = r:get_end_time() - date
-			print( "in lilian *************************************" , r:get_end_time() , date , r:get_end_time() - date , CONSUMU_PER_SEC , tl, total_consume )
+			tl = r:get_field("end_time") - date
+			print("in lilian *************************************")
 			
 			assert( tl >= 0 )
 			total_consume = tl * CONSUMU_PER_SEC
 
-			if not prop or prop:get_num() < total_consume then
+			if not prop or prop:get_field("num") < total_consume then
 				not_enough_prop = true
 			else
-				ret = inc_lilian(ctx, r , date )
+				ret = inc_lilian(ctx, r , date)
 			end 
 		end
 	else    
-		print( "in event *************************************" , r:get_event_end_time() , date , r:get_event_end_time() - date )
-		if date > r:get_event_end_time() then
+		print( "in event *************************************" , r:get_field("event_end_time") , date , r:get_field("event_end_time") - date )
+		if date > r:get_field("event_end_time") then
 			ret.errorcode = errorcode[91].code
 			return ret
 		else
-			tl = r:get_event_end_time() - date
+			tl = r:get_field("event_end_time") - date
 			assert( tl >= 0 )
 			total_consume = tl * CONSUMU_PER_SEC 
-			if not prop or prop:get_num() < total_consume then
+			if not prop or prop:get_field("num") < total_consume then
 				not_enough_prop = true
 			else
 				ret = inc_event(ctx, r , date )
@@ -1020,41 +981,43 @@ function REQUEST:lilian_inc(ctx)
 		ret.errorcode = errorcode[6].code
 		ret.msg = errorcode[6].msg
 	else
-		prop:set_num(prop:get_num() - total_consume)
-		--prop:get_num() = prop:get_num() - total_consume
-		ret.diamond_num = prop:get_num()
+		prop:set_field("num", prop:get_field("num") - total_consume)
+		ret.diamond_num = prop:get_field("num")
 	end
-	print( "ret.diamond_num is , prop.num is " , ret.diamond_num, prop:get_num() )
+	print( "ret.diamond_num is , prop.num is " , ret.diamond_num, prop:get_field("num"))
 
 	return ret
-end
+end 		
 				
 function REQUEST:lilian_reset_quanguan(ctx)
 	assert( ctx and self.quanguan_id )
 	print( "lilian_reset_quanguan is called**********************************" )
 
 	local ret = {}
-	local t = user.u_lilian_qg_nummgr:get_by_csv_id( self.quanguan_id )
+	local t = ctx:get_modelmgr():get_u_lilian_qg_nummgr():get_by_csv_id( self.quanguan_id )
 	local r = skynet.call( ".game" , "lua" , "query_g_lilian_quanguan" , self.quanguan_id )
-	print( t.num , r.day_finish_time , t.reset_num , user.purchase_hp_count_max)
-	if not t or t.num < r.day_finish_time or t.reset_num >= user.purchase_hp_count_max then
+	print( t.num , r.day_finish_time , t.reset_num , ctx:get_user():get_field("purchase_hp_count_max"))
+	if not t or t:get_field("num") < r.day_finish_time or t:get_field("reset_num") >= ctx:get_user():get_field("purchase_hp_count_max") then
 		ret.errorcode = errorcode[90].code
 		ret.msg = errorcode[90].msg
 	else      
-		local cd = skynet.call( ".game" , "lua" , "query_g_lilian_phy_power" , t.reset_num + 1 )
+		local cd = skynet.call( ".game" , "lua" , "query_g_lilian_phy_power" , t:get_field("reset_num") + 1 )
 		assert( cd )
-		local prop = user.u_propmgr:get_by_csv_id( const.DIAMOND )
-		if not prop or prop.num < cd.reset_quanguan_dioment then
+		local prop = ctx:get_user():get_u_propmgr():get_by_csv_id( const.DIAMOND )
+		if not prop or prop:get_field("num") < cd.reset_quanguan_dioment then
 			ret.errorcode = errorcode[6].code
 			ret.msg = errorcode[6].msg
 		else
-			t.reset_num = t.reset_num + 1
-			t.num = 0
-			prop.num = prop.num - cd.reset_quanguan_dioment
-			ret.reset_num = t.reset_num
+			t:set_field("reset_num", t:get_field("reset_num") + 1)
+			t:set_field("num", 0)
+			prop:set_field("num", prop:get_field("num") - cd.reset_quanguan_dioment)
+
+			ret.reset_num = t:get_field("reset_num")
 			ret.errorcode = errorcode[1].code
 			ret.msg = errorcode[1].msg
-			print( "reset quanguan is caleld " , prop.num , cd.reset_quanguan_dioment )
+			print( "reset quanguan is caleld " , prop:get_field("num") , cd.reset_quanguan_dioment )
+			t:update_db()
+			prop:update_db()	
 		end 
 	end 	
 

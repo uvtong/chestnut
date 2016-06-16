@@ -761,7 +761,7 @@ function REQUEST:BeginArenaCoreFight(ctx)
     end 		
 
     --init user and enemy on_battlerole_info_list
-    if not get_on_battle_list(ctx.me SELF) then   	
+    if not get_on_battle_list(ctx.me, SELF) then   	
     	ret.errorcode = errorcode[110].code 	  	
     end 				 				  		  	
     											  					

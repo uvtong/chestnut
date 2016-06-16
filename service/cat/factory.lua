@@ -156,6 +156,9 @@ function cls:create_user(uid)
 		ara_r3_sum_defense = 0,
 		ara_r3_sum_critical_hit = 0,
 		ara_r3_sum_king = 0,
+		daily_recv_heart = 0,
+		friend_update_time = 0,
+		cp_fighting = 0,
 	}
 	local usersmgr = self._env:get_usersmgr()
 	local user = usersmgr:create_entity(t)

@@ -10,8 +10,8 @@ local errorcode = require "errorcode"
 local const = require "const"
 local context = require "agent_context"
 
-local friendrequest = require "friendrequest"
-local friendmgr = require "friendmgr"
+-- local new_friend_request = require "new_friend_request"
+-- local friendmgr = require "friendmgr"
 
 local M = {}
 local new_emailrequest = require "new_emailrequest"
@@ -22,6 +22,7 @@ local kungfurequest = require "kungfurequest"
 local new_drawrequest = require "new_drawrequest"
 local lilian_request = require "lilian_request"
 local core_fightrequest = require "core_fightrequest"
+local new_friend_request = require "new_friend_request"
 
 
 table.insert(M, checkinrequest )
@@ -32,6 +33,7 @@ table.insert(M, kungfurequest )
 table.insert(M, new_drawrequest )
 table.insert(M, lilian_request )
 table.insert(M, core_fightrequest)
+table.insert(M, new_friend_request)
 
 -- service internal context
 
@@ -184,8 +186,8 @@ local function get_public_email(ctx)
 	end
 	
 	for k , v in ipairs( r ) do		
+		v.id = genpk_2(ctx:get_user():get_field("csv_id"), genpk_3(2, v.pemail_csv_id))
 		v.pemail_csv_id = nil
-		v.id = genpk_2(ctx:get_user():get_csv_id(), v.csv_id)
 		new_emailrequest:public_email(ctx:get_myfactory(), v , ctx:get_user() )
 	end 
 
@@ -903,8 +905,8 @@ local function request(name, args, response)
     local f = nil
     if REQUEST[name] ~= nil then
     	f = REQUEST[name]
-    elseif nil ~= friendrequest[ name ] then
-    	f = friendrequest[name]
+    elseif nil ~= new_friend_request[name] then
+    	f = new_friend_request[name]
     else
     	for i,v in ipairs(M) do
     		if v.REQUEST[name] ~= nil then
@@ -948,8 +950,8 @@ local function response(session, args)
     local f = nil
     if RESPONSE[name] ~= nil then
     	f = RESPONSE[name]
-    elseif nil ~= friendrequest[name] then
-    	f = friendrequest[name]
+    elseif nil ~= new_friend_request[name] then
+    	f = new_friend_request[name]
     else
     	for i,v in ipairs(M) do
     		if v.RESPONSE[name] ~= nil then
@@ -1002,8 +1004,8 @@ skynet.register_protocol {
 	
 function CMD:friend(source, subcmd, ... )
 	-- body
-	local f = assert(friendrequest[subcmd])
-	local r =  f(friendrequest, ...)
+	local f = assert(new_friend_request[subcmd])
+	local r =  f(new_friend_request, env, ...)
 	if r then
 		return r
 	end
@@ -1011,7 +1013,7 @@ end
 
 function CMD:newemail(source, subcmd , ... )
 	local f = assert( new_emailrequest[ subcmd ] )
-	f( new_emailrequest , ... )
+	f( _ , env, ... )
 end
 
 function CMD:ara_user(source)
@@ -1025,8 +1027,8 @@ function CMD:ara_user(source)
 		end
 	end
 	return r
-end
-
+end 
+	
 local function enter_ara(u, ... )
 	-- body
 	local key = string.format("%s:%d", "g_config", 1)
@@ -1048,8 +1050,8 @@ local function enter_ara(u, ... )
 		ara_clg_tms_rst_tm = ara_clg_tms_rst_tm + (m * 86400)
 		-- u:set_ara_clg_tms_rst_tm(ara_clg_tms_rst_tm)
 	end
-end
-
+end 
+	
 function CMD:signup(source, uid, sid, sct, g, d)
 	-- body
 	skynet.error(string.format("%s is login", uid))
@@ -1066,12 +1068,13 @@ function CMD:signup(source, uid, sid, sct, g, d)
 	env:set_secret(secret)
 	local modelmgr = self:get_modelmgr()
 	user = modelmgr:signup(userid)
-	
+		
 	local onlinetime = os.time()
 	user.ifonline = 1
 	user.onlinetime = onlinetime
-	user.friendmgr = friendmgr:loadfriend( user , dc )
-	friendrequest.getvalue(user, send_package, send_request)
+	new_friend_request.init(env)
+	--user.friendmgr = friendmgr:loadfriend( user , dc )
+	--new_friend_request.getvalue(user, send_package, send_request)
 
 	-- online
 	for k,v in pairs(M) do
@@ -1087,10 +1090,10 @@ function CMD:signup(source, uid, sid, sct, g, d)
 
 	self:login(user)
 
-	
+
 	return true
 end 
-
+	
 function CMD:login(source, uid, sid, sct, g, d)
 	-- body
 	skynet.error(string.format("%s is login", uid))
@@ -1112,8 +1115,9 @@ function CMD:login(source, uid, sid, sct, g, d)
 	local onlinetime = os.time()
 	user.ifonline = 1
 	user.onlinetime = onlinetime
-	user.friendmgr = friendmgr:loadfriend( user , dc )
-	friendrequest.getvalue(user, send_package, send_request)
+	new_friend_request.init(env)
+	--user.friendmgr = friendmgr:loadfriend( user , dc )
+	--new_friend_request.getvalue(user, send_package, send_request)
 
 	assert(user, "user must be a certernaly value.")
 

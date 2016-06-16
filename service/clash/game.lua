@@ -294,10 +294,10 @@ end
 function CMD:query_g_daily_task()
 	for k, v in pairs(game.g_daily_taskmgr.__data) do
 		return v.__fields
-	end
+	end  
 	assert(false)
-end
-
+end     
+        
 function CMD.query_g_goods_refresh_cost(pk)
 	-- body
 	print("abcedfe")
@@ -312,9 +312,9 @@ function CMD.query_g_goods_refresh_cost(pk)
 		return game.g_goods_refresh_costmgr.__data
 	else
 		assert(false)
-	end
-end
-
+	end 
+end     
+        
 function CMD.query_g_kungfu(pk)
 	-- body
 	if type(pk) == "number" then
@@ -328,8 +328,22 @@ function CMD.query_g_kungfu(pk)
 		return game.g_kungfumgr.__data
 	else
 		assert(false)
+	end 
+end     
+
+function CMD.query_g_kungfu_by_csv_id_and_level(csv_id, level)
+	print("csv_id level in game", csv_id, level)
+	assert(csv_id and level and type(csv_id) == "number" and type(level) == "number")
+
+	for k, v in pairs(game.g_kungfumgr.__data) do
+		if v:get_field("csv_id") == csv_id and v:get_field("level") == level then
+			return v.__fields
+		end
 	end
-end
+
+	assert(false)
+end 
+
 
 function CMD.query_g_mainreward(pk)
 	-- body

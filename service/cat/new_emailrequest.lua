@@ -52,19 +52,19 @@ function REQUEST:mails(ctx)
 	ret.mail_list = {}
 
 	local counter = 0
-	for i , v in pairs( ctx:get_user().u_new_emailmgr.__data ) do
+	for i , v in pairs( ctx:get_modelmgr():get_u_new_emailmgr().__data ) do
 		print( k , v )
 		counter = counter + 1
 		local tmp = {}
 		tmp.attachs = {}
 		print(v.id)
-		tmp.emailid = v:get_id()
-		tmp.type = v:get_type()
-		tmp.acctime = os.date( "%Y-%m-%d" , v:get_acctime() )
-		tmp.isread = ( v:get_isread() == 0 ) and true or false 
-		tmp.isreward = ( v:get_isreward() == 0 ) and true or false 
-		tmp.title = v:get_title()
-		tmp.content = v:get_content()
+		tmp.emailid = v:get_field("id")
+		tmp.type = v:get_field("type")
+		tmp.acctime = os.date( "%Y-%m-%d" , v:get_field("acctime"))
+		tmp.isread = ( v:get_field("isread") == 0 ) and true or false 
+		tmp.isreward = ( v:get_field("isreward") == 0 ) and true or false 
+		tmp.title = v:get_field("title")
+		tmp.content = v:get_field("content")
 
 		for i = 1 , 5 do
 			local id = "itemsn" .. i
@@ -99,10 +99,10 @@ function REQUEST:mail_read(ctx)
 	if self.mail_id then
 		for k , v in pairs( self.mail_id ) do
 			print ( k , v , v.id )
-			local e = ctx:get_user().u_new_emailmgr:get( v.id )
+			local e = ctx:get_modelmgr():get_u_new_emailmgr():get( v.id )
 			assert( e )
 
-			e:set_isread(1)	
+			e:set_field("isread", 1)	
 			--e.isread = 1
 			e:update_db()
 		end 
@@ -146,28 +146,28 @@ function REQUEST:mail_getreward(ctx)
 	if self.mail_id then
 		for k , v in pairs( self.mail_id ) do       
 			print(v, v.id)                  		
-			local e = ctx:get_user().u_new_emailmgr:get( v.id )
+			local e = ctx:get_modelmgr():get_u_new_emailmgr():get( v.id )
 			assert(e)
-			if 0 == e:get_isreward() then 	
+			if 0 == e:get_field("isreward") then 	
  					
 				for i = 1 , 5 do
 					local id = "itemsn" .. i
 					local num = "itemnum" .. i
 		    		
 					if nil ~= e.__fields[id] and 0 ~= e.__fields[num] then
-						local prop = ctx:get_user().u_propmgr:get_by_csv_id( e.__fields[id] )
+						local prop = ctx:get_modelmgr():get_u_propmgr():get_by_csv_id( e.__fields[id] )
 						if prop then
-							prop:set_num(prop:get_num() + e.__fields[num])
+							prop:set_field("num", prop:get_field("num") + e.__fields[num])
 							--prop.num = prop.num + e.__fields[num]
 						else                                                                     
  							local p = skynet.call(".game", "lua", "query_g_prop", e.__fields[id])
 							assert(p)
 							--local p = game.g_propmgr:get_by_csv_id( e[id] )
-							p:set_user_id(ctx:get_user().csv_id)
+							p:set_user_id(ctx:get_user():get_field("csv_id"))
 							p:set_num(e.__fields[num])
 							--p.num = e[num]
-							local prop = ctx:get_user().u_propmgr:create( p )
-							ctx:get_user().u_propmgr:add( prop )
+							local prop = ctx:get_modelmgr():get_u_propmgr():create( p )
+							ctx:get_modelmgr():get_u_propmgr():add( prop )
 							prop:update_db()
 						end			
 					end
@@ -178,14 +178,13 @@ function REQUEST:mail_getreward(ctx)
 					end--]] 		
 
 				if 1 == e.__fields.type then
-					e:set_isdel(1)  
+					e:set_field("isdel", 1)  
 					e:update_db() 	
-
 					-- e.isdel = 1  
 					-- e:update_db()
-					ctx:get_user().u_new_emailmgr:delete( e:get_id() )
+					ctx:get_modelmgr():get_u_new_emailmgr():delete( e:get_field("id"))
 				else 		   		
-					e:set_isreward(1)
+					e:set_field("isreward", 1)
 					--e.isreward = 1
 					e:update_db()
 				end 		   
@@ -202,12 +201,18 @@ function REQUEST:mail_getreward(ctx)
 	return ret
 end 	
 		
-function new_emailrequest:newemail(ctx,  tval , ... ) -- get a email to group
+-- get a email to group, not by channel, use send		
+function new_emailrequest:newemail(ctx, tval) 
 	assert(ctx and tval)
 	print( "*********************************************REQUEST:newemail" )
-		
-	local v = user.u_new_emailmgr:recvemail( tval )
-	assert( v )
+	for k, v in pairs(tval) do
+		print(k, v)
+	end
+ 	local factory = ctx:get_myfactory()
+	assert(factory)
+
+	local v = factory:email_recvemail(tval)
+	assert(v)
 	
 	--[[local ret = {}
 	ret.mail = {}
@@ -230,7 +235,7 @@ end
 function new_emailrequest:public_email(factory, tvals , user )
 	assert(tvals and user )
 
-	tvals.uid = user.csv_id
+	tvals.uid = user:get_field("csv_id")
 	print( "*********************************email is " , tvals.csv_id )
 
 
@@ -240,22 +245,19 @@ function new_emailrequest:public_email(factory, tvals , user )
 end 
 	
 function SUBSCRIBE:email(ctx, tvals , ... ) -- get email from channl , a email to all users 
-	for k,v in pairs(ctx) do
-		print(k,v)
-	end
 	assert(ctx and tvals)
 	print("***********************************SUBSCRIBE:email")
 	local factory = ctx:get_myfactory()
 	assert(factory)
 
 	--update the pemail_csvid
-	ctx:get_user():set_pemail_csv_id(tvals.csv_id)
+	ctx:get_user():set_field("pemail_csv_id", tvals.csv_id)
 	ctx:get_user():update_db()		
 
 	--asign the tvals.csv_id a new csv_id
-	tvals.csv_id = skynet.call( ".game" , "lua" , "u_guid" , ctx:get_user():get_csv_id() , const.UEMAILENTROPY )
+	tvals.csv_id = skynet.call( ".game" , "lua" , "u_guid" , ctx:get_user():get_field("csv_id") , const.UEMAILENTROPY )
 
-	tvals.uid = ctx:get_user():get_csv_id()
+	tvals.uid = ctx:get_user():get_field("csv_id")
 	tvals.id = genpk_2(tvals.uid, tvals.csv_id)
 	print( "*********************************email csv_id is " , tvals.csv_id )
 	local v = factory:email_recvemail(tvals)
