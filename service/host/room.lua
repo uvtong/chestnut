@@ -1,36 +1,45 @@
 local skynet = require "skynet"
-local userid1 = 0
-local userid2 = 1
-local userid2 = 1
+local p1 = 0
+local p2 = 1
+local p3 = 1
 
 
 local CMD = {}
 
-function CMD.enter_room( ... )
+function CMD.enter_room(uid, ... )
 	-- body
+	local cls = require "player"
+
 end
 
 function CMD.ready(uid, ... )
 	-- body
 end
 
-function CMD.mp( ... )
+function CMD.mp(uid, ... )
 	-- body
 end
 
-function CMD.am( ... )
+function CMD.am(uid, ... )
 	-- body
 end
 
-function CMD.rob( ... )
+function CMD.rob(uid, ... )
 	-- body
 end
 
-function CMD.lead( ... )
+function CMD.lead(uid, ... )
 	-- body
+	if uid == p1:get_uid() then
+		local addr = p1:get_addr()
+		skynet.send(addr, "lua", "lead")
+	elseif uid == p2:get_uid() then
+	elseif uid == p3:get_uid() then
+
+	end
 end
 
-function CMD.deal_cards( ... )
+function CMD.deal_cards(uid, ... )
 	-- body
 end
 
