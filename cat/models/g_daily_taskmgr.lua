@@ -1,6 +1,5 @@
 local skynet = require "skynet"
 local modelmgr = require "modelmgrcpp"
-local entity = require "entity"
 local assert = assert
 local type   = type
 
@@ -14,7 +13,7 @@ function cls:ctor( ... )
 	self.__tname   = "g_daily_task"
 	self.__head    = {
 	id = {
-		pk = true,
+		pk = false,
 		fk = false,
 		cn = "id",
 		uq = false,
@@ -28,7 +27,7 @@ function cls:ctor( ... )
 		t = "string",
 	},
 	type = {
-		pk = false,
+		pk = true,
 		fk = false,
 		cn = "type",
 		uq = false,
@@ -86,18 +85,18 @@ function cls:ctor( ... )
 }
 
 	self.__head_ord = {}
-		self.__head_ord[1] = self.__head[id]
-	self.__head_ord[2] = self.__head[update_time]
-	self.__head_ord[3] = self.__head[type]
-	self.__head_ord[4] = self.__head[task_name]
-	self.__head_ord[5] = self.__head[cost_amount]
-	self.__head_ord[6] = self.__head[iconid]
-	self.__head_ord[7] = self.__head[basic_reward]
-	self.__head_ord[8] = self.__head[levelup_reward]
-	self.__head_ord[9] = self.__head[level_up]
-	self.__head_ord[10] = self.__head[cost_id]
+		self.__head_ord[1] = self.__head["id"]
+	self.__head_ord[2] = self.__head["update_time"]
+	self.__head_ord[3] = self.__head["type"]
+	self.__head_ord[4] = self.__head["task_name"]
+	self.__head_ord[5] = self.__head["cost_amount"]
+	self.__head_ord[6] = self.__head["iconid"]
+	self.__head_ord[7] = self.__head["basic_reward"]
+	self.__head_ord[8] = self.__head["levelup_reward"]
+	self.__head_ord[9] = self.__head["level_up"]
+	self.__head_ord[10] = self.__head["cost_id"]
 
-	self.__pk      = "id"
+	self.__pk      = "type"
 	self.__fk      = ""
 	self.__rdb     = skynet.localname(skynet.getenv("gated_rdb"))
 	self.__wdb     = skynet.localname(skynet.getenv("gated_wdb"))

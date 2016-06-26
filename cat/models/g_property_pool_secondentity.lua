@@ -14,7 +14,6 @@ function cls:ctor(mgr, P, ... )
 	self.__stm   = mgr.__stm
 	self.__col_updated=0
 	self.__fields = {
-			id = 0,
 			csv_id = 0,
 			property_pool_id = 0,
 			probability = 0,
@@ -23,7 +22,6 @@ function cls:ctor(mgr, P, ... )
 		}
 
 	self.__ecol_updated = {
-			id = 0,
 			csv_id = 0,
 			property_pool_id = 0,
 			probability = 0,
@@ -32,25 +30,18 @@ function cls:ctor(mgr, P, ... )
 		}
 
 	for k,v in pairs(self.__head) do
-		self.__fields[k] = assert(P[k])
+		self.__fields[k] = assert(P[k], string.format("no exist %s", k))
 	end
 	return self
-end
-
-function cls:set_id(v, ... )
-	-- body
-	assert(v)
-	self.__fields.id = v
-end
-
-function cls:get_id( ... )
-	-- body
-	return self.__fields.id
 end
 
 function cls:set_csv_id(v, ... )
 	-- body
 	assert(v)
+	self.__ecol_updated["csv_id"] = self.__ecol_updated["csv_id"] + 1
+	if self.__ecol_updated["csv_id"] == 1 then
+		self.__col_updated = self.__col_updated + 1
+	end
 	self.__fields.csv_id = v
 end
 
@@ -62,6 +53,10 @@ end
 function cls:set_property_pool_id(v, ... )
 	-- body
 	assert(v)
+	self.__ecol_updated["property_pool_id"] = self.__ecol_updated["property_pool_id"] + 1
+	if self.__ecol_updated["property_pool_id"] == 1 then
+		self.__col_updated = self.__col_updated + 1
+	end
 	self.__fields.property_pool_id = v
 end
 
@@ -73,6 +68,10 @@ end
 function cls:set_probability(v, ... )
 	-- body
 	assert(v)
+	self.__ecol_updated["probability"] = self.__ecol_updated["probability"] + 1
+	if self.__ecol_updated["probability"] == 1 then
+		self.__col_updated = self.__col_updated + 1
+	end
 	self.__fields.probability = v
 end
 
@@ -84,6 +83,10 @@ end
 function cls:set_property_id(v, ... )
 	-- body
 	assert(v)
+	self.__ecol_updated["property_id"] = self.__ecol_updated["property_id"] + 1
+	if self.__ecol_updated["property_id"] == 1 then
+		self.__col_updated = self.__col_updated + 1
+	end
 	self.__fields.property_id = v
 end
 
@@ -95,6 +98,10 @@ end
 function cls:set_value(v, ... )
 	-- body
 	assert(v)
+	self.__ecol_updated["value"] = self.__ecol_updated["value"] + 1
+	if self.__ecol_updated["value"] == 1 then
+		self.__col_updated = self.__col_updated + 1
+	end
 	self.__fields.value = v
 end
 

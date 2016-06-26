@@ -17,18 +17,18 @@ function cls:ctor(mgr, P, ... )
 			id = 0,
 			user_id = 0,
 			csv_id = 0,
-			is_collected = 0,
+			collected = 0,
 		}
 
 	self.__ecol_updated = {
 			id = 0,
 			user_id = 0,
 			csv_id = 0,
-			is_collected = 0,
+			collected = 0,
 		}
 
 	for k,v in pairs(self.__head) do
-		self.__fields[k] = assert(P[k])
+		self.__fields[k] = assert(P[k], string.format("no exist %s", k))
 	end
 	return self
 end
@@ -36,6 +36,10 @@ end
 function cls:set_id(v, ... )
 	-- body
 	assert(v)
+	self.__ecol_updated["id"] = self.__ecol_updated["id"] + 1
+	if self.__ecol_updated["id"] == 1 then
+		self.__col_updated = self.__col_updated + 1
+	end
 	self.__fields.id = v
 end
 
@@ -47,6 +51,10 @@ end
 function cls:set_user_id(v, ... )
 	-- body
 	assert(v)
+	self.__ecol_updated["user_id"] = self.__ecol_updated["user_id"] + 1
+	if self.__ecol_updated["user_id"] == 1 then
+		self.__col_updated = self.__col_updated + 1
+	end
 	self.__fields.user_id = v
 end
 
@@ -58,6 +66,10 @@ end
 function cls:set_csv_id(v, ... )
 	-- body
 	assert(v)
+	self.__ecol_updated["csv_id"] = self.__ecol_updated["csv_id"] + 1
+	if self.__ecol_updated["csv_id"] == 1 then
+		self.__col_updated = self.__col_updated + 1
+	end
 	self.__fields.csv_id = v
 end
 
@@ -66,15 +78,19 @@ function cls:get_csv_id( ... )
 	return self.__fields.csv_id
 end
 
-function cls:set_is_collected(v, ... )
+function cls:set_collected(v, ... )
 	-- body
 	assert(v)
-	self.__fields.is_collected = v
+	self.__ecol_updated["collected"] = self.__ecol_updated["collected"] + 1
+	if self.__ecol_updated["collected"] == 1 then
+		self.__col_updated = self.__col_updated + 1
+	end
+	self.__fields.collected = v
 end
 
-function cls:get_is_collected( ... )
+function cls:get_collected( ... )
 	-- body
-	return self.__fields.is_collected
+	return self.__fields.collected
 end
 
 

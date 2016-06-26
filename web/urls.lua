@@ -10,6 +10,7 @@ urls['^/props'] = assert(view["props"])
 urls['^/equipments'] = assert(view["equipments"])
 urls['^/validation$'] = assert(view["validation"])
 urls['^/validation_ro'] = assert(view["validation_ro"])
+urls['^/percudure'] = assert(view["percudure"])
 urls['^/404'] = assert(view["_404"])
 
 return urls

@@ -49,7 +49,7 @@ skynet.start(function()
 		local logind_name = skynet.getenv("logind_name")
 		local loginserver = skynet.newservice("logind")
 		skynet.name(logind_name, loginserver)
-	end
+	end     
 
 	local gated = skynet.getenv("gated")
 	if gated then
@@ -78,8 +78,11 @@ skynet.start(function()
 		-- local wgame = skynet.newservice("wgame", db)
 		-- skynet.name(".wgame", wgame)
 
+		skynet.newservice("randomdraw")
+		skynet.newservice("channel")
+
 		-- read
-		local game = skynet.newservice("game")
+		local game = skynet.uniqueservice("game")
 		skynet.name(".game", game)
 
 		skynet.newservice("simpledb")

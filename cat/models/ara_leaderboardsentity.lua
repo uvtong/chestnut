@@ -26,7 +26,8 @@ function cls:ctor(mgr, P, ... )
 		}
 
 	for k,v in pairs(self.__head) do
-		self.__fields[k] = assert(P[k])
+		print(k, v)
+		self.__fields[k] = assert(P[k], string.format("no exist %s", k))
 	end
 	return self
 end
@@ -34,6 +35,10 @@ end
 function cls:set_uid(v, ... )
 	-- body
 	assert(v)
+	self.__ecol_updated["uid"] = self.__ecol_updated["uid"] + 1
+	if self.__ecol_updated["uid"] == 1 then
+		self.__col_updated = self.__col_updated + 1
+	end
 	self.__fields.uid = v
 end
 
@@ -45,6 +50,10 @@ end
 function cls:set_ranking(v, ... )
 	-- body
 	assert(v)
+	self.__ecol_updated["ranking"] = self.__ecol_updated["ranking"] + 1
+	if self.__ecol_updated["ranking"] == 1 then
+		self.__col_updated = self.__col_updated + 1
+	end
 	self.__fields.ranking = v
 end
 
@@ -56,6 +65,10 @@ end
 function cls:set_k(v, ... )
 	-- body
 	assert(v)
+	self.__ecol_updated["k"] = self.__ecol_updated["k"] + 1
+	if self.__ecol_updated["k"] == 1 then
+		self.__col_updated = self.__col_updated + 1
+	end
 	self.__fields.k = v
 end
 

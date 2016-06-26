@@ -32,7 +32,7 @@ function cls:ctor(mgr, P, ... )
 		}
 
 	for k,v in pairs(self.__head) do
-		self.__fields[k] = assert(P[k])
+		self.__fields[k] = assert(P[k], string.format("no exist %s", k))
 	end
 	return self
 end
@@ -40,6 +40,10 @@ end
 function cls:set_csv_id(v, ... )
 	-- body
 	assert(v)
+	self.__ecol_updated["csv_id"] = self.__ecol_updated["csv_id"] + 1
+	if self.__ecol_updated["csv_id"] == 1 then
+		self.__col_updated = self.__col_updated + 1
+	end
 	self.__fields.csv_id = v
 end
 
@@ -51,6 +55,10 @@ end
 function cls:set_level(v, ... )
 	-- body
 	assert(v)
+	self.__ecol_updated["level"] = self.__ecol_updated["level"] + 1
+	if self.__ecol_updated["level"] == 1 then
+		self.__col_updated = self.__col_updated + 1
+	end
 	self.__fields.level = v
 end
 
@@ -62,6 +70,10 @@ end
 function cls:set_name(v, ... )
 	-- body
 	assert(v)
+	self.__ecol_updated["name"] = self.__ecol_updated["name"] + 1
+	if self.__ecol_updated["name"] == 1 then
+		self.__col_updated = self.__col_updated + 1
+	end
 	self.__fields.name = v
 end
 
@@ -73,6 +85,10 @@ end
 function cls:set_type0_max(v, ... )
 	-- body
 	assert(v)
+	self.__ecol_updated["type0_max"] = self.__ecol_updated["type0_max"] + 1
+	if self.__ecol_updated["type0_max"] == 1 then
+		self.__col_updated = self.__col_updated + 1
+	end
 	self.__fields.type0_max = v
 end
 
@@ -84,6 +100,10 @@ end
 function cls:set_type1_max(v, ... )
 	-- body
 	assert(v)
+	self.__ecol_updated["type1_max"] = self.__ecol_updated["type1_max"] + 1
+	if self.__ecol_updated["type1_max"] == 1 then
+		self.__col_updated = self.__col_updated + 1
+	end
 	self.__fields.type1_max = v
 end
 
@@ -95,6 +115,10 @@ end
 function cls:set_type2_max(v, ... )
 	-- body
 	assert(v)
+	self.__ecol_updated["type2_max"] = self.__ecol_updated["type2_max"] + 1
+	if self.__ecol_updated["type2_max"] == 1 then
+		self.__col_updated = self.__col_updated + 1
+	end
 	self.__fields.type2_max = v
 end
 

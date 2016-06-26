@@ -131,34 +131,76 @@ local function connect_redis(conf)
 	}
 	return redis.connect(c)	
 end	
-		
+
 local QUERY = {}
 
-function QUERY:read(table_name, sql)
+function QUERY:query(sql)
 	-- body
 	-- local res = cs1(self.db.query, db, sql)
 	-- return res
+	local flag = true
+	local function check_error(sql, ... )
+		-- body
+		if flag then
+			error(sql)
+		end
+	end
+	skynet.timeout(100*60, check_error)
+
 	local db = self.db
 	local res = db:query(sql)
+	dump(res)
+	if res.errno ~= nil then
+		error "db error"
+	end
+	flag = false
+
+	return res
+end
+
+function QUERY:read(table_name, sql)
+	-- body
+	local flag = true
+	local function check_error(sql, ... )
+		-- body
+		if flag then
+			error(sql)
+		end
+	end
+	skynet.timeout(100*60, check_error)
+
+	local db = self.db
+	local res = db:query(sql)
+	dump(res)
+	if res.errno ~= nil then
+		error "db error"
+	end
+
+	flag = false
+
 	return res
 end
 
 function QUERY:write(table_name, sql, priority)
 	-- body
+	local flag = true
+	local function check_error(sql, ... )
+		-- body
+		if flag then
+			error(sql)
+		end
+	end
+	skynet.timeout(100*60, check_error)
+
+
 	local db = self.db
 	local res = db:query(sql)
-	-- local res = cs1(self.db.query, db, sql)
-	-- return res
-	-- print("QUERY:write", sql)
-	-- assert(table_name and sql and priority)
-	-- assert(priority <= self.DB_PRIORITY_3 and priority >= self.DB_PRIORITY_1)
-	-- Queue.enqueue(self.priority_queue[priority].Q, { table_name=table_name, sql=sql})
-	-- if priority <= self.c_priority then
-	-- 	self.c_priority = priority
-	-- 	-- skynet.yield() -- 
-	-- 	local co = self.priority_queue[self.c_priority].co
-	-- 	skynet.wakeup(co)
-	-- end
+	-- print(dump(res))
+	if res.errno ~= nil then
+		error "db error"
+	end
+
+	flag = false
 end
 
 function QUERY:set(k, v)
@@ -171,13 +213,43 @@ end
 function QUERY:get(k, sub)
 	-- body
 	assert(type(k) == "string")
-	assert(type(sub) == "string")
 	local v = self.cache:get(k)
-	if sub ~= nil then
-		v = json.decode(v)
-		return v[sub]
+	if v then
+		if sub ~= nil then
+			c = json.decode(v)
+			if c[sub] then
+				return v[sub]
+			else
+				return false
+			end
+		else
+			return v
+		end
 	else
-		return v
+		return false
+	end
+end
+
+function QUERY:hset(k, kk, vv, ... )
+	-- body
+	self.cache:hset(k, kk, vv)
+end
+
+function QUERY:hget(k, kk, ... )
+	-- body
+	local h = self.cache.hvals(k)
+	if h then
+		if kk ~= nil then
+			if h[kk] then
+				return h[kk]
+			else
+				return false
+			end
+		else
+			return h
+		end
+	else
+		return false
 	end
 end
 
@@ -321,17 +393,17 @@ function CMD.start(ctx, conf)
 	}
 	ctx.cache = connect_redis(cache_conf)
 	frienddb.getvalue(ctx.db, ctx.cache)
-	local Q1 = Queue.new(128)
-	local Q2 = Queue.new(128)
-	local Q3 = Queue.new(128)
+	-- local Q1 = Queue.new(128)
+	-- local Q2 = Queue.new(128)
+	-- local Q3 = Queue.new(128)
 	
-	local co1 = skynet.fork(train, ctx, ctx.DB_PRIORITY_1)
-	local co2 = skynet.fork(train, ctx, ctx.DB_PRIORITY_2)
-	local co3 = skynet.fork(train, ctx, ctx.DB_PRIORITY_3)
+	-- local co1 = skynet.fork(train, ctx, ctx.DB_PRIORITY_1)
+	-- local co2 = skynet.fork(train, ctx, ctx.DB_PRIORITY_2)
+	-- local co3 = skynet.fork(train, ctx, ctx.DB_PRIORITY_3)
 
-	ctx.priority_queue[ctx.DB_PRIORITY_1] = { Q = Q1, co = co1}
-	ctx.priority_queue[ctx.DB_PRIORITY_2] = { Q = Q2, co = co2}
-	ctx.priority_queue[ctx.DB_PRIORITY_3] = { Q = Q3, co = co3}
+	-- ctx.priority_queue[ctx.DB_PRIORITY_1] = { Q = Q1, co = co1}
+	-- ctx.priority_queue[ctx.DB_PRIORITY_2] = { Q = Q2, co = co2}
+	-- ctx.priority_queue[ctx.DB_PRIORITY_3] = { Q = Q3, co = co3}
 	return true
 end
 
@@ -416,14 +488,14 @@ skynet.start(function ()
 	skynet.dispatch( "lua" , function( _, _, cmd, subcmd, ... )
 		if cmd == "command" then
 			local r = command(subcmd, ...)
-			if r then
-				skynet.ret(skynet.pack(r))
+			if r ~= nil then
+				skynet.retpack(r)
 			end
 		else
 			local f = assert(CMD[cmd])
 			local r = f(env, subcmd, ...)
-			if r then
-				skynet.ret(skynet.pack(r))
+			if r ~= nil then
+				skynet.retpack(r)
 			end
 		end
 	end)

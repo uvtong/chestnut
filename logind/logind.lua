@@ -52,7 +52,6 @@ function server.login_handler(server, uid, secret)
 		subid, gated = skynet.call(gameserver, "lua", "login", uid, secret, "login")
 	elseif r == 0 then
 		subid, gated = skynet.call(gameserver, "lua", "login", uid, secret, "signup")
-		print("###############################################3")
 		skynet.call(".logindata", "lua", "set", server, uid)
 	end
 	user_online[uid] = { address = gameserver, subid = subid , server = server}

@@ -17,11 +17,10 @@ local game
 local user
 local dc
 
-	
 local function send_package(pack)
 	local package = string.pack(">s2", pack)
 	socket.write(client_fd, package)
-end		
+end	
 	
 function REQUEST:login(u)
 	-- body
@@ -172,14 +171,15 @@ local function get_g_checkin_by_csv_id( checkin_time , checkin_month )
 	assert( checkin_time and checkin_month )
 			
 	local mon = tonumber( os.date( "%m" , checkin_time ) )
-			
 	-- msg : "below op is for temprory , when the checkin table changes codes change"
 	if 12 ~= mon then
 		mon = 0
 	end
 
-	local t = game.g_checkinmgr:get_by_csv_id( mon * 1000 + checkin_month )
-	assert( t )
+	local t = skynet.call(".game", "lua", "query_g_checkin", mon * 1000 + checkin_month)
+	assert(t)
+	-- local t = game.g_checkinmgr:get_by_csv_id( mon * 1000 + checkin_month )
+	-- assert( t )
 
 	return t
 end	
@@ -203,7 +203,9 @@ end
 local function get_g_checkin_month_by_reward_num( reward_num )
 	assert( reward_num )
 	print( "reward_num is " , reward_num )
-	local t = game.g_checkin_totalmgr:get_by_id( reward_num )
+
+	local t = skynet.call(".game", "lua", "query_g_checkin_total", reward_num)
+	--local t = game.g_checkin_totalmgr:get_by_id( reward_num )
 	assert( t )
 
 	return t
@@ -225,13 +227,12 @@ end
 	end  
 	return nSplitArray  
 end --]]
-
-						
+	
 local function get_accumulate_reward( t )
 	assert( t )
 
 	local ret = {}
-	
+		
 	print( "*********************************get_accumulate_reward" )
 	local r = util.parse_text( t.prop_id_num , "(%d+%*%d+%*?)" , 2 )
 
@@ -245,10 +246,10 @@ local function get_accumulate_reward( t )
 
 	--[[local r = Split( t.prop_id_num , "," )
 	assert( r )
-
+	
 	print( "size of r in checkinrequest is ******************************* " , #r )
 	--local length = r / 2
-
+	
 	for k , v in ipairs( r ) do
 		local tmp = {}
 		local sub = Split( v , "*" )
@@ -262,35 +263,41 @@ local function get_accumulate_reward( t )
 	return ret
 end	
 		
-local function add_to_prop( t )
-	assert( t )
+local function add_to_prop(ctx, t)
+	assert(ctx and t)
 
 	for k , v in ipairs( t ) do
-		local prop = user.u_propmgr:get_by_csv_id( v.propid )
+		local prop = ctx:get_modelmgr():get_u_propmgr():get_by_csv_id( v.propid )
 		if prop then
-			prop.num = prop.num + v.amount
-			prop:__update_db({"num"})
+			prop:set_field("num", prop:get_field("num") + v.amount)
+			prop:update_db()
+			-- prop:__update_db({"num"})
 		else
 			print( "propid is " , v.propid )
-			local p = game.g_propmgr:get_by_csv_id( v.propid )
+			local p = skynet.call(".game", "lua", "query_g_prop", v.propid)
+			--local p = game.g_propmgr:get_by_csv_id( v.propid )
+			assert(p)
 			p.user_id = user.csv_id
 			p.num = v.amount
-			local prop = user.u_propmgr.create(p)
-			user.u_propmgr:add(prop)
-			prop:__insert_db( const.DB_PRIORITY_2 )
+			p.id = genpk_2(p.user_id, p.csv_id)
+			local prop = ctx:get_modelmgr():get_u_propmgr():create(p)
+			ctx:get_modelmgr():get_u_propmgr():add(prop)
+			prop:update_db()
 		end
-
 		--[[if v.propid == const.A_T_GOLD or v.propid == const.A_T_EXP then
 			raise_achievement( v.propid , user )
 		end--]]
 	end		
-end		
-	
+end	
+		
 local counter = 0 
-	
-function REQUEST:checkin()
+		
+function REQUEST:checkin(ctx)
+	assert(ctx)
 	-- body
 	print( "*-------------------------* checkin is called")
+	local factory = ctx:get_myfactory()
+	assert(factory)
 
 	local ret = {}
 
@@ -303,46 +310,25 @@ function REQUEST:checkin()
 	local today_start_time = os.time( { year = year , month = month , day = day , hour = 0 , min = 0 , sec = 0 } )
 	--local today_start_time 
 	print( "sizeof checkin is ################################" , user.u_checkinmgr:get_count() )
-	local tcheckin = user.u_checkinmgr:get_checkin()
-	local tcheckin_month = user.u_checkin_monthmgr:get_checkin_month()
+	local tcheckin = factory:checkin_get_checkin()
+	local tcheckin_month = factory:checkin_month_get_checkin_month()
+
+	-- local tcheckin = user.u_checkinmgr:checkin_get_checkin()
+	-- local tcheckin_month = user.u_checkin_monthmgr:get_checkin_month()
 	--assert( tcheckin )
 	print( tcheckin , tcheckin_month )
 	if not tcheckin then
 		print ( "*********************** both nill " )
 		ret.ifcheckin_t = true
 		ret.monthamount = 0 
-		--[[local n = {}
-		n.csv_id = 0
-		n.user_id = user.csv_id
-		n.u_checkin_time = 0
-		n.ifcheck_in = 1
-		--add checkin
-		local u = checkin_mgr.create( n )
-		assert( u )
-		checkin_mgr:add( u )
-		tcheckin = u
-		tcheckin:__insert_db()
-
-		n = {}
-		n.checkin_month = 0
-		n.user_id = user.csv_id
-		-- add checkin_month
-		u = checkin_month_mgr.create( n )
-		assert( u )
-		checkin_month_mgr:add( u )
-
-		tcheckin_month = u
-		tcheckin_month:__insert_db()
-		
-		--]]
 	else
-		if tcheckin.u_checkin_time ~= 0 then
+		if tcheckin.__fields.u_checkin_time ~= 0 then
 			local changed = false
-			local date = tonumber( os.date( "%Y%m%d" , tcheckin.u_checkin_time ) )
+			local date = tonumber( os.date( "%Y%m%d" , tcheckin.__fields.u_checkin_time ) )
 			print( "date is " , date )
 			local y = string.sub( date , 1 , 4 )
 			local m = string.sub( date , 5 , 6 )
-			
+				
 			if year ~= y then
 				changed = true	
 			elseif month ~= m then
@@ -350,103 +336,151 @@ function REQUEST:checkin()
 			end
 
 			if changed then
-				tcheckin_month.checkin_month = 0
+				tcheckin_month.__fields.checkin_month = 0
 				--tcheckin_month:__update_db( { "checkin_month" } , const.DB_PRIORITY_2 )
 			end	
 		end -- msg "UPDATE month_checkin each month"
 		
+		local date = os.time()
 
-		--if tcheckin.u_checkin_time < today_start_time then
-		if tcheckin.u_checkin_time + 30 < os.time() then -- tmp 30 sec can checkin 
+		--if tcheckin.update_time < date then
+		if tcheckin.__fields.u_checkin_time + 30 < os.time() then -- tmp 30 sec can checkin 
+			print("************************************************1", tcheckin.__fields.u_checkin_time)
 			ret.ifcheckin_t = true
-			tcheckin.ifcheck_in = 1
+			--tcheckin.ifcheck_in = 1
 		else
+			print("************************************************2", tcheckin.__fields.u_checkin_time)
 			ret.ifcheckin_t = false
-			tcheckin.ifcheck_in = 0
+			--tcheckin.ifcheck_in = 0
 		end
 		
-		ret.monthamount = tcheckin_month.checkin_month 
-	end
-	print( user.checkin_num , ret.rewardnum )
-	ret.totalamount = user.checkin_num
-	ret.rewardnum = user.checkin_reward_num
+		ret.monthamount = tcheckin_month.__fields.checkin_month 
+	end 
+	print( ctx:get_user().checkin_num , ret.rewardnum )
+	ret.totalamount = ctx:get_user().checkin_num
+	ret.rewardnum = ctx:get_user().checkin_reward_num
 
 	return ret
-end	
-	
-function REQUEST:checkin_aday()
+end		
+		
+function REQUEST:checkin_aday(ctx)
+	assert(ctx)
+
 	print( "*-----------------------------* checkin_day is called" )
 
 	local ret = {}
-	
+			
 	local notexeit = false
 
 	local time = os.time()
-	local tcheckin = user.u_checkinmgr:get_checkin()
-	local tcheckin_month = user.u_checkin_monthmgr:get_checkin_month()
-	if not tcheckin then
-		tcheckin = {}
-		tcheckin_month = {}
+	local factory = ctx:get_myfactory()
+	assert(factory)
 
-		notexeit = true
-	end
+	local tcheckin = factory:checkin_get_checkin()
+	local tcheckin_month = factory:checkin_month_get_checkin_month()
 
-	if 0 == tcheckin.ifcheck_in then
+	-- if not tcheckin then
+	-- 	tcheckin = {}
+	-- 	tcheckin_month = {}
+
+	-- 	notexeit = true
+	-- end 			
+
+	--if tcheckin and tcheckin.__fields.update_time >= time then
+	if false then
 		if 0 == counter then
 			ret.errorcode = errorcode[ 61 ].code
 			ret.msg = errorcode[ 61 ].msg
 			--if this case happens , maybe waigua . then logout game should be callled
-		else
+		else 		
 			ret.errorcode = errorcode[ 62 ].code
 			ret.msg = errorcode[ 62 ].msg
-		end
-	else
-		counter = counter + 1
+		end 		
+	else 	
+		if tcheckin then
+			assert(tcheckin_month)
+			tcheckin:set_if_latest(0)
+			tcheckin:update_db()
+			ctx:get_modelmgr():get_u_checkinmgr():delete(tcheckin:get_id())
 
-		tcheckin.u_checkin_time = time
-		tcheckin.ifcheck_in = 0
-		tcheckin.user_id = user.csv_id
-		tcheckin.csv_id = 0
+			tcheckin_month.__fields.checkin_month = tcheckin_month.__fields.checkin_month + 1
+			tcheckin_month:update_db()
+		else
+			assert(tcheckin_month == nil)
 
-		if notexeit then
-			tcheckin = user.u_checkinmgr.create( tcheckin )
-			assert( tcheckin )
-			user.u_checkinmgr:add( tcheckin )
-
+			tcheckin_month = {}
+			tcheckin_month.id = skynet.call(".game", "lua", "guid", const.CHECKIN_MONTH)
 			tcheckin_month.checkin_month = 1
-			tcheckin_month.user_id = user.csv_id
-			tcheckin_month = user.u_checkin_monthmgr.create( tcheckin_month )
+			tcheckin_month.user_id = ctx:get_user():get_csv_id()
+			tcheckin_month = ctx:get_modelmgr():get_u_checkin_monthmgr():create( tcheckin_month )
 			assert( tcheckin_month )
 			user.u_checkin_monthmgr:add( tcheckin_month )
-			tcheckin_month:__insert_db( const.DB_PRIORITY_2 )
-		else
-			tcheckin_month.checkin_month = tcheckin_month.checkin_month + 1
-			--tcheckin_month:__update_db( { "checkin_month" } )	
-		end
+		end 
+			counter = counter + 1
+			
+			local date = tonumber( os.date( "%Y%m%d" , time ) )
+			print( "date is " , date )
+			local year = string.sub( date , 1 , 4 )
+			local month = string.sub( date , 5 , 6 )
+			local day = string.sub( date , 7 , 8 )
 
-		print( tcheckin.u_checkin_time )
-		tcheckin:__insert_db( const.DB_PRIORITY_2 )
+			local update_time = os.time( { year = year , month = month , day = day , hour = 23 , min = 59 , sec = 59 } )
+			print("update_time is ", update_time)
 
-		user.checkin_num  = user.checkin_num + 1
-		
-		print( "*********************************user_checkin_num " , user.checkin_num )
-		local t = get_g_checkin_by_csv_id( time , tcheckin_month.checkin_month )
-		add_to_prop( get_aday_reward( t ) )
+			local nc = {}
+			nc.id = skynet.call(".game", "lua", "guid", const.CHECKIN)
+			nc.u_checkin_time = time
+			nc.update_time = update_time
+			nc.user_id = ctx:get_user():get_csv_id()
+			nc.if_latest = 1
+
+			nc = ctx:get_modelmgr():get_u_checkinmgr():create(nc)
+			assert(nc)
+			ctx:get_modelmgr():get_u_checkinmgr():add(nc)	
+			nc:update_db()
+			tcheckin_month:update_db()
+
+			-- if notexeit then
+			-- 	tcheckin = user.u_checkinmgr:create( tcheckin )
+			-- 	assert( tcheckin )
+			-- 	user.u_checkinmgr:add( tcheckin )
+
+			-- 	tcheckin_month.checkin_month = 1
+			-- 	tcheckin_month.user_id = user.csv_id
+			-- 	tcheckin_month = user.u_checkin_monthmgr.create( tcheckin_month )
+			-- 	assert( tcheckin_month )
+			-- 	user.u_checkin_monthmgr:add( tcheckin_month )
+			-- 	tcheckin_month:__insert_db( const.DB_PRIORITY_2 )
+			-- else
+			-- 	tcheckin_month.checkin_month = tcheckin_month.checkin_month + 1
+			-- 	--tcheckin_month:__update_db( { "checkin_month" } )	
+			-- end
+
+			-- print( tcheckin.u_checkin_time )
+			-- tcheckin:__insert_db( const.DB_PRIORITY_2 )
+			ctx:get_user():set_checkin_num(ctx:get_user():get_checkin_num() + 1)
+			--user.checkin_num  = user.checkin_num + 1
+			
+			print( "*********************************user_checkin_num " , user.checkin_num )
+			local t = get_g_checkin_by_csv_id( time , tcheckin_month.__fields.checkin_month )
+			add_to_prop(ctx, get_aday_reward( t ) )
 
 
-		ret.errorcode = errorcode[ 1 ].code
-		ret.msg = errorcode[ 1 ].msg				
+			ret.errorcode = errorcode[ 1 ].code
+			ret.msg = errorcode[ 1 ].msg				
 	end	
 
 	return ret
 end				
 		
-function REQUEST:checkin_reward()
+function REQUEST:checkin_reward(ctx)
+	assert(ctx)
+
 	print( "checkin_reward is called" )
 	assert( self.totalamount and self.rewardnum )
 	print( "checkin_reward is called" , self.totalamount , self.rewardnum )
 	local ret = {}
-	if user.checkin_num ~= self.totalamount or user.checkin_reward_num ~= self.rewardnum then
+	if ctx:get_user():get_checkin_num() ~= self.totalamount or ctx:get_user():get_checkin_reward_num() ~= self.rewardnum then
 		print( "donot match the server totalmount" )
 		ret.errorcode = errorcode[ 71 ].code
 		ret.msg = errorcode[ 71 ].msg
@@ -454,15 +488,15 @@ function REQUEST:checkin_reward()
 	else	
 		local t = get_g_checkin_month_by_reward_num( self.rewardnum + 1 )
 		
-		if  t.totalamount > user.checkin_num  then
+		if  t.totalamount > ctx:get_user():get_checkin_num()  then
 			ret.errorcode = errorcode[ 72 ].code
 			ret.msg = errorcode[ 72 ].msg
 			-- should logout
 		else
 			print( "******************************************checkin_reward" )
 			user.checkin_reward_num = user.checkin_reward_num + 1
-						
-			add_to_prop( get_accumulate_reward( t ) )
+			user:update_db()
+			add_to_prop(ctx, get_accumulate_reward( t ) )
 
 			ret.errorcode = errorcode[ 1 ].code
 		end	

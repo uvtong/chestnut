@@ -101,7 +101,7 @@ function REQUEST:kungfu_levelup()
 	assert( g_tk )		
 	local tprop_prop = user.u_propmgr:get_by_csv_id( g_tk.prop_csv_id )
 	local tprop_currency = user.u_propmgr:get_by_csv_id( g_tk.currency_type )
-
+	
 	local tkungfu =user.u_kungfumgr:get_by_type( self.csv_id ) 
 	print( g_tk.prop_csv_id , tprop_prop.num , g_tk.prop_num , tprop_currency.num , g_tk.currency_num )
 	if not tprop_prop or tprop_prop.num < g_tk.prop_num or not tprop_currency or tprop_currency.num < g_tk.currency_num then
@@ -116,14 +116,15 @@ function REQUEST:kungfu_levelup()
 			tkungfu.user_id = user.csv_id
 			tkungfu.csv_id= self.csv_id
 			tkungfu.level = self.k_level
-			tkungfu.type = self.k_type
-			tkungfu.sp_id = g_tk.prop_csv_id			
+			tkungfu.type = self.k_type                  --unknown
+			tkungfu.sp_id = g_tk.prop_csv_id 
+			tkungfu.g_csv_id = g_tk.g_csv_id
 			tkungfu =user.u_kungfumgr.create( tkungfu )
  			
 			assert( tkungfu )
 			user.u_kungfumgr:add( tkungfu )
 			tkungfu:__insert_db( const.DB_PRIORITY_2 )
-			context:raise_achievement(const.ACHIEVEMENT_T_9)
+			--context:raise_achievement(const.ACHIEVEMENT_T_9)
 		else				  		
 			print( "_______________________________________________________")
 			--local tmp =user.u_kungfumgr:get_by_type( self.k_type )
@@ -134,10 +135,11 @@ function REQUEST:kungfu_levelup()
 				ret.msg = errorcode[ 52 ].msg
 				
 				return ret
-			end
+			end 
 
 			tkungfu.level = tkungfu.level + 1
-			tkungfu:__update_db( { "level" } )
+			tkungfu.g_csv_id = g_tk.g_csv_id
+			tkungfu:__update_db( { "level" , "g_csv_id"} )
 		end	
 
 		tprop_prop.num = tprop_prop.num - g_tk.prop_num
@@ -169,6 +171,7 @@ function REQUEST:kungfu_chose()
 
 	assert( self.r_csv_id  )
 	print( self.r_csv_id , self.idlist )
+
 	local ret = {}
 	local t = user.u_rolemgr:get_by_csv_id( self.r_csv_id )
 	assert( t )

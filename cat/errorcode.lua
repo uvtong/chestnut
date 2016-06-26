@@ -80,9 +80,11 @@ errorcode[91] = { code = 91 , msg = "speed over time"}
 --corefight
 errorcode[110] = {code = 110, msg = "game is over"}
 errorcode[111] = {code = 111, msg = "continue fight"}
-errorcode[112] = {code = 112, msg = ""}
+errorcode[112] = {code = 112, msg = "wrong data"}
 
 
-
-
+errorcode[150] = {code = 150, msg = "not enough role"}
+errorcode[151] = {code = 151, msg = "last ara not finished"}
+errorcode[152] = {code = 152, msg = "arena ranking reward has collected"}
+errorcode[153] = {code = 153, msg = "no exitence role id"}
 return errorcode

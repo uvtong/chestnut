@@ -206,14 +206,22 @@ proto.c2s = sprotoparser.parse [[
     cp_chapter 19 : integer
     lilian_level 20 : integer
     ara_rnk 21 : integer
+    ara_role_id1 22 : integer
+    ara_role_id2 23 : integer
+    ara_role_id3 24 : integer
+    sum_combat   25 : integer
+    sum_defense  26 : integer
+    sum_critical_hit 27 : integer
+    sum_king     28 : integer
 }
 
 .suser {
-    csv_id 0 : integer
+    uid 0 : integer
     uname 1 : string
     total_combat 2 : integer
-    ara_rnk 3 : integer
+    ranking 3 : integer
     iconid 4 : integer
+    worship 5 : boolean
 }
 
 .checkpoint_chapter {
@@ -267,6 +275,41 @@ proto.c2s = sprotoparser.parse [[
     attach_effect 5 : integer
     kf_type 6 : integer
     attack 7 : integer
+    random_combo_num 8 : integer
+}
+
+.enemy {
+    csv_id        0 : integer
+	uname         1 : string 
+    avatar        2 : integer
+    ara_role_id1  3 : integer
+    ara_role_id2  4 : integer
+    ara_role_id3  5 : integer
+    ara_r1_sum_combat    6 : integer
+    ara_r1_sum_defense   7 : integer
+    ara_r1_sum_critical_hit 8 : integer
+    ara_r1_sum_king      9 : integer
+    ara_role_id1_kf 10 : *integer
+    ara_role_id2_kf 11 : *integer
+    ara_role_id3_kf 12 : *integer
+    ara_r2_sum_combat    13 : integer
+    ara_r2_sum_defense   14 : integer
+    ara_r2_sum_critical_hit 15 : integer
+    ara_r2_sum_king      16 : integer
+    ara_r3_sum_combat    17 : integer
+    ara_r3_sum_defanse   18 : integer
+    ara_r3_sum_critical_hit 19 : integer
+    ara_r3_sum_king      20 : integer
+}
+
+.integral_reward {
+    integral 0 : integer
+    collected 1 : boolean
+}
+
+.rnk_reward {
+    ranking 0 : integer
+    collected 1 : boolean
 }
 
 handshake 1 {
@@ -895,6 +938,12 @@ checkpoint_chapter 63 {
 		errorcode 0 : integer
 		msg 1 : string
 		l 2 : *checkpoint_chapter
+        chapter 3 : integer
+        type 4 : integer
+        checkpoint 5 : integer
+        drop_id1 6 : integer
+        drop_id2 7 : integer
+        drop_id3 8 : integer
 	}
 }
 
@@ -931,7 +980,8 @@ checkpoint_hanging_choose 66 {
     response {
         errorcode 0 : integer
         msg 1 : string
-        passed 2 : integer
+        passed 2 : boolean
+        cd 3 : integer
     }
 }
 
@@ -945,7 +995,6 @@ checkpoint_battle_enter 67 {
     response { 
         errorcode 0 : integer
         msg 1 : string
-        cd 2 : integer
     }
 }
 
@@ -1085,29 +1134,33 @@ lilian_rewared_list 78 {
     }
 }
 
-ara_bat_ovr 79 {
-    request {
-        win 0 : integer
-    }
+ara_enter 79 {
     response {
         errorcode 0 : integer
         msg 1 : string
-        ara_points 2 : integer
+        ara_rmd_list 2 : *suser
         ara_win_tms 3 : integer
         ara_lose_tms 4 : integer
-        ara_leaderboards 5 : *suser
-        ara_rmd_list 6 : *suser
+        ara_tie_tms 5 : integer
+        ara_integral 6 : integer
+        ara_clg_tms 7 : integer
+        ara_clg_cost_tms 8 : integer
+        ara_clg_cost_tms_cost 9 : prop
+        ara_rfh_tms 10 : integer
+        ara_rfh_cost_tms 11 : integer
+        ara_rfh_cost_tms_cost 12 : prop
+        ara_rfh_cd 13 : integer
+        ara_rfh_cd_cost 14 : prop
+        cl 15 : *integral_reward 
+        rl 16 : *rnk_reward
     }
 }
 
-ara_bat_clg 80 {
-    request {
-        user_id 0 : integer
-    }
-    response {
-        errorcode 0 : integer
-        msg 1 : string
-    }
+ara_exit 80 {
+	response {
+		errorcode 0 : integer
+		msg 1 : string
+	}
 }
 
 ara_rfh 81 {
@@ -1115,6 +1168,7 @@ ara_rfh 81 {
         errorcode 0 : integer
         msg 1 : string
         ara_rmd_list 2 : *suser
+        ara_rfh_cd 3 : integer
     }
 }
 
@@ -1128,11 +1182,12 @@ ara_clg_tms_purchase 82 {
 
 ara_worship 83 {
     request {
-        uid 0 : integer
+        uids 0 : *integer
     }    
     response {
         errorcode 0 : integer
         msg 1 : string
+        ara_rmd_list 2 : *suser
     }
 }
 
@@ -1140,24 +1195,26 @@ ara_rnk_reward_collected 84 {
     response {
         errorcode 0 : integer
         msg 1 : string
+        props 2 : *prop
+        rl 3 : *rnk_reward
     }
 }
 
 BeginGUQNQIACoreFight 85 {
     request {
         monsterid 0 : integer
-    }
+    }   
     response {
         errorcode 0 : integer
         firstfighter 1 : integer
         delay_time 2 : integer
-    }
-}
-
+    }   
+}       
+        
 GuanQiaBattleList 86 {
     request {
         fightlist 0 : *BattleListElem
-    }
+    }   
     response {
         errorcode 0 : integer
         msg 1 : string
@@ -1171,6 +1228,140 @@ ara_convert_pts 87 {
     response {
         errorcode 0 : integer
         msg 1 : string
+        props 2 : *prop
+        cl 3 : *integral_reward 
+    }
+}
+
+OnNormalExitCoreFight 88 { 
+}
+
+OnReEnterCoreFight 89 {
+    response {
+        errorcode 0 : integer
+        msg 1 : string
+        loserid 2 : integer
+    }
+}
+
+Arena_OnPrepareNextRole 90 {
+    response {
+        errorcode 1 : integer
+        msg 2 : string
+        firstfighter 3 : integer
+        delay_time 4 : integer
+    }   
+}
+
+ara_choose_role_enter 91 {
+    request {
+        enemy_id 1 : integer
+    }
+	response {
+		errorcode 0 : integer
+		msg 1 : string
+		bat_roleid 2 : *integer
+		e 3 : enemy
+	}
+}
+
+ara_choose_role 92 {
+	request {
+		bat_roleid 0 : *integer
+	}
+	response {
+		errorcode 0 : integer
+		msg 1 : string
+	}
+}
+
+ara_bat_enter 93 {
+}
+
+ara_bat_exit 94 {
+}
+
+BeginArenaCoreFight 95 {
+    request {
+        monsterid 0 : integer
+    }   
+    response {
+        errorcode 0 : integer
+        firstfighter 1 : integer
+        delay_time 2 : integer
+    }   
+} 
+
+ArenaBattleList 96 {
+    request {
+        fightlist 0 : *BattleListElem
+    }   
+    response {
+        errorcode 0 : integer
+        msg 1 : string
+    }
+}
+
+TMP_BeginGUQNQIACoreFight 97
+{
+    request
+    {
+        monsterid 0 : integer
+    }
+    response
+    {
+        errorcode 0 : integer
+        msg 1 : string
+        firstfighter 2 : integer
+        kf_id 3 : integer
+        delay_time 4 : integer
+    }
+}
+
+TMP_GuanQiaBattleList 98
+{
+    request
+    {
+        fightinfo 0 : BattleListElem
+    }
+    response
+    {
+        errorcode 1 : integer
+        msg 2 : string
+        totalattack 3 : integer
+        effect 4 : integer
+        kf_id 5 : integer
+        loser 6 : integer
+    }
+}
+
+ara_lp 99 {
+    response {
+        errorcode 0 : integer
+        msg 1 : string
+        lp 2 : *suser
+    }
+}
+
+checkpoint_battle_play 100 {
+    request {
+        chapter 0 : integer
+        type 1 : integer
+        checkpoint 2 : integer
+    }
+    response {
+        errorcode 0 : integer
+        msg 1 : string
+        cd 2 : integer
+    }
+} 
+
+checkpoint_drop_collect 101 {
+    request {
+        drop_slot 0 : *integer
+    }
+    response {
+        errorcode 0 : integer
     }
 }
 

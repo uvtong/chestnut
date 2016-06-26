@@ -1,9 +1,10 @@
 local skynet = require "skynet"
 
-local id = 1
-
 local CMD = {}
 
+function CMD.( ... )
+	-- body
+end
 
 skynet.start(function ()
 	-- body

@@ -4,22 +4,16 @@ require "skynet.manager"
 local util = require "util"
 local const = require "const"
 local game
-local loader = require "loader"
+local loader = require "load_game"
 local trandom
-
+	
 local CMD = {}
-
-function CMD.start()
- 	-- body
- 	game = loader.load_randomval()
- 	assert( game )
-end 
-
+	
 function CMD.draw( val )
 	assert( val )
 	local r
-	
-	trandom = game.g_randomvalmgr:get_by_id( val.drawtype )
+		
+	trandom = game.g_randomvalmgr:get_by_csv_id( val.drawtype )
 	assert( trandom )
 
 	print( "drawtype is ***************************" , val.drawtype , trandom.val , trandom.step )
@@ -34,9 +28,9 @@ function CMD.draw( val )
 		trandom.val = ( trandom.val + trandom.step ) % 10000 
 		r = trandom.val
 	end 
-	return r	
-end	   
-
+	return r
+end	
+	
 local function update_db()
 	-- body
 	while true do
@@ -58,4 +52,5 @@ skynet.start( function ()
 	end)	
 	skynet.register ".randomdraw"
 	skynet.fork(update_db)
+	game = loader.load_randomval()
 end)    

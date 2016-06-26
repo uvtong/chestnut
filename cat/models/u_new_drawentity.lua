@@ -34,7 +34,7 @@ function cls:ctor(mgr, P, ... )
 		}
 
 	for k,v in pairs(self.__head) do
-		self.__fields[k] = assert(P[k])
+		self.__fields[k] = assert(P[k], string.format("no exist %s", k))
 	end
 	return self
 end
@@ -42,6 +42,10 @@ end
 function cls:set_id(v, ... )
 	-- body
 	assert(v)
+	self.__ecol_updated["id"] = self.__ecol_updated["id"] + 1
+	if self.__ecol_updated["id"] == 1 then
+		self.__col_updated = self.__col_updated + 1
+	end
 	self.__fields.id = v
 end
 
@@ -53,6 +57,10 @@ end
 function cls:set_uid(v, ... )
 	-- body
 	assert(v)
+	self.__ecol_updated["uid"] = self.__ecol_updated["uid"] + 1
+	if self.__ecol_updated["uid"] == 1 then
+		self.__col_updated = self.__col_updated + 1
+	end
 	self.__fields.uid = v
 end
 
@@ -64,6 +72,10 @@ end
 function cls:set_drawtype(v, ... )
 	-- body
 	assert(v)
+	self.__ecol_updated["drawtype"] = self.__ecol_updated["drawtype"] + 1
+	if self.__ecol_updated["drawtype"] == 1 then
+		self.__col_updated = self.__col_updated + 1
+	end
 	self.__fields.drawtype = v
 end
 
@@ -75,6 +87,10 @@ end
 function cls:set_srecvtime(v, ... )
 	-- body
 	assert(v)
+	self.__ecol_updated["srecvtime"] = self.__ecol_updated["srecvtime"] + 1
+	if self.__ecol_updated["srecvtime"] == 1 then
+		self.__col_updated = self.__col_updated + 1
+	end
 	self.__fields.srecvtime = v
 end
 
@@ -86,6 +102,10 @@ end
 function cls:set_propid(v, ... )
 	-- body
 	assert(v)
+	self.__ecol_updated["propid"] = self.__ecol_updated["propid"] + 1
+	if self.__ecol_updated["propid"] == 1 then
+		self.__col_updated = self.__col_updated + 1
+	end
 	self.__fields.propid = v
 end
 
@@ -97,6 +117,10 @@ end
 function cls:set_amount(v, ... )
 	-- body
 	assert(v)
+	self.__ecol_updated["amount"] = self.__ecol_updated["amount"] + 1
+	if self.__ecol_updated["amount"] == 1 then
+		self.__col_updated = self.__col_updated + 1
+	end
 	self.__fields.amount = v
 end
 
@@ -108,6 +132,10 @@ end
 function cls:set_iffree(v, ... )
 	-- body
 	assert(v)
+	self.__ecol_updated["iffree"] = self.__ecol_updated["iffree"] + 1
+	if self.__ecol_updated["iffree"] == 1 then
+		self.__col_updated = self.__col_updated + 1
+	end
 	self.__fields.iffree = v
 end
 

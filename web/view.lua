@@ -1,8 +1,13 @@
+package.path = "./../cat/?.lua;./../lualib/?.lua;" .. package.path
+package.cpath = "./../lua-cjson/?.so;"..package.cpath
+
 local skynet = require "skynet"
 require "skynet.manager"
 local template = require "resty.template"
 local csvreader = require "csvReader"
 local query = require "query"
+local errorcode = require "errorcode"
+local json = require "cjson"
 
 template.caching(true)
 template.precompile("index.html")
@@ -94,9 +99,12 @@ function VIEW:email()
 		c["itemnum2"] = tonumber(self.body["itemnum2"])
 		c["itemsn3"] = tonumber(self.body["itemsn3"])
 		c["itemnum3"] = assert(tonumber(self.body["itemnum3"]))
+		c["iconid"] = tonumber(tonumber(self.body["iconid"]))
+
 		local receiver = tonumber(self.body["receiver"])
 		if send_type == 1 then
 			skynet.send(".channel", "lua", "send_email_to_group", c, {{ uid = receiver }})
+			print("********************************************send_email_to_group is called")
 			local ret = {}
 			ret.errorcode = errorcode[1].code
 			ret.msg = errorcode[1].msg
@@ -104,6 +112,7 @@ function VIEW:email()
 		elseif send_type == 2 then
 			-- assert(false)
 			skynet.send(".channel", "lua", "send_public_email_to_all", c)
+			print("********************************************send_email_to_all is called")
 			local ret = {}
 			ret.errorcode = errorcode[1].code
 			ret.msg = errorcode[1].msg
@@ -226,7 +235,7 @@ local function print_table(table_name)
 		for i,v in ipairs(r) do
 			head_ord = head_ord..string.format(
 [[
-	self.__head_ord[%d] = self.__head[%s]
+	self.__head_ord[%d] = self.__head["%s"]
 ]], i, v.COLUMN_NAME)
 			local seg = "\t"..v.COLUMN_NAME.." = {\n"
 			local pk_seg = string.format("\t\tpk = false,\n")
@@ -273,6 +282,10 @@ local function print_table(table_name)
 function cls:set_%s(v, ... )
 	-- body
 	assert(v)
+	self.__ecol_updated["%s"] = self.__ecol_updated["%s"] + 1
+	if self.__ecol_updated["%s"] == 1 then
+		self.__col_updated = self.__col_updated + 1
+	end
 	self.__fields.%s = v
 end
 
@@ -281,7 +294,7 @@ function cls:get_%s( ... )
 	return self.__fields.%s
 end
 
-]], v.COLUMN_NAME, v.COLUMN_NAME, v.COLUMN_NAME, v.COLUMN_NAME)
+]], v.COLUMN_NAME, v.COLUMN_NAME, v.COLUMN_NAME, v.COLUMN_NAME, v.COLUMN_NAME, v.COLUMN_NAME, v.COLUMN_NAME)
 		end
 		head = head.."}\n"
 		fields = fields.."\t\t}\n"
@@ -292,7 +305,7 @@ end
 		local s = require("entitycppt")
 		local entitycls = table_name.."entity"
 		local addr = io.open(dir.."models/"..table_name.."entity.lua", "w")
-		local content = string.format(s, entitycls, fields, count, funcs)
+		local content = string.format(s, entitycls, fields, count, "string.format(\"no exist %s\", k)", funcs)
 		addr:write(content)
 		addr:close()
 
@@ -313,6 +326,7 @@ function VIEW:validation()
 				-- body
 				for i,v in ipairs(r) do
 					for kk,vv in pairs(v) do
+						-- exe_percudure(vv)
 						print_table(vv)
 					end
 				end
@@ -323,6 +337,7 @@ function VIEW:validation()
 				ret.msg = "succss"
 				return ret
 			else
+				print(result)
 				local ret = {}
 				ret.ok = 0
 				ret.msg = "failture"
@@ -335,36 +350,123 @@ end
 function VIEW:validation_ro()
 	-- body
 	if self.method == "post" then
-		local ret = {}
 		local table_name = self.body["table_name"]
-		local sql = string.format("select * from columns where table_name=\"%s\";", table_name)
-		local r = query.select_sql_wait(table_name, sql, query.DB_PRIORITY_1)
-		if #r == 0 then
-			ret.ok = 0
-			ret.msg = "failture"
-			return ret
-		end
-		local head = "{\n"
-		for i,v in ipairs(r) do
-			local seg = ""..v.COLUMN_NAME.." = {\n"
-			if v.DATA_TYPE == "int" then
-				seg = seg .. string.format("\tt = \"%s\",\n", "number")
-			elseif v.DATA_TYPE == "varchar" or v.DATA_TYPE == "char" then
-				seg = seg .. string.format("\tt = \"%s\",\n", "string")
+		print_table(table_name)
+	end
+end
+
+local function exe_percudure(table_name)
+	-- body
+	-- local sql = "select TABLE_NAME from INFORMATION_SCHEMA.TABLES where TABLE_SCHEMA = " .. '"' .. "user" .. '"' .. "and TABLE_NAME NOT like" .. "'" .. "g_%" .. "'";
+    -- print(sql)
+    -- local table_list = db:query(sql)
+
+    -- for k, v in ipairs(table_list) do
+        -- print("db_table_list value: ", v)
+        local script =  {}
+        local tmpsql1 = {}
+        local tmpsql2 = {}
+        local tmpsql3 = {}
+        local tmpsql4 = {}
+
+        local sql = string.format("select COLUMN_NAME , DATA_TYPE , COLUMN_TYPE from information_schema.`COLUMNS` where table_name = " .. '"' .. "%s" .. '";', table_name)
+        local col_val = query.read(".rdb", table_name, sql)
+        assert(col_val)                 
+        for k, v in ipairs(col_val) do 
+            for sk, sv in pairs(v) do  
+                if sv == "int" then 
+                    -- print("string is ")
+                end                      
+                -- print(sk, sv, type(sv))
+            end                        
+        end                            
+                        
+        --format each percudure part   
+        local idx = 0                       
+        for sk, sv in ipairs(col_val) do
+            if idx > 0 then             
+                table.insert(tmpsql1, ", ")
+                table.insert(tmpsql2, ", ")
+                table.insert(tmpsql3, ", ")
+                table.insert(tmpsql4, ", ")
+            else
+                idx = 1
+            end 
+            
+            if sv.DATA_TYPE == "varchar" then
+                table.insert(tmpsql1, string.format("IN %s %s", "in_" .. sv.COLUMN_NAME, sv.COLUMN_TYPE))
+            else
+                table.insert(tmpsql1, string.format("IN %s %s", "in_" .. sv.COLUMN_NAME, sv.DATA_TYPE))
+            end
+
+            table.insert(tmpsql2, string.format("`%s`", sv.COLUMN_NAME))
+            table.insert(tmpsql3, string.format("in_%s", sv.COLUMN_NAME))
+            table.insert(tmpsql4, string.format("`%s` = in_%s", sv.COLUMN_NAME, sv.COLUMN_NAME))
+        end 
+        
+        table.insert(tmpsql1, ")\n")
+        table.insert(tmpsql2, ")")
+        table.insert(tmpsql3, ")\n")
+        table.insert(tmpsql4, ";\n")
+
+        --chain all tmpsqlx up
+        table.insert(script, "DELIMITER $$\n")
+        table.insert(script, string.format("DROP PROCEDURE IF EXISTS `%s` $$\n ", "qy_insert_" .. table_name))
+        table.insert(script, string.format("CREATE DEFINER=`root`@`%%` PROCEDURE `%s`(", "qy_insert_" .. table_name))
+        table.insert(script, table.concat(tmpsql1))
+        table.insert(script, "BEGIN \n")
+        table.insert(script, string.format("insert into %s (%s values (%s", table_name, table.concat(tmpsql2), table.concat(tmpsql3)))
+        table.insert(script, string.format("on duplicate key update %s", table.concat(tmpsql4)))
+        table.insert(script, "END$$ \n")
+        table.insert(script, "DELIMITER ;")
+        local percudure = table.concat(script)
+        -- print("#####################################BEGIN")
+        -- print(percudure)
+        -- print("#####################################end")
+        -- query.write(".db", table_name, percudure)
+        return percudure
+    -- end 
+end
+
+function VIEW:percudure( ... )
+	-- body
+	if self.method == "post" then
+		local r = query.read(".rdb", "all", "select table_name from information_schema.tables where table_schema='project' and table_type='base table'")
+		if r then
+			local ok, result = pcall(function ()
+				-- body
+				local state = ""
+				for i,v in ipairs(r) do
+					for kk,vv in pairs(v) do
+						local s = exe_percudure(vv)
+						state = state .. s .. "\n"
+					end
+				end
+				local addr = io.open("./../cat/cat.sql", "w")
+				addr:write(state)
+				addr:close()
+			end)
+			if ok then
+				local ret = {}
+				ret.ok = 1
+				ret.msg = "succss"
+				return ret
+			else
+				print(result)
+				local ret = {}
+				ret.ok = 0
+				ret.msg = "failture"
+				return ret
 			end
-			seg = seg .. "},"
-			head = head .. seg
 		end
-		head = head.."}\n"
-		local s = require "tool"
-		s = string.format(s, head)
-		local dir = skynet.getenv("pro_dir")
-		local addr = io.open(dir.."models/"..table_name.."mgr.lua", "w")
-		addr:write(s)
-		addr:close()
-		ret.ok = 1
-		ret.msg = "succss"
-		return ret
+	end
+end
+
+function VIEW:addrole( ... )
+	-- body
+	if self.method == "post" then
+		local uid = self.body["uid"]
+		
 	end
 end
 

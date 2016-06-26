@@ -1,6 +1,5 @@
 local skynet = require "skynet"
 local modelmgr = require "modelmgrcpp"
-local entity = require "entity"
 local assert = assert
 local type   = type
 
@@ -48,14 +47,22 @@ function cls:ctor( ... )
 		uq = false,
 		t = "number",
 	},
+	if_latest = {
+		pk = false,
+		fk = false,
+		cn = "if_latest",
+		uq = false,
+		t = "number",
+	},
 }
 
 	self.__head_ord = {}
-		self.__head_ord[1] = self.__head[id]
-	self.__head_ord[2] = self.__head[user_id]
-	self.__head_ord[3] = self.__head[exercise_time]
-	self.__head_ord[4] = self.__head[exercise_type]
-	self.__head_ord[5] = self.__head[time_length]
+		self.__head_ord[1] = self.__head["id"]
+	self.__head_ord[2] = self.__head["user_id"]
+	self.__head_ord[3] = self.__head["exercise_time"]
+	self.__head_ord[4] = self.__head["exercise_type"]
+	self.__head_ord[5] = self.__head["time_length"]
+	self.__head_ord[6] = self.__head["if_latest"]
 
 	self.__pk      = "id"
 	self.__fk      = "user_id"

@@ -1,3 +1,4 @@
+package.path = "./../cat/?.lua;" .. package.path
 local new_emailrequest = {}
 local util = require "util"
 local const = require "const"
@@ -41,49 +42,69 @@ function REQUEST:login(u)
 	user = u
 end
 
-function REQUEST:mails()
+function REQUEST:mails(ctx)
+	assert(ctx)
+	-- user = ctx:get_user()
+	-- assert(user)
+
 	local ret = {}
 
 	ret.mail_list = {}
 
 	local counter = 0
-	for i , v in pairs( user.u_emailmgr.__data ) do
+	for i , v in pairs( ctx:get_user().u_new_emailmgr.__data ) do
 		print( k , v )
 		counter = counter + 1
 		local tmp = {}
 		tmp.attachs = {}
+		print(v.id)
+		tmp.emailid = v:get_id()
+		tmp.type = v:get_type()
+		tmp.acctime = os.date( "%Y-%m-%d" , v:get_acctime() )
+		tmp.isread = ( v:get_isread() == 0 ) and true or false 
+		tmp.isreward = ( v:get_isreward() == 0 ) and true or false 
+		tmp.title = v:get_title()
+		tmp.content = v:get_content()
 
-		tmp.emailid = v.csv_id
-		tmp.type = v.type
-		tmp.acctime = os.date( "%Y-%m-%d" , v.acctime )
-		tmp.isread = ( v.isread == 0 ) and true or false 
-		tmp.isreward = ( v.isreward == 0 ) and true or false 
-		tmp.title = v.title
-		tmp.content = v.content
-		tmp.attachs = v:__getallitem()
-		tmp.iconid = v.iconid
+		for i = 1 , 5 do
+			local id = "itemsn" .. i
+			local num = "itemnum" .. i
+		
+			if nil ~= v[id] and 0 ~= v[num] then
+				local ni = {}
+			
+				ni.itemsn = v[id]
+				ni.itemnum = v[num]
+				table.insert( tmp.attachs , ni )
+			end
+		end
+
+		--tmp.iconid = v:get_iconid()
 
 		table.insert( ret.mail_list , tmp )
-	end 
-	
+	end 	
+				
  	ret.errorcode = errorcode[ 1 ].code
 	ret.msg = errorcode[ 1 ].msg
 	print( "mails is called already" , counter )
 
 	return ret
-end      
+end 
 	
-function REQUEST:mail_read()
+function REQUEST:mail_read(ctx)
+	assert(ctx)
+
 	print( "****************************email_read is called" )
 	local ret = {}
 	if self.mail_id then
 		for k , v in pairs( self.mail_id ) do
 			print ( k , v , v.id )
-			local e =user.u_emailmgr:get_by_csv_id( v.id )
+			local e = ctx:get_user().u_new_emailmgr:get( v.id )
 			assert( e )
 
-			e.isread = 1
-			e:__update_db( { "isread" } , const.DB_PRIORITY_2 )
+			e:set_isread(1)	
+			--e.isread = 1
+			e:update_db()
 		end 
 
 		ret.errorcode = errorcode[ 1 ].code
@@ -93,67 +114,83 @@ function REQUEST:mail_read()
 		ret.msg = errorcode[41].msg
 	end
 
-
 	return ret
-end		
+end	
 		
-function REQUEST:mail_delete()
-	print( "****************************email_delete is called" )
-	local ret = {}
-	for k , v in pairs( self.mail_id ) do
-		print ( k , v , v.id )
-		local e =user.u_emailmgr:get_by_csv_id( v.id )
-		assert( e )
+-- function REQUEST:mail_delete(ctx)
+-- 	assert(ctx)
+
+-- 	print( "****************************email_delete is called" )
+-- 	local ret = {}
+-- 	for k , v in pairs( self.mail_id ) do
+-- 		print ( k , v , v.id )
+-- 		local e =user.u_new_emailmgr:get_by_csv_id( v.id )
+-- 		assert( e )
 		
-		e.isdel = 1
-		e:__update_db( { "isdel" } , const.DB_PRIORITY_1)
-		user.u_emailmgr:delete_by_id( v.id )
-	end 
-
-	ret.errorcode = errorcode[ 1 ].code
-	ret.msg = errorcode[ 1 ].msg
-
-	return ret
-end 
-	
-function REQUEST:mail_getreward()
-	print( "****************************get_reward is called" )
-	local ret = {}
-	if self.mail_id then
-		for k , v in pairs( self.mail_id ) do                         		
-			local e =user.u_emailmgr:get_by_csv_id( v.id )
-			assert( e )
-			if 0 == e.isreward then 	
-				local items = e:__getallitem()
-				assert( items )
-				for k , v in ipairs( items ) do
-					local prop = user.u_propmgr:get_by_csv_id( v.itemsn )
-					if prop then
-						prop.num = prop.num + v.itemnum
-					else
-						local p = game.g_propmgr:get_by_csv_id( v.itemsn )
-						p.user_id = user.csv_id
-						p.num = v.itemnum
-						local prop = user.u_propmgr.create( p )
-						user.u_propmgr:add( prop )
-						prop:__insert_db( const.DB_PRIORITY_2 )
-					end
+-- 		e.isdel = 1
+-- 		e:update_db()
+-- 		user.u_new_emailmgr:delete_by_id( v.id )
+-- 	end 
+			
+-- 	ret.errorcode = errorcode[ 1 ].code
+-- 	ret.msg = errorcode[ 1 ].msg
+			
+-- 	return ret
+-- end  	
 					
-					--[[if v.itemsn == const.A_T_GOLD or v.itemsn == const.A_T_EXP then
-						raise_achievement( v.itemsn , user )
-					end--]]
+function REQUEST:mail_getreward(ctx)
+	assert(ctx)		
+
+	print( "****************************get_reward is called" )
+	local ret = {}	
+	if self.mail_id then
+		for k , v in pairs( self.mail_id ) do       
+			print(v, v.id)                  		
+			local e = ctx:get_user().u_new_emailmgr:get( v.id )
+			assert(e)
+			if 0 == e:get_isreward() then 	
+ 					
+				for i = 1 , 5 do
+					local id = "itemsn" .. i
+					local num = "itemnum" .. i
+		    		
+					if nil ~= e.__fields[id] and 0 ~= e.__fields[num] then
+						local prop = ctx:get_user().u_propmgr:get_by_csv_id( e.__fields[id] )
+						if prop then
+							prop:set_num(prop:get_num() + e.__fields[num])
+							--prop.num = prop.num + e.__fields[num]
+						else                                                                     
+ 							local p = skynet.call(".game", "lua", "query_g_prop", e.__fields[id])
+							assert(p)
+							--local p = game.g_propmgr:get_by_csv_id( e[id] )
+							p:set_user_id(ctx:get_user().csv_id)
+							p:set_num(e.__fields[num])
+							--p.num = e[num]
+							local prop = ctx:get_user().u_propmgr:create( p )
+							ctx:get_user().u_propmgr:add( prop )
+							prop:update_db()
+						end			
+					end
 				end 
 
-				if ( 1 == e.type ) then
-					e.isdel = 1
-					e:__update_db( { "isdel" } , const.DB_PRIORITY_1 )
-					user.u_emailmgr:delete_by_csv_id( e.csv_id )
-				else
-					e.isreward = 1
-					e:__update_db( { "isreward" } , const.DB_PRIORITY_2 )
-				end
-			end
-		end
+					--[[if v[id] == const.A_T_GOLD or v[id] == const.A_T_EXP then
+						raise_achievement( v[id] , user )
+					end--]] 		
+
+				if 1 == e.__fields.type then
+					e:set_isdel(1)  
+					e:update_db() 	
+
+					-- e.isdel = 1  
+					-- e:update_db()
+					ctx:get_user().u_new_emailmgr:delete( e:get_id() )
+				else 		   		
+					e:set_isreward(1)
+					--e.isreward = 1
+					e:update_db()
+				end 		   
+			end 			   
+		end 	
 
 		ret.errorcode = errorcode[ 1 ].code
 		ret.msg = errorcode[ 1 ].msg
@@ -161,15 +198,15 @@ function REQUEST:mail_getreward()
 		ret.errorcode = errorcode[ 41 ].code
 		ret.msg = errorcode[ 41 ].msg
 	end 
-	
+		
 	return ret
-end 
-	
-function new_emailrequest:newemail( tval , ... ) -- get a email to group
-	assert( tval )
+end 	
+		
+function new_emailrequest:newemail(ctx,  tval , ... ) -- get a email to group
+	assert(ctx and tval)
 	print( "*********************************************REQUEST:newemail" )
-	
-	local v = user.u_emailmgr:recvemail( tval )
+		
+	local v = user.u_new_emailmgr:recvemail( tval )
 	assert( v )
 	
 	--[[local ret = {}
@@ -189,33 +226,46 @@ function new_emailrequest:newemail( tval , ... ) -- get a email to group
 	ret.mail = tmp
 	send_package( send_request( "newemail" ,  ret ) )--]]
 end 
-		
-function new_emailrequest:public_email( tvals , user )
-	assert( tvals and user )
+	
+function new_emailrequest:public_email(factory, tvals , user )
+	assert(tvals and user )
 
 	tvals.uid = user.csv_id
 	print( "*********************************email is " , tvals.csv_id )
-	local v = user.u_emailmgr:recvemail( tvals )
+
+
+	local v = factory:email_recvemail( tvals )
 	assert( v )
-	
+
 end 
 	
-function SUBSCRIBE:email( tvals , ... ) -- get email from channl , a email to all users 
-	assert( tvals )
-	print( " ***********************************SUBSCRIBE:email " )
-	user.public_email = tvals.csv_id
-	tvals.csv_id = skynet.call( ".game" , "lua" , "u_guid" , user.csv_id , const.UEMAILENTROPY )
+function SUBSCRIBE:email(ctx, tvals , ... ) -- get email from channl , a email to all users 
+	for k,v in pairs(ctx) do
+		print(k,v)
+	end
+	assert(ctx and tvals)
+	print("***********************************SUBSCRIBE:email")
+	local factory = ctx:get_myfactory()
+	assert(factory)
 
-	tvals.uid = user.csv_id
+	--update the pemail_csvid
+	ctx:get_user():set_pemail_csv_id(tvals.csv_id)
+	ctx:get_user():update_db()		
+
+	--asign the tvals.csv_id a new csv_id
+	tvals.csv_id = skynet.call( ".game" , "lua" , "u_guid" , ctx:get_user():get_csv_id() , const.UEMAILENTROPY )
+
+	tvals.uid = ctx:get_user():get_csv_id()
+	tvals.id = genpk_2(tvals.uid, tvals.csv_id)
 	print( "*********************************email csv_id is " , tvals.csv_id )
-	local v =user.u_emailmgr:recvemail( tvals )
-	assert( v )
+	local v = factory:email_recvemail(tvals)
+	assert(v)
 
 	--[[local ret = {}
 	ret.mail = {}
 	local tmp = {}
    	tmp.attachs = {}
-
+	
     tmp.emailid = v.csv_id
     tmp.type = v.type
     tmp.acctime = os.date("%Y-%m-%d" , v.acctime)
@@ -227,22 +277,20 @@ function SUBSCRIBE:email( tvals , ... ) -- get email from channl , a email to al
 	tmp.iconid = v.iconid
 	ret.mail = tmp
 	send_package( send_request( "newemail" ,  ret ) )--]]
-end
-
+end 
+	
 function RESPONSE:abd()
 	-- body
-end
-
-
-
+end 
+	
 function new_emailrequest.start(c, s, g, d, ...)
 	-- body
 	client_fd = c
 	send_request = s
 	game = g
 	dc = d
-end
-
+end 
+	
 function new_emailrequest.disconnect()
 	-- body
 end

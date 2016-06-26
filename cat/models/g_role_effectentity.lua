@@ -14,7 +14,6 @@ function cls:ctor(mgr, P, ... )
 	self.__stm   = mgr.__stm
 	self.__col_updated=0
 	self.__fields = {
-			id = 0,
 			buffer_id = 0,
 			property_id1 = 0,
 			value1 = 0,
@@ -35,7 +34,6 @@ function cls:ctor(mgr, P, ... )
 		}
 
 	self.__ecol_updated = {
-			id = 0,
 			buffer_id = 0,
 			property_id1 = 0,
 			value1 = 0,
@@ -56,25 +54,18 @@ function cls:ctor(mgr, P, ... )
 		}
 
 	for k,v in pairs(self.__head) do
-		self.__fields[k] = assert(P[k])
+		self.__fields[k] = assert(P[k], string.format("no exist %s", k))
 	end
 	return self
-end
-
-function cls:set_id(v, ... )
-	-- body
-	assert(v)
-	self.__fields.id = v
-end
-
-function cls:get_id( ... )
-	-- body
-	return self.__fields.id
 end
 
 function cls:set_buffer_id(v, ... )
 	-- body
 	assert(v)
+	self.__ecol_updated["buffer_id"] = self.__ecol_updated["buffer_id"] + 1
+	if self.__ecol_updated["buffer_id"] == 1 then
+		self.__col_updated = self.__col_updated + 1
+	end
 	self.__fields.buffer_id = v
 end
 
@@ -86,6 +77,10 @@ end
 function cls:set_property_id1(v, ... )
 	-- body
 	assert(v)
+	self.__ecol_updated["property_id1"] = self.__ecol_updated["property_id1"] + 1
+	if self.__ecol_updated["property_id1"] == 1 then
+		self.__col_updated = self.__col_updated + 1
+	end
 	self.__fields.property_id1 = v
 end
 
@@ -97,6 +92,10 @@ end
 function cls:set_value1(v, ... )
 	-- body
 	assert(v)
+	self.__ecol_updated["value1"] = self.__ecol_updated["value1"] + 1
+	if self.__ecol_updated["value1"] == 1 then
+		self.__col_updated = self.__col_updated + 1
+	end
 	self.__fields.value1 = v
 end
 
@@ -108,6 +107,10 @@ end
 function cls:set_property_id2(v, ... )
 	-- body
 	assert(v)
+	self.__ecol_updated["property_id2"] = self.__ecol_updated["property_id2"] + 1
+	if self.__ecol_updated["property_id2"] == 1 then
+		self.__col_updated = self.__col_updated + 1
+	end
 	self.__fields.property_id2 = v
 end
 
@@ -119,6 +122,10 @@ end
 function cls:set_value2(v, ... )
 	-- body
 	assert(v)
+	self.__ecol_updated["value2"] = self.__ecol_updated["value2"] + 1
+	if self.__ecol_updated["value2"] == 1 then
+		self.__col_updated = self.__col_updated + 1
+	end
 	self.__fields.value2 = v
 end
 
@@ -130,6 +137,10 @@ end
 function cls:set_property_id3(v, ... )
 	-- body
 	assert(v)
+	self.__ecol_updated["property_id3"] = self.__ecol_updated["property_id3"] + 1
+	if self.__ecol_updated["property_id3"] == 1 then
+		self.__col_updated = self.__col_updated + 1
+	end
 	self.__fields.property_id3 = v
 end
 
@@ -141,6 +152,10 @@ end
 function cls:set_value3(v, ... )
 	-- body
 	assert(v)
+	self.__ecol_updated["value3"] = self.__ecol_updated["value3"] + 1
+	if self.__ecol_updated["value3"] == 1 then
+		self.__col_updated = self.__col_updated + 1
+	end
 	self.__fields.value3 = v
 end
 
@@ -152,6 +167,10 @@ end
 function cls:set_property_id4(v, ... )
 	-- body
 	assert(v)
+	self.__ecol_updated["property_id4"] = self.__ecol_updated["property_id4"] + 1
+	if self.__ecol_updated["property_id4"] == 1 then
+		self.__col_updated = self.__col_updated + 1
+	end
 	self.__fields.property_id4 = v
 end
 
@@ -163,6 +182,10 @@ end
 function cls:set_value4(v, ... )
 	-- body
 	assert(v)
+	self.__ecol_updated["value4"] = self.__ecol_updated["value4"] + 1
+	if self.__ecol_updated["value4"] == 1 then
+		self.__col_updated = self.__col_updated + 1
+	end
 	self.__fields.value4 = v
 end
 
@@ -174,6 +197,10 @@ end
 function cls:set_property_id5(v, ... )
 	-- body
 	assert(v)
+	self.__ecol_updated["property_id5"] = self.__ecol_updated["property_id5"] + 1
+	if self.__ecol_updated["property_id5"] == 1 then
+		self.__col_updated = self.__col_updated + 1
+	end
 	self.__fields.property_id5 = v
 end
 
@@ -185,6 +212,10 @@ end
 function cls:set_value5(v, ... )
 	-- body
 	assert(v)
+	self.__ecol_updated["value5"] = self.__ecol_updated["value5"] + 1
+	if self.__ecol_updated["value5"] == 1 then
+		self.__col_updated = self.__col_updated + 1
+	end
 	self.__fields.value5 = v
 end
 
@@ -196,6 +227,10 @@ end
 function cls:set_property_id6(v, ... )
 	-- body
 	assert(v)
+	self.__ecol_updated["property_id6"] = self.__ecol_updated["property_id6"] + 1
+	if self.__ecol_updated["property_id6"] == 1 then
+		self.__col_updated = self.__col_updated + 1
+	end
 	self.__fields.property_id6 = v
 end
 
@@ -207,6 +242,10 @@ end
 function cls:set_value6(v, ... )
 	-- body
 	assert(v)
+	self.__ecol_updated["value6"] = self.__ecol_updated["value6"] + 1
+	if self.__ecol_updated["value6"] == 1 then
+		self.__col_updated = self.__col_updated + 1
+	end
 	self.__fields.value6 = v
 end
 
@@ -218,6 +257,10 @@ end
 function cls:set_property_id7(v, ... )
 	-- body
 	assert(v)
+	self.__ecol_updated["property_id7"] = self.__ecol_updated["property_id7"] + 1
+	if self.__ecol_updated["property_id7"] == 1 then
+		self.__col_updated = self.__col_updated + 1
+	end
 	self.__fields.property_id7 = v
 end
 
@@ -229,6 +272,10 @@ end
 function cls:set_value7(v, ... )
 	-- body
 	assert(v)
+	self.__ecol_updated["value7"] = self.__ecol_updated["value7"] + 1
+	if self.__ecol_updated["value7"] == 1 then
+		self.__col_updated = self.__col_updated + 1
+	end
 	self.__fields.value7 = v
 end
 
@@ -240,6 +287,10 @@ end
 function cls:set_property_id8(v, ... )
 	-- body
 	assert(v)
+	self.__ecol_updated["property_id8"] = self.__ecol_updated["property_id8"] + 1
+	if self.__ecol_updated["property_id8"] == 1 then
+		self.__col_updated = self.__col_updated + 1
+	end
 	self.__fields.property_id8 = v
 end
 
@@ -251,6 +302,10 @@ end
 function cls:set_value8(v, ... )
 	-- body
 	assert(v)
+	self.__ecol_updated["value8"] = self.__ecol_updated["value8"] + 1
+	if self.__ecol_updated["value8"] == 1 then
+		self.__col_updated = self.__col_updated + 1
+	end
 	self.__fields.value8 = v
 end
 

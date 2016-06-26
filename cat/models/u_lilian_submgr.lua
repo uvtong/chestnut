@@ -1,6 +1,5 @@
 local skynet = require "skynet"
 local modelmgr = require "modelmgrcpp"
-local entity = require "entity"
 local assert = assert
 local type   = type
 
@@ -65,13 +64,13 @@ function cls:ctor( ... )
 }
 
 	self.__head_ord = {}
-		self.__head_ord[1] = self.__head[id]
-	self.__head_ord[2] = self.__head[csv_id]
-	self.__head_ord[3] = self.__head[first_lilian_time]
-	self.__head_ord[4] = self.__head[start_time]
-	self.__head_ord[5] = self.__head[update_time]
-	self.__head_ord[6] = self.__head[used_queue_num]
-	self.__head_ord[7] = self.__head[end_lilian_time]
+		self.__head_ord[1] = self.__head["id"]
+	self.__head_ord[2] = self.__head["csv_id"]
+	self.__head_ord[3] = self.__head["first_lilian_time"]
+	self.__head_ord[4] = self.__head["start_time"]
+	self.__head_ord[5] = self.__head["update_time"]
+	self.__head_ord[6] = self.__head["used_queue_num"]
+	self.__head_ord[7] = self.__head["end_lilian_time"]
 
 	self.__pk      = "id"
 	self.__fk      = "csv_id"

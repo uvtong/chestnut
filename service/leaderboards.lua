@@ -3,7 +3,6 @@ package.cpath = "../lua-cjson/?.so;"..package.cpath
 local skynet = require "skynet"
 require "functions"
 local assert = assert
-local table_name = ...
 local cls = require "models/ara_leaderboardsmgr"
 leaderboardsmgr = cls.new()
 
@@ -42,85 +41,87 @@ end
 
 function CMD.swap(rnk1, rnk2)
 	-- body
-	local u1 = ranking_name[rnk1]
-	local u2 = ranking_name[rnk2]
-	name_ranking[u1].ranking = rnk2
-	name_ranking[u2].ranking = rnk1
-	ranking_name[rnk1] = u2
-	ranking_name[rnk2] = u1
+	local ranking1 = leaderboardsmgr:get(rnk1):get_field("ranking")
+	local ranking2 = leaderboardsmgr:get(rnk2):get_field("ranking")
+	leaderboardsmgr:get(rnk1):set_field("ranking", ranking2)
+	leaderboardsmgr:get(rnk2):set_field("ranking", ranking1)
+	ranking_name[ranking1] = rnk2
+	ranking_name[ranking2] = rnk1
 end
 
-function CMD.enter(id, key)
+function CMD.push(uid, key)
 	-- body
-	assert(false)
-	local idx = bsearch(k)
-	local l = #ranking_name
-	local p = l
-	while p >= idx do
-		ranking_name[p+1] = ranking_name[p]
-		p = p - 1
-	end
-	ranking_name[p] = id
-	name_ranking[id] = { id = id, ranking=p, key=k}
-	return p
-end
-
-function CMD.push(id, key)
-	-- body
-	local u = leaderboardsmgr:get(id)
+	assert(type(uid) == "number")
+	
+	local u = leaderboardsmgr:get(uid)
 	if u then
-		return u.ranking
+		return u:get_field("ranking")
 	else
 		top = top + 1
 		local ranking = top
-		ranking_name[ranking] = id
-		local tmp = {
-			uid = id,
-			ranking = ranking,
-			k = key
-		}
-		local o = leaderboardsmgr.create(tmp)
+		ranking_name[ranking] = uid
+		local tmp = {}
+		tmp["uid"] = uid
+		tmp["ranking"] = ranking
+		tmp["k"] = key
+		local o = leaderboardsmgr:create_entity(tmp)
 		leaderboardsmgr:add(o)
-		o("insert")
+		o:update()
 		return ranking
 	end
 end
 
-function CMD.ranking(id)
+function CMD.ranking(uid)
 	-- body
-	assert(id)
-	return assert(name_ranking[id].ranking)
+	local ranking = leaderboardsmgr:get(uid):get_field("ranking")
+	assert(ranking > 0, ranking)
+	return ranking
 end
 
-function CMD.name(rnk)
+-- return uid
+function CMD.name(ranking)
 	-- body
-	assert(rnk)
-	return assert(ranking_name[rnk])
+	return ranking_name(ranking)
 end
 
-function CMD.ranking_range(s, e)
+function CMD.ranking_range(start, stop)
 	-- body
-	assert(type(s) == "number")
-	assert(type(e) == "number")
-	assert(e > s)
-	local l = {}
-	for i=s,e do
-		local id = ranking_name[i]
-		if id then
-			l[i] = id
-		end
+	assert(type(start) == "number")
+	assert(type(stop) == "number")
+	assert(stop > start)
+	assert(stop <= top)
+	local res = {}
+	for i=start,stop do
+		res[i] = ranking_name[i]
 	end
-	return l
+	return res
 end
 
-local function print_c()
+function CMD.nearby(uid)
+	-- body
+	local res = {}
+	local lu = leaderboardsmgr:get(uid)
+	local ranking = lu:get_field("ranking")
+	res[ranking] = lu:get_field("uid")
+	local rnk = math.floor(ranking * 0.9)
+	res[rnk] = ranking_name[rnk]
+	rnk = math.floor(ranking * 0.8)
+	res[rnk] = ranking_name[rnk]
+	rnk = math.floor(ranking * 0.7)
+	res[rnk] = ranking_name[rnk]
+	rnk = math.floor(ranking * 0.6)
+	res[rnk] = ranking_name[rnk]
+	return res
+end
+
+local function update_db()
 	-- body
 	while true do 
 		print("begain to print leaderboards")
 		for i,v in ipairs(ranking_name) do
-			print(i,v)
+			-- print(i,v)
 		end
-		leaderboardsmgr:update()
+		leaderboardsmgr:update_db()
 		skynet.sleep(60 * 100)
 	end
 end
@@ -128,15 +129,22 @@ end
 skynet.start(function ()
 	-- body
 	skynet.dispatch("lua", function(_,_, command, subcmd, ...)
-		if command ~= "command" then
-			local f = CMD[command]
+		local f = CMD[command]
+		if f then
 			local r = f(subcmd, ... )
 			if r then
 				skynet.ret(skynet.pack(r))
 			end
 		else
+			error(string.format("command %s is wrong", command))
 		end
+		print(string.format("command %s is called.", command))
 	end)
 	leaderboardsmgr:load_db()
-	skynet.fork(print_c)
+	for k,v in pairs(leaderboardsmgr.__data) do
+		local ranking = v:get_field("ranking")
+		ranking_name[ranking] = v:get_field("uid")
+		top = top + 1
+	end
+	skynet.fork(update_db)
 end)

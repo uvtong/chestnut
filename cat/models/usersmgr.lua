@@ -1,6 +1,5 @@
 local skynet = require "skynet"
 local modelmgr = require "modelmgrcpp"
-local entity = require "entity"
 local assert = assert
 local type   = type
 
@@ -321,24 +320,17 @@ function cls:ctor( ... )
 		uq = false,
 		t = "number",
 	},
-	cp_hanging_id = {
+	cp_type = {
 		pk = false,
 		fk = false,
-		cn = "cp_hanging_id",
+		cn = "cp_type",
 		uq = false,
 		t = "number",
 	},
-	cp_battle_id = {
+	cp_checkpoint = {
 		pk = false,
 		fk = false,
-		cn = "cp_battle_id",
-		uq = false,
-		t = "number",
-	},
-	cp_battle_chapter = {
-		pk = false,
-		fk = false,
-		cn = "cp_battle_chapter",
+		cn = "cp_checkpoint",
 		uq = false,
 		t = "number",
 	},
@@ -391,13 +383,6 @@ function cls:ctor( ... )
 		uq = false,
 		t = "number",
 	},
-	ara_rnk = {
-		pk = false,
-		fk = false,
-		cn = "ara_rnk",
-		uq = false,
-		t = "number",
-	},
 	ara_win_tms = {
 		pk = false,
 		fk = false,
@@ -426,84 +411,290 @@ function cls:ctor( ... )
 		uq = false,
 		t = "number",
 	},
-	ara_clg_tms_pur_tms = {
+	ara_clg_cost_tms = {
 		pk = false,
 		fk = false,
-		cn = "ara_clg_tms_pur_tms",
+		cn = "ara_clg_cost_tms",
 		uq = false,
 		t = "number",
 	},
-	ara_clg_tms_rst_tm = {
+	ara_integral = {
 		pk = false,
 		fk = false,
-		cn = "ara_clg_tms_rst_tm",
+		cn = "ara_integral",
+		uq = false,
+		t = "number",
+	},
+	ara_fighting = {
+		pk = false,
+		fk = false,
+		cn = "ara_fighting",
+		uq = false,
+		t = "number",
+	},
+	ara_interface = {
+		pk = false,
+		fk = false,
+		cn = "ara_interface",
+		uq = false,
+		t = "number",
+	},
+	ara_rfh_cost_tms = {
+		pk = false,
+		fk = false,
+		cn = "ara_rfh_cost_tms",
+		uq = false,
+		t = "number",
+	},
+	ara_r1_sum_combat = {
+		pk = false,
+		fk = false,
+		cn = "ara_r1_sum_combat",
+		uq = false,
+		t = "number",
+	},
+	ara_r1_sum_defense = {
+		pk = false,
+		fk = false,
+		cn = "ara_r1_sum_defense",
+		uq = false,
+		t = "number",
+	},
+	ara_r1_sum_critical_hit = {
+		pk = false,
+		fk = false,
+		cn = "ara_r1_sum_critical_hit",
+		uq = false,
+		t = "number",
+	},
+	ara_r1_sum_king = {
+		pk = false,
+		fk = false,
+		cn = "ara_r1_sum_king",
+		uq = false,
+		t = "number",
+	},
+	ara_rfh_st = {
+		pk = false,
+		fk = false,
+		cn = "ara_rfh_st",
+		uq = false,
+		t = "number",
+	},
+	ara_rfh_cd = {
+		pk = false,
+		fk = false,
+		cn = "ara_rfh_cd",
+		uq = false,
+		t = "number",
+	},
+	ara_rfh_cd_cost_tms = {
+		pk = false,
+		fk = false,
+		cn = "ara_rfh_cd_cost_tms",
+		uq = false,
+		t = "number",
+	},
+	ara_clg_tms_rsttm = {
+		pk = false,
+		fk = false,
+		cn = "ara_clg_tms_rsttm",
+		uq = false,
+		t = "number",
+	},
+	ara_clg_cost_rsttm = {
+		pk = false,
+		fk = false,
+		cn = "ara_clg_cost_rsttm",
+		uq = false,
+		t = "number",
+	},
+	ara_integral_rsttm = {
+		pk = false,
+		fk = false,
+		cn = "ara_integral_rsttm",
+		uq = false,
+		t = "number",
+	},
+	draw_num = {
+		pk = false,
+		fk = false,
+		cn = "draw_num",
+		uq = false,
+		t = "number",
+	},
+	ara_r2_sum_combat = {
+		pk = false,
+		fk = false,
+		cn = "ara_r2_sum_combat",
+		uq = false,
+		t = "number",
+	},
+	ara_r2_sum_defense = {
+		pk = false,
+		fk = false,
+		cn = "ara_r2_sum_defense",
+		uq = false,
+		t = "number",
+	},
+	ara_r2_sum_critical_hit = {
+		pk = false,
+		fk = false,
+		cn = "ara_r2_sum_critical_hit",
+		uq = false,
+		t = "number",
+	},
+	ara_r2_sum_king = {
+		pk = false,
+		fk = false,
+		cn = "ara_r2_sum_king",
+		uq = false,
+		t = "number",
+	},
+	ara_r3_sum_combat = {
+		pk = false,
+		fk = false,
+		cn = "ara_r3_sum_combat",
+		uq = false,
+		t = "number",
+	},
+	ara_r3_sum_defense = {
+		pk = false,
+		fk = false,
+		cn = "ara_r3_sum_defense",
+		uq = false,
+		t = "number",
+	},
+	ara_r3_sum_critical_hit = {
+		pk = false,
+		fk = false,
+		cn = "ara_r3_sum_critical_hit",
+		uq = false,
+		t = "number",
+	},
+	ara_r3_sum_king = {
+		pk = false,
+		fk = false,
+		cn = "ara_r3_sum_king",
+		uq = false,
+		t = "number",
+	},
+	cp_id = {
+		pk = false,
+		fk = false,
+		cn = "cp_id",
+		uq = false,
+		t = "number",
+	},
+	cp_drop_id1 = {
+		pk = false,
+		fk = false,
+		cn = "cp_drop_id1",
+		uq = false,
+		t = "number",
+	},
+	cp_drop_id2 = {
+		pk = false,
+		fk = false,
+		cn = "cp_drop_id2",
+		uq = false,
+		t = "number",
+	},
+	cp_drop_id3 = {
+		pk = false,
+		fk = false,
+		cn = "cp_drop_id3",
 		uq = false,
 		t = "number",
 	},
 }
 
 	self.__head_ord = {}
-		self.__head_ord[1] = self.__head[csv_id]
-	self.__head_ord[2] = self.__head[uname]
-	self.__head_ord[3] = self.__head[uviplevel]
-	self.__head_ord[4] = self.__head[config_sound]
-	self.__head_ord[5] = self.__head[config_music]
-	self.__head_ord[6] = self.__head[avatar]
-	self.__head_ord[7] = self.__head[sign]
-	self.__head_ord[8] = self.__head[c_role_id]
-	self.__head_ord[9] = self.__head[ifonline]
-	self.__head_ord[10] = self.__head[level]
-	self.__head_ord[11] = self.__head[combat]
-	self.__head_ord[12] = self.__head[defense]
-	self.__head_ord[13] = self.__head[critical_hit]
-	self.__head_ord[14] = self.__head[blessing]
-	self.__head_ord[15] = self.__head[permission]
-	self.__head_ord[16] = self.__head[modify_uname_count]
-	self.__head_ord[17] = self.__head[onlinetime]
-	self.__head_ord[18] = self.__head[iconid]
-	self.__head_ord[19] = self.__head[is_valid]
-	self.__head_ord[20] = self.__head[recharge_rmb]
-	self.__head_ord[21] = self.__head[recharge_diamond]
-	self.__head_ord[22] = self.__head[uvip_progress]
-	self.__head_ord[23] = self.__head[checkin_num]
-	self.__head_ord[24] = self.__head[checkin_reward_num]
-	self.__head_ord[25] = self.__head[exercise_level]
-	self.__head_ord[26] = self.__head[cgold_level]
-	self.__head_ord[27] = self.__head[gold_max]
-	self.__head_ord[28] = self.__head[exp_max]
-	self.__head_ord[29] = self.__head[equipment_enhance_success_rate_up_p]
-	self.__head_ord[30] = self.__head[store_refresh_count_max]
-	self.__head_ord[31] = self.__head[prop_refresh]
-	self.__head_ord[32] = self.__head[arena_frozen_time]
-	self.__head_ord[33] = self.__head[purchase_hp_count]
-	self.__head_ord[34] = self.__head[gain_gold_up_p]
-	self.__head_ord[35] = self.__head[gain_exp_up_p]
-	self.__head_ord[36] = self.__head[purchase_hp_count_max]
-	self.__head_ord[37] = self.__head[SCHOOL_reset_count_max]
-	self.__head_ord[38] = self.__head[SCHOOL_reset_count]
-	self.__head_ord[39] = self.__head[signup_time]
-	self.__head_ord[40] = self.__head[pemail_csv_id]
-	self.__head_ord[41] = self.__head[take_diamonds]
-	self.__head_ord[42] = self.__head[draw_number]
-	self.__head_ord[43] = self.__head[ifxilian]
-	self.__head_ord[44] = self.__head[cp_chapter]
-	self.__head_ord[45] = self.__head[cp_hanging_id]
-	self.__head_ord[46] = self.__head[cp_battle_id]
-	self.__head_ord[47] = self.__head[cp_battle_chapter]
-	self.__head_ord[48] = self.__head[lilian_level]
-	self.__head_ord[49] = self.__head[lilian_exp]
-	self.__head_ord[50] = self.__head[lilian_phy_power]
-	self.__head_ord[51] = self.__head[purch_lilian_phy_power]
-	self.__head_ord[52] = self.__head[ara_role_id1]
-	self.__head_ord[53] = self.__head[ara_role_id2]
-	self.__head_ord[54] = self.__head[ara_role_id3]
-	self.__head_ord[55] = self.__head[ara_rnk]
-	self.__head_ord[56] = self.__head[ara_win_tms]
-	self.__head_ord[57] = self.__head[ara_lose_tms]
-	self.__head_ord[58] = self.__head[ara_tie_tms]
-	self.__head_ord[59] = self.__head[ara_clg_tms]
-	self.__head_ord[60] = self.__head[ara_clg_tms_pur_tms]
-	self.__head_ord[61] = self.__head[ara_clg_tms_rst_tm]
+		self.__head_ord[1] = self.__head["csv_id"]
+	self.__head_ord[2] = self.__head["uname"]
+	self.__head_ord[3] = self.__head["uviplevel"]
+	self.__head_ord[4] = self.__head["config_sound"]
+	self.__head_ord[5] = self.__head["config_music"]
+	self.__head_ord[6] = self.__head["avatar"]
+	self.__head_ord[7] = self.__head["sign"]
+	self.__head_ord[8] = self.__head["c_role_id"]
+	self.__head_ord[9] = self.__head["ifonline"]
+	self.__head_ord[10] = self.__head["level"]
+	self.__head_ord[11] = self.__head["combat"]
+	self.__head_ord[12] = self.__head["defense"]
+	self.__head_ord[13] = self.__head["critical_hit"]
+	self.__head_ord[14] = self.__head["blessing"]
+	self.__head_ord[15] = self.__head["permission"]
+	self.__head_ord[16] = self.__head["modify_uname_count"]
+	self.__head_ord[17] = self.__head["onlinetime"]
+	self.__head_ord[18] = self.__head["iconid"]
+	self.__head_ord[19] = self.__head["is_valid"]
+	self.__head_ord[20] = self.__head["recharge_rmb"]
+	self.__head_ord[21] = self.__head["recharge_diamond"]
+	self.__head_ord[22] = self.__head["uvip_progress"]
+	self.__head_ord[23] = self.__head["checkin_num"]
+	self.__head_ord[24] = self.__head["checkin_reward_num"]
+	self.__head_ord[25] = self.__head["exercise_level"]
+	self.__head_ord[26] = self.__head["cgold_level"]
+	self.__head_ord[27] = self.__head["gold_max"]
+	self.__head_ord[28] = self.__head["exp_max"]
+	self.__head_ord[29] = self.__head["equipment_enhance_success_rate_up_p"]
+	self.__head_ord[30] = self.__head["store_refresh_count_max"]
+	self.__head_ord[31] = self.__head["prop_refresh"]
+	self.__head_ord[32] = self.__head["arena_frozen_time"]
+	self.__head_ord[33] = self.__head["purchase_hp_count"]
+	self.__head_ord[34] = self.__head["gain_gold_up_p"]
+	self.__head_ord[35] = self.__head["gain_exp_up_p"]
+	self.__head_ord[36] = self.__head["purchase_hp_count_max"]
+	self.__head_ord[37] = self.__head["SCHOOL_reset_count_max"]
+	self.__head_ord[38] = self.__head["SCHOOL_reset_count"]
+	self.__head_ord[39] = self.__head["signup_time"]
+	self.__head_ord[40] = self.__head["pemail_csv_id"]
+	self.__head_ord[41] = self.__head["take_diamonds"]
+	self.__head_ord[42] = self.__head["draw_number"]
+	self.__head_ord[43] = self.__head["ifxilian"]
+	self.__head_ord[44] = self.__head["cp_chapter"]
+	self.__head_ord[45] = self.__head["cp_type"]
+	self.__head_ord[46] = self.__head["cp_checkpoint"]
+	self.__head_ord[47] = self.__head["lilian_level"]
+	self.__head_ord[48] = self.__head["lilian_exp"]
+	self.__head_ord[49] = self.__head["lilian_phy_power"]
+	self.__head_ord[50] = self.__head["purch_lilian_phy_power"]
+	self.__head_ord[51] = self.__head["ara_role_id1"]
+	self.__head_ord[52] = self.__head["ara_role_id2"]
+	self.__head_ord[53] = self.__head["ara_role_id3"]
+	self.__head_ord[54] = self.__head["ara_win_tms"]
+	self.__head_ord[55] = self.__head["ara_lose_tms"]
+	self.__head_ord[56] = self.__head["ara_tie_tms"]
+	self.__head_ord[57] = self.__head["ara_clg_tms"]
+	self.__head_ord[58] = self.__head["ara_clg_cost_tms"]
+	self.__head_ord[59] = self.__head["ara_integral"]
+	self.__head_ord[60] = self.__head["ara_fighting"]
+	self.__head_ord[61] = self.__head["ara_interface"]
+	self.__head_ord[62] = self.__head["ara_rfh_cost_tms"]
+	self.__head_ord[63] = self.__head["ara_r1_sum_combat"]
+	self.__head_ord[64] = self.__head["ara_r1_sum_defense"]
+	self.__head_ord[65] = self.__head["ara_r1_sum_critical_hit"]
+	self.__head_ord[66] = self.__head["ara_r1_sum_king"]
+	self.__head_ord[67] = self.__head["ara_rfh_st"]
+	self.__head_ord[68] = self.__head["ara_rfh_cd"]
+	self.__head_ord[69] = self.__head["ara_rfh_cd_cost_tms"]
+	self.__head_ord[70] = self.__head["ara_clg_tms_rsttm"]
+	self.__head_ord[71] = self.__head["ara_clg_cost_rsttm"]
+	self.__head_ord[72] = self.__head["ara_integral_rsttm"]
+	self.__head_ord[73] = self.__head["draw_num"]
+	self.__head_ord[74] = self.__head["ara_r2_sum_combat"]
+	self.__head_ord[75] = self.__head["ara_r2_sum_defense"]
+	self.__head_ord[76] = self.__head["ara_r2_sum_critical_hit"]
+	self.__head_ord[77] = self.__head["ara_r2_sum_king"]
+	self.__head_ord[78] = self.__head["ara_r3_sum_combat"]
+	self.__head_ord[79] = self.__head["ara_r3_sum_defense"]
+	self.__head_ord[80] = self.__head["ara_r3_sum_critical_hit"]
+	self.__head_ord[81] = self.__head["ara_r3_sum_king"]
+	self.__head_ord[82] = self.__head["cp_id"]
+	self.__head_ord[83] = self.__head["cp_drop_id1"]
+	self.__head_ord[84] = self.__head["cp_drop_id2"]
+	self.__head_ord[85] = self.__head["cp_drop_id3"]
 
 	self.__pk      = "csv_id"
 	self.__fk      = ""

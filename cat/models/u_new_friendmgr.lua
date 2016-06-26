@@ -1,108 +1,92 @@
 local skynet = require "skynet"
-local util = require "util"
+local modelmgr = require "modelmgrcpp"
+local assert = assert
+local type   = type
 
-local _M = {}
-_M.__data = {}
-_M.__count = 0
+local cls = class("u_new_friendmgr", modelmgr)
 
-local _Meta = { user_id=0, csv_id=0, }
-
-_Meta.__tname = "u_new_friend"
-
-function _Meta.__new()
- 	-- body
- 	local t = {}
- 	setmetatable( t, { __index = _Meta } )
- 	return t
-end 
-
-function _Meta:__insert_db(priority)
+function cls:ctor( ... )
 	-- body
-	assert(priority)
-	local t = {}
-	for k,v in pairs(_Meta) do
-		if not string.match(k, "^__*") then
-			t[k] = assert(self[k])
-		end
-	end
-	skynet.send(util.random_db(), "lua", "command", "insert", self.__tname, t, priority)
+	self.__data    = {}
+	self.__count   = 0
+	self.__cap     = 0
+	self.__tname   = "u_new_friend"
+	self.__head    = {
+	id = {
+		pk = true,
+		fk = false,
+		cn = "id",
+		uq = false,
+		t = "number",
+	},
+	self_csv_id = {
+		pk = false,
+		fk = true,
+		cn = "self_csv_id",
+		uq = false,
+		t = "number",
+	},
+	friend_csv_id = {
+		pk = false,
+		fk = false,
+		cn = "friend_csv_id",
+		uq = false,
+		t = "number",
+	},
+	isdelete = {
+		pk = false,
+		fk = false,
+		cn = "isdelete",
+		uq = false,
+		t = "number",
+	},
+	recvtime = {
+		pk = false,
+		fk = false,
+		cn = "recvtime",
+		uq = false,
+		t = "number",
+	},
+	heartamount = {
+		pk = false,
+		fk = false,
+		cn = "heartamount",
+		uq = false,
+		t = "number",
+	},
+	update_time = {
+		pk = false,
+		fk = false,
+		cn = "update_time",
+		uq = false,
+		t = "number",
+	},
+	ifrecved = {
+		pk = false,
+		fk = false,
+		cn = "ifrecved",
+		uq = false,
+		t = "number",
+	},
+}
+
+	self.__head_ord = {}
+		self.__head_ord[1] = self.__head["id"]
+	self.__head_ord[2] = self.__head["self_csv_id"]
+	self.__head_ord[3] = self.__head["friend_csv_id"]
+	self.__head_ord[4] = self.__head["isdelete"]
+	self.__head_ord[5] = self.__head["recvtime"]
+	self.__head_ord[6] = self.__head["heartamount"]
+	self.__head_ord[7] = self.__head["update_time"]
+	self.__head_ord[8] = self.__head["ifrecved"]
+
+	self.__pk      = "id"
+	self.__fk      = "self_csv_id"
+	self.__rdb     = skynet.localname(skynet.getenv("gated_rdb"))
+	self.__wdb     = skynet.localname(skynet.getenv("gated_wdb"))
+	self.__stm     = false
+	self.__entity  = "u_new_friendentity"
+	return self
 end
 
-function _Meta:__update_db(t, priority)
-	-- body
-	assert(priority)
-	assert(type(t) == "table")
-	local columns = {}
-	for i,v in ipairs(t) do
-		columns[tostring(v)] = self[tostring(v)]
-	end
-	skynet.send(util.random_db(), "lua", "command", "update", self.__tname, {{ csv_id=assert(self.csv_id) }}, columns, priority)
-end
-
-function _Meta:__serialize()
-	-- body
-	local r = {}
-	for k,v in pairs(_Meta) do
-		if not string.match(k, "^__*") then
-			r[k] = assert(self[k])
-		end
-	end
-	return r
-end
-
-function _M.insert_db( values, priority)
-	assert(type(values) == "table" )
-	local total = {}
-	for i,v in ipairs(values) do
-		local t = {}
-		for kk,vv in pairs(v) do
-			if not string.match(kk, "^__*") then
-				t[kk] = vv
-			end
-		end
-		table.insert(total, t)
-	end
-	skynet.send( util.random_db() , "lua" , "command" , "insert_all" , _Meta.__tname , total, priority)
-end 
-
-function _M.create( P )
-	assert(P)
-	local u = _Meta.__new()
-	for k,v in pairs(_Meta) do
-		if not string.match(k, "^__*") then
-			u[k] = assert(P[k])
-		end
-	end
-	return u
-end	
-
-function _M:add( u )
-	assert(u)
-	self.__data[tostring(u.csv_id)] = u
-	self.__count = self.__count + 1
-end
-	
-function _M:get_by_csv_id(csv_id)
-	-- body
-	return self.__data[tostring(csv_id)]
-end
-
-function _M:delete_by_csv_id(csv_id)
-	-- body
-	assert(self.__data[tostring(csv_id)])
-	self.__data[tostring(csv_id)] = nil
-	self.__count = self.__count - 1
-end
-
-function _M:get_count()
-	-- body
-	return self.__count
-end
-
-function _M:clear()
-	self.__data = {}
-	self.__count = 0
-end
-
-return _M
-
+return cls

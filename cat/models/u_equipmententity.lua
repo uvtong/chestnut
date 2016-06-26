@@ -50,7 +50,7 @@ function cls:ctor(mgr, P, ... )
 		}
 
 	for k,v in pairs(self.__head) do
-		self.__fields[k] = assert(P[k])
+		self.__fields[k] = assert(P[k], string.format("no exist %s", k))
 	end
 	return self
 end
@@ -58,6 +58,10 @@ end
 function cls:set_id(v, ... )
 	-- body
 	assert(v)
+	self.__ecol_updated["id"] = self.__ecol_updated["id"] + 1
+	if self.__ecol_updated["id"] == 1 then
+		self.__col_updated = self.__col_updated + 1
+	end
 	self.__fields.id = v
 end
 
@@ -69,6 +73,10 @@ end
 function cls:set_user_id(v, ... )
 	-- body
 	assert(v)
+	self.__ecol_updated["user_id"] = self.__ecol_updated["user_id"] + 1
+	if self.__ecol_updated["user_id"] == 1 then
+		self.__col_updated = self.__col_updated + 1
+	end
 	self.__fields.user_id = v
 end
 
@@ -80,6 +88,10 @@ end
 function cls:set_csv_id(v, ... )
 	-- body
 	assert(v)
+	self.__ecol_updated["csv_id"] = self.__ecol_updated["csv_id"] + 1
+	if self.__ecol_updated["csv_id"] == 1 then
+		self.__col_updated = self.__col_updated + 1
+	end
 	self.__fields.csv_id = v
 end
 
@@ -91,6 +103,10 @@ end
 function cls:set_level(v, ... )
 	-- body
 	assert(v)
+	self.__ecol_updated["level"] = self.__ecol_updated["level"] + 1
+	if self.__ecol_updated["level"] == 1 then
+		self.__col_updated = self.__col_updated + 1
+	end
 	self.__fields.level = v
 end
 
@@ -102,6 +118,10 @@ end
 function cls:set_combat(v, ... )
 	-- body
 	assert(v)
+	self.__ecol_updated["combat"] = self.__ecol_updated["combat"] + 1
+	if self.__ecol_updated["combat"] == 1 then
+		self.__col_updated = self.__col_updated + 1
+	end
 	self.__fields.combat = v
 end
 
@@ -113,6 +133,10 @@ end
 function cls:set_defense(v, ... )
 	-- body
 	assert(v)
+	self.__ecol_updated["defense"] = self.__ecol_updated["defense"] + 1
+	if self.__ecol_updated["defense"] == 1 then
+		self.__col_updated = self.__col_updated + 1
+	end
 	self.__fields.defense = v
 end
 
@@ -124,6 +148,10 @@ end
 function cls:set_critical_hit(v, ... )
 	-- body
 	assert(v)
+	self.__ecol_updated["critical_hit"] = self.__ecol_updated["critical_hit"] + 1
+	if self.__ecol_updated["critical_hit"] == 1 then
+		self.__col_updated = self.__col_updated + 1
+	end
 	self.__fields.critical_hit = v
 end
 
@@ -135,6 +163,10 @@ end
 function cls:set_king(v, ... )
 	-- body
 	assert(v)
+	self.__ecol_updated["king"] = self.__ecol_updated["king"] + 1
+	if self.__ecol_updated["king"] == 1 then
+		self.__col_updated = self.__col_updated + 1
+	end
 	self.__fields.king = v
 end
 
@@ -146,6 +178,10 @@ end
 function cls:set_critical_hit_probability(v, ... )
 	-- body
 	assert(v)
+	self.__ecol_updated["critical_hit_probability"] = self.__ecol_updated["critical_hit_probability"] + 1
+	if self.__ecol_updated["critical_hit_probability"] == 1 then
+		self.__col_updated = self.__col_updated + 1
+	end
 	self.__fields.critical_hit_probability = v
 end
 
@@ -157,6 +193,10 @@ end
 function cls:set_combat_probability(v, ... )
 	-- body
 	assert(v)
+	self.__ecol_updated["combat_probability"] = self.__ecol_updated["combat_probability"] + 1
+	if self.__ecol_updated["combat_probability"] == 1 then
+		self.__col_updated = self.__col_updated + 1
+	end
 	self.__fields.combat_probability = v
 end
 
@@ -168,6 +208,10 @@ end
 function cls:set_defense_probability(v, ... )
 	-- body
 	assert(v)
+	self.__ecol_updated["defense_probability"] = self.__ecol_updated["defense_probability"] + 1
+	if self.__ecol_updated["defense_probability"] == 1 then
+		self.__col_updated = self.__col_updated + 1
+	end
 	self.__fields.defense_probability = v
 end
 
@@ -179,6 +223,10 @@ end
 function cls:set_king_probability(v, ... )
 	-- body
 	assert(v)
+	self.__ecol_updated["king_probability"] = self.__ecol_updated["king_probability"] + 1
+	if self.__ecol_updated["king_probability"] == 1 then
+		self.__col_updated = self.__col_updated + 1
+	end
 	self.__fields.king_probability = v
 end
 
@@ -190,6 +238,10 @@ end
 function cls:set_enhance_success_rate(v, ... )
 	-- body
 	assert(v)
+	self.__ecol_updated["enhance_success_rate"] = self.__ecol_updated["enhance_success_rate"] + 1
+	if self.__ecol_updated["enhance_success_rate"] == 1 then
+		self.__col_updated = self.__col_updated + 1
+	end
 	self.__fields.enhance_success_rate = v
 end
 
@@ -201,6 +253,10 @@ end
 function cls:set_currency_type(v, ... )
 	-- body
 	assert(v)
+	self.__ecol_updated["currency_type"] = self.__ecol_updated["currency_type"] + 1
+	if self.__ecol_updated["currency_type"] == 1 then
+		self.__col_updated = self.__col_updated + 1
+	end
 	self.__fields.currency_type = v
 end
 
@@ -212,6 +268,10 @@ end
 function cls:set_currency_num(v, ... )
 	-- body
 	assert(v)
+	self.__ecol_updated["currency_num"] = self.__ecol_updated["currency_num"] + 1
+	if self.__ecol_updated["currency_num"] == 1 then
+		self.__col_updated = self.__col_updated + 1
+	end
 	self.__fields.currency_num = v
 end
 

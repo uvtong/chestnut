@@ -14,7 +14,6 @@ function cls:ctor(mgr, P, ... )
 	self.__stm   = mgr.__stm
 	self.__col_updated=0
 	self.__fields = {
-			id = 0,
 			g_csv_id = 0,
 			csv_id = 0,
 			name = 0,
@@ -28,7 +27,6 @@ function cls:ctor(mgr, P, ... )
 		}
 
 	self.__ecol_updated = {
-			id = 0,
 			g_csv_id = 0,
 			csv_id = 0,
 			name = 0,
@@ -42,25 +40,18 @@ function cls:ctor(mgr, P, ... )
 		}
 
 	for k,v in pairs(self.__head) do
-		self.__fields[k] = assert(P[k])
+		self.__fields[k] = assert(P[k], string.format("no exist %s", k))
 	end
 	return self
-end
-
-function cls:set_id(v, ... )
-	-- body
-	assert(v)
-	self.__fields.id = v
-end
-
-function cls:get_id( ... )
-	-- body
-	return self.__fields.id
 end
 
 function cls:set_g_csv_id(v, ... )
 	-- body
 	assert(v)
+	self.__ecol_updated["g_csv_id"] = self.__ecol_updated["g_csv_id"] + 1
+	if self.__ecol_updated["g_csv_id"] == 1 then
+		self.__col_updated = self.__col_updated + 1
+	end
 	self.__fields.g_csv_id = v
 end
 
@@ -72,6 +63,10 @@ end
 function cls:set_csv_id(v, ... )
 	-- body
 	assert(v)
+	self.__ecol_updated["csv_id"] = self.__ecol_updated["csv_id"] + 1
+	if self.__ecol_updated["csv_id"] == 1 then
+		self.__col_updated = self.__col_updated + 1
+	end
 	self.__fields.csv_id = v
 end
 
@@ -83,6 +78,10 @@ end
 function cls:set_name(v, ... )
 	-- body
 	assert(v)
+	self.__ecol_updated["name"] = self.__ecol_updated["name"] + 1
+	if self.__ecol_updated["name"] == 1 then
+		self.__col_updated = self.__col_updated + 1
+	end
 	self.__fields.name = v
 end
 
@@ -94,6 +93,10 @@ end
 function cls:set_star(v, ... )
 	-- body
 	assert(v)
+	self.__ecol_updated["star"] = self.__ecol_updated["star"] + 1
+	if self.__ecol_updated["star"] == 1 then
+		self.__col_updated = self.__col_updated + 1
+	end
 	self.__fields.star = v
 end
 
@@ -105,6 +108,10 @@ end
 function cls:set_us_prop_csv_id(v, ... )
 	-- body
 	assert(v)
+	self.__ecol_updated["us_prop_csv_id"] = self.__ecol_updated["us_prop_csv_id"] + 1
+	if self.__ecol_updated["us_prop_csv_id"] == 1 then
+		self.__col_updated = self.__col_updated + 1
+	end
 	self.__fields.us_prop_csv_id = v
 end
 
@@ -116,6 +123,10 @@ end
 function cls:set_us_prop_num(v, ... )
 	-- body
 	assert(v)
+	self.__ecol_updated["us_prop_num"] = self.__ecol_updated["us_prop_num"] + 1
+	if self.__ecol_updated["us_prop_num"] == 1 then
+		self.__col_updated = self.__col_updated + 1
+	end
 	self.__fields.us_prop_num = v
 end
 
@@ -127,6 +138,10 @@ end
 function cls:set_sharp(v, ... )
 	-- body
 	assert(v)
+	self.__ecol_updated["sharp"] = self.__ecol_updated["sharp"] + 1
+	if self.__ecol_updated["sharp"] == 1 then
+		self.__col_updated = self.__col_updated + 1
+	end
 	self.__fields.sharp = v
 end
 
@@ -138,6 +153,10 @@ end
 function cls:set_skill_csv_id(v, ... )
 	-- body
 	assert(v)
+	self.__ecol_updated["skill_csv_id"] = self.__ecol_updated["skill_csv_id"] + 1
+	if self.__ecol_updated["skill_csv_id"] == 1 then
+		self.__col_updated = self.__col_updated + 1
+	end
 	self.__fields.skill_csv_id = v
 end
 
@@ -149,6 +168,10 @@ end
 function cls:set_gather_buffer_id(v, ... )
 	-- body
 	assert(v)
+	self.__ecol_updated["gather_buffer_id"] = self.__ecol_updated["gather_buffer_id"] + 1
+	if self.__ecol_updated["gather_buffer_id"] == 1 then
+		self.__col_updated = self.__col_updated + 1
+	end
 	self.__fields.gather_buffer_id = v
 end
 
@@ -160,6 +183,10 @@ end
 function cls:set_battle_buffer_id(v, ... )
 	-- body
 	assert(v)
+	self.__ecol_updated["battle_buffer_id"] = self.__ecol_updated["battle_buffer_id"] + 1
+	if self.__ecol_updated["battle_buffer_id"] == 1 then
+		self.__col_updated = self.__col_updated + 1
+	end
 	self.__fields.battle_buffer_id = v
 end
 

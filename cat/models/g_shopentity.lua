@@ -14,41 +14,47 @@ function cls:ctor(mgr, P, ... )
 	self.__stm   = mgr.__stm
 	self.__col_updated=0
 	self.__fields = {
-			id = 0,
+			csv_id = 0,
 			type = 0,
 			num = 0,
 			group_id = 0,
-			csv_id = 0,
 		}
 
 	self.__ecol_updated = {
-			id = 0,
+			csv_id = 0,
 			type = 0,
 			num = 0,
 			group_id = 0,
-			csv_id = 0,
 		}
 
 	for k,v in pairs(self.__head) do
-		self.__fields[k] = assert(P[k])
+		self.__fields[k] = assert(P[k], string.format("no exist %s", k))
 	end
 	return self
 end
 
-function cls:set_id(v, ... )
+function cls:set_csv_id(v, ... )
 	-- body
 	assert(v)
-	self.__fields.id = v
+	self.__ecol_updated["csv_id"] = self.__ecol_updated["csv_id"] + 1
+	if self.__ecol_updated["csv_id"] == 1 then
+		self.__col_updated = self.__col_updated + 1
+	end
+	self.__fields.csv_id = v
 end
 
-function cls:get_id( ... )
+function cls:get_csv_id( ... )
 	-- body
-	return self.__fields.id
+	return self.__fields.csv_id
 end
 
 function cls:set_type(v, ... )
 	-- body
 	assert(v)
+	self.__ecol_updated["type"] = self.__ecol_updated["type"] + 1
+	if self.__ecol_updated["type"] == 1 then
+		self.__col_updated = self.__col_updated + 1
+	end
 	self.__fields.type = v
 end
 
@@ -60,6 +66,10 @@ end
 function cls:set_num(v, ... )
 	-- body
 	assert(v)
+	self.__ecol_updated["num"] = self.__ecol_updated["num"] + 1
+	if self.__ecol_updated["num"] == 1 then
+		self.__col_updated = self.__col_updated + 1
+	end
 	self.__fields.num = v
 end
 
@@ -71,23 +81,16 @@ end
 function cls:set_group_id(v, ... )
 	-- body
 	assert(v)
+	self.__ecol_updated["group_id"] = self.__ecol_updated["group_id"] + 1
+	if self.__ecol_updated["group_id"] == 1 then
+		self.__col_updated = self.__col_updated + 1
+	end
 	self.__fields.group_id = v
 end
 
 function cls:get_group_id( ... )
 	-- body
 	return self.__fields.group_id
-end
-
-function cls:set_csv_id(v, ... )
-	-- body
-	assert(v)
-	self.__fields.csv_id = v
-end
-
-function cls:get_csv_id( ... )
-	-- body
-	return self.__fields.csv_id
 end
 
 
