@@ -79,7 +79,7 @@ function CMD.agent_get_public_email(source, ucsv_id , pemail_csv_id , signup_tim
 				break
 			end 
 		else 	
-			print("sdfsdfsdfsdfffffffffffffffff", t.csv_id, pemail_csv_id)
+			print("sdfsdfsdfsdfffffffffffffffff", t.csv_id, pemail_csv_id, totalemail[i])
 			if t.csv_id > pemail_csv_id then
 				t.pemail_csv_id = t.csv_id -- record public email id
 	 			t.csv_id = skynet.call( ".game" , "lua" , "u_guid" , ucsv_id , const.UEMAILENTROPY )
@@ -143,7 +143,8 @@ function CMD.send_public_email_to_all(source, tvals )
 	tvals.csv_id = skynet.call( ".game" , "lua" , "guid" , const.PUBLIC_EMAILENTROPY )
 	print("tvals.csv_id is ******************************" , tvals.csv_id)
 	assert(tvals.csv_id)
-		
+
+	table.insert(totalemail, tvals.csv_id)
 	channel:publish( "email" , tvals )
 	
 	tvals = public_emailmgr:create( tvals )
@@ -232,8 +233,8 @@ function CMD.send_email_to_group(source, tval , tucsv_id )
 		assert(v.uid)
 		tval.csv_id = skynet.call(".game", "lua" , "u_guid" , v.uid, const.UEMAILENTROPY )
 		tval.uid = v.uid
-		tval.id = genpk_2(tval.uid, tval.csv_id)
-		print("********************************eamil", tval.csv_id)
+		tval.id = genpk_2(tval.uid, genpk_3(1, tval.csv_id))
+		print("********************************eamil", tval.csv_id, tval.id)
 		local t = dc.get( v.uid )
 		--[[ id user online then send directly , else insert into db --]]
 		if t then 
