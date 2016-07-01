@@ -242,6 +242,7 @@ end
 function cls.create(t, p, ...)
 	-- body
 	return t:create_entity(p)
+
 end 
 	
 function cls.create_entity(t, p)
