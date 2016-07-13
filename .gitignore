@@ -1,7 +1,7 @@
 # Compiled Object files
 *.slo
-*.lo
-*.o
+*.l
+.o
 *.obj
 
 # Precompiled Headers
@@ -32,3 +32,5 @@
 
 # folder
 /cat/cat.sql
+
+*.rdb

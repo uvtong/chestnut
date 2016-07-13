@@ -4,8 +4,8 @@ local sprotoloader = require "sprotoloader"
 local assert = assert
 
 skynet.start(function()
-	local log = skynet.uniqueservice("log")
-	skynet.call(log, "lua", "start")
+	local logger = skynet.uniqueservice("log")
+	skynet.call(logger, "lua", "start")
 
 	skynet.uniqueservice("protoloader")
 	local console = skynet.newservice("console")
@@ -114,6 +114,5 @@ skynet.start(function()
 		})
 	end
 	
-	LOG_INFO("#########################################123654")
 	skynet.exit()
 end)

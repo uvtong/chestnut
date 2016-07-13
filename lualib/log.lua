@@ -1,46 +1,51 @@
 local skynet = require "skynet"
+local logger = skynet.uniqueservice("log")
 
-function LOG_DEBUG(fmt, ...)
+local _M = {}
+
+function _M.DEBUG(fmt, ...)
 	local msg = string.format(fmt, ...)
 	local info = debug.getinfo(2)
 	if info then
 		msg = string.format("[%s:%d] %s", info.short_src, info.currentline, msg)
 	end
-	skynet.send("log", "lua", "debug", SERVICE_NAME, msg)
+	skynet.send(logger, "lua", "debug", SERVICE_NAME, msg)
 end
 
-function LOG_INFO(fmt, ...)
+function _M.INFO(fmt, ...)
 	local msg = string.format(fmt, ...)
 	local info = debug.getinfo(2)
 	if info then
 		msg = string.format("[%s:%d] %s", info.short_src, info.currentline, msg)
 	end
-	skynet.send("log", "lua", "info", SERVICE_NAME, msg)
+	skynet.send(logger, "lua", "info", SERVICE_NAME, msg)
 end
 
-function LOG_WARN(fmt, ...)
+function _M.WARN(fmt, ...)
 	local msg = string.format(fmt, ...)
 	local info = debug.getinfo(2)
 	if info then
 		msg = string.format("[%s:%d] %s", info.short_src, info.currentline, msg)
 	end
-	skynet.send("log", "lua", "warning", SERVICE_NAME, msg)
+	skynet.send(logger, "lua", "warning", SERVICE_NAME, msg)
 end
 
-function LOG_ERROR(fmt, ...)
+function _M.ERROR(fmt, ...)
 	local msg = string.format(fmt, ...)
 	local info = debug.getinfo(2)
 	if info then
 		msg = string.format("[%s:%d] %s", info.short_src, info.currentline, msg)
 	end
-	skynet.send("log", "lua", "error", SERVICE_NAME, msg)
+	skynet.send(logger, "lua", "error", SERVICE_NAME, msg)
 end
 
-function LOG_FATAL(fmt, ...)
+function _M.FATAL(fmt, ...)
 	local msg = string.format(fmt, ...)
 	local info = debug.getinfo(2)
 	if info then
 		msg = string.format("[%s:%d] %s", info.short_src, info.currentline, msg)
 	end
-	skynet.send("log", "lua", "fatal", SERVICE_NAME, msg)
+	skynet.send(logger, "lua", "fatal", SERVICE_NAME, msg)
 end
+
+return _M

@@ -1,7 +1,27 @@
 local skynet = require "skynet"
-local mc = require ""
+local mc = require "multicast"
+local host = skynet.uniqueservice("codweb")
+local assert = assert
 
-local START_SUBSCRIBE = {}
+
+local EM = {}
+local ME = {}
+
+function ME.onFinish(func, ... )
+	-- body
+	if type(func) == "function" then
+		EM.finish = func
+	else
+		assert(false)
+	end
+end
+
+local CMD = {}
+
+function CMD.finish(source, ... )
+	-- body
+	EM.finish(source, ...)
+end
 
 function START_SUBSCRIBE:finish(source, ...)
 	-- body

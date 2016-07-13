@@ -9,6 +9,7 @@ local dc = require "datacenter"
 local util = require "util"
 local const = require "const"
 local context = require "context"
+local log = require "log"
 
 local env       = {}
 local CMD       = {}
@@ -33,90 +34,11 @@ local function subscribe()
 	c2:subscribe()
 end
 
-local function request(name, args, response)
-	skynet.error(string.format("line request: %s", name))
-    local f = REQUEST[name]
-    local ok, result = pcall(f, env, args)
-    if ok then
-    	return response(result)
-    else
-    	skynet.error(result)
-    	local ret = {}
-    	ret.errorcode = errorcode.FAIL
-    	return response(ret)
-    end
-end      
-
-function RESPONSE:finish_achi( ... )
+function REQUEST.logout( ... )
 	-- body
-	assert(self.errorcode == 1)
-	skynet.error(self.msg)
 end
 
-local function response(session, args)
-	-- body
-	skynet.error(string.format("response: %s", name))
-    local f = RESPONSE[name]
-    local ok, result = pcall(f, env, args)
-    if ok then
-    else
-    	skynet.error(result)
-    end
-end
-
-skynet.register_protocol {
-	name = "client",
-	id = skynet.PTYPE_CLIENT,
-	unpack = function (msg, sz)
-		if sz > 0 then
-			return host:dispatch(msg, sz)
-		else 
-			assert(false)
-		end
-	end,
-	dispatch = function (session, source, type, ...)
-		if env.rdtroom then
-			skynet.redirect(env.room, skynet.self(), id, session, type, ...)
-		else
-			if type == "REQUEST" then
-				local ok, result  = pcall(request, ...)
-				if ok then
-					if result then
-						skynet.retpack(result)
-					end
-				else
-					skynet.error(result)
-				end
-			elseif type == "RESPONSE" then
-				pcall(response, ...)
-			else
-				assert(false, result)
-			end
-		end
-	end
-}	
-
-function CMD:enter_room(source, room)
-	-- body
-	self.room = room
-	self.rdtroom = true
-	-- skynet.
-	-- for k,v in pairs(t) do
-	-- 	assert(room[k] == nil)
-	-- 	room[k] = v
-	-- 	send_package(send_request(2, { user_id=tonumber(k), name="hello" })) 
-	-- end
-end
-
-function CMD.newemail(source, subcmd , ... )
-	local f = assert( new_emailrequest[ subcmd ] )
-	f( new_emailrequest , ... )
-end
-
-function CMD.signup(source, uid, sid, sct, g, d)
-end
-
-function CMD.login(source, uid, sid, secret, g, d)
+function REQUEST.login(source, uid, sid, secret, g, d)
 	-- body
 	skynet.error(string.format("%s is login", uid))
 	gate = source
@@ -182,12 +104,89 @@ function CMD.login(source, uid, sid, secret, g, d)
 	return true, send_request("login", ret)
 end
 
-local function logout()
+local function request(name, args, response)
+	skynet.error(string.format("line request: %s", name))
+    local f = REQUEST[name]
+    local ok, result = pcall(f, env, args)
+    if ok then
+    	return response(result)
+    else
+    	skynet.error(result)
+    	local ret = {}
+    	ret.errorcode = errorcode.FAIL
+    	return response(ret)
+    end
+end      
+
+function RESPONSE:finish_achi( ... )
 	-- body
-	if gate then
-		skynet.call(gate, "lua", "logout", userid, subid)
+	assert(self.errorcode == 1)
+	skynet.error(self.msg)
+end
+
+local function response(session, args)
+	-- body
+	skynet.error(string.format("response: %s", name))
+    local f = RESPONSE[name]
+    local ok, result = pcall(f, env, args)
+    if ok then
+    else
+    	skynet.error(result)
+    end
+end
+
+local function send_package(pack)
+	local package = string.pack(">s2", pack)
+	socket.write(client_fd, package)
+end
+
+skynet.register_protocol {
+	name = "client",
+	id = skynet.PTYPE_CLIENT,
+	unpack = function (msg, sz)
+		if sz > 0 then
+			return host:dispatch(msg, sz)
+		else 
+			assert(false)
+		end
+	end,
+	dispatch = function (session, source, type, ...)
+		if env.rdtroom then
+			skynet.redirect(env.room, skynet.self(), id, session, type, ...)
+		else
+			if type == "REQUEST" then
+				local ok, result  = pcall(request, ...)
+				if ok then
+					if result then
+						send_package(result)
+					end
+				else
+					skynet.error(result)
+				end
+			elseif type == "RESPONSE" then
+				pcall(response, ...)
+			else
+				assert(false, result)
+			end
+		end
 	end
-	skynet.exit()
+}	
+
+function CMD:enter_room(source, room)
+	-- body
+	self.room = room
+	self.rdtroom = true
+	-- skynet.
+	-- for k,v in pairs(t) do
+	-- 	assert(room[k] == nil)
+	-- 	room[k] = v
+	-- 	send_package(send_request(2, { user_id=tonumber(k), name="hello" })) 
+	-- end
+end
+
+function CMD.newemail(source, subcmd , ... )
+	local f = assert( new_emailrequest[ subcmd ] )
+	f( new_emailrequest , ... )
 end
 
 function CMD.logout(source)
@@ -215,15 +214,37 @@ local function start()
 	send_request = host:attach(sprotoloader.load(2))
 end
 
+function CMD.start(conf)
+	local fd = conf.client
+	local gate = conf.gate
+	WATCHDOG = conf.watchdog
+	-- slot 1,2 set at main.lua
+	host = sprotoloader.load(1):host "package"
+	send_request = host:attach(sprotoloader.load(2))
+	skynet.fork(function()
+		while true do
+			send_package(send_request "heartbeat")
+			skynet.sleep(500)
+		end
+	end)
+
+	client_fd = fd
+	skynet.call(gate, "lua", "forward", fd)
+end
+
+function CMD.disconnect()
+	-- todo: do something before exit
+	skynet.exit()
+end
+
 skynet.start(function()
 	skynet.dispatch("lua", function(_, source, command, ...)
 		print("agent is called" , command)
 		local f = CMD[command]
-		local result = f(source, ... )
+		local result = f(env, source, ... )
 		if result then
 			skynet.ret(skynet.pack(result))
 		end
 	end)
 	-- skynet.fork(update_db)
-	start()
 end)

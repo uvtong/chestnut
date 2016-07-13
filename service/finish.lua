@@ -1,5 +1,4 @@
 local skynet = require "skynet"
-require "skynet.manager"
 
 local CMD = {}
 
@@ -18,6 +17,5 @@ skynet.start( function ()
 			skynet.ret(skynet.pack(r))
 		end
 	end)
-	skynet.send(".start_service", "lua", "finish")
-	skynet.register ".finish_service"
+	skynet.send(".CODWEB", "lua", "finish")
 end)

@@ -1,19 +1,26 @@
-package.path = "../cat/?.lua;../lualib/?.lua;" .. package.path
-package.cpath = "../lua-cjson/?.so;"..package.cpath
 local skynet = require "skynet"
-local queue = require "queue"
+require "skynet.manger"
 
-local agent_len = tonumber(skynet.getenv("maxclient")) or 24
-local agent_map = queue.new(agent_len)
+local gate
+local leisure_agent = {}
+
+local uid_agent = {}
+local agent_uid = {}
+local uid_fd = {}
+local fd_uid = {}
 
 local CMD = {}
 
-function CMD.next()
+function CMD.enter(uid, fd)
 	-- body
-	if queue.is_empty(agent_map) then
-		error "agent is empty."
+	if #leisure_agent == 0 then
+		local a = skynet.newservice("agent")
+		skynet.call(a, "lua", "start", { agent_mgr = skynet.self(), uid = uid, client = fd})
+	else
+		local r = math.random(1, #leisure_agent)
+		local a = leisure_agent[r]
+		skynet.call(a, "lua", "start", { agent_mgr = skynet.self(), uid = uid, client = fd})
 	end
-	return queue.dequeue(agent_map)
 end
 
 function CMD.abandon(addr)

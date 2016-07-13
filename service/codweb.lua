@@ -2,12 +2,12 @@ local skynet = require "skynet"
 require "skynet.manager"
 local mc = require "multicast"
 
-local tally = 0
+local total = 0
 local decrease = 0
 local channel
 local CMD = {}
 
-function CMD.register(source)
+function CMD.post(source)
 	-- body
 	print("**************************acb", tally)
 	tally = tally + 1
@@ -42,5 +42,5 @@ skynet.start( function ()
 		end
 	end)
 	channel = mc.new()
-	skynet.register ".start_service"
+	skynet.register ".CODWEB"
 end)
