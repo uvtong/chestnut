@@ -1,35 +1,38 @@
 local skynet = require "skynet"
-local queue = require "queue"
+require "skynet.manager"
+local loader = require "loader"
 
-local q = queue.new()
-
-local internal_id = 1
-local rooms = {}
+local game 
+local D = {}
 
 local CMD = {}
 
-function CMD.register(src)
+function CMD.enter_room(t)
 	-- body
-	rooms[internal_id] = src
-	internal_id = internal_id + 1
-	return internal_id
+	local room = game.g_roommgr:get_next()
+	assert(#room.__data < 3)  
+	local m = { user_id = t.user_id, addr = t.addr, room_id = room.csv_id}
+	D[t.user_id] = m
+	room:add(m)
+	if #room.__data == 1 then
+		return {}
+	else #room.__data == 2 then
+		skynet.send(room.__data[1].addr, "lua", "enter_room", { right = room.__data[2])
+		return { left = room.__data[1]}
+	else #room.__data == 3 then
+		skynet.send(room.__data[1].addr, "lua", "enter_room", { left = room.__data[3])
+		skynet.send(room.__data[2].addr, "lua", "enter_room", { right = room.__data[3])
+		return { left = room.__data[2], right = room.__data[1]}
+	else
+		assert(false)
+	end
 end
 
-function CMD.enqueue(src)
-	-- body
-	queue.enqueue(q, src)
-	
-end
-
-skynet.start(function ()
-	-- body
-	skynet.dispatch("lua", function(_, source, command, ...)
-		print("agent is called" , command)
+skynet.start(function()
+	skynet.dispatch("lua", function(_,_, command, ...)
 		local f = CMD[command]
-		local result = f(source, ... )
-		if result then
-			skynet.ret(skynet.pack(result))
-		end
+		skynet.ret(skynet.pack(f(...)))
 	end)
-
+	skynet.register ".scene"
+	game = loader.load_game()
 end)
