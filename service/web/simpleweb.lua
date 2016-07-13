@@ -7,6 +7,7 @@ local sockethelper = require "http.sockethelper"
 local urllib = require "http.url"
 local urls = require "urls"
 local json = require "cjson"
+local log = require "log"
 local table = table
 local string = string
 local static_cache = {}
@@ -125,7 +126,7 @@ local function route( id, code, url, method, header, body )
 				local fpath = "../../service/web/statics" .. path
 				local fd = io.open(fpath, "r")
 				if fd == nil then
-					skynet.error(string.format("fpath is wrong, %s", fpath))
+					log.error(string.format("fpath is wrong, %s", fpath))
 				else
 					local ret = fd:read("*a")
 					fd:close()
@@ -149,9 +150,7 @@ local function route( id, code, url, method, header, body )
 				end
 			end
 			if not bodyfunc then
-				print(path)
-				error "123"
-				skynet.error("no matching url.")
+				log.error("no matching url")
 				bodyfunc = "404"
 				statuscode = 301
 				headerd["Location"] = "/404"
