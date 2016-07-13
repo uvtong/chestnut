@@ -74,6 +74,7 @@ var JQueryMobileButtonSubmit = React.createClass({
 		return React.DOM.input(this.props, this.props.children)
 	}
 });
+
 JQueryMobileButtonSubmit = React.createFactory(JQueryMobileButtonSubmit)
 
 /** jQuery Mobile button component. */

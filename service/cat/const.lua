@@ -34,6 +34,9 @@ const.LILIAN_SUB = 10
 const.LILIAN_QG_NUM = 11
 const.LILIAN_MAIN = 12
 const.LILIAN_PHY_POWER = 13
+const.KUNGFU = 14
+const.FRIENDMSG = 15
+const.FRIEND = 16
 
 const.DB_PRIORITY_1 = 1
 const.DB_PRIORITY_2 = 2

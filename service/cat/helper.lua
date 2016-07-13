@@ -92,6 +92,17 @@ function cls:lilian_main_get_by_quanguan_id(quanguan_id)
 	return nil
 end 
 	
+function cls:lilian_main_delete_by_id(id)
+	assert(id)
+
+	local modelmgr = self._env:get_modelmgr()
+	assert(modelmgr)
+	local e = modelmgr:get_u_lilian_mainmgr()
+	assert(e)
+
+	e:delete(id)
+end 
+		
 function cls:lilian_qg_num_get_by_quanguan_id(quanguan_id)
 	assert(quanguan_id)
 
@@ -109,6 +120,7 @@ function cls:lilian_qg_num_get_by_quanguan_id(quanguan_id)
 	return nil
 end 
 
+
 function cls:lilian_phy_power_get_one()
 	local modelmgr = self._env:get_modelmgr()
 	assert(modelmgr)
@@ -120,8 +132,8 @@ function cls:lilian_phy_power_get_one()
 	end
 
 	return nil
-end
-		
+end 
+	
 function cls:lilian_phy_power_clear()
 	local modelmgr = self._env:get_modelmgr()
 	assert(modelmgr)
@@ -129,7 +141,24 @@ function cls:lilian_phy_power_clear()
 	assert(e)
 
 	e:clear()
-end
+end 
+	
+function cls:kungfu_get_by_csv_id(csv_id)
+	assert(csv_id)
 
+	local modelmgr = self._env:get_modelmgr()
+	assert(modelmgr)
+	local e = modelmgr:get_u_kungfumgr()
+	assert(e)
+
+	for k, v in pairs(e.__data) do
+		if csv_id == v:get_field("csv_id") then
+			return v
+		end
+	end
+
+	return nil
+end 
+	
 return cls
 		

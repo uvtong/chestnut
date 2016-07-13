@@ -380,7 +380,7 @@ function friendmgr:apply_friendlist()
    				assert( t )
    				tmp.combat = t[ 1 ]
    			end
-
+   			
    			tmp.receive = receive
    			--print( v.recvtime , v.sendtime , settime , v.heartamount)
    			

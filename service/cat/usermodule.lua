@@ -137,7 +137,6 @@ function cls:user(args, ... )
 		item.value4 = 0
 		item.property_id5 = 0
 		item.value5 = 0
-
 		table.insert(ret.user.rolelist, item)
 	end
 	local _1 = {}

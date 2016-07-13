@@ -146,5 +146,5 @@ skynet.start(function ()
 		ranking_name[ranking] = v:get_field("uid")
 		top = top + 1
 	end
-	skynet.fork(update_db)
+	-- skynet.fork(update_db)
 end)

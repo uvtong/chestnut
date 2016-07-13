@@ -78,7 +78,7 @@ LUA_QUEUE := $(LUA_CLIB_PATH)/queue.so
 $(LUA_QUEUE): $(CLIB_SRC_PATH)/lua-queue.c
 	$(CC) $(CFLAGS) $(SHARED) -I$(LUA_PATH) $^ -o $@
 
-all: $(LUA_STATICLIB) $(CRAB) $(LSOCKET) $(LUA_CJSON) $(LUA_SNAPSHOT) $(LUA_SOCKET) $(LUA_ZSET) $(LOG) $(CATLOGGER)
+all: $(LUA_STATICLIB) $(LUA_CJSON) $(LOG) $(CATLOGGER)
 
 .PHONY: update3rd clean cleanall
 

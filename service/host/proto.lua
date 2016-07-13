@@ -286,16 +286,14 @@ role_info 2 {
     }
     response {
         errorcode 0 : integer
-        msg 1 : string
-        r 2 : role
+        r 1 : role
     }
 }
 
 mails 3 {
     response {
-        errorcode 0 : integer
-	   msg 1 : string 
-	   mail_list 2 : *mail	
+       	errorcode 0 : integer
+	   	mail_list 1 : *mail	
     }
 }
 
@@ -306,7 +304,6 @@ signup 4 {
 	}
     response {
         errorcode 0 : integer
-        msg 1 : string
     }
 }
 
@@ -317,8 +314,7 @@ login 5 {
     }
     response {
         errorcode 0 : integer
-        msg 1 : string
-        u 2 : user
+        u 1 : user
     }
 }
 
@@ -328,8 +324,7 @@ role_upgrade_star 6 {
     }
 	response {
 		errorcode 0 :integer
-		msg 1 : string
-        r 2 : role
+        r 1 : role
 	}
 }
 
@@ -339,7 +334,6 @@ choose_role 7 {
     }
     response {
         errorcode 0 : integer
-        msg 1 : string
     }
 }
 
@@ -349,8 +343,7 @@ wake 8 {
     }
     response {
         errorcode 0 :integer
-        msg 1 : string
-        r 2 : role
+        r 1 : role
     }
 }
 
@@ -367,17 +360,15 @@ use_prop 10 {
     }
     response {
         errorcode 0 : integer
-        msg 1 : string
-        r 2 : role
-        props 3 : *prop
+        r 1 : role
+        props 2 : *prop
     }
 }
 
 achievement 11 {
     response {
         errorcode 0 : integer
-        msg 1 : string  
-        achis 2 : *achi
+        achis 1 : *achi
     }
 } 	 
 
@@ -387,7 +378,6 @@ mail_read 12 {
     }
     response {
         errorcode 0 : integer
-        msg 1 : string
     }
 }
 
@@ -397,7 +387,6 @@ mail_delete 13 {
 	}
     response {
         errorcode 0 : integer
-        msg 1 : string
     }
 }
 
@@ -408,35 +397,28 @@ mail_getreward 14 {
 	}
     response {
         errorcode 0 : integer
-        msg 1 : string
     }
 } 
 
 friend_list 15 {
 	response {
-		ok 0 : boolean
-		errorcode 1 : integer
-		msg 2 : string
-		friendlist  3 : *subuser
-        today_left_heart 4 : integer
+		errorcode 0 : integer
+		friendlist  1 : *subuser
+        today_left_heart 2 : integer
 	}
 }
 
 applied_list 16 {
 	response {
-		ok 0 : boolean
-		errorcode 1 : integer
-		msg 2 : string
-		friendlist  3 : *subuser
+		errorcode 0 : integer
+		friendlist  1 : *subuser
 	}
 }
 
 otherfriend_list  17 {
 	response {
-		ok 0 : boolean
-		errorcode 1 : integer
-		msg 2 : string
-		friendlist  3 : *subuser
+		errorcode 0 : integer
+		friendlist  1 : *subuser
 	}
 }
 
@@ -445,10 +427,8 @@ findfriend 18 {
 		id 0 : integer
 	}
 	response {
-		ok 0 : boolean
-		errorcode 1 : integer
-		msg 2 : string
-		friend 3 : *subuser
+		errorcode 0 : integer
+		friend 1 : *subuser
 	}
 }
 
@@ -478,7 +458,6 @@ deletefriend 22 {
     }
     response {
         errorcode 0 : integer
-        msg 1 : string
     }
 }	 
 	
@@ -489,7 +468,6 @@ recvheart 23 {
     }   
     response {
         errorcode 0 : integer
-        msg 1 : string
     } 
 }		
 		
@@ -507,7 +485,6 @@ sendheart 24 {
 user_can_modify_name 25 {
     response {
         errorcode 0 : integer
-        msg 1 : string
     }
 }
 
@@ -517,34 +494,30 @@ user_modify_name 26 {
     }   
     response {
         errorcode 0 : integer
-        msg 1 : string
     }
 }
 
 user_upgrade 27 {
     response {
         errorcode 0 : integer
-        msg 1 : string
     }
 }
 
 user 28 {
     response {
         errorcode 0 : integer
-        msg 1 : string
-        user 2 : user
-        ara_leaderboards 3 : *suser
-        ara_rmd_list 4 : *suser
+        user 1 : user
+        ara_leaderboards 2 : *suser
+        ara_rmd_list 3 : *suser
     }
 }
 
 shop_all 29 {
     response {
         errorcode 0 : integer
-        msg 1 : string
-        l 2 : *goods
-        goods_refresh_count 3 : integer
-        store_refresh_count_max 4 : integer
+        l 1 : *goods
+        goods_refresh_count 2 : integer
+        store_refresh_count_max 3 : integer
     }
 }
 
@@ -554,11 +527,10 @@ shop_purchase 30 {
     }
     response {
         errorcode 0 : integer
-        msg 1 : string
-        l 2 : *prop
-        ll 3 : *goods
-        goods_refresh_count 4 : integer
-        store_refresh_count_max 5 : integer
+        l 1 : *prop
+        ll 2 : *goods
+        goods_refresh_count 3 : integer
+        store_refresh_count_max 4 : integer
     }
 }
 
@@ -568,10 +540,9 @@ shop_refresh 31 {
     }
     response {
         errorcode 0 : integer
-        msg 1 : string
-        l 2 : *goods
-        goods_refresh_count 3 : integer
-        store_refresh_count_max 4 : integer
+        l 1 : *goods
+        goods_refresh_count 2 : integer
+        store_refresh_count_max 3 : integer
     }
 }
 
@@ -581,23 +552,20 @@ raffle 32 {
     }
     response {
         errorcode 0 : integer
-        msg 1 : string
-        l 2 : *prop
+        l 1 : *prop
     }
 }
 
 logout 33 {
     response {
         errorcode 0 : integer
-        msg 1 : string
     }
 }
 
 recharge_all 34 {
     response {
         errorcode 0 : integer
-        msg 1 : string
-        l 2 : *recharge_item
+        l 1 : *recharge_item
     }
 }
 
@@ -607,8 +575,7 @@ recharge_purchase 35 {
     }
     response {
         errorcode 0 : integer
-        msg 1 : string
-        u 2 : user
+        u 1 : user
     }
 }
 
@@ -631,9 +598,8 @@ applydraw 39 {
     }
     response {
         errorcode 0 : integer
-        msg 1 : string
-        list 2 : *drawrewardlist
-        lefttime 3 : integer
+        list 1 : *drawrewardlist
+        lefttime 2 : integer
     }
 }
  
@@ -643,16 +609,14 @@ achievement_reward_collect 40 {
     }
     response {
         errorcode 0 : integer
-        msg 1 : string
-        next 2 : achi
+        next 1 : achi
     }
 }
 
 recharge_vip_reward_all 41 {
     response {
         errorcode 0 : integer
-        msg 1 : string
-        reward 2 : *recharge_vip_reward
+        reward 1 : *recharge_vip_reward
     }
 }
 
@@ -662,9 +626,8 @@ recharge_vip_reward_collect 42 {
     }
     response {
         errorcode 0 : integer
-        msg 1 : string
-        vip 2 : integer
-        collected 3 : boolean
+        vip 1 : integer
+        collected 2 : boolean
     }
 }
 
@@ -677,11 +640,9 @@ checkin 43 {
     }
 }
 
-checkin_aday 44
-{
+checkin_aday 44 {
     response {
         errorcode 0 : integer
-        msg 1 : string  
     }
 }
  
@@ -713,8 +674,7 @@ exercise_once 47 {
     }
     response {
         errorcode 0 : integer
-        msg 1 : string
-        lefttime 2 : integer
+        lefttime 1 : integer
     }
 }
  
@@ -1166,7 +1126,6 @@ GuanQiaBattleList 86 {
     }
     response {
         errorcode 0 : integer
-        msg 1 : string
     }
 }
 
@@ -1176,7 +1135,6 @@ ara_convert_pts 87 {
     }
     response {
         errorcode 0 : integer
-        msg 1 : string
     }
 }
 
@@ -1188,7 +1146,6 @@ enter_room 88 {
     }
     response {
         errorcode 0 : integer
-        msg 1 : string
     }
 }
 
@@ -1198,12 +1155,11 @@ ready 89 {
     }
     response {
         errorcode 0 : integer
-        msg 1 : string
-        user_id 2 : integer
-        mcards 3 : *integer
-        rcards 4 : *integer
-        lcards 5 : *integer
-        dcards 6 : *integer
+        user_id 1 : integer
+        mcards 2 : *integer
+        rcards 3 : *integer
+        lcards 4 : *integer
+        dcards 5 : *integer
     }
 }
 
@@ -1213,12 +1169,11 @@ mp 90 {
     }
     response {
         errorcode 0 : integer
-        msg 1 : string
-        m 2 : integer
-        mcards 3 : *integer
-        rcards 4 : *integer
-        lcards 5 : *integer
-        dcards 6 : *integer   
+        m 1 : integer
+        mcards 2 : *integer
+        rcards 3 : *integer
+        lcards 4 : *integer
+        dcards 5 : *integer   
     }
 }
 
@@ -1228,7 +1183,6 @@ am 91 {
     }
     response {
         errorcode 0 : integer
-        msg 1 : string
     }
 }
 
@@ -1238,9 +1192,8 @@ rob 92 {
     }
     response {
         errorcode 0 :integer
-        msg 1 : string
-        your_turn 2 : integer
-        countdown 3 : integer
+        your_turn 1 : integer
+        countdown 2 : integer
     }
 }
 
@@ -1250,21 +1203,19 @@ lead 93 {
     }
     response {
         errorcode 0 : integer
-        msg 1 : string
-        your_turn 2 : integer
-        countdown 3 : integer
-        me 4 : settlement
-        right 5 : settlement
-        left 6 : settlement
+        your_turn 1 : integer
+        countdown 2 : integer
+        me 3 : settlement
+        right 4 : settlement
+        left 5 : settlement
     }
 }
 
 deal_cards 94 {
     response {
         errorcode 0 : integer
-        msg 1 : integer
-        your_turn 2 : integer
-        countdown 3 : integer
+        your_turn 1 : integer
+        countdown 2 : integer
     }
 }
 ]]
