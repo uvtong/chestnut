@@ -1,17 +1,29 @@
 local skynet = require "skynet"
 require "skynet.manager"
-local sprotoloader = require "sprotoloader"
-local assert = assert
 
 skynet.start(function()
 	local logger = skynet.uniqueservice("log")
 	skynet.call(logger, "lua", "start")
-
+	
+	skynet.newservice("codweb")
+	
 	skynet.uniqueservice("protoloader")
+	
 	local console = skynet.newservice("console")
 	-- skynet.newservice("debug_console",8000)
-	skynet.newservice("start")
-
+	
+	-- read
+	local game = skynet.uniqueservice("game")
+	skynet.name(".game", game)
+		
+	local lb = skynet.newservice("leaderboards", "ara_leaderboards")
+	skynet.name(".LB", lb)
+	
+	skynet.newservice("agent_mgr")
+	skynet.newservice("branch")
+	skynet.newservice("channel")
+	
+	
 	local signupd = skynet.getenv("signupd")
 	if signupd  then
 		local conf = {
@@ -23,13 +35,13 @@ skynet.start(function()
 			cache_host = skynet.getenv("cache_host") or "192.168.1.116",
 			cache_port = skynet.getenv("cache_port") or 6379
 		}
-		local db = skynet.newservice("db", "signup_db")
-		assert(skynet.call(db, "lua", "start", conf))
-		skynet.name(".signup_db", db)
-
+		local addr = skynet.newservice("db")
+		assert(skynet.call(addr, "lua", "start", conf))
+		skynet.name(".SIGNUPD_DB", addr)
+		
+		local addr = skynet.newservice("signupd")
 		local signupd_name = skynet.getenv("signupd_name")
-		local signupserver = skynet.newservice("signupserver", db)
-		skynet.name(signupd_name, signupserver)
+		skynet.name(signupd_name, addr)
 	end
 
 	local logind = skynet.getenv("logind")
@@ -44,15 +56,16 @@ skynet.start(function()
 			cache_port = skynet.getenv("cache_port") or 6379
 		}
 
-		local db = skynet.newservice("db", "logind_db")
-		assert(skynet.call(db, "lua", "start", conf))
+		local db = skynet.newservice("db")
 		skynet.name(".logind_db", db)
-
-		local logindata = skynet.newservice("logindata")
-		skynet.name(".logindata", logindata)
+		assert(skynet.call(db, "lua", "start", conf))
+		
+		local addr = skynet.newservice("logind/logindata")
+		skynet.name(".logindata", addr)
+		
 		local logind_name = skynet.getenv("logind_name")
-		local loginserver = skynet.newservice("logind")
-		skynet.name(logind_name, loginserver)
+		local addr = skynet.newservice("logind/logind")
+		skynet.name(logind_name, addr)
 	end     
 
 	local gated = skynet.getenv("gated")
@@ -67,44 +80,17 @@ skynet.start(function()
 			cache_host = skynet.getenv("cache_host") or "192.168.1.116",
 			cache_port = skynet.getenv("cache_port") or 6379
 		}
-
-		local gated_wdb = skynet.getenv("gated_wdb")
-		local wdb = skynet.newservice("db", "db")
+		
+		local addr = skynet.newservice("db")
+		skynet.name(".DB", addr)
 		assert(skynet.call(wdb, "lua", "start", conf))
-		skynet.name(gated_wdb, wdb) -- for forward.
-
-		local gated_rdb = skynet.getenv("gated_rdb")
-		local rdb = skynet.newservice("db", "rdb")
-		assert(skynet.call(rdb, "lua", "start", conf))
-		skynet.name(gated_rdb, rdb)
-
-		-- write
-		-- local wgame = skynet.newservice("wgame", db)
-		-- skynet.name(".wgame", wgame)
-
-		-- skynet.newservice("randomdraw")
-		skynet.newservice("channel")
-
-		-- read
-		local game = skynet.uniqueservice("game")
-		skynet.name(".game", game)
-
-		skynet.newservice("simpledb")
-
-		local leaderboards_name = skynet.getenv("leaderboards_name")
-		local lb = skynet.newservice("leaderboards", "ara_leaderboards")
-		skynet.name(leaderboards_name, lb)
-
-		skynet.newservice("branch")
-
-		local agent_mgr = skynet.newservice("agent_mgr")
-		skynet.name(".agent_mgr", agent_mgr)
+		
 
 		local logind_name = skynet.getenv("logind_name")
 		local server_name = skynet.getenv("gated_name")
 		local max_client = skynet.getenv("maxclient")
 		local address, port = string.match(skynet.getenv("gated"), "([%d.]+)%:(%d+)")
-		local gated = skynet.newservice("gated")
+		local gated = skynet.newservice("gated/gated")
 		skynet.call(gated, "lua", "open", { 
 			address = address or "0.0.0.0",
 			port = port,

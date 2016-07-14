@@ -1,9 +1,8 @@
-package.path = "./../logind/?.lua;"..package.path
+package.path = "./../../service/host/logind/?.lua;"..package.path
+local skynet = require "skynet"
 local login = require "loginserver"
 local crypt = require "crypt"
-local skynet = require "skynet"
-rdb = skynet.localname(".logind_rdb")
-wdb = skynet.localname(".logind_wdb")
+
 
 local address, port = string.match(skynet.getenv("logind"), "([%d.]+)%:(%d+)")
 local server = {

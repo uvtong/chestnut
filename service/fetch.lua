@@ -7,7 +7,6 @@ local CMD = {}
 function CMD.fetch_area_user(user_id)
 	-- body
 	if dc.get(user_id) then
-		
 	else
 	end
 end
