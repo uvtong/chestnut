@@ -1,9 +1,11 @@
 local skynet = require "skynet"
+local cluster = require "cluster"
 local template = require "resty.template"
 local csvreader = require "csvReader"
 local query = require "query"
 local errorcode = require "errorcode"
 local json = require "cjson"
+
 
 template.caching(true)
 template.precompile("index.html")
