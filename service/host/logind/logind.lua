@@ -9,7 +9,7 @@ local server = {
 	host = address or "127.0.0.1",
 	port = tonumber(port) or 8002,
 	multilogin = false,	-- disallow multilogin
-	name = "login_master",
+	name = ".LOGIND",
 	instance = 8,
 }
 
@@ -24,7 +24,7 @@ function server.auth_handler(token)
 	server = crypt.base64decode(server)
 	password = crypt.base64decode(password)
 	-- assert(password == "password", "Invalid password")
-	local ok, uid = skynet.call("signup_master", "lua", "auth", user, password)
+	local ok, uid = skynet.call(".SIGNUPD", "lua", "auth", user, password)
 	if ok then
 		return server, uid
 	else
@@ -44,23 +44,27 @@ function server.login_handler(server, uid, secret)
 	if user_online[uid] then
 		error(string.format("user %s is already online", uid))
 	end
-	print("gameserver is called", gameserver)
-	local subid, gated
-	local r = skynet.call(".logindata", "lua", "get", server, uid)
-	if r == 1 then
-		subid, gated = skynet.call(gameserver, "lua", "login", uid, secret, "login")
-	elseif r == 0 then
-		subid, gated = skynet.call(gameserver, "lua", "login", uid, secret, "signup")
-		skynet.call(".logindata", "lua", "set", server, uid)
-	end
-	user_online[uid] = { address = gameserver, subid = subid , server = server}
+	print("gameserver is called", gameserver.address)
+	-- local subid, gated
+	-- local r = skynet.call(".logindata", "lua", "get", server, uid)
+	-- if r == 1 then
+	-- 	subid, gated = skynet.call(gameserver, "lua", "login", uid, secret, "login")
+	-- elseif r == 0 then
+	-- 	subid, gated = skynet.call(gameserver, "lua", "login", uid, secret, "signup")
+	-- 	skynet.call(".logindata", "lua", "set", server, uid)
+	-- end
+	local subid = skynet.call(".GATED", "lua", "login", uid, secret)
+	user_online[uid] = { address = gameserver.address, subid = subid , server = server}
+	local gated = gameserver.gated
 	return tostring(subid), gated
 end
 
 local CMD = {}
 
-function CMD.register_gate(server, address)
-	server_list[server] = address
+function CMD.register_gate(server, address, gated)
+	server_list[server] = {}
+	server_list[server].address = address
+	server_list[server].gated = gated
 end
 
 function CMD.logout(uid, subid)

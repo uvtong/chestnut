@@ -100,11 +100,15 @@ skynet.register_protocol {
 local user_online = {}
 local handshake   = {}
 local connection  = {}
+local forwarding  = {}	-- agent -> connection
 
-local c2s_req_tag  = 1 << 0
-local c2s_resp_tag = 1 << 1
-local s2c_req_tag  = 1 << 2
-local s2c_resp_tag = 1 << 3
+local function unforward(c)
+	if c.agent then
+		forwarding[c.agent] = nil
+		c.agent = nil
+		c.client = nil
+	end
+end
 
 function server.userid(username)
 	-- base64(uid)@base64(server)#base64(subid)
@@ -144,36 +148,23 @@ function server.ip(username)
 	end
 end
 
-function server.send_request(username, message, session)
+function server.forward(source, fd, client, address, ... )
 	-- body
-	assert(type(username) == "string")
-	assert(type(message) == "string")
-	assert(type(session) == "number")
-	local u = user_online[username]
-	assert(u)
-	assert(connection[u.fd], "invalid fd")
-	local p = u.request[session]
-	if not p then
-		p = { u.fd}
-		u.request[session] = p
-		local size = #message + 4 + 1
-		local package = string.pack(">I2", size)..message..string.pack(">I4", session)..string.pack("B", tag)
-		p[2] = package
-		p[3] = version
-		p[4] = u.request_index
-	else
-		-- has requeset, not response
-		p[1] = u.fd
-		p[3] = version
-		p[4] = u.request_index
-		if p[2] == nil then
-			return 
-		end
+	local c = assert(connection[fd])
+	unforward(c)
+	c.client = client or 0
+	c.agent = address or source
+	forwarding[c.agent] = c
+end
+
+function server.unforward(source, fd)
+	-- body
+	local c = assert(connection[fd])
+	if c.agent then
+		forwarding[c.agent] = nil
+		c.agent = nil
+		c.client = nil
 	end
-	u.request_index = u.request_index + 1
-	if connection[u.fd] then
-		socketdriver.send(p[1], p[2])
-	end	
 end
 
 function server.start(conf)
@@ -186,12 +177,12 @@ function server.start(conf)
 		login = assert(conf.login_handler),
 		logout = assert(conf.logout_handler),
 		kick = assert(conf.kick_handler),
-		send_request_handler = assert(conf.send_request_handler)
+		forward = assert(conf.forward)
 	}
 
 	function handler.command(cmd, source, ...)
 		local f = assert(CMD[cmd])
-		return f(...)
+		return f(source, ...)
 	end
 
 	function handler.open(source, gateconf)
@@ -368,7 +359,7 @@ function server.start(conf)
 
 	local function request(fd, msg, sz)
 		local message = netpack.tostring(msg, sz)
-		local ok, err = pcall(do_request, fd, message)
+		local ok, err = pcall(do_start, fd, message)
 		-- not atomic, may yield
 		if not ok then
 			skynet.error(string.format("Invalid package %s : %s", err, message))
@@ -378,15 +369,22 @@ function server.start(conf)
 		end
 	end
 
+	local function start(fd, msg, sz)
+		local c = connection[fd]
+		local agent = c.agent
+		if agent then
+			skynet.redirect(agent, c.Client, "client", 0, msg, sz)
+		else
+			skynet.send(agent, "lua", "start", fd, netpack.tostring(msg, sz))
+		end
+	end
+
 	function handler.message(fd, msg, sz)
-		print("*******************************1")
 		local addr = handshake[fd]
 		if addr then
-			print("*******************************2")
 			auth(fd,addr,msg,sz)
 			handshake[fd] = nil
 		else
-			print("*******************************3")
 			request(fd, msg, sz)
 		end
 	end

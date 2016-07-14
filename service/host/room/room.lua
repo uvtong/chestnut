@@ -1,4 +1,8 @@
 local skynet = require "skynet"
+local socket = require "socket"
+local sproto = require "sproto"
+local sprotoloader = require "sprotoloader"
+
 local p1 = 0
 local p2 = 1
 local p3 = 1
@@ -67,6 +71,8 @@ local function function_name( ... )
 	front_cards[5 << 4 & 0] = 5 << 4 & 0
 end
 
+local REQUEST   = {}
+
 local CMD = {}
 
 function CMD.enter_room(uid, ... )
@@ -103,6 +109,18 @@ function CMD.lead(uid, ... )
 end
 
 function CMD.deal_cards(uid, ... )
+	-- body
+end
+
+function CMD.start(source, conf, ... )
+	-- body
+	local client = conf.client
+	local gate = conf.gate
+	local last = source
+	local host = 
+end
+
+function CMD.disconnect( ... )
 	-- body
 end
 

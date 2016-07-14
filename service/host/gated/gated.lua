@@ -15,7 +15,7 @@ local internal_id = 0
 
 -- login server disallow multi login, so login_handler never be reentry
 -- call by login server
-function server.login_handler(uid, secret, cmd, ...)
+function server.login_handler(source, uid, secret, ...)
 	if users[uid] then
 		error(string.format("%s is already login", uid))
 	end
@@ -37,9 +37,8 @@ function server.login_handler(uid, secret, cmd, ...)
 	}
 
 	-- trash subid (no used)
-	local ok = skynet.call(agent, "lua", cmd, uid, id, secret, game, db)
+	local ok = skynet.call(agent, "lua", "login", uid, id, secret)
 	assert(ok)
-	print("###############################################2")
 	
 	users[uid] = u
 	username_map[username] = u
@@ -51,7 +50,7 @@ function server.login_handler(uid, secret, cmd, ...)
 end
 
 -- call by agent
-function server.logout_handler(uid, subid)
+function server.logout_handler(source, uid, subid)
 	local u = users[uid]
 	if u then
 		local username = msgserver.username(uid, subid, servername)
@@ -64,7 +63,7 @@ function server.logout_handler(uid, subid)
 end
 
 -- call by login server
-function server.kick_handler(uid, subid)
+function server.kick_handler(source, uid, subid)
 	local u = users[uid]
 	if u then
 		local username = msgserver.username(uid, subid, servername)
@@ -72,6 +71,18 @@ function server.kick_handler(uid, subid)
 		-- NOTICE: logout may call skynet.exit, so you should use pcall.
 		pcall(skynet.call, u.agent, "lua", "logout")
 	end
+end
+
+-- call by agent
+function server.forward(source, ... )
+	-- body
+end
+
+-- call by agent
+
+function server.unforward(source, ... )
+	-- body
+	msgserver.unforward
 end
 
 -- call by self (when socket disconnect)
@@ -93,26 +104,6 @@ function server.register_handler(name)
 	print("***************register_handler")
 	servername = name
 	skynet.call(loginservice, "lua", "register_gate", servername, skynet.self())
-end
-
-function server.send_request_handler(uid, subid, message)
-	-- body
-	local u = users[uid]
-	assert(u.subid == subid)
-	if u then
-		local username = msgserver.username(uid, id, servername)
-		assert(u.username == username)
-		local ok, result = pcall(msgserver.send_request, u.username, message)
-		if not ok then
-			skynet.error(result)
-		end
-	end
-end
-
-function server.response_handler(username, msg)
-	-- body
-	local u = username_map[username]
-	skynet.send(u.agent, "client", msg)
 end
 
 msgserver.start(server)

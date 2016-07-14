@@ -189,31 +189,26 @@ function CMD.newemail(source, subcmd , ... )
 	f( new_emailrequest , ... )
 end
 
+-- login
+function CMD.login(source, uid, subid, secret,... )
+	-- body
+	self:login(uid, subid, secret)
+end
+
+-- prohibit mult landing
 function CMD.logout(source)
 	-- body
 	skynet.error(string.format("%s is logout", userid))
 	logout()
 end
 
+-- others serverce disconnect
 function CMD.afk(source)
 	-- body
 	skynet.error(string.format("AFK"))
 end
 
-local function update_db()
-	-- body
-	while true do
-		flush_db(const.DB_PRIORITY_3)
-		skynet.sleep(100 * 60) -- 1ti == 0.01s
-	end
-end
-
-local function start()
-	-- body
-	host = sprotoloader.load(1):host "package"
-	send_request = host:attach(sprotoloader.load(2))
-end
-
+-- begain to wait for client
 function CMD.start(conf)
 	local fd = conf.client
 	local gate = conf.gate
@@ -232,9 +227,18 @@ function CMD.start(conf)
 	skynet.call(gate, "lua", "forward", fd)
 end
 
+-- client disconnect, give handshake to gated
 function CMD.disconnect()
 	-- todo: do something before exit
 	skynet.exit()
+end
+
+local function update_db()
+	-- body
+	while true do
+		flush_db(const.DB_PRIORITY_3)
+		skynet.sleep(100 * 60) -- 1ti == 0.01s
+	end
 end
 
 skynet.start(function()

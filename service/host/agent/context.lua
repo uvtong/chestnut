@@ -33,6 +33,12 @@ function cls:send_package(pack, ... )
 	socket.write(self._client_fd, package)
 end
 
+function cls:login(uid, subid, secret)
+	self._uid = uid
+	self._subid = subid
+	self._secret = secret
+end
+
 function cls:logout( ... )
 	-- body
 	if gate then
