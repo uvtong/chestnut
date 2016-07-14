@@ -212,7 +212,10 @@ end
 function CMD.start(conf)
 	local fd = conf.client
 	local gate = conf.gate
-	WATCHDOG = conf.watchdog
+	local version = conf.version
+	local index = conf.index
+	local last = gate
+	
 	-- slot 1,2 set at main.lua
 	host = sprotoloader.load(1):host "package"
 	send_request = host:attach(sprotoloader.load(2))

@@ -2,10 +2,13 @@ local skynet = require "skynet"
 require "skynet.manager"
 local loader = require "loader"
 
-local game 
-local D = {}
+
 
 local CMD = {}
+
+function CMD.enter( ... )
+	-- body
+end
 
 function CMD.enter_room(t)
 	-- body
@@ -33,6 +36,6 @@ skynet.start(function()
 		local f = CMD[command]
 		skynet.ret(skynet.pack(f(...)))
 	end)
-	skynet.register ".scene"
+	skynet.register ".SCENE"
 	game = loader.load_game()
 end)

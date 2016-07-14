@@ -116,8 +116,10 @@ function CMD.start(source, conf, ... )
 	-- body
 	local client = conf.client
 	local gate = conf.gate
+	local version = conf.version
+	local index = conf.index
 	local last = source
-	local host = 
+
 end
 
 function CMD.disconnect( ... )
@@ -134,5 +136,4 @@ skynet.start(function ()
 			skynet.ret(skynet.pack(result))
 		end
 	end)
-	id = skynet.call(".scene", "lua", "register", skynet.self())
 end)
