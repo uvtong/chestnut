@@ -1,6 +1,5 @@
 local skynet = require "skynet"
 require "skynet.manager"
-local sprotoloader = require "sprotoloader"
 local assert = assert
 
 skynet.start(function()

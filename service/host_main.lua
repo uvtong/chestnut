@@ -1,5 +1,6 @@
 local skynet = require "skynet"
 require "skynet.manager"
+local log = require "log"
 
 skynet.start(function()
 	local logger = skynet.uniqueservice("log")
@@ -16,12 +17,12 @@ skynet.start(function()
 	local game = skynet.uniqueservice("game")
 	skynet.name(".game", game)
 		
-	local lb = skynet.newservice("leaderboards", "ara_leaderboards")
-	skynet.name(".LB", lb)
+	-- local lb = skynet.newservice("leaderboards", "ara_leaderboards")
+	-- skynet.name(".LB", lb)
 	
 	skynet.newservice("agent_mgr")
 	skynet.newservice("branch")
-	skynet.newservice("channel")
+	-- skynet.newservice("channel")
 	
 	
 	local signupd = skynet.getenv("signupd")
@@ -60,8 +61,8 @@ skynet.start(function()
 		skynet.name(".logind_db", db)
 		assert(skynet.call(db, "lua", "start", conf))
 		
-		local addr = skynet.newservice("logind/logindata")
-		skynet.name(".logindata", addr)
+		-- local addr = skynet.newservice("logind/logindata")
+		-- skynet.name(".logindata", addr)
 		
 		local logind_name = skynet.getenv("logind_name")
 		local addr = skynet.newservice("logind/logind")
@@ -83,7 +84,7 @@ skynet.start(function()
 		
 		local addr = skynet.newservice("db")
 		skynet.name(".DB", addr)
-		assert(skynet.call(wdb, "lua", "start", conf))
+		assert(skynet.call(addr, "lua", "start", conf))
 		
 
 		local logind_name = skynet.getenv("logind_name")
@@ -91,6 +92,7 @@ skynet.start(function()
 		local max_client = skynet.getenv("maxclient")
 		local address, port = string.match(skynet.getenv("gated"), "([%d.]+)%:(%d+)")
 		local gated = skynet.newservice("gated/gated")
+		skynet.name(".GATED", gated)
 		skynet.call(gated, "lua", "open", { 
 			address = address or "0.0.0.0",
 			port = port,
@@ -99,6 +101,8 @@ skynet.start(function()
 			--nodelay = true,
 		})
 	end
+
+	log.INFO("host successful .")
 	
 	skynet.exit()
 end)

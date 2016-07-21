@@ -1,10 +1,9 @@
-package.path = "../cat/?.lua;../lualib/?.lua;" .. package.path
+package.path = "../../lualib/?.lua;" .. package.path
 package.cpath = "../lua-cjson/?.so;"..package.cpath
 local skynet = require "skynet"
-require "functions"
 local assert = assert
-local cls = require "models/ara_leaderboardsmgr"
-leaderboardsmgr = cls.new()
+-- local cls = require "models/ara_leaderboardsmgr"
+-- leaderboardsmgr = cls.new()
 
 -- {ranking=id }
 local top = 0

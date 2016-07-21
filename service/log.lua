@@ -1,3 +1,4 @@
+package.cpath = "../../luaclib/?.so;"..package.cpath
 local skynet = require "skynet"
 require "skynet.manager"
 local logger = require "log.core"
@@ -5,11 +6,12 @@ local logger = require "log.core"
 local CMD = {}
 
 function CMD.start()
-	logger.init(tonumber(skynet.getenv("log_level")) or 0,
-		tonumber(skynet.getenv("log_rollsize")) or 1024,
-		tonumber(skynet.getenv("log_flushinterval")) or 5,
-		skynet.getenv("log_dirname") or "log",
-		skynet.getenv("log_basename") or "test")
+	local log_level = tonumber(skynet.getenv("log_level")) or 0
+	local log_rollsize = tonumber(skynet.getenv("log_rollsize")) or 1024
+	local log_flushinterval = tonumber(skynet.getenv("log_flushinterval")) or 5
+	local log_dirname = skynet.getenv("log_dirname") or "../../log/test"
+	local log_basename = skynet.getenv("log_basename") or "test"
+	logger.init(log_level, log_rollsize, log_flushinterval, log_dirname, log_basename)
 end
 
 function CMD.stop( )

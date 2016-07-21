@@ -9,8 +9,8 @@ skynet.register_protocol {
 	unpack = skynet.tostring,
 	dispatch = function(_, address, msg)
 		-- print(string.format("[:%08x][%.2f]: %s", address, skynet.time(), msg))
-		-- print(string.format("[:%08x][%s]: %s", address, os.date(), msg))
-		log.INFO(string.format("[:%08x][%s]: %s", address, os.date(), msg))
+		print(string.format("[:%08x][%s]: %s", address, os.date(), msg))
+		-- log.INFO(string.format("[:%08x][%s]: %s", address, os.date(), msg))
 	end
 }
 
@@ -20,8 +20,8 @@ skynet.register_protocol {
 	unpack = function(...) return ... end,
 	dispatch = function()
 		-- reopen signal
-		-- print("SIGHUP")
-		log.INFO("SIGHUP")
+		print("SIGHUP")
+		-- log.INFO("SIGHUP")
 	end
 }
 

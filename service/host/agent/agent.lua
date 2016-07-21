@@ -1,4 +1,4 @@
-package.path = "./../../service/host/?.lua;./../../service/host/lualib/?.lua;"..package.path
+package.path = "./../../service/host/agent/?.lua;./../../service/host/lualib/?.lua;../../lualib/?.lua;"..package.path
 local skynet = require "skynet"
 local netpack = require "netpack"
 local socket = require "socket"
@@ -11,7 +11,7 @@ local const = require "const"
 local context = require "context"
 local log = require "log"
 
-local env       = {}
+local env       = context.new()
 local CMD       = {}
 local REQUEST   = {}
 local RESPONSE  = {}
@@ -184,26 +184,27 @@ function CMD:enter_room(source, room)
 	-- end
 end
 
-function CMD.newemail(source, subcmd , ... )
+function CMD:newemail(source, subcmd , ... )
 	local f = assert( new_emailrequest[ subcmd ] )
 	f( new_emailrequest , ... )
 end
 
 -- login
-function CMD.login(source, uid, subid, secret,... )
+function CMD:login(source, uid, subid, secret,... )
 	-- body
 	self:login(uid, subid, secret)
+	return true
 end
 
 -- prohibit mult landing
-function CMD.logout(source)
+function CMD:logout(source)
 	-- body
 	skynet.error(string.format("%s is logout", userid))
 	logout()
 end
 
 -- others serverce disconnect
-function CMD.afk(source)
+function CMD:afk(source)
 	-- body
 	skynet.error(string.format("AFK"))
 end

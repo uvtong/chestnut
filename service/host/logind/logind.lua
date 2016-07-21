@@ -45,17 +45,12 @@ function server.login_handler(server, uid, secret)
 		error(string.format("user %s is already online", uid))
 	end
 	print("gameserver is called", gameserver.address)
-	-- local subid, gated
-	-- local r = skynet.call(".logindata", "lua", "get", server, uid)
-	-- if r == 1 then
-	-- 	subid, gated = skynet.call(gameserver, "lua", "login", uid, secret, "login")
-	-- elseif r == 0 then
-	-- 	subid, gated = skynet.call(gameserver, "lua", "login", uid, secret, "signup")
-	-- 	skynet.call(".logindata", "lua", "set", server, uid)
-	-- end
+	
 	local subid = skynet.call(".GATED", "lua", "login", uid, secret)
 	user_online[uid] = { address = gameserver.address, subid = subid , server = server}
 	local gated = gameserver.gated
+
+	print("gameserver:", gated, "subid:", subid)
 	return tostring(subid), gated
 end
 

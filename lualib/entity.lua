@@ -1,3 +1,7 @@
+local query = require "query"
+local json = require "cjson"
+local sd = require "sharedata"
+
 local cls = class("entity")
 
 function cls:ctor()

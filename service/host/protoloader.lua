@@ -3,7 +3,7 @@
 local skynet = require "skynet"
 local sprotoparser = require "sprotoparser"
 local sprotoloader = require "sprotoloader"
-local proto = require "proto"
+-- local proto = require "proto"
 
 skynet.start(function()
 	local proto = {}

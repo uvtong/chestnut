@@ -1,5 +1,6 @@
 local skynet = require "skynet"
-local logger = skynet.uniqueservice("log")
+-- local logger = skynet.uniqueservice("log")
+local logger = ".LOG"
 
 local _M = {}
 

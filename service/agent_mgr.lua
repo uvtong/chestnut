@@ -1,5 +1,5 @@
 local skynet = require "skynet"
-require "skynet.manger"
+require "skynet.manager"
 local queue = require "queue"
 
 
@@ -11,7 +11,7 @@ local CMD = {}
 function CMD.enter(uid, fd)
 	-- body
 	if #leisure_agent == 0 then
-		local a = skynet.newservice("agent")
+		local a = skynet.newservice("agent/agent")
 		return a
 	else
 		local a = queue.dequeue(leisure_agent)

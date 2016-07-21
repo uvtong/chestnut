@@ -45,3 +45,5 @@ local function start_subscribe()
 	}
 	c2:subscribe()
 end 
+
+return ME

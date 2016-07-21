@@ -1,4 +1,4 @@
-package.path = "./../db/?.lua;./../lualib/?.lua;./../cat/?.lua;" .. package.path
+package.path = "../../db/?.lua;" .. package.path
 package.cpath = "./../lua-cjson/?.so;"..package.cpath
 local skynet = require "skynet"
 local mc = require "multicast"
@@ -7,8 +7,14 @@ local redis = require "redis"
 local util = require "util"
 local Queue = require "queue"
 local name = ...
-local frienddb = require "frienddb"
+-- local frienddb = require "frienddb"
 local queue = require "skynet.queue"
+-- local codeweb = require "codeweb"
+
+-- codeweb.onFinish(function ( ... )
+-- 	-- body
+
+-- end)
 
 local cs1 = queue()
 
@@ -396,7 +402,7 @@ function CMD.start(ctx, conf)
 		db = 0
 	}
 	ctx.cache = connect_redis(cache_conf)
-	frienddb.getvalue(ctx.db, ctx.cache)
+	-- frienddb.getvalue(ctx.db, ctx.cache)
 	-- local Q1 = Queue.new(128)
 	-- local Q2 = Queue.new(128)
 	-- local Q3 = Queue.new(128)
@@ -421,68 +427,14 @@ function CMD.test(ctx)
 	return "annalajflajfa"
 end
 
-local START_SUBSCRIBE = {}
-
-local function check_q()
-	-- body
-	if not Queue.is_empty(priority_queue[const.DB_PRIORITY_1].Q) then
-		print("suspend1")
-		skynet.wakeup(priority_queue[const.DB_PRIORITY_1].co)
-		return false
-	end
-	if not Queue.is_empty(priority_queue[const.DB_PRIORITY_2].Q) then
-		print("suspend2")
-		skynet.wakeup(priority_queue[const.DB_PRIORITY_2].co)
-		return false
-	end
-	if not Queue.is_empty(priority_queue[const.DB_PRIORITY_3].Q) then
-		print("suspend3")
-		skynet.wakeup(priority_queue[const.DB_PRIORITY_3].co)
-		return false
-	end
-	return true
-end
-
-function START_SUBSCRIBE.finish(ctx, source, ...)
-	-- body
-	print(string.format("the node  %s will be finished. you should clean something.", name))
-	-- while not check_q() do
-	-- 	skynet.sleep(100)
-	-- end
-	skynet.send(source, "lua", "exit")
-end
-
-function START_SUBSCRIBE.test(ctx, source, msg)
-	-- body
-	print(name, msg)
-end
-
-local function start_subscribe()
-	-- body
-	print("start_subscribe", name)
-	local c = skynet.call(".start_service", "lua", "register")
-	local c2 = mc.new {
-		channel = c,
-		dispatch = function (channel, source, cmd, ...)
-			-- body
-			print(name, "test subscribe")
-			local f = START_SUBSCRIBE[cmd]
-			if f then
-				f(env, source, ...)
-			end
-		end
-	}
-	c2:subscribe()
-end
-
 local function command(subcmd, table_name, ... )
 	-- body
 	local f = QUERY[subcmd]
 	if f then
 		return f(env, table_name, ...)
-	elseif frienddb[subcmd] then
-		f = frienddb[subcmd]
-		return f(frienddb, table_name, ...)
+	-- elseif frienddb[subcmd] then
+	-- 	f = frienddb[subcmd]
+	-- 	return f(frienddb, table_name, ...)
 	else
 		error(string.format("db node for table_name %s cmd %s will not be called.", table_name, subcmd))
 	end
@@ -503,5 +455,4 @@ skynet.start(function ()
 			end
 		end
 	end)
-	start_subscribe()
 end)

@@ -1,4 +1,5 @@
-package.path = "./../../service/host/logind/?.lua;" .. package.path
+package.path = "./../../service/host/gated/?.lua;" .. package.path
+local skynet = require "skynet"
 local msgserver = require "msgserver"
 local crypt = require "crypt"
 local log = require "log"
@@ -82,7 +83,7 @@ end
 
 function server.unforward(source, ... )
 	-- body
-	msgserver.unforward
+	-- msgserver.unforward
 end
 
 -- call by self (when socket disconnect)
@@ -101,7 +102,7 @@ end
 
 -- call by self (when gate open)
 function server.register_handler(name)
-	print("***************register_handler")
+	log.INFO("reister gate server: %s", name)
 	servername = name
 	skynet.call(loginservice, "lua", "register_gate", servername, skynet.self())
 end

@@ -380,6 +380,7 @@ function server.start(conf)
 	end
 
 	function handler.message(fd, msg, sz)
+		print("abcefg")
 		local addr = handshake[fd]
 		if addr then
 			auth(fd,addr,msg,sz)

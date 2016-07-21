@@ -11,9 +11,9 @@ CFLAGS = -g -O2 -Wall -I$(LUA_INC) $(MYCFLAGS)
 
 # lua
 LUA_PATH ?= ./3rd/lua
-LUA_STATICLIB := $(LUA_PATH)/liblua.a
+LUA_STATICLIB := $(LUA_PATH)/src/liblua.a
 LUA_LIB ?= $(LUA_STATICLIB)
-LUA_INC ?= $(LUA_PATH)
+LUA_INC ?= $(LUA_PATH)/src
 
 $(LUA_STATICLIB): $(LUA_PATH)/Makefile
 	cd ./3rd/lua && $(MAKE) CC='$(CC) -std=gnu99' $(PLAT)
@@ -41,7 +41,7 @@ $(LSOCKET)/Makefile: update3rd
 #lua-cjson
 LUA_CJSON_PATH ?= ./3rd/lua-cjson
 LUA_CJSON := $(LUA_CJSON_PATH)/cjson.so
-$(LUA_CJSON): $(LUA_CJSON)/Makefile
+$(LUA_CJSON): $(LUA_CJSON_PATH)/Makefile
 	cd $(LUA_CJSON_PATH) && $(MAKE)
 
 $(LUA_CJSON_PATH)/Makefile: update3rd
@@ -94,7 +94,7 @@ $(CSERVICE_PATH):
 
 LOG = $(LUA_CLIB_PATH)/log.so
 $(LOG): lualib-src/lua-log.c | $(LUA_CLIB_PATH)
-	$(CC) $(CFLAGS) $(SHARED) $^ -o $@ 
+	$(CC) $(CFLAGS) $(SHARED) -I$(LUA_INC) $^ -o $@ 
 
 CATLOGGER = $(CSERVICE_PATH)/catlogger.so
 $(CATLOGGER): service-src/service_catlogger.c | $(CSERVICE_PATH)
@@ -104,7 +104,7 @@ LUA_QUEUE := $(LUA_CLIB_PATH)/queue.so
 $(LUA_QUEUE): $(CLIB_SRC_PATH)/lua-queue.c
 	$(CC) $(CFLAGS) $(SHARED) -I$(LUA_PATH) $^ -o $@
 
-all: $(LUA_STATICLIB) $(LUA_CJSON) $(LOG) $(CATLOGGER)
+all: $(LUA_STATICLIB) $(LUA_CJSON) $(LOG) $(CATLOGGER) $(SKYNET)
 
 .PHONY: update3rd clean cleanall
 

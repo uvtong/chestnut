@@ -1,5 +1,5 @@
-package.cpath = "luaclib/?.so"
-package.path = "./../cat/?.lua;lualib/?.lua"
+package.cpath = "luaclib/?.so;"..package.cpath
+package.path = "../../test/?.lua;lualib/?.lua;"..package.path
 
 local socket = require "clientsocket"
 local crypt = require "crypt"
@@ -10,7 +10,7 @@ if _VERSION ~= "Lua 5.3" then
 	error "Use lua 5.3"
 end
 
-local fd = assert(socket.connect("192.168.1.239", 3002))
+local fd = assert(socket.connect("192.168.1.104", 3002))
 
 local function writeline(fd, text)
 	socket.send(fd, text .. "\n")
@@ -254,7 +254,7 @@ end
 local index = 1
 
 print("connect")
-fd = assert(socket.connect("192.168.1.239", 3301))
+fd = assert(socket.connect("192.168.1.104", 3301))
 last = ""
 
 local handshake = string.format("%s@%s#%s:%d", crypt.base64encode(uid), crypt.base64encode(token.server),crypt.base64encode(subid) , index)
