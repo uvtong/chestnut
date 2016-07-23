@@ -5,6 +5,10 @@
     version 3 : integer
 }
 
+.settlement {
+	gold 0 : integer	
+}
+
 handshake 1 {
     response {
     	errorcode 0 : integer
