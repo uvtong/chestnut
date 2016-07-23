@@ -1,7 +1,7 @@
 # Compiled Object files
 *.slo
 *.l
-.o
+*.o
 *.obj
 
 # Precompiled Headers
