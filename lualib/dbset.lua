@@ -4,7 +4,7 @@ local sd = require "sharedata"
 local stm = require "stm"
 local sd_cache = {}
 
-local cls = class("modelmgrcpp")
+local cls = class("dbset")
 
 function cls.get_row_db(t, pk)
 	-- body

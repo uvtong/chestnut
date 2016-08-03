@@ -18,3 +18,21 @@ function genpk_3(_1, _2, ...)
 
 	return pk
 end
+
+local idx = 0
+local mechin = 0
+local service = 0
+
+function key()
+	local r = 0
+	idx = idx + 1
+	local ti = os.time()
+	ti << 41
+	local m = mechin << 15
+	local s = service << 9
+	r = r | ti
+	r = r | mechin
+	r = r | s
+	r = r | idx
+	return r
+end
