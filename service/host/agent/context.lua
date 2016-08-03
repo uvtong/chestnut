@@ -12,19 +12,29 @@ function cls:set_host(h, ... )
 	self._host = h
 end
 
-function cls:get_host( ... )
+function cls:set_send_request(r, ... )
 	-- body
-	return self._host
+	self._send_request = r
 end
 
-function cls:set_client_fd(fd, ... )
+function cls:set_fd(fd, ... )
 	-- body
-	self._client_fd = fd
+	self._fd = fd
 end
 
-function cls:get_client_fd( ... )
+function cls:set_gate(g, ... )
 	-- body
-	return self._client_fd
+	self._gate = g
+end
+
+function cls:set_version(v, ... )
+	-- body
+	self._version = v
+end
+
+function cls:set_index(idx, ... )
+	-- body
+	self._index = idx
 end
 
 function cls:send_package(pack, ... )
@@ -45,6 +55,11 @@ function cls:logout( ... )
 		skynet.call(gate, "lua", "logout", userid, subid)
 	end
 	skynet.exit()
+end
+
+function cls:get_uid( ... )
+	-- body
+	return self._uid
 end
 
 return cls

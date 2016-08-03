@@ -11,6 +11,9 @@ local const = require "const"
 local context = require "context"
 local log = require "log"
 
+local host
+local send_request
+
 local env       = context.new()
 local CMD       = {}
 local REQUEST   = {}
@@ -150,24 +153,20 @@ skynet.register_protocol {
 			assert(false)
 		end
 	end,
-	dispatch = function (session, source, type, ...)
-		if env.rdtroom then
-			skynet.redirect(env.room, skynet.self(), id, session, type, ...)
-		else
-			if type == "REQUEST" then
-				local ok, result  = pcall(request, ...)
-				if ok then
-					if result then
-						send_package(result)
-					end
-				else
-					skynet.error(result)
+	dispatch = function (session, source, type, ...)	
+		if type == "REQUEST" then
+			local ok, result  = pcall(request, ...)
+			if ok then
+				if result then
+					send_package(result)
 				end
-			elseif type == "RESPONSE" then
-				pcall(response, ...)
 			else
-				assert(false, result)
+				skynet.error(result)
 			end
+		elseif type == "RESPONSE" then
+			pcall(response, ...)
+		else
+			assert(false, result)
 		end
 	end
 }	
@@ -210,31 +209,38 @@ function CMD:afk(source)
 end
 
 -- begain to wait for client
-function CMD.start(conf)
+function CMD:start(conf)
 	local fd = conf.client
 	local gate = conf.gate
 	local version = conf.version
 	local index = conf.index
-	local last = gate
+	
+	self:set_fd(fd)
+	self:set_gate(gate)
+	self:set_version(version)
+	self:set_index(index)
 	
 	-- slot 1,2 set at main.lua
 	host = sprotoloader.load(1):host "package"
 	send_request = host:attach(sprotoloader.load(2))
-	skynet.fork(function()
-		while true do
-			send_package(send_request "heartbeat")
-			skynet.sleep(500)
-		end
-	end)
+	self:set_send_request(send_request)
 
-	client_fd = fd
-	skynet.call(gate, "lua", "forward", fd)
+	local uid = self:get_uid()
+	skynet.call(gate, "lua", "forward", uid, skynet.self())
+
+	-- skynet.fork(function()
+	-- 	while true do
+	-- 		send_package(send_request "heartbeat")
+	-- 		skynet.sleep(500)
+	-- 	end
+	-- end)	
 end
 
 -- client disconnect, give handshake to gated
-function CMD.disconnect()
+function CMD:disconnect()
 	-- todo: do something before exit
-	skynet.exit()
+	-- skynet.exit()
+	log.INFO("disconnect")
 end
 
 local function update_db()

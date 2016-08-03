@@ -100,7 +100,6 @@ skynet.register_protocol {
 local user_online = {}
 local handshake   = {}
 local connection  = {}
-local forwarding  = {}	-- agent -> connection
 
 local function unforward(c)
 	if c.agent then
@@ -211,10 +210,6 @@ function server.start(conf)
 
 	-- atomic , no yield
 	local function do_auth(fd, message, addr)
-		print("********************************")
-		for k,v in pairs(user_online) do
-			print(k,v)
-		end
 		local username, index, hmac = string.match(message, "([^:]*):([^:]*):([^:]*)")
 		print(username, index, hmac)
 		local u = user_online[username]
@@ -369,24 +364,31 @@ function server.start(conf)
 		end
 	end
 
-	local function start(fd, msg, sz)
-		local c = connection[fd]
-		local agent = c.agent
-		if agent then
-			skynet.redirect(agent, c.Client, "client", 0, msg, sz)
-		else
-			skynet.send(agent, "lua", "start", fd, netpack.tostring(msg, sz))
-		end
+	local msg = assert(conf.msg_handler)
+
+	local function do_msg(fd, msg, sz, ... )
+		-- body
+		local u = assert(connection[fd], "invalid fd")
+		msg(u.username, msg, sz)
+	end
+
+	local start = assert(conf.start_handler)
+
+	local function do_start(fd, ... )
+		-- body
+		local u = assert(connection[fd], "invalid fd")
+		start(u.username, fd, u.version, u.idx)
 	end
 
 	function handler.message(fd, msg, sz)
-		print("abcefg")
 		local addr = handshake[fd]
 		if addr then
 			auth(fd,addr,msg,sz)
 			handshake[fd] = nil
+			do_start(fd)
 		else
-			request(fd, msg, sz)
+			-- request(fd, msg, sz)
+			do_msg(fd, msg, sz)
 		end
 	end
 

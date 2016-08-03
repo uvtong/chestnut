@@ -2,6 +2,7 @@ package.path = "./../../service/host/gated/?.lua;" .. package.path
 local skynet = require "skynet"
 local msgserver = require "msgserver"
 local crypt = require "crypt"
+local netpack = require "netpack"
 local log = require "log"
 
 
@@ -13,6 +14,7 @@ local server = {}
 local users = {}
 local username_map = {}
 local internal_id = 0
+local forwarding  = {}	-- agent -> connection
 
 -- login server disallow multi login, so login_handler never be reentry
 -- call by login server
@@ -29,7 +31,6 @@ function server.login_handler(source, uid, secret, ...)
 	-- you can use a pool to alloc new agent
 	-- local agent = skynet.newservice "agent"
 	local agent = skynet.call(".AGENT_MGR", "lua", "enter")
-
 	local u = {
 		username = username,
 		agent = agent,
@@ -75,15 +76,22 @@ function server.kick_handler(source, uid, subid)
 end
 
 -- call by agent
-function server.forward(source, ... )
+function server.forward_handler(source, uid, agent, ... )
 	-- body
+	local u = users[uid]
+	if u then
+		u.agent = agent
+	end
 end
 
 -- call by agent
-
-function server.unforward(source, ... )
+function server.unforward_handler(source, uid, ... )
 	-- body
 	-- msgserver.unforward
+	local u = users[uid]
+	if u then
+		u.agent = nil
+	end
 end
 
 -- call by self (when socket disconnect)
@@ -94,10 +102,36 @@ function server.disconnect_handler(username)
 	end
 end
 
+-- call by self
+function server.start_handler(username, fd, version, idx, ... )
+	-- body
+	local u = username_map[username]
+	if u then
+		local agent = u.agent
+		if agent then
+			skynet.call(agent[fd], "lua", "start", { gate = gate, client = fd, version = version, index = idx})
+		end
+	end
+end
+
+function server.msg_handler(username, msg, sz,... )
+	-- body
+	local u = username_map[username]
+	if u then
+		local agent = u.agent
+		if agent then
+			skynet.redirect(agent, skynet.self(), "client", 0, msg, sz)
+		else
+			skynet.send(agent, "lua", "start", netpack.tostring(msg, sz))
+		end
+	end
+end
+
 -- call by self (when recv a request from client)
 function server.request_handler(username, msg)
-	local u = username_map[username]
-	return skynet.unpack(skynet.rawcall(u.agent, "client", msg))
+
+	-- local u = username_map[username]
+	-- return skynet.unpack(skynet.rawcall(u.agent, "client", msg))
 end
 
 -- call by self (when gate open)
