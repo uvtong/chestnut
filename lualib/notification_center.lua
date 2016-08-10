@@ -31,11 +31,17 @@ function cls:post_notification_name(name, object, ... )
 	local n = self._observers[name]
 	if n then
 		local func = n:get_func()
-		if typeof(func) == "table" then
-			local f = func.f
-			local u = func.u
+		if type(func) == "table" then
+			local f = assert(func.f)
+			local u = assert(func.u)
+			if object then
+				u:set_object(object)
+			end
 			f(u, n)
-		elseif typeof(func) == "function" then
+		elseif type(func) == "function" then
+			if object then
+				u:set_object(object)
+			end
 			func(n)
 		end
 	end
