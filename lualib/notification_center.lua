@@ -5,6 +5,7 @@ local cls = class("notification_center")
 
 function cls:ctor(env, ... )
 	-- body
+	assert(env)
 	self._env = env
 	self._observers = {}
 	return self
