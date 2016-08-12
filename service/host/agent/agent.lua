@@ -1,7 +1,6 @@
 package.path = "./../../service/host/agent/?.lua;./../../service/host/lualib/?.lua;../../lualib/?.lua;"..package.path
 local skynet = require "skynet"
 local netpack = require "netpack"
-local socket = require "socket"
 local sproto = require "sproto"
 local sprotoloader = require "sprotoloader"
 local mc = require "multicast"
@@ -10,11 +9,12 @@ local util = require "util"
 local const = require "const"
 local context = require "context"
 local log = require "log"
+local errorcode = require "errorcode"
+local assert = assert
+local pcall = skynet.pcall
+local error = skynet.error
 
-local host
-local send_request
-
-local env       = context.new()
+local ctx       = context.new()
 local CMD       = {}
 local REQUEST   = {}
 local RESPONSE  = {}
@@ -108,13 +108,13 @@ function REQUEST.login(source, uid, sid, secret, g, d)
 end
 
 local function request(name, args, response)
-	skynet.error(string.format("line request: %s", name))
+	error(string.format("line request: %s", name))
     local f = REQUEST[name]
-    local ok, result = pcall(f, env, args)
+    local ok, result = pcall(f, ctx, args)
     if ok then
     	return response(result)
     else
-    	skynet.error(result)
+    	error(result)
     	local ret = {}
     	ret.errorcode = errorcode.FAIL
     	return response(ret)
@@ -129,7 +129,7 @@ end
 
 local function response(session, args)
 	-- body
-	skynet.error(string.format("response: %s", name))
+	error(string.format("response: %s", name))
     local f = RESPONSE[name]
     local ok, result = pcall(f, env, args)
     if ok then
@@ -138,16 +138,12 @@ local function response(session, args)
     end
 end
 
-local function send_package(pack)
-	local package = string.pack(">s2", pack)
-	socket.write(client_fd, package)
-end
-
 skynet.register_protocol {
 	name = "client",
 	id = skynet.PTYPE_CLIENT,
 	unpack = function (msg, sz)
 		if sz > 0 then
+			local host = ctx:get_host()
 			return host:dispatch(msg, sz)
 		else 
 			assert(false)
@@ -155,10 +151,10 @@ skynet.register_protocol {
 	end,
 	dispatch = function (session, source, type, ...)	
 		if type == "REQUEST" then
-			local ok, result  = pcall(request, ...)
+			local ok, result = pcall(request, ...)
 			if ok then
 				if result then
-					send_package(result)
+					ctx:send_package(result)
 				end
 			else
 				skynet.error(result)
@@ -169,7 +165,7 @@ skynet.register_protocol {
 			assert(false, result)
 		end
 	end
-}	
+}
 
 function CMD:enter_room(source, room)
 	-- body
@@ -199,7 +195,7 @@ end
 function CMD:logout(source)
 	-- body
 	skynet.error(string.format("%s is logout", userid))
-	logout()
+	self:logout()
 end
 
 -- others serverce disconnect
@@ -210,10 +206,10 @@ end
 
 -- begain to wait for client
 function CMD:start(conf)
-	local fd = conf.client
-	local gate = conf.gate
-	local version = conf.version
-	local index = conf.index
+	local fd      = assert(conf.client)
+	local gate    = assert(conf.gate)
+	local version = assert(conf.version)
+	local index   = assert(conf.index)
 	
 	self:set_fd(fd)
 	self:set_gate(gate)
@@ -221,8 +217,9 @@ function CMD:start(conf)
 	self:set_index(index)
 	
 	-- slot 1,2 set at main.lua
-	host = sprotoloader.load(1):host "package"
-	send_request = host:attach(sprotoloader.load(2))
+	local host = sprotoloader.load(1):host "package"
+	local send_request = host:attach(sprotoloader.load(2))
+	self:set_host(host)
 	self:set_send_request(send_request)
 
 	local uid = self:get_uid()
@@ -240,7 +237,7 @@ end
 function CMD:disconnect()
 	-- todo: do something before exit
 	-- skynet.exit()
-	log.INFO("disconnect")
+	log.info("disconnect")
 end
 
 local function update_db()
@@ -252,10 +249,10 @@ local function update_db()
 end
 
 skynet.start(function()
-	skynet.dispatch("lua", function(_, source, command, ...)
-		print("agent is called" , command)
-		local f = CMD[command]
-		local result = f(env, source, ... )
+	skynet.dispatch("lua", function(_, source, cmd, ...)
+		error("agent is called", cmd)
+		local f = assert(CMD[cmd])
+		local result = f(ctx, source, ... )
 		if result then
 			skynet.ret(skynet.pack(result))
 		end
