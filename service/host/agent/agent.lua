@@ -1,6 +1,7 @@
 package.path = "./../../service/host/agent/?.lua;./../../service/host/lualib/?.lua;../../lualib/?.lua;"..package.path
 local skynet = require "skynet"
 local netpack = require "netpack"
+local socket = require "socket"
 local sproto = require "sproto"
 local sprotoloader = require "sprotoloader"
 local mc = require "multicast"
@@ -10,7 +11,10 @@ local const = require "const"
 local context = require "context"
 local log = require "log"
 
-local ctx       = context.new()
+local host
+local send_request
+
+local env       = context.new()
 local CMD       = {}
 local REQUEST   = {}
 local RESPONSE  = {}
@@ -106,7 +110,7 @@ end
 local function request(name, args, response)
 	skynet.error(string.format("line request: %s", name))
     local f = REQUEST[name]
-    local ok, result = pcall(f, ctx, args)
+    local ok, result = pcall(f, env, args)
     if ok then
     	return response(result)
     else
@@ -134,6 +138,11 @@ local function response(session, args)
     end
 end
 
+local function send_package(pack)
+	local package = string.pack(">s2", pack)
+	socket.write(client_fd, package)
+end
+
 skynet.register_protocol {
 	name = "client",
 	id = skynet.PTYPE_CLIENT,
@@ -149,7 +158,7 @@ skynet.register_protocol {
 			local ok, result  = pcall(request, ...)
 			if ok then
 				if result then
-					ctx:send_package(result)
+					send_package(result)
 				end
 			else
 				skynet.error(result)
@@ -190,7 +199,7 @@ end
 function CMD:logout(source)
 	-- body
 	skynet.error(string.format("%s is logout", userid))
-	self:logout()
+	logout()
 end
 
 -- others serverce disconnect
@@ -201,14 +210,14 @@ end
 
 -- begain to wait for client
 function CMD:start(conf)
-	local fd      = assert(conf.client)
-	local gate    = assert(conf.gate)
-	local version = assert(conf.version)
-	local index   = assert(conf.index)
+	local fd = conf.client
+	local gate = conf.gate
+	local version = conf.version
+	local index = conf.index
 	
 	self:set_fd(fd)
 	self:set_gate(gate)
-	self:set_version(version)	
+	self:set_version(version)
 	self:set_index(index)
 	
 	-- slot 1,2 set at main.lua
@@ -228,7 +237,7 @@ function CMD:start(conf)
 end
 
 -- client disconnect, give handshake to gated
-function CMD:disconnect(source)
+function CMD:disconnect()
 	-- todo: do something before exit
 	-- skynet.exit()
 	log.INFO("disconnect")
@@ -243,10 +252,10 @@ local function update_db()
 end
 
 skynet.start(function()
-	skynet.dispatch("lua", function(_, source, cmd, ...)
-		print("agent is called" , cmd)
-		local f = CMD[cmd]
-		local result = f(ctx, source, ... )
+	skynet.dispatch("lua", function(_, source, command, ...)
+		print("agent is called" , command)
+		local f = CMD[command]
+		local result = f(env, source, ... )
 		if result then
 			skynet.ret(skynet.pack(result))
 		end

@@ -1,10 +1,11 @@
 local skynet = require "skynet"
+local debug = debug
 -- local logger = skynet.uniqueservice("log")
 local logger = ".LOG"
 
 local _M = {}
 
-function _M.DEBUG(fmt, ...)
+function _M.debug(fmt, ...)
 	local msg = string.format(fmt, ...)
 	local info = debug.getinfo(2)
 	if info then
@@ -13,7 +14,7 @@ function _M.DEBUG(fmt, ...)
 	skynet.send(logger, "lua", "debug", SERVICE_NAME, msg)
 end
 
-function _M.INFO(fmt, ...)
+function _M.info(fmt, ...)
 	local msg = string.format(fmt, ...)
 	local info = debug.getinfo(2)
 	if info then
@@ -22,7 +23,7 @@ function _M.INFO(fmt, ...)
 	skynet.send(logger, "lua", "info", SERVICE_NAME, msg)
 end
 
-function _M.WARN(fmt, ...)
+function _M.warn(fmt, ...)
 	local msg = string.format(fmt, ...)
 	local info = debug.getinfo(2)
 	if info then
@@ -31,7 +32,7 @@ function _M.WARN(fmt, ...)
 	skynet.send(logger, "lua", "warning", SERVICE_NAME, msg)
 end
 
-function _M.ERROR(fmt, ...)
+function _M.error(fmt, ...)
 	local msg = string.format(fmt, ...)
 	local info = debug.getinfo(2)
 	if info then
@@ -40,7 +41,7 @@ function _M.ERROR(fmt, ...)
 	skynet.send(logger, "lua", "error", SERVICE_NAME, msg)
 end
 
-function _M.FATAL(fmt, ...)
+function _M.fatal(fmt, ...)
 	local msg = string.format(fmt, ...)
 	local info = debug.getinfo(2)
 	if info then
