@@ -1,16 +1,13 @@
 local skynet = require "skynet"
-local cluster = require "cluster"
+-- local cluster = require "cluster"
 local template = require "resty.template"
 local csvreader = require "csvReader"
 local query = require "query"
 local errorcode = require "errorcode"
 local json = require "cjson"
 
-
 template.caching(true)
 template.precompile("index.html")
-
-local VIEW = {}
 
 local function root(filename, ... )
 	-- body
@@ -21,14 +18,6 @@ local function path( filename )
 	-- body
 	assert(type(filename) == "string")
 	return "../../service/web/templates/" .. filename
-end
-
-function VIEW:index()
-	-- body
-	if self.method == "get" then
-		local func = template.compile( path( "index.html" ) )
-		return func { message = "hello, world."}
-	end
 end
 
 local function Split(szFullString, szSeparator)  
@@ -64,6 +53,16 @@ local function Split(szFullString, szSeparator)
    			nFindStartIndex = nFindLastIndex + string.len(szSeparator)
 		end  	
 		return tstrcont
+end
+
+local VIEW = {}
+
+function VIEW:index()
+	-- body
+	if self.method == "get" then
+		local func = template.compile( path( "index.html" ) )
+		return func { message = "hello, world."}
+	end
 end
 
 function VIEW:user()

@@ -1,13 +1,13 @@
 local s = [[
-local skynet = require "skynet"
-local modelmgr = require "modelmgrcpp"
+local dbset = require "dbset"
 local assert = assert
 local type   = type
 
-local cls = class("%s", modelmgr)
+local cls = class("%s", dbset)
 
-function cls:ctor( ... )
+function cls:ctor(env, dbctx, ... )
 	-- body
+	cls.super.ctor(self, env, dbctx)
 	self.__data    = {}
 	self.__count   = 0
 	self.__cap     = 0

@@ -4,6 +4,14 @@ local sd = require "sharedata"
 
 local cls = class("entity")
 
+function cls:ctor(env, dbctx, set, ... )
+	-- body
+	self._env = env
+	self._dbctx = dbctx
+	self._set = set
+	return self
+end
+
 function cls.set(t, ...)
 	-- body
 	local v = json.encode(t.__fields)
@@ -153,21 +161,15 @@ function cls.load_data_to_sd(t, ... )
 	end
 end
 
-function cls.set_field(self, k, v, ... )
+function cls.set_field(t, k, v, ... )
 	-- body
 	assert(k and v)
 	assert(type(k) == "string")
-	self.__ecol_updated[k] = self.__ecol_updated[k] + 1
-	if self.__ecol_updated[k] == 1 then
-		self.__col_updated = self.__col_updated + 1
+	t.__ecol_updated[k] = t.__ecol_updated[k] + 1
+	if t.__ecol_updated[k] == 1 then
+		t.__col_updated = self.__col_updated + 1
 	end
-	assert(self.__fields[k] ~= nil, "key must be existence.")
-	-- if self.__tname == "users" and self.__fields[self.__pk] == 602 then
-	-- 	if k == "ara_role_id3" then
-	-- 		error "abc"
-	-- 	end
-	-- end
-	self.__fields[k] = v
+	t.__fields[k] = v
 end
 
 function cls.get_field(t, k, ... )

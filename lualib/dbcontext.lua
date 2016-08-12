@@ -1,7 +1,8 @@
 local cls = class("dbcontext")
 
-function cls:ctor( ... )
+function cls:ctor(env, ... )
 	-- body
+	self._env = env
 	self._data = {}
 	return self
 end

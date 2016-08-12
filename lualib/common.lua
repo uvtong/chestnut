@@ -27,7 +27,7 @@ function key()
 	local r = 0
 	idx = idx + 1
 	local ti = os.time()
-	ti << 41
+	ti = ti << 41
 	local m = mechin << 15
 	local s = service << 9
 	r = r | ti

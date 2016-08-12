@@ -6,6 +6,12 @@ local sd_cache = {}
 
 local cls = class("dbset")
 
+function cls:ctor(env, ... )
+	-- body
+	self._env = env
+	return self
+end
+
 function cls.get_row_db(t, pk)
 	-- body
 	-- assert(t.__head[t.__pk].pk == true)

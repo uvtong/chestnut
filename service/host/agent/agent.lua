@@ -205,7 +205,7 @@ function CMD:afk(source)
 end
 
 -- begain to wait for client
-function CMD:start(conf)
+function CMD:start(source, conf)
 	local fd      = assert(conf.client)
 	local gate    = assert(conf.gate)
 	local version = assert(conf.version)
