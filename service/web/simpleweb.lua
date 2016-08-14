@@ -8,6 +8,8 @@ local urllib = require "http.url"
 local urls = require "urls"
 local json = require "cjson"
 local log = require "log"
+local error = skynet.error
+local assert = assert
 local table = table
 local string = string
 local static_cache = {}
@@ -118,17 +120,18 @@ local function route( id, code, url, method, header, body )
 	headerd["connection"] = "close"
 	local bodyfunc
 	local path, query = urllib.parse(url)
+	error(path, query)
 	if method == "GET" then
 		if string.match(path, "^/[%w%./-]+%.%w+") then
-			if static_cache[path] then
-				bodyfunc = static_cache[path]
+			if false and static_cache[path] then
+				bodyfunc = assert(static_cache[path])
 			else
 				local fpath = "../../service/web/statics" .. path
 				local fd = io.open(fpath, "r")
 				if fd == nil then
 					log.error(string.format("fpath is wrong, %s", fpath))
 				else
-					local ret = fd:read("*a")
+					local ret = fd:read("a")
 					fd:close()
 					bodyfunc = ret	
 					static_cache[path] = bodyfunc
@@ -188,7 +191,6 @@ local function route( id, code, url, method, header, body )
 			end
 		end
 		if bodyfunc == nil then
-			error "123"
 			skynet.error("no matching url.")
 			statuscode = 301
 			bodyfunc = "404"
@@ -204,8 +206,8 @@ local function route( id, code, url, method, header, body )
 		bodyfunc = json.encode(bodyfunc)
 	elseif type(bodyfunc) == "string" then
 	else
-		print(type(bodyfunc))
-		error "now don't support others type."
+		error(string.format("now don't support others type: %s.", type(bodyfunc)))
+		assert(false, "you should check these .")
 	end
 	return response(id, statuscode, bodyfunc, headerd)
 end 

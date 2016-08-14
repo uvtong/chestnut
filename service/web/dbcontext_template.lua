@@ -8,6 +8,8 @@ function cls:ctor(env, ... )
 	return self
 end
 
+%s
+
 return cls
 ]]
 

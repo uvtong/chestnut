@@ -10,7 +10,6 @@ local CMD = {}
 
 function CMD.post(source)
 	-- body
-	log.INFO("*******************")
 	tally = tally + 1
 	return channel.channel
 end
@@ -25,7 +24,7 @@ end
 
 function CMD.finish(source)
 	-- body
-	log.INFO("start finish.")
+	log.info("start finish.")
 	if decrease == 0 then
 		skynet.send(".FINISH", "lua", "exit")
 	else

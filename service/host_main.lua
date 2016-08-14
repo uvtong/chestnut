@@ -24,9 +24,7 @@ skynet.start(function()
 	skynet.newservice("branch")
 	-- skynet.newservice("channel")
 	
-	
-	local signupd = skynet.getenv("signupd")
-	if signupd  then
+	repeat
 		local conf = {
 			db_host = skynet.getenv("db_host") or "192.168.1.116",
 			db_port = skynet.getenv("db_port") or 3306,
@@ -39,14 +37,16 @@ skynet.start(function()
 		local addr = skynet.newservice("db")
 		assert(skynet.call(addr, "lua", "start", conf))
 		skynet.name(".SIGNUPD_DB", addr)
-		
+	until true
+	
+	local signupd = skynet.getenv("signupd")
+	if signupd  then
 		local addr = skynet.newservice("signupd")
 		local signupd_name = skynet.getenv("signupd_name")
 		skynet.name(signupd_name, addr)
 	end
 
-	local logind = skynet.getenv("logind")
-	if logind then
+	repeat 
 		local conf = {
 			db_host = skynet.getenv("db_host") or "192.168.1.116",
 			db_port = skynet.getenv("db_port") or 3306,
@@ -60,18 +60,16 @@ skynet.start(function()
 		local db = skynet.newservice("db")
 		skynet.name(".logind_db", db)
 		assert(skynet.call(db, "lua", "start", conf))
-		
-		-- local addr = skynet.newservice("logind/logindata")
-		-- skynet.name(".logindata", addr)
-		
+	until true
+
+	local logind = skynet.getenv("logind")
+	if logind then
 		local logind_name = skynet.getenv("logind_name")
 		local addr = skynet.newservice("logind/logind")
 		skynet.name(logind_name, addr)
 	end     
 
-	local gated = skynet.getenv("gated")
-	if gated then
-		
+	repeat 
 		local conf = {
 			db_host = skynet.getenv("db_host") or "192.168.1.116",
 			db_port = skynet.getenv("db_port") or 3306,
@@ -85,8 +83,10 @@ skynet.start(function()
 		local addr = skynet.newservice("db")
 		skynet.name(".DB", addr)
 		assert(skynet.call(addr, "lua", "start", conf))
-		
+	until true
 
+	local gated = skynet.getenv("gated")
+	if gated then
 		local logind_name = skynet.getenv("logind_name")
 		local server_name = skynet.getenv("gated_name")
 		local max_client = skynet.getenv("maxclient")
@@ -102,7 +102,7 @@ skynet.start(function()
 		})
 	end
 
-	log.INFO("host successful .")
+	log.info("host successful .")
 	
 	skynet.exit()
 end)

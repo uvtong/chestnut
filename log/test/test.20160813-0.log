@@ -1,0 +1,43 @@
+[INFO] 2016-08-13 02:18:00 [host_main] [../../service/host_main.lua:105] host successful .
+[ERROR] 2016-08-13 02:18:17 [simpleweb] [../../service/web/simpleweb.lua:132] fpath is wrong, ../../service/web/statics/favicon.ico
+[INFO] 2016-08-13 02:25:03 [host_main] [../../service/host_main.lua:105] host successful .
+[INFO] 2016-08-13 03:25:41 [host_main] [../../service/host_main.lua:105] host successful .
+[ERROR] 2016-08-13 03:26:35 [simpleweb] [../../service/web/simpleweb.lua:132] fpath is wrong, ../../service/web/statics/assets/css/bootstrap.css
+[ERROR] 2016-08-13 03:26:35 [simpleweb] [../../service/web/simpleweb.lua:132] fpath is wrong, ../../service/web/statics/bootstrap-modal.js
+[ERROR] 2016-08-13 03:26:35 [simpleweb] [../../service/web/simpleweb.lua:132] fpath is wrong, ../../service/web/statics/bootstrap-alert.js
+[ERROR] 2016-08-13 03:26:35 [simpleweb] [../../service/web/simpleweb.lua:132] fpath is wrong, ../../service/web/statics/bootstrap-transition.js
+[ERROR] 2016-08-13 03:26:35 [simpleweb] [../../service/web/simpleweb.lua:132] fpath is wrong, ../../service/web/statics/assets/css/bootstrap-responsive.css
+[ERROR] 2016-08-13 03:26:35 [simpleweb] [../../service/web/simpleweb.lua:132] fpath is wrong, ../../service/web/statics/bootstrap-dropdown.js
+[INFO] 2016-08-13 03:31:17 [host_main] [../../service/host_main.lua:105] host successful .
+[ERROR] 2016-08-13 03:31:21 [simpleweb] [../../service/web/simpleweb.lua:132] fpath is wrong, ../../service/web/statics/bootstrap-alert.js
+[ERROR] 2016-08-13 03:31:21 [simpleweb] [../../service/web/simpleweb.lua:132] fpath is wrong, ../../service/web/statics/bootstrap-dropdown.js
+[ERROR] 2016-08-13 03:31:21 [simpleweb] [../../service/web/simpleweb.lua:132] fpath is wrong, ../../service/web/statics/bootstrap-transition.js
+[ERROR] 2016-08-13 03:31:21 [simpleweb] [../../service/web/simpleweb.lua:132] fpath is wrong, ../../service/web/statics/bootstrap-modal.js
+[ERROR] 2016-08-13 03:31:21 [simpleweb] [../../service/web/simpleweb.lua:132] fpath is wrong, ../../service/web/statics/assets/css/bootstrap-responsive.css
+[ERROR] 2016-08-13 03:31:21 [simpleweb] [../../service/web/simpleweb.lua:132] fpath is wrong, ../../service/web/statics/assets/ico/favicon.png
+[INFO] 2016-08-13 03:35:06 [host_main] [../../service/host_main.lua:105] host successful .
+[INFO] 2016-08-13 03:40:26 [host_main] [../../service/host_main.lua:105] host successful .
+[INFO] 2016-08-13 03:42:24 [host_main] [../../service/host_main.lua:105] host successful .
+[INFO] 2016-08-13 03:43:03 [host_main] [../../service/host_main.lua:105] host successful .
+[INFO] 2016-08-13 03:44:31 [host_main] [../../service/host_main.lua:105] host successful .
+[INFO] 2016-08-13 03:49:40 [host_main] [../../service/host_main.lua:105] host successful .
+[INFO] 2016-08-13 03:54:00 [host_main] [../../service/host_main.lua:105] host successful .
+[INFO] 2016-08-13 04:07:34 [host_main] [../../service/host_main.lua:105] host successful .
+[INFO] 2016-08-13 04:12:30 [host_main] [../../service/host_main.lua:105] host successful .
+[INFO] 2016-08-13 04:23:18 [host_main] [../../service/host_main.lua:105] host successful .
+[INFO] 2016-08-13 04:26:45 [host_main] [../../service/host_main.lua:105] host successful .
+[INFO] 2016-08-13 04:28:06 [host_main] [../../service/host_main.lua:105] host successful .
+[INFO] 2016-08-13 04:29:04 [host_main] [../../service/host_main.lua:105] host successful .
+[INFO] 2016-08-13 04:30:02 [host_main] [../../service/host_main.lua:105] host successful .
+[INFO] 2016-08-13 04:36:59 [host_main] [../../service/host_main.lua:105] host successful .
+[INFO] 2016-08-13 04:40:05 [host_main] [../../service/host_main.lua:105] host successful .
+[INFO] 2016-08-13 04:41:02 [host_main] [../../service/host_main.lua:105] host successful .
+[INFO] 2016-08-13 04:42:52 [host_main] [../../service/host_main.lua:105] host successful .
+[INFO] 2016-08-13 04:44:10 [host_main] [../../service/host_main.lua:105] host successful .
+[INFO] 2016-08-13 04:45:24 [host_main] [../../service/host_main.lua:105] host successful .
+[INFO] 2016-08-13 21:48:36 [host_main] [../../service/host_main.lua:105] host successful .
+[INFO] 2016-08-13 22:11:59 [host_main] [../../service/host_main.lua:105] host successful .
+[INFO] 2016-08-13 22:24:26 [host_main] [../../service/host_main.lua:105] host successful .
+[INFO] 2016-08-13 22:33:12 [host_main] [../../service/host_main.lua:105] host successful .
+[INFO] 2016-08-13 23:15:59 [host_main] [../../service/host_main.lua:105] host successful .
+[INFO] 2016-08-13 23:30:12 [host_main] [../../service/host_main.lua:105] host successful .
