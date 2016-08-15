@@ -1,0 +1,161 @@
+.package {
+	type 0 : integer
+	session 1 : integer
+    index 2 : integer
+    version 3 : integer
+}
+
+.settlement {
+	gold 0 : integer	
+}
+
+handshake 1 {
+    response {
+    	errorcode 0 : integer
+    }
+}
+
+role_info 2 {
+}
+
+mails 3 {
+}
+
+signup 4 {
+}
+
+login 5 {
+    request {
+        account 0 : string
+        password 1 : string
+    }
+    response {
+        errorcode 0 : integer
+    }
+}
+
+role_upgrade_star 6 {
+}
+
+choose_role 7 {
+}
+
+wake 8 {
+}
+
+props 9 {
+}
+
+use_prop 10 {
+}
+
+achievement 11 {
+} 	 
+
+mail_read 12 {
+}
+
+mail_delete 13 {
+}
+
+mail_getreward 14 {
+} 
+
+friend_list 15 {
+}
+
+applied_list 16 {
+}
+
+otherfriend_list  17 {
+}
+
+findfriend 18 {
+}
+
+applyfriend 19 {
+}
+ 
+recvfriend 20 {
+}
+
+enter_room 21 {
+    request {
+        rule 0 : integer
+        mode 1 : integer
+        scene 2 : integer
+    }
+    response {
+        errorcode 0 : integer
+    }
+}
+
+ready 22 {
+    request {
+        ready 0 : integer
+    }
+    response {
+        errorcode 0 : integer
+        user_id 1 : integer
+        mcards 2 : *integer
+        rcards 3 : *integer
+        lcards 4 : *integer
+        dcards 5 : *integer
+    }
+}
+
+mp 23 {
+    request {
+        m 0 : integer
+    }
+    response {
+        errorcode 0 : integer
+        m 1 : integer
+        mcards 2 : *integer
+        rcards 3 : *integer
+        lcards 4 : *integer
+        dcards 5 : *integer   
+    }
+}
+
+am 24 {
+    request {
+        m 0 : integer
+    }
+    response {
+        errorcode 0 : integer
+    }
+}
+
+rob 25 {
+    request {
+        m 0 : integer
+    }
+    response {
+        errorcode 0 :integer
+        your_turn 1 : integer
+        countdown 2 : integer
+    }
+}
+
+lead 26 {
+    request {
+        cards 0 : *integer
+    }
+    response {
+        errorcode 0 : integer
+        your_turn 1 : integer
+        countdown 2 : integer
+        me 3 : settlement
+        right 4 : settlement
+        left 5 : settlement
+    }
+}
+
+deal_cards 27 {
+    response {
+        errorcode 0 : integer
+        your_turn 1 : integer
+        countdown 2 : integer
+    }
+}
