@@ -15,7 +15,6 @@ LUA_STATICLIB := $(LUA_PATH)/src/liblua.a
 LUA_LIB ?= $(LUA_STATICLIB)
 LUA_INC ?= $(LUA_PATH)/src
 
-
 $(LUA_PATH)/src/lua: $(LUA_PATH)/Makefile
 	cd ./3rd/lua && $(MAKE) CC='$(CC) -std=gnu99' $(PLAT)
 
