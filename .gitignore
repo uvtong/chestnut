@@ -32,6 +32,7 @@
 
 # log folder
 /log
+/3rd
 
 # redis db
 *.rdb
