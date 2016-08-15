@@ -1,5 +1,0 @@
-[INFO] 2016-08-12 22:41:36 [host_main] [../../service/host_main.lua:105] host successful .
-[ERROR] 2016-08-12 22:42:36 [simpleweb] [../../service/web/simpleweb.lua:129] fpath is wrong, ../../service/web/statics/favicon.ico
-[INFO] 2016-08-12 22:59:46 [host_main] [../../service/host_main.lua:105] host successful .
-[ERROR] 2016-08-12 22:59:59 [simpleweb] [../../service/web/simpleweb.lua:131] fpath is wrong, ../../service/web/statics/favicon.ico
-[ERROR] 2016-08-12 23:00:58 [simpleweb] [../../service/web/simpleweb.lua:131] fpath is wrong, ../../service/web/statics/favicon.ico

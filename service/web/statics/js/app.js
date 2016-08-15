@@ -155,8 +155,8 @@ var SigninForm = React.createClass({
           // alert("success")
           // alert("success", resp[1].auther)
           console.log("Hello world")
-          console.log()
-          ReactDOM.render(<Example1 name="John"/>, document.getElementById('jqueryexample'));
+          // console.log()
+          // ReactDOM.render(<Example1 name="John"/>, document.getElementById('jqueryexample'));
         },
         error:function(){
           alert('error');
@@ -191,10 +191,31 @@ var Example1 = React.createClass({
 });
 
 var Example2 = React.createClass({
+  handleConfirm:function (argument) {
+    // body...
+    // $.get("/test", {}, function (resp) {
+    //   // body...
+    //   console.log("Hello");
+    //   var abc;
+    //   if (typeof(resp) == "stirng") {
+    //     name = resp
+    //   }
+    //   ReactDOM.render(<Example1 name={abc}/>, document.getElementById("jqueryexample"))
+    // });
+    $.post("/test", {}, function (resp) {
+      // body...
+      console.log("Hello");
+      var abc = resp.id;
+      var sabc = abc.toString();
+      ReactDOM.render(<Example1 name={sabc}/>, document.getElementById("jqueryexample"))
+    }, "json")
+  },
   render:function (argument) {
     // body...
-    return "";
+    return (
+      <button type="button" className="btn btn-default" onClick={this.handleConfirm}>confirm</button>
+      );
   }
 });
 
-ReactDOM.render(<SigninForm name="John" />, document.getElementById('jqueryexample'));
+ReactDOM.render(<Example2 name="John" />, document.getElementById('jqueryexample'));

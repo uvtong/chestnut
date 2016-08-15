@@ -30,7 +30,14 @@
 # tmp
 *~
 
-# folder
-/cat/cat.sql
+# log folder
+/log
+/3rd
 
+# redis db
 *.rdb
+
+# tar
+*.tar.gz
+*.gz
+

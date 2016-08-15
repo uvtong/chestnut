@@ -475,14 +475,18 @@ end
 
 function VIEW:test( ... )
 	-- body
-	if self.method == "post" then
-		local data = {
-			{id=1, author="Pete Hunt", text="This is one comment"},	
-			{id=2, author="Jordan Walke", text="This is *another* comment"}
-		};
-		return data
-	elseif self.method == "get" then
-		return {id=1}
+	if true then
+		return { id = 2}
+	else
+		if self.method == "post" then
+			local data = {
+				{id=1, author="Pete Hunt", text="This is one comment"},	
+				{id=2, author="Jordan Walke", text="This is *another* comment"}
+			};
+			return data
+		elseif self.method == "get" then
+			return {id=1}
+		end
 	end
 end
 
