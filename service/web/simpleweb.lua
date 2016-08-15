@@ -8,6 +8,7 @@ local urllib = require "http.url"
 local urls = require "urls"
 local json = require "cjson"
 local log = require "log"
+local pcall = skynet.pcall
 local error = skynet.error
 local assert = assert
 local table = table
@@ -116,11 +117,21 @@ end
 local function route( id, code, url, method, header, body )
 	-- body
 	local statuscode = code
+
+	-- headerd
 	local headerd = {}
-	headerd["connection"] = "close"
+	-- for k,v in pairs(header) do
+	-- 	headerd[k] = v
+	-- end
+	-- if header.host then
+	-- 	table.insert(headerd, string.format("host: %s", header.host))
+	-- end
+	-- table.insert(headerd, string.format("connection: %s", "close"))
+
+	-- body
 	local bodyfunc
 	local path, query = urllib.parse(url)
-	error(path, query)
+	error(string.format("simpleweb, %s", path))
 	if method == "GET" then
 		if string.match(path, "^/[%w%./-]+%.%w+") then
 			if false and static_cache[path] then
@@ -140,49 +151,52 @@ local function route( id, code, url, method, header, body )
 		else
 			for k,v in pairs(urls) do
 				if string.match(path, k) then
+					local q = urllib.parse_query(query)
 					local args = {}
 					args.method = "get"
-					args.query = query
+					args.query = q
 					local ok, res = pcall(v, args)
 					if ok then
 						bodyfunc = res
 					else
+						statuscode = 500
 						bodyfunc = string.fromat("error from server %s", res)
 					end
 					break
 				end
 			end
 			if not bodyfunc then
+				assert(false)
 				log.error("no matching url")
-				bodyfunc = "404"
-				statuscode = 301
-				headerd["Location"] = "/404"
+				statuscode = 500
+				bodyfunc = "error"
 			end
 		end
 	elseif method == "POST" then
-		local flag
-		flag, body, header = parse_header(header, body)
+		local m, c = parse_header(header, body)
 		for k,v in pairs(urls) do
 			if string.match(path, k) then
-				if flag == "file" then
+				if m == "file" then
 					local args = {}
-					args.method = flag
-					args.file = body
+					args.method = m
+					args.file = c
 					local ok, res = pcall(v, args)
 					if ok then
 						bodyfunc = res
 					else
-						bodyfunc = string.fromat("error from server %s", res)
+						statuscode = 500
+						-- bodyfunc = string.fromat("error from server %s", res)
 					end
-				elseif flag == "post" then
+				elseif m == "post" then
 					local args = {}
-					args.method = flag
-					args.body = body
+					args.method = m
+					args.body = c
 					local ok, res = pcall(v, args)
 					if ok then
 						bodyfunc = res
 					else
-						bodyfunc = string.fromat("error from server %s", res)
+						statuscode = 500
+						-- bodyfunc = string.fromat("error from server %s", res)
 					end
 				else
 					assert(false)
@@ -191,10 +205,9 @@ local function route( id, code, url, method, header, body )
 			end
 		end
 		if bodyfunc == nil then
+			assert(false)
 			skynet.error("no matching url.")
-			statuscode = 301
-			bodyfunc = "404"
-			headerd["Location"] = "/404"
+			statuscode = 500
 		end
 	else
 		error "now don't support others method"
@@ -204,12 +217,17 @@ local function route( id, code, url, method, header, body )
 	end
 	if type(bodyfunc) == "table" then
 		bodyfunc = json.encode(bodyfunc)
+		assert(type(bodyfunc) == "string")
 	elseif type(bodyfunc) == "string" then
+	elseif type(bodyfunc) == "function" then
+		assert(false)
 	else
 		error(string.format("now don't support others type: %s.", type(bodyfunc)))
 		assert(false, "you should check these .")
+		statuscode = 500
 	end
-	return response(id, statuscode, bodyfunc, headerd)
+	error("simpleweb", statuscode)
+	response(id, statuscode, bodyfunc, headerd)
 end 
 
 skynet.start(function()
@@ -221,7 +239,7 @@ skynet.start(function()
 			if code ~= 200 then
 				response(id, code)
 			else
-				return route(id, code, url, method, header, body)				
+				route(id, code, url, method, header, body)				
 			end
 		else
 			if url == sockethelper.socket_error then
