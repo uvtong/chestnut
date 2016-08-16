@@ -1,24 +1,9 @@
 local skynet = require "skynet"
 -- local cluster = require "cluster"
-local template = require "resty.template"
 local csvreader = require "csvReader"
 local query = require "query"
 local errorcode = require "errorcode"
 local json = require "cjson"
-
-template.caching(true)
-template.precompile("index.html")
-
-local function root(filename, ... )
-	-- body
-	return "../../"..filename
-end
-
-local function path( filename )
-	-- body
-	assert(type(filename) == "string")
-	return "../../service/web/templates/" .. filename
-end
 
 local function Split(szFullString, szSeparator)  
 		local nFindStartIndex = 1  
@@ -60,8 +45,14 @@ local VIEW = {}
 function VIEW:index()
 	-- body
 	if self.method == "get" then
-		local func = template.compile( path( "index.html" ) )
-		return func { message = "hello, world."}
+		local filename = "../../service/web/statics/index.html"
+		local fd = io.open(filename)
+		if fd then
+			local c = fd:read("a")
+			return c
+		else
+			assert(false)
+		end
 	end
 end
 

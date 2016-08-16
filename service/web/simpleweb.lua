@@ -222,7 +222,7 @@ local function route( id, code, url, method, header, body )
 	elseif type(bodyfunc) == "function" then
 		assert(false)
 	else
-		error(string.format("now don't support others type: %s.", type(bodyfunc)))
+		error(string.format("path: %s, now don't support others type: %s.", path, type(bodyfunc)))
 		assert(false, "you should check these .")
 		statuscode = 500
 	end

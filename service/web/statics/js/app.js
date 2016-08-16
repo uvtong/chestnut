@@ -137,58 +137,72 @@ var Example = React.createClass({
 });
 
 var SigninForm = React.createClass({
-  handleConfirm:function (argument) {
+  getInitialState: function (argument) {
     // body...
-    debugger
+    return {
+      is_save_user: false,
+      user_email: "",
+      user_password: "",
+    };
+  },
+  handleConfirm: function (argument) {
+    // body...
     try {
-      var data = {
-        text:"Hello world.",
-      };
-      console.log("OK");
-      $.ajax({
-        url:"/test",
-        type:"POST",
-        data:data,
-        dataType:"json",
-        success:function(resp){
-          debugger
-          // alert("success")
-          // alert("success", resp[1].auther)
-          console.log("Hello world")
-          // console.log()
-          // ReactDOM.render(<Example1 name="John"/>, document.getElementById('jqueryexample'));
-        },
-        error:function(){
-          alert('error');
-        }
-      });
+      $.post("/test", {}, function (resp) {
+        // body...
+        console.log("Hello");
+        var abc = resp.id;
+        var sabc = abc.toString();
+        // ReactDOM.render(<Example1 name={sabc}/>, document.getElementById("jqueryexample"))
+      }, "json")
     } catch (e) {
       console.log("abc")
     }
   },
-  render:function (argument) {
+  handleCheck: function (argument) {
+    // body...
+  },
+  handleChange: function (e) {
+    // body...
+    // e.target.value
+    if (this.state.is_save_user) {
+      var user_email = this.refs.user_email.value;
+      var user_password = this.refs.user_password.value;
+      this.setState({
+        is_save_user:false,
+      });
+    } else {
+      this.setState({
+        is_save_user:true,
+        user_email:user_email,
+        user_password:user_password,
+      });
+    }
+  }.bind(this),
+  render: function (argument) {
     // body...
     return (
-      <form className="form-signin">
+      <div className="form-signin">
         <h2 className="form-signin-heading">Please sign in</h2>
-        <input type="text" className="input-block-level" placeholder="Email address"/>
-        <input type="password" className="input-block-level" placeholder="Password"/>
+        <input ref="user_email" type="text" className="input-block-level" placeholder="Email address"/>
+        <input ref="user_password" type="password" className="input-block-level" placeholder="Password"/>
         <label className="checkbox">
-          <input type="checkbox" value="remember-me"/>
+          <input type="checkbox" value="remember-me" onChange={this.handleChange}/>
           Remember me
         </label>
         <button className="btn btn-large btn-primary" onClick={this.handleConfirm}>Sign in</button>
-      </form>
+      </div>
     );
   }
 });
 
-var Example1 = React.createClass({
-    render:function (argument) {
-      // body...
-      return <div>Hello {this.props.name}</div>;
-    }
-});
+class Example1 extends React.Component {
+  render() {
+    return (
+      <div>Hello {this.props.name}</div>
+      );
+  }
+}
 
 var Example2 = React.createClass({
   handleConfirm:function (argument) {
@@ -218,4 +232,228 @@ var Example2 = React.createClass({
   }
 });
 
-ReactDOM.render(<Example2 name="John" />, document.getElementById('jqueryexample'));
+var Navbar = React.createClass({
+  render:function (argument) {
+    // body...
+    return (
+      <div className="navbar navbar-inverse navbar-fixed-top">
+        <div className="navbar-inner">
+          <div className="container-fluid">
+            <button type="button" className="btn btn-navbar" data-toggle="collapse" data-target=".nav-collapse">
+              <span className="icon-bar"></span>
+              <span className="icon-bar"></span>
+              <span className="icon-bar"></span>
+            </button>
+            <a className="brand" href="#">Project name</a>
+            <div className="nav-collapse collapse">
+              <p className="navbar-text pull-right">
+                Logged in as <a href="#" className="navbar-link">Username</a>
+              </p>
+              <ul className="nav">
+                <li className="active"><a href="#">Home</a></li>
+                <li><a href="#about">About</a></li>
+                <li><a href="#contact">Contact</a></li>
+              </ul>
+            </div>
+          </div>
+        </div>
+      </div>
+      );
+  }
+});
+
+var Span4 = React.createClass({
+  render:function (argument) {
+    // body...
+    return (
+      <div className="span4">
+        <h2>{this.props.heading}</h2>
+        <p>{this.props.content}</p>
+        <p><a className="btn" href="#">View details &raquo;</a></p>
+      </div>
+      );
+  }
+});
+
+var RowFluid = React.createClass({
+  render:function (argument) {
+    // body...
+    return (
+      <div className="row-fluid">
+        <Span4 heading="Heading" content="AAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAA"/>
+        <Span4 heading="Heading" content="AAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAA"/>
+        <Span4 heading="Heading" content="AAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAA"/>
+      </div>
+      );
+  }
+});
+
+var Span3 = React.createClass({
+  render: function (argument) {
+    // body...
+    return (
+      <div className="span3">
+        <div className="well sidebar-nav">
+          <ul className="nav nav-list">
+            <li className="nav-header">Sidebar</li>
+            <li className="active"><a href="#">Link</a></li>
+            <li><a href="#">Link</a></li>
+            <li><a href="#">Link</a></li>
+            <li><a href="#">Link</a></li>
+            <li class="nav-header">Sidebar</li>
+            <li><a href="#">Link</a></li>
+            <li><a href="#">Link</a></li>
+            <li><a href="#">Link</a></li>
+            <li><a href="#">Link</a></li>
+            <li><a href="#">Link</a></li>
+            <li><a href="#">Link</a></li>
+            <li class="nav-header">Sidebar</li>
+            <li><a href="#">Link</a></li>
+            <li><a href="#">Link</a></li>
+            <li><a href="#">Link</a></li>
+          </ul>
+          <ul className="nav-header">Sidebar</ul>
+        </div>
+      </div>
+    );  
+  }
+});
+
+var Span9 = React.createClass({
+  render:function (argument) {
+    // body...
+    return (
+      <div className="span9">
+        <div className="hero-unit">
+          <h1>Hello, world!</h1>
+          <p>This is a template for a simple marketing or informational website. It includes a large callout called the hero unit and three supporting pieces of content. Use it as a starting point to create something more unique.</p>
+          <p><a href="#" className="btn btn-primary btn-large">Learn more &raquo;</a></p>
+        </div>
+        <RowFluid />
+        <RowFluid />
+      </div>
+      );
+  }
+});
+
+var ContainerFluid = React.createClass({
+  render:function (argument) {
+    // body...
+    return (
+      <div className="container-fluid">
+        <div className="row-fluid">
+          <Span3 />
+          <Span9 />
+        </div>
+      </div>
+      );
+  }
+});
+
+var Root = React.createClass({
+  render: function (argument) {
+    // body...
+    return (
+      <div>
+        <Navbar />
+        <ContainerFluid />
+      </div>
+      );
+  }
+});
+
+class ToolItem extends React.Component {
+  getValue() {
+    return this.refs.tool_mtext.value
+  }
+  render() {
+    return (
+      <form>
+        <div className="form-group">
+          <label htmlFor="inputEmail3" className="col-sm-2 control-label">{this.props.title}</label>
+          <div className="col-sm-10">
+            <input ref="tool_mtext" type="email" className="form-control" id="inputEmail3" placeholder="Email" />
+          </div>
+        </div>
+        <button ref="tool_valid" type="button" className="btn btn-default" onClick={this.props.onClick}>submit</button>
+      </form>
+      );
+  }
+}
+
+class Tool extends React.Component {
+  // static defaultProps = {
+  // }
+  // state = {
+  // }
+
+  constructor(props) {
+    super(props);
+    // Operations usually carried out in componentWillMount go here
+    this.text1 = this.text1.bind(this)
+  }
+
+  onValidation() {
+    // debugger
+    console.log("text1");
+    var table_name = this.refs.validation.getValue();
+    $.post("/validation", {table_name:table_name}, function (resp) {
+      // body...
+      console.log("Hello");
+      // var abc = resp.id;
+      // var sabc = abc.toString();
+      // ReactDOM.render(<Example1 name={sabc}/>, document.getElementById("jqueryexample"))
+    }, "json")
+  }
+  onValidationRo() {
+    var table_name = this.refs.validation.getValue();
+    $.post("/validation_ro", {table_name:table_name}, function (resp) {
+      // body...
+      console.log(resp.errorcode);
+    }, "json");
+  }
+  onPercudure() {
+    var table_name = this.refs.percudure.getValue();
+    $.post("/percudure", {table_name:table_name}, function (resp) {
+      // body...
+      console.log(resp.errorcode);
+    }, "json")
+  }
+  render() {
+    return (
+      <div className="container-fluid">
+        <div className="row">
+          <ToolItem ref="validation" title="validation" onClick={this.onValidation} />
+        </div>
+        <div className="row">
+          <ToolItem ref="validation_ro" title="validation_ro" onClick={this.onValidationRo} />
+        </div>
+        <div className="row">
+          <ToolItem ref="percudure" title="percudure" onClick={this.onPercudure} />
+        </div>
+      </div>
+      );
+  }
+}
+
+class Email extends React.Component {
+  constructor(props) {
+    super(props);
+    // Operations usually carried out in componentWillMount go here
+    // this.text1 = this.text1.bind(this)
+  }
+  render() {
+    return (
+      <div>
+        <div className="input-group">
+          <span className="input-group-addon" id="basic-addon1">@</span>
+          <input type="text" className="form-control" placeholder="Username" aria-describedby="basic-addon1" />
+        </div>
+        <div className="input-group">
+        </div>
+      </div>
+      );
+  }
+}
+
+ReactDOM.render(<Tool />, document.getElementById('root'));
