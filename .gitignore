@@ -32,7 +32,8 @@
 
 # log folder
 /log
-/3rd
+/luaclib
+/cservice
 
 # redis db
 *.rdb

@@ -390,7 +390,9 @@ class Tool extends React.Component {
   constructor(props) {
     super(props);
     // Operations usually carried out in componentWillMount go here
-    this.text1 = this.text1.bind(this)
+    this.onValidation = this.onValidation.bind(this)
+    this.onValidationRo = this.onValidationRo.bind(this)
+    this.onPercudure = this.onPercudure.bind(this)
   }
 
   onValidation() {

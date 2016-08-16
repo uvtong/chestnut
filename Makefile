@@ -18,7 +18,6 @@ LUA_INC ?= $(LUA_PATH)/src
 $(LUA_PATH)/src/lua: $(LUA_PATH)/Makefile
 	cd ./3rd/lua && $(MAKE) CC='$(CC) -std=gnu99' $(PLAT)
 
-
 $(LUA_STATICLIB): $(LUA_PATH)/Makefile
 	cd ./3rd/lua && $(MAKE) CC='$(CC) -std=gnu99' $(PLAT)
 
@@ -97,10 +96,16 @@ $(LUA_CLIB_PATH)/queue.so: $(CLIB_SRC_PATH)/lua-queue.c | $(LUA_CLIB_PATH)
 	$(CC) $(CFLAGS) $(SHARED) -I$(LUA_PATH) $^ -o $@
 
 # service
-$(CSERVICE_PATH)/catlogger.so: #(SERVICE_SRC_PATH)/service_catlogger.c | $(CSERVICE_PATH)
-	$(CC) $(CFLAGS) $(SHARED) -I$(SKYNET_SRC_PATH) $< -o $@ 
+$(CSERVICE_PATH)/catlogger.so: (SERVICE_SRC_PATH)/service_catlogger.c | $(CSERVICE_PATH)
+	$(CC) $(CFLAGS) $(SHARED) -I$(SKYNET_SRC_PATH) $^ -o $@ 
 
-all: $(LUA_STATICLIB) $(LUA_CJSON) $(LOG) $(CATLOGGER) $(SKYNET)
+all: $(LUA_STATICLIB) $(CRAB_PATH)/crab.so $(LSOCKET_PATH)/lsocket.so $(LUA_CJSON_PATH)/cjson.so \
+	$(LUA_SNAPSHOT_PATH)/snapshot.so \
+	$(LUA_ZSET_PATH)/skiplist.so \
+	$(REDIS_PATH)/redis \
+	$(SKYNET_PATH)/skynet \
+	$(LUA_CLIB_PATH)/log.so \
+	$(CSERVICE_PATH)/catlogger.so
 
 .PHONY: update3rd clean cleanall
 
