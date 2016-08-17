@@ -43,68 +43,15 @@ end
 
 function REQUEST.login(source, uid, sid, secret, g, d)
 	-- body
-	skynet.error(string.format("%s is login", uid))
-	gate = source
-	uid = uid
-	subid = sid
-	game = g
-	db = d
+end
 
-	local rnk = skynet.call(lb, "lua", "push", user.csv_id, user.csv_id)
-	user.ara_rnk = rnk
-
-	dc.set(user.csv_id, { client_fd=client_fd, addr=skynet.self()})	
-	context.user = user
-
-	local onlinetime = os.time()
-	user.ifonline = 1
-	user.onlinetime = onlinetime
-	user:__update_db({"ifonline", "onlinetime"}, const.DB_PRIORITY_2)
-	user.friendmgr = friendmgr:loadfriend( user , dc )
-	friendrequest.getvalue(user, send_package, send_request)
-	--load public email from channel public_emailmgr
-	get_public_email()
-
-	subscribe()
-	skynet.fork(subscribe)
-
-	local ret = {}
-	ret.errorcode = errorcode[1].code
-	ret.msg = errorcode[1].msg
-	ret.u = {
-		uname = user.uname,
-		uviplevel = user.uviplevel,
-		config_sound = (user.config_sound == 1) and true or false,
-		config_music = (user.config_music == 1) and true or false,
-		avatar = user.avatar,
-		sign = user.sign,
-		c_role_id = user.c_role_id,
-		level = user.level,
-		recharge_rmb = user.recharge_rmb,
-		recharge_diamond = user.recharge_diamond,
-		uvip_progress = user.uvip_progress,
-		cp_hanging_id = user.cp_hanging_id,
-		cp_chapter = user.cp_chapter,
-		lilian_level = user.lilian_level
-	}
-	ret.u.uexp = assert(user.u_propmgr:get_by_csv_id(const.EXP)).num
-	ret.u.gold = assert(user.u_propmgr:get_by_csv_id(const.GOLD)).num
-	ret.u.diamond = assert(user.u_propmgr:get_by_csv_id(const.DIAMOND)).num
-	ret.u.love = user.u_propmgr:get_by_csv_id(const.LOVE).num
-	ret.u.equipment_list = {}
-	for k,v in pairs(user.u_equipmentmgr.__data) do
-		table.insert(ret.u.equipment_list, v)
-	end
-	ret.u.kungfu_list = {}
-	for k,v in pairs(user.u_kungfumgr.__data) do
-		table.insert(ret.u.kungfu_list, v)
-	end
-	ret.u.rolelist = {}
-	for k,v in pairs(user.u_rolemgr.__data) do
-		table.insert(ret.u.rolelist, v)
-	end
-	
-	return true, send_request("login", ret)
+function REQUEST:wake(args, ... )
+	-- body
+	local role_id = args.role_id
+	error(role_id)
+	local res = {}
+	res.errorcode = 0
+	return res
 end
 
 local function request(name, args, response)

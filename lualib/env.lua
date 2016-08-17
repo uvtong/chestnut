@@ -1,4 +1,4 @@
-local center = require "notification_center"
+-- local center = require "notification_center"
 local socket = require "socket"
 local string_pack = string.pack
 
@@ -6,7 +6,7 @@ local cls = class("env")
 
 function cls:ctor( ... )
 	-- body
-	self._center = center.new(self)
+	-- self._center = center.new(self)
 	return self
 end
 

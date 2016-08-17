@@ -176,7 +176,6 @@ function server.start(conf)
 		login = assert(conf.login_handler),
 		logout = assert(conf.logout_handler),
 		kick = assert(conf.kick_handler),
-		forward = assert(conf.forward)
 	}
 
 	function handler.command(cmd, source, ...)
@@ -377,7 +376,7 @@ function server.start(conf)
 	local function do_start(fd, ... )
 		-- body
 		local u = assert(connection[fd], "invalid fd")
-		start(u.username, fd, u.version, u.idx)
+		start(u.username, fd, u.version, u.index)
 	end
 
 	function handler.message(fd, msg, sz)

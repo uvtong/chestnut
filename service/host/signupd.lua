@@ -3,8 +3,6 @@ local login = require "snax.loginserver"
 local crypt = require "crypt"
 local skynet = require "skynet"
 local query = require "query"
-local accountmgr = require "models/accountmgr"
-
 
 local MAX_INTEGER = 16777216
 
