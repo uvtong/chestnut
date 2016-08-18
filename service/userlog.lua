@@ -1,7 +1,7 @@
 package.path = "./../../lualib/?.lua;"..package.path
 local skynet = require "skynet"
 require "skynet.manager"
-local log = require "log"
+-- local log = require "log"
 
 skynet.register_protocol {
 	name = "text",
@@ -10,7 +10,6 @@ skynet.register_protocol {
 	dispatch = function(_, address, msg)
 		-- print(string.format("[:%08x][%.2f]: %s", address, skynet.time(), msg))
 		print(string.format("[:%08x][%s]: %s", address, os.date(), msg))
-		-- log.INFO(string.format("[:%08x][%s]: %s", address, os.date(), msg))
 	end
 }
 
@@ -21,7 +20,6 @@ skynet.register_protocol {
 	dispatch = function()
 		-- reopen signal
 		print("SIGHUP")
-		-- log.INFO("SIGHUP")
 	end
 }
 

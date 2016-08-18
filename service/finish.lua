@@ -1,12 +1,13 @@
 local skynet = require "skynet"
 require "skynet.manager"
+local error = skynet.error
 
 local CMD = {}
 
 function CMD.exit(source)
 	-- body
-	print("all service has been finished.")
 	-- skynet.exit()
+	skynet.error("process will be finished.")
 	skynet.newservice("abort")
 end
 

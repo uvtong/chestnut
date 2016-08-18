@@ -100,15 +100,6 @@ cc.DEBUG         = cc.DEBUG_DEBUG
 -- end
 
 -- load basics modules
--- require("framework.class")
--- require("framework.table")
--- require("framework.string")
--- require("framework.debug")
--- require("framework.math")
--- require("framework.ctype")
--- require("framework.os")
--- require("framework.io")
-
 require("class")
 require("table")
 require("string")
@@ -117,3 +108,4 @@ require("math")
 require("ctype")
 require("os")
 require("io")
+require("common")

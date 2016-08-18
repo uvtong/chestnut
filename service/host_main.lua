@@ -58,7 +58,7 @@ skynet.start(function()
 		}
 
 		local db = skynet.newservice("db")
-		skynet.name(".logind_db", db)
+		skynet.name(".LOGIND_DB", db)
 		assert(skynet.call(db, "lua", "start", conf))
 	until true
 

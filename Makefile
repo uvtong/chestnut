@@ -5,13 +5,12 @@ CSERVICE_PATH ?= cservice
 SERVICE_SRC_PATH ?= service-src
 CLIB_SRC_PATH ?= lualib-src
 
-
-CFLAGS = -g -O2 -Wall -I$(LUA_INC) $(MYCFLAGS)
+CFLAGS = -g -O2 -Wall $(MYCFLAGS)
 
 
 # lua
 LUA_PATH ?= ./3rd/lua
-LUA_STATICLIB := $(LUA_PATH)/src/liblua.a
+LUA_STATICLIB ?= $(LUA_PATH)/src/liblua.a
 LUA_LIB ?= $(LUA_STATICLIB)
 LUA_INC ?= $(LUA_PATH)/src
 
@@ -96,16 +95,19 @@ $(LUA_CLIB_PATH)/queue.so: $(CLIB_SRC_PATH)/lua-queue.c | $(LUA_CLIB_PATH)
 	$(CC) $(CFLAGS) $(SHARED) -I$(LUA_PATH) $^ -o $@
 
 # service
-$(CSERVICE_PATH)/catlogger.so: (SERVICE_SRC_PATH)/service_catlogger.c | $(CSERVICE_PATH)
+$(CSERVICE_PATH)/catlogger.so: $(SERVICE_SRC_PATH)/service_catlogger.c | $(CSERVICE_PATH)
 	$(CC) $(CFLAGS) $(SHARED) -I$(SKYNET_SRC_PATH) $^ -o $@ 
 
-all: $(LUA_STATICLIB) $(CRAB_PATH)/crab.so $(LSOCKET_PATH)/lsocket.so $(LUA_CJSON_PATH)/cjson.so \
-	$(LUA_SNAPSHOT_PATH)/snapshot.so \
-	$(LUA_ZSET_PATH)/skiplist.so \
-	$(REDIS_PATH)/redis \
-	$(SKYNET_PATH)/skynet \
-	$(LUA_CLIB_PATH)/log.so \
-	$(CSERVICE_PATH)/catlogger.so
+#all: $(LUA_STATICLIB) $(CRAB_PATH)/crab.so $(LSOCKET_PATH)/lsocket.so $(LUA_CJSON_PATH)/cjson.so \
+#	$(LUA_SNAPSHOT_PATH)/snapshot.so \
+	# $(LUA_ZSET_PATH)/skiplist.so \
+	# $(REDIS_PATH)/redis \
+	# $(SKYNET_PATH)/skynet \
+	# $(LUA_CLIB_PATH)/log.so \
+	# $(CSERVICE_PATH)/catlogger.so
+
+all: $(LUA_CLIB_PATH)/log.so $(CSERVICE_PATH)/catlogger.so
+
 
 .PHONY: update3rd clean cleanall
 

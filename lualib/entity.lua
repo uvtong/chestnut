@@ -4,12 +4,24 @@ local sd = require "sharedata"
 
 local cls = class("entity")
 
-function cls:ctor(env, dbctx, set, ... )
+function cls:ctor(env, dbctx, set, rdb, wdb, ... )
 	-- body
 	self._env = env
 	self._dbctx = dbctx
 	self._set = set
-	return self
+	self._rdb = rdb
+	self._wdb = wdb
+	self.fields = setmetatable({}, {
+		__index = function (fields, k, ... )
+			-- body
+			return self.__fields[k]
+		end,
+		__newindex = function ( ... )
+			-- body
+			error("not support this way to fetch value.")
+		end
+		})
+ 	return self
 end
 
 function cls.set(t, ...)
@@ -18,8 +30,8 @@ function cls.set(t, ...)
 	local pk = t.__fields[t.__pk]
 	local k = string.format("%s:%d", t.__tname, pk)
 	-- print(string.format("set cache k: %s v: %s", k, v))
-	query.set(t.__wdb, k, v)
-	query.hset(t.__wdb, t.__tname, pk, pk )
+	query.set(t._wdb, k, v)
+	query.hset(t._wdb, t.__tname, pk, pk )
 end
 
 function cls.insert(t, ...)

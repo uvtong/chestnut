@@ -363,19 +363,76 @@ var Root = React.createClass({
 });
 
 class ToolItem extends React.Component {
+  constructor(props) {
+    super(props);
+    this.state = {
+      head : props.title
+    };
+    this.onClick = this.onClick.bind(this);
+  }
   getValue() {
     return this.refs.tool_mtext.value
+  }
+  onClick() {
+    if (this.props.onClick) {
+      this.props.onClick();
+    };
+  }
+  componentDidMount() {
+    if (this.state.head == null) {this.setState({head:"Hello."})};
   }
   render() {
     return (
       <form>
         <div className="form-group">
-          <label htmlFor="inputEmail3" className="col-sm-2 control-label">{this.props.title}</label>
+          <label htmlFor="inputEmail3" className="col-sm-2 control-label">{this.state.head}</label>
           <div className="col-sm-10">
             <input ref="tool_mtext" type="email" className="form-control" id="inputEmail3" placeholder="Email" />
           </div>
         </div>
-        <button ref="tool_valid" type="button" className="btn btn-default" onClick={this.props.onClick}>submit</button>
+        <button ref="tool_valid" type="button" className="btn btn-default" onClick={this.onClick}>submit</button>
+      </form>
+      );
+  }
+}
+
+class ToolItemRo extends React.Component {
+  constructor(props) {
+    super(props);
+    this.state = {
+      head1 : "please input db name",
+      head2 : "please input table_name"
+    };
+    this.getTBName = this.getTBName.bind(this);
+    this.getDBName = this.getDBName.bind(this);
+  }
+  getDBName() {
+    return this.refs.db_text.value;
+  }
+  getTBName() {
+    return this.refs.tb_text.value;
+  }
+  onClick() {
+    if (this.props.onClick) {this.props.onClick()};
+  }
+  componentDidMount() {
+  }
+  render() {
+    return (
+      <form>
+        <div className="form-group">
+          <label htmlFor="inputEmail3" className="col-sm-2 control-label">{this.state.head1}</label>
+          <div className="col-sm-10">
+            <input ref="db_text" type="email" className="form-control" id="inputEmail3" placeholder="database" />
+          </div>
+        </div>
+        <div className="form-group">
+          <label htmlFor="inputEmail4" className="col-sm-2 control-label">{this.state.head2}</label>
+          <div className="col-sm-10">
+            <input ref="tb_text" type="email" className="form-control" id="inputEmail4" placeholder="table_name" />
+          </div>
+        </div>
+        <button ref="tool_valid" type="button" className="btn btn-default" onClick={this.onClick}>submit</button>
       </form>
       );
   }
@@ -390,29 +447,37 @@ class Tool extends React.Component {
   constructor(props) {
     super(props);
     // Operations usually carried out in componentWillMount go here
-    this.onValidation = this.onValidation.bind(this)
-    this.onValidationRo = this.onValidationRo.bind(this)
-    this.onPercudure = this.onPercudure.bind(this)
+    this.state = {
+      head:"message",
+      p:""
+    };
+    this.onValidation = this.onValidation.bind(this);
+    this.onValidationRo = this.onValidationRo.bind(this);
+    this.onPercudure = this.onPercudure.bind(this);
   }
-
   onValidation() {
     // debugger
-    console.log("text1");
-    var table_name = this.refs.validation.getValue();
-    $.post("/validation", {table_name:table_name}, function (resp) {
-      // body...
-      console.log("Hello");
-      // var abc = resp.id;
-      // var sabc = abc.toString();
-      // ReactDOM.render(<Example1 name={sabc}/>, document.getElementById("jqueryexample"))
-    }, "json")
+    var db_name = this.refs.validation.getValue();
+    if (db_name == null) { table_name = ""};
+    $.post("/validation", {db_name:db_name}, function (resp) {
+      if (resp.errorcode == 0) {
+        this.setState({p:"OK"});
+      } else {
+        this.setState({p:"failture."});
+      }
+    }.bind(this), "json");
   }
   onValidationRo() {
-    var table_name = this.refs.validation.getValue();
-    $.post("/validation_ro", {table_name:table_name}, function (resp) {
+    var db_name = this.refs.validation_ro.getDBName();
+    var table_name = this.refs.validation_ro.getTBName();
+    var data = {
+      db_name:db_name,
+      table_name:table_name,
+    };
+    $.post("/validation_ro", data, function (resp) {
       // body...
       console.log(resp.errorcode);
-    }, "json");
+    }.bind(this), "json");
   }
   onPercudure() {
     var table_name = this.refs.percudure.getValue();
@@ -425,13 +490,17 @@ class Tool extends React.Component {
     return (
       <div className="container-fluid">
         <div className="row">
-          <ToolItem ref="validation" title="validation" onClick={this.onValidation} />
+          <ToolItem ref="validation" title="please input db_name" onClick={this.onValidation} />
         </div>
         <div className="row">
-          <ToolItem ref="validation_ro" title="validation_ro" onClick={this.onValidationRo} />
+          <ToolItemRo ref="validation_ro" title="validation_ro" onClick={this.onValidationRo} />
         </div>
         <div className="row">
           <ToolItem ref="percudure" title="percudure" onClick={this.onPercudure} />
+        </div>
+        <div className="row">
+          <h2>{this.state.head}</h2>
+          <p>{this.state.p}</p>
         </div>
       </div>
       );

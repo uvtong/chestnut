@@ -11,8 +11,6 @@ function cls:ctor(env, dbctx, set, p, ... )
 	self.__tname = set.__tname
 	self.__pk    = set.__pk
 	self.__fk    = set.__fk
-	self.__rdb   = set.__rdb
-	self.__wdb   = set.__wdb
 	self.__stm   = set.__stm
 	self.__col_updated=0
 	self.__fields = %s

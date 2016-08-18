@@ -1,21 +1,20 @@
-function genpk_1(_1, ... )
+function cc.genpk_1(_1, ... )
 	-- body
 	return _1
 end
 
-function genpk_2(_1, _2, ... )
+function cc.genpk_2(_1, _2, ... )
     -- body
     local pk = (~(1 << 33 -1) & _1)
-    pk = pk << 16
+    pk = pk << 32
     pk = (pk | (~(1 << 33 -1) & _2 ))
     return pk
 end
 
-function genpk_3(_1, _2, ...)
+function cc.genpk_3(_1, _2, ...)
 	local pk = (~(1 << 9 - 1) & _1)
 	pk = pk << 24
 	pk = (pk | (~(1 << 25 - 1) & _2))
-
 	return pk
 end
 
@@ -23,7 +22,7 @@ local idx = 0
 local mechin = 0
 local service = 0
 
-function key()
+function cc.key()
 	local r = 0
 	idx = idx + 1
 	local ti = os.time()

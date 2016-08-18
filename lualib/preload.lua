@@ -6,4 +6,3 @@ package.cpath = "./../crab/?.so;./../lua-cjson/?.so;./../lua-sharedata/?.so;./..
 
 require "init"
 class = cc.class
-require "common"

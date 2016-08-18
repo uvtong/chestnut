@@ -1,18 +1,7 @@
-local view = require "view"
-local urls = {}
+local view = require "lualib.pet.view"
+local _M = {}
 
-urls['^/$'] = assert(view["index"])
-urls['^/index$'] = assert(view["index"])
-urls['^/user$'] = assert(view["user"])
-urls['^/role'] = assert(view["role"])
-urls['^/email'] = assert(view["email"])
-urls['^/props'] = assert(view["props"])
-urls['^/equipments'] = assert(view["equipments"])
-urls['^/validation$'] = assert(view["validation"])
-urls['^/validation_ro'] = assert(view["validation_ro"])
-urls['^/percudure'] = assert(view["percudure"])
-urls['^/404'] = assert(view["_404"])
-urls['^/test'] = assert(view["test"])
-urls['^/tool'] = assert(view["tool"])
+_M['^/pull'] = assert(view['pull'])
+_M['^/push'] = assert(view['push'])
 
-return urls
+return _M

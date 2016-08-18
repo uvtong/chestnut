@@ -1,18 +1,18 @@
 local view = require "view"
-local urls = {}
+local _M = {}
 
-urls['^/$'] = assert(view["index"])
-urls['^/index$'] = assert(view["index"])
-urls['^/user$'] = assert(view["user"])
-urls['^/role'] = assert(view["role"])
-urls['^/email'] = assert(view["email"])
-urls['^/props'] = assert(view["props"])
-urls['^/equipments'] = assert(view["equipments"])
-urls['^/validation$'] = assert(view["validation"])
-urls['^/validation_ro'] = assert(view["validation_ro"])
-urls['^/percudure'] = assert(view["percudure"])
-urls['^/404'] = assert(view["_404"])
-urls['^/test'] = assert(view["test"])
-urls['^/tool'] = assert(view["tool"])
+_M['^/$']             = assert(view["index"])
+_M['^/index$']        = assert(view["index"])
+_M['^/user$']         = assert(view["user"])
+_M['^/role']          = assert(view["role"])
+_M['^/email']         = assert(view["email"])
+_M['^/props']         = assert(view["props"])
+_M['^/equipments']    = assert(view["equipments"])
+_M['^/validation']   = assert(view["validation"])
+_M['^/validation_ro'] = assert(view["validation_ro"])
+_M['^/percudure']     = assert(view["percudure"])
+_M['^/404']           = assert(view["_404"])
+_M['^/test']          = assert(view["test"])
+_M['^/tool']          = assert(view["tool"])
 
-return urls
+return _M

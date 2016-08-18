@@ -6,9 +6,12 @@ local sd_cache = {}
 
 local cls = class("dbset")
 
-function cls:ctor(env, ... )
+function cls:ctor(env, dbctx, rdb, wdb, ... )
 	-- body
 	self._env = env
+	self._dbctx = dbctx
+	self._rdb = rdb
+	self._wdb = wdb
 	return self
 end
 

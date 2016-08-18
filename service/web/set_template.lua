@@ -5,9 +5,9 @@ local type   = type
 
 local cls = class("%s", dbset)
 
-function cls:ctor(env, dbctx, ... )
+function cls:ctor(env, dbctx, rdb, wdb, ... )
 	-- body
-	cls.super.ctor(self, env, dbctx)
+	cls.super.ctor(self, env, dbctx, rdb, wdb)
 	self.__data    = {}
 	self.__count   = 0
 	self.__cap     = 0
@@ -17,8 +17,6 @@ function cls:ctor(env, dbctx, ... )
 	%s
 	self.__pk      = "%s"
 	self.__fk      = "%s"
-	self.__rdb     = skynet.localname(skynet.getenv("gated_rdb"))
-	self.__wdb     = skynet.localname(skynet.getenv("gated_wdb"))
 	self.__stm     = false
 	self.__entity  = "%s"
 	return self

@@ -1,73 +1,84 @@
 local skynet = require "skynet"
-local template = require "resty.template"
-local csvreader = require "csvReader"
 local query = require "query"
 local errorcode = require "errorcode"
 local json = require "cjson"
-
-template.caching(true)
-template.precompile("index.html")
+local dbutil = require "dbutil"
+local rdb = ".DB"
+local wdb = ".DB"
 
 local function root(filename, ... )
 	-- body
 	return "../../"..filename
 end
 
-local function path( filename )
+local function current(filename, ... )
 	-- body
-	assert(type(filename) == "string")
-	return "../../service/web/templates/" .. filename
-end
-
-		local nFindStartIndex = 1  
-		local nSplitIndex = 1  
-		local counter = 1
-		local counter2 = 0
-		local title = {}
-		local tstrcont = {}
-
-		while true do  
-   			local nFindLastIndex = string.find(szFullString, szSeparator, nFindStartIndex)  
-   			local t  = string.sub(szFullString, nFindStartIndex, nFindLastIndex - 1)  
-   			if t == "" then
-   				break
-   			end
-   			if 1 == counter then
-   				title = csvreader.parseline( csvreader.getStrRowContent( t ) )
-   				assert( title )
-   				counter = counter + 1 
-   			else
-   				counter2 = counter2 + 1
-   				local line = csvreader.parseline( csvreader.getStrRowContent( t ) )
-   				
-   				local newline = {}
-   				for i = 1 , #title do
-        			title[i] = string.gsub( title[i] , "^%s*(.-)%s*$" , "%1" )
-        			newline[ title[ i ] ] = line[ i ]
-		        end
-
-		        table.insert( tstrcont , newline )
-   			end 
-   			nFindStartIndex = nFindLastIndex + string.len(szSeparator)
-		end  	
-		return tstrcont
+	return "./../../service/web/"..filename
 end
 
 local VIEW = {}
 
-function VIEW:index()
+function VIEW:pull()
 	-- body
 	if self.method == "get" then
-		local func = template.compile( path( "index.html" ) )
-		return func { message = "hello, world."}
+	elseif self.method == "post" then
+		local uid = self.body[uid]
+		local pet_id = self.body[pet_id]
+		local table_name = "u_pet"
+		local sql = dbutil.select(table_name, {{uid=uid, pet_id=pet_id}})
+		local r = query.read(rdb, table_name, sql)
+		if r then
+			assert(uid == r[1]["uid"])
+			assert(pet_id == r[1]["pet_id"])
+			local ret = {}
+			ret["errorcode"] = errorcode.E_SUCCUSS
+			ret["uid"] = uid
+			ret["pet_id"] = pet_id
+			ret["gold"] = r[1]["gold"]
+			ret["stage"] = r[1]["stage"]
+			ret["level"] = r[1]["level"]
+			return ret
+		else
+			local ret = {}
+			ret["errorcode"] = errorcode.E_FAIL
+			return ret
+		end
 	end
 end
 
-function VIEW:user()
+function VIEW:push( ... )
 	-- body
 	if self.method == "post" then
-		local func = template.compile(path("user.html"))
-		return func()
+		local uid = self.body[uid]
+		local pet_id = self.body[pet_id]
+		skynet.error("uid:", uid, "pet_id:", pet_id)
+		local table_name = "u_pet"
+		local sql = dbutil.select(table_name, {{uid=uid, pet_id=pet_id}})
+		skynet.error(sql)
+		local r = query.read(rdb, table_name, sql)
+		if r and #r > 0 then
+			assert(uid == r[1]["uid"])
+			assert(pet_id == r[1]["pet_id"])
+			local gold = self.body["gold"]
+			local stage = self.body["stage"]
+			local level = self.body["level"]
+			gold = gold > r[1]["gold"] and gold or r[1]["gold"]
+			stage = stage > r[1]["stage"] and stage or r[1]["stage"]
+			level = level > r[1]["level"] and level or r[1]["level"]
+			local sql = dbutil.update(table_name, {{uid=uid, pet_id=pet_id}}, {gold=gold, stage=stage, level=level}) 
+			local r = query.write(wdb, table_name, sql)
+			local ret = {}
+			ret.errorcode = errorcode.E_SUCCUSS
+			return ret
+		else
+			local id = cc.genpk_2(uid, pet_id)
+			local sql = dbutil.insert(table_name, {id=id, uid=uid, pet_id=pet_id, gold=self.body["gold"], stage=self.body["stage"], level=self.body["level"]})
+			local r = query.write(wdb, table_name, sql)
+			local ret = {}
+			ret.errorcode = errorcode.E_SUCCUSS
+			return ret
+		end
+	else
 	end
 end
 
