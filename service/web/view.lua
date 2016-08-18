@@ -206,8 +206,6 @@ end
 function VIEW:user()
 	-- body
 	if self.method == "get" then
-		local func = template.compile(path("user.html"))
-		return func()
 	end
 end
 
@@ -228,20 +226,21 @@ function VIEW:email()
 		local func = template.compile(path("email.html"))
 		return func { message = "EMAIL"}
 	elseif self.method == "post" then
-		local send_type = tonumber(self.body["send_type"])
+		local body = json.decode(self.body)
+		local send_type = tonumber(body["send_type"])
 		local c = {}
-		c["type"] = tonumber(self.body["type"])  -- 1 or 2
-		c["title"] = self.body["title"]
-		c["content"] = self.body["content"]
-		c["itemsn1"] = tonumber(self.body["itemsn1"])
-		c["itemnum1"] = tonumber(self.body["itemnum1"])
-		c["itemsn2"] = tonumber(self.body["itemsn2"])
-		c["itemnum2"] = tonumber(self.body["itemnum2"])
-		c["itemsn3"] = tonumber(self.body["itemsn3"])
-		c["itemnum3"] = assert(tonumber(self.body["itemnum3"]))
-		c["iconid"] = tonumber(tonumber(self.body["iconid"]))
+		c["type"]     = tonumber(body["type"])  -- 1 or 2
+		c["title"]    = body["title"]
+		c["content"]  = body["content"]
+		c["itemsn1"]  = tonumber(body["itemsn1"])
+		c["itemnum1"] = tonumber(body["itemnum1"])
+		c["itemsn2"]  = tonumber(body["itemsn2"])
+		c["itemnum2"] = tonumber(body["itemnum2"])
+		c["itemsn3"]  = tonumber(body["itemsn3"])
+		c["itemnum3"] = assert(tonumber(body["itemnum3"]))
+		c["iconid"]   = tonumber(tonumber(body["iconid"]))
 
-		local receiver = tonumber(self.body["receiver"])
+		local receiver = tonumber(body["receiver"])
 		if send_type == 1 then
 			skynet.send(".channel", "lua", "send_email_to_group", c, {{ uid = receiver }})
 			print("********************************************send_email_to_group is called")
@@ -290,7 +289,7 @@ function VIEW:email()
 		local ret = {}
 		ret.errorcode = errorcode[1].code
 		ret.msg = errorcode[1].msg
-		return ret
+		return json.encode(ret)
 	end
 end
 
@@ -356,7 +355,8 @@ function VIEW:validation()
 	-- body
 	if self.method == "post" then
 		skynet.error("enter validation.")
-		local db_name = self.body.db_name
+		local body = json.decode(self.body)
+		local db_name = body.db_name
 		if db_name then else db_name = "project" end
 		-- query table_name
 		local sql = string.format("select table_name from information_schema.tables where table_schema='%s' and table_type='base table'", db_name)
@@ -377,18 +377,18 @@ function VIEW:validation()
 			if ok then
 				local ret = {}
 				ret.errorcode = errorcode.E_SUCCUSS
-				return ret
+				return json.encode(ret)
 			else
 				skynet.error(result)
 				local ret = {}
 				ret.errorcode = errorcode.E_FAIL
-				return ret
+				return json.encode(ret)
 			end
 		else
 			skynet.error("exist information_schema.")
 			local ret = {}
 			ret.errorcode = errorcode.E_SUCCUSS
-			return ret	
+			return json.encode(ret)
 		end
 	end
 end
@@ -401,7 +401,7 @@ function VIEW:validation_ro()
 		print_table(table_name)
 		local ret = {}
 		ret.errorcode = errorcode.E_SUCCUSS
-		return ret
+		return json.encode(ret)
 	end
 end
 

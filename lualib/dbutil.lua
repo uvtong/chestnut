@@ -141,10 +141,7 @@ end
 
 function _M.insert( table_name, columns )
 	-- body
-	print( "tablename and columns is " , table_name , columns )
-	for k , v in pairs( columns ) do
-		print( k , v )
-	end
+	assert(type(table_name) == "string")
 	assert(type(columns) == "table")
 	local columns_str = "("
 	local values_str = "("

@@ -6,7 +6,7 @@ local httpd = require "http.httpd"
 local sockethelper = require "http.sockethelper"
 local urllib = require "http.url"
 local urls = require "lualib.pet.urls"
-local json = require "cjson"
+-- local urls = require "urls"
 local log = require "log"
 local pcall = skynet.pcall
 local error = skynet.error
@@ -14,6 +14,8 @@ local assert = assert
 local table = table
 local string = string
 local errorcode = require "errorcode"
+local crypt = require "crypt"
+local mime = require "mime"
 local static_cache = {}
 
 local mode = ...
@@ -28,97 +30,24 @@ local function response(id, ...)
 	end
 end
 
-local function parse( ... )
+local function handle_static(path, ... )
 	-- body
-	local str = tostring( ... )
-	if str and #str > 0 then
-		local r = {}	
-		local function split( str )
-			-- body
-			local p = string.find(str, "=")
-			local key = string.sub(str, 1, p - 1)
-			local value = string.sub(str, p + 1)
-			r[key] = value
-	 	end
-		local s = 1
-		repeat
-			local p = string.find(str, "&", s)
-			if p ~= nil then 
-				local frg =	string.sub(str, s, p - 1)
-				s = p + 1
-				split(frg)
-			else
-				local frg =	string.sub(str, s)
-				split(frg)
-				break
-			end
-		until false
-		return r
+	local res
+	if false and static_cache[path] then
+		res = assert(static_cache[path])
 	else
-		return 
-	end
-end
-
-local function parse_file( header, boundary, body )
-	-- body
-	local line = ""
-	local file = ""
-	local last = body
-	local function unpack_line(text)
-		local from = text:find("\n", 1, true)
-		if from then
-			return text:sub(1, from-1), text:sub(from+1)
-		end
-		return nil, text
-	end
-	local mark = string.gsub(boundary, "^-*(%d+)-*", "%1")
-	line, last = unpack_line(last)
-	assert(string.match(line, string.format("^-*(%s)-*", mark)))
-	line, last = unpack_line(last)
-	line, last = unpack_line(last)
-	line, last = unpack_line(last)
-	line, last = unpack_line(last)
-	while line do
-		if string.match(line, string.format("^-*(%s)-*", mark)) then
-			break
+		local fpath = "../../service/web/statics" .. path
+		local fd = io.open(fpath, "r")
+		if fd == nil then
+			error(string.format("fpath is wrong, %s", fpath))
 		else
-			file = file .. line .. "\n" 
-			line, last = unpack_line(last)
+			local r = fd:read("a")
+			fd:close()
+			static_cache[path] = r
+			res = r
 		end
 	end
-	header["content-type"] = nil
-	return file, header
-end
-
--- analysis header, judge post or file.
-local function parse_header( header, body )
-	-- body
-	local function unpack_seg(text, s)
-		local from = text:find(s, 1, true)
-		if from then
-			return text:sub(1, from-1), text:sub(from+1)
-		end
-		return nil, text
-	end
-	-- mime
-	local mime_version = header["mime-version"]
-	local content_type = header["content-type"]
-	local content_transfer_encoding = header["content-transfer-encoding"]
-	if not content_type then
-		return "post", parse(body)
-	else
-		local t, c = unpack_seg(content_type, ";")
-		if t == "application/x-www-form-urlencoded" then
-			return "post", parse(body)
-		elseif t == "multipart/form-data" then
-			local idx = string.find(c, "=")
-			local boundary = string.sub(c, idx+1)
-		 	return "file", parse_file(header, boundary, body)
-		else
-			return "post", json.decode(body)
-		 	-- assert(false)
-		end	
-	end
+	return res
 end
 
 local function route( id, code, url, method, header, body )
@@ -140,49 +69,42 @@ local function route( id, code, url, method, header, body )
 	local path, query = urllib.parse(url)
 	error(string.format("simpleweb path: %s", path))
 	if method == "GET" then
-		if string.match(path, "^/[%w%./-]+%.%w+") then
-			if false and static_cache[path] then
-				bodyfunc = assert(static_cache[path])
-			else
-				local fpath = "../../service/web/statics" .. path
-				local fd = io.open(fpath, "r")
-				if fd == nil then
-					log.error(string.format("fpath is wrong, %s", fpath))
-				else
-					local ret = fd:read("a")
-					fd:close()
-					bodyfunc = ret	
-					static_cache[path] = bodyfunc
-				end
-			end
+		-- is statics
+		local ok, result = mime.handle_static(path, header, query, handle_static)
+		if ok then
+			bodyfunc = result
 		else
-			local rsp = false
-			for k,v in pairs(urls) do
-				if string.match(path, k) then
-					rsp = true
-					local q = urllib.parse_query(query)
-					local args = {}
-					args.method = "get"
-					args.query = q
-					local ok, res = pcall(v, args)
-					if ok then
-						bodyfunc = res
-					else
-						statuscode = 500
-						bodyfunc = string.fromat("error from server %s", res)
-					end
-					break
-				end
-			end
-			if rsp then	
-				if not bodyfunc then
-					local ret = {}
-					ret.errorcode = errorcode.E_FAIL
-					return ret
-				end	
+			if string.match(path, "^/[%w%./-]+%.%w+") then
+				bodyfunc = handle_static(path)
 			else
-				skynet.error("no matching url")
-				statuscode = 500
+				local rsp = false
+				for k,v in pairs(urls) do
+					if string.match(path, k) then
+						rsp = true
+						local q = urllib.parse_query(query)
+						local args = {}
+						args.method = "get"
+						args.query = q
+						local ok, res = pcall(v, args)
+						if ok then
+							bodyfunc = res
+						else
+							statuscode = 500
+							bodyfunc = string.fromat("error from server %s", res)
+						end
+						break
+					end
+				end
+				if rsp then	
+					if not bodyfunc then
+						local ret = {}
+						ret.errorcode = errorcode.E_FAIL
+						return ret
+					end	
+				else
+					skynet.error("no matching url")
+					statuscode = 500
+				end
 			end
 		end
 	elseif method == "POST" then
@@ -190,44 +112,27 @@ local function route( id, code, url, method, header, body )
 		for k,v in pairs(urls) do
 			if string.match(path, k) then
 				rsp = true
-				local m, c = parse_header(header, body)
-				if m == "file" then
+				local function post_handler(m, b, ... )
+					-- body
 					local args = {}
 					args.method = m
-					args.file = c
+					args.body = b
 					local ok, res = pcall(v, args)
-					if ok then
-						bodyfunc = res
-					else
-						statuscode = 500
-						-- bodyfunc = string.fromat("error from server %s", res)
-					end
-				elseif m == "post" then
-					local args = {}
-					args.method = m
-					args.body = c
-					local ok, res = pcall(v, args)
-					if ok then
-						bodyfunc = res
-					else
-						statuscode = 500
-						-- bodyfunc = string.fromat("error from server %s", res)
-					end
+					return ok, res
+				end
+				local ok, result = mime.handle_post(path, header, body, post_handler)
+				if ok then
+					skynet.error(result)
+					bodyfunc = result
 				else
-					assert(false)
+					statuscode = 500
 				end
 				break
 			end
 		end
 		if rsp then
-			if bodyfunc == nil then	
-				local ret = {}
-				ret.errorcode = errorcode.E_FAIL
-				return ret
-			end	
 		else
 			skynet.error("no matching url:", path)
-			statuscode = 500
 		end
 	else
 		error "now don't support others method"
@@ -235,10 +140,11 @@ local function route( id, code, url, method, header, body )
 		bodyfunc = "404"
 		headerd["Location"] = "/404"
 	end
+
 	if type(bodyfunc) == "table" then
-		bodyfunc = json.encode(bodyfunc)
-		assert(type(bodyfunc) == "string")
+		assert(false)
 	elseif type(bodyfunc) == "string" then
+	elseif type(bodyfunc) == "nil" then
 	elseif type(bodyfunc) == "function" then
 		assert(false)
 	else
