@@ -50,19 +50,23 @@ function cc.iskindof(target, classname)
     return _iskindofinternal(getmetatable(target), classname)
 end
 
-local _new = function(cls, ...)
-    local instance = {}
-    setmetatable(instance, {__index = cls})
-    instance.class = cls
-    instance:ctor(...)
-    return instance
-end
+-- local _new = function(cls, ...)
+-- end
 
 function cc.class(classname, super)
     assert(type(classname) == "string", string_format("cc.class() - invalid class name \"%s\"", tostring(classname)))
 
     -- create class
     local cls = {__cname = classname, new = _new}
+
+    cls.new = function ( ... )
+        -- body
+        local instance = {}
+        setmetatable(instance, {__index = cls})
+        instance.class = cls
+        instance:ctor(...)
+        return instance
+    end
 
     -- set super class
     local superType = type(super)

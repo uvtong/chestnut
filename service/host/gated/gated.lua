@@ -109,7 +109,8 @@ function server.start_handler(username, fd, version, idx, ... )
 	if u then
 		local agent = u.agent
 		if agent then
-			skynet.call(agent[fd], "lua", "start", { gate = gate, client = fd, version = version, index = idx})
+			skynet.error("agent:", agent, idx)
+			skynet.call(agent, "lua", "start", { gate = skynet.self(), client = fd, version = version, index = idx})
 		end
 	end
 end
@@ -136,7 +137,7 @@ end
 
 -- call by self (when gate open)
 function server.register_handler(name)
-	log.INFO("reister gate server: %s", name)
+	skynet.error(string.format("reister gate server: %s", name))
 	servername = name
 	skynet.call(loginservice, "lua", "register_gate", servername, skynet.self())
 end

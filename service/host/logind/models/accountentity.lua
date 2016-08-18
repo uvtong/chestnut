@@ -1,6 +1,6 @@
-local entitycpp = require "entitycpp"
+local entity = require "entity"
 
-local cls = class("accountentity", entitycpp)
+local cls = class("accountentity", entity)
 
 function cls:ctor(mgr, P, ... )
 	-- body

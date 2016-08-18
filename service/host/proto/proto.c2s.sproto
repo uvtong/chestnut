@@ -41,6 +41,12 @@ choose_role 7 {
 }
 
 wake 8 {
+    request {
+        role_id 0 : string
+    }
+    response {
+        errorcode 0 : integer
+    }
 }
 
 props 9 {
