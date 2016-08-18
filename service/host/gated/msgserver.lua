@@ -176,6 +176,7 @@ function server.start(conf)
 		login = assert(conf.login_handler),
 		logout = assert(conf.logout_handler),
 		kick = assert(conf.kick_handler),
+		forward = assert(conf.forward_handler)
 	}
 
 	function handler.command(cmd, source, ...)
@@ -353,7 +354,7 @@ function server.start(conf)
 
 	local function request(fd, msg, sz)
 		local message = netpack.tostring(msg, sz)
-		local ok, err = pcall(do_start, fd, message)
+		local ok, err = pcall(do_request, fd, message)
 		-- not atomic, may yield
 		if not ok then
 			skynet.error(string.format("Invalid package %s : %s", err, message))

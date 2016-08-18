@@ -170,14 +170,8 @@ function CMD:start(source, conf)
 	self:set_send_request(send_request)
 
 	local uid = self:get_uid()
-	skynet.call(gate, "lua", "forward", uid, skynet.self())
-
-	-- skynet.fork(function()
-	-- 	while true do
-	-- 		send_package(send_request "heartbeat")
-	-- 		skynet.sleep(500)
-	-- 	end
-	-- end)	
+	-- skynet.call(gate, "lua", "forward", uid, skynet.self())
+	return true
 end
 
 -- client disconnect, give handshake to gated

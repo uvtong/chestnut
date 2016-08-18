@@ -161,7 +161,6 @@ deal_cards 9 {
         countdown 1 : integer
     }
     response {
-        errorcode 0 : errorcode
-        msg 1 : string
+        errorcode 0 : integer
     }
 }

@@ -55,19 +55,14 @@ local function launch_slave(auth_handler)
 		local challenge = crypt.randomkey()
 		write("auth", fd, crypt.base64encode(challenge).."\n")
 
-		print("***************************1")
-
 		local handshake = assert_socket("auth", socket.readline(fd), fd)
 		local clientkey = crypt.base64decode(handshake)
 		if #clientkey ~= 8 then
 			error "Invalid client key"
 		end
-		print("***************************2")
 
 		local serverkey = crypt.randomkey()
 		write("auth", fd, crypt.base64encode(crypt.dhexchange(serverkey)).."\n")
-
-		print("***************************3")
 
 		local secret = crypt.dhsecret(clientkey, serverkey)
 
@@ -126,10 +121,8 @@ local function accept(conf, s, fd, addr)
 	local ok, server, uid, secret = skynet.call(s, "lua",  fd, addr)
 	-- slave will accept(start) fd, so we can write to fd later
 
-	print("*********************************6")
 	if not ok then 			
-		if ok ~= nil then	
-			print("**********************1")
+		if ok ~= nil then
 			write("response 401", fd, "401 Unauthorized\n")
 		end
 		error(server)
@@ -137,7 +130,6 @@ local function accept(conf, s, fd, addr)
 
 	if not conf.multilogin then
 		if user_login[uid] then
-			print("**********************2")
 			write("response 406", fd, "406 Not Acceptable\n")
 			error(string.format("User %s is already login", uid))
 		end
@@ -150,12 +142,10 @@ local function accept(conf, s, fd, addr)
 	user_login[uid] = nil
 
 	if ok then
-		print("**********************3")
 		err = err or ""
 		gated = gated or ""
 		write("response 200",fd,  "200 "..":"..crypt.base64encode(uid).."@"..crypt.base64encode(err).."#"..crypt.base64encode(gated).."\n")
 	else
-		print("**********************4", err)
 		write("response 403",fd,  "403 Forbidden\n")
 		error(err)
 	end
