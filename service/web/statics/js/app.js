@@ -237,24 +237,25 @@ var Navbar = React.createClass({
     // body...
     return (
       <div className="navbar navbar-inverse navbar-fixed-top">
-        <div className="navbar-inner">
-          <div className="container-fluid">
-            <button type="button" className="btn btn-navbar" data-toggle="collapse" data-target=".nav-collapse">
+        <div className="container-fluid">
+          <div className="navbar-header">
+            <button type="button" className="btn btn-navbar" data-toggle="collapse" data-target=".nav-collapse" aria-expanded="false">
+              <span className="sr-only">Toggle navigation</span>
               <span className="icon-bar"></span>
               <span className="icon-bar"></span>
               <span className="icon-bar"></span>
             </button>
             <a className="brand" href="#">Project name</a>
-            <div className="nav-collapse collapse">
-              <p className="navbar-text pull-right">
-                Logged in as <a href="#" className="navbar-link">Username</a>
-              </p>
-              <ul className="nav">
-                <li className="active"><a href="#">Home</a></li>
-                <li><a href="#about">About</a></li>
-                <li><a href="#contact">Contact</a></li>
-              </ul>
-            </div>
+          </div>
+          <div id="navbar" className="nav-collapse collapse">
+            <ul className="navbar-collapse collapse">
+              <li><a href="#">Home</a></li>
+              <li><a href="#">About</a></li>
+              <li><a href="#">Contact</a></li>
+            </ul>
+            <form className="navbar-form navbar-right">
+              <input type="text" className="form-control" placeholder="Search..."/>
+            </form>
           </div>
         </div>
       </div>
@@ -292,28 +293,24 @@ var Span3 = React.createClass({
   render: function (argument) {
     // body...
     return (
-      <div className="span3">
-        <div className="well sidebar-nav">
-          <ul className="nav nav-list">
-            <li className="nav-header">Sidebar</li>
-            <li className="active"><a href="#">Link</a></li>
-            <li><a href="#">Link</a></li>
-            <li><a href="#">Link</a></li>
-            <li><a href="#">Link</a></li>
-            <li class="nav-header">Sidebar</li>
-            <li><a href="#">Link</a></li>
-            <li><a href="#">Link</a></li>
-            <li><a href="#">Link</a></li>
-            <li><a href="#">Link</a></li>
-            <li><a href="#">Link</a></li>
-            <li><a href="#">Link</a></li>
-            <li class="nav-header">Sidebar</li>
-            <li><a href="#">Link</a></li>
-            <li><a href="#">Link</a></li>
-            <li><a href="#">Link</a></li>
-          </ul>
-          <ul className="nav-header">Sidebar</ul>
-        </div>
+      <div className="col-sm-3 col-md-2 sidebar">
+        <ul className="nav nav-sidebar">
+          <li className="active"><a href="#">Overview <span className="sr-only">(current)</span></a></li>
+          <li><a href="#">Reports</a></li>
+          <li><a href="#">Analytics</a></li>
+          <li><a href="#">Export</a></li>
+        </ul>
+        <ul className="nav nav-sidebar">
+          <li><a href="#">Link</a></li>
+          <li class="nav-header">Sidebar</li>
+          <li><a href="#">Link</a></li>
+          <li><a href="#">Link</a></li>
+        </ul>
+        <ul className="nav nav-sidebar">
+          <li><a href="#">Link</a></li>
+          <li><a href="#">Link</a></li>
+          <li><a href="#">Link</a></li>
+        </ul>
       </div>
     );  
   }
@@ -323,7 +320,8 @@ var Span9 = React.createClass({
   render:function (argument) {
     // body...
     return (
-      <div className="span9">
+      <div className="col-sm-9 col-sm-offset-3 col-md-10 col-md-offset-2 main">
+        <h1 className="page-header">Dashboard</h1>
         <div className="hero-unit">
           <h1>Hello, world!</h1>
           <p>This is a template for a simple marketing or informational website. It includes a large callout called the hero unit and three supporting pieces of content. Use it as a starting point to create something more unique.</p>
@@ -341,7 +339,7 @@ var ContainerFluid = React.createClass({
     // body...
     return (
       <div className="container-fluid">
-        <div className="row-fluid">
+        <div className="row">
           <Span3 />
           <Span9 />
         </div>
@@ -383,15 +381,18 @@ class ToolItem extends React.Component {
   }
   render() {
     return (
-      <form>
-        <div className="form-group">
-          <label htmlFor="inputEmail3" className="col-sm-2 control-label">{this.state.head}</label>
-          <div className="col-sm-10">
-            <input ref="tool_mtext" type="email" className="form-control" id="inputEmail3" placeholder="Email" />
-          </div>
+      <div className="panel panel-default">
+        <div className="panel-heading">validation</div>
+        <div className="panel-body">
+          <form >
+            <div className="form-group">
+              <label htmlFor="inputEmail3">{this.state.head}</label>
+              <input ref="tool_mtext" type="email" className="form-control" id="inputEmail3" placeholder="Email" />
+            </div>
+            <button ref="tool_valid" type="button" className="btn btn-default" onClick={this.onClick}>submit</button>
+          </form>
         </div>
-        <button ref="tool_valid" type="button" className="btn btn-default" onClick={this.onClick}>submit</button>
-      </form>
+      </div>
       );
   }
 }
@@ -419,21 +420,22 @@ class ToolItemRo extends React.Component {
   }
   render() {
     return (
-      <form>
-        <div className="form-group">
-          <label htmlFor="inputEmail3" className="col-sm-2 control-label">{this.state.head1}</label>
-          <div className="col-sm-10">
-            <input ref="db_text" type="email" className="form-control" id="inputEmail3" placeholder="database" />
-          </div>
+      <div className="panel panel-default">
+        <div className="panel-heading">validation ro</div>
+        <div className="panel-body">
+          <form>
+            <div className="form-group">
+              <label htmlFor="inputEmail3">{this.state.head1}</label>
+              <input ref="db_text" type="email" className="form-control" id="inputEmail3" placeholder="database" />
+            </div>
+            <div className="form-group">
+              <label htmlFor="inputEmail4">{this.state.head2}</label>
+              <input ref="tb_text" type="email" className="form-control" id="inputEmail4" placeholder="table_name" />
+            </div>
+            <button ref="tool_valid" type="button" className="btn btn-default" onClick={this.onClick}>submit</button>
+          </form>
         </div>
-        <div className="form-group">
-          <label htmlFor="inputEmail4" className="col-sm-2 control-label">{this.state.head2}</label>
-          <div className="col-sm-10">
-            <input ref="tb_text" type="email" className="form-control" id="inputEmail4" placeholder="table_name" />
-          </div>
-        </div>
-        <button ref="tool_valid" type="button" className="btn btn-default" onClick={this.onClick}>submit</button>
-      </form>
+      </div>
       );
   }
 }
@@ -459,13 +461,20 @@ class Tool extends React.Component {
     // debugger
     var db_name = this.refs.validation.getValue();
     if (db_name == null) { table_name = ""};
-    $.post("/validation", {db_name:db_name}, function (resp) {
-      if (resp.errorcode == 0) {
-        this.setState({p:"OK"});
-      } else {
-        this.setState({p:"failture."});
-      }
-    }.bind(this), "json");
+    $.ajax({
+      url: "/validation",
+      type: "POST",
+      data: {db_name:db_name},
+      dataType: "json",
+      success: function (resp) {
+        // body...
+        if (resp.errorcode == 0) {
+          this.setState({p:"OK"});
+        } else {
+          this.setState({p:"failture."});
+        }
+      }.bind(this),
+    })
   }
   onValidationRo() {
     var db_name = this.refs.validation_ro.getDBName();
@@ -488,9 +497,11 @@ class Tool extends React.Component {
   }
   render() {
     return (
-      <div className="container-fluid">
+      <div className="container">
         <div className="row">
-          <ToolItem ref="validation" title="please input db_name" onClick={this.onValidation} />
+          <div className="col-md-4">
+            <ToolItem ref="validation" title="please input db_name" onClick={this.onValidation} />
+          </div>
         </div>
         <div className="row">
           <ToolItemRo ref="validation_ro" title="validation_ro" onClick={this.onValidationRo} />
@@ -515,12 +526,21 @@ class Email extends React.Component {
   }
   render() {
     return (
-      <div>
-        <div className="input-group">
-          <span className="input-group-addon" id="basic-addon1">@</span>
-          <input type="text" className="form-control" placeholder="Username" aria-describedby="basic-addon1" />
-        </div>
-        <div className="input-group">
+      <div className="container">
+        <div className="row">
+          <div className="col-md-4">
+            <div className="dropdown">
+              <button className="btn btn-default dropdown-toggle" type="button" id="dropdownMenu1" data-toggle="dropdown" aria-haspopup="true" aria-expanded="true">
+                Send Type
+              </button>
+              <ul className="dropdown-menu" aria-labelledby="dropdownMenu1">
+                <li><a href="#">Action</a></li>
+                <li><a href="#">Action</a></li>
+                <li><a href="#">Action</a></li>
+                <li><a href="#">Action</a></li>
+              </ul>
+            </div>
+          </div>
         </div>
       </div>
       );

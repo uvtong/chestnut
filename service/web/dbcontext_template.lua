@@ -2,9 +2,10 @@ local s = [[
 local dbcontext = require "dbcontext"
 local cls = class("%s", dbcontext)
 
-function cls:ctor(env, ... )
+function cls:ctor(env, rdb, wdb, ... )
 	-- body
-	cls.super.ctor(self, env)
+	assert(env and rdb and wdb)
+	cls.super.ctor(self, env, rdb, wdb)
 	return self
 end
 

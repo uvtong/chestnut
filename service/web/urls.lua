@@ -8,11 +8,10 @@ _M['^/role']          = assert(view["role"])
 _M['^/email']         = assert(view["email"])
 _M['^/props']         = assert(view["props"])
 _M['^/equipments']    = assert(view["equipments"])
-_M['^/validation']   = assert(view["validation"])
+_M['^/validation']    = assert(view["validation"])
 _M['^/validation_ro'] = assert(view["validation_ro"])
 _M['^/percudure']     = assert(view["percudure"])
 _M['^/404']           = assert(view["_404"])
 _M['^/test']          = assert(view["test"])
-_M['^/tool']          = assert(view["tool"])
 
 return _M

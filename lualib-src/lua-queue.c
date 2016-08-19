@@ -2,16 +2,20 @@
 #include <lauxlib.h>
 
 struct queue_data {
+	int cap;
 	int size;
 	int head;
 	int tail;
 };
 
-
 static
 int lenqueue(lua_State *L)
 {
-	struct queue_data *qd = (struct queue_data*)lua_touserdata(L,lua_upvalueindex(1));
+	struct queue_data *qd = (struct queue_data*)lua_touserdata(L, 1);
+	if (qd->size)
+	{
+		
+	}
 	if (lua_isnumber(L, 2)) {
 		
 	} else {

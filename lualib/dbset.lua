@@ -15,23 +15,64 @@ function cls:ctor(env, dbctx, rdb, wdb, ... )
 	return self
 end
 
-function cls.get_row_db(t, pk)
+function cls:get_row_db(pk_v)
 	-- body
-	-- assert(t.__head[t.__pk].pk == true)
+	assert(pk)
+	assert(self._head[self._pk].pk == true)
 	local sql
-	if t.__head[t.__pk].t == "string" then
-		sql = string.format("select * from %s where %s = \"%s\"", t.__tname, t.__pk, pk)
-	elseif t.__head[t.__pk].t == "number" then
-		sql = string.format("select * from %s where %s = %d", t.__tname, t.__pk, pk)
+	if self._head[self._pk].t == "string" then
+		sql = string.format("select * from %s where %s = '%s'", self._tname, self._pk, pk_v)
+	elseif self._head[self._pk] == "number" then	
+		sql = string.format("select * from %s where %s = %d", self.__tname, self.__pk, pk_v)
 	else
 		assert(false)
 	end
 	local r = query.read(t.__rdb, t.__tname, sql)
-	return r[1]
+	if r and #r > 0 then
+		return r[1]
+	else
+	end
 end 
     
-function cls.set_row_cache(t, pk, value)
+function cls:get_row_cache(pk)
 	-- body
+	local key
+	if self._head[self._pk].t == "string" then
+		assert(self._head[self._pk].t == type(pk))
+		key = self.__tname..":"..pk
+	elseif self._head[self._pk].t == "number" then
+		assert(self._head[self._pk].t == type(pk))
+		key = self.__tname..":"..string.format("%d", pk)
+	end
+	local rdb = self._rdb
+	local v = query.get(rdb, key)
+	if v == nil then
+		return nil
+	else
+		v = json.decode(v)
+		return v
+	end
+end
+
+function cls:get_row(pk)
+	-- body
+	if self._data[pk] then
+		return self._data[pk]
+	end
+
+	local r = self:get_row_cache(pk)
+	if r then
+		return r
+	end
+	local r = self:get_row_db(pk)
+	if r then
+		return r
+	end
+end
+
+function cls:set_row_cache(key)
+	-- body
+
 	assert(type(pk) == t.__head[t.__pk].t)
 	local k
 	if t.__head[t.__pk].t == "string" then
@@ -43,38 +84,14 @@ function cls.set_row_cache(t, pk, value)
 	query.set(t.__wdb, k, v)
 end
 
-function cls.get_row_cache(t, pk)
+function cls:set_row(key, value, ... )
 	-- body
-	assert(type(pk) == t.__head[t.__pk].t)
-	local k
-	if t.__head[t.__pk].t == "string" then
-		k = t.__tname..":"..pk
-	elseif t.__head[t.__pk].t == "number" then
-		k = t.__tname..":"..string.format("%d", pk)
-	end
-	local v = query.get(t.__rdb, k)
-	if v == nil then
-		return nil
-	else
-		v = json.decode(v)
-		return v
-	end
-end
-
-function cls.get_row(t, pk)
-	-- body
-	local r = get_row_cache(t, pk)
-	if r then
-		return r
-	else
-		r = get_row_db(t, pk)
-		return r
-	end
 end
 
 -- this function 
-function cls.load_db_to_cache(t, pk)
+function cls:load_db_to_cache(pk)
 	-- body
+
 	if t.__head[t.__pk].t == "number" then
 		local sql = string.format("select * from %s where %s = %d", t.__tname, t.__pk, pk)
 		local r = query.read(r.__rdb, t.__tname, sql)
@@ -224,7 +241,7 @@ function cls:update_db(t, ... )
 	self:update()
 end
 
-function cls.update(t, ...)
+function cls:update( ...)
 	-- body
 	if t.__cache_flag then
 		for k,v in pairs(t.__data) do
@@ -241,23 +258,23 @@ function cls.update(t, ...)
 	-- end
 end
 
-function cls.update_wait(t, ... )
+function cls:update_wait( ... )
 	-- body
-	for k,v in pairs(t.__data) do
+	for k,v in pairs(self._data) do
 		v:update_wait()
 	end
 end
 
-function cls.create(t, p, ...)
+function cls:create(p, ...)
 	-- body
-	return t:create_entity(p)
+	return self:create_entity(p)
 
 end 
 	
-function cls.create_entity(t, p)
+function cls:create_entity(p)
 	-- body
-	local entity = require("models/" .. t.__entity)
-	local r = entity.new(t, p)
+	local entity = require("models/" .. self._entity_cls)
+	local r = entity.new(self._env, self._dbctx, self, self._rdb, self._wdb, p)
 	return r
 end 
 	
@@ -281,77 +298,70 @@ function cls.genpk(self, csv_id)
 	end
 end 
 	
-function cls.add(self, u)
+function cls:add(value)
  	-- body
- 	assert((u and self.__pk), self.__pk)
- 	print(self.__data[ u[self.__pk] ], u[self.__pk], self.__data[ u[self.__pk] ])
- 	assert(self.__data[ u[self.__pk] ] == nil, u[self.__pk], self.__data[ u[self.__pk] ])
- 	self.__data[ u[self.__pk] ] = u
- 	self.__count = self.__count + 1
+ 	assert(value.__cname == self._entity_cls)
+ 	local pk = value.fields[self._pk]
+ 	self._data[pk] = value
+ 	self._count = self._count + 1
 end 
 	
-function cls.get(self, pk)
+function cls:get(pk)
 	-- body
-	return self.__data[pk]
-	-- if self.__data[pk] then
-	-- 	return self.__data[pk]
-	-- else
-	-- 	assert(false, self.__tname, pk)
-	-- 	-- local r = self("load", pk)
-	-- 	-- if r then
-	-- 	-- 	self.create(r)
-	-- 	-- 	self:add(r)
-	-- 	-- end
-	-- 	-- return r
-	-- end
+	if self._data then
+		return self._data[pk]
+	else
+		error "_data is empty"
+	end
 end 
 	
-function cls.delete(self, pk)
+function cls:delete(pk)
 	-- body
-	if nil ~= self.__data[pk] then
-		self.__data[pk] = nil
-		self.__count = self.__count - 1
+	if self._data then
+		self._data[pk] = nil
+		self._count = self._count - 1
+	else
+		error "_data is empty"
 	end
 end 
 
-function cls.get_by_vip(self, csv_id, ... )
+function cls:get_by_vip(csv_id, ... )
 	-- body
 	return self:get_by_csv_id(csv_id)
 end
 
-function cls.get_by_chapter(self, csv_id, ... )
+function cls:get_by_chapter(csv_id, ... )
 	-- body
 	return self:get_by_csv_id(csv_id)
 end
 
-function cls.get_by_csv_id(self, csv_id)
+function cls:get_by_csv_id(csv_id)
 	-- body
-	print(self.__tname)
 	local pk = self:genpk(csv_id)
 	return self:get(pk)
 end 
 	
-function cls.delete_by_csv_id(self, csv_id)
+function cls:delete_by_csv_id(self, csv_id)
 	local pk = self:genpk(csv_id)
 	self:delete(pk)
 end 
 	
-function cls.get_count(self)
+function cls:get_count()
 	-- body
-	return self.__count
+	return self._count
 end 
 	
-function cls.get_cap(self)
+function cls:get_cap()
 	-- body
-	return self.__cap
+	return self._cap
 end
 
 function cls:get_data( ... )
 	-- body
-	return self.__data
+	return self._data
 end
 
-function cls.clear(self)
+function cls:clear()
 	-- body
 	self.__data = {}
 	self.__count = 0

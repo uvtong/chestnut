@@ -3,20 +3,23 @@ local entity = require "entity"
 
 local cls = class("%s", entity)
 
-function cls:ctor(env, dbctx, set, p, ... )
+function cls:ctor(env, dbctx, set, rdb, wdb, p, ... )
 	-- body
-	cls.super.ctor(self, env, dbctx, set, p, ...)
-	self.__head  = set.__head
-	self.__head_ord = set.__head_ord
-	self.__tname = set.__tname
-	self.__pk    = set.__pk
-	self.__fk    = set.__fk
-	self.__stm   = set.__stm
-	self.__col_updated=0
-	self.__fields = %s
-	self.__ecol_updated = %s
-	for k,v in pairs(self.__head) do
-		self.__fields[k] = assert(p[k], %s)
+	assert(env and dbctx and set and rdb and wdb)
+	cls.super.ctor(self, env, dbctx, set, rdb, wdb)
+	self._head      = set._head
+	self._head_ord  = set._head_ord
+	self._tname     = set._tname
+	self._pk        = set._pk
+	self._fk        = set._fk
+	self._stm       = set._stm
+	self._col_updated = 0
+	self._fields = %s
+	self._ecol_updated = %s
+	if p then
+		for k,v in pairs(self.__head) do
+			self.__fields[k] = assert(p[k], %s)
+		end
 	end
 	return self
 end

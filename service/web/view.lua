@@ -20,34 +20,35 @@ local function web(filename, ... )
 	return "./../../service/web/" .. filename
 end
 
-local function print_table(table_name)
+local function print_table(db_name, table_name)
 	-- body
-	local sql = string.format("select * from columns where table_name=\"%s\";", table_name)
+	local sql = string.format("select * from columns where table_schema='%s' and table_name='%s';", db_name, table_name)
 	assert(rdb and table_name and sql)
+	skynet.error(sql)
 	local r = query.read(rdb, table_name, sql)
 	if #r == 0 then
-		ret.ok = 0
-		ret.msg = "failture"
-		return ret
+		return false
+	else
 	end
+
+	local head = "{\n"
+	local head_ord = ""
+
 	local pk = ""
 	local fk = ""
 	local funcs = ""
 	local count = "{\n"
 	local fields = "{\n"
-	local head = "{\n"
-	local head_ord = ""
+	
 	for i,v in ipairs(r) do
-		head_ord = head_ord..string.format(
-[[
-	self.__head_ord[%d] = self.__head["%s"]
-]], i, v.COLUMN_NAME)
-		local seg = "\t"..v.COLUMN_NAME.." = {\n"
-		local pk_seg = string.format("\t\tpk = false,\n")
-		local fk_seg = string.format("\t\tfk = false,\n")
+		head_ord = head_ord..string.format("\tself.__head_ord[%d] = self.__head['%s']\n", i, v.COLUMN_NAME)
+
+		local seg = "\t\t"..v.COLUMN_NAME.." = {\n"
+		local pk_seg = string.format("\t\t\tpk = false,\n")
+		local fk_seg = string.format("\t\t\tfk = false,\n")
 		if v.COLUMN_KEY == "PRI" then
 			pk = v.COLUMN_NAME
-			pk_seg = string.format("\t\tpk = true,\n")
+			pk_seg = string.format("\t\t\tpk = true,\n")
 		else
 			local sql = string.format("select * from INFORMATION_SCHEMA.KEY_COLUMN_USAGE WHERE TABLE_NAME ='%s' and COLUMN_NAME = '%s'", table_name, v.COLUMN_NAME)
 			assert(rdb and table_name and sql)
@@ -64,28 +65,27 @@ local function print_table(table_name)
 				local r = query.read(rdb, table_name, sql)
 				print(sql)
 				if #r == 1 then
-					fk_seg = string.format("\t\tfk = true,\n")	
+					fk_seg = string.format("\t\t\tfk = true,\n")	
 					fk = v.COLUMN_NAME
 				end	
 			end
 		end
 		seg = seg .. pk_seg
 		seg = seg .. fk_seg
-		seg = seg .. string.format("\t\tcn = \"%s\",\n", v.COLUMN_NAME)
-		seg = seg .. string.format("\t\tuq = false,\n")
+		seg = seg .. string.format("\t\t\tcn = \"%s\",\n", v.COLUMN_NAME)
+		seg = seg .. string.format("\t\t\tuq = false,\n")
 		if v.DATA_TYPE=="int" or v.DATA_TYPE=="bigint" or v.DATA_TYPE=="tinyint" or v.DATA_TYPE=="smallint" then
-			seg = seg .. string.format("\t\tt = \"%s\",\n", "number")
+			seg = seg .. string.format("\t\t\tt = \"%s\",\n", "number")
 		elseif v.DATA_TYPE == "varchar" or v.DATA_TYPE == "char" then
-			seg = seg .. string.format("\t\tt = \"%s\",\n", "string")
+			seg = seg .. string.format("\t\t\tt = \"%s\",\n", "string")
 		end
-		seg = seg .. "\t},\n"
+		seg = seg .. "\t\t},\n"
 		head = head .. seg
 
-		seg = seg .. string.format("\tc = 0,\n")
 		count = count .. string.format("\t\t\t%s = 0,\n", v.COLUMN_NAME)
 		fields = fields .. string.format("\t\t\t%s = 0,\n", v.COLUMN_NAME)
 	end
-	head = head.."}\n"
+	head = head.."\t}\n"
 	fields = fields.."\t\t}\n"
 	count = count.."\t\t}\n"
 	
@@ -96,7 +96,7 @@ local function print_table(table_name)
 	local entitycls = table_name.."_entity"
 	local entitypath = path..table_name.."_entity.lua"
 	local addr = io.open(entitypath, "w")
-	local content = string.format(s, entitycls, fields, count, "string.format(\"no exist %s\", k)", funcs)
+	local content = string.format(s, entitycls, fields, count, "string.format(\"no exist %s\", k)")
 	addr:write(content)
 	addr:close()
 
@@ -104,9 +104,10 @@ local function print_table(table_name)
 	local setcls = table_name.."_set"
 	local setpath = path..table_name.."_set.lua"
 	local addr = io.open(setpath, "w")
-	local content = string.format(s, mgrcls, table_name, head, head_ord, pk, fk, entitycls)
+	local content = string.format(s, setcls, table_name, head, head_ord, pk, fk, entitycls)
 	addr:write(content)
 	addr:close()
+	return true
 end
 
 local function exe_percudure(table_name)
@@ -355,40 +356,38 @@ function VIEW:validation()
 	-- body
 	if self.method == "post" then
 		skynet.error("enter validation.")
-		local body = json.decode(self.body)
+		local body = self.body
 		local db_name = body.db_name
+		skynet.error(db_name)
 		if db_name then else db_name = "project" end
 		-- query table_name
 		local sql = string.format("select table_name from information_schema.tables where table_schema='%s' and table_type='base table'", db_name)
 		skynet.error(sql)
 		local r = query.read(rdb, "all", sql)
-		if r then
+		if r and #r > 0 then
 			skynet.error("enter information_schema.")
-			local ok, result = pcall(function ()
-				-- body
-				for i,v in ipairs(r) do
-					for kk,vv in pairs(v) do
-						-- exe_percudure(vv)
-						skynet.error("will print table name:", vv)
-						print_table(vv)
+			for i,v in ipairs(r) do
+				for kk,vv in pairs(v) do
+					-- exe_percudure(vv)
+					skynet.error("will print table name:", vv)
+					local ok = print_table(db_name, vv)
+					if ok then
+					else
+						local res = {}
+						res.errorcode = errorcode.E_FAIL
+						return json.encode(res)
 					end
 				end
-			end)
-			if ok then
-				local ret = {}
-				ret.errorcode = errorcode.E_SUCCUSS
-				return json.encode(ret)
-			else
-				skynet.error(result)
-				local ret = {}
-				ret.errorcode = errorcode.E_FAIL
-				return json.encode(ret)
 			end
+			local res = {}
+			res.errorcode = errorcode.E_SUCCUSS
+			return json.encode(res)
 		else
 			skynet.error("exist information_schema.")
-			local ret = {}
-			ret.errorcode = errorcode.E_SUCCUSS
-			return json.encode(ret)
+			local res = {}
+			res.errorcode = errorcode.E_FAIL
+			res.msg = "database is empty."
+			return json.encode(res)
 		end
 	end
 end
@@ -466,18 +465,6 @@ end
 function VIEW:_404()
 	-- body
 	return "404"
-end
-
-function VIEW:tool( ... )
-	-- body
-	if self.method == "get" then
-		local ret = {}
-		ret.errorcode = errorcode.E_FAIL
-		return ret
-	elseif self.method == "post" then
-		local ret = {}
-
-	end
 end
 
 return VIEW

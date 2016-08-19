@@ -24,7 +24,7 @@ function cls:ctor(env, dbctx, set, rdb, wdb, ... )
  	return self
 end
 
-function cls.set(t, ...)
+function cls:set( ...)
 	-- body
 	local v = json.encode(t.__fields)
 	local pk = t.__fields[t.__pk]

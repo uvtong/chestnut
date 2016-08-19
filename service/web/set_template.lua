@@ -8,17 +8,17 @@ local cls = class("%s", dbset)
 function cls:ctor(env, dbctx, rdb, wdb, ... )
 	-- body
 	cls.super.ctor(self, env, dbctx, rdb, wdb)
-	self.__data    = {}
-	self.__count   = 0
-	self.__cap     = 0
-	self.__tname   = "%s"
-	self.__head    = %s
-	self.__head_ord = {}
-	%s
-	self.__pk      = "%s"
-	self.__fk      = "%s"
-	self.__stm     = false
-	self.__entity  = "%s"
+	self._data        = {}
+	self._count       = 0
+	self._cap         = 0
+	self._tname       = "%s"
+	self._head        = %s
+	self._head_ord    = {}
+%s
+	self._pk          = "%s"
+	self._fk          = "%s"
+	self._stm         = false
+	self._entity_cls  = "%s"
 	return self
 end
 

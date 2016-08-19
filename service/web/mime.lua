@@ -163,24 +163,23 @@ function _M.handle_post(path, header, body, post_handler, ... )
 	elseif t == "application/json" then
 		local res = json.decode(body)
 		local ok, result = post_handler("post", res)
-		skynet.error(result)
-		assert(result)
 		if ok then
-			return ok, json.encode(result)
+			return ok, result
 		else
 			return ok
 		end
 	elseif t == "multipart/form-data" then
 		local boundary = res.boundary
-		local body = parse_file(header, boundary, body)
-		local ok, result = post_handler("file", body)
+		local res = parse_file(header, boundary, body)
+		local ok, result = post_handler("file", res)
 		if ok then
 			return ok, result
 		else
 			return ok
 		end
 	else
-		local ok, result = post_handler("post", body)
+		local res = body
+		local ok, result = post_handler("post", res)
 		if ok then
 			return ok, result
 		else

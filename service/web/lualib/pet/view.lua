@@ -2,6 +2,7 @@ local skynet = require "skynet"
 local query = require "query"
 local errorcode = require "errorcode"
 local dbutil = require "dbutil"
+local json = require "cjson"
 local rdb = ".DB"
 local wdb = ".DB"
 
@@ -37,11 +38,11 @@ function VIEW:pull()
 			ret["gold"] = r[1]["gold"]
 			ret["stage"] = r[1]["stage"]
 			ret["level"] = r[1]["level"]
-			return ret
+			return json.encode(ret)
 		else
 			local ret = {}
 			ret["errorcode"] = errorcode.E_FAIL
-			return ret
+			return json.encode(ret)
 		end
 	end
 end
@@ -71,7 +72,7 @@ function VIEW:push( ... )
 			local r = query.write(wdb, table_name, sql)
 			local res = {}
 			res.errorcode = errorcode.E_SUCCUSS
-			return res
+			return json.encode(res)
 		else
 			local id = cc.genpk_2(uid, pet_id)
 			local sql = dbutil.insert(table_name, {id=id, uid=uid, pet_id=pet_id, gold=self.body["gold"], stage=self.body["stage"], level=self.body["level"]})
@@ -79,7 +80,7 @@ function VIEW:push( ... )
 			local r = query.write(wdb, table_name, sql)
 			local res = {}
 			res.errorcode = errorcode.E_SUCCUSS
-			return res
+			return json.encode(res)
 		end
 	else
 	end
