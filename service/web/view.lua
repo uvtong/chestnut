@@ -41,7 +41,7 @@ local function print_table(db_name, table_name)
 	local fields = "{\n"
 	
 	for i,v in ipairs(r) do
-		head_ord = head_ord..string.format("\tself.__head_ord[%d] = self.__head['%s']\n", i, v.COLUMN_NAME)
+		head_ord = head_ord..string.format("\tself._head_ord[%d] = self._head['%s']\n", i, v.COLUMN_NAME)
 
 		local seg = "\t\t"..v.COLUMN_NAME.." = {\n"
 		local pk_seg = string.format("\t\t\tpk = false,\n")
@@ -90,7 +90,7 @@ local function print_table(db_name, table_name)
 	count = count.."\t\t}\n"
 	
 	local module_path = skynet.getenv("module_path")
-	local path = module_path.."models/"
+	local path = module_path.."lualib/models/"
 	
 	local s = require("entity_template")
 	local entitycls = table_name.."_entity"
@@ -365,6 +365,7 @@ function VIEW:validation()
 		skynet.error(sql)
 		local r = query.read(rdb, "all", sql)
 		if r and #r > 0 then
+			local seg = ""
 			skynet.error("enter information_schema.")
 			for i,v in ipairs(r) do
 				for kk,vv in pairs(v) do

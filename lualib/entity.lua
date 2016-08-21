@@ -34,7 +34,7 @@ function cls:set( ...)
 	query.hset(t._wdb, t.__tname, pk, pk )
 end
 
-function cls.insert(t, ...)
+function cls:insert( ...)
 	-- body
 	-- assert(t.__fields ~= nil)
 	-- local columns_str = "("
@@ -58,7 +58,7 @@ function cls.insert(t, ...)
 	-- query.write(t.__wdb, t.__tname, sql, query.DB_PRIORITY_1)
 end
 
-function cls.gen_update_sql(t, ... )
+function cls:gen_update_sql( ... )
 	-- body
 	local columns_str = ""
 	local keys_str = "("
@@ -98,10 +98,7 @@ function cls.gen_update_sql(t, ... )
 	return sql
 end
 
-function cls.update_db(t, ... )
-	-- body
-	t:update()
-end
+
 
 function cls.update(t, ...)
 	-- body
@@ -143,18 +140,17 @@ function cls.update(t, ...)
 		query.write(t.__wdb, t.__tname, sql, query.DB_PRIORITY_3)
 	end 
 end 	
+
+function cls:update_db( ... )
+	-- body
+	self:update()
+end
 		
-function cls.update_wait(t, ...)
-	assert(t.__fields ~= nil)
-	if true then
-		t:update()
-		-- t.__col_updated = 0
-		-- local sql = t:gen_update_sql()
-		-- query.read(t.__wdb, t.__tname, sql)
-	end 
+function cls:update_wait( ...)
+	self:update()
 end 	
 
-function cls.load_data_to_stm(t, child)
+function cls:load_data_to_stm()
 	local r = {}
 	for k,v in pairs(t) do
 		if string.match("^%w+_%w+mgr$", k) then
@@ -164,7 +160,7 @@ function cls.load_data_to_stm(t, child)
 	return r
 end
 
-function cls.load_data_to_sd(t, ... )
+function cls:load_data_to_sd( ... )
 	-- body
 	local pk = t.__fields[t.__pk]
 	if t.__head[t.__pk].t == "number" then
@@ -173,20 +169,21 @@ function cls.load_data_to_sd(t, ... )
 	end
 end
 
-function cls.set_field(t, k, v, ... )
+function cls:set_field(k, v, ... )
 	-- body
 	assert(k and v)
 	assert(type(k) == "string")
-	t.__ecol_updated[k] = t.__ecol_updated[k] + 1
-	if t.__ecol_updated[k] == 1 then
-		t.__col_updated = self.__col_updated + 1
-	end
-	t.__fields[k] = v
+
+	-- t.__ecol_updated[k] = t.__ecol_updated[k] + 1
+	-- if t.__ecol_updated[k] == 1 then
+	-- 	t.__col_updated = self.__col_updated + 1
+	-- end
+	self._fields[k] = v
 end
 
-function cls.get_field(t, k, ... )
+function cls:get_field(k, ... )
 	-- body
-	return t.__fields[k]
+	return self._fields[k]
 end
 
 return cls

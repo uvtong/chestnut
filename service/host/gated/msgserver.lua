@@ -364,27 +364,29 @@ function server.start(conf)
 		end
 	end
 
-	local msg = assert(conf.msg_handler)
+	local msg_handler = assert(conf.msg_handler)
 
 	local function do_msg(fd, msg, sz, ... )
 		-- body
 		local u = assert(connection[fd], "invalid fd")
-		msg(u.username, msg, sz)
+		msg_handler(u.username, msg, sz)
 	end
 
-	local start = assert(conf.start_handler)
+	local start_handler = assert(conf.start_handler)
 
 	local function do_start(fd, ... )
 		-- body
 		local u = assert(connection[fd], "invalid fd")
-		start(u.username, fd, u.version, u.index)
+		start_handler(u.username, fd, u.version, u.index)
 	end
 
 	function handler.message(fd, msg, sz)
 		local addr = handshake[fd]
 		if addr then
+			skynet.error("start auth ...")
 			auth(fd,addr,msg,sz)
 			handshake[fd] = nil
+			skynet.error("end auth ...")
 			do_start(fd)
 		else
 			-- request(fd, msg, sz)

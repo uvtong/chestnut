@@ -163,11 +163,7 @@ function CMD:start(source, conf)
 	self:set_version(version)
 	self:set_index(index)
 	
-	-- slot 1,2 set at main.lua
-	local host = sprotoloader.load(1):host "package"
-	local send_request = host:attach(sprotoloader.load(2))
-	self:set_host(host)
-	self:set_send_request(send_request)
+	
 
 	local uid = self:get_uid()
 	-- skynet.call(gate, "lua", "forward", uid, skynet.self())
@@ -198,5 +194,10 @@ skynet.start(function()
 			skynet.ret(skynet.pack(result))
 		end
 	end)
+	-- slot 1,2 set at main.lua
+	local host = sprotoloader.load(1):host "package"
+	local send_request = host:attach(sprotoloader.load(2))
+	ctx:set_host(host)
+	ctx:set_send_request(send_request)
 	-- skynet.fork(update_db)
 end)

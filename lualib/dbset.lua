@@ -1,3 +1,4 @@
+local skynet = require "skynet"
 local query = require "query"
 local json = require "cjson"
 local sd = require "sharedata"
@@ -102,10 +103,10 @@ function cls:load_db_to_cache(pk)
 	end
 end     
 
-function cls.load_db_to_data(t, key, value, ... )
+function cls:load_db_to_data(condtion, ... )
 	-- body
 	local sql
-	if key ~= nil then
+	if false then
 		if type(key) == "string" then
 			if key == "pk" then
 				if t.__head[t.__pk].t == "string" then
@@ -144,15 +145,15 @@ function cls.load_db_to_data(t, key, value, ... )
 			assert(false)
 		end
 	else
-		sql = string.format("select * from %s", t.__tname)
+		sql = string.format("select * from %s", self._tname)
 	end
-	print("hubing123", sql)
-	local entity = require("models/"..t.__entity)
-	local r = query.read(t.__rdb, t.__tname, sql)
-
+	skynet.error(sql)
+	local rdb = self._rdb
+	local table_name = self._tname
+	local r = query.read(rdb, table_name, sql)
 	for i,v in ipairs(r) do
-		local o = entity.new(t, v)
-		t:add(o)
+		local entity = self:create_entity(v)
+		self:add(entity)
 	end
 end
 
