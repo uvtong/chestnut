@@ -177,12 +177,9 @@ function CMD:disconnect()
 	log.info("disconnect")
 end
 
-local function update_db()
+function CMD:update_db( ... )
 	-- body
-	while true do
-		flush_db(const.DB_PRIORITY_3)
-		skynet.sleep(100 * 60) -- 1ti == 0.01s
-	end
+	flush_db(const.DB_PRIORITY_3)
 end
 
 skynet.start(function()
@@ -199,5 +196,4 @@ skynet.start(function()
 	local send_request = host:attach(sprotoloader.load(2))
 	ctx:set_host(host)
 	ctx:set_send_request(send_request)
-	-- skynet.fork(update_db)
 end)

@@ -160,7 +160,6 @@ function QUERY:query(sql)
 		error "db error"
 	end
 	flag = false
-
 	return res
 end
 
@@ -184,9 +183,7 @@ function QUERY:read(table_name, sql)
 		end
 		error "db error"
 	end
-
 	flag = false
-
 	return res
 end
 
@@ -201,7 +198,6 @@ function QUERY:write(table_name, sql, priority)
 	end
 	skynet.timeout(100*60, check_error)
 
-
 	local db = self.db
 	local res = db:query(sql)
 	-- print(dump(res))
@@ -209,7 +205,6 @@ function QUERY:write(table_name, sql, priority)
 		skynet.error(sql)
 		error "db error"
 	end
-
 	flag = false
 end
 
@@ -389,19 +384,23 @@ end
 function CMD.start(ctx, conf)
 	-- body
 	local db_conf = {
-		host = conf.db_host or "192.168.1.116",
+		host = conf.db_host,
 		port = conf.db_port or 3306,
 		database = conf.db_database or "project",
 		user = conf.db_user or "root",
 		password = conf.db_password or "yulei",
 	}
-	ctx.db = connect_mysql(db_conf)
+	if db_conf.host then
+		ctx.db = connect_mysql(db_conf)
+	end
 	local cache_conf = {
-		host = conf.cache_host or "192.168.1.116",
+		host = conf.cache_host,
 		port = conf.cache_port or 6379,
 		db = 0
 	}
-	ctx.cache = connect_redis(cache_conf)
+	if cache_conf.host then
+		ctx.cache = connect_redis(cache_conf)
+	end
 	-- frienddb.getvalue(ctx.db, ctx.cache)
 	-- local Q1 = Queue.new(128)
 	-- local Q2 = Queue.new(128)

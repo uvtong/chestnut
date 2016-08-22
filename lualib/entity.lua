@@ -1,6 +1,7 @@
 local query = require "query"
 local json = require "cjson"
 local sd = require "sharedata"
+local log = require "log"
 
 local cls = class("entity")
 
@@ -21,41 +22,62 @@ function cls:ctor(env, dbctx, set, rdb, wdb, ... )
 			error("not support this way to fetch value.")
 		end
 		})
+	-- this value 
+	self._cache_flag = false
  	return self
 end
 
-function cls:set( ...)
-	-- body
-	local v = json.encode(t.__fields)
-	local pk = t.__fields[t.__pk]
-	local k = string.format("%s:%d", t.__tname, pk)
-	-- print(string.format("set cache k: %s v: %s", k, v))
-	query.set(t._wdb, k, v)
-	query.hset(t._wdb, t.__tname, pk, pk )
+function cls:load_data_to_stm()
+	local r = {}
+	for k,v in pairs(t) do
+		if string.match("^%w+_%w+mgr$", k) then
+			r.k = ctx.k("load_data_to_stm")
+		end
+	end 
+	return r
 end
 
-function cls:insert( ...)
+function cls:load_data_to_sd( ... )
 	-- body
-	-- assert(t.__fields ~= nil)
-	-- local columns_str = "("
-	-- local values_str = "("
-	-- local value
-	-- for k,v in pairs(t.__head) do
-	-- 	columns_str = columns_str .. k .. ", "
-	-- 	if v.t == "string" then
-	-- 		value = "\'" .. t.__fields[k] .. "\'"
-	-- 	elseif v.t == "number" then
-	-- 		value = string.format("%d", t.__fields[k])
-	-- 	else
-	-- 		assert("others type", k)
-	-- 	end
-	-- 	values_str = values_str .. value .. ", "
-	-- end
-	-- columns_str = string.gsub(columns_str, "(.*)%,%s$", "%1)")
-	-- values_str = string.gsub(values_str, "(.*)%,%s$", "%1)")
-	-- local sql = string.format("insert into %s ", t.__tname) .. columns_str .. " values " .. values_str .. ";"
-	-- print(t.__wdb)
-	-- query.write(t.__wdb, t.__tname, sql, query.DB_PRIORITY_1)
+	local pk = self._fields[self._pk]
+	if self._head[self._pk].t == "number" then
+		local key = string.format("%s:%d", self._tname, pk)
+		sd.new(key, self._fields)
+	elseif self.__head[self._pk].t == "string" then
+		local key = string.format("%s:%s", self._tname, pk)
+		sd.new(key, self._fields)
+	end
+end
+
+function cls:insert_cache( ...)
+	local k
+	local v = json.encode(self._fields)
+	local pk = self._fields[self._pk]
+	if type(pk) == "number" then
+		k = string.format("%s:%d", self._tname, pk)	
+	elseif type(pk) == "string" then
+		k = string.format("%s:%s", self._tname, pk)	
+	end
+	local wdb = self._wdb
+	query.set(wdb, k, v)
+	query.hset(wdb, self._tname, pk, pk)
+	log.info("insert cache %s, %s", self._tname, pk)
+end
+
+function cls:update_cache( ... )
+	-- body
+	local k
+	local v = json.encode(self._fields)
+	local pk = self._fields[self._pk]
+	if type(pk) == "number" then
+		k = string.format("%s:%d", self._tname, pk)	
+	elseif type(pk) == "string" then
+		k = string.format("%s:%s", self._tname, pk)	
+	end
+	local wdb = self._wdb
+	query.set(wdb, k, v)
+	query.hset(wdb, self._tname, pk, pk)
+	log.info("update cache %s, %s", self._tname, pk)
 end
 
 function cls:gen_update_sql( ... )
@@ -98,25 +120,18 @@ function cls:gen_update_sql( ... )
 	return sql
 end
 
-
-
-function cls.update(t, ...)
+function cls:update_db( ... )
 	-- body
-	assert(t.__fields ~= nil)
-	if false or t.__col_updated > 1 then
-		-- print("*************************1")
-		t.__col_updated = 0
-		-- t:set(t, ...)
-		local sql = t:gen_update_sql()
-		--print(sql)
-		query.write(t.__wdb, t.__tname, sql, query.DB_PRIORITY_3)
-		
+	if false or self.__col_updated > 1 then
+		self.__col_updated = 0
+		local sql = self:gen_update_sql()
+		local wdb = self._wdb
+		query.write(wdb, self._tname, sql, query.DB_PRIORITY_3)
 	else 	
 		local tmp_sql = {}
 		local sql_first_part = string.format("call " .. "qy_insert_" .. t.__tname .. " (" )
 		-- print("sql_first_part is :", sql_first_part)
 		table.insert(tmp_sql, sql_first_part)
-		
 		assert(t.__head_ord ~= nil)
 		local counter = 0
 		for k, v in ipairs(t.__head_ord) do
@@ -133,40 +148,25 @@ function cls.update(t, ...)
 				table.insert(tmp_sql, string.format("%s", t.__fields[v.cn]))
 			end
 		end
-		table.insert(tmp_sql, ")")
-		
+		table.insert(tmp_sql, ")")	
 		local sql = table.concat(tmp_sql)
 		--print(sql)
 		query.write(t.__wdb, t.__tname, sql, query.DB_PRIORITY_3)
 	end 
-end 	
-
-function cls:update_db( ... )
-	-- body
-	self:update()
 end
 		
-function cls:update_wait( ...)
-	self:update()
+function cls:update_db_wait( ...)
+	self:update_db()
 end 	
 
-function cls:load_data_to_stm()
-	local r = {}
-	for k,v in pairs(t) do
-		if string.match("^%w+_%w+mgr$", k) then
-			r.k = ctx.k("load_data_to_stm")
-		end
-	end 
-	return r
+function cls:insert_db( ... )
+	-- body
+	self:update_db()
 end
 
-function cls:load_data_to_sd( ... )
+function cls:insert_db_wait( ... )
 	-- body
-	local pk = t.__fields[t.__pk]
-	if t.__head[t.__pk].t == "number" then
-		local key = string.format("%s:%d", t.__tname, pk)
-		sd.new(key, t.__fields)
-	end
+	self:insert_db()
 end
 
 function cls:set_field(k, v, ... )

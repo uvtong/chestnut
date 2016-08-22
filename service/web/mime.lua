@@ -154,37 +154,17 @@ function _M.handle_post(path, header, body, post_handler, ... )
 	local t = res.type
 	if t == "application/x-www-form-urlencoded" then
 		local body = parse(body)
-		local ok, result = post_handler("post", body)
-		if ok then
-			return ok, result
-		else
-			return ok
-		end
+		return post_handler("post", body)
 	elseif t == "application/json" then
 		local res = json.decode(body)
-		local ok, result = post_handler("post", res)
-		if ok then
-			return ok, result
-		else
-			return ok
-		end
+		return post_handler("post", res)
 	elseif t == "multipart/form-data" then
 		local boundary = res.boundary
 		local res = parse_file(header, boundary, body)
-		local ok, result = post_handler("file", res)
-		if ok then
-			return ok, result
-		else
-			return ok
-		end
+		return post_handler("file", res)
 	else
 		local res = body
-		local ok, result = post_handler("post", res)
-		if ok then
-			return ok, result
-		else
-			return ok
-		end
+		return post_handler("post", res)
 	end
 end
 

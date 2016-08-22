@@ -27,8 +27,9 @@ function VIEW:pull()
 		local pet_id = body.pet_id
 		local table_name = "u_pet"
 		local sql = dbutil.select(table_name, {{uid=uid, pet_id=pet_id}})
+		skynet.error(sql)
 		local r = query.read(rdb, table_name, sql)
-		if r then
+		if r and #r > 0 then
 			assert(uid == r[1]["uid"])
 			assert(pet_id == r[1]["pet_id"])
 			local ret = {}
@@ -40,6 +41,7 @@ function VIEW:pull()
 			ret["level"] = r[1]["level"]
 			return json.encode(ret)
 		else
+			skynet.error("no data.")
 			local ret = {}
 			ret["errorcode"] = errorcode.E_FAIL
 			return json.encode(ret)
@@ -64,9 +66,9 @@ function VIEW:push( ... )
 			local gold  = body["gold"]
 			local stage = body["stage"]
 			local level = body["level"]
-			gold  = gold > r[1]["gold"] and gold or r[1]["gold"]
-			stage = stage > r[1]["stage"] and stage or r[1]["stage"]
-			level = level > r[1]["level"] and level or r[1]["level"]
+			-- gold  = gold > r[1]["gold"] and gold or r[1]["gold"]
+			-- stage = stage > r[1]["stage"] and stage or r[1]["stage"]
+			-- level = level > r[1]["level"] and level or r[1]["level"]
 			local sql = dbutil.update(table_name, {{uid=uid, pet_id=pet_id}}, {gold=gold, stage=stage, level=level}) 
 			skynet.error(sql)
 			local r = query.write(wdb, table_name, sql)

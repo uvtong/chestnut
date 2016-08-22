@@ -13,97 +13,31 @@ function cls:ctor(env, dbctx, rdb, wdb, ... )
 	self._dbctx = dbctx
 	self._rdb = rdb
 	self._wdb = wdb
+	self._cache_flag = false
 	return self
 end
 
-function cls:get_row_db(pk_v)
+function cls:set_cache_flag(flag, ... )
 	-- body
-	assert(pk)
-	assert(self._head[self._pk].pk == true)
-	local sql
-	if self._head[self._pk].t == "string" then
-		sql = string.format("select * from %s where %s = '%s'", self._tname, self._pk, pk_v)
-	elseif self._head[self._pk] == "number" then	
-		sql = string.format("select * from %s where %s = %d", self.__tname, self.__pk, pk_v)
-	else
-		assert(false)
-	end
-	local r = query.read(t.__rdb, t.__tname, sql)
-	if r and #r > 0 then
-		return r[1]
-	else
-	end
-end 
-    
-function cls:get_row_cache(pk)
+	self._cache_flag = flag
+end
+
+-- this function pull
+function cls:load_cache_to_data(condition, ... )
 	-- body
-	local key
-	if self._head[self._pk].t == "string" then
-		assert(self._head[self._pk].t == type(pk))
-		key = self.__tname..":"..pk
-	elseif self._head[self._pk].t == "number" then
-		assert(self._head[self._pk].t == type(pk))
-		key = self.__tname..":"..string.format("%d", pk)
-	end
 	local rdb = self._rdb
-	local v = query.get(rdb, key)
-	if v == nil then
-		return nil
-	else
-		v = json.decode(v)
-		return v
+	local r = query.get(rdb, self._tname)
+	for k,v in pairs(r) do
+		if type(v) == "number" then
+			local key = string.format("%s:%d", self._tname, v)
+			local row = query.get(rdb, key)
+			local entity = self:create_entity(row)
+			self:add(entity)
+		end
 	end
 end
 
-function cls:get_row(pk)
-	-- body
-	if self._data[pk] then
-		return self._data[pk]
-	end
-
-	local r = self:get_row_cache(pk)
-	if r then
-		return r
-	end
-	local r = self:get_row_db(pk)
-	if r then
-		return r
-	end
-end
-
-function cls:set_row_cache(key)
-	-- body
-
-	assert(type(pk) == t.__head[t.__pk].t)
-	local k
-	if t.__head[t.__pk].t == "string" then
-		k = t.__tname..":"..pk
-	elseif t.__head[t.__pk].t == "number" then
-		k = t.__tname..":"..string.format("%d", pk)
-	end
-	local v = json.encode(value)
-	query.set(t.__wdb, k, v)
-end
-
-function cls:set_row(key, value, ... )
-	-- body
-end
-
--- this function 
-function cls:load_db_to_cache(pk)
-	-- body
-
-	if t.__head[t.__pk].t == "number" then
-		local sql = string.format("select * from %s where %s = %d", t.__tname, t.__pk, pk)
-		local r = query.read(r.__rdb, t.__tname, sql)
-		assert(#r == 1)
-		local k = string.format("%s:%d", t.__tname, pk)
-		local v = json.encode(r[1])
-		query.set(k, v)
-	end
-end     
-
-function cls:load_db_to_data(condtion, ... )
+function cls:load_db_to_data(condition, ... )
 	-- body
 	local sql
 	if false then
@@ -157,119 +91,88 @@ function cls:load_db_to_data(condtion, ... )
 	end
 end
 
-function cls.load_db(t, key, value)
-	-- body
-	t:load_db_to_data(key, value)
-	-- t:load_data_to_cache()
-end
-
-function cls.load_data_to_cache(t, pk, ... )
-	-- body
-	if pk then
-		local v = t:get(pk)
-		v:set()
-	else
-		for k,v in pairs(t.__data) do
-			v:set()
-		end
-	end
-	t.__cache_flag = true
-end
-
-function cls.load_cache(t, pk)
-	-- body
-	assert(pk)
-	if t.__head[t.__pk].t == "number" then
-		local k = string.format("%s:%d", t.__tname, pk)
-		local v = query.get(t.__rdb, k)
-		if v then
-			v = json.decode(v)
-			local r = t:create_entity(v)
-			t:add(r)
-		else
-			t:load_db("pk", pk)
-			t:load_data_to_cache(pk)
-		end
-	end
-end
-
-function cls.load_data_to_sd(t)
+function cls:load_data_to_sd()
 	-- body
 	local l = {}
-	for k,v in pairs(t.__data) do
+	for k,v in pairs(self._data) do
 		v:load_data_to_sd()
-		local pk = v:get_field(v.__pk)
+		local pk = v:get_field(v._pk)
 		table.insert(l, pk)
 	end
-	sd.new(t.__tname, l)
+	sd.new(self._tname, l)
 end
 
-function cls.load_data_to_stm(t, child)
+function cls:load_data_to_remote(p, ... )
 	-- body
-	if t.__stm then
-		-- ctx.__data
-		local r = {}
-		for k,v in pairs(t.__data) do
-			r[k] = v("load_data_to_stm")
-		end
-	end
-end
-
-function cls.load_stm_to_data(t, child)
-	-- body
-	if t.__stm then
-	end
-end
-
-function cls.load_remote(t, p, ... )
-	-- body
-	local entity = require("models/"..t.__entity)
 	for i,v in ipairs(p) do
-		local o = entity.new(t, v)
-		t:add(o)
+		local o = self:create_entity(v)
+		self:add(o)
 	end
 end
 
-function cls:update_cache(t, ... )
+function cls:update_cache( ... )
 	-- body
-	for k,v in pairs(t.__data) do
+	for k,v in pairs(self._data) do
 		v:set()
 	end
 end
 
-function cls:update_db(t, ... )
+function cls:update_cache_wait( ... )
 	-- body
-	self:update()
+end
+
+function cls:update_db( ... )
+	-- body
+	for k,v in pairs(self._data) do
+		v:update()
+	end
+end
+
+function cls:update_db_wait( ... )
+	-- body
 end
 
 function cls:update( ...)
 	-- body
-	if t.__cache_flag then
-		for k,v in pairs(t.__data) do
-			v:update()
-			v:set()
-		end
+	if self._cache_flag then
+		self:update_cache()
+		self:update_db()
 	else
-		for k,v in pairs(t.__data) do
-			v:update()
-		end	
+		self:update_db()
 	end
-	-- if t.self_updata then
-	-- 	t:self_updata()
-	-- end
 end
 
 function cls:update_wait( ... )
 	-- body
-	for k,v in pairs(self._data) do
-		v:update_wait()
+	if self._cache_flag then
+		self:update_cache()
+		self:update_db()
+	else
+		self:update_db()
+	end
+end
+
+function cls:insert_cache( ... )
+	-- body
+end
+
+function cls:insert_db( ... )
+	-- body
+end
+
+function cls:insert( ... )
+	-- body
+	if self._cache_flag then
+		self:insert_cache()
+		self:insert_db()
+	else
+		self:insert_db()
 	end
 end
 
 function cls:create(p, ...)
 	-- body
 	return self:create_entity(p)
-
 end 
 	
 function cls:create_entity(p)
@@ -277,16 +180,6 @@ function cls:create_entity(p)
 	local entity = require("models/" .. self._entity_cls)
 	local r = entity.new(self._env, self._dbctx, self, self._rdb, self._wdb, p)
 	return r
-end 
-	
-function cls.set_user(self, user, ... )
-	-- body
-	self._user = user
-end 
-
-function cls.get_user(self, ... )
-	-- body
-	return self._user
 end
 	
 function cls.genpk(self, csv_id)
@@ -298,7 +191,8 @@ function cls.genpk(self, csv_id)
 		return genpk_2(user_id, csv_id)
 	end
 end 
-	
+
+-- manipulat data
 function cls:add(value)
  	-- body
  	assert(value.__cname == self._entity_cls)

@@ -5,8 +5,8 @@ local socket = require "socket"
 local httpd = require "http.httpd"
 local sockethelper = require "http.sockethelper"
 local urllib = require "http.url"
--- local urls = require "lualib.pet.urls"
-local urls = require "urls"
+local urls = require "lualib.pet.urls"
+-- local urls = require "urls"
 local log = require "log"
 local pcall = skynet.pcall
 local error = skynet.error
@@ -125,6 +125,7 @@ local function route( id, code, url, method, header, body )
 					skynet.error(result)
 					bodyfunc = result
 				else
+					skynet.error(result)
 					statuscode = 500
 				end
 				break
