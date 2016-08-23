@@ -2,8 +2,9 @@ package.path = "./../lualib/?.lua;./../logind/?.lua;"..package.path
 package.cpath = "./../lua-cjson/?.so;"..package.cpath
 local skynet = require "skynet"
 local mc = require "multicast"
-rdb = skynet.localname(".logind_rdb")
-wdb = skynet.localname(".logind_wdb")
+local rdb = ".DB"
+local wdb = ".DB"
+
 local cls = require("models/areamgr")
 local areamgr = cls.new()
 local server_id = {
@@ -91,7 +92,7 @@ skynet.start(function()
 			skynet.ret(skynet.pack(result))
 		end
 	end)
-	areamgr:load_db()
+	areamgr:load_db_to_data()
 	skynet.fork(update_db)
 	start_subscribe()
 end)

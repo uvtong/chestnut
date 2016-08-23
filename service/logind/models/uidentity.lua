@@ -1,6 +1,6 @@
 local entitycpp = require "entitycpp"
 
-local cls = class("uidentity", entitycpp)
+local cls = class("uidentity", entity)
 
 function cls:ctor(mgr, P, ... )
 	-- body

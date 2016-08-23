@@ -4,75 +4,121 @@ local sprotoloader = require "sprotoloader"
 local context = require "context"
 local ctx
 
-local p1 = 0
-local p2 = 1
-local p3 = 1
-local front_cards = {}
-local back_cards = {}
-
-local function function_name( ... )
-	-- body
-	front_cards[0 << 4 & 1] = 0 << 4 & 1
-	front_cards[0 << 4 & 2] = 0 << 4 & 2
-	front_cards[0 << 4 & 3] = 0 << 4 & 3
-	front_cards[0 << 4 & 4] = 0 << 4 & 4
-	front_cards[0 << 4 & 5] = 0 << 4 & 5
-	front_cards[0 << 4 & 6] = 0 << 4 & 6
-	front_cards[0 << 4 & 7] = 0 << 4 & 7
-	front_cards[0 << 4 & 8] = 0 << 4 & 8
-	front_cards[0 << 4 & 9] = 0 << 4 & 9
-	front_cards[0 << 4 & 10] = 0 << 4 & 10
-	front_cards[0 << 4 & 11] = 0 << 4 & 11
-	front_cards[0 << 4 & 12] = 0 << 4 & 12
-	front_cards[0 << 4 & 13] = 0 << 4 & 13
-
-	front_cards[1 << 4 & 1] = 1 << 4 & 1
-	front_cards[1 << 4 & 2] = 1 << 4 & 2
-	front_cards[1 << 4 & 3] = 1 << 4 & 3
-	front_cards[1 << 4 & 4] = 1 << 4 & 4
-	front_cards[1 << 4 & 5] = 1 << 4 & 5
-	front_cards[1 << 4 & 6] = 1 << 4 & 6
-	front_cards[1 << 4 & 7] = 1 << 4 & 7
-	front_cards[1 << 4 & 8] = 1 << 4 & 8
-	front_cards[1 << 4 & 9] = 1 << 4 & 9
-	front_cards[1 << 4 & 10] = 1 << 4 & 10
-	front_cards[1 << 4 & 11] = 1 << 4 & 11
-	front_cards[1 << 4 & 12] = 1 << 4 & 12
-	front_cards[1 << 4 & 13] = 1 << 4 & 13
-
-	front_cards[2 << 4 & 1] = 2 << 4 & 1
-	front_cards[2 << 4 & 2] = 2 << 4 & 2
-	front_cards[2 << 4 & 3] = 2 << 4 & 3
-	front_cards[2 << 4 & 4] = 2 << 4 & 4
-	front_cards[2 << 4 & 5] = 2 << 4 & 5
-	front_cards[2 << 4 & 6] = 2 << 4 & 6
-	front_cards[2 << 4 & 7] = 2 << 4 & 7
-	front_cards[2 << 4 & 8] = 2 << 4 & 8
-	front_cards[2 << 4 & 9] = 2 << 4 & 9
-	front_cards[2 << 4 & 10] = 2 << 4 & 10
-	front_cards[2 << 4 & 11] = 2 << 4 & 11
-	front_cards[2 << 4 & 12] = 2 << 4 & 12
-	front_cards[2 << 4 & 13] = 2 << 4 & 13
-
-	front_cards[3 << 4 & 1] = 3 << 4 & 1
-	front_cards[3 << 4 & 2] = 3 << 4 & 1
-	front_cards[3 << 4 & 3] = 3 << 4 & 1
-	front_cards[3 << 4 & 4] = 3 << 4 & 1
-	front_cards[3 << 4 & 5] = 3 << 4 & 1
-	front_cards[3 << 4 & 6] = 3 << 4 & 1
-	front_cards[3 << 4 & 7] = 3 << 4 & 1
-	front_cards[3 << 4 & 8] = 3 << 4 & 1
-	front_cards[3 << 4 & 9] = 3 << 4 & 1
-	front_cards[3 << 4 & 10] = 3 << 4 & 1
-	front_cards[3 << 4 & 11] = 3 << 4 & 1
-	front_cards[3 << 4 & 12] = 3 << 4 & 1
-	front_cards[3 << 4 & 13] = 3 << 4 & 1
-
-	front_cards[4 << 4 & 0] = 4 << 4 & 0
-	front_cards[5 << 4 & 0] = 5 << 4 & 0
-end
+local NORET = {}
 
 local REQUEST   = {}
+
+function REQUEST:ready(args, ... )
+	-- body
+	local uid = args.uid
+	local ready = args.ready
+	local player = self:get_player(uid)
+	if player:get_ready() then
+		assert(false, "client send error message.")
+	else
+		player:set_ready(ready)
+	end
+	local players = self:get_players()
+	for i=1,3 do
+		local player = players[i]
+		local ready = player:get_ready()
+		if ready then
+		else
+			local res = {}
+			res.errorcode = errorcode.SUCCESS
+			return res
+		end
+	end
+	local cards = self:get_cards()
+	local first = uid
+	local res = {}
+	res.errorcode = errorcode.ALL_READY
+	res.first = first
+	res.cards = cards
+	return res
+end
+
+function REQUEST:mp(args, ... )
+	-- body
+	local uid = args.uid
+	local player = self:get_player(uid)
+end
+
+function REQUEST:am(uid, ... )
+	-- body
+end
+
+function REQUEST:rob(args, ... )
+	-- body
+	local uid = args.uid
+	local rob = args.rob
+	local player = self:get_player(uid)
+	player:set_rob(rob)
+	local first_player = self:get_first_player()
+	local rob = first_player:get_rob()
+	if #rob == 2 then
+		-- decide to who is master
+
+	else
+		local next = player:get_next()
+		local next_uid = next:get_uid()
+		local res = {}
+		res.errorcode = errorcode.SUCCESS
+		res.your_turn = next_uid
+		return res
+	end
+end
+
+function REQUEST:lead(args, ... )
+	-- body
+	local uid = args.uid
+	local cards = args.cards
+	local player = self:get_player(uid)
+	player:lead(cards)
+	if player:is_over() then
+	else
+		local next = player:get_next()
+		local next_uid = next:get_uid()
+		local res = {}
+		res.errorcode = errorcode.SUCCESS
+		res.your_turn = next_uid
+		local send_request = self._env:get_send_request()
+		local v = send_request("lead", res)
+		self._env:send_package(v)
+		return res
+	end
+end
+
+local function request(name, args, response)
+	skynet.error(string.format("line request: %s", name))
+    local f = REQUEST[name]
+    local ok, result = pcall(f, ctx, args)
+    if ok then
+    	return response(result)
+    else
+    	skynet.error(result)
+    	local ret = {}
+    	ret.errorcode = errorcode.FAIL
+    	return response(ret)
+    end
+end
+
+local RESPONSE = {}
+
+function RESPONSE:mp( ... )
+	-- body
+end
+
+local function response(session, args)
+	-- body
+	error(string.format("response: %s", name))
+    local f = RESPONSE[name]
+    local ok, result = pcall(f, env, args)
+    if ok then
+    else
+    	skynet.error(result)
+    end
+end
 
 skynet.register_protocol {
 	name = "client",
@@ -105,51 +151,22 @@ skynet.register_protocol {
 
 local CMD = {}
 
-function CMD:enter_room(uid, ... )
-	-- body
-
-	local cls = require "player"
-
-end
-
-function CMD:ready(uid, ... )
-	-- body
-end
-
-function CMD:mp(uid, ... )
-	-- body
-end
-
-function CMD:am(uid, ... )
-	-- body
-end
-
-function CMD:rob(uid, ... )
-	-- body
-end
-
-function CMD:lead(uid, ... )
-	-- body
-	if uid == p1:get_uid() then
-		local addr = p1:get_addr()
-		skynet.send(addr, "lua", "lead")
-	elseif uid == p2:get_uid() then
-	elseif uid == p3:get_uid() then
-
-	end
-end
-
-function CMD:deal_cards(uid, ... )
-	-- body
-end
-
-function CMD:start(source, conf, ... )
+-- forward agent
+function CMD:join(source, conf, ... )
 	-- body
 	local client = conf.client
 	local gate = conf.gate
 	local version = conf.version
 	local index = conf.index
-	local last = source
+	local uid = conf.uid
+	local p = player.new(self, uid)
+	self:add(p)
+	skynet.call(gate, "lua", "forward", uid, skynet.self())
+	return true
+end
+
+function CMD:leave( ... )
+	-- body
 
 end
 
@@ -162,7 +179,7 @@ skynet.start(function ()
 	skynet.dispatch("lua", function(_, source, cmd, ...)
 		local f = CMD[cmd]
 		local r = f(ctx, ... )
-		if r then
+		if r ~= NORET then
 			skynet.retpack(r)
 		end
 	end)

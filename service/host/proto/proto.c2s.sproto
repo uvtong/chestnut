@@ -6,7 +6,8 @@
 }
 
 .settlement {
-	gold 0 : integer	
+    uid 0 : integer
+	gold 1 : integer	
 }
 
 handshake 1 {
@@ -98,15 +99,13 @@ enter_room 21 {
 
 ready 22 {
     request {
-        ready 0 : integer
+        uid 0 : integer
+        ready 1 : integer
     }
     response {
         errorcode 0 : integer
-        user_id 1 : integer
-        mcards 2 : *integer
-        rcards 3 : *integer
-        lcards 4 : *integer
-        dcards 5 : *integer
+        first 1 : integer
+        cards 2 : *integer
     }
 }
 
@@ -135,33 +134,26 @@ am 24 {
 
 rob 25 {
     request {
-        m 0 : integer
+        uid 0 : integer
+        rob 1 : integer
     }
     response {
-        errorcode 0 :integer
+        errorcode 0 : integer
         your_turn 1 : integer
-        countdown 2 : integer
     }
 }
 
 lead 26 {
     request {
-        cards 0 : *integer
+        uid 0 : integer
+        cards 1 : *integer
     }
     response {
         errorcode 0 : integer
         your_turn 1 : integer
         countdown 2 : integer
-        me 3 : settlement
-        right 4 : settlement
-        left 5 : settlement
-    }
-}
-
-deal_cards 27 {
-    response {
-        errorcode 0 : integer
-        your_turn 1 : integer
-        countdown 2 : integer
+        ranked1 3 : settlement
+        ranked2 4 : settlement
+        ranked3 5 : settlement
     }
 }

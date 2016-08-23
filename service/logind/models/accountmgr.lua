@@ -1,5 +1,5 @@
 local skynet = require "skynet"
-local modelmgr = require "modelmgrcpp"
+local modelmgr = require "dbset"
 local assert = assert
 local type   = type
 

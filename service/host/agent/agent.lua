@@ -45,6 +45,20 @@ function REQUEST.login(source, uid, sid, secret, g, d)
 	-- body
 end
 
+function REQUEST:enter_room( ... )
+	-- body
+	local addr = skynet.call(".ROOM_MGR", "lua", "enqueue")
+	local conf = {}
+	conf.client = self:get_fd()
+	conf.gate = self:get_gate()
+	conf.version = self:get_version()
+	conf.index = self:get_index()
+	skynet.call(addr, "lua", "join", conf)
+	local res = {}
+	res.errorcode = errorcode.SUCCESS
+	return res
+end
+
 function REQUEST:wake(args, ... )
 	-- body
 	local role_id = args.role_id
@@ -163,8 +177,6 @@ function CMD:start(source, conf)
 	self:set_version(version)
 	self:set_index(index)
 	
-	
-
 	local uid = self:get_uid()
 	-- skynet.call(gate, "lua", "forward", uid, skynet.self())
 	return true

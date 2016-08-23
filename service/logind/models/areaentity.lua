@@ -1,4 +1,4 @@
-local entitycpp = require "entitycpp"
+local entitycpp = require "entity"
 
 local cls = class("areaentity", entitycpp)
 

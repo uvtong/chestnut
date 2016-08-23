@@ -1,10 +1,10 @@
 local cls = class("card")
 
-function cls:ctor(t, num, ... )
+function cls:ctor(v, ... )
 	-- body
-	self._type = t
-	self._num = num
-	self._value = t << 4 & num
+	self._type = v >> 4 & 0x0f
+	self._num = v & 0x0f
+	self._value = v
 	return self
 end
 

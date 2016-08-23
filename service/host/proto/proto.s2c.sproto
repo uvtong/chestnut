@@ -73,6 +73,11 @@
     ara_rnk 21 : integer
 }
 
+.settlement {
+    uid 0 : integer
+    gold 1 : integer    
+}
+
 heartbeat 1 {}
 
 mail 2 {
@@ -155,10 +160,13 @@ mp 8 {
     }
 }
 
-deal_cards 9 {
+lead 9 {
     request {
         your_turn 0 : integer
         countdown 1 : integer
+        ranked1 2 : settlement
+        ranked2 3 : settlement
+        ranked3 4 : settlement
     }
     response {
         errorcode 0 : integer
