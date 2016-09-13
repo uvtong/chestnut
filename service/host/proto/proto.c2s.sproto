@@ -86,7 +86,7 @@ applyfriend 19 {
 recvfriend 20 {
 }
 
-enter_room 21 {
+enter_scene 21 {
     request {
         rule 0 : integer
         mode 1 : integer
@@ -97,7 +97,30 @@ enter_room 21 {
     }
 }
 
-ready 22 {
+leave_scene 22 {
+}
+
+enter_room 23 {
+    request {
+        rule 0 : integer
+        mode 1 : integer
+        scene 2 : integer
+    }
+    response {
+        errorcode 0 : integer
+    }
+}
+
+leave_room 24 {
+    request {
+
+    }
+    response {
+        errorcode 0 : integer
+    }
+}
+
+ready 25 {
     request {
         uid 0 : integer
         ready 1 : integer
@@ -109,7 +132,7 @@ ready 22 {
     }
 }
 
-mp 23 {
+mp 26 {
     request {
         m 0 : integer
     }
@@ -123,7 +146,7 @@ mp 23 {
     }
 }
 
-am 24 {
+am 27 {
     request {
         m 0 : integer
     }
@@ -132,7 +155,7 @@ am 24 {
     }
 }
 
-rob 25 {
+rob 28 {
     request {
         uid 0 : integer
         rob 1 : integer
@@ -143,7 +166,7 @@ rob 25 {
     }
 }
 
-lead 26 {
+lead 29 {
     request {
         uid 0 : integer
         cards 1 : *integer
@@ -157,3 +180,5 @@ lead 26 {
         ranked3 5 : settlement
     }
 }
+
+

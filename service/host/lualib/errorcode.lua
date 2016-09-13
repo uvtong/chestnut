@@ -1,7 +1,7 @@
-local errorcode = {}
+local _M = {}
 
-errorcode.SUCCESS = 1
-errorcode.FAIL    = 2
-errorcode.ALL_READY  = 3
+_M.SUCCESS = 1
+_M.FAIL    = 2
+_M.ALL_READY  = 3
 
-return errorcode
+return _M

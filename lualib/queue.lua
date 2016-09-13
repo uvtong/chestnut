@@ -3,72 +3,58 @@
 -- when head == tial to move head
 -- don't move tail 
 
-local Queue = {}
+local _M = {}
 
-function Queue.new(sz)
+function _M.new(sz)
 	-- body
-	return { __data={}, __size=sz, __head=1, __tail=1}
+	return { __data={}, __cap=sz, __size=0, __head=1, __tail=1}
 end
 
-function Queue.enqueue(Q, E)
+function _M.enqueue(q, ele)
 	-- body
-	if Q.__tail + 1 ~= Q.__head then
-		if Q.__tail + 1 > Q.__size then
-			if Q.__head == 1 then
-				Q.__size = Q.__size * 2
-				Q.__data[Q.__tail] = E
-				Q.__tail = Q.__tail + 1
-				return true
-			else
-				Q.__data[Q.__tail] = E
-				Q.__tail = 1
-				return true
-			end
-		else
-			Q.__data[Q.__tail] = E
-			Q.__tail = Q.__tail + 1
-			return true
-		end
+	if q.__tail + 1 % q.__cap ~= q.__head then
+		q.__data[q.__tail] = ele
+		q.__size = q.__size + 1
+		q.__tail = q.__tail + 1 % q.__cap
 	else
-		Q.__size = Q.__size * 2
-		Q.__data[Q.__tail] = E
-		Q.__tail = Q.__tail + 1
-		return true
+		-- extend
+		if q.__head < q.__tail then
+			q.__cap = q.__cap * 2
+		else
+			for i=1,q.__tail do
+				local pc = q.__cap + i
+				q.__data[pc] = q.__data[i]
+				q.__data[i] = nil
+			end
+			q.__tail = q.__cap + q.__tail
+			q.__cap = q.__cap * 2
+			q.__data[q.__tail] = ele
+			q.__size = q.__size + 1
+			q.__tail = q.__tail + 1 % q.__cap
+		end
 	end
 end
 
-function Queue.dequeue(Q)
+function _M.dequeue(q)
 	-- body
-	if Q.__head ~= Q.__tail then
-		if Q.__head < Q.__tail then
-			local r = Q.__data[Q.__head]
-			Q.__head = Q.__head + 1
-			return r
-		elseif Q.__head > Q.__tail then
-			if Q.__head + 1 > Q.__size then
-				local r = Q.__data[Q.__head]
-				Q.__head = 1
-				return r
-			else
-				local r = Q.__data[Q.__head]
-				Q.__head = Q.__head + 1
-				return r
-			end
-		else
-			assert(false)
-		end
+	if q.__size > 0 then
+		local ele = q.__data[q.__head]
+		q.__size = q.__size - 1
+		q.__head = q.__head - 1 % q.__cap
+		return ele
 	else
 		return nil
 	end
 end
 
-function Queue.is_empty(Q)
+function _M.is_empty(q)
 	-- body
-	if Q.__head == Q.__tail then
-		return true
-	else
-		return false
-	end
+	return (q.__size == 0)
 end
 
-return Queue
+function _M.size(q, ... )
+	-- body
+	return q.__size
+end
+
+return _M

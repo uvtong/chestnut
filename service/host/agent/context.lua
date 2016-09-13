@@ -13,13 +13,15 @@ function cls:ctor( ... )
 	cls.super.ctor(self, ...)
 	self._host = false
 	self._send_request = false
-
-	-- uid
+	
+	self._gate = false
+	self._version = false
+	self._index = false
 	self._uid = false
 	self._subid = false
 	self._secret = false
+	self._roomid = false
 	self._host_udbcontext = host_udbcontext.new(self, rdb, wdb)
-	self._controllers = {}
 	return self
 end
 
@@ -41,6 +43,36 @@ end
 function cls:get_send_request( ... )
 	-- body
 	return self._send_request
+end
+
+function cls:set_gate(g, ... )
+	-- body
+	self._gate = g
+end
+
+function cls:get_gate( ... )
+	-- body
+	return self._gate
+end
+
+function cls:set_version(v, ... )
+	-- body
+	self._version = v
+end
+
+function cls:get_version( ... )
+	-- body
+	return self._version
+end
+
+function cls:set_index(idx, ... )
+	-- body
+	self._index = idx
+end
+
+function cls:get_index( ... )
+	-- body
+	return self._index
 end
 
 function cls:login(uid, subid, secret)
@@ -73,6 +105,16 @@ end
 function cls:get_secret( ... )
 	-- body
 	return self._secret
+end
+
+function cls:set_roomid(roomid, ... )
+	-- body
+	self._roomid = roomid
+end
+
+function cls:get_roomid( ... )
+	-- body
+	return self._roomid
 end
 
 return cls

@@ -45,6 +45,20 @@ function REQUEST.login(source, uid, sid, secret, g, d)
 	-- body
 end
 
+function REQUEST:enter_scene(args, ... )
+	-- body
+	local rule = args.rule
+	local mode = args.mode
+	local scene = args.scene
+	local uid = self:get_uid()
+	local ok = skynet.call(".ROOM_MGR", "lua", "enqueue", uid, rule, mode, scene)
+	if ok then
+		return { errorcode=errorcode.SUCCESS }
+	else
+		return { errorcode=errorcode.FAIL }
+	end
+end
+
 function REQUEST:enter_room( ... )
 	-- body
 	local addr = skynet.call(".ROOM_MGR", "lua", "enqueue")
@@ -56,15 +70,6 @@ function REQUEST:enter_room( ... )
 	skynet.call(addr, "lua", "join", conf)
 	local res = {}
 	res.errorcode = errorcode.SUCCESS
-	return res
-end
-
-function REQUEST:wake(args, ... )
-	-- body
-	local role_id = args.role_id
-	error(role_id)
-	local res = {}
-	res.errorcode = 0
 	return res
 end
 
@@ -128,16 +133,16 @@ skynet.register_protocol {
 	end
 }
 
-function CMD:enter_room(source, room)
+-- only foward room
+function CMD:enter_room(source, roomid)
 	-- body
-	self.room = room
-	self.rdtroom = true
-	-- skynet.
-	-- for k,v in pairs(t) do
-	-- 	assert(room[k] == nil)
-	-- 	room[k] = v
-	-- 	send_package(send_request(2, { user_id=tonumber(k), name="hello" })) 
-	-- end
+	self:set_roomid(roomid)
+	local conf = {}
+	conf.fd = self:get_fd()
+	conf.gate = self:get_gate()
+	conf.version = self:get_version()
+	conf.index = self:get_index()
+	skynet.call(roomid, "lua", "enter_room", conf)
 end
 
 function CMD:newemail(source, subcmd , ... )
