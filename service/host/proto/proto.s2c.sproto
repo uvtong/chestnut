@@ -118,13 +118,11 @@ login 5 {
 
 enter_room 6 {
     request {
-        user_id 0 : integer
-        orientation 1 : integer
-        name 2 : string
+        right 0 : user
+        left  1 : user
     }
     response {
         errorcode 0 : integer
-        msg 1 : string
     }
 }
 

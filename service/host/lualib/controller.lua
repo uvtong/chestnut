@@ -1,9 +1,16 @@
+local assert = assert
 local cls = class("controller")
 
-function cls:ctor(env, ... )
+function cls:ctor(env, name, ... )
 	-- body
+	assert(env and name)
 	self._env = env
-	return self
+	self._name = name
+end
+
+function cls:get_name( ... )
+	-- body
+	return self._name
 end
 
 return cls

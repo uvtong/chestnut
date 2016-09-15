@@ -1,19 +1,15 @@
 local player = require "player"
-local myplayer = require "myplayer"
-local rightplayer = require "rightplayer"
-local leftplayer = require "leftplayer"
 local controller = require "controller"
 local group = require "group"
-local assert = assert
 local gs = require "gamestate"
-local gt = require "gametype"
+local assert = assert
 
 local cls = class("gamecontroller", controller)
 
-function cls:ctor(env, name, scene, ... )
+function cls:ctor(env, name, ... )
 	-- body
-	assert(env and name and scene)
-	cls.super.ctor(self, env, name, scene)
+	assert(env and name)
+	cls.super.ctor(self, env, name)
 	self._myplayer = myplayer.new(self._env, self, scene)
 	self._rightplayer = rightplayer.new(self._env, self, scene)
 	self._leftplayer = leftplayer.new(self._env, self, scene)
@@ -23,7 +19,6 @@ function cls:ctor(env, name, scene, ... )
 	
 	self._deal_player = false
 	self._state = gs.CLOSE
-	self._type = gt.NONE
 end
 
 function cls:get_type( ... )

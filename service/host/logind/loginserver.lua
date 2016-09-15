@@ -5,6 +5,7 @@ local crypt = require "crypt"
 local table = table
 local string = string
 local assert = assert
+local error = skynet.error
 
 --[[
 
@@ -99,7 +100,7 @@ local function launch_slave(auth_handler)
 		skynet.error(string.format("connect from %s (fd = %d)", addr, fd))
 		socket.start(fd)	-- may raise error here
 		local msg, len = ret_pack(pcall(auth, fd, addr))
-		print("abandon fd")
+		skynet.error("socket (fd = %d) abandon", fd)
 		socket.abandon(fd)	-- never raise error here
 		return msg, len
 	end

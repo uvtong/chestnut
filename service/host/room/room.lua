@@ -2,11 +2,30 @@ local skynet = require "skynet"
 local sproto = require "sproto"
 local sprotoloader = require "sprotoloader"
 local context = require "context"
+local assert = assert
 local ctx
-
 local NORET = {}
 
+local function init( ... )
+	-- body
+	ctx = context.new()
+	local host = sprotoloader.load(1):host "package"
+	local send_request = host:attach(sprotoloader.load(2))
+	ctx:set_host(host)
+	ctx:set_send_request(send_request)
+end
+
 local REQUEST   = {}
+
+function REQUEST:enter_room(args, ... )
+	-- body
+	assert(false)
+end
+
+function REQUEST:leave_room(args, ... )
+	-- body
+
+end
 
 function REQUEST:ready(args, ... )
 	-- body
@@ -152,26 +171,34 @@ skynet.register_protocol {
 local CMD = {}
 
 -- forward agent
-function CMD:join(source, conf, ... )
+-- start
+function CMD:enter_room(source, conf, ... )
 	-- body
-	local client = conf.client
+	local fd = conf.fd
 	local gate = conf.gate
 	local version = conf.version
 	local index = conf.index
 	local uid = conf.uid
-	local p = player.new(self, uid)
+	local p = player.new(self, uid, fd)
 	self:add(p)
+
+	self:set_gate(gate)
+	self:set_version(version)
+	self:set_index(index)
+
 	skynet.call(gate, "lua", "forward", uid, skynet.self())
-	return true
+	return NORET
 end
 
-function CMD:leave( ... )
+function CMD:leave_room(source, ... )
 	-- body
-
 end
 
-function CMD.disconnect( ... )
+function CMD:afk(source, fd)
 	-- body
+	local player = self:get_player_by_fd(fd)
+	local uid = player:get_uid()
+	log.print_info("agent uid = %d) disconnect", uid)
 end
 
 skynet.start(function ()
@@ -183,9 +210,5 @@ skynet.start(function ()
 			skynet.retpack(r)
 		end
 	end)
-	ctx = context.new()
-	local host = sprotoloader.load(1):host "package"
-	local send_request = host:attach(sprotoloader.load(2))
-	ctx:set_host(host)
-	ctx:set_send_request(send_request)
+	init()
 end)

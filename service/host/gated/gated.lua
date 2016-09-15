@@ -95,10 +95,10 @@ function server.unforward_handler(source, uid, ... )
 end
 
 -- call by self (when socket disconnect)
-function server.disconnect_handler(username)
+function server.disconnect_handler(username, fd)
 	local u = username_map[username]
 	if u then
-		skynet.call(u.agent, "lua", "afk")
+		skynet.call(u.agent, "lua", "afk", fd)
 	end
 end
 
@@ -110,7 +110,15 @@ function server.start_handler(username, fd, version, idx, ... )
 		local agent = u.agent
 		if agent then
 			skynet.error("agent:", agent, idx)
-			skynet.call(agent, "lua", "start", { gate = skynet.self(), client = fd, version = version, index = idx})
+			local conf = {
+				gate = skynet.self(),
+				client = fd,
+				version = version,
+				index = idx,
+				uid = u.uid,
+			}
+			local ok = skynet.call(agent, "lua", "start", conf)
+			assert(ok)
 		end
 	end
 end

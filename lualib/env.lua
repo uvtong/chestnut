@@ -1,4 +1,4 @@
--- local center = require "notification_center"
+local center = require "notification_center"
 local socket = require "socket"
 local string_pack = string.pack
 
@@ -6,13 +6,37 @@ local cls = class("env")
 
 function cls:ctor( ... )
 	-- body
-	-- self._center = center.new(self)
+	self._center = center.new(self)
+
+	self._host = false
+	self._send_request = false
+	
 	self._fd = false
 	self._gate = false
 	self._version = false
 	self._index = false
 
 	return self
+end
+
+function cls:set_host(h, ... )
+	-- body
+	self._host = h
+end
+
+function cls:get_host( ... )
+	-- body
+	return self._host
+end
+
+function cls:set_send_request(r, ... )
+	-- body
+	self._send_request = r
+end
+
+function cls:get_send_request( ... )
+	-- body
+	return self._send_request
 end
 
 function cls:set_fd(fd, ... )
