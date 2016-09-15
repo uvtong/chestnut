@@ -174,23 +174,31 @@ local CMD = {}
 -- start
 function CMD:enter_room(source, conf, ... )
 	-- body
-	local client = conf.fd
+	local fd = conf.fd
 	local gate = conf.gate
 	local version = conf.version
 	local index = conf.index
 	local uid = conf.uid
-	local p = player.new(self, uid)
+	local p = player.new(self, uid, fd)
 	self:add(p)
+
+	self:set_gate(gate)
+	self:set_version(version)
+	self:set_index(index)
+
 	skynet.call(gate, "lua", "forward", uid, skynet.self())
-	return true
+	return NORET
 end
 
 function CMD:leave_room(source, ... )
 	-- body
 end
 
-function CMD:disconnect(source, ... )
+function CMD:afk(source, fd)
 	-- body
+	local player = self:get_player_by_fd(fd)
+	local uid = player:get_uid()
+	log.print_info("agent uid = %d) disconnect", uid)
 end
 
 skynet.start(function ()

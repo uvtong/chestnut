@@ -3,6 +3,7 @@ local login = require "snax.loginserver"
 local crypt = require "crypt"
 local skynet = require "skynet"
 local query = require "query"
+local x = 1
 
 local MAX_INTEGER = 16777216
 

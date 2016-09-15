@@ -201,7 +201,7 @@ function server.start(conf)
 			c.fd = nil
 			connection[fd] = nil
 			if conf.disconnect_handler then
-				conf.disconnect_handler(c.username)
+				conf.disconnect_handler(c.username, fd)
 			end
 		end
 	end
@@ -364,29 +364,27 @@ function server.start(conf)
 		end
 	end
 
-	local msg_handler = assert(conf.msg_handler)
-
 	local function do_msg(fd, msg, sz, ... )
 		-- body
 		local u = assert(connection[fd], "invalid fd")
+		local msg_handler = assert(conf.msg_handler)
 		msg_handler(u.username, msg, sz)
 	end
-
-	local start_handler = assert(conf.start_handler)
 
 	local function do_start(fd, ... )
 		-- body
 		local u = assert(connection[fd], "invalid fd")
+		local start_handler = assert(conf.start_handler)
 		start_handler(u.username, fd, u.version, u.index)
 	end
 
 	function handler.message(fd, msg, sz)
 		local addr = handshake[fd]
 		if addr then
-			skynet.error("start auth ...")
+			skynet.error("message server start auth ...")
 			auth(fd,addr,msg,sz)
 			handshake[fd] = nil
-			skynet.error("end auth ...")
+			skynet.error("message server close auth ...")
 			do_start(fd)
 		else
 			-- request(fd, msg, sz)

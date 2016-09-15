@@ -20,6 +20,14 @@ local REQUEST   = {}
 local RESPONSE  = {}
 local SUBSCRIBE = {}
 
+local function init( ... )
+	-- body
+	local host = sprotoloader.load(1):host "package"
+	local send_request = host:attach(sprotoloader.load(2))
+	ctx:set_host(host)
+	ctx:set_send_request(send_request)
+end
+
 local function subscribe()
 	-- body
 	local u = env:get_user()
@@ -47,11 +55,14 @@ end
 
 function REQUEST:enter_scene(args, ... )
 	-- body
+	local uid = self:get_uid()
+	log.print_info("agent (uid = %) request : enter_scene", uid)
 	local rule = args.rule
 	local mode = args.mode
 	local scene = args.scene
 	local uid = self:get_uid()
-	local ok = skynet.call(".ROOM_MGR", "lua", "enqueue", uid, rule, mode, scene)
+	skynet.send(".ROOM_MGR", "lua", "enqueue", uid, rule, mode, scene)
+	local ok = true
 	if ok then
 		return { errorcode=errorcode.SUCCESS }
 	else
@@ -142,7 +153,7 @@ function CMD:enter_room(source, roomid)
 	conf.gate = self:get_gate()
 	conf.version = self:get_version()
 	conf.index = self:get_index()
-	skynet.call(roomid, "lua", "enter_room", conf)
+	skynet.send(roomid, "lua", "enter_room", conf)
 end
 
 function CMD:newemail(source, subcmd , ... )
@@ -167,31 +178,26 @@ end
 -- others serverce disconnect
 function CMD:afk(source)
 	-- body
-	skynet.error(string.format("AFK"))
+	log.print_info("agent uid = %d) disconnect", uid)
 end
 
 -- begain to wait for client
 function CMD:start(source, conf)
+	local uid = self:get_uid()
+	log.print_info("agent (uid = %d) start", uid)
 	local fd      = assert(conf.client)
 	local gate    = assert(conf.gate)
 	local version = assert(conf.version)
 	local index   = assert(conf.index)
-	
+	local uid     = assert(conf.uid) 
+
 	self:set_fd(fd)
 	self:set_gate(gate)
 	self:set_version(version)
 	self:set_index(index)
-	
-	local uid = self:get_uid()
+
 	-- skynet.call(gate, "lua", "forward", uid, skynet.self())
 	return true
-end
-
--- client disconnect, give handshake to gated
-function CMD:disconnect()
-	-- todo: do something before exit
-	-- skynet.exit()
-	log.info("disconnect")
 end
 
 function CMD:update_db( ... )
@@ -201,7 +207,7 @@ end
 
 skynet.start(function()
 	skynet.dispatch("lua", function(_, source, cmd, ...)
-		error("agent is called", cmd)
+		log.print_info("agent is called: %s", cmd)
 		local f = assert(CMD[cmd])
 		local result = f(ctx, source, ... )
 		if result then
@@ -209,8 +215,5 @@ skynet.start(function()
 		end
 	end)
 	-- slot 1,2 set at main.lua
-	local host = sprotoloader.load(1):host "package"
-	local send_request = host:attach(sprotoloader.load(2))
-	ctx:set_host(host)
-	ctx:set_send_request(send_request)
+	init()
 end)

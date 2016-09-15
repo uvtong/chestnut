@@ -7,8 +7,12 @@ local cls = class("context", env)
 
 function cls:ctor( ... )
 	-- body
+	cls.super.ctor(self)
+
 	self._players = {}
-	self._uid_map = {}
+	self._uid_player = {}
+	self._fd_player = {}
+
 	self._front_cards = {}
 	self._back_cards  = {}
 	self:init_cards()
@@ -21,9 +25,27 @@ end
 
 function cls:add(player, ... )
 	-- body
-	table.insert(self._players, player)
 	local uid = player:get_uid()
-	self._uid_map[uid] = player
+	self._uid_player[uid] = player
+	local fd = player:get_fd()
+	self._fd_player[fd] = player
+
+	table.insert(self._players, player)
+	local idx = #self._players
+	player:set_idx(idx)
+	if idx == 3 then
+		for i=1,3 do
+			local player = self._players[i]
+			local idx = i - 1 and i - 1 or 3
+			local last = self._players[idx]
+			player:set_last(last)
+			local idx = i + 1 % 3
+			local next = self._players[idx]
+			player:set_next(next)
+
+			self:send_package()
+		end
+	end
 end
 
 function cls:remove(player, ... )
@@ -42,9 +64,14 @@ function cls:get_players()
 	return self._players
 end
 
-function cls:get_player(uid, ... )
+function cls:get_player_by_uid(uid, ... )
 	-- body
 	return self._uid_map[uid]
+end
+
+function cls:get_player_by_fd(fd, ... )
+	-- body
+	return self._fd_player[fd]
 end
 
 function cls:init_cards( ... )
@@ -130,6 +157,13 @@ end
 function cls:get_controller(name, ... )
 	-- body
 	return self._controllers[name]
+end
+
+function cls:clear( ... )
+	-- body
+	self._players = {}
+	self._uid_player = {}
+	self._fd_player = {}
 end
 
 return cls

@@ -1,10 +1,12 @@
 local card = require "card"
 local cls = class("player")
 
-function cls:ctor(env, ... )
+function cls:ctor(env, uid, fd, ... )
 	-- body
+	assert(env and uid and fd)
 	self._env = env
-	self._uid = false
+	self._uid = uid
+	self._fd  = uid
 	self._addr = false
 	self._last = false
 	self._next = false
@@ -52,6 +54,16 @@ end
 function cls:get_next( ... )
 	-- body
 	return self._next
+end
+
+function cls:set_idx(idx, ... )
+	-- body
+	self._idx = idx
+end
+
+function cls:get_idx( ... )
+	-- body
+	return self._idx
 end
 
 function cls:set_ready(flag, ... )
