@@ -10,6 +10,8 @@ function cls:ctor( ... )
 
 	self._host = false
 	self._send_request = false
+	self._response_session = 0
+	self._response_session_name = {}
 	
 	self._fd = false
 	self._gate = false
@@ -92,6 +94,21 @@ function cls:send_package(pack, ... )
 	-- body
 	local package = string_pack(">s2", pack)
 	socket.write(self._fd, package)
+end
+
+function cls:send_request(name, args, ... )
+	-- body
+	assert(name and args)
+	local max = 1000000
+	self._response_session = self._response_session + 1 % max
+	self._response_session_name[self._response_session] = name
+	local request = self._send_request(name, args, self._response_session)
+	self:send_package(request)
+end
+
+function cls:get_name_by_session(session, ... )
+	-- body
+	return self._response_session_name[session]
 end
 
 return cls

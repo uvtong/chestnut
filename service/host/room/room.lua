@@ -2,6 +2,7 @@ local skynet = require "skynet"
 local sproto = require "sproto"
 local sprotoloader = require "sprotoloader"
 local context = require "context"
+local log = require "log"
 local assert = assert
 local ctx
 local NORET = {}
@@ -24,19 +25,20 @@ end
 
 function REQUEST:leave_room(args, ... )
 	-- body
-
 end
 
 function REQUEST:ready(args, ... )
 	-- body
 	local uid = args.uid
 	local ready = args.ready
-	local player = self:get_player(uid)
+	local player = assert(self:get_player_by_uid(uid))
 	if player:get_ready() then
 		assert(false, "client send error message.")
 	else
-		player:set_ready(ready)
+		local controller = self:get_controller("game")
+		controller:ready(player, ready)
 	end
+
 	local players = self:get_players()
 	for i=1,3 do
 		local player = players[i]
@@ -71,7 +73,7 @@ function REQUEST:rob(args, ... )
 	-- body
 	local uid = args.uid
 	local rob = args.rob
-	local player = self:get_player(uid)
+	local player = self:get_player_by_uid(uid)
 	player:set_rob(rob)
 	local first_player = self:get_first_player()
 	local rob = first_player:get_rob()
@@ -109,16 +111,16 @@ function REQUEST:lead(args, ... )
 end
 
 local function request(name, args, response)
-	skynet.error(string.format("line request: %s", name))
+	log.print_info("room request: %s", name)
     local f = REQUEST[name]
     local ok, result = pcall(f, ctx, args)
     if ok then
-    	return response(result)
+    	return result
     else
-    	skynet.error(result)
+    	log.print_error(result)
     	local ret = {}
     	ret.errorcode = errorcode.FAIL
-    	return response(ret)
+    	return ret
     end
 end
 
@@ -128,34 +130,33 @@ function RESPONSE:mp( ... )
 	-- body
 end
 
-local function response(session, args)
+function RESPONSE:deal(args, ... )
 	-- body
-	error(string.format("response: %s", name))
+	local errorcode = args.errorcode
+	assert(errorcode == errorcode.SUCCESS)
+end
+
+local function response(name, args)
+	-- body
+	log.print_info("room response: %s", name)
     local f = RESPONSE[name]
-    local ok, result = pcall(f, env, args)
+    local ok, result = pcall(f, ctx, args)
     if ok then
     else
-    	skynet.error(result)
+    	log.print_error(result)
     end
 end
 
 skynet.register_protocol {
 	name = "client",
 	id = skynet.PTYPE_CLIENT,
-	unpack = function (msg, sz)
-		if sz > 0 then
-			local host = ctx:get_host()
-			return host:dispatch(msg, sz)
-		else 
-			assert(false)
-		end
-	end,
+	unpack = skynet.unpack,
 	dispatch = function (session, source, type, ...)	
 		if type == "REQUEST" then
 			local ok, result = pcall(request, ...)
 			if ok then
 				if result then
-					ctx:send_package(result)
+					skynet.retpack(result)
 				end
 			else
 				skynet.error(result)
@@ -174,6 +175,7 @@ local CMD = {}
 -- start
 function CMD:enter_room(source, conf, ... )
 	-- body
+	assert(self:get_players_count() <= 3)
 	local fd = conf.fd
 	local gate = conf.gate
 	local version = conf.version
@@ -187,7 +189,12 @@ function CMD:enter_room(source, conf, ... )
 	self:set_index(index)
 
 	skynet.call(gate, "lua", "forward", uid, skynet.self())
-	return NORET
+
+	if self:get_players_count() == 3 then
+		local controller = self:get_controller("game")
+		controller:start()
+	end
+	return true
 end
 
 function CMD:leave_room(source, ... )

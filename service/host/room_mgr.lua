@@ -1,57 +1,110 @@
 local skynet = require "skynet"
 require "skynet.manager"
-local queue = require "queue"
-local qt = {}
-local uid_agent = {}
-local uid_room = {}
-local frontrooms = {}
-local backrooms = {}
+local skynet_queue = require "skynet.queue"
+local pqueue = require "priority_queue"
+local rt_room_queue = {}
+local uid_agent = {}  -- 
+
+local cs1 = skynet_queue()
+local cs2 = skynet_queue()
+local cs3 = skynet_queue()
+
+local assert = assert
+
+local function compare(a, b, ... )
+	-- body
+	return a.size > b.size
+end
+
 local noret = {}
 
 local function init( ... )
 	-- body
-	local room_type == (1 << 24 | 1 << 16 | 1 << 8)
-	qt[room_type] = queue.new(10)
+	local rt == (1 << 24 | 1 << 16 | 1 << 8)
+	rt_room_queue[rt] = pqueue.new(15, compare)
 end
 
-local function exchange( ... )
+local function incre_room(room, ... )
 	-- body
-	if #frontrooms == 0 then
-		if #backrooms > 0 then
-			local tmp = frontrooms
-			frontrooms = backrooms
-			backrooms = tmp
-			return true
-		else
-			return false
-		end
+	assert(room)
+	local function func1(room, ... )
+		-- body
+		room.size = room.size + 1
+		assert(room.size >= 0)
+	end
+	return cs1(func1, room)
+end
+
+local function decre_room(room, ... )
+	-- body
+	assert(room)
+	local function func1(room, ... )
+		-- body
+		room.size = room.size - 1
+		assert(room.size <= 3)
+	end
+	return cs1(func1, room)
+end
+
+local function enqueue(q, room, ... )
+	-- body
+	assert(q and room)
+	local function func1(q, room, ... )
+		-- body
+		pqueue.enqueue(q, room)
+		room.in_queue = true
+	end
+	return cs2(func1, q, room)
+end
+
+local function dequeue(q, ... )
+	assert(q)
+	local function func1(q, ... )
+		-- body
+		local room = pqueue.dequeue(q)
+		room.in_queue = false
+		return room
+	end
+	return cs2(func1, q)
+end
+
+local function get_room(q, ... )
+	-- body
+	assert(q)
+	local sz = pqueue.size(q)
+	if sz > 0 then
+		return dequeue(q)
 	else
-		return false
+		local roomid = skynet.newservice("room/room")
+		local room = { roomid=roomid, size=0, in_queue=false}
+		return room
 	end
 end
 
-local function newroom( ... )
+local function enqueue_agent(agent, ... )
 	-- body
-	local roomid = skynet.newservice("room")
-	return roomid
-end
-
-local function get_roomid( ... )
-	-- body
-	local sz = #frontrooms
-	if sz > 0 then
-		local roomid = frontrooms[sz]
-		frontrooms[sz] = nil
-		return roomid
+	assert(agent)
+	local uid = agent.uid
+	local a = uid_agent[uid]
+	if a and a.room then
+		return a.room
 	else
-		if exchange() then
-			sz = #frontrooms
-			local roomid = frontrooms[sz]
-			frontrooms[sz] = nil
-			return roomid
+		local room_type = (0 | rule << 8)
+		room_type = room_type | mode << 8
+		room_type = room_type | scene << 8
+		local q = assert(rt_room_queue[room_type])
+		local room = get_room(q)
+		agent.room = room
+		
+		uid_agent[uid] = agent
+
+		incre_room(room)
+
+		if room.size >= 3 then
 		else
-			return newroom()
+			enqueue(q, room)
 		end
+		return room
 	end
 end
 
@@ -59,76 +112,15 @@ local CMD = {}
 
 function CMD.enqueue(source, uid, rule, mode, scene, ... )
 	-- body
-	local roomid = uid_room[uid]
-	if roomid then
-	else
-		local room_type = (0 | rule << 8)
-		room_type = room_type | mode << 8
-		room_type = room_type | scene << 8
-		local q = assert(qt[room_type])
-		local agent = {
-			source = source,
-			uid = uid,
-			rule = rule,
-			mode = mode,
-			scene = scene
-		}
-		queue.enqueue(q, agent)
-		local sz = queue.size(q)
-		if sz >= 3 then
-			-- fen
-			local roomid = get_roomid()
-			for i=1,2 do
-				local agent = queue.dequeue(q)
-				
-				skynet.call(roomid, "lua", "enter_room", )
-			end
-			if #frontrooms > 0 then
-		end
-
-		if room_type == (1 << 24 | 1 << 16 | 1 << 8) then
-			table.insert(p0_rooms, uid)
-			local sz = #p0_rooms
-			if sz >= 3 then
-				local roomid = get_roomid()
-				-- 
-			end
-		end
-	end
-
-	local room
-	if #p2_rooms > 0 then
-		room = p2_rooms[1]
-		local sz = #p2_rooms
-		for i=2,sz do
-			p2_rooms[i-1] = p2_rooms[i]
-			if i == sz then
-				p2_rooms[i] = nil
-			end
-		end
-	elseif #p1_rooms > 0 then
-		room = p1_rooms[1]
-		local sz = #p1_rooms
-		for i=2,sz do
-			p1_rooms[i-1] = p1_rooms[i-1]
-			if i == sz then
-				p1_rooms[i] = nil
-			end
-		end
-	elseif #p0_rooms > 0 then
-		room = p0_rooms[1]
-		local sz = #p0_rooms
-		for i=2,sz do
-			p0_rooms[i-1] = p0_rooms[i-1]
-			if i == sz then
-				p0_rooms[i] = nil
-			end
-		end
-	else
-		local addr = skynet.newservice("room/room")
-		table.insert(p1_rooms, addr)
-		return addr
-	end
+	-- jude 
+	local agent = {
+		source = source,
+		uid = uid,
+		rule = rule,
+		mode = mode,
+		scene = scene
+	}
+	local room = assert(enqueue_agent(agent))
 	return room
 end
 
@@ -136,9 +128,13 @@ function CMD.dequeue(source, uid, ... )
 	-- body
 end
 
+-- if a player leave room, others must enqueue
 function CMD.leave_room(source, uid, ... )
 	-- body
-
+	local agent = assert(uid_agent[uid])
+	local room = agent.room
+	decre_room(room)
+	return true
 end
 
 skynet.start(function ( ... )

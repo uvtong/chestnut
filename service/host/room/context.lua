@@ -64,6 +64,11 @@ function cls:get_players()
 	return self._players
 end
 
+function cls:get_players_count( ... )
+	-- body
+	return #self._players
+end
+
 function cls:get_player_by_uid(uid, ... )
 	-- body
 	return self._uid_map[uid]
