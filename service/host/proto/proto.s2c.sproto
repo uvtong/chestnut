@@ -158,7 +158,17 @@ mp 8 {
     }
 }
 
-lead 9 {
+deal 9 {
+    request {
+        cards    0 : *integer
+        dz_cards 1 : *integer
+    }
+    response {
+        errorcode 0 : integer
+    }
+}
+
+lead 10 {
     request {
         your_turn 0 : integer
         countdown 1 : integer

@@ -10,11 +10,12 @@ function cls:ctor(env, name, ... )
 	-- body
 	assert(env and name)
 	cls.super.ctor(self, env, name)
-	self._myplayer = myplayer.new(self._env, self, scene)
-	self._rightplayer = rightplayer.new(self._env, self, scene)
-	self._leftplayer = leftplayer.new(self._env, self, scene)
+	
+	self._ready_count = 0
+
 	self._first_rob_player = false
 	self._dz_player = false
+	self._deal_dz_cards = {}
 	self._dz_cards = {}
 	
 	self._deal_player = false
@@ -28,74 +29,74 @@ end
 
 function cls:update(delta, ... )
 	-- body
-	self._myplayer:update(delta)
-	self._rightplayer:update(delta)
-	self._leftplayer:update(delta)
+	-- self._myplayer:update(delta)
+	-- self._rightplayer:update(delta)
+	-- self._leftplayer:update(delta)
 end
 
 function cls:start(t, ... )
 	-- body
-	assert(t)
-	self._type = t
-	if self._type == gt.SINGLE then
-		self._state = gs.START
-		self._first_rob_player = false
-		self._dz_player = false
-		self._deal_player = false
-		self._dizhu_cards = {}
+	-- assert(false)
+	-- assert(t)
+	-- self._type = t
+	-- if self._type == gt.SINGLE then
+	-- 	self._state = gs.START
+	-- 	self._first_rob_player = false
+	-- 	self._dz_player = false
+	-- 	self._deal_player = false
+	-- 	self._dizhu_cards = {}
 
-		self._myplayer:start(gt.SINGLE)
-		self._rightplayer:start(gt.SINGLE)
-		self._leftplayer:start(gt.SINGLE)
+	-- 	self._myplayer:start(gt.SINGLE)
+	-- 	self._rightplayer:start(gt.SINGLE)
+	-- 	self._leftplayer:start(gt.SINGLE)
 
-		self._scene:start(self._myplayer, self._rightplayer, self._leftplayer)
-		self._env:push(self._scene)
-	elseif self._type == gt.NETWORK then
-		self._state = gs.START
-		self._scene:start(self._myplayer, self._rightplayer, self._leftplayer)
-		self._env:push(self._scene)
-	else
-		assert(false)
-	end
+	-- 	self._scene:start(self._myplayer, self._rightplayer, self._leftplayer)
+	-- 	self._env:push(self._scene)
+	-- elseif self._type == gt.NETWORK then
+	-- 	self._state = gs.START
+	-- 	self._scene:start(self._myplayer, self._rightplayer, self._leftplayer)
+	-- 	self._env:push(self._scene)
+	-- else
+	-- 	assert(false)
+	-- end
 end
 
 function cls:close( ... )
 	-- body
 end
 
-function cls:onBack( ... )
-	-- body
-	if self._state == gs.CLOSE then
-		self._env:pop()
-	else
-		assert(false)
-	end
-end
-
+-- 
 function cls:start_game( ... )
 	-- body
-	if self._type == gt.SINGLE then
-		self._state = gs.START
-		self._first_rob_player = false
-		self._dz_player = false
-		self._deal_player = false
-		self._dizhu_cards = {}
-	elseif self._type == gt.NETWORK then
-	else
-		assert(false)
+	self._ready_count = 0
+	self._state = gs.START
+	self._first_rob_player = false
+	self._dz_player = false
+	self._deal_player = false
+	self._dizhu_cards = {}
+
+end
+
+function cls:ready(player, flag, ... )
+	-- body
+	assert(player)
+	player:set_ready(flag)
+	self._ready_count = self._deal_player + 1
+	if self._ready_count == 3 then
+		-- self:confirm_readiness()
+		self:deal_cards_starting(player)
 	end
 end
 
-function cls:confirm_readiness( ... )
+function cls:confirm_readiness(player, ... )
 	-- body
-	local player = self._myplayer
 	self:deal_cards_starting()
 end
 
 -- 发牌七个函数
-function cls:deal_cards_starting( ... )
+function cls:deal_cards_starting(player, ... )
 	-- body
-	local player = self._myplayer
+	assert(player)
 	self:deal_cards(player)
 end
 
@@ -103,7 +104,6 @@ function cls:deal_cards(player, ... )
 	-- body
 	assert(player)
 	self._env:shuffle()
-	self._scene:show_a_cards()
 	self._deal_player = player
 	self:deal()
 end
@@ -111,15 +111,8 @@ end
 function cls:take_turn_to_deal(last, ... )
 	-- body
 	assert(last)
-	if last	== self._myplayer then
-		self._deal_player = self._rightplayer
-	elseif last == self._rightplayer then
-		self._deal_player = self._leftplayer
-	elseif last == self._leftplayer then
-		self._deal_player = self._myplayer
-	else
-		assert(false)
-	end
+	local next = assert(last:get_next())
+	self._deal_player = next
 	self:deal()
 end
 
@@ -127,22 +120,15 @@ function cls:deal( ... )
 	-- body
 	if self._env:rest_of_deal() > 3 then
 		local card = self._env:next_card()
-		if self._deal_player == self._myplayer then
-			self._myplayer:deal(card)
-		elseif self._deal_player == self._rightplayer then
-			self._rightplayer:deal(card)
-		elseif self._deal_player == self._leftplayer then
-			self._leftplayer:deal(card)
-		else
-			assert(false)
-		end
+		self._deal_player:deal(card)
 	else
 		if self._env:rest_of_deal() > 0 then
 			local card = self._env:next_card()
 			self:insert_card(self._dz_cards, card)
-			self._scene:deal(self, card)
+			self:deal_dz_cb(card)
 		else
-			self:rob_starting()
+			-- self:rob_starting()
+
 		end
 	end
 end
@@ -184,30 +170,24 @@ function cls:insert_card(cards, c, ... )
 	end
 end
 
-function cls:deal_move(card, ... )
+function cls:deal_dz_cb(c, ... )
 	-- body
-	assert(card)
-	local spc = cc.p(900, 1210)
-	local delta = cc.p(30, 0)
-	local cards = {}
-	local callback = handler(self, cls.deal_dz_cb)
-	assert(callback)
-	local idx = card:get_idx()
-	local len = #self._dz_cards
-	if idx < len then
-		for i=idx+1,len do
-			table.insert(cards, self._dz_cards[i])
-		end
-		self._scene:move_cards(cards, callback, spc, delta)
-	else
-		self._scene:move_cards(cards, callback, spc, delta)
-	end
+	assert(c)
+	self:deal()
 end
 
-function cls:deal_dz_cb(v, ... )
+function cls:send_request_deal( ... )
 	-- body
-	self._dizhu_cards[v] = v
-	self:deal()
+	local cards = {}
+	for i,card in ipairs(self._deal_dz_cards) do
+		local v = card:get_value()
+		table.insert(cards, v)
+	end
+	local players = self._env:get_players()
+	for i=1,3 do
+		local player = players[i]
+		player:send_request_deal(cards)
+	end
 end
 
 -- 开始抢地主
@@ -311,22 +291,6 @@ function cls:take_turn_to_lead(last, g, ... )
 			self._myplayer:ready_for_plead(g)
 		end
 	end
-end
-
-function cls:c2s_enter_room_req( ... )
-	-- body
-end
-
-function cls:c2s_enter_room_rsp( ... )
-	-- body
-end
-
-function cls:s2c_enter_room_req( ... )
-	-- body
-end
-
-function cls:s2c_enter_room_rsp( ... )
-	-- body
 end
 
 return cls

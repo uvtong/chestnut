@@ -27,14 +27,28 @@ end
 
 function _M.print_warn(fmt, ... )
 	-- body
-	local msg = string_format(fmt, ...)
+	assert(fmt)
+	local msg = 1
+	local sz = select("#", ...)
+	if sz > 0 then
+		msg = string_format(fmt, ...)
+	else
+		msg = fmt
+	end
 	local info = string_format("[warn] %s", msg)
 	skynet_error(info)
 end
 
 function _M.print_error(fmt, ... )
 	-- body
-	local msg = string_format(fmt, ...)
+	assert(fmt)
+	local msg = 1
+	local sz = select("#", ...)
+	if sz > 0 then
+		msg = string_format(fmt, ...)	
+	else
+		msg = fmt
+	end
 	local info = string_format("[error] %s", msg)
 	skynet_error(info)
 end
