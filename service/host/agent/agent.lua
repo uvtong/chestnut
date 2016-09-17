@@ -95,7 +95,35 @@ function REQUEST:enter_room( ... )
 	return res
 end
 
+function REQUEST:ready(args, ... )
+	-- body
+	local room = self:get_room()
+	return skynet.call(room.roomid, "client", "ready", args)
+end
 
+function REQUEST:mp(args, ... )
+	-- body
+	local room = self:get_room()
+	return skynet.call(room.roomid, "client", "mp", args)
+end
+
+function REQUEST:am(args, ... )
+	-- body
+	local room = self:get_room()
+	return skynet.call(room.roomid, "client", "am", args)
+end
+
+function REQUEST:rob(args, ... )
+	-- body
+	local room = self:get_room()
+	return skynet.call(room.roomid, "client", "rob", args)
+end
+
+function REQUEST:lead(args, ... )
+	-- body
+	local room = self:get_room()
+	return skynet.call(room.roomid, "client", "lead", args)
+end
 
 local function request(name, args, response)
 	log.print_info("agent request: %s", name)

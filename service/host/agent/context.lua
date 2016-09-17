@@ -15,7 +15,7 @@ function cls:ctor( ... )
 	self._uid = false
 	self._subid = false
 	self._secret = false
-	self._roomid = false
+	self._room = false
 	self._host_udbcontext = host_udbcontext.new(self, rdb, wdb)
 	return self
 end
@@ -53,14 +53,14 @@ function cls:get_secret( ... )
 	return self._secret
 end
 
-function cls:set_roomid(roomid, ... )
+function cls:set_room(room, ... )
 	-- body
-	self._roomid = roomid
+	self._room = room
 end
 
-function cls:get_roomid( ... )
+function cls:get_room( ... )
 	-- body
-	return self._roomid
+	return self._room
 end
 
 function cls:get_host_udbcontext( ... )
