@@ -20,11 +20,13 @@ function cls:ctor(env, uid, fd, ... )
 	assert(env and uid and fd)
 	self._env = env
 	self._uid = uid
-	self._agent = false  -- agent
+	self._agent = fd  -- agent
 	self._last = false
 	self._next = false
+	self._idx  = -1    -- players in
 	self._ready = false
 	self._rob = {}
+	self._is_dz = false
 	self._deal_cards = {}
 	self._cards = {}
 	return self
@@ -82,7 +84,11 @@ end
 
 function cls:set_ready(flag, ... )
 	-- body
+	assert(flag)
 	self._ready = flag
+
+	-- TODO
+
 end
 
 function cls:get_ready( ... )
@@ -168,12 +174,59 @@ function cls:send_request_deal(dz_cards, ... )
 	local args = {}
 	args.dz_cards = dz_cards
 	args.cards = cards
-	self._env:send_request("deal", args)
+	local agent = self._agent
+	skynet.send(agent, "lua", "send_request", "deal", args)
 end
 
 function cls:ready_for_rob( ... )
 	-- body
-	self._state
+	self._state = state.WAIT_ROB
+	local idx = #self._rob
+	if idx == 0 then
+		idx = idx + 1
+		self._rob[idx] = false
+		-- client
+		-- local cd = 10 * 100
+		-- local function complet( ... )
+		-- 	-- body
+		-- 	if self._state == state.WAIT_ROB then
+		-- 		local sz = #self._rob
+		-- 		if sz == 1 then
+		-- 			self:rob(false)
+		-- 		end
+		-- 	end
+		-- end
+		-- skynet.timeout(cd, complet)
+	elseif idx == 1 then
+		idx = idx + 1
+		self._rob[idx] = false
+	end
+end
+
+function cls:rob(flag, ... )
+	-- body
+	assert(type(flag) == "boolean")
+	assert(self._state == state.WAIT_ROB)
+	self._state = state.WAIT_OROB
+	local idx = #self._rob
+	self._rob[idx] = flag
+	if idx == 1 then
+		local controller = self._env:get_controller("game")
+		controller:take_turn_to_rob(self)
+	elseif idx == 2 then
+		local controller = self._env:get_controller("game")
+		controller:confirm_identity()
+	end
+end
+
+function cls:is_dz( ... )
+	-- body
+	return self._is_dz
+end
+
+function cls:set_dz(flag, ... )
+	-- body
+	self._is_dz = flag
 end
 
 function cls:lead(cards, ... )
@@ -182,6 +235,21 @@ end
 
 function cls:is_over( ... )
 	-- body
+end
+
+function cls:get_cards( ... )
+	-- body
+	return self._cards
+end
+
+function cls:get_cards_value( ... )
+	-- body
+	local cards = {}
+	for i,card in ipairs(self._cards) do
+		local v = card:get_value()
+		cards[i] = v
+	end
+	return cards
 end
 
 return cls

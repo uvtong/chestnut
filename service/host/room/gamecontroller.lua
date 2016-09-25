@@ -14,6 +14,7 @@ function cls:ctor(env, name, ... )
 	self._ready_count = 0
 
 	self._first_rob_player = false
+	self._rob_player = false
 	self._dz_player = false
 	self._deal_dz_cards = {}
 	self._dz_cards = {}
@@ -59,15 +60,6 @@ function cls:start(t, ... )
 	-- else
 	-- 	assert(false)
 	-- end
-end
-
-function cls:close( ... )
-	-- body
-end
-
--- 
-function cls:start_game( ... )
-	-- body
 	self._ready_count = 0
 	self._state = gs.START
 	self._first_rob_player = false
@@ -75,6 +67,82 @@ function cls:start_game( ... )
 	self._deal_player = false
 	self._dizhu_cards = {}
 
+end
+
+function cls:close( ... )
+	-- body
+end
+
+function cls:ready(args, ... )
+	local uid = args.uid
+	local ready = args.ready
+	local player = assert(self:get_player_by_uid(uid))
+	if player:get_ready() then
+		assert(false, "client send error message.")
+	else
+		self._ready_count = self._ready_count + 1
+		player:set_ready(ready)
+	end
+	if self._ready_count >= 3 then
+		self:deal_cards_starting(player)
+
+		local dcards = {}
+		for i,card in ipairs(self._dz_cards) do
+			dcards[i] = card:get_value()
+		end
+		args.deal = true
+		args.dcards = dcards
+		args.your_turn = uid
+		args.countdown = 10
+
+		local last = assert(player:get_last())
+		if last then
+			local llast = assert(last:get_last())
+			args.lcards = llast:get_cards_value()
+			local lnext = assert(last:get_next())
+			args.rcards = lnext:get_cards_value()
+			local agent = last:get_agent()
+			skynet.send(agent, "lua", "ready", args)
+		end
+
+		local next = assert(player:get_next())
+		if next then
+			local nlast = assert(next:get_last())
+			args.lcards = nlast:get_cards_value()
+			local nnext = assert(next:get_next())
+			args.rcards = nnext:get_cards_value()
+			local agent = next:get_next()
+			skynet.send(agent, "lua", "ready", args)
+		end
+
+		local res = {}
+		res.errorcode = errorcode.SUCCESS
+		res.deal = true
+		res.lcards = last:get_cards_value()
+		res.rcards = next:get_cards_value()
+		
+		res.dcards = dcards
+		res.your_turn = uid
+		res.countdown = 10
+		return res
+	else
+		args.deal = false
+		local last = player:get_last()
+		if last then
+			local agent = last:get_agent()
+			skynet.send(agent, "lua", "ready", args)
+		end
+
+		local next = player:get_next()
+		if next then
+			local agent = next:get_next()
+			skynet.send(agent, "lua", "ready", args)
+		end
+		local res = {}
+		res.errorcode = errorcode.SUCCESS
+		res.deal = false
+		return res
+	end
 end
 
 function cls:ready(player, flag, ... )
@@ -208,62 +276,44 @@ end
 
 function cls:take_turn_to_rob(last)
 	assert(last)
-	if self._myplayer == last then
-		self._rightplayer:ready_for_rob()
-	elseif self._rightplayer == last then
-		self._leftplayer:ready_for_rob()
-	elseif self._leftplayer == last then
-		self._myplayer:ready_for_rob()
-	else
-		assert(false)
-	end
+	local next = assert(last:get_next())
+	next:ready_for_rob()
+end
+
+function cls:rob(player, flag, ... )
+	-- body
+	assert(self._state == gs.ROB)
+	assert(player == self._rob_player)
+	player:rob(flag)
 end
 
 -- 判断谁是地主
 function cls:confirm_identity( ... )
 	-- body
-	if self._first_rob_player == self._myplayer then
-		local rob = self._myplayer:get_rob()
-		assert(#rob == 2)
-		if rob[2] then
-			self._myplayer:set_dizhu(true)
-			self._dz_player = self._myplayer
-		else
-			local rob = self._leftplayer:get_rob()
-			assert(#rob == 1)
-			if rob[1] then
-				self._leftplayer:set_dizhu(true)
-				self._dz_player = self._leftplayer
-			else
-				self._rightplayer:set_dizhu(true)
-				self._dz_player = self._rightplayer
-			end
-		end
-	elseif self._first_rob_player == self._leftplayer then
-		local rob = self._leftplayer:get_rob()
-		assert(#rob == 2)
-		if rob[2] then
-			self._leftplayer:set_dizhu(true)
-			self._dz_player = self._leftplayer
-		else
-		end
-	elseif self._first_rob_player == self._rightplayer then
-		local rob = self._rightplayer:get_rob()
-		assert(#rob == 2)
-		if rob[2] then
-			self._rightplayer:set_dizhu(true)
-			self._dz_player = self._rightplayer
-		else
-			local rob = self._myplayer:get_rob()
-			assert(#rob == 1)
-			if rob[1] then
-				self._myplayer:set_dizhu(true)
-				self._dz_player = self._myplayer
-			else
-			end
-		end
+	local player = assert(self._first_rob_player)
+	local rob = self._myplayer:get_rob()
+	assert(#rob == 2)
+	if rob[2] then
+		player:set_dz(true)
+		self._dz_player = player
 	else
-		assert(false)
+		local player = player:get_next()
+		local rob = player:get_rob()
+		assert(#rob == 1)
+		if rob[1] then
+			player:set_dz(true)
+			self._dz_player = player
+		else
+			local player = player:get_next()
+			local rob = player:get_rob()
+			assert(#rob == 1)
+			player:set_dz(true)
+			self._dz_player = player
+		end
+	end
+	local players = self._env:get_players()
+	for i=1,3 do
+		local player = players[i]
 	end
 	self:lead_starting(self._dz_player)
 end

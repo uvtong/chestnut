@@ -11,7 +11,7 @@ function cls:ctor( ... )
 
 	self._players = {}
 	self._uid_player = {}
-	self._fd_player = {}
+	self._agent_player = {}
 
 	self._front_cards = {}
 	self._back_cards  = {}
@@ -27,24 +27,27 @@ function cls:add(player, ... )
 	-- body
 	local uid = player:get_uid()
 	self._uid_player[uid] = player
-	local fd = player:get_fd()
-	self._fd_player[fd] = player
+	local agent = player:get_agent()
+	self._agent_player[agent] = player
 
-	table.insert(self._players, player)
-	local idx = #self._players
-	player:set_idx(idx)
-	if idx == 3 then
-		for i=1,3 do
-			local player = self._players[i]
-			local idx = i - 1 and i - 1 or 3
-			local last = self._players[idx]
-			player:set_last(last)
-			local idx = i + 1 % 3
-			local next = self._players[idx]
-			player:set_next(next)
+	local sz = #self._players
+	if sz == 0 then
+		table.insert(self._players, player)
+	elseif sz == 1 then
+		local last = self._players[1]
+		last:set_next(player)
+		player:set_last(last)
+	elseif sz == 2 then
+		local last = self._players[2]
+		local next = self._players[1]
+		
+		last:set_next(player)
+		player:set_last(last)
 
-			self:send_package()
-		end
+		next:set_last(player)
+		player:set_next(next)
+	else
+		assert(false)
 	end
 end
 

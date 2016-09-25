@@ -10,6 +10,11 @@
 	gold 1 : integer	
 }
 
+.player {
+    name 0 : string
+    orientation 1 : integer
+}
+
 handshake 1 {
     response {
     	errorcode 0 : integer
@@ -94,6 +99,7 @@ enter_scene 21 {
     }
     response {
         errorcode 0 : integer
+
     }
 }
 
@@ -108,6 +114,7 @@ enter_room 23 {
     }
     response {
         errorcode 0 : integer
+        players   1 : *player
     }
 }
 
@@ -123,12 +130,16 @@ leave_room 24 {
 ready 25 {
     request {
         uid 0 : integer
-        ready 1 : integer
+        ready 1 : boolean
     }
     response {
         errorcode 0 : integer
-        first 1 : integer
-        cards 2 : *integer
+        deal      1 : boolean
+        rcards    2 : *integer
+        lcards    3 : *integer
+        dcards    4 : *integer
+        your_turn 5 : integer
+        countdown 6 : integer
     }
 }
 
