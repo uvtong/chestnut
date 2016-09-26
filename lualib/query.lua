@@ -13,6 +13,8 @@ end
 
 function _M.read(rdb, table_name, sql)
 	-- body
+	print(table_name, sql)
+	assert(false, table_name, sql)
 	if type(rdb) == "string" then
 		if not string.match(rdb, "^%.[%w_]*") then
 			error(string.format("read data from %s", table_name))

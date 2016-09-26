@@ -1,0 +1,184 @@
+.package {
+	type 0 : integer
+	session 1 : integer
+    index 2 : integer
+    version 3 : integer
+}
+
+.settlement {
+    uid 0 : integer
+	gold 1 : integer	
+}
+
+handshake 1 {
+    response {
+    	errorcode 0 : integer
+    }
+}
+
+role_info 2 {
+}
+
+mails 3 {
+}
+
+signup 4 {
+}
+
+login 5 {
+    request {
+        account 0 : string
+        password 1 : string
+    }
+    response {
+        errorcode 0 : integer
+    }
+}
+
+role_upgrade_star 6 {
+}
+
+choose_role 7 {
+}
+
+wake 8 {
+    request {
+        role_id 0 : string
+    }
+    response {
+        errorcode 0 : integer
+    }
+}
+
+props 9 {
+}
+
+use_prop 10 {
+}
+
+achievement 11 {
+} 	 
+
+mail_read 12 {
+}
+
+mail_delete 13 {
+}
+
+mail_getreward 14 {
+} 
+
+friend_list 15 {
+}
+
+applied_list 16 {
+}
+
+otherfriend_list  17 {
+}
+
+findfriend 18 {
+}
+
+applyfriend 19 {
+}
+ 
+recvfriend 20 {
+}
+
+enter_scene 21 {
+    request {
+        rule 0 : integer
+        mode 1 : integer
+        scene 2 : integer
+    }
+    response {
+        errorcode 0 : integer
+    }
+}
+
+leave_scene 22 {
+}
+
+enter_room 23 {
+    request {
+        rule 0 : integer
+        mode 1 : integer
+        scene 2 : integer
+    }
+    response {
+        errorcode 0 : integer
+    }
+}
+
+leave_room 24 {
+    request {
+
+    }
+    response {
+        errorcode 0 : integer
+    }
+}
+
+ready 25 {
+    request {
+        uid 0 : integer
+        ready 1 : integer
+    }
+    response {
+        errorcode 0 : integer
+        first 1 : integer
+        cards 2 : *integer
+    }
+}
+
+mp 26 {
+    request {
+        m 0 : integer
+    }
+    response {
+        errorcode 0 : integer
+        m 1 : integer
+        mcards 2 : *integer
+        rcards 3 : *integer
+        lcards 4 : *integer
+        dcards 5 : *integer   
+    }
+}
+
+am 27 {
+    request {
+        m 0 : integer
+    }
+    response {
+        errorcode 0 : integer
+    }
+}
+
+rob 28 {
+    request {
+        uid 0 : integer
+        rob 1 : integer
+    }
+    response {
+        errorcode 0 : integer
+        your_turn 1 : integer
+    }
+}
+
+lead 29 {
+    request {
+        uid 0 : integer
+        cards 1 : *integer
+    }
+    response {
+        errorcode 0 : integer
+        your_turn 1 : integer
+        countdown 2 : integer
+        ranked1 3 : settlement
+        ranked2 4 : settlement
+        ranked3 5 : settlement
+    }
+}
+
+
