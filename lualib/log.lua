@@ -3,55 +3,9 @@ local debug = debug
 local logger = ".LOG"
 local string_format = string.format
 local skynet_error = skynet.error
+local daemon = skynet.getenv("daemon")
 
 local _M = {}
-
-function _M.print( ... )
-	-- body
-	skynet_error(...)
-end
-
-function _M.print_debug(fmt, ... )
-	-- body
-	local msg = string_format(fmt, ...)
-	local debug = string_format("[debug] %s", msg)
-	skynet_error(debug)
-end
-
-function _M.print_info(fmt, ... )
-	-- body
-	local msg = string_format(fmt, ...)
-	local info = string_format("[info] %s", msg)
-	skynet_error(info)
-end
-
-function _M.print_warn(fmt, ... )
-	-- body
-	assert(fmt)
-	local msg = 1
-	local sz = select("#", ...)
-	if sz > 0 then
-		msg = string_format(fmt, ...)
-	else
-		msg = fmt
-	end
-	local info = string_format("[warn] %s", msg)
-	skynet_error(info)
-end
-
-function _M.print_error(fmt, ... )
-	-- body
-	assert(fmt)
-	local msg = 1
-	local sz = select("#", ...)
-	if sz > 0 then
-		msg = string_format(fmt, ...)	
-	else
-		msg = fmt
-	end
-	local info = string_format("[error] %s", msg)
-	skynet_error(info)
-end
 
 function _M.debug(fmt, ...)
 	local msg = string.format(fmt, ...)
@@ -59,7 +13,12 @@ function _M.debug(fmt, ...)
 	if info then
 		msg = string.format("[%s:%d] %s", info.short_src, info.currentline, msg)
 	end
-	skynet.send(logger, "lua", "debug", SERVICE_NAME, msg)
+	if daemon then	
+		skynet.send(logger, "lua", "debug", SERVICE_NAME, msg)
+	else
+		local debug = string_format("[debug] %s", msg)
+		skynet_error(debug)	
+	end
 end
 
 function _M.info(fmt, ...)
@@ -68,7 +27,12 @@ function _M.info(fmt, ...)
 	if info then
 		msg = string.format("[%s:%d] %s", info.short_src, info.currentline, msg)
 	end
-	skynet.send(logger, "lua", "info", SERVICE_NAME, msg)
+	if daemon then
+		skynet.send(logger, "lua", "info", SERVICE_NAME, msg)
+	else
+		local info = string_format("[info] %s", msg)
+		skynet_error(info)	
+	end
 end
 
 function _M.warn(fmt, ...)
@@ -77,7 +41,12 @@ function _M.warn(fmt, ...)
 	if info then
 		msg = string.format("[%s:%d] %s", info.short_src, info.currentline, msg)
 	end
-	skynet.send(logger, "lua", "warning", SERVICE_NAME, msg)
+	if daemon then
+		skynet.send(logger, "lua", "warning", SERVICE_NAME, msg)
+	else
+		local info = string_format("[warn] %s", msg)
+		skynet_error(info)
+	end
 end
 
 function _M.error(fmt, ...)
@@ -86,7 +55,12 @@ function _M.error(fmt, ...)
 	if info then
 		msg = string.format("[%s:%d] %s", info.short_src, info.currentline, msg)
 	end
-	skynet.send(logger, "lua", "error", SERVICE_NAME, msg)
+	if daemon then
+		skynet.send(logger, "lua", "error", SERVICE_NAME, msg)
+	else
+		local info = string_format("[error] %s", msg)
+		skynet_error(info)
+	end
 end
 
 function _M.fatal(fmt, ...)
@@ -95,7 +69,12 @@ function _M.fatal(fmt, ...)
 	if info then
 		msg = string.format("[%s:%d] %s", info.short_src, info.currentline, msg)
 	end
-	skynet.send(logger, "lua", "fatal", SERVICE_NAME, msg)
+	if daemon then
+		skynet.send(logger, "lua", "fatal", SERVICE_NAME, msg)
+	else
+		local info = string_format("[fatal] %s", msg)
+		skynet_error(info)
+	end
 end
 
 return _M

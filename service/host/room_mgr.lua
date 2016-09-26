@@ -20,7 +20,10 @@ local noret = {}
 
 local function init( ... )
 	-- body
-	local rt == (1 << 24 | 1 << 16 | 1 << 8)
+	local rule = 1
+	local mode = 1
+	local scene = 1
+	local rt = (scene << 24 | mode << 16 | rule << 8)
 	rt_room_queue[rt] = pqueue.new(15, compare)
 end
 
@@ -59,6 +62,7 @@ end
 
 local function dequeue(q, ... )
 	assert(q)
+	assert(pqueue.size(q) > 0)
 	local function func1(q, ... )
 		-- body
 		local room = pqueue.dequeue(q)
@@ -73,7 +77,9 @@ local function get_room(q, ... )
 	assert(q)
 	local sz = pqueue.size(q)
 	if sz > 0 then
-		return dequeue(q)
+		local room = dequeue(q)
+		assert(room)
+		return room
 	else
 		local roomid = skynet.newservice("room/room")
 		local room = { roomid=roomid, size=0, in_queue=false}
@@ -89,10 +95,11 @@ local function enqueue_agent(agent, ... )
 	if a and a.room then
 		return a.room
 	else
-		local room_type = (0 | rule << 8)
-		room_type = room_type | mode << 8
-		room_type = room_type | scene << 8
-		local q = assert(rt_room_queue[room_type])
+		local rule = assert(agent.rule)
+		local mode = assert(agent.mode)
+		local scene = assert(agent.scene)
+		local rt = (scene << 24 | mode << 16 | rule << 8)
+		local q = assert(rt_room_queue[rt])
 		local room = get_room(q)
 		agent.room = room
 		
@@ -126,6 +133,7 @@ end
 
 function CMD.dequeue(source, uid, ... )
 	-- body
+	assert(false)
 end
 
 -- if a player leave room, others must enqueue
@@ -147,5 +155,6 @@ skynet.start(function ( ... )
 			skynet.retpack(r)
 		end
 	end)
+	init()
 	skynet.register ".ROOM_MGR"
 end)

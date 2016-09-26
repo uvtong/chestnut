@@ -23,6 +23,8 @@ skynet.start(function()
 	skynet.newservice("agent_mgr")
 	skynet.newservice("branch")
 	-- skynet.newservice("channel")
+
+	skynet.newservice("room_mgr")
 	
 	repeat
 		local conf = {

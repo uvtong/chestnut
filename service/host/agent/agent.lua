@@ -13,6 +13,7 @@ local errorcode = require "errorcode"
 local assert = assert
 local pcall = skynet.pcall
 local error = skynet.error
+local noret = {}
 
 local ctx       = false
 local CMD       = {}
@@ -58,27 +59,20 @@ end
 function REQUEST:enter_scene(args, ... )
 	-- body
 	local uid = self:get_uid()
-	log.print_info("agent (uid = %d) request : enter_scene", uid)
+	log.info("agent (uid = %d) request : enter_scene", uid)
 	local rule = args.rule
 	local mode = args.mode
 	local scene = args.scene
 	local uid = self:get_uid()
 	local room = skynet.call(".ROOM_MGR", "lua", "enqueue", uid, rule, mode, scene)
 	assert(room.size <= 3)
+	self:set_room(room)
+	
 	local roomid = room.roomid
 	local conf = {
-		fd      = self:get_fd(),
-		gate    = self:get_gate(),
-		version = self:get_version(),
-		index   = self:get_index(),
 		uid     = self:get_uid()
 	}
-	local ok = skynet.call(roomid, "lua", "enter_room", conf)
-	if ok then
-		return { errorcode=errorcode.SUCCESS }
-	else
-		return { errorcode=errorcode.FAIL }
-	end
+	return skynet.call(roomid, "lua", "enter_room", conf)
 end
 
 function REQUEST:enter_room( ... )
@@ -95,16 +89,44 @@ function REQUEST:enter_room( ... )
 	return res
 end
 
+function REQUEST:ready(args, ... )
+	-- body
+	local room = self:get_room()
+	return skynet.call(room.roomid, "client", "ready", args)
+end
 
+function REQUEST:mp(args, ... )
+	-- body
+	local room = self:get_room()
+	return skynet.call(room.roomid, "client", "mp", args)
+end
+
+function REQUEST:am(args, ... )
+	-- body
+	local room = self:get_room()
+	return skynet.call(room.roomid, "client", "am", args)
+end
+
+function REQUEST:rob(args, ... )
+	-- body
+	local room = self:get_room()
+	return skynet.call(room.roomid, "client", "rob", args)
+end
+
+function REQUEST:lead(args, ... )
+	-- body
+	local room = self:get_room()
+	return skynet.call(room.roomid, "client", "lead", args)
+end
 
 local function request(name, args, response)
-	log.print_info("agent request: %s", name)
+	log.info("agent request: %s", name)
     local f = REQUEST[name]
     local ok, result = pcall(f, ctx, args)
     if ok then
     	return response(result)
     else
-    	log.print_error(result)
+    	log.error(result)
     	local ret = {}
     	ret.errorcode = errorcode.FAIL
     	return response(ret)
@@ -127,12 +149,12 @@ end
 local function response(session, args)
 	-- body
 	local name = self:get_name_by_session(session)
-	log.print_info("room response: %s", name)
+	log.info("room response: %s", name)
     local f = RESPONSE[name]
     local ok, result = pcall(f, ctx, args)
     if ok then
     else
-    	log.print_error(result)
+    	log.error(result)
     end
 end
 
@@ -165,16 +187,21 @@ skynet.register_protocol {
 	end
 }
 
--- only foward room
-function CMD:enter_room(source, roomid)
+-- push new player to client.
+function CMD:enter_room(source, player, ... )
 	-- body
-	self:set_roomid(roomid)
-	local conf = {}
-	conf.fd = self:get_fd()
-	conf.gate = self:get_gate()
-	conf.version = self:get_version()
-	conf.index = self:get_index()
-	skynet.send(roomid, "lua", "enter_room", conf)
+	local players = {}
+	table.insert(players, player)
+	self:send_request("enter_room", players)
+	local res = {}
+	res.name = "hello"
+	return res
+end
+
+function CMD:ready(source, args, ... )
+	-- body
+	self:send_request("ready", args)
+	return noret
 end
 
 function CMD:newemail(source, subcmd , ... )
@@ -199,13 +226,13 @@ end
 -- others serverce disconnect
 function CMD:afk(source)
 	-- body
-	log.print_info("agent uid = %d) disconnect", uid)
+	log.info("agent uid = %d) disconnect", uid)
 end
 
 -- begain to wait for client
 function CMD:start(source, conf)
 	local uid = self:get_uid()
-	log.print_info("agent (uid = %d) start", uid)
+	log.info("agent (uid = %d) start", uid)
 	local fd      = assert(conf.client)
 	local gate    = assert(conf.gate)
 	local version = assert(conf.version)
@@ -233,10 +260,11 @@ end
 
 skynet.start(function()
 	skynet.dispatch("lua", function(_, source, cmd, ...)
-		log.print_info("agent is called: %s", cmd)
+		log.info("agent is called: %s", cmd)
 		local f = assert(CMD[cmd])
 		local result = f(ctx, source, ... )
-		if result then
+		if result ~= noret then
+			assert(result)
 			skynet.ret(skynet.pack(result))
 		end
 	end)

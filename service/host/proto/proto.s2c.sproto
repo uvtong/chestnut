@@ -78,6 +78,12 @@
     gold 1 : integer    
 }
 
+.player {
+    name 0 : string
+    orientation 1 : integer
+    uid 2 : integer
+}
+
 heartbeat 1 {}
 
 mail 2 {
@@ -118,8 +124,7 @@ login 5 {
 
 enter_room 6 {
     request {
-        right 0 : user
-        left  1 : user
+        players 0 : *player
     }
     response {
         errorcode 0 : integer
@@ -128,18 +133,17 @@ enter_room 6 {
 
 ready 7 {
     request {
-        user_id 0 : integer
-        ready 1 : integer
-        mcards 2 : *integer
-        rcards 3 : *integer
-        lcards 4 : *integer
-        dcards 5 : *integer
+        uid       0 : integer
+        ready     1 : boolean
+        deal      2 : boolean
+        rcards    3 : *integer
+        lcards    4 : *integer
+        dcards    5 : *integer
         your_turn 6 : integer
         countdown 7 : integer
     }
     response {
         errorcode 0 : integer
-        msg 1 : string
     }
 }
 

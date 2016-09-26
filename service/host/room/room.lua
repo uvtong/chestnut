@@ -1,8 +1,11 @@
+package.path = "./../../service/host/room/?.lua;./../../service/host/lualib/?.lua;../../lualib/?.lua;"..package.path
 local skynet = require "skynet"
 local sproto = require "sproto"
 local sprotoloader = require "sprotoloader"
 local context = require "context"
 local log = require "log"
+local player = require "player"
+local errorcode = require "errorcode"
 local assert = assert
 local ctx
 local NORET = {}
@@ -29,40 +32,14 @@ end
 
 function REQUEST:ready(args, ... )
 	-- body
-	local uid = args.uid
-	local ready = args.ready
-	local player = assert(self:get_player_by_uid(uid))
-	if player:get_ready() then
-		assert(false, "client send error message.")
-	else
-		local controller = self:get_controller("game")
-		controller:ready(player, ready)
-	end
-
-	local players = self:get_players()
-	for i=1,3 do
-		local player = players[i]
-		local ready = player:get_ready()
-		if ready then
-		else
-			local res = {}
-			res.errorcode = errorcode.SUCCESS
-			return res
-		end
-	end
-	local cards = self:get_cards()
-	local first = uid
-	local res = {}
-	res.errorcode = errorcode.ALL_READY
-	res.first = first
-	res.cards = cards
-	return res
+	local controller = self:get_controller("game")
+	return controller:ready(args)
 end
 
 function REQUEST:mp(args, ... )
 	-- body
 	local uid = args.uid
-	local player = self:get_player(uid)
+	local player = self:get_player_by_uid(uid)
 end
 
 function REQUEST:am(uid, ... )
@@ -74,20 +51,23 @@ function REQUEST:rob(args, ... )
 	local uid = args.uid
 	local rob = args.rob
 	local player = self:get_player_by_uid(uid)
-	player:set_rob(rob)
-	local first_player = self:get_first_player()
-	local rob = first_player:get_rob()
-	if #rob == 2 then
-		-- decide to who is master
+	local controller = self._env:get_controller("game")
+	controller:rob(player, rob)
+	
+	-- player:set_rob(rob)
+	-- local first_player = self:get_first_player()
+	-- local rob = first_player:get_rob()
+	-- if #rob == 2 then
+	-- 	-- decide to who is master
 
-	else
-		local next = player:get_next()
-		local next_uid = next:get_uid()
-		local res = {}
-		res.errorcode = errorcode.SUCCESS
-		res.your_turn = next_uid
-		return res
-	end
+	-- else
+	-- 	local next = player:get_next()
+	-- 	local next_uid = next:get_uid()
+	-- 	local res = {}
+	-- 	res.errorcode = errorcode.SUCCESS
+	-- 	res.your_turn = next_uid
+	-- 	return res
+	-- end
 end
 
 function REQUEST:lead(args, ... )
@@ -176,25 +156,38 @@ local CMD = {}
 function CMD:enter_room(source, conf, ... )
 	-- body
 	assert(self:get_players_count() <= 3)
-	local fd = conf.fd
-	local gate = conf.gate
-	local version = conf.version
-	local index = conf.index
 	local uid = conf.uid
-	local p = player.new(self, uid, fd)
+	local p = player.new(self, uid, source)
 	self:add(p)
-
-	self:set_gate(gate)
-	self:set_version(version)
-	self:set_index(index)
-
-	skynet.call(gate, "lua", "forward", uid, skynet.self())
-
-	if self:get_players_count() == 3 then
-		local controller = self:get_controller("game")
-		controller:start()
+	local players = {}
+	local last = p:get_last()
+	if last then
+		local player = {}
+		player.uid = uid
+		local agent = assert(last:get_agent())
+		local info = skynet.call(agent, "lua", "enter_room", player)
+		local player = {
+			name = info.name,
+			orientation = -1,
+		}
+		table.insert(players, player)
 	end
-	return true
+	local next = p:get_next()
+	if next then
+		local player = {}
+		player.uid = uid
+		local agent = assert(last:get_agent())
+		local info = skynet.call(agent, "lua", "enter_room", player)
+		local player = {
+			name = info.name,
+			orientation = 1
+		}
+		table.insert(players, player)
+	end
+	local res = {}
+	res.errorcode = errorcode.SUCCESS
+	res.players = players
+	return res
 end
 
 function CMD:leave_room(source, ... )
@@ -212,7 +205,7 @@ skynet.start(function ()
 	-- body
 	skynet.dispatch("lua", function(_, source, cmd, ...)
 		local f = CMD[cmd]
-		local r = f(ctx, ... )
+		local r = f(ctx, source, ... )
 		if r ~= NORET then
 			skynet.retpack(r)
 		end

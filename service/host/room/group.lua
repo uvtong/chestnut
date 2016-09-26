@@ -16,7 +16,6 @@ kind.IDENTICAL3_COUPLE = 8
 kind.KINGANDQ = 9
 
 local card = require "card"
-local bit = require "bit"
 local assert = assert
 
 local cls = class("group")

@@ -8,7 +8,7 @@ local _M = {}
 
 function _M.new(sz, compare)
 	-- body
-	assert(sz and compare)
+	assert(sz and sz > 1 and compare)
 	assert(type(compare) == "function")
 	return { __data={}, __cap=sz, __size=0, __head=1, __tail=1, __compare=compare, __ele_pg={}}
 end
@@ -37,41 +37,53 @@ end
 
 function _M._insert(q, ele, ... )
 	-- body
-	assert(q.__tail + 1 % q.__cap ~= q.__head)
-	local idx = q.__tail - 1 and q.__tail - 1 or q.__cap
-	while idx ~= q.__head do
-		if q.__compare(ele, q.__head[idx].ele) then
-			q.__data[idx + 1 % q.__cap] =  q.__data[idx]
-		else
-			q.__data[idx + 1 % q.__cap] = { ele=ele, idx=idx+1%q.__cap }
-			q.__size = q.__size + 1
-			q.__tail = q.__tail + 1 % q.__cap		
-			break
-		end
+	if q.__tail == q.__head then
+		q.__data[q.__tail] = {ele=ele, idx=q.__tail}
+		q.__tail = q.__tail + 1 % q.__cap
+		q.__size = q.__size + 1
+		assert(q.__size < q.__cap)
+	else
+		local idx = q.__tail - 1 > 0 and q.__tail - 1 or q.__cap
+		while idx ~= q.__head do
+			if q.__compare(ele, q.__data[idx].ele) then
+				q.__data[idx + 1 % q.__cap] =  q.__data[idx]
+			else
+				local pc = idx + 1 % q.__cap
+				q.__data[pc] = { ele=ele, idx=pc }
+				q.__size = q.__size + 1
+				assert(q.__size <= q.__cap)
+				q.__tail = q.__tail + 1 % q.__cap		
+				break
+			end
+		end	
 	end
 end
 
 function _M.enqueue(q, ele)
 	-- body
-	if q.__tail + 1 % q.__cap ~= q.__head then
-		_M._insert(q, ele)
+	if q.__size == 0 then
+		q.__data[q.__tail] = {ele=ele, idx=q.__tail}
+		q.__tail = q.__tail + 1 % q.__cap
+		q.__size = q.__size + 1
+		assert(q.__size < q.__cap)
 	else
 		-- extend
-		if q.__head < q.__tail then
-			q.__cap = q.__cap * 2
-			_M._insert(q, ele)
-		else
-			for i=1,q.__tail do
-				local pc = q.__cap + i
-				q.__data[pc] = q.__data[i]
-				q.__data[i] = nil
-			end
-			q.__tail = q.__cap + q.__tail
-			q.__cap = q.__cap * 2
-			assert(q.__cap >= q.__tail)
-			assert(q.__head <= q.__tail)
-			_M._insert(q, ele)
+		if q.__size + 1 >= q.__cap then
+			if q.__head < q.__tail then
+				q.__cap = q.__cap * 2
+			else
+				for i=1,q.__tail do
+					local pc = q.__cap + i
+					q.__data[pc] = q.__data[i]
+					q.__data[i] = nil
+				end
+				q.__tail = q.__cap + q.__tail
+				q.__cap = q.__cap * 2
+				assert(q.__cap >= q.__tail)
+				assert(q.__head <= q.__tail)
+			end	
 		end
+		_M._insert(q, ele)
 	end
 end
 
@@ -80,7 +92,7 @@ function _M.dequeue(q)
 	if q.__size > 0 then
 		local ele = q.__data[q.__head]
 		q.__size = q.__size - 1
-		q.__head = q.__head - 1 % q.__cap
+		q.__head = q.__head + 1 % q.__cap
 		return ele
 	else
 		return nil
