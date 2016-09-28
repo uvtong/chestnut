@@ -148,7 +148,7 @@ end
 
 local function response(session, args)
 	-- body
-	local name = self:get_name_by_session(session)
+	local name = ctx:get_name_by_session(session)
 	log.info("room response: %s", name)
     local f = RESPONSE[name]
     local ok, result = pcall(f, ctx, args)

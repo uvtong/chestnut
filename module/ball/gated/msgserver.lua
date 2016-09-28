@@ -211,6 +211,7 @@ function server.start(conf)
 
 	local function do_start(fd, ... )
 		-- body
+		assert(fd)
 		local u = assert(connection[fd], "invalid fd")
 		local start_handler = assert(conf.start_handler)
 		start_handler(u.username, fd, u.version, u.index)
@@ -218,6 +219,7 @@ function server.start(conf)
 
 	-- atomic , no yield
 	local function do_auth(fd, message, addr)
+		log.info(message)
 		local username, index, hmac = string.match(message, "([^:]*):([^:]*):([^:]*)")
 		log.info("username: %s, index:%s, hmac:%s", username, index, hmac)
 		local u = user_online[username]
@@ -265,7 +267,7 @@ function server.start(conf)
 		if close then
 			gateserver.closeclient(fd)
 		else
-			do_start()	
+			do_start(fd)	
 		end
 	end
 
@@ -391,7 +393,6 @@ function server.start(conf)
 			auth(fd,addr,msg,sz)
 			handshake[fd] = nil
 			skynet.error("message server close auth ...")
-			-- do_start(fd)
 		else
 			-- request(fd, msg, sz)
 			do_msg(fd, msg, sz)

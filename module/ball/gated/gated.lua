@@ -27,25 +27,22 @@ function server.login_handler(source, uid, secret, ...)
 	internal_id = internal_id + 1
 	local id = internal_id	-- don't use internal_id directly
 	local username = msgserver.username(uid, id, servername)
-	log.info(username)
+	log.info("gated username: %s", username)
 
 	-- you can use a pool to alloc new agent
 	-- local agent = skynet.newservice "agent"
 	local handle = skynet.call(".AGENT_MGR", "lua", "enter")
+	local agent = snax.bind(handle, "agent")
 	local u = {
 		username = username,
-		agent = handle,
+		agent = agent,
 		uid = uid,
 		subid = id,
 	}
 
-	log.info("******************************81")
-
 	-- trash subid (no used)
-	local agent = snax.bind(handle, "agent")
+	
 	agent.req.login(skynet.self(), uid, id, secret)
-
-	log.info("******************************82: %s", username)
 
 	users[uid] = u
 	username_map[username] = u
@@ -103,7 +100,8 @@ end
 function server.disconnect_handler(username, fd)
 	local u = username_map[username]
 	if u then
-		skynet.call(u.agent, "lua", "afk", fd)
+		local agent = assert(u.agent)
+		agent.req.afk(fd)
 	end
 end
 
@@ -114,7 +112,7 @@ function server.start_handler(username, fd, version, idx, ... )
 	if u then
 		local agent = u.agent
 		if agent then
-			skynet.error("agent:", agent, idx)
+			skynet.error("agent:", agent.handle, idx)
 			local conf = {
 				gate = skynet.self(),
 				client = fd,
@@ -122,8 +120,7 @@ function server.start_handler(username, fd, version, idx, ... )
 				index = idx,
 				uid = u.uid,
 			}
-			local ok = skynet.call(agent, "lua", "start", conf)
-			assert(ok)
+			agent.post.start(conf)
 		end
 	end
 end
@@ -134,8 +131,10 @@ function server.msg_handler(username, msg, sz,... )
 	if u then
 		local agent = u.agent
 		if agent then
-			skynet.redirect(agent, skynet.self(), "client", 0, msg, sz)
+			local session = skynet.genid()
+			skynet.redirect(agent.handle, skynet.self(), "client", session, msg, sz)
 		else
+			assert(false)
 			skynet.send(agent, "lua", "start", netpack.tostring(msg, sz))
 		end
 	end
@@ -143,7 +142,6 @@ end
 
 -- call by self (when recv a request from client)
 function server.request_handler(username, msg)
-
 	-- local u = username_map[username]
 	-- return skynet.unpack(skynet.rawcall(u.agent, "client", msg))
 end

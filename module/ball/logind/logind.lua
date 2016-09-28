@@ -4,7 +4,6 @@ local login = require "loginserver"
 local crypt = require "crypt"
 local log = require "log"
 
-
 local address, port = string.match(skynet.getenv("logind"), "([%d.]+)%:(%d+)")
 local server = {
 	host = address or "127.0.0.1",
@@ -25,11 +24,10 @@ function server.auth_handler(token)
 	server = crypt.base64decode(server)
 	password = crypt.base64decode(password)
 	-- assert(password == "password", "Invalid password")
-	print(user, server, password)
-	log.info("auth_handler")
+	log.info("auth_handler %s@%s:@s", user, server, password)
 	local ok, uid = skynet.call(".SIGNUPD", "lua", "auth", user, password)
 	if ok then
-		return server, user
+		return server, uid
 	else
 		error(uid)
 		return server, 0
@@ -52,8 +50,8 @@ function server.login_handler(server, uid, secret)
 	user_online[uid] = { address = gameserver.address, subid = subid , server = server}
 	local gated = gameserver.gated
 
-	-- local res = string.format("%d%s", subid, gated)
-	local res = subid
+	local res = string.format("%d#%d@%s", uid, subid, gated)
+	-- local res = subid
 	return res
 end
 
