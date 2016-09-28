@@ -3,26 +3,28 @@ require "skynet.manager"
 local snax = require "snax"
 local queue = require "queue"
 
-
 local leisure_agent = queue.new(16)
-
+local handle_agent = {}
 
 local CMD = {}
 
 function CMD.enter(uid, fd)
 	-- body
-	if #leisure_agent == 0 then
-		local a = snax.newservice("agent/agent")
-		return a
+	if queue.is_empty(leisure_agent) then
+		local a = snax.newservice("agent")
+		handle_agent[a.handle] = a
+		return a.handle
 	else
 		local a = queue.dequeue(leisure_agent)
-		return a
+		handle_agent[a.handle] = a
+		return a.handle
 	end
 end
 
 function CMD.abandon(addr)
 	-- body
-	queue.enqueue(leisure_agent, addr)
+	local a = handle_agent[addr]
+	queue.enqueue(leisure_agent, a)
 end
 
 skynet.start(function ()

@@ -1,4 +1,4 @@
-package.path = "./../../service/host/logind/?.lua;"..package.path
+package.path = "./../../module/ball/logind/?.lua;"..package.path
 local skynet = require "skynet"
 local login = require "loginserver"
 local crypt = require "crypt"
@@ -25,10 +25,11 @@ function server.auth_handler(token)
 	server = crypt.base64decode(server)
 	password = crypt.base64decode(password)
 	-- assert(password == "password", "Invalid password")
+	print(user, server, password)
 	log.info("auth_handler")
 	local ok, uid = skynet.call(".SIGNUPD", "lua", "auth", user, password)
 	if ok then
-		return server, uid
+		return server, user
 	else
 		error(uid)
 		return server, 0
@@ -36,7 +37,7 @@ function server.auth_handler(token)
 end
 
 function server.login_handler(server, uid, secret)
-	print(string.format("%s@%s is login, secret is %s", uid, server, crypt.hexencode(secret)))
+	log.info(string.format("%s@%s is login, secret is %s", uid, server, crypt.hexencode(secret)))
 	local gameserver = assert(server_list[server], "Unknown server")
 	-- only one can login, because disallow multilogin
 	local last = user_online[uid]
@@ -51,7 +52,8 @@ function server.login_handler(server, uid, secret)
 	user_online[uid] = { address = gameserver.address, subid = subid , server = server}
 	local gated = gameserver.gated
 
-	local res = string.format("%d%s", subid, gated)
+	-- local res = string.format("%d%s", subid, gated)
+	local res = subid
 	return res
 end
 

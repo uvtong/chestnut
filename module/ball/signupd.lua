@@ -1,4 +1,4 @@
-package.path = "./../../service/host/lualib/?.lua;" .. package.path
+package.path = "./../../module/ball/lualib/?.lua;" .. package.path
 local login = require "snax.loginserver"
 local crypt = require "crypt"
 local skynet = require "skynet"
@@ -27,6 +27,7 @@ function server.auth_handler(token)
 	password = crypt.base64decode(password)
 	-- judge is exits
 	
+	assert(false)
 	local sql = string.format("select * from account where user = \"%s\"", user)
 	local r = query.read(".SIGNUPD_DB", "account", sql)
 

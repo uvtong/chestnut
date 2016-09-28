@@ -1,5 +1,6 @@
 local skynet = require "skynet"
 require "skynet.manager"
+local snax = require "snax"
 local log = require "log"
 
 skynet.start(function()
@@ -23,7 +24,8 @@ skynet.start(function()
 	skynet.newservice("agent_mgr")
 	-- skynet.newservice("branch")
 	-- skynet.newservice("channel")
-	
+	snax.uniqueservice("roomkeeper")
+
 	repeat
 		local conf = {
 			db_host = skynet.getenv("db_host") or "192.168.1.116",
@@ -102,7 +104,7 @@ skynet.start(function()
 		})
 	end
 
-	log.info("host successful .")
+	log.info("ball host successful .")
 	
 	skynet.exit()
 end)

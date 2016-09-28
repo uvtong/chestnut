@@ -3,6 +3,7 @@ local gateserver = require "snax.gateserver"
 local netpack = require "netpack"
 local crypt = require "crypt"
 local socketdriver = require "socketdriver"
+local log = require "log"
 local assert = assert
 local b64encode = crypt.base64encode
 local b64decode = crypt.base64decode
@@ -208,24 +209,34 @@ function server.start(conf)
 
 	handler.error = handler.disconnect
 
+	local function do_start(fd, ... )
+		-- body
+		local u = assert(connection[fd], "invalid fd")
+		local start_handler = assert(conf.start_handler)
+		start_handler(u.username, fd, u.version, u.index)
+	end
+
 	-- atomic , no yield
 	local function do_auth(fd, message, addr)
 		local username, index, hmac = string.match(message, "([^:]*):([^:]*):([^:]*)")
-		print(username, index, hmac)
+		log.info("username: %s, index:%s, hmac:%s", username, index, hmac)
 		local u = user_online[username]
 		if u == nil then
+			log.info("404 User Not Found")
 			return "404 User Not Found"
 		end
 		local idx = assert(tonumber(index))
 		hmac = b64decode(hmac)
 
 		if idx <= u.version then
+			log.info("403 Index Expired")
 			return "403 Index Expired"
 		end
 
 		local text = string.format("%s:%s", username, index)
 		local v = crypt.hmac_hash(u.secret, text)	-- equivalent to crypt.hmac64(crypt.hashkey(text), u.secret)
 		if v ~= hmac then
+			log.info("401 Unauthorized")
 			return "401 Unauthorized"
 		end
 
@@ -253,6 +264,8 @@ function server.start(conf)
 
 		if close then
 			gateserver.closeclient(fd)
+		else
+			do_start()	
 		end
 	end
 
@@ -371,13 +384,6 @@ function server.start(conf)
 		msg_handler(u.username, msg, sz)
 	end
 
-	local function do_start(fd, ... )
-		-- body
-		local u = assert(connection[fd], "invalid fd")
-		local start_handler = assert(conf.start_handler)
-		start_handler(u.username, fd, u.version, u.index)
-	end
-
 	function handler.message(fd, msg, sz)
 		local addr = handshake[fd]
 		if addr then
@@ -385,7 +391,7 @@ function server.start(conf)
 			auth(fd,addr,msg,sz)
 			handshake[fd] = nil
 			skynet.error("message server close auth ...")
-			do_start(fd)
+			-- do_start(fd)
 		else
 			-- request(fd, msg, sz)
 			do_msg(fd, msg, sz)

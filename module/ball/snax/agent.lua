@@ -2,6 +2,8 @@ local snax = require "snax"
 local skynet = require "skynet"
 local sprotoloader = require "sprotoloader"
 local sproto = require "sproto"
+local log = require "log"
+local context = require "agent.context"
 
 local roomkeeper
 local gate, room
@@ -12,11 +14,13 @@ function response.login(source, uid, sid, secret)
 	-- you may use secret to make a encrypted data stream
 	roomkeeper = snax.queryservice "roomkeeper"
 	snax.printf("%s is login", uid)
+	log.info("%s is login *****************************", uid)
 	gate = source
 	U.userid = uid
 	U.subid = sid
 	U.key = secret
 	-- you may load user data from database
+	return true
 end
 
 local function logout()
