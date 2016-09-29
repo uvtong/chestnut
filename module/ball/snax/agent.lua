@@ -4,6 +4,7 @@ local sprotoloader = require "sprotoloader"
 local sproto = require "sproto"
 local context = require "agent.context"
 local log = require "log"
+local errorcode = require "errorcode"
 
 local ctx
 local roomkeeper
@@ -21,6 +22,8 @@ end
 
 local function logout()
 	if gate then
+		local userid = ctx:get_uid()
+		local subid = ctx:get_subid()
 		skynet.call(gate, "lua", "logout", U.userid, U.subid)
 	end
 	snax.exit()
@@ -59,13 +62,21 @@ end
 local client_request = {}
 
 function client_request.join(msg)
-	skynet.error(U.userid, "client_request.join")
+	local uid = ctx:get_uid()
+	local secret = ctx:get_secret()
+	skynet.error(uid, "client_request.join")
 	local handle, host, port = roomkeeper.req.apply(msg.room)
 	local r = snax.bind(handle , "room")
-	local session = assert(r.req.join(skynet.self(), U.key))
-	U.session = session
-	room = r
+	local session = assert(r.req.join(skynet.self(), secret))
+	ctx:set_session(session)
+	ctx:set_room(r)
 	return { session = session, host = host, port = port }
+end
+
+function client_request.handshake( ... )
+	-- body
+	local res = { errorcode = 1 }
+	return res
 end
 
 local client_response = {}
@@ -81,7 +92,7 @@ end
 local function request(name, args, response)
 	log.info("agent request: %s", name)
     local f = client_request[name]
-    local ok, result = pcall(f, ctx, args)
+    local ok, result = pcall(f, args)
     if ok then
     	return response(result)
     else

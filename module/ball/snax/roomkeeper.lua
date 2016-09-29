@@ -1,7 +1,7 @@
 local snax = require "snax"
 local host
 local port = 9999
-local udpgate
+-- local udpgate
 local rooms = {}
 local udpgates = {}
 local gate_max = 10
@@ -11,14 +11,18 @@ local gate_idx = 1
 function response.apply(roomid)
 	local room = rooms[roomid]
 	if room == nil then
-		room = snax.newservice("room", roomid, udpgate.handle)
+		local udpgate = udpgates[gate_idx]
+		gate_idx = gate_idx + 1 % gate_max
+		local r = snax.newservice("room", roomid, udpgate.udpgate.handle)
+		room = {}
+		room.udpgate = udpgate
+		room.r = r
 		rooms[roomid] = room
 	end
-	local gate = udpgates[gate_idx]
-	gate_idx = gate_idx + 1
-	local host = gate.host
-	local port = gate.port
-	return room.handle , host, port
+	local gate = room.udpgate
+	local host = assert(gate.host)
+	local port = assert(gate.port)
+	return room.r.handle , host, port
 end
 
 -- todo : close room ?
@@ -35,7 +39,7 @@ function init()
 			port=port+i,
 			udpgate=udpgate,
 		}
-		table.insert(udpgates, gate)
+		udpgates[i] = gate
 	end
 	-- udpgate = snax.newservice("udpserver", "0.0.0.0", port)
 end

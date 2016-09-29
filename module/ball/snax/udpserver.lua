@@ -3,6 +3,7 @@ local socket = require "socket"
 local crypt = require "crypt"
 local snax = require "snax"
 
+local udphost, udpport
 local U
 local S = {}
 local SESSION = 0
@@ -17,7 +18,7 @@ local timeout = 10 * 60 * 100	-- 10 mins
 ]]
 
 function response.register(service, key)
-	skynet.error("udp_servier response register")
+	skynet.error("udp_servier response register", udphost, udpport)
 	SESSION = (SESSION + 1) & 0xffffffff
 	S[SESSION] = {
 		session = SESSION,
@@ -27,6 +28,7 @@ function response.register(service, key)
 		time = skynet.now(),
 		lastevent = nil,
 	}
+	skynet.error("client session", SESSION)
 	return SESSION
 end
 
@@ -105,9 +107,11 @@ local function keepalive()
 end
 
 function init(host, port, address)
-	U = socket.udp(udpdispatch, host, port)
+	U = socket.udp(udpdispatch, host, math.floor(port))
 	skynet.fork(keepalive)
-	skynet.error("begin to do udp_servier", host, port)
+	skynet.error("begin to do udp_servier", host, math.floor(port))
+	udphost = host
+	udpport = port
 end
 
 function exit()

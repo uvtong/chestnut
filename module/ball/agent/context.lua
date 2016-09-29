@@ -16,6 +16,7 @@ function cls:ctor( ... )
 	self._subid = false
 	self._secret = false
 	self._room = false
+	self._session = false
 	-- self._host_udbcontext = host_udbcontext.new(self, rdb, wdb)
 	return self
 end
@@ -66,6 +67,16 @@ end
 function cls:get_host_udbcontext( ... )
 	-- body
 	return self._host_udbcontext
+end
+
+function cls:set_session(session, ... )
+	-- body
+	self._session = session
+end
+
+function cls:get_session( ... )
+	-- body
+	return self._session
 end
 
 return cls
