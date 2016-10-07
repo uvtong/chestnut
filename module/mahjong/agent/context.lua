@@ -1,5 +1,5 @@
 local skynet = require "skynet"
-local host_udbcontext = require "host_udbcontext"
+local udbcontext = require "udbcontext"
 local env = require "env"
 local call = skynet.call
 local assert = assert
@@ -12,30 +12,38 @@ function cls:ctor( ... )
 	-- body
 	cls.super.ctor(self, ...)
 	
+	self._gate = false
 	self._uid = false
 	self._subid = false
 	self._secret = false
 	self._room = false
-	self._host_udbcontext = host_udbcontext.new(self, rdb, wdb)
+	self._host_udbcontext = udbcontext.new(self, rdb, wdb)
 	return self
 end
 
-function cls:login(uid, subid, secret)
+function cls:login(gate, uid, subid, secret)
 	assert(uid and subid and secret)
 	assert(self._uid == false)
+	self._gate = gate
 	self._uid = uid
 	self._subid = subid
 	self._secret = secret
-	self._host_udbcontext:load_db_to_data()
+	-- self._udbcontext:load_db_to_data()
 	return self._uid
 end
 
 function cls:logout( ... )
 	-- body
+	local gate = assert(self._gate)
 	if gate then
-		skynet.call(gate, "lua", "logout", userid, subid)
+		skynet.call(gate, "lua", "logout", self._uid, self._subid)
 	end
 	skynet.exit()
+end
+
+function cls:get_gate( ... )
+	-- body
+	return self._gate
 end
 
 function cls:get_uid( ... )
@@ -63,9 +71,9 @@ function cls:get_room( ... )
 	return self._room
 end
 
-function cls:get_host_udbcontext( ... )
+function cls:get_udbcontext( ... )
 	-- body
-	return self._host_udbcontext
+	return self._udbcontext
 end
 
 return cls

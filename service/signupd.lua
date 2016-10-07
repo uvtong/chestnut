@@ -1,9 +1,9 @@
-package.path = "./../../module/ball/lualib/?.lua;" .. package.path
+package.path = "./../../service/host/lualib/?.lua;" .. package.path
 local login = require "snax.loginserver"
 local crypt = require "crypt"
 local skynet = require "skynet"
 local query = require "query"
-local log = require "log"
+local x = 1
 
 local MAX_INTEGER = 16777216
 
@@ -27,8 +27,7 @@ function server.auth_handler(token)
 	password = crypt.base64decode(password)
 	-- judge is exits
 	
-	assert(false)
-	local sql = string.format("select * from account where user = \"%s\"", user)
+	local sql = string.format("select * from account where username = \"%s\"", user)
 	local r = query.read(".SIGNUPD_DB", "account", sql)
 
 	if #r >= 1 then
@@ -71,10 +70,9 @@ function CMD.register_gate(server, address)
 	server_list[server] = address
 end
 
-function CMD.auth(username, password)
+function CMD.auth(user, password)
 	-- body
-	log.info("signupd auth")
-	local sql = string.format("select * from account where username = \"%s\" and password = \"%s\"", username, password)
+	local sql = string.format("select * from account where username = \"%s\" and password = \"%s\"", user, password)
 	local r = query.read(".SIGNUPD_DB", "account", sql)
 	if #r ~= 1 then
 		print("account system has error.")

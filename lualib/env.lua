@@ -14,7 +14,6 @@ function cls:ctor( ... )
 	self._response_session_name = {}
 	
 	self._fd = false
-	self._gate = false
 	self._version = false
 	self._index = false
 
@@ -49,16 +48,6 @@ end
 function cls:get_fd( ... )
 	-- body
 	return self._fd
-end
-
-function cls:set_gate(g, ... )
-	-- body
-	self._gate = g
-end
-
-function cls:get_gate( ... )
-	-- body
-	return self._gate
 end
 
 function cls:set_version(v, ... )

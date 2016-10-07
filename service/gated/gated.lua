@@ -1,7 +1,6 @@
-package.path = "./../../module/ball/gated/?.lua;" .. package.path
+package.path = "./../../service/gated/?.lua;" .. package.path
 local skynet = require "skynet"
 local msgserver = require "msgserver"
-local snax = require "snax"
 local crypt = require "crypt"
 local netpack = require "netpack"
 local log = require "log"
@@ -27,12 +26,11 @@ function server.login_handler(source, uid, secret, ...)
 	internal_id = internal_id + 1
 	local id = internal_id	-- don't use internal_id directly
 	local username = msgserver.username(uid, id, servername)
-	log.info("gated username: %s", username)
+	print(uid, id, servername)
 
 	-- you can use a pool to alloc new agent
 	-- local agent = skynet.newservice "agent"
-	local handle = skynet.call(".AGENT_MGR", "lua", "enter")
-	local agent = snax.bind(handle, "agent")
+	local agent = skynet.call(".AGENT_MGR", "lua", "enter")
 	local u = {
 		username = username,
 		agent = agent,
@@ -41,9 +39,9 @@ function server.login_handler(source, uid, secret, ...)
 	}
 
 	-- trash subid (no used)
+	local ok = skynet.call(agent, "lua", "login", uid, id, secret)
+	assert(ok)
 	
-	agent.req.login(skynet.self(), uid, id, secret)
-
 	users[uid] = u
 	username_map[username] = u
 
@@ -100,8 +98,7 @@ end
 function server.disconnect_handler(username, fd)
 	local u = username_map[username]
 	if u then
-		local agent = assert(u.agent)
-		agent.req.afk(fd)
+		skynet.call(u.agent, "lua", "afk", fd)
 	end
 end
 
@@ -112,7 +109,7 @@ function server.start_handler(username, fd, version, idx, ... )
 	if u then
 		local agent = u.agent
 		if agent then
-			skynet.error("agent:", agent.handle, idx)
+			skynet.error("agent:", agent, idx)
 			local conf = {
 				gate = skynet.self(),
 				client = fd,
@@ -120,7 +117,8 @@ function server.start_handler(username, fd, version, idx, ... )
 				index = idx,
 				uid = u.uid,
 			}
-			agent.post.start(conf)
+			local ok = skynet.call(agent, "lua", "start", conf)
+			assert(ok)
 		end
 	end
 end
@@ -131,10 +129,8 @@ function server.msg_handler(username, msg, sz,... )
 	if u then
 		local agent = u.agent
 		if agent then
-			local session = skynet.genid()
-			skynet.redirect(agent.handle, skynet.self(), "client", session, msg, sz)
+			skynet.redirect(agent, skynet.self(), "client", 0, msg, sz)
 		else
-			assert(false)
 			skynet.send(agent, "lua", "start", netpack.tostring(msg, sz))
 		end
 	end
@@ -142,6 +138,7 @@ end
 
 -- call by self (when recv a request from client)
 function server.request_handler(username, msg)
+
 	-- local u = username_map[username]
 	-- return skynet.unpack(skynet.rawcall(u.agent, "client", msg))
 end
