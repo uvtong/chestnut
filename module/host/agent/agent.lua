@@ -1,4 +1,4 @@
-package.path = "./../../service/host/agent/?.lua;./../../service/host/lualib/?.lua;../../lualib/?.lua;"..package.path
+package.path = "./../../module/host/agent/?.lua;./../../module/host/lualib/?.lua;../../lualib/?.lua;"..package.path
 local skynet = require "skynet"
 local netpack = require "netpack"
 local sproto = require "sproto"
@@ -212,7 +212,7 @@ end
 -- login
 function CMD:login(source, uid, subid, secret,... )
 	-- body
-	self:login(uid, subid, secret)
+	self:login(source, uid, subid, secret)
 	return true
 end
 
@@ -221,12 +221,15 @@ function CMD:logout(source)
 	-- body
 	skynet.error(string.format("%s is logout", userid))
 	self:logout()
+	return true
 end
 
 -- others serverce disconnect
 function CMD:afk(source)
 	-- body
+	local uid = self:get_uid()
 	log.info("agent uid = %d) disconnect", uid)
+	return true
 end
 
 -- begain to wait for client
@@ -234,13 +237,11 @@ function CMD:start(source, conf)
 	local uid = self:get_uid()
 	log.info("agent (uid = %d) start", uid)
 	local fd      = assert(conf.client)
-	local gate    = assert(conf.gate)
 	local version = assert(conf.version)
 	local index   = assert(conf.index)
 	local uid     = assert(conf.uid) 
 
 	self:set_fd(fd)
-	self:set_gate(gate)
 	self:set_version(version)
 	self:set_index(index)
 

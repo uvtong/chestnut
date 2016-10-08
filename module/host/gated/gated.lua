@@ -1,4 +1,4 @@
-package.path = "./../../service/host/gated/?.lua;" .. package.path
+package.path = "./../../module/host/gated/?.lua;" .. package.path
 local skynet = require "skynet"
 local msgserver = require "msgserver"
 local crypt = require "crypt"

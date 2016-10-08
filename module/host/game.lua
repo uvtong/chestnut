@@ -1,4 +1,4 @@
-package.path = "../../service/host/lualib/?.lua;"..package.path
+package.path = "../../module/host/lualib/?.lua;"..package.path
 local skynet = require "skynet"
 require "skynet.manager"
 local const = require "const"

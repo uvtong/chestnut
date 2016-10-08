@@ -9,7 +9,7 @@ function CMD.start()
 	local log_level = tonumber(skynet.getenv("log_level")) or 0
 	local log_rollsize = tonumber(skynet.getenv("log_rollsize")) or 1024
 	local log_flushinterval = tonumber(skynet.getenv("log_flushinterval")) or 5
-	local root = skynet.getenv "log_root"
+	local root = skynet.getenv "log_root" or "./../../logs/"
 	local fd, result = io.open(root)
 	if fd == nil then
 		os.execute("mkdir " .. root)

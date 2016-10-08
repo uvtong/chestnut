@@ -1,4 +1,4 @@
-package.path = "./../../service/host/logind/?.lua;"..package.path
+package.path = "./../../module/host/logind/?.lua;"..package.path
 local skynet = require "skynet"
 local login = require "loginserver"
 local crypt = require "crypt"

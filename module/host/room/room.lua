@@ -1,4 +1,4 @@
-package.path = "./../../service/host/room/?.lua;./../../service/host/lualib/?.lua;../../lualib/?.lua;"..package.path
+package.path = "./../../module/host/room/?.lua;./../../module/host/lualib/?.lua;../../lualib/?.lua;"..package.path
 local skynet = require "skynet"
 local sproto = require "sproto"
 local sprotoloader = require "sprotoloader"
