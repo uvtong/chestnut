@@ -12,6 +12,7 @@ function cls:ctor( ... )
 	-- body
 	cls.super.ctor(self, ...)
 	
+	self._gate = false
 	self._uid = false
 	self._subid = false
 	self._secret = false
@@ -21,9 +22,10 @@ function cls:ctor( ... )
 	return self
 end
 
-function cls:login(uid, subid, secret)
+function cls:login(gate, uid, subid, secret)
 	assert(uid and subid and secret)
 	assert(self._uid == false)
+	self._gate = gate
 	self._uid = uid
 	self._subid = subid
 	self._secret = secret
@@ -33,8 +35,8 @@ end
 
 function cls:logout( ... )
 	-- body
-	if gate then
-		skynet.call(gate, "lua", "logout", userid, subid)
+	if self._gate then
+		skynet.call(self._gate, "lua", "logout", self._uid, self._subid)
 	end
 	skynet.exit()
 end

@@ -14,31 +14,24 @@ function response.login(source, uid, sid, secret)
 	roomkeeper = snax.queryservice "roomkeeper"
 	log.info("agent %s is login", uid)
 	
-	ctx:login(uid, sid, secret)
-	ctx:set_gate(source)
+	ctx:login(source, uid, sid, secret)
 	-- you may load user data from database
 	return true
 end
 
-local function logout()
-	if gate then
-		local userid = ctx:get_uid()
-		local subid = ctx:get_subid()
-		skynet.call(gate, "lua", "logout", U.userid, U.subid)
-	end
-	snax.exit()
-end
-
 function response.logout()
 	-- NOTICE: The logout MAY be reentry
-	snax.printf("%s is logout", U.userid)
+	local uid = ctx:get_uid()
+	snax.printf("%s is logout", uid)
+	local room = ctx:get_room()
 	if room then
-		room.req.leave(U.session)
+		local session = ctx:get_session()
+		room.req.leave(session)
 	end
-	logout()
+	ctx:logout()
 end
 
-function response.afk()
+function response.afk(fd)
 	-- the connection is broken, but the user may back
 	snax.printf("AFK")
 end
@@ -46,18 +39,14 @@ end
 function accept.start(conf, ... )
 	-- body
 	local fd      = assert(conf.client)
-	local gate    = assert(conf.gate)
 	local version = assert(conf.version)
 	local index   = assert(conf.index)
 	local uid     = assert(conf.uid) 
 
 	ctx:set_fd(fd)
-	ctx:set_gate(gate)
 	ctx:set_version(version)
 	ctx:set_index(index)
 end
-
-
 
 local client_request = {}
 
@@ -86,6 +75,9 @@ local function decode_proto(msg, sz, ... )
 	if sz > 0 then
 		local host = ctx:get_host()
 		return host:dispatch(msg, sz)
+	elseif sz == 0 then
+
+		return "HANDSHAKE"
 	end
 end
 
@@ -127,6 +119,8 @@ local function dispatch_client(_,_, type, ... )
 		end
 	elseif type == "RESPONSE" then
 		pcall(response, ...)
+	elseif type == "HANDSHAKE" then
+		log.info("handshake")
 	end
 end
 

@@ -62,7 +62,7 @@ function server.logout_handler(source, uid, subid)
 		msgserver.logout(u.username)
 		users[uid] = nil
 		username_map[u.username] = nil
-		skynet.call(loginservice, "lua", "logout",uid, subid)
+		skynet.call(loginservice, "lua", "logout", uid, subid)
 	end
 end
 
@@ -72,8 +72,10 @@ function server.kick_handler(source, uid, subid)
 	if u then
 		local username = msgserver.username(uid, subid, servername)
 		assert(u.username == username)
+		skynet.error("begin to logout agent")
 		-- NOTICE: logout may call skynet.exit, so you should use pcall.
-		pcall(skynet.call, u.agent, "lua", "logout")
+		-- pcall(skynet.call, u.agent.handle, "lua", "logout")
+		pcall(u.agent.req.logout)
 	end
 end
 
