@@ -75,6 +75,7 @@ function CMD.auth(username, password)
 	-- body
 	log.info("signupd auth")
 	local sql = string.format("select * from account where username = \"%s\" and password = \"%s\"", username, password)
+	print(sql)
 	local r = query.read(".SIGNUPD_DB", "account", sql)
 	if #r ~= 1 then
 		print("account system has error.")

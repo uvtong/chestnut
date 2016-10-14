@@ -38,6 +38,7 @@ function server.login_handler(source, uid, secret, ...)
 		agent = agent,
 		uid = uid,
 		subid = id,
+		online = false,
 	}
 
 	-- trash subid (no used)
@@ -69,7 +70,7 @@ end
 -- call by login server
 function server.kick_handler(source, uid, subid)
 	local u = users[uid]
-	if u then
+	if u and not u.online then
 		local username = msgserver.username(uid, subid, servername)
 		assert(u.username == username)
 		skynet.error("begin to logout agent")
@@ -102,6 +103,7 @@ end
 function server.disconnect_handler(username, fd)
 	local u = username_map[username]
 	if u then
+		u.online = false
 		local agent = assert(u.agent)
 		agent.req.afk(fd)
 	end
@@ -112,6 +114,7 @@ function server.start_handler(username, fd, version, idx, ... )
 	-- body
 	local u = username_map[username]
 	if u then
+		u.online = true
 		local agent = u.agent
 		if agent then
 			skynet.error("agent:", agent.handle, idx)

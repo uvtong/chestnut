@@ -5,6 +5,7 @@ local sproto = require "sproto"
 local context = require "agent.context"
 local log = require "log"
 local errorcode = require "errorcode"
+local float = require "float"
 
 local ctx
 local roomkeeper
@@ -26,7 +27,7 @@ function response.logout()
 	local room = ctx:get_room()
 	if room then
 		local session = ctx:get_session()
-		room.req.leave(session)
+		room.req.leave(session, uid)
 	end
 	ctx:logout()
 end
@@ -34,6 +35,16 @@ end
 function response.afk(fd)
 	-- the connection is broken, but the user may back
 	snax.printf("AFK")
+end
+
+function accept.born(args, ... )
+	-- body
+	ctx:send_request("born", args)
+end
+
+function accept.leave(args, ... )
+	-- body
+	ctx:send_request("leave", args)
 end
 
 function accept.start(conf, ... )
@@ -50,25 +61,47 @@ end
 
 local client_request = {}
 
-function client_request.join(msg)
-	local uid = ctx:get_uid()
-	local secret = ctx:get_secret()
-	skynet.error(uid, "client_request.join")
-	local handle, host, port = roomkeeper.req.apply(msg.room)
-	local r = snax.bind(handle , "room")
-	local session = assert(r.req.join(skynet.self(), secret))
-	ctx:set_session(session)
-	ctx:set_room(r)
-	return { session = session, host = host, port = port }
-end
-
 function client_request.handshake( ... )
 	-- body
 	local res = { errorcode = 1 }
 	return res
 end
 
+function client_request.join(msg)
+	local uid = ctx:get_uid()
+	local secret = ctx:get_secret()
+	skynet.error(uid, "client_request.join")
+	local handle, host, port = roomkeeper.req.apply(msg.room)
+	local r = snax.bind(handle , "room")
+	local session, all = assert(r.req.join(skynet.self(), secret, uid))
+	ctx:set_session(session)
+	ctx:set_room(r)
+	return { session = session, host = host, port = port, all = all }
+end
+
+function client_request.born( ... )
+	-- body
+	local uid = ctx:get_uid()
+	local session = ctx:get_session()
+	local room = ctx:get_room()
+	return room.req.born(session, skynet.self(), uid)
+end
+
+function client_request.test( ... )
+	-- body
+	local num = float.encode(1.6)
+	local res = {}
+	res.errorcode = errorcode.SUCCESS
+	res.msg = num
+	return res
+end
+
 local client_response = {}
+
+function client_response.born(args, ... )
+	-- body
+	assert(args.errorcode == errorcode.SUCCESS)
+end
 
 local function decode_proto(msg, sz, ... )
 	-- body
@@ -76,7 +109,6 @@ local function decode_proto(msg, sz, ... )
 		local host = ctx:get_host()
 		return host:dispatch(msg, sz)
 	elseif sz == 0 then
-
 		return "HANDSHAKE"
 	end
 end

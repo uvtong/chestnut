@@ -65,14 +65,10 @@ int ldequeue(lua_State *L)
  
 /* 创建一个尺寸为 size 的队列对象并返回，size 收到 upvalue 数量限制，这里最大可以为 253 */
 static
-int lqueue_create(lua_State *L)
+int lnew(lua_State *L)
 {
+	int size = lua_tointeger(L, 1);
 	struct queue_data *qd;
-	g_api->lua_settop(L,1);
-	int size=g_api->lua_tointeger(L,1)+2;
-	if (size>253 || !g_api->lua_checkstack(L,size)) {
-		return 0;
-	}
 	g_api->lua_settop(L,0);
 	qd=(struct queue_data*)g_api->lua_newuserdata(L,sizeof(struct queue_data));
 	qd->size=size;
@@ -84,13 +80,22 @@ int lqueue_create(lua_State *L)
 	return 1;
 }
 
+static
+int ldel(lua_State *L) {
+	struct queue_data *qd = (queue_data *)lua_touserdata(L, 1)
+	free(qd)
+	qd = NULL;
+	return 0;
+}
+
 int
 luaopen_queue(lua_State *L) {
 	luaL_checkversion(L);
 	luaL_Reg l[] = {
-		{ "queue_create", lqueue_create },
+		{ "new", lnew },
 		{ "enqueue", lenqueue },
 		{ "dequeue", ldequeue },
+		{ "del", ldel },
 		{ NULL, NULL },
 	};
 	luaL_newlib(L,l);

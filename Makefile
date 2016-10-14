@@ -1,9 +1,10 @@
 include platform.mk
 
 LUA_CLIB_PATH ?= luaclib
+CLIB_SRC_PATH ?= lualib-src
 CSERVICE_PATH ?= cservice
 SERVICE_SRC_PATH ?= service-src
-CLIB_SRC_PATH ?= lualib-src
+
 
 CFLAGS = -g -O2 -Wall $(MYCFLAGS)
 
@@ -94,6 +95,9 @@ $(LUA_CLIB_PATH)/log.so: $(CLIB_SRC_PATH)/lua-log.c | $(LUA_CLIB_PATH)
 $(LUA_CLIB_PATH)/queue.so: $(CLIB_SRC_PATH)/lua-queue.c | $(LUA_CLIB_PATH)
 	$(CC) $(CFLAGS) $(SHARED) -I$(LUA_PATH) $^ -o $@
 
+$(LUA_CLIB_PATH)/math3d.so: $(CLIB_SRC_PATH)/libmath.c $(CLIB_SRC_PATH)/libaabb.c $(CLIB_SRC_PATH)/CCAABB.cpp | $(LUA_CLIB_PATH)
+	g++ -fpermissive -std=c++11 $(CFLAGS) $(SHARED) -I$(LUA_PATH) $^ -o $@	
+
 # service
 $(CSERVICE_PATH)/catlogger.so: $(SERVICE_SRC_PATH)/service_catlogger.c | $(CSERVICE_PATH)
 	$(CC) $(CFLAGS) $(SHARED) -I$(SKYNET_SRC_PATH) $^ -o $@ 
@@ -106,7 +110,7 @@ $(CSERVICE_PATH)/catlogger.so: $(SERVICE_SRC_PATH)/service_catlogger.c | $(CSERV
 	# $(LUA_CLIB_PATH)/log.so \
 	# $(CSERVICE_PATH)/catlogger.so
 
-all: $(LUA_CLIB_PATH)/log.so $(CSERVICE_PATH)/catlogger.so
+all: $(LUA_CLIB_PATH)/log.so $(LUA_CLIB_PATH)/math3d.so $(CSERVICE_PATH)/catlogger.so 
 
 
 .PHONY: update3rd clean cleanall

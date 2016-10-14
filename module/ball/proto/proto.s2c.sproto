@@ -5,8 +5,42 @@
     version 3 : integer
 }
 
+.ball {
+    uid       0 : integer
+    session   1 : integer
+    radis     2 : integer
+    length    3 : integer
+    width     4 : integer
+    height    5 : integer
+    px        6 : integer
+    py        7 : integer
+    pz        8 : integer
+    dx        9 : integer
+    dy        10: integer
+    dz        11: integer
+    vel       12: integer
+}
+
 handshake 1 {
     response {
     	errorcode 0 : integer
+    }
+}
+
+born 2 {
+	request {
+		b 0 : ball
+	}
+	response {
+		errorcode 0 : integer
+	}
+}
+
+leave 3 {
+    request {
+        session 0 : integer
+    }
+    response {
+        errorcode 0 : integer
     }
 }

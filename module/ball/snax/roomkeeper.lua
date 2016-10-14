@@ -22,7 +22,7 @@ function response.apply(roomid)
 	local gate = room.udpgate
 	local host = assert(gate.host)
 	local port = assert(gate.port)
-	return room.r.handle , host, port
+	return room.r.handle, host, port
 end
 
 -- todo : close room ?

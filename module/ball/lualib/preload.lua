@@ -2,7 +2,7 @@
 -- See config
 
 package.path = "./../../module/ball/?.lua;./../../module/ball/lualib/?.lua;./../../lualib/?.lua;"..package.path
-package.cpath = "./../crab/?.so;./../lua-cjson/?.so;./../lua-sharedata/?.so;./../lua-snapshot/?.so;./../lua-zset/?.so;./../../luaclib/?.so;"..package.cpath
+package.cpath = "./../../module/ball/luaclib/?.so;./../../luaclib/?.so;"..package.cpath
 
 require "init"
 class = cc.class
