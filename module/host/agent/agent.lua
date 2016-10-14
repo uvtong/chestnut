@@ -47,19 +47,17 @@ local function subscribe()
 	c2:subscribe()
 end
 
-function REQUEST.logout( ... )
+function REQUEST:handshake(args, ... )
 	-- body
+	local res = {}
+	res.errorcode = errorcode.SUCCESS
+	return res
 end
 
-function REQUEST.login(source, uid, sid, secret, g, d)
-	-- body
-	assert(false)
-end
-
-function REQUEST:enter_scene(args, ... )
+function REQUEST:enter_room(args, ... )
 	-- body
 	local uid = self:get_uid()
-	log.info("agent (uid = %d) request : enter_scene", uid)
+	log.info("agent (uid = %d) request : enter_room", uid)
 	local rule = args.rule
 	local mode = args.mode
 	local scene = args.scene
@@ -70,23 +68,10 @@ function REQUEST:enter_scene(args, ... )
 	
 	local roomid = room.roomid
 	local conf = {
-		uid     = self:get_uid()
+		uid     = self:get_uid(),
+		agent   = skynet:self()
 	}
 	return skynet.call(roomid, "lua", "enter_room", conf)
-end
-
-function REQUEST:enter_room( ... )
-	-- body
-	local addr = skynet.call(".ROOM_MGR", "lua", "enqueue")
-	local conf = {}
-	conf.client = self:get_fd()
-	conf.gate = self:get_gate()
-	conf.version = self:get_version()
-	conf.index = self:get_index()
-	skynet.call(addr, "lua", "join", conf)
-	local res = {}
-	res.errorcode = errorcode.SUCCESS
-	return res
 end
 
 function REQUEST:ready(args, ... )
@@ -133,10 +118,9 @@ local function request(name, args, response)
     end
 end      
 
-function RESPONSE:finish_achi( ... )
+function RESPONSE:enter_room(args, ... )
 	-- body
-	assert(self.errorcode == 1)
-	skynet.error(self.msg)
+	assert(args.errorcode == errorcode.SUCCESS)
 end
 
 function RESPONSE:deal(args, ... )
@@ -193,20 +177,12 @@ function CMD:enter_room(source, player, ... )
 	local players = {}
 	table.insert(players, player)
 	self:send_request("enter_room", players)
-	local res = {}
-	res.name = "hello"
-	return res
 end
 
 function CMD:ready(source, args, ... )
 	-- body
 	self:send_request("ready", args)
 	return noret
-end
-
-function CMD:newemail(source, subcmd , ... )
-	local f = assert( new_emailrequest[ subcmd ] )
-	f( new_emailrequest , ... )
 end
 
 -- login
@@ -219,8 +195,11 @@ end
 -- prohibit mult landing
 function CMD:logout(source)
 	-- body
-	skynet.error(string.format("%s is logout", userid))
+	local uid = send:get_uid()
+	skynet.error(string.format("%s is logout", uid))
 	self:logout()
+	local room = self:get_room()
+	skynet.call(room.roomid, "lua", "leave_room", self:get_uid())
 	return true
 end
 
@@ -247,11 +226,6 @@ function CMD:start(source, conf)
 
 	-- skynet.call(gate, "lua", "forward", uid, skynet.self())
 	return true
-end
-
-function CMD:send_request(name, args, ... )
-	-- body
-	self:send_request(name, args)
 end
 
 function CMD:update_db( ... )

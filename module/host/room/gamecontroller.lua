@@ -23,11 +23,6 @@ function cls:ctor(env, name, ... )
 	self._state = gs.CLOSE
 end
 
-function cls:get_type( ... )
-	-- body
-	return self._type
-end
-
 function cls:update(delta, ... )
 	-- body
 	-- self._myplayer:update(delta)
@@ -37,123 +32,16 @@ end
 
 function cls:start(t, ... )
 	-- body
-	-- assert(false)
-	-- assert(t)
-	-- self._type = t
-	-- if self._type == gt.SINGLE then
-	-- 	self._state = gs.START
-	-- 	self._first_rob_player = false
-	-- 	self._dz_player = false
-	-- 	self._deal_player = false
-	-- 	self._dizhu_cards = {}
-
-	-- 	self._myplayer:start(gt.SINGLE)
-	-- 	self._rightplayer:start(gt.SINGLE)
-	-- 	self._leftplayer:start(gt.SINGLE)
-
-	-- 	self._scene:start(self._myplayer, self._rightplayer, self._leftplayer)
-	-- 	self._env:push(self._scene)
-	-- elseif self._type == gt.NETWORK then
-	-- 	self._state = gs.START
-	-- 	self._scene:start(self._myplayer, self._rightplayer, self._leftplayer)
-	-- 	self._env:push(self._scene)
-	-- else
-	-- 	assert(false)
-	-- end
 	self._ready_count = 0
 	self._state = gs.START
 	self._first_rob_player = false
 	self._dz_player = false
 	self._deal_player = false
 	self._dizhu_cards = {}
-
 end
 
 function cls:close( ... )
 	-- body
-end
-
-function cls:ready(args, ... )
-	local uid = args.uid
-	local ready = args.ready
-	local player = assert(self:get_player_by_uid(uid))
-	if player:get_ready() then
-		assert(false, "client send error message.")
-	else
-		self._ready_count = self._ready_count + 1
-		player:set_ready(ready)
-	end
-	if self._ready_count >= 3 then
-		self:deal_cards_starting(player)
-
-		local dcards = {}
-		for i,card in ipairs(self._dz_cards) do
-			dcards[i] = card:get_value()
-		end
-		args.deal = true
-		args.dcards = dcards
-		args.your_turn = uid
-		args.countdown = 10
-
-		local last = assert(player:get_last())
-		if last then
-			local llast = assert(last:get_last())
-			args.lcards = llast:get_cards_value()
-			local lnext = assert(last:get_next())
-			args.rcards = lnext:get_cards_value()
-			local agent = last:get_agent()
-			skynet.send(agent, "lua", "ready", args)
-		end
-
-		local next = assert(player:get_next())
-		if next then
-			local nlast = assert(next:get_last())
-			args.lcards = nlast:get_cards_value()
-			local nnext = assert(next:get_next())
-			args.rcards = nnext:get_cards_value()
-			local agent = next:get_next()
-			skynet.send(agent, "lua", "ready", args)
-		end
-
-		local res = {}
-		res.errorcode = errorcode.SUCCESS
-		res.deal = true
-		res.lcards = last:get_cards_value()
-		res.rcards = next:get_cards_value()
-		
-		res.dcards = dcards
-		res.your_turn = uid
-		res.countdown = 10
-		return res
-	else
-		args.deal = false
-		local last = player:get_last()
-		if last then
-			local agent = last:get_agent()
-			skynet.send(agent, "lua", "ready", args)
-		end
-
-		local next = player:get_next()
-		if next then
-			local agent = next:get_next()
-			skynet.send(agent, "lua", "ready", args)
-		end
-		local res = {}
-		res.errorcode = errorcode.SUCCESS
-		res.deal = false
-		return res
-	end
-end
-
-function cls:ready(player, flag, ... )
-	-- body
-	assert(player)
-	player:set_ready(flag)
-	self._ready_count = self._deal_player + 1
-	if self._ready_count == 3 then
-		-- self:confirm_readiness()
-		self:deal_cards_starting(player)
-	end
 end
 
 function cls:confirm_readiness(player, ... )
@@ -341,6 +229,105 @@ function cls:take_turn_to_lead(last, g, ... )
 			self._myplayer:ready_for_plead(g)
 		end
 	end
+end
+
+function cls:on_ready(args, ... )
+	local uid = args.uid
+	local ready = args.ready
+	local player = assert(self:get_player_by_uid(uid))
+	if player:get_ready() then
+		assert(false, "client send error message.")
+	else
+		self._ready_count = self._ready_count + 1
+		player:set_ready(ready)
+	end
+	if self._ready_count >= 3 then
+		self:deal_cards_starting(player)
+
+		local dcards = {}
+		for i,card in ipairs(self._dz_cards) do
+			dcards[i] = card:get_value()
+		end
+		args.deal = true
+		args.dcards = dcards
+		args.your_turn = uid
+		args.countdown = 10
+
+		local last = assert(player:get_last())
+		if last then
+			local llast = assert(last:get_last())
+			args.lcards = llast:get_cards_value()
+			local lnext = assert(last:get_next())
+			args.rcards = lnext:get_cards_value()
+			local agent = last:get_agent()
+			skynet.send(agent, "lua", "ready", args)
+		end
+
+		local next = assert(player:get_next())
+		if next then
+			local nlast = assert(next:get_last())
+			args.lcards = nlast:get_cards_value()
+			local nnext = assert(next:get_next())
+			args.rcards = nnext:get_cards_value()
+			local agent = next:get_next()
+			skynet.send(agent, "lua", "ready", args)
+		end
+
+		local res = {}
+		res.errorcode = errorcode.SUCCESS
+		res.deal = true
+		res.lcards = last:get_cards_value()
+		res.rcards = next:get_cards_value()
+		
+		res.dcards = dcards
+		res.your_turn = uid
+		res.countdown = 10
+		return res
+	else
+		args.deal = false
+		local last = player:get_last()
+		if last then
+			local agent = last:get_agent()
+			skynet.send(agent, "lua", "ready", args)
+		end
+
+		local next = player:get_next()
+		if next then
+			local agent = next:get_next()
+			skynet.send(agent, "lua", "ready", args)
+		end
+		local res = {}
+		res.errorcode = errorcode.SUCCESS
+		res.deal = false
+		return res
+	end
+end
+
+function cls:ready(player, flag, ... )
+	-- body
+	assert(player)
+	player:set_ready(flag)
+	self._ready_count = self._deal_player + 1
+	if self._ready_count == 3 then
+		-- self:confirm_readiness()
+		self:deal_cards_starting(player)
+	end
+end
+
+function cls:on_rob(args, ... )
+	-- body
+end
+
+function cls:rob( ... )
+	-- body
+end
+
+function cls:on_lead(args, ... )
+	-- body
+end
+
+function cls:lead(args, ... )
+	-- body
 end
 
 return cls

@@ -61,6 +61,16 @@ function cls:remove(player, ... )
 	end
 	local uid = player:get_uid()
 	self._uid_map[uid] = nil
+	local agent = player:get_agent()
+	self._agent_player[agent] = nil
+	local last = player:get_last()
+	if last then
+		last:set_next(nil)
+	end
+	local next = player:get_next()
+	if next then
+		next:set_last(nil)
+	end
 end
 
 function cls:get_players()

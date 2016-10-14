@@ -2,6 +2,7 @@ package.path = "./../../module/host/logind/?.lua;"..package.path
 local skynet = require "skynet"
 local login = require "loginserver"
 local crypt = require "crypt"
+local log = require "log"
 
 
 local address, port = string.match(skynet.getenv("logind"), "([%d.]+)%:(%d+)")
@@ -46,12 +47,12 @@ function server.login_handler(server, uid, secret)
 	end
 	print("gameserver is called", gameserver.address)
 	
-	local subid = skynet.call(".GATED", "lua", "login", uid, secret)
+	local subid = skynet.call(gameserver.address, "lua", "login", uid, secret)
 	user_online[uid] = { address = gameserver.address, subid = subid , server = server}
 	local gated = gameserver.gated
+	log.info("gated: %s", gated)
 
-	print("gameserver:", gated, "subid:", subid)
-	return tostring(subid), gated
+	return subid, gated
 end
 
 local CMD = {}

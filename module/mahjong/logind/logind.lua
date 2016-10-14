@@ -50,7 +50,7 @@ function server.login_handler(server, uid, secret)
 	end
 	print("gameserver is called", gameserver.address)
 	
-	local subid = skynet.call(".GATED", "lua", "login", uid, secret)
+	local subid = skynet.call(gameserver.address, "lua", "login", uid, secret)
 	user_online[uid] = { address = gameserver.address, subid = subid , server = server}
 	local gated = gameserver.gated
 

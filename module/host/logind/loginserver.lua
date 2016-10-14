@@ -145,7 +145,7 @@ local function accept(conf, s, fd, addr)
 	if ok then
 		err = err or ""
 		gated = gated or ""
-		write("response 200",fd,  "200 "..":"..crypt.base64encode(uid).."@"..crypt.base64encode(err).."#"..crypt.base64encode(gated).."\n")
+		write("response 200",fd,  "200 "..":"..crypt.base64encode(uid).."#"..crypt.base64encode(err).."@"..crypt.base64encode(gated).."\n")
 	else
 		write("response 403",fd,  "403 Forbidden\n")
 		error(err)

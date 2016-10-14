@@ -2,16 +2,17 @@ local card = require "card"
 local group = require "group"
 
 local state = {}
-state.NONE = 0
+state.NONE       = 0
 state.WAIT_START = 1
-state.READY = 2
-state.WAIT_ROB = 3
-state.WAIT_OROB = 4
-state.WAIT_FAPAI = 5
-state.WAIT_ALEAD = 6
-state.WAIT_PLEAD = 7
-state.WAIT_OLEAD = 8
-state.CLOSE = 9
+state.READY      = 2
+state.DEAL       = 3
+state.WAIT_ROB   = 4
+state.WAIT_OROB  = 5
+state.WAIT_FAPAI = 6
+state.WAIT_ALEAD = 7
+state.WAIT_PLEAD = 8
+state.WAIT_OLEAD = 9
+state.CLOSE      = 10
 
 local cls = class("player")
 
@@ -29,6 +30,7 @@ function cls:ctor(env, uid, fd, ... )
 	self._is_dz = false
 	self._deal_cards = {}
 	self._cards = {}
+	self._state = state.NONE
 	return self
 end
 
@@ -82,18 +84,14 @@ function cls:get_idx( ... )
 	return self._idx
 end
 
-function cls:set_ready(flag, ... )
+function cls:set_state(s, ... )
 	-- body
-	assert(flag)
-	self._ready = flag
-
-	-- TODO
-
+	self._state = s
 end
 
-function cls:get_ready( ... )
+function cls:get_state( ... )
 	-- body
-	return self._ready
+	return self._state
 end
 
 function cls:set_rob(flag, ... )

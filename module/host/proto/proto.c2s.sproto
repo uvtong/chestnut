@@ -13,6 +13,7 @@
 .player {
     name 0 : string
     orientation 1 : integer
+    uid         2 : integer
 }
 
 handshake 1 {
@@ -21,92 +22,7 @@ handshake 1 {
     }
 }
 
-role_info 2 {
-}
-
-mails 3 {
-}
-
-signup 4 {
-}
-
-login 5 {
-    request {
-        account 0 : string
-        password 1 : string
-    }
-    response {
-        errorcode 0 : integer
-    }
-}
-
-role_upgrade_star 6 {
-}
-
-choose_role 7 {
-}
-
-wake 8 {
-    request {
-        role_id 0 : string
-    }
-    response {
-        errorcode 0 : integer
-    }
-}
-
-props 9 {
-}
-
-use_prop 10 {
-}
-
-achievement 11 {
-} 	 
-
-mail_read 12 {
-}
-
-mail_delete 13 {
-}
-
-mail_getreward 14 {
-} 
-
-friend_list 15 {
-}
-
-applied_list 16 {
-}
-
-otherfriend_list  17 {
-}
-
-findfriend 18 {
-}
-
-applyfriend 19 {
-}
- 
-recvfriend 20 {
-}
-
-enter_scene 21 {
-    request {
-        rule 0 : integer
-        mode 1 : integer
-        scene 2 : integer
-    }
-    response {
-        errorcode 0 : integer
-
-    }
-}
-
-leave_scene 22 {
-}
-
-enter_room 23 {
+enter_room 2 {
     request {
         rule 0 : integer
         mode 1 : integer
@@ -118,7 +34,7 @@ enter_room 23 {
     }
 }
 
-leave_room 24 {
+leave_room 3 {
     request {
 
     }
@@ -127,7 +43,7 @@ leave_room 24 {
     }
 }
 
-ready 25 {
+ready 4 {
     request {
         uid 0 : integer
         ready 1 : boolean
@@ -135,15 +51,13 @@ ready 25 {
     response {
         errorcode 0 : integer
         deal      1 : boolean
-        rcards    2 : *integer
-        lcards    3 : *integer
-        dcards    4 : *integer
-        your_turn 5 : integer
-        countdown 6 : integer
+        cards     2 : *integer
+        your_turn 3 : integer
+        countdown 4 : integer
     }
 }
 
-mp 26 {
+mp 5 {
     request {
         m 0 : integer
     }
@@ -157,7 +71,7 @@ mp 26 {
     }
 }
 
-am 27 {
+am 6 {
     request {
         m 0 : integer
     }
@@ -166,7 +80,7 @@ am 27 {
     }
 }
 
-rob 28 {
+rob 7 {
     request {
         uid 0 : integer
         rob 1 : integer
@@ -174,22 +88,23 @@ rob 28 {
     response {
         errorcode 0 : integer
         your_turn 1 : integer
+        countdown 2 : integer
     }
 }
 
-lead 29 {
+lead 8 {
     request {
         uid 0 : integer
         cards 1 : *integer
     }
     response {
         errorcode 0 : integer
-        your_turn 1 : integer
-        countdown 2 : integer
-        ranked1 3 : settlement
-        ranked2 4 : settlement
-        ranked3 5 : settlement
+        turn      1 : boolean
+        your_turn 2 : integer
+        countdown 3 : integer
+        settlement 4 : boolean
+        ranked1 5 : settlement
+        ranked2 6 : settlement
+        ranked3 7 : settlement
     }
 }
-
-

@@ -21,15 +21,6 @@ end
 
 local REQUEST   = {}
 
-function REQUEST:enter_room(args, ... )
-	-- body
-	assert(false)
-end
-
-function REQUEST:leave_room(args, ... )
-	-- body
-end
-
 function REQUEST:ready(args, ... )
 	-- body
 	local controller = self:get_controller("game")
@@ -106,6 +97,11 @@ end
 
 local RESPONSE = {}
 
+function RESPONSE:enter_room(args, ... )
+	-- body
+	assert(args.errorcode == errorcode.SUCCESS)
+end
+
 function RESPONSE:mp( ... )
 	-- body
 end
@@ -151,21 +147,22 @@ skynet.register_protocol {
 
 local CMD = {}
 
--- forward agent
--- start
 function CMD:enter_room(source, conf, ... )
 	-- body
 	assert(self:get_players_count() <= 3)
 	local uid = conf.uid
 	local p = player.new(self, uid, source)
 	self:add(p)
+
+	local myplayer = {}
+	myplayer.uid = uid
+
 	local players = {}
 	local last = p:get_last()
 	if last then
-		local player = {}
-		player.uid = uid
+		myplayer.orientation = 1
 		local agent = assert(last:get_agent())
-		local info = skynet.call(agent, "lua", "enter_room", player)
+		local info = skynet.call(agent, "lua", "enter_room", myplayer)
 		local player = {
 			name = info.name,
 			orientation = -1,
@@ -174,10 +171,9 @@ function CMD:enter_room(source, conf, ... )
 	end
 	local next = p:get_next()
 	if next then
-		local player = {}
-		player.uid = uid
+		myplayer.orientation = -1
 		local agent = assert(last:get_agent())
-		local info = skynet.call(agent, "lua", "enter_room", player)
+		local info = skynet.call(agent, "lua", "enter_room", myplayer)
 		local player = {
 			name = info.name,
 			orientation = 1
@@ -190,15 +186,12 @@ function CMD:enter_room(source, conf, ... )
 	return res
 end
 
-function CMD:leave_room(source, ... )
+function CMD:leave_room(source, uid, ... )
 	-- body
-end
-
-function CMD:afk(source, fd)
-	-- body
-	local player = self:get_player_by_fd(fd)
-	local uid = player:get_uid()
-	log.print_info("agent uid = %d) disconnect", uid)
+	log.info("room leave_room: %d", uid)
+	local player = self:get_player_by_uid(uid)
+	self:remove(player)
+	skynet.call(".ROOM_MGR", "lua", "leave_room", uid)
 end
 
 skynet.start(function ()

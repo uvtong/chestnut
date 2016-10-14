@@ -1,6 +1,6 @@
 package.path = "./../../module/host/gated/?.lua;" .. package.path
 local skynet = require "skynet"
-local msgserver = require "msgserver"
+local msgserver = require "snax.msgserver"
 local crypt = require "crypt"
 local netpack = require "netpack"
 local log = require "log"
@@ -26,7 +26,7 @@ function server.login_handler(source, uid, secret, ...)
 	internal_id = internal_id + 1
 	local id = internal_id	-- don't use internal_id directly
 	local username = msgserver.username(uid, id, servername)
-	print(uid, id, servername)
+	print(uid, id, servername, username)
 
 	-- you can use a pool to alloc new agent
 	-- local agent = skynet.newservice "agent"
@@ -147,7 +147,8 @@ end
 function server.register_handler(name)
 	skynet.error(string.format("reister gate server: %s", name))
 	servername = name
-	skynet.call(loginservice, "lua", "register_gate", servername, skynet.self())
+	local gated = skynet.getenv "gated"
+	skynet.call(loginservice, "lua", "register_gate", servername, skynet.self(), gated)
 end
 
 msgserver.start(server)
