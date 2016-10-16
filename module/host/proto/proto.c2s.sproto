@@ -87,24 +87,29 @@ rob 7 {
     }
     response {
         errorcode 0 : integer
-        your_turn 1 : integer
-        countdown 2 : integer
+        rob       1 : integer
+        your_turn 2 : integer
+        countdown 3 : integer
+        confirm   4 : boolean
+        dz        5 : integer
     }
 }
 
 lead 8 {
     request {
-        uid 0 : integer
-        cards 1 : *integer
+        uid   0 : integer
+        lead  1 : boolean
+        cards 2 : *integer
     }
     response {
-        errorcode 0 : integer
-        turn      1 : boolean
-        your_turn 2 : integer
-        countdown 3 : integer
-        settlement 4 : boolean
-        ranked1 5 : settlement
-        ranked2 6 : settlement
-        ranked3 7 : settlement
+        errorcode  0 : integer
+        cards      1 : *integer
+        turn       2 : boolean
+        your_turn  3 : integer
+        countdown  4 : integer
+        settlement 5 : boolean
+        ranked1    6 : settlement
+        ranked2    7 : settlement
+        ranked3    8 : settlement
     }
 }

@@ -3,6 +3,8 @@ local center = require "notification_center"
 local gamecontroller = require "gamecontroller"
 local card = require "card"
 local env = require "env"
+local player = require "player"
+local log = require "log"
 local cls = class("context", env)
 
 function cls:ctor( ... )
@@ -23,16 +25,28 @@ function cls:ctor( ... )
 	return self
 end
 
+function cls:create_player(uid, agent, ... )
+	-- body
+	assert(#self._players < 3)
+	if self._uid_player[uid] then
+		log.info("this player has enter")
+		return nil
+	else
+		local p = player.new(self, uid, agent)
+		self:add(p)
+		return p
+	end
+end
+
 function cls:add(player, ... )
 	-- body
 	local uid = player:get_uid()
 	self._uid_player[uid] = player
 	local agent = player:get_agent()
 	self._agent_player[agent] = player
-
 	local sz = #self._players
+	table.insert(self._players, player)
 	if sz == 0 then
-		table.insert(self._players, player)
 	elseif sz == 1 then
 		local last = self._players[1]
 		last:set_next(player)
@@ -90,6 +104,14 @@ end
 function cls:get_player_by_fd(fd, ... )
 	-- body
 	return self._fd_player[fd]
+end
+
+-- only for player
+function cls:clear( ... )
+	-- body
+	self._players = {}
+	self._uid_player = {}
+	self._fd_player = {}
 end
 
 function cls:init_cards( ... )
@@ -156,6 +178,7 @@ end
 
 function cls:shuffle( ... )
 	-- body
+	self._fapai_idx = 0
 	return self._front_cards
 end
 
@@ -168,20 +191,23 @@ end
 
 function cls:rest_of_deal( ... )
 	-- body
+	assert(#self._front_cards == 54)
 	assert(self._fapai_idx >= 0 and self._fapai_idx <= 54)
 	return 54 - self._fapai_idx
+end
+
+function cls:get_pack_cards( ... )
+	-- body
+	local cards = {}
+	for i,card in ipairs(self._front_cards) do
+		table.insert(cards, card:get_value())
+	end
+	return cards
 end
 
 function cls:get_controller(name, ... )
 	-- body
 	return self._controllers[name]
-end
-
-function cls:clear( ... )
-	-- body
-	self._players = {}
-	self._uid_player = {}
-	self._fd_player = {}
 end
 
 return cls

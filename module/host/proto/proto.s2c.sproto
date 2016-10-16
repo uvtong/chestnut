@@ -66,10 +66,12 @@ am 6 {
 
 rob 7 {
     request {
-        uid 0 : integer
-        rob 1 : integer
+        uid       0 : integer
+        rob       1 : integer
         your_turn 2 : integer
         countdown 3 : integer
+        confirm   4 : boolean
+        dz        5 : integer
     }
     response {
         errorcode 0 : integer
@@ -79,7 +81,7 @@ rob 7 {
 lead 8 {
     request {
         uid 0 : integer
-        cards 1 : integer
+        cards 1 : *integer
         turn 2 : boolean
         your_turn 3 : integer
         countdown 4 : integer

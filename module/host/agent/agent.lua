@@ -56,28 +56,21 @@ end
 
 function REQUEST:enter_room(args, ... )
 	-- body
-	local uid = self:get_uid()
-	log.info("agent (uid = %d) request : enter_room", uid)
 	local rule = args.rule
 	local mode = args.mode
 	local scene = args.scene
 	local uid = self:get_uid()
 	local room = skynet.call(".ROOM_MGR", "lua", "enqueue", uid, rule, mode, scene)
-	assert(room.size <= 3)
 	self:set_room(room)
-	
-	local roomid = room.roomid
-	local conf = {
-		uid     = self:get_uid(),
-		agent   = skynet:self()
-	}
-	return skynet.call(roomid, "lua", "enter_room", conf)
+	local res = skynet.call(room, "client", "enter_room", uid, skynet.self())
+	assert(type(res) == "table")
+	return res
 end
 
 function REQUEST:ready(args, ... )
 	-- body
 	local room = self:get_room()
-	return skynet.call(room.roomid, "client", "ready", args)
+	return skynet.call(room, "client", "ready", args)
 end
 
 function REQUEST:mp(args, ... )
@@ -105,29 +98,38 @@ function REQUEST:lead(args, ... )
 end
 
 local function request(name, args, response)
-	log.info("agent request: %s", name)
+	log.info("agent [%s] request", name)
     local f = REQUEST[name]
     local ok, result = pcall(f, ctx, args)
     if ok then
     	return response(result)
     else
     	log.error(result)
-    	local ret = {}
-    	ret.errorcode = errorcode.FAIL
-    	return response(ret)
     end
 end      
 
 function RESPONSE:enter_room(args, ... )
 	-- body
-	assert(args.errorcode == errorcode.SUCCESS)
+	local room = self:get_room()
+	skynet.send(room, "client", "enter_room", args)
+end
+
+function RESPONSE:ready(args, ... )
+	-- body
+	local room = self:get_room()
+	skynet.send(room, "client", "ready", args)
+end
+
+function RESPONSE:rob(args, ... )
+	-- body
+	local room = self:get_room()
+	skynet.send(room, "client", "rob", args)
 end
 
 function RESPONSE:deal(args, ... )
 	-- body
 	local room = self:get_room()
-	local roomid = roomid
-	skynet.send(roomid, "client", "RESPONSE", name, args)
+	skynet.send(room, "client", "ready", args)
 end
 
 local function response(session, args)
@@ -161,7 +163,7 @@ skynet.register_protocol {
 					ctx:send_package(result)
 				end
 			else
-				skynet.error(result)
+				log.error(result)
 			end
 		elseif type == "RESPONSE" then
 			pcall(response, ...)
@@ -171,14 +173,16 @@ skynet.register_protocol {
 	end
 }
 
--- push new player to client.
+-- called by room
 function CMD:enter_room(source, player, ... )
 	-- body
 	local players = {}
 	table.insert(players, player)
-	self:send_request("enter_room", players)
+	self:send_request("enter_room", { players=players })
+	return { name = "xiaomiao" }
 end
 
+-- called by room
 function CMD:ready(source, args, ... )
 	-- body
 	self:send_request("ready", args)
@@ -195,11 +199,14 @@ end
 -- prohibit mult landing
 function CMD:logout(source)
 	-- body
-	local uid = send:get_uid()
-	skynet.error(string.format("%s is logout", uid))
+	local uid = self:get_uid()
+	log.info("user %d logout", uid)
 	self:logout()
 	local room = self:get_room()
-	skynet.call(room.roomid, "lua", "leave_room", self:get_uid())
+	if room then
+		skynet.call(room, "lua", "leave_room", uid)
+		self:set_room(nil)
+	end
 	return true
 end
 
@@ -213,8 +220,6 @@ end
 
 -- begain to wait for client
 function CMD:start(source, conf)
-	local uid = self:get_uid()
-	log.info("agent (uid = %d) start", uid)
 	local fd      = assert(conf.client)
 	local version = assert(conf.version)
 	local index   = assert(conf.index)
@@ -235,12 +240,15 @@ end
 
 skynet.start(function()
 	skynet.dispatch("lua", function(_, source, cmd, ...)
-		log.info("agent is called: %s", cmd)
+		log.info("agent [%s] is called", cmd)
 		local f = assert(CMD[cmd])
-		local result = f(ctx, source, ... )
-		if result ~= noret then
-			assert(result)
-			skynet.ret(skynet.pack(result))
+		local ok, err = pcall(f, ctx, source, ...) 
+		if ok then
+			if err ~= noret then
+				skynet.retpack(err)
+			end
+		else
+			log.error(err)
 		end
 	end)
 	-- slot 1,2 set at main.lua

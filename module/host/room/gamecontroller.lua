@@ -11,16 +11,20 @@ function cls:ctor(env, name, ... )
 	assert(env and name)
 	cls.super.ctor(self, env, name)
 	
+	self._state = gs.CLOSE
 	self._ready_count = 0
 
-	self._first_rob_player = false
-	self._rob_player = false
-	self._dz_player = false
+	-- cur deal player
+	self._deal_player = nil
 	self._deal_dz_cards = {}
 	self._dz_cards = {}
+
+	self._first_rob_player = nil
+	self._rob_player = nil
+
+	self._dz_player = nil
 	
-	self._deal_player = false
-	self._state = gs.CLOSE
+	self._lead_player = nil
 end
 
 function cls:update(delta, ... )
@@ -32,12 +36,25 @@ end
 
 function cls:start(t, ... )
 	-- body
-	self._ready_count = 0
 	self._state = gs.START
-	self._first_rob_player = false
-	self._dz_player = false
-	self._deal_player = false
+
+	self._ready_count = 0
+
+	self._deal_player = nil
+	self._deal_dz_cards = {}
 	self._dizhu_cards = {}
+
+	self._first_rob_player = nil
+	self._rob_player = nil
+
+	self._dz_player = nil
+
+	self._lead_player = nil
+
+	local players = self:get_players()
+	for i,player in ipairs(players) do
+		player:start()
+	end
 end
 
 function cls:close( ... )
@@ -46,7 +63,24 @@ end
 
 function cls:confirm_readiness(player, ... )
 	-- body
-	self:deal_cards_starting()
+	local players = self:players()
+	if players[1]:get_state() == player.state.READY and
+		players[2]:get_state() == player.state.READY and
+		players[3]:get_state() == player.state.READY then
+		local r = math.random(1, 3)
+		if r == 1 then
+			self._first_rob_player = self._myplayer
+		elseif r == 2 then
+			self._first_rob_player = self._rightplayer
+		elseif r == 3 then
+			self._first_rob_player = self._leftplayer
+		end
+		local p = self._first_rob_player
+		self:deal_cards_starting(p)
+		return true
+	else
+		return false
+	end
 end
 
 -- 发牌七个函数
@@ -83,8 +117,7 @@ function cls:deal( ... )
 			self:insert_card(self._dz_cards, card)
 			self:deal_dz_cb(card)
 		else
-			-- self:rob_starting()
-
+			self:rob_starting()
 		end
 	end
 end
@@ -132,47 +165,19 @@ function cls:deal_dz_cb(c, ... )
 	self:deal()
 end
 
-function cls:send_request_deal( ... )
-	-- body
-	local cards = {}
-	for i,card in ipairs(self._deal_dz_cards) do
-		local v = card:get_value()
-		table.insert(cards, v)
-	end
-	local players = self._env:get_players()
-	for i=1,3 do
-		local player = players[i]
-		player:send_request_deal(cards)
-	end
-end
-
 -- 开始抢地主
 function cls:rob_starting( ... )
 	-- body
-	if self._type == gt.SINGLE then
-		self._state = gs.ROB
-		local rand = 1
-		if rand == 1 then
-			self._first_rob_player = self._myplayer
-			self._myplayer:ready_for_rob()
-		end
-	elseif self._type == gt.NETWORK then
-	else
-		assert(false)
-	end
+	self._state = gs.ROB
+	self._first_rob_player:ready_for_rob()
+	self._rob_player = self._first_rob_player
 end
 
 function cls:take_turn_to_rob(last)
 	assert(last)
 	local next = assert(last:get_next())
 	next:ready_for_rob()
-end
-
-function cls:rob(player, flag, ... )
-	-- body
-	assert(self._state == gs.ROB)
-	assert(player == self._rob_player)
-	player:rob(flag)
+	self._rob_player = next
 end
 
 -- 判断谁是地主
@@ -231,103 +236,85 @@ function cls:take_turn_to_lead(last, g, ... )
 	end
 end
 
-function cls:on_ready(args, ... )
-	local uid = args.uid
-	local ready = args.ready
-	local player = assert(self:get_player_by_uid(uid))
-	if player:get_ready() then
-		assert(false, "client send error message.")
+function cls:confirm_over(player, ... )
+	-- body
+	local cards = player:get_cards()
+	if #cards == 0 then
+		self._state = gs.CLOSE
+		-- self._scene
+		return true
 	else
-		self._ready_count = self._ready_count + 1
-		player:set_ready(ready)
-	end
-	if self._ready_count >= 3 then
-		self:deal_cards_starting(player)
-
-		local dcards = {}
-		for i,card in ipairs(self._dz_cards) do
-			dcards[i] = card:get_value()
-		end
-		args.deal = true
-		args.dcards = dcards
-		args.your_turn = uid
-		args.countdown = 10
-
-		local last = assert(player:get_last())
-		if last then
-			local llast = assert(last:get_last())
-			args.lcards = llast:get_cards_value()
-			local lnext = assert(last:get_next())
-			args.rcards = lnext:get_cards_value()
-			local agent = last:get_agent()
-			skynet.send(agent, "lua", "ready", args)
-		end
-
-		local next = assert(player:get_next())
-		if next then
-			local nlast = assert(next:get_last())
-			args.lcards = nlast:get_cards_value()
-			local nnext = assert(next:get_next())
-			args.rcards = nnext:get_cards_value()
-			local agent = next:get_next()
-			skynet.send(agent, "lua", "ready", args)
-		end
-
-		local res = {}
-		res.errorcode = errorcode.SUCCESS
-		res.deal = true
-		res.lcards = last:get_cards_value()
-		res.rcards = next:get_cards_value()
-		
-		res.dcards = dcards
-		res.your_turn = uid
-		res.countdown = 10
-		return res
-	else
-		args.deal = false
-		local last = player:get_last()
-		if last then
-			local agent = last:get_agent()
-			skynet.send(agent, "lua", "ready", args)
-		end
-
-		local next = player:get_next()
-		if next then
-			local agent = next:get_next()
-			skynet.send(agent, "lua", "ready", args)
-		end
-		local res = {}
-		res.errorcode = errorcode.SUCCESS
-		res.deal = false
-		return res
+		return false
 	end
 end
 
 function cls:ready(player, flag, ... )
 	-- body
 	assert(player)
-	player:set_ready(flag)
-	self._ready_count = self._deal_player + 1
-	if self._ready_count == 3 then
-		-- self:confirm_readiness()
-		self:deal_cards_starting(player)
+	if flag then
+		local res = {}
+		player:set_state(player.state.READY)
+		if self:confirm_readiness() then
+			self._first_rob_player:
+			res.uid = player:get_uid()
+			res.ready = flag
+			res.errorcode = errorcode.SUCCESS
+			res.deal = true
+			res.cards = self:get_pack_cards()
+			res.your_turn = self._first_rob_player:get_uid()
+			res.countdown = 10
+
+			return res
+		else
+			res.uid = player:get_uid()
+			res.ready = flag
+			res.errorcode = errorcode.SUCCESS
+			res.deal = false
+		end
+		local last = player:get_last()
+		skynet.send(last:get_agent(), "lua", "ready", res)
+		local next = player:get_next()
+		skynet.send(next:get_agent(), "lua", "ready", res)
+		return res
+	else
+		log.error("player %d ready is false", player:get_uid())
 	end
 end
 
-function cls:on_rob(args, ... )
+function cls:rob(player, flag, ... )
 	-- body
+	assert(self._dz_player == nil)
+	assert(self._state == gs.ROB)
+	assert(self._rob_player == player)
+	assert(type(flag) == "number")
+	flag = flag > 0 and true or false
+	player:rob(flag)
+	local res = {}
+	res.errorcode = errorcode.SUCCESS
+	res.uid = player:get_uid()
+	res.rob = flag
+	if self._dz_player then
+		res.confirm = true
+		res.dz = self._dz_player:get_uid()
+	else
+		res.confirm = false
+		res.your_turn = player:get_next():get_uid()
+		res.countdown = 10
+	end
+	local last = player:get_last()
+	skynet.send(last:get_agent(), "lua", "rob", res)
+	local next = player:get_next()
+	skynet.send(next:get_agent(), "lua", "rob", res)
+	return res
 end
 
-function cls:rob( ... )
+function cls:lead(player, flag, cards, ... )
 	-- body
-end
+	assert(self._state == gs.LEAD)
+	if flag then
 
-function cls:on_lead(args, ... )
-	-- body
-end
-
-function cls:lead(args, ... )
-	-- body
+	else
+	end
 end
 
 return cls

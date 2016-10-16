@@ -1,22 +1,16 @@
 local skynet = require "skynet"
 require "skynet.manager"
 local skynet_queue = require "skynet.queue"
-local pqueue = require "priority_queue"
+local queue = require "queue"
+local assert = assert
+
+local noret = {}
 local rt_room_queue = {}
-local uid_agent = {}  -- 
+local users = {}  -- uid -> agent ->room
 
 local cs1 = skynet_queue()
 local cs2 = skynet_queue()
 local cs3 = skynet_queue()
-
-local assert = assert
-
-local function compare(a, b, ... )
-	-- body
-	return a.size > b.size
-end
-
-local noret = {}
 
 local function init( ... )
 	-- body
@@ -24,7 +18,7 @@ local function init( ... )
 	local mode = 1
 	local scene = 1
 	local rt = (scene << 24 | mode << 16 | rule << 8)
-	rt_room_queue[rt] = pqueue.new(15, compare)
+	rt_room_queue[rt] = queue.new(15)
 end
 
 local function incre_room(room, ... )
@@ -54,7 +48,7 @@ local function enqueue(q, room, ... )
 	assert(q and room)
 	local function func1(q, room, ... )
 		-- body
-		pqueue.enqueue(q, room)
+		queue.enqueue(q, room)
 		room.in_queue = true
 	end
 	return cs2(func1, q, room)
@@ -74,43 +68,15 @@ end
 
 local function get_room(q, ... )
 	-- body
-	assert(q)
-	local sz = pqueue.size(q)
+	local sz = queue.size(q)
 	if sz > 0 then
-		local room = dequeue(q)
+		local room = queue.peek(q)
 		assert(room)
 		return room
 	else
 		local roomid = skynet.newservice("room/room")
 		local room = { roomid=roomid, size=0, in_queue=false}
-		return room
-	end
-end
-
-local function enqueue_agent(agent, ... )
-	-- body
-	assert(agent)
-	local uid = agent.uid
-	local a = uid_agent[uid]
-	if a and a.room then
-		return a.room
-	else
-		local rule = assert(agent.rule)
-		local mode = assert(agent.mode)
-		local scene = assert(agent.scene)
-		local rt = (scene << 24 | mode << 16 | rule << 8)
-		local q = assert(rt_room_queue[rt])
-		local room = get_room(q)
-		agent.room = room
-		
-		uid_agent[uid] = agent
-
-		incre_room(room)
-
-		if room.size >= 3 then
-		else
-			enqueue(q, room)
-		end
+		enqueue(q, room)
 		return room
 	end
 end
@@ -119,16 +85,24 @@ local CMD = {}
 
 function CMD.enqueue(source, uid, rule, mode, scene, ... )
 	-- body
-	-- jude 
+	
 	local agent = {
-		source = source,
+		agent = source,
 		uid = uid,
 		rule = rule,
 		mode = mode,
 		scene = scene
 	}
-	local room = assert(enqueue_agent(agent))
-	return room
+	assert(users[uid] == nil)
+	users[uid] = agent
+	local rt = (scene << 24 | mode << 16 | rule << 8)
+	local q = assert(rt_room_queue[rt])
+	local room = get_room(q)
+	if room.size >= 3 then
+		dequeue(q, room)
+	end
+	agent.room = room
+	return room.roomid
 end
 
 function CMD.dequeue(source, uid, ... )
@@ -142,6 +116,7 @@ function CMD.leave_room(source, uid, ... )
 	local agent = assert(uid_agent[uid])
 	local room = agent.room
 	decre_room(room)
+	users[uid] = nil
 	return true
 end
 

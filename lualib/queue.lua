@@ -53,6 +53,11 @@ function _M.dequeue(q)
 	end
 end
 
+function _M.peek(q, ... )
+	-- body
+	return q.__data[q.__head]
+end
+
 function _M.is_empty(q)
 	-- body
 	return (q.__size == 0)
