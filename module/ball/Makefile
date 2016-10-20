@@ -24,4 +24,4 @@ $(LUA_CLIB_PATH)/float.so: $(CLIB_SRC_PATH)/float.c | $(LUA_CLIB_PATH)
 all: $(LUA_CLIB_PATH)/aoiaux.so $(LUA_CLIB_PATH)/float.so
 
 clean:
-	rm -rf $(LUA_CLIB_PATH)/test.so $(LUA_CLIB_PATH)/aoiaux.so
+	rm -rf $(LUA_CLIB_PATH)/aoiaux.so $(LUA_CLIB_PATH)/float.so

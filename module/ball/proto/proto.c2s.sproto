@@ -19,6 +19,7 @@
     dy        10: integer
     dz        11: integer
     vel       12: integer
+    ballid    13: integer
 }
 
 handshake 1 {
@@ -46,9 +47,8 @@ born 3 {
     }
 }
 
-test 4 {
+leave 4 {
     response {
         errorcode 0 : integer
-        msg       1 : integer
     }
 }

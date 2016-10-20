@@ -19,6 +19,7 @@
     dy        10: integer
     dz        11: integer
     vel       12: integer
+    ballid    13: integer
 }
 
 handshake 1 {
@@ -39,6 +40,7 @@ born 2 {
 leave 3 {
     request {
         session 0 : integer
+        ballid  1 : *integer
     }
     response {
         errorcode 0 : integer

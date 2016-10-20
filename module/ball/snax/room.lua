@@ -7,6 +7,7 @@ local crypt = require "crypt"
 local room_scene = require "room.scene"
 local log = require "log"
 local list = require "list"
+local player = require "player"
 
 -- context variable
 local max_number = 4
@@ -14,8 +15,15 @@ local roomid
 local gate
 local users = {}
 local aoi
-local scene
+
+local last = 0
+
+-- room object
 local map
+local view
+local scene
+local session_ball_id = {}
+local session_players = {}
 
 --[[
 	4 bytes localtime
@@ -24,29 +32,60 @@ local map
 	padding data
 ]]
 
+local function gen_ball_id(session, ... )
+	-- body
+	local id = session_ball_id[session]
+	if id then
+		id = id + 1
+		session_ball_id[session] = id
+		return (id << 32 & session)
+	else
+		id = 1
+		session_ball_id[session] = id
+		return (id << 32 & session)
+	end
+end
+
+local function tick( ... )
+	-- body
+	while true do 
+		skynet.send(aoi, "lua", "message")
+		skynet.sleep(10)
+	end
+end
+
 function accept.update(data)
-	skynet.error(#data)
 	local session, protocol = string.unpack("<II", data, 9)
 	if protocol == 1 then
 		local px, py, pz, dx, dy, dz = string.unpack("<ffffff", data, 17)
 		log.info("px:%f, py:%f, pz:%f, dx:%f, dy:%f, dz:%f", px, py, pz, dx, dy, dz)
 		local position = math3d.vector3(px, py, pz)
 		local direction = math3d.vector3(dx, dy, dz)
-		scene:update(session, position, direction)
+		
 		local time = skynet.now()
 		snax.printf("globletime: %d", time)
 		local padding = string.pack("<I", 1)
+
+		local delta = time - last
+		scene:update(delta, session, position, direction)
+
 		data = string.pack("<I", time) .. data .. padding
-		snax.printf("length of data: %d", #data)
+		-- data = data:sub(1, 20)
+		-- local ball = users[session].ball
+		-- local pos = ball:pack_pos()
+		-- local dir = ball:pack_dir()
+		-- data = data .. pos .. dir .. padding
+
 		for s,v in pairs(users) do
 			gate.post.post(s, data)
 		end
 	end
 end
 
-function accept.message( ... )
+-- called by aoi
+function accept.aoi_message(watcher, marker, ... )
 	-- body
-	local ba = 1
+	scene:update(watcher, marker)
 end
 
 function response.join(agent, secret)
@@ -64,6 +103,8 @@ function response.join(agent, secret)
 		session = gate.req.register(skynet.self(), secret),
 	}
 	users[user.session] = user
+	local p = player.new(session)
+	session_players[session] = p
 
 	-- return all balls
 	local head = scene._list
@@ -81,6 +122,7 @@ function response.join(agent, secret)
 		res.errorcode = errorcode.SUCCESS
 		res.uid = ball:get_uid()
 		res.session = ball:get_session()
+		res.ballid = ball:get_id()
 		res.radis = radis
 		res.length = length
 		res.width = width
@@ -99,6 +141,7 @@ function response.join(agent, secret)
 end
 
 function response.leave(session)
+
 	for k,v in pairs(users) do
 		if k ~= session then
 			local agent = v.agent
@@ -120,10 +163,17 @@ end
 
 function response.born(session, source, uid, ... )
 	-- body
-	local b = scene:born(source, session)
-	b:set_uid(uid)
-	local ball = b
-	assert(ball)
+	local ballid = gen_ball_id(session)
+	local ball =assert(scene:setup_ball(source, session, ballid))
+	ball:set_uid(uid)
+
+	local user = assert(users[session])
+	user.ball = ball
+
+	local pos = ball:get_pos()
+	local x, y, z = pos:unpack()
+	skynet.send(aoi, "lua", "update", session, "wm", x, y, z)
+
 	local radis = ball:get_radis()
 	local length = ball:get_length()
 	local width = ball:get_width()
@@ -132,6 +182,7 @@ function response.born(session, source, uid, ... )
 	res.errorcode = errorcode.SUCCESS
 	res.uid = uid
 	res.session = session
+	res.ballid = ball:get_id()
 	res.radis = radis
 	res.length = length
 	res.width = width
@@ -146,7 +197,6 @@ function response.born(session, source, uid, ... )
 
 	for k,v in pairs(users) do
 		if k ~= session then
-			snax.printf("test this is passed.")
 			local agent = v.agent
 			agent.post.born({ b = res })
 		end
@@ -155,12 +205,23 @@ function response.born(session, source, uid, ... )
 	return { errorcode = errorcode.SUCCESS, b = res }
 end
 
+function response.start( ... )
+	-- body
+	last = skynet.now()
+end
+
 function init(id, udpserver)
 	roomid = id
 	gate = snax.bind(udpserver, "udpserver")
 	aoi = skynet.newservice("aoi")
+	local conf = {}
+	conf.handle = snax.self().handle
+	skynet.call(aoi, "lua", "start", conf)
 	scene = room_scene.new()
-	map = scene:create_map()
+	view = scene:setup_view()
+	map = scene:setup_map()
+
+	skynet.fork(tick)
 end
 
 function exit()

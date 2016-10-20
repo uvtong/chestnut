@@ -1,8 +1,11 @@
 local math3d = require "math3d"
 local cls = class("map")
 
-function cls:ctor( ... )
+function cls:ctor(scene, ... )
 	-- body
+	assert(scene)
+	self._scene = scene
+
 	local min = math3d.vector3(0, 0, 0)
 	local max = math3d.vector3(100, 100, 0)
 	self._aabb = math3d.aabb(min, max)

@@ -3,28 +3,32 @@ local float = require "float"
 local assert = assert
 local cls = class("ball")
 
-function cls:ctor(agent, session, radis, length, width, height, pos, dir, vel, ... )
+function cls:ctor(id, scene, agent, session, radis, length, width, height, pos, dir, vel, ... )
 	-- body
-	assert(agent and session)
+	assert(id and scene and agent and session)
+	self._scene = scene
 	self._agent = agent
 	self._session = session
 	self._uid = 0
+	self._idx = 0
+	self._id = id
 
 	-- data
 	self._radis = radis
 	self._length = length
 	self._width = width
 	self._height = height
-	self._position = pos
-	self._direction = dir
-	self._vel = vel
 	
+	self._pos = pos
+	self._dir = dir
+	self._vel = vel
+
 	self:cal_aabb()
 end
 
 function cls:cal_aabb( ... )
 	-- body
-	local x, y, z = self._position:unpack()
+	local x, y, z = self._pos:unpack()
 	local nx = x - (self._length / 2)
 	local ny = y - (self._width / 2)
 	local nz = z - (self._height / 2)
@@ -36,9 +40,9 @@ function cls:cal_aabb( ... )
 	self._aabb = math3d.aabb(min, max)
 end
 
-function cls:set_uid(uid, ... )
+function cls:get_id( ... )
 	-- body
-	self._uid = uid
+	return self._id
 end
 
 function cls:get_uid( ... )
@@ -46,14 +50,34 @@ function cls:get_uid( ... )
 	return self._uid
 end
 
+function cls:set_uid(uid, ... )
+	-- body
+	self._uid = uid
+end
+
 function cls:get_session( ... )
 	-- body
 	return self._session
 end
 
-function cls:get_radis( ... )
+function cls:set_session(value, ... )
 	-- body
-	return self._radis
+	self._session = value
+end
+
+function cls:set_idx(idx, ... )
+	-- body
+	self._idx = idx
+end
+
+function cls:get_idx( ... )
+	-- body
+	return self._idx
+end
+
+function cls:get_radis( ... )
+ 	-- body
+ 	return self._radis
 end
 
 function cls:get_length( ... )
@@ -71,6 +95,31 @@ function cls:get_height( ... )
 	return self._height
 end
 
+function cls:get_dir( ... )
+	-- body
+	return self._dir
+end
+
+function cls:set_dir(copy, ... )
+	-- body
+	self._dir:copy(copy)
+end
+
+function cls:get_vel( ... )
+	-- body
+	return self._vel
+end
+
+function cls:set_vel(value, ... )
+	-- body
+	self._vel = value
+end
+
+function cls:get_pos( ... )
+	-- body
+	return self._pos
+end
+
 function cls:get_aabb( ... )
 	-- body
 	return self._aabb
@@ -78,71 +127,66 @@ end
 
 function cls:move_by(vec3, ... )
 	-- body
-	local x1, y1, z1 = self._position:unpack()
+	local x1, y1, z1 = self._pos:unpack()
 	local x2, y2, z2 = vec3:unpack()
 	local x = x1 + x2
 	local y = y1 + y2
 	local z = z1 + z2
-	self._position:pack(x, y, z)
+	self._pos:pack(x, y, z)
 end
 
 function cls:move_to(vec3, ... )
 	-- body
-	self._position:copy(vec3)
+	self._pos:copy(vec3)
 end
 
-function cls:set_direction(vec3, ... )
+function cls:pack_pos( ... )
 	-- body
-	self._direction:copy(vec3)
-end
-
-function cls:pack_position( ... )
-	-- body
-	local x, y, z = self._position:unpack()
+	local x, y, z = self._pos:unpack()
 	local res = string.pack("<fff", x, y, z)
 	return res
 end
 
 function cls:pack_sproto_px( ... )
 	-- body
-	local x, y, z = self._position:unpack()
+	local x, y, z = self._pos:unpack()
 	return float.encode(x)
 end
 
 function cls:pack_sproto_py( ... )
 	-- body
-	local x, y, z = self._position:unpack()
+	local x, y, z = self._pos:unpack()
 	return float.encode(y)
 end
 
 function cls:pack_sproto_pz( ... )
 	-- body
-	local x, y, z = self._position:unpack()
+	local x, y, z = self._pos:unpack()
 	return float.encode(z)
 end
 
-function cls:pack_direction( ... )
+function cls:pack_dir( ... )
 	-- body
-	local x, y, z = self._direction:unpack()
+	local x, y, z = self._dir:unpack()
 	local res = string.pack("<fff", x, y, z)
 	return res
 end
 
 function cls:pack_sproto_dx( ... )
 	-- body
-	local x, y, z = self._direction:unpack()
+	local x, y, z = self._dir:unpack()
 	return float.encode(x)
 end
 
 function cls:pack_sproto_dy( ... )
 	-- body
-	local x, y, z = self._direction:unpack()
+	local x, y, z = self._dir:unpack()
 	return float.encode(y)
 end
 
 function cls:pack_sproto_dz( ... )
 	-- body
-	local x, y, z = self._direction:unpack()
+	local x, y, z = self._dir:unpack()
 	return float.encode(z)
 end
 
@@ -155,18 +199,6 @@ end
 function cls:pack_sproto_vel( ... )
 	-- body
 	return float.encode(self._vel)
-end
-
-function cls:sync_position(buffer, ... )
-	-- body
-	local x, y, z = string.unpack("<fff", buffer)
-	self._position:pack(x, y, z)
-end
-
-function cls:sync_direction(buffer, ... )
-	-- body
-	local x, y, z = string.unpack("<fff", buffer)
-	self._direction:pack(x, y, z)
 end
 
 return cls
