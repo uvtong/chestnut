@@ -44,7 +44,7 @@ end
 
 function cls:setup_ball(agent, session, ballid, ... )
 	-- body
-	assert(agent and session)
+	assert(agent and session and ballid)
 	local radis = 4.0 -- 1 unity
 	local length = 3.0
 	local width = 3.0
@@ -58,23 +58,47 @@ function cls:setup_ball(agent, session, ballid, ... )
 	local vel = 1.0
 
 	local b = ball.new(ballid, self, agent, session, radis, length, width, height, position, direction, vel)
-	self._session_balls[session] = b
+	self._ballid_balls[ballid] = b
 	list.add(self._list, b)
 	return b
 end
 
-function cls:update_ball(delta, session, pos, dir, ... )
+function cls:update_ball(delta, ballid, pos, dir, ... )
 	-- body
-	local ball = self._session_balls[session]
-	ball:move_to(pos)
+	local ball = self._ballid_balls[ballid]
 	ball:set_dir(dir)
+	local vel = ball:get_vel()
+	local x, y, z = dir:unpack()
+	x = x * vel
+	y = y * vel
+	z = z * vel
+	local position = math3d.vector3(x, y, z)
+	ball:move_to(position)
 end
 
-function cls:leave(session, ... )
+function cls:leave(ballid, ... )
 	-- body
-	local ball = self._session_balls[session]
+	local ball = self._ballid_balls[ballid]
 	list.del(self._list, ball)
-	self._session_balls[session] = nil
+	self._ballid_balls[ballid] = nil
+end
+
+function cls:move(delta, ... )
+	-- body
+	local node = self._list.next
+	while node do
+		local ball = node.data
+		local dir = ball:get_dir()
+		local vel = ball:get_vel()
+		local dx, dy, dz = dir:unpack()
+		-- log.info("ballid:%d, %d, %d, %d", ball:get_id(), dx, dy, dz)
+		local px = dx * vel * delta
+		local py = dy * vel * delta
+		local pz = dz * vel * delta
+		ball:move_by(px, py, pz)
+		log.info("ballid:%d, %d, %d, %d", ball:get_id(), px, py, pz)
+		node = node.next
+	end
 end
 
 return cls

@@ -87,13 +87,11 @@ function client_request.born( ... )
 	return room.req.born(session, skynet.self(), uid)
 end
 
-function client_request.test( ... )
+function client_request.opcode(args, ... )
 	-- body
-	local num = float.encode(1.6)
-	local res = {}
-	res.errorcode = errorcode.SUCCESS
-	res.msg = num
-	return res
+	local session = ctx:get_session()
+	local room = ctx:get_room()
+	return room.req.opcode(session, args)
 end
 
 local client_response = {}

@@ -52,3 +52,12 @@ leave 4 {
         errorcode 0 : integer
     }
 }
+
+opcode 5 {
+    request {
+        code 0 : integer
+    }
+    response {
+        errorcode 0 : integer
+    }
+}

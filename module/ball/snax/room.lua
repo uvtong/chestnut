@@ -4,10 +4,11 @@ local errorcode = require "errorcode"
 local math3d = require "math3d"
 local float = require "float"
 local crypt = require "crypt"
-local room_scene = require "room.scene"
 local log = require "log"
 local list = require "list"
-local player = require "player"
+local room_scene = require "room.scene"
+local rooom_player = require "room.player"
+local opcodes = require "room.opcodes"
 
 -- context variable
 local max_number = 4
@@ -16,7 +17,8 @@ local gate
 local users = {}
 local aoi
 
-local last = 0
+local lasttick = 0
+local lastmove = 0
 
 -- room object
 local map
@@ -38,11 +40,13 @@ local function gen_ball_id(session, ... )
 	if id then
 		id = id + 1
 		session_ball_id[session] = id
-		return (id << 32 & session)
+		local idx = id << 32
+		return (idx | session)
 	else
 		id = 1
 		session_ball_id[session] = id
-		return (id << 32 & session)
+		local idx = id << 32
+		return (idx | session)
 	end
 end
 
@@ -50,35 +54,58 @@ local function tick( ... )
 	-- body
 	while true do 
 		skynet.send(aoi, "lua", "message")
-		skynet.sleep(10)
+		skynet.sleep(4)
+	end
+end
+
+local function move( ... )
+	-- body
+	while true do
+		local now = skynet.now()
+		local delta = (now - lastmove) * 100 -- s
+		scene:move(delta)
+		skynet.sleep(2)
 	end
 end
 
 function accept.update(data)
-	local session, protocol = string.unpack("<II", data, 9)
-	if protocol == 1 then
-		local px, py, pz, dx, dy, dz = string.unpack("<ffffff", data, 17)
-		log.info("px:%f, py:%f, pz:%f, dx:%f, dy:%f, dz:%f", px, py, pz, dx, dy, dz)
-		local position = math3d.vector3(px, py, pz)
-		local direction = math3d.vector3(dx, dy, dz)
-		
-		local time = skynet.now()
-		snax.printf("globletime: %d", time)
-		local padding = string.pack("<I", 1)
+	local sz = #data
+	if sz > 12 then
+		local session, protocol = string.unpack("<II", data, 9)
+		log.info("session: %d, protocol: %d", session, protocol)
+		if protocol == 1 then
 
-		local delta = time - last
-		scene:update(delta, session, position, direction)
+			-- local px, py, pz, dx, dy, dz = string.unpack("<ffffff", data, 17)
+			-- log.info("px:%f, py:%f, pz:%f, dx:%f, dy:%f, dz:%f", px, py, pz, dx, dy, dz)
+			-- local position = math3d.vector3(px, py, pz)
+			-- local direction = math3d.vector3(dx, dy, dz)
+			
+			local time = skynet.now()
+			snax.printf("globletime: %d", time)
+			local padding = string.pack("<I", 1)
 
-		data = string.pack("<I", time) .. data .. padding
-		-- data = data:sub(1, 20)
-		-- local ball = users[session].ball
-		-- local pos = ball:pack_pos()
-		-- local dir = ball:pack_dir()
-		-- data = data .. pos .. dir .. padding
+			-- local delta = time - last
+			-- scene:update(delta, session, position, direction)
+			data = string.pack("<I", time) .. data
+			-- data = data:sub(1, 20)
 
-		for s,v in pairs(users) do
-			gate.post.post(s, data)
+			local player = session_players[session]
+			local sz = #player:get_balls()
+			data = data .. string.pack("<I", sz)
+			if sz > 0 then
+				local ball = player:get_balls()[1]
+				local ballid = string.pack("<j", ball:get_id())
+				local pos = ball:pack_pos()
+				local dir = ball:pack_dir()
+				data = data .. ballid .. pos .. dir .. padding
+			end
+
+			for s,v in pairs(users) do
+				gate.post.post(s, data)
+			end
 		end
+	else
+		log.info("size of data %d", sz)
 	end
 end
 
@@ -103,8 +130,8 @@ function response.join(agent, secret)
 		session = gate.req.register(skynet.self(), secret),
 	}
 	users[user.session] = user
-	local p = player.new(session)
-	session_players[session] = p
+	local player = rooom_player.new(user.session)
+	session_players[user.session] = player
 
 	-- return all balls
 	local head = scene._list
@@ -141,14 +168,17 @@ function response.join(agent, secret)
 end
 
 function response.leave(session)
-
+	local player = session_players[session]
+	local balls = player:get_balls()
+	for k,v in pairs(balls) do
+		scene:leave(v:get_id())
+	end
 	for k,v in pairs(users) do
 		if k ~= session then
 			local agent = v.agent
 			agent.post.leave({ session = session })
 		end
 	end
-	scene:leave(session)
 	gate.req.unregister(session)
 	users[session] = nil
 end
@@ -164,15 +194,16 @@ end
 function response.born(session, source, uid, ... )
 	-- body
 	local ballid = gen_ball_id(session)
+	assert(ballid ~= 0)
 	local ball =assert(scene:setup_ball(source, session, ballid))
 	ball:set_uid(uid)
 
-	local user = assert(users[session])
-	user.ball = ball
+	local player = session_players[session]
+	player:add(ball)
 
 	local pos = ball:get_pos()
 	local x, y, z = pos:unpack()
-	skynet.send(aoi, "lua", "update", session, "wm", x, y, z)
+	skynet.send(aoi, "lua", "update", ballid, "wm", x, y, z)
 
 	local radis = ball:get_radis()
 	local length = ball:get_length()
@@ -205,9 +236,33 @@ function response.born(session, source, uid, ... )
 	return { errorcode = errorcode.SUCCESS, b = res }
 end
 
-function response.start( ... )
+function response.opcode(session, args, ... )
 	-- body
-	last = skynet.now()
+	local player = session_players[session]
+	if player then
+		log.info("has this player")
+		if args.code == opcodes.OPCODE_PRESSUP then
+			local dir = math3d.vector3(0, 0, 1)
+			assert(dir)
+			player:change_dir(dir)
+		elseif args.code == opcodes.OPCODE_PRESSRIGHT then
+			local dir = math3d.vector3(1, 0, 0)
+			assert(dir)
+			player:change_dir(dir)
+		elseif args.code == opcodes.OPCODE_PRESSDOWN then
+			local dir = math3d.vector3(0, 0, -1)
+			assert(dir)
+			player:change_dir(dir)
+		elseif args.code == opcodes.OPCODE_PRESSLEFT then
+			local dir = math3d.vector3(-1, 0, 0)
+			assert(dir)
+			player:change_dir(dir)
+		end
+		return {errorcode = errorcode.SUCCESS}
+	else
+		log.info("no this player")
+		return { errorcode = errorcode.FAIL }
+	end
 end
 
 function init(id, udpserver)
@@ -221,7 +276,10 @@ function init(id, udpserver)
 	view = scene:setup_view()
 	map = scene:setup_map()
 
+	lasttick = skynet.now()
+	lastmove = skynet.now()
 	skynet.fork(tick)
+	skynet.fork(move)
 end
 
 function exit()

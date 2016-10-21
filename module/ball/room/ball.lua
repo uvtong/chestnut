@@ -12,6 +12,7 @@ function cls:ctor(id, scene, agent, session, radis, length, width, height, pos, 
 	self._uid = 0
 	self._idx = 0
 	self._id = id
+	self._player = nil
 
 	-- data
 	self._radis = radis
@@ -75,6 +76,16 @@ function cls:get_idx( ... )
 	return self._idx
 end
 
+function cls:set_player(player, ... )
+	-- body
+	self._player = player
+end
+
+function cls:get_player( ... )
+	-- body
+	return self._player
+end
+
 function cls:get_radis( ... )
  	-- body
  	return self._radis
@@ -129,6 +140,15 @@ function cls:move_by(vec3, ... )
 	-- body
 	local x1, y1, z1 = self._pos:unpack()
 	local x2, y2, z2 = vec3:unpack()
+	local x = x1 + x2
+	local y = y1 + y2
+	local z = z1 + z2
+	self._pos:pack(x, y, z)
+end
+
+function cls:move_by(x2, y2, z2, ... )
+	-- body
+	local x1, y1, z1 = self._pos:unpack()
 	local x = x1 + x2
 	local y = y1 + y2
 	local z = z1 + z2
