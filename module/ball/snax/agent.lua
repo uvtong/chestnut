@@ -70,21 +70,19 @@ end
 function client_request.join(msg)
 	local uid = ctx:get_uid()
 	local secret = ctx:get_secret()
-	skynet.error(uid, "client_request.join")
 	local handle, host, port = roomkeeper.req.apply(msg.room)
-	local r = snax.bind(handle , "room")
-	local session, all = assert(r.req.join(skynet.self(), secret, uid))
+	local room = snax.bind(handle , "room")
+	local session, all = room.req.join(skynet.self(), secret)
 	ctx:set_session(session)
-	ctx:set_room(r)
+	ctx:set_room(room)
 	return { session = session, host = host, port = port, all = all }
 end
 
 function client_request.born( ... )
 	-- body
-	local uid = ctx:get_uid()
 	local session = ctx:get_session()
 	local room = ctx:get_room()
-	return room.req.born(session, skynet.self(), uid)
+	return room.req.born(session)
 end
 
 function client_request.opcode(args, ... )
@@ -112,7 +110,7 @@ local function decode_proto(msg, sz, ... )
 end
 
 local function request(name, args, response)
-	log.info("agent request: %s", name)
+	log.info("uid %d agent request: %s", ctx:get_uid(), name)
     local f = client_request[name]
     local ok, result = pcall(f, args)
     if ok then
@@ -128,7 +126,7 @@ end
 local function response(session, args)
 	-- body
 	local name = ctx:get_name_by_session(session)
-	log.info("room response: %s", name)
+	log.info("uid %d agent response: %s", ctx:get_uid(), name)
     local f = RESPONSE[name]
     local ok, result = pcall(f, ctx, args)
     if ok then
@@ -150,7 +148,7 @@ local function dispatch_client(_,_, type, ... )
 	elseif type == "RESPONSE" then
 		pcall(response, ...)
 	elseif type == "HANDSHAKE" then
-		log.info("handshake")
+		-- log.info("handshake")
 	end
 end
 

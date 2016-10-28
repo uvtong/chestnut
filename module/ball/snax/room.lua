@@ -11,7 +11,7 @@ local rooom_player = require "room.player"
 local opcodes = require "room.opcodes"
 
 -- context variable
-local max_number = 4
+local max_number = 8
 local roomid
 local gate
 local users = {}
@@ -66,7 +66,6 @@ function accept.update(data)
 	local sz = #data
 	if sz > 12 then
 		local session, protocol = string.unpack("<II", data, 9)
-		log.info("session: %d, protocol: %d", session, protocol)
 		if protocol == 1 then
 			-- local px, py, pz, dx, dy, dz = string.unpack("<ffffff", data, 17)
 			-- log.info("px:%f, py:%f, pz:%f, dx:%f, dy:%f, dz:%f", px, py, pz, dx, dy, dz)
@@ -74,7 +73,7 @@ function accept.update(data)
 			-- local direction = math3d.vector3(dx, dy, dz)
 			
 			local time = skynet.now()
-			snax.printf("globletime: %d", time)
+			-- snax.printf("globletime: %d", time)
 			local padding = string.pack("<I", 1)
 
 			-- local delta = time - last
@@ -84,7 +83,7 @@ function accept.update(data)
 
 			local player = session_players[session]
 			local ball_sz = player:get_balls_sz()
-			log.info("size of balls: %d", ball_sz)
+			-- log.info("size of balls of player %d is %d", session, ball_sz)
 			if ball_sz > 0 then
 				data = data .. string.pack("<I", ball_sz * 32 + 4)
 				data = data .. string.pack("<I", ball_sz)
@@ -113,7 +112,7 @@ function accept.aoi_message(watcher, marker, ... )
 	scene:aoi_check_collision(watcher, marker)
 end
 
-function response.join(agent, secret)
+function response.join(handle, secret)
 	local n = 0
 	for _ in pairs(users) do
 		n = n + 1
@@ -121,7 +120,7 @@ function response.join(agent, secret)
 	if n >= max_number then
 		return false	-- max number of room
 	end
-	agent = snax.bind(agent, "agent")
+	local agent = snax.bind(handle, "agent")
 	local user = {
 		agent = agent,
 		key = secret,
@@ -145,7 +144,6 @@ function response.join(agent, secret)
 		local height = ball:get_height()
 		local res = {}
 		res.errorcode = errorcode.SUCCESS
-		res.uid = ball:get_uid()
 		res.session = ball:get_session()
 		res.ballid = ball:get_id()
 		res.radis = radis
@@ -189,14 +187,15 @@ function response.query(session)
 	end
 end
 
-function response.born(session, source, uid, ... )
+function response.born(session, ... )
 	-- body
 	local ballid = gen_ball_id()
-	local ball =assert(scene:setup_ball(source, session, ballid))
-	ball:set_uid(uid)
+	local ball =assert(scene:setup_ball(ballid, session))
 
-	local player = session_players[session]
+	local player = assert(session_players[session])
 	player:add(ball)
+
+	log.info("player %d born ball %d", session, ballid)
 
 	local pos = ball:get_pos()
 	local x, y, z = pos:unpack()
@@ -208,7 +207,6 @@ function response.born(session, source, uid, ... )
 	local height = ball:get_height()
 	local res = {}
 	res.errorcode = errorcode.SUCCESS
-	res.uid = uid
 	res.session = session
 	res.ballid = ball:get_id()
 	res.radis = radis

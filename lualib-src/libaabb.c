@@ -22,18 +22,9 @@ laabb_new(lua_State *L) {
 		struct vector3 *max = (struct vector3 *)lua_touserdata(L, 2);
 		struct aabb_aux *aux = (struct aabb_aux *)lua_newuserdata(L, sizeof(*aux));
 		AABB *aabb = new AABB(*min, *max);
-		aux->aabb = aabb;		
-		// luaL_newtable(L);
-		// lua_pushvalue(L, 1);
-		// lua_rawseti(L, -2, 1);
-		// lua_pushvalue(L, 2);
-		// lua_rawseti(L, -2, 2);
-		// lua_setuservalue(L, -2);
-
+		aux->aabb = aabb;
 		lua_pushvalue(L, lua_upvalueindex(1));
 		lua_setmetatable(L, -2);
-
-		lua_pushlightuserdata(L, aux);
 		return 1;	
 	}
 }
@@ -61,10 +52,16 @@ laabb_getCorners(lua_State *L) {
 	struct aabb_aux *aux = (struct aabb_aux *)lua_touserdata(L, 1);
 	AABB *aabb = (AABB *)aux->aabb;
 	luaL_checktype(L, 2, LUA_TTABLE);
-	lua_pushnil(L);
+	lua_len(L, 2);
+	if (luaL_checkinteger(L, -1) != 8) {
+		lua_error(L);
+	}
+	lua_pop(L, 1);
 	struct vector3 dst[8];
 	aabb->getCorners(dst);
+
 	int idx = 0;
+	lua_pushnil(L);
 	while (lua_next(L, -2) != 0) {
 		struct vector3 *v = (struct vector3 *)lua_touserdata(L, -1);
 		v->x = dst[idx].x;

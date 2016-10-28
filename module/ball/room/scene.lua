@@ -29,9 +29,9 @@ function cls:setup_map( ... )
 	return self._map
 end
 
-function cls:setup_ball(agent, session, ballid, ... )
+function cls:setup_ball(ballid, session, ... )
 	-- body
-	assert(agent and session and ballid)
+	assert(ballid and session)
 	local radis = 4.0 -- 1 unity
 	local length = 3.0
 	local width = 3.0
@@ -44,7 +44,7 @@ function cls:setup_ball(agent, session, ballid, ... )
 	local direction = math3d.vector3(0, 0, 0)
 	local vel = 0.8
 
-	local b = ball.new(ballid, self, agent, session, radis, length, width, height, position, direction, vel)
+	local b = ball.new(ballid, session, self, radis, length, width, height, position, direction, vel)
 	self._ballid_balls[ballid] = b
 	list.add(self._list, b)
 	return b
