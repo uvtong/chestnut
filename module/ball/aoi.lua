@@ -12,9 +12,9 @@ local CMD = {}
 local function aoi_Callback(watcher, marker, ... )
 	-- body
 	room.post.aoi_message(watcher, marker)
-	log.info("lua aoi_Callback watcher:%d, marker:%d", watcher, marker)
-	log.info("px:%d, py:%d, pz:%d", objects[watcher].px, objects[watcher].py, objects[watcher].pz)
-	log.info("px:%d, py:%d, pz:%d", objects[marker].px, objects[marker].py, objects[marker].pz)	
+	-- log.info("lua aoi_Callback watcher:%d, marker:%d", watcher, marker)
+	-- log.info("px:%d, py:%d, pz:%d", objects[watcher].px, objects[watcher].py, objects[watcher].pz)
+	-- log.info("px:%d, py:%d, pz:%d", objects[marker].px, objects[marker].py, objects[marker].pz)	
 end
 
 local function update_obj(id, ... )
