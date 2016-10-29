@@ -4,9 +4,10 @@ local sproto = require "sproto"
 local sprotoloader = require "sprotoloader"
 local context = require "context"
 local log = require "log"
-local player = require "player"
 local errorcode = require "errorcode"
 local assert = assert
+local gs = require "gamestate"
+
 local ctx
 local NORET = {}
 
@@ -19,82 +20,82 @@ local function init( ... )
 	ctx:set_send_request(send_request)
 end
 
-local REQUEST   = {}
+local CMD = {}
 
-function REQUEST:enter_room(source, uid, agent, ... )
+function CMD:on_enter_room(agents, ... )
 	-- body
-	log.info("uid %d enter room", uid)
-	local p = self:create_player(uid, source)
-	if p then
-		local myplayer = {}
-		myplayer.uid = p:get_uid()
-
-		local players = {}
-		local last = p:get_last()
-		if last then
-			myplayer.orientation = 1
-			local agent = assert(last:get_agent())
-			local info = skynet.call(agent, "lua", "enter_room", myplayer)
-			-- left is -1
-			local player = {
-				uid = last:get_uid(),
-				name = info.name,
-				orientation = -1,
-			}
-			table.insert(players, player)
-		end
-		local next = p:get_next()
-		if next then
-			myplayer.orientation = -1
-			local agent = assert(last:get_agent())
-			local info = skynet.call(agent, "lua", "enter_room", myplayer)
-			-- right is 1
-			local player = {
-				uid = next:get_uid(),
-				name = info.name,
-				orientation = 1
-			}
-			table.insert(players, player)
-		end
-		if #self:get_players() >= 3 then
-			local controller = self:get_controller("game")
-			controller:start()
-		end
-		local res = {}
-		res.errorcode = errorcode.SUCCESS
-		res.players = players
-		return res
-	else
-		local res = {}
-		res.errorcode = errorcode.FAIL
-		return res
+	assert(#agents == 3)
+	for i=1,3 do
+		local agent = agents[i]
+		local player = self:create_player(agent.uid, agent.agent)
+		local res = skynet.call(agent.agent, "lua", "info")	
+		player:set_name(res.name)
 	end
+	local players = self:get_players()
+	for i=1,3 do
+		local player = players[i]
+		local ps = {}
+		local p = {
+			uid = player:get_uid(),
+			name = player:get_name(),
+			orientation = 0,
+		}
+		table.insert(ps, p)
+		local last = player:get_last()
+		if last then
+			local p = {
+				uid = last:get_uid(),
+				name = last:get_name(),
+				orientation = 1,
+			}
+			table.insert(ps, p)
+		end
+		local next = player:get_next()
+		if next then
+			local p = {
+				uid = next:get_uid(),
+				name = next:get_name(),
+				orientation = -1
+			}
+			table.insert(ps, p)
+		end
+		
+		local res = {}
+		res.players = players
+
+		skynet.send(player:get_agent(), "lua", "enter_room", res)
+	end
+	return true
 end
 
-function CMD:leave_room(source, uid, ... )
+function CMD:leave_room(uid, ... )
 	-- body
 	log.info("room leave_room: %d", uid)
+	local controller = self._env:get_controller("game")
+	if controller:get_state() == gs.CLOSE then
+		
 	local player = self:get_player_by_uid(uid)
 	self:remove(player)
 	skynet.call(".ROOM_MGR", "lua", "leave_room", uid)
+	return NORET
 end
 
-function REQUEST:ready(args, ... )
+function CMD:on_ready(args, ... )
 	-- body
 	local player = self:get_player_by_uid(args.uid)
 	local controller = self:get_controller("game")
 	return controller:ready(player, args.ready)
 end
 
-function REQUEST:mp(args, ... )
+function CMD:on_mp(args, ... )
 	-- body
 end
 
-function REQUEST:am(args, ... )
+function CMD:on_am(args, ... )
 	-- body
 end
 
-function REQUEST:rob(args, ... )
+function CMD:on_rob(args, ... )
 	-- body
 	local uid = args.uid
 	local rob = args.rob
@@ -103,7 +104,7 @@ function REQUEST:rob(args, ... )
 	return controller:rob(player, rob)
 end
 
-function REQUEST:lead(args, ... )
+function CMD:on_lead(args, ... )
 	-- body
 	local uid = args.uid
 	local player = self:get_player_by_uid(uid)
@@ -111,86 +112,42 @@ function REQUEST:lead(args, ... )
 	return controller:lead(player, flag, args.cards)
 end
 
-local function request(name, args, response)
-	log.print_info("room request: %s", name)
-    local f = REQUEST[name]
-    local ok, result = pcall(f, ctx, args)
-    if ok then
-    	return result
-    else
-    	log.print_error(result)
-    	local ret = {}
-    	ret.errorcode = errorcode.FAIL
-    	return ret
-    end
-end
-
-local RESPONSE = {}
-
-function RESPONSE:enter_room(args, ... )
+function CMD:enter_room(args, ... )
 	-- body
 	assert(args.errorcode == errorcode.SUCCESS)
+	return NORET
 end
 
-function RESPONSE:ready(args, ... )
+function CMD:ready(args, ... )
 	-- body
+	return NORET
 end
 
-function RESPONSE:mp(args, ... )
+function CMD:mp(args, ... )
 	-- body
+	return NORET
 end
 
-function RESPONSE:rob(args, ... )
+function CMD:rob(args, ... )
 	-- body
+	return NORET
 end
 
-function RESPONSE:deal(args, ... )
+function CMD:deal(args, ... )
 	-- body
 	local errorcode = args.errorcode
 	assert(errorcode == errorcode.SUCCESS)
+	return NORET
 end
 
-local function response(name, args)
-	-- body
-	log.print_info("room response: %s", name)
-    local f = RESPONSE[name]
-    local ok, result = pcall(f, ctx, args)
-    if ok then
-    else
-    	log.print_error(result)
-    end
-end
 
-skynet.register_protocol {
-	name = "client",
-	id = skynet.PTYPE_CLIENT,
-	unpack = skynet.unpack,
-	dispatch = function (session, source, type, ...)	
-		if type == "REQUEST" then
-			local ok, result = pcall(request, ...)
-			if ok then
-				if result then
-					skynet.retpack(result)
-				end
-			else
-				skynet.error(result)
-			end
-		elseif type == "RESPONSE" then
-			pcall(response, ...)
-		else
-			assert(false, result)
-		end
-	end
-}
-
-local CMD = {}
 
 skynet.start(function ()
 	-- body
 	skynet.dispatch("lua", function(_, source, cmd, ...)
 		log.info("room [%s] is called", cmd)
 		local f = CMD[cmd]
-		local ok, err = pcall(f, ctx, source, ...)
+		local ok, err = pcall(f, ctx, ...)
 		if ok then
 			if err ~= NORET then
 				skynet.retpack(err)

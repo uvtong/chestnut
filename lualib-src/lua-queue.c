@@ -1,12 +1,36 @@
 #include <lua.h>
 #include <lauxlib.h>
 
-struct queue_data {
-	int cap;
-	int size;
-	int head;
-	int tail;
+struct item {
+	struct item *next;
 };
+
+struct queue {
+	int size;
+	struct item* head;
+};
+
+/* 创建一个尺寸为 size 的队列对象并返回，size 收到 upvalue 数量限制，这里最大可以为 253 */
+static
+int lnew(lua_State *L)
+{
+	int size = lua_tointeger(L, 1);
+	struct queue_data *qd;
+	g_api->lua_settop(L,0);
+	qd=(struct queue_data*)g_api->lua_newuserdata(L,sizeof(struct queue_data));
+	qd->size=size;
+	qd->head=qd->tail=2;
+	g_api->lua_settop(L,size);
+	g_api->lua_pushcclosure(L,queue,size);
+	g_api->lua_pushvalue(L,-1);
+	g_confirm_closure=g_api->lua_ref(L);
+	return 1;
+}
+
+static int
+lrelease(lua_State *L) {
+
+} 
 
 static
 int lenqueue(lua_State *L)
@@ -63,22 +87,7 @@ int ldequeue(lua_State *L)
 	}
 }
  
-/* 创建一个尺寸为 size 的队列对象并返回，size 收到 upvalue 数量限制，这里最大可以为 253 */
-static
-int lnew(lua_State *L)
-{
-	int size = lua_tointeger(L, 1);
-	struct queue_data *qd;
-	g_api->lua_settop(L,0);
-	qd=(struct queue_data*)g_api->lua_newuserdata(L,sizeof(struct queue_data));
-	qd->size=size;
-	qd->head=qd->tail=2;
-	g_api->lua_settop(L,size);
-	g_api->lua_pushcclosure(L,queue,size);
-	g_api->lua_pushvalue(L,-1);
-	g_confirm_closure=g_api->lua_ref(L);
-	return 1;
-}
+
 
 static
 int ldel(lua_State *L) {

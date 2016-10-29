@@ -40,9 +40,9 @@ end
 
 function cls:add(player, ... )
 	-- body
-	local uid = player:get_uid()
+	local uid = assert(player:get_uid())
 	self._uid_player[uid] = player
-	local agent = player:get_agent()
+	local agent = assert(player:get_agent())
 	self._agent_player[agent] = player
 	local sz = #self._players
 	table.insert(self._players, player)

@@ -26,6 +26,8 @@ function cls:ctor(env, uid, fd, ... )
 	self._last = false
 	self._next = false
 	self._idx  = -1    -- players in
+	self._robot = false
+	self._name = ""
 
 	self._state = state.NONE
 	self._cards = {}
@@ -42,6 +44,8 @@ function cls:ctor(env, uid, fd, ... )
 	self._aiflag = false
 	self._airob_cd = 0
 	self._ailead_cd = 0
+
+
 	return self
 end
 
@@ -57,6 +61,7 @@ end
 
 function cls:set_agent(agent, ... )
 	-- body
+	assert(false)
 	self._agent = agent
 end
 
@@ -93,6 +98,26 @@ end
 function cls:get_idx( ... )
 	-- body
 	return self._idx
+end
+
+function cls:set_robot(flag, ... )
+	-- body
+	self._robot = flag
+end
+
+function cls:get_robot( ... )
+	-- body
+	return self._robot
+end
+
+function cls:set_name(name, ... )
+	-- body
+	self._name = name
+end
+
+function cls:get_name( ... )
+	-- body
+	return self._name
 end
 
 function cls:set_state(s, ... )

@@ -34,6 +34,11 @@ function cls:update(delta, ... )
 	-- self._leftplayer:update(delta)
 end
 
+function cls:get_state( ... )
+	-- body
+	return self._state
+end
+
 function cls:start(t, ... )
 	-- body
 	self._state = gs.START
@@ -51,7 +56,7 @@ function cls:start(t, ... )
 
 	self._lead_player = nil
 
-	local players = self:get_players()
+	local players = self._env:get_players()
 	for i,player in ipairs(players) do
 		player:start()
 	end
@@ -255,7 +260,7 @@ function cls:ready(player, flag, ... )
 		local res = {}
 		player:set_state(player.state.READY)
 		if self:confirm_readiness() then
-			self._first_rob_player:
+			self:deal_cards_starting(self._first_rob_player)
 			res.uid = player:get_uid()
 			res.ready = flag
 			res.errorcode = errorcode.SUCCESS
