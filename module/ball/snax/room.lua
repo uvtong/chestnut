@@ -11,7 +11,7 @@ local rooom_player = require "room.player"
 local opcodes = require "room.opcodes"
 
 -- context variable
-local max_number = 4
+local max_number = 8
 local roomid
 local gate
 local users = {}
@@ -24,7 +24,7 @@ local lastmove = 0
 local map
 local view
 local scene
-local session_ball_id = {}
+local ballid = 1
 local session_players = {}
 
 --[[
@@ -36,18 +36,11 @@ local session_players = {}
 
 local function gen_ball_id(session, ... )
 	-- body
-	local id = session_ball_id[session]
-	if id then
-		id = id + 1
-		session_ball_id[session] = id
-		local idx = id << 32
-		return (idx | session)
-	else
-		id = 1
-		session_ball_id[session] = id
-		local idx = id << 32
-		return (idx | session)
+	ballid = ballid + 1
+	if ballid <= 0 then
+		ballid = 1 
 	end
+	return ballid
 end
 
 local function tick( ... )
@@ -62,7 +55,8 @@ local function move( ... )
 	-- body
 	while true do
 		local now = skynet.now()
-		local delta = (now - lastmove) * 100 -- s
+		local delta = (now - lastmove) / 100.0 -- s
+		lastmove = now
 		scene:move(delta)
 		skynet.sleep(2)
 	end
@@ -72,37 +66,40 @@ function accept.update(data)
 	local sz = #data
 	if sz > 12 then
 		local session, protocol = string.unpack("<II", data, 9)
-		log.info("session: %d, protocol: %d", session, protocol)
 		if protocol == 1 then
-
 			-- local px, py, pz, dx, dy, dz = string.unpack("<ffffff", data, 17)
 			-- log.info("px:%f, py:%f, pz:%f, dx:%f, dy:%f, dz:%f", px, py, pz, dx, dy, dz)
 			-- local position = math3d.vector3(px, py, pz)
 			-- local direction = math3d.vector3(dx, dy, dz)
 			
 			local time = skynet.now()
-			snax.printf("globletime: %d", time)
+			-- snax.printf("globletime: %d", time)
 			local padding = string.pack("<I", 1)
 
 			-- local delta = time - last
 			-- scene:update(delta, session, position, direction)
 			data = string.pack("<I", time) .. data
-			-- data = data:sub(1, 20)
+			data = data:sub(1, 20)
 
 			local player = session_players[session]
-			local sz = #player:get_balls()
-			data = data .. string.pack("<I", sz)
-			if sz > 0 then
-				local ball = player:get_balls()[1]
-				local ballid = string.pack("<j", ball:get_id())
-				local pos = ball:pack_pos()
-				local dir = ball:pack_dir()
-				data = data .. ballid .. pos .. dir .. padding
+			local ball_sz = player:get_balls_sz()
+			-- log.info("size of balls of player %d is %d", session, ball_sz)
+			if ball_sz > 0 then
+				data = data .. string.pack("<I", ball_sz * 32 + 4)
+				data = data .. string.pack("<I", ball_sz)
+				local balls = player:get_balls()
+				for k,ball in pairs(balls) do
+					local ballid = string.pack("<j", ball:get_id())
+					local pos = ball:pack_pos()
+					local dir = ball:pack_dir()
+					data = data .. ballid .. pos .. dir	
+				end
+			else
+				data = data .. string.pack("<I", 0)
 			end
-
-			for s,v in pairs(users) do
-				gate.post.post(s, data)
-			end
+		end
+		for s,v in pairs(users) do
+			gate.post.post(s, data)
 		end
 	else
 		log.info("size of data %d", sz)
@@ -112,10 +109,10 @@ end
 -- called by aoi
 function accept.aoi_message(watcher, marker, ... )
 	-- body
-	scene:update(watcher, marker)
+	scene:aoi_check_collision(watcher, marker)
 end
 
-function response.join(agent, secret)
+function response.join(handle, secret)
 	local n = 0
 	for _ in pairs(users) do
 		n = n + 1
@@ -123,7 +120,7 @@ function response.join(agent, secret)
 	if n >= max_number then
 		return false	-- max number of room
 	end
-	agent = snax.bind(agent, "agent")
+	local agent = snax.bind(handle, "agent")
 	local user = {
 		agent = agent,
 		key = secret,
@@ -147,7 +144,6 @@ function response.join(agent, secret)
 		local height = ball:get_height()
 		local res = {}
 		res.errorcode = errorcode.SUCCESS
-		res.uid = ball:get_uid()
 		res.session = ball:get_session()
 		res.ballid = ball:get_id()
 		res.radis = radis
@@ -191,15 +187,15 @@ function response.query(session)
 	end
 end
 
-function response.born(session, source, uid, ... )
+function response.born(session, ... )
 	-- body
-	local ballid = gen_ball_id(session)
-	assert(ballid ~= 0)
-	local ball =assert(scene:setup_ball(source, session, ballid))
-	ball:set_uid(uid)
+	local ballid = gen_ball_id()
+	local ball =assert(scene:setup_ball(ballid, session))
 
-	local player = session_players[session]
+	local player = assert(session_players[session])
 	player:add(ball)
+
+	log.info("player %d born ball %d", session, ballid)
 
 	local pos = ball:get_pos()
 	local x, y, z = pos:unpack()
@@ -211,7 +207,6 @@ function response.born(session, source, uid, ... )
 	local height = ball:get_height()
 	local res = {}
 	res.errorcode = errorcode.SUCCESS
-	res.uid = uid
 	res.session = session
 	res.ballid = ball:get_id()
 	res.radis = radis
@@ -272,7 +267,7 @@ function init(id, udpserver)
 	local conf = {}
 	conf.handle = snax.self().handle
 	skynet.call(aoi, "lua", "start", conf)
-	scene = room_scene.new()
+	scene = room_scene.new(aoi)
 	view = scene:setup_view()
 	map = scene:setup_map()
 

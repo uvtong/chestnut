@@ -1,5 +1,6 @@
 #include <lua.h>
 #include <lauxlib.h>
+#include <stdbool.h>
 
 struct item {
 	struct item *next;
@@ -7,106 +8,249 @@ struct item {
 
 struct queue {
 	int size;
-	struct item* head;
+	struct item *head;
+	struct item *tail;
 };
 
-/* 创建一个尺寸为 size 的队列对象并返回，size 收到 upvalue 数量限制，这里最大可以为 253 */
-static
-int lnew(lua_State *L)
-{
-	int size = lua_tointeger(L, 1);
-	struct queue_data *qd;
-	g_api->lua_settop(L,0);
-	qd=(struct queue_data*)g_api->lua_newuserdata(L,sizeof(struct queue_data));
-	qd->size=size;
-	qd->head=qd->tail=2;
-	g_api->lua_settop(L,size);
-	g_api->lua_pushcclosure(L,queue,size);
-	g_api->lua_pushvalue(L,-1);
-	g_confirm_closure=g_api->lua_ref(L);
+static int 
+lenqueue(lua_State *L) {
+	if (lua_gettop(L) < 2) {
+		lua_error(L);
+	}
+	
+	struct queue *q = (struct queue*)lua_touserdata(L, 1);
+	lua_getuservalue(L, 1); // user table
+	
+	struct item *i = (struct item *)lua_newuserdata(L, sizeof(*i));
+	i->next = NULL;
+	lua_pushvalue(L, 2);
+	lua_setuservalue(L, -2);
+
+	lua_rawsetp(L, -2, i);
+	
+	if (q->size > 0) {
+		q->tail->next = i;
+		q->tail = i;	
+		q->size++;
+	} else {
+		if (q->size == 0) {
+			q->head = i;
+			q->tail = i;
+			q->size++;	 
+		} else {
+			lua_error(L);
+		}
+	}
+	return 0;
+}
+
+static int 
+ldequeue(lua_State *L) {
+	struct queue *q = (struct queue*)lua_touserdata(L, 1);
+	if (q->size > 1) {
+		struct item *i = q->head;
+		q->head = i->next;
+		q->size--;
+
+		lua_getuservalue(L, 1);
+		lua_rawgetp(L, -1, i); // ud
+		lua_getuservalue(L, -1);
+		lua_pushnil(L);
+		lua_rawsetp(L, -4, i);
+		return 1; 
+	} else if (q->size == 1 ){
+		struct item *i = q->head;
+		q->head = i->next;
+		q->tail = i->next;
+		q->size--;
+
+		lua_getuservalue(L, 1);
+		lua_rawgetp(L, -1, i);
+		lua_getuservalue(L, -1);
+		lua_pushnil(L);
+		lua_rawsetp(L, -4, i);
+		return 1;
+	} else if (q->size == 0) {
+		return 0;
+	} else {
+		lua_error(L);
+		return 0;
+	}
+	return 0;
+}
+
+static bool 
+check_eq(lua_State *L) {
+	int t1 = lua_type(L, -1);
+	int t2 = lua_type(L, -2);
+	if (t1 == t2 && t1 != LUA_TNIL) {
+		if (t1 == LUA_TNUMBER) {
+			if (lua_isinteger(L, -1)) {
+				if (luaL_checkinteger(L, -1) == luaL_checkinteger(L, -2)) {
+					return true;
+				} else {
+					return false;
+				}
+			} else if (lua_isnumber(L, -1)) {
+				if (luaL_checknumber(L, -1) == luaL_checknumber(L, -2)) {
+					return true;
+				} else {
+					return false;
+				}
+			} else {
+				lua_error(L);
+			}
+		} else if (t1 == LUA_TSTRING) {
+			lua_error(L);
+		} else if (t1 == LUA_TTABLE) {
+			if (lua_topointer(L, -1) == lua_topointer(L, -2)) {
+				return true;
+			} else {
+				return false;
+			}
+		} else if (t1 == LUA_TUSERDATA) {
+			if (lua_topointer(L, -1) == lua_topointer(L, -2)) {
+				return true;
+			} else {
+				return false;
+			}
+		} else {
+			lua_error(L);
+		}
+	} else {
+		return false;
+	}
+	return false;
+}
+
+static int 
+ldel(lua_State *L) {
+	if (lua_gettop(L) < 2) {
+		lua_error(L);
+	}
+	struct queue *q = (struct queue*)lua_touserdata(L, 1);
+	lua_getuservalue(L, 1);
+	if (q->size > 0) {
+		struct item *i = q->head;
+		lua_rawgetp(L, -1, i);
+		lua_getuservalue(L, -1);
+		lua_pushvalue(L, 2);
+		if (check_eq(L)) {
+			if (q->size == 1) {
+				q->head = i->next; // NULL
+				q->tail = i->next; // NULL
+				q->size--;
+			} else if (q->size > 1) {
+				q->head = i->next;
+				q->size--;
+			} else {
+				lua_error(L);
+			}
+			lua_pushnil(L);
+			lua_rawsetp(L, -5, i);
+			lua_pushboolean(L, 1);
+			return 1;
+		}
+		lua_pop(L, 3);
+		while (i) {
+			if (i->next) {
+				struct item *cur = i->next;
+				lua_rawgetp(L, -1, cur);
+				lua_getuservalue(L, -1);
+				lua_pushvalue(L, 2);
+				if (check_eq(L)) {
+					if (q->size > 1) {
+						i->next = cur->next;
+						q->size--;
+					} else {
+						lua_error(L);
+					}
+					lua_pushnil(L);
+					lua_rawsetp(L, -5, cur);
+					lua_pushboolean(L, 1);
+					return 1;		
+				}
+				lua_pop(L, 3);
+			} else {
+				break;
+			}
+			i = i->next;
+		}
+		lua_pushboolean(L, 0);
+		return 1;
+	} else {
+		lua_pushboolean(L, 0);
+		return 1;
+	}
+}
+
+static int 
+lsize(lua_State *L) {
+	struct queue *q = (struct queue*)lua_touserdata(L, 1);
+	lua_pushinteger(L, q->size);
 	return 1;
 }
 
 static int
+ltest(lua_State *L) {
+	// struct queue *q = (struct queue*)lua_touserdata(L, 1);
+	lua_getuservalue(L, 1);
+	lua_pushnil(L);
+	while (lua_next(L, -2) != 0) {
+       /* uses 'key' (at index -2) and 'value' (at index -1) */
+       printf("%s - %s\n",
+              lua_typename(L, lua_type(L, -2)),
+              lua_typename(L, lua_type(L, -1)));
+       /* removes 'value'; keeps 'key' for next iteration */
+       lua_pop(L, 1);
+    }
+    return 0;
+}
+
+static int
 lrelease(lua_State *L) {
-
-} 
-
-static
-int lenqueue(lua_State *L)
-{
-	struct queue_data *qd = (struct queue_data*)lua_touserdata(L, 1);
-	if (qd->size)
-	{
-		
-	}
-	if (lua_isnumber(L, 2)) {
-		
-	} else {
-
-	}
-}
-
-/* 
-    当传入一个非 nil 的 lua 对象时，这个对象将进入队列。返回 true 表示成功，否则队列满
-    当不传参数时，把队首元素出队列并返回出去；返回空表示队列空
- */
-static 
-int ldequeue(lua_State *L)
-{
-	
-	if (g_api->lua_gettop(L)==0) {
-		// queue leave
-		if (qd->head==qd->tail) {
-			return 0;
-		}
-		g_api->lua_pushvalue(L,lua_upvalueindex(qd->head));
-		g_api->lua_pushnil(L);
-		g_api->lua_replace(L,lua_upvalueindex(qd->head));
-		++qd->head;
-		if (qd->head > qd->size) {
-			qd->head=2;
-		}
-		return 1;
-	}
-	else {
-		// queue enter
-		int tail=qd->tail+1;
-		if (tail>qd->size) {
-			tail=2;
-		}
-		if (tail==qd->head) {
-			// queue overflow
-			return 0;
-		}
-		g_api->lua_settop(L,1);
-		g_api->lua_replace(L,lua_upvalueindex(qd->tail));
-		qd->tail=tail;
-		g_api->lua_pushboolean(L,true);
-		return 1;
-	}
-}
- 
-
-
-static
-int ldel(lua_State *L) {
-	struct queue_data *qd = (queue_data *)lua_touserdata(L, 1)
-	free(qd)
-	qd = NULL;
 	return 0;
+}
+
+static int 
+lnew(lua_State *L) {
+	struct queue *q = (struct queue *)lua_newuserdata(L, sizeof(*q));
+	if (q == NULL) {
+		lua_error(L);
+	}
+	q->size = 0;
+	q->head = NULL;
+	q->tail = NULL;
+
+	lua_newtable(L); // user table
+	lua_newtable(L); // meta table
+	lua_pushfstring(L, "k");
+	lua_setfield(L, -2, "__mode");
+	lua_setmetatable(L, -2);
+	luaL_checktype(L, -2, LUA_TUSERDATA);
+	lua_setuservalue(L, -2);
+
+	lua_newtable(L); // ud meta table
+	lua_pushvalue(L, lua_upvalueindex(1));
+	lua_setfield(L, -2, "__index");
+	lua_pushcclosure(L, lrelease, 0);
+	lua_setfield(L, -2, "__gc");
+	lua_setmetatable(L, -2);
+	return 1;
 }
 
 int
 luaopen_queue(lua_State *L) {
 	luaL_checkversion(L);
 	luaL_Reg l[] = {
-		{ "new", lnew },
 		{ "enqueue", lenqueue },
 		{ "dequeue", ldequeue },
 		{ "del", ldel },
+		{ "size", lsize },
+		{ "test", ltest },
 		{ NULL, NULL },
 	};
 	luaL_newlib(L,l);
+	lua_pushcclosure(L, lnew, 1);
 	return 1;
 }

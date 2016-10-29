@@ -3,15 +3,13 @@ local float = require "float"
 local assert = assert
 local cls = class("ball")
 
-function cls:ctor(id, scene, agent, session, radis, length, width, height, pos, dir, vel, ... )
+function cls:ctor(id, session, scene, radis, length, width, height, pos, dir, vel, ... )
 	-- body
-	assert(id and scene and agent and session)
-	self._scene = scene
-	self._agent = agent
-	self._session = session
-	self._uid = 0
-	self._idx = 0
+	assert(id and scene and session)
 	self._id = id
+	self._session = session
+	self._scene = scene
+	self._idx = 0
 	self._player = nil
 
 	-- data
@@ -44,16 +42,6 @@ end
 function cls:get_id( ... )
 	-- body
 	return self._id
-end
-
-function cls:get_uid( ... )
-	-- body
-	return self._uid
-end
-
-function cls:set_uid(uid, ... )
-	-- body
-	self._uid = uid
 end
 
 function cls:get_session( ... )
@@ -140,15 +128,6 @@ function cls:move_by(vec3, ... )
 	-- body
 	local x1, y1, z1 = self._pos:unpack()
 	local x2, y2, z2 = vec3:unpack()
-	local x = x1 + x2
-	local y = y1 + y2
-	local z = z1 + z2
-	self._pos:pack(x, y, z)
-end
-
-function cls:move_by(x2, y2, z2, ... )
-	-- body
-	local x1, y1, z1 = self._pos:unpack()
 	local x = x1 + x2
 	local y = y1 + y2
 	local z = z1 + z2

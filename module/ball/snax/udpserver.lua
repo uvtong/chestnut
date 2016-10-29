@@ -52,9 +52,8 @@ local function timesync(session, localtime, from)
 end
 
 local function udpdispatch(str, from)
-	skynet.error("udp_servier udpdispatch")
 	local localtime, eventtime, session = string.unpack("<III", str, 9)
-	skynet.error("localtime:", localtime, "eventtime:", eventtime, "session:", session)
+	-- skynet.error("localtime:", localtime, "eventtime:", eventtime, "session:", session)
 	local s = S[session]
 	if s then
 		if s.address ~= from then

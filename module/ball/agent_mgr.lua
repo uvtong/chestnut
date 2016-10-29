@@ -10,15 +10,17 @@ local CMD = {}
 
 function CMD.enter(uid, fd)
 	-- body
-	if queue.is_empty(leisure_agent) then
-		local a = snax.newservice("agent")
-		handle_agent[a.handle] = a
-		return a.handle
-	else
-		local a = queue.dequeue(leisure_agent)
-		handle_agent[a.handle] = a
-		return a.handle
-	end
+	local agent = snax.newservice("agent")
+	return agent.handle
+	-- if queue.is_empty(leisure_agent) then
+	-- 	local a = snax.newservice("agent")
+	-- 	handle_agent[a.handle] = a
+	-- 	return a.handle
+	-- else
+	-- 	local a = queue.dequeue(leisure_agent)
+	-- 	handle_agent[a.handle] = a
+	-- 	return a.handle
+	-- end
 end
 
 function CMD.abandon(addr)
