@@ -1,5 +1,11 @@
 package.cpath = "../luaclib/?.so;" .. package.cpath
 
+local x = {1, 2}
+
+for k,v in pairs(x) do
+	print(k,v)
+end
+
 local math3d = require "math3d"
 
 local aabb1 = math3d.aabb(math3d.vector3(0, 0, 0), math3d.vector3(3, 3, 3))

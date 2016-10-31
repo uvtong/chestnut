@@ -127,4 +127,15 @@ function cls:aoi_check_collision(watcher, marker, ... )
 	end
 end
 
+function cls:pack_balls( ... )
+	-- body
+	local res = ""
+	for k,v in pairs(table_name) do
+		print(k,v)
+	end
+	local ballid = string.pack("<j", ball:get_id())
+					local pos = ball:pack_pos()
+					local dir = ball:pack_dir()
+end
+
 return cls

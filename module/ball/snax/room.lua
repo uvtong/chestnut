@@ -73,11 +73,6 @@ function accept.update(data)
 			-- local direction = math3d.vector3(dx, dy, dz)
 			
 			local time = skynet.now()
-			-- snax.printf("globletime: %d", time)
-			local padding = string.pack("<I", 1)
-
-			-- local delta = time - last
-			-- scene:update(delta, session, position, direction)
 			data = string.pack("<I", time) .. data
 			data = data:sub(1, 20)
 
