@@ -33,3 +33,12 @@
 [submodule "3rd/skynet-client"]
 	path = 3rd/skynet-client
 	url = https://github.com/mephostopilis/skynet-client
+[submodule "3rd/crazy"]
+	path = 3rd/crazy
+	url = http://git.oschina.net/embers/crazy
+[submodule "3rd/aoi"]
+	path = 3rd/aoi
+	url = https://github.com/cloudwu/aoi
+[submodule "3rd/rudp"]
+	path = 3rd/rudp
+	url = https://github.com/cloudwu/rudp

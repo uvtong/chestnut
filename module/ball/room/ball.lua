@@ -132,11 +132,10 @@ function cls:move_by(vec3, ... )
 	local y = y1 + y2
 	local z = z1 + z2
 	self._pos:pack(x, y, z)
-end
-
-function cls:move_to(vec3, ... )
-	-- body
-	self._pos:copy(vec3)
+	
+	local t = math3d.matrix()
+	t:trans(x2, y2, z2)
+	self._aabb:transform(t)
 end
 
 function cls:pack_pos( ... )

@@ -6,8 +6,8 @@
 }
 
 .ball {
-    uid       0 : integer
-    session   1 : integer
+    session   0 : integer
+    ballid    1 : integer
     radis     2 : integer
     length    3 : integer
     width     4 : integer
@@ -19,7 +19,11 @@
     dy        10: integer
     dz        11: integer
     vel       12: integer
-    ballid    13: integer
+}
+
+.player {
+    session 0 : integer
+    balls   1 : *ball
 }
 
 handshake 1 {
@@ -33,10 +37,10 @@ join 2 {
         room 0 : integer
     }
     response {
-        session 0 : integer
-        host 1 : string
-        port 2 : integer
-        all  3 : *ball
+        session  0 : integer
+        host     1 : string
+        port     2 : integer
+        players  3 : *player
     }
 }
 
@@ -60,4 +64,7 @@ opcode 5 {
     response {
         errorcode 0 : integer
     }
+}
+
+die 6 {
 }

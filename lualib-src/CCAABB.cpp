@@ -234,7 +234,7 @@ void AABB::transform(const union matrix44& mat)
 
     // Transform the corners, recalculate the min and max points along the way.
     for (int i = 0; i < 8; i++) {
-        vector3_mul33(&corners[i], &mat);
+        vector3_mul(&corners[i], &mat);
     }
          
     reset();
