@@ -16,7 +16,11 @@
     uid 2 : integer
 }
 
-handshake 1 {}
+handshake 1 {
+    response {
+        errorcode 0 : integer
+    }
+}
 
 enter_room 2 {
     request {
@@ -28,7 +32,12 @@ enter_room 2 {
 }
 
 leave_room 3 {
-
+    request {
+        uid 0 : integer
+    }
+    response {
+        errorcode 0 : integer
+    }
 }
 
 ready 4 {

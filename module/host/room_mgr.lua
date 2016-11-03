@@ -6,6 +6,7 @@ local assert = assert
 local noret = {}
 local rt_room_queue = {}
 local rooms
+local users = {}
 
 local cs1 = skynet_queue()
 local cs2 = skynet_queue()
@@ -17,27 +18,38 @@ local function init( ... )
 	local mode = 1
 	local scene = 1
 	local rt = (scene << 24 | mode << 16 | rule << 8)
-	rt_room_queue[rt] = queue.new(15)
-	rooms = queue.new(0)
+	rt_room_queue[rt] = queue()
+	rooms = queue()
 end
 
 local function enqueue_agent(q, agent, ... )
 	-- body
-	assert(agent)
+	assert(q and agent)
 	local function func1(q, i, ... )
 		-- body
-		queue.enqueue(q, i)
+		q:enqueue(i)
 	end
 	return cs1(func1, q, agent)
 end
 
 local function dequeue_agent(q, ... )
 	-- body
-	local function func1(q, i, ... )
+	assert(q)
+	local function func1(q, ... )
 		-- body
-		return queue.dequeue(q, i)
+		return q:dequeue()
 	end
 	return cs1(func1, q)
+end
+
+local function del_agent(q, agent, ... )
+	-- body
+	assert(q and agent)
+	local function func1(q, agent, ... )
+		-- body
+		return q:del(agent)
+	end
+	return cs1(func1, q, agent)
 end
 
 local function enqueue_room(room, ... )
@@ -45,24 +57,22 @@ local function enqueue_room(room, ... )
 	assert(room)
 	local function func1(q, room, ... )
 		-- body
-		queue.enqueue(q, room)
+		q:enqueue(room)
 	end
 	return cs2(func1, rooms, room)
 end
 
-local function dequeue_room(room, ... )
-	assert(room)
+local function dequeue_room( ... )
 	local function func1(q, ... )
 		-- body
-		if queue.size(q) > 0 then
-			local room = queue.dequeue(q)
-			return room
+		if q:size() > 0 then
+			return q:dequeue()
 		else
 			local room = skynet.newservice("room/room")
 			return room	
 		end
 	end
-	return cs2(func1, q)
+	return cs2(func1, rooms)
 end
 
 local CMD = {}
@@ -73,16 +83,20 @@ function CMD.enqueue_agent(source, uid, rule, mode, scene, ... )
 	local agent = {
 		agent = source,
 		uid = uid,
-		rt = rt
+		rt = rt,
+		rule = rule,
+		mode = mode,
+		scene = scene,
 	}
+	users[uid] = agent
 	local q = assert(rt_room_queue[rt])
 	enqueue_agent(q, agent)
-	if queue.size(q) >= 3 then
-		local room = dequeue_room(rooms)
+	if q:size() >= 3 then
+		local room = dequeue_room()
 		skynet.call(room, "lua", "start", rule, mode, scene)
 		local agents = {}
 		for i=1,3 do
-			local agent = dequeue(q)
+			local agent = dequeue_agent(q)
 			table.insert(agents, agent)
 		end
 		skynet.call(room, "lua", "enter_room", agents)
@@ -90,9 +104,16 @@ function CMD.enqueue_agent(source, uid, rule, mode, scene, ... )
 	return noret
 end
 
-function CMD.enqueue_room(room, ... )
+function CMD.dequeue_agent(source, uid, ... )
 	-- body
-	enqueue_room(rooms, room)
+	local agent = users[uid]
+	local q = rt_room_queue[agent.rt]
+	del_agent(q, agent)
+end
+
+function CMD.enqueue_room(source, room, ... )
+	-- body
+	enqueue_room(room)
 	return noret
 end
 

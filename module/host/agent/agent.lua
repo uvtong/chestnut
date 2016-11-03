@@ -49,6 +49,7 @@ end
 
 function REQUEST:handshake(args, ... )
 	-- body
+	self:send_request("handshake")
 	local res = {}
 	res.errorcode = errorcode.SUCCESS
 	return res
@@ -107,7 +108,7 @@ function REQUEST:lead(args, ... )
 end
 
 local function request(name, args, response)
-	log.info("agent [%s] request", name)
+	log.info("agent request [%s]", name)
     local f = REQUEST[name]
     local ok, result = pcall(f, ctx, args)
     if ok then
@@ -116,6 +117,11 @@ local function request(name, args, response)
     	log.error(result)
     end
 end      
+
+function RESPONSE:handshake(args, ... )
+	-- body
+	assert(args.errorcode == errorcode.SUCCESS)
+end
 
 function RESPONSE:enter_room(args, ... )
 	-- body
@@ -144,7 +150,7 @@ end
 local function response(session, args)
 	-- body
 	local name = ctx:get_name_by_session(session)
-	log.info("response: %s", name)
+	log.info("agent response [%s]", name)
     local f = RESPONSE[name]
     local ok, result = pcall(f, ctx, args)
     if ok then
@@ -183,31 +189,6 @@ skynet.register_protocol {
 }
 
 
-function CMD:info(source, ... )
-	-- body
-	return { name="xiaomiao"}
-end
-
--- called by room
-function CMD:enter_room(source, args, ... )
-	-- body
-	self:send_request("enter_room", args)
-	return noret
-end
-
-function CMD:leave_room(source, ... )
-	-- body
-	self:set_onroom(false)
-	self:set_room(nil)
-end
-
--- called by room
-function CMD:ready(source, args, ... )
-	-- body
-	self:send_request("ready", args)
-	return noret
-end
-
 -- called by gated
 function CMD:login(source, uid, subid, secret,... )
 	-- body
@@ -235,6 +216,31 @@ function CMD:afk(source)
 	local uid = self:get_uid()
 	log.info("agent uid = %d) disconnect", uid)
 	return true
+end
+
+function CMD:info(source, ... )
+	-- body
+	return { name="xiaomiao"}
+end
+
+-- called by room
+function CMD:enter_room(source, args, ... )
+	-- body
+	self:send_request("enter_room", args)
+	return noret
+end
+
+function CMD:leave_room(source, ... )
+	-- body
+	self:set_onroom(false)
+	self:set_room(nil)
+end
+
+-- called by room
+function CMD:ready(source, args, ... )
+	-- body
+	self:send_request("ready", args)
+	return noret
 end
 
 -- begain to wait for client

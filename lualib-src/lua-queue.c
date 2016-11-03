@@ -10,24 +10,49 @@ struct queue {
 	int size;
 	struct item *head;
 	struct item *tail;
+	struct item *freelist;
 };
+
+static struct item *
+new_item(lua_State *L, struct queue *q) {
+	struct item *i = NULL;
+	if (q->freelist != NULL) {
+		i = q->freelist;
+		q->freelist = q->freelist->next;
+	} else {
+		lua_getuservalue(L, 1); // user table
+		i = (struct item *)lua_newuserdata(L, sizeof(*i));
+		i->next = NULL;
+		lua_rawsetp(L, -2, i);
+		lua_pop(L, 1);
+	}
+	return i;
+}
+
+static void
+del_item(lua_State *L, struct queue *q, struct item *i) {
+	if (q == NULL && i == NULL) {
+		luaL_error(L, "not null");
+	} else {
+		i->next = q->freelist;
+		q->freelist = i;
+	}
+}
 
 static int 
 lenqueue(lua_State *L) {
 	if (lua_gettop(L) < 2) {
 		lua_error(L);
 	}
-	
+
 	struct queue *q = (struct queue*)lua_touserdata(L, 1);
-	lua_getuservalue(L, 1); // user table
-	
-	struct item *i = (struct item *)lua_newuserdata(L, sizeof(*i));
-	i->next = NULL;
+	struct item *i = new_item(L, q);
+
+	lua_getuservalue(L, 1);
+	lua_rawgetp(L, -1, i);
 	lua_pushvalue(L, 2);
 	lua_setuservalue(L, -2);
 
-	lua_rawsetp(L, -2, i);
-	
 	if (q->size > 0) {
 		q->tail->next = i;
 		q->tail = i;	
@@ -51,24 +76,22 @@ ldequeue(lua_State *L) {
 		struct item *i = q->head;
 		q->head = i->next;
 		q->size--;
+		del_item(L, q, i);
 
 		lua_getuservalue(L, 1);
 		lua_rawgetp(L, -1, i); // ud
 		lua_getuservalue(L, -1);
-		lua_pushnil(L);
-		lua_rawsetp(L, -4, i);
 		return 1; 
 	} else if (q->size == 1 ){
 		struct item *i = q->head;
 		q->head = i->next;
 		q->tail = i->next;
 		q->size--;
+		del_item(L, q, i);
 
 		lua_getuservalue(L, 1);
 		lua_rawgetp(L, -1, i);
 		lua_getuservalue(L, -1);
-		lua_pushnil(L);
-		lua_rawsetp(L, -4, i);
 		return 1;
 	} else if (q->size == 0) {
 		return 0;
@@ -146,8 +169,7 @@ ldel(lua_State *L) {
 			} else {
 				lua_error(L);
 			}
-			lua_pushnil(L);
-			lua_rawsetp(L, -5, i);
+			del_item(L, q, i);
 			lua_pushboolean(L, 1);
 			return 1;
 		}
@@ -165,8 +187,7 @@ ldel(lua_State *L) {
 					} else {
 						lua_error(L);
 					}
-					lua_pushnil(L);
-					lua_rawsetp(L, -5, cur);
+					del_item(L, q, cur);
 					lua_pushboolean(L, 1);
 					return 1;		
 				}
@@ -193,7 +214,7 @@ lsize(lua_State *L) {
 
 static int
 ltest(lua_State *L) {
-	// struct queue *q = (struct queue*)lua_touserdata(L, 1);
+	struct queue *q = (struct queue*)lua_touserdata(L, 1);
 	lua_getuservalue(L, 1);
 	lua_pushnil(L);
 	while (lua_next(L, -2) != 0) {
@@ -202,7 +223,23 @@ ltest(lua_State *L) {
               lua_typename(L, lua_type(L, -2)),
               lua_typename(L, lua_type(L, -1)));
        /* removes 'value'; keeps 'key' for next iteration */
-       lua_pop(L, 1);
+       lua_getuservalue(L, -1);
+       lua_getfield(L, -1, "name");
+       const char *str = lua_tostring(L, -1);
+       printf("%s\n", str);
+       lua_pop(L, 3);
+    }
+    // lua_pop(L, 1);
+    printf("%s\n", "test freelist");
+    struct item *i = q->freelist;
+    while (i) {
+    	lua_rawgetp(L, -1, i);
+    	lua_getuservalue(L, -1);
+    	lua_getfield(L, -1, "name");
+       	const char *str = lua_tostring(L, -1);
+       	printf("%s\n", str);
+       	lua_pop(L, 3);
+       	i = i->next;
     }
     return 0;
 }
@@ -221,6 +258,7 @@ lnew(lua_State *L) {
 	q->size = 0;
 	q->head = NULL;
 	q->tail = NULL;
+	q->freelist = NULL;
 
 	lua_newtable(L); // user table
 	lua_newtable(L); // meta table

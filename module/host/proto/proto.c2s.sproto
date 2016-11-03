@@ -35,9 +35,6 @@ enter_room 2 {
 }
 
 leave_room 3 {
-    request {
-
-    }
     response {
         errorcode 0 : integer
     }

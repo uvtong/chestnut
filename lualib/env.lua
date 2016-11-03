@@ -87,7 +87,7 @@ end
 
 function cls:send_request(name, args, ... )
 	-- body
-	assert(name and args)
+	assert(name)
 	local max = 1000000
 	self._response_session = self._response_session + 1 % max
 	self._response_session_name[self._response_session] = name

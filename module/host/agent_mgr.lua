@@ -1,6 +1,6 @@
 local skynet = require "skynet"
 require "skynet.manager"
-local queue = require "queue"
+local queue = require "lqueue"
 
 local leisure_agent = queue.new(16)
 
@@ -8,7 +8,7 @@ local CMD = {}
 
 function CMD.enter(uid, fd)
 	-- body
-	if queue.is_empty(leisure_agent) then
+	if queue.size(leisure_agent) == 0 then
 		local handle = skynet.newservice("agent/agent")
 		return handle
 	else

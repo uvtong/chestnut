@@ -62,7 +62,6 @@ function CMD:on_enter_room(agents, ... )
 		
 		local res = {}
 		res.players = players
-
 		skynet.send(player:get_agent(), "lua", "enter_room", res)
 	end
 	return true
