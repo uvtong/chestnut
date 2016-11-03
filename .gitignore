@@ -34,7 +34,7 @@
 /logs
 /luaclib
 /cservice
-/3rd
+
 
 # redis db
 *.rdb
@@ -42,3 +42,10 @@
 # tar
 *.tar.gz
 *.gz
+
+#module
+/module/ball/luaclib
+/module/ball/cservice
+
+/module/host/luaclib
+/module/host/cservice

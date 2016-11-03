@@ -37,14 +37,26 @@ function response.afk(fd)
 	snax.printf("AFK")
 end
 
+function accept.join(args, ... )
+	-- body
+	log.info("agent. join")
+	ctx:send_request("join", args)
+end
+
 function accept.born(args, ... )
 	-- body
+	log.info("agent born")
 	ctx:send_request("born", args)
 end
 
 function accept.leave(args, ... )
 	-- body
 	ctx:send_request("leave", args)
+end
+
+function accept.die(args, ... )
+	-- body
+	ctx:send_request("die", args)
 end
 
 function accept.start(conf, ... )
@@ -63,19 +75,20 @@ local client_request = {}
 
 function client_request.handshake( ... )
 	-- body
+	ctx:send_request("handshake")
 	local res = { errorcode = 1 }
 	return res
 end
 
 function client_request.join(msg)
-	local uid = ctx:get_uid()
+
 	local secret = ctx:get_secret()
 	local handle, host, port = roomkeeper.req.apply(msg.room)
 	local room = snax.bind(handle , "room")
-	local session, all = room.req.join(skynet.self(), secret)
-	ctx:set_session(session)
 	ctx:set_room(room)
-	return { session = session, host = host, port = port, all = all }
+	local session, ps = room.req.join(skynet.self(), secret)
+	ctx:set_session(session)
+	return { session = session, host = host, port = port, players = ps }
 end
 
 function client_request.born( ... )
@@ -94,7 +107,34 @@ end
 
 local client_response = {}
 
+function client_response.handshake(args, ... )
+	-- body
+	if args.errorcode == errorcode.SUCCESS then
+		-- log.info("handshake SUCCESS")
+	end
+end
+
+function client_response.join(args, ... )
+	-- body
+	assert(args.errorcode == errorcode.SUCCESS)
+end
+
 function client_response.born(args, ... )
+	-- body
+	assert(args.errorcode == errorcode.SUCCESS)
+end
+
+function client_response.leave(args, ... )
+	-- body
+	assert(args.errorcode == errorcode.SUCCESS)
+end
+
+function client_response.opcode(args, ... )
+	-- body
+	assert(args.errorcode == errorcode.SUCCESS)
+end
+
+function client_response.die(args, ... )
 	-- body
 	assert(args.errorcode == errorcode.SUCCESS)
 end
@@ -127,8 +167,8 @@ local function response(session, args)
 	-- body
 	local name = ctx:get_name_by_session(session)
 	log.info("uid %d agent response: %s", ctx:get_uid(), name)
-    local f = RESPONSE[name]
-    local ok, result = pcall(f, ctx, args)
+    local f = client_response[name]
+    local ok, result = pcall(f, args)
     if ok then
     else
     	log.error(result)

@@ -5,9 +5,7 @@ CLIB_SRC_PATH ?= lualib-src
 CSERVICE_PATH ?= cservice
 SERVICE_SRC_PATH ?= service-src
 
-
 CFLAGS = -g -O2 -Wall $(MYCFLAGS)
-
 
 # lua
 LUA_PATH ?= ./3rd/lua
@@ -110,7 +108,7 @@ $(CSERVICE_PATH)/catlogger.so: $(SERVICE_SRC_PATH)/service_catlogger.c | $(CSERV
 	# $(LUA_CLIB_PATH)/log.so \
 	# $(CSERVICE_PATH)/catlogger.so
 
-all: $(LUA_CLIB_PATH)/log.so $(LUA_CLIB_PATH)/math3d.so $(LUA_CLIB_PATH)/queue.so $(CSERVICE_PATH)/catlogger.so 
+all: $(SKYNET_PATH)/skynet $(LUA_CLIB_PATH)/log.so $(LUA_CLIB_PATH)/math3d.so $(LUA_CLIB_PATH)/queue.so $(CSERVICE_PATH)/catlogger.so 
 
 
 .PHONY: update3rd clean cleanall

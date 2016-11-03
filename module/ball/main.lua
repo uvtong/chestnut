@@ -3,7 +3,6 @@ local skynet = require "skynet"
 require "skynet.manager"
 local snax = require "snax"
 local log = require "log"
-local test = require "test"
 
 skynet.start(function()
 	local logger = skynet.uniqueservice("log")
@@ -108,6 +107,5 @@ skynet.start(function()
 
 	log.info("ball host successful .")
 	
-	test.new_actor()
 	skynet.exit()
 end)

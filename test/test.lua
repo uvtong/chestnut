@@ -1,10 +1,25 @@
 package.cpath = "../luaclib/?.so;" .. package.cpath
 package.path = "../lualib/?.lua;" .. package.path
 
+
 -- local math3d = require "math3d"
+
 
 -- local aabb1 = math3d.aabb(math3d.vector3(0, 0, 0), math3d.vector3(3, 3, 3))
 -- local aabb2 = math3d.aabb(math3d.vector3(1, 1, 1), math3d.vector3(4, 4, 4))
+
+local aabb1 = math3d.aabb(math3d.vector3(0, 0, 0), math3d.vector3(3, 3, 3))
+-- local aabb2 = math3d.aabb(math3d.vector3(1, 1, 1), math3d.vector3(4, 4, 4))
+
+local identity = math3d.matrix()
+identity:trans(2, 2, 2)
+
+identity:unpack()
+local m1, m2, m3, m4, m5, m6, m7, m8, m9, m10, m11, m12, m13, m14, m15, m16 = identity:unpack()
+print(m13, m14, m15, m16)
+
+aabb1:transform(identity)
+
 
 -- local center = math3d.vector3(0, 0, 0)
 -- aabb1:getCenter(center)
@@ -27,6 +42,7 @@ package.path = "../lualib/?.lua;" .. package.path
 -- else
 -- 	print(false)
 -- end
+<<<<<<< HEAD
 
 local queue = require "lqueue"
 
@@ -59,6 +75,9 @@ for i=1,sz do
 end
 
 
+=======
+-- local queue = require "queue"
+>>>>>>> c37b56c602cf6494a73a81108dafcd8c1d59cbae
 -- local q = queue()
 
 -- local r

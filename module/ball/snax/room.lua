@@ -63,53 +63,34 @@ local function move( ... )
 end
 
 function accept.update(data)
-	local sz = #data
-	if sz > 12 then
-		local session, protocol = string.unpack("<II", data, 9)
+	assert(#data >= 16)
+	local session, sz = string.unpack("<II", data, 9)
+	if sz > 0 then
+		local protocol = string.unpack("<I", data, 17)
 		if protocol == 1 then
-			-- local px, py, pz, dx, dy, dz = string.unpack("<ffffff", data, 17)
-			-- log.info("px:%f, py:%f, pz:%f, dx:%f, dy:%f, dz:%f", px, py, pz, dx, dy, dz)
-			-- local position = math3d.vector3(px, py, pz)
-			-- local direction = math3d.vector3(dx, dy, dz)
-			
 			local time = skynet.now()
-			-- snax.printf("globletime: %d", time)
-			local padding = string.pack("<I", 1)
-
-			-- local delta = time - last
-			-- scene:update(delta, session, position, direction)
 			data = string.pack("<I", time) .. data
-			data = data:sub(1, 20)
-
-			local player = session_players[session]
-			local ball_sz = player:get_balls_sz()
-			-- log.info("size of balls of player %d is %d", session, ball_sz)
-			if ball_sz > 0 then
-				data = data .. string.pack("<I", ball_sz * 32 + 4)
-				data = data .. string.pack("<I", ball_sz)
-				local balls = player:get_balls()
-				for k,ball in pairs(balls) do
-					local ballid = string.pack("<j", ball:get_id())
-					local pos = ball:pack_pos()
-					local dir = ball:pack_dir()
-					data = data .. ballid .. pos .. dir	
-				end
-			else
-				data = data .. string.pack("<I", 0)
-			end
+			data = data:sub(1, 16)
+			local ball_data = scene:pack_balls()
+			data = data .. string.pack("<I", 4 + #ball_data) .. string.pack("<I", protocol) .. ball_data
 		end
-		for s,v in pairs(users) do
-			gate.post.post(s, data)
-		end
-	else
-		log.info("size of data %d", sz)
 	end
+	gate.post.post(session, data)
 end
 
 -- called by aoi
 function accept.aoi_message(watcher, marker, ... )
 	-- body
-	scene:aoi_check_collision(watcher, marker)
+	local collision, ball = scene:aoi_check_collision(watcher, marker)
+	if collision then
+		local player = ball:get_player()
+		player:remove(ball)
+		local session = player:get_session()
+		for k,v in pairs(users) do
+			local agent = v.agent
+			agent.post.die({session=session, ballid=ball:get_id()})	
+		end
+	end
 end
 
 function response.join(handle, secret)
@@ -119,6 +100,36 @@ function response.join(handle, secret)
 	end
 	if n >= max_number then
 		return false	-- max number of room
+	end
+	local ps = {}
+	for k,player in pairs(session_players) do
+		local p = {}
+		p.session = player:get_session()
+		p.balls = {}
+		local balls = player:get_balls()
+		for k,ball in pairs(balls) do
+			local radis = ball:get_radis()
+			local length = ball:get_length()
+			local width = ball:get_width()
+			local height = ball:get_height()
+			local res = {}
+			res.errorcode = errorcode.SUCCESS
+			res.session = ball:get_session()
+			res.ballid = ball:get_id()
+			res.radis = radis
+			res.length = length
+			res.width = width
+			res.height = height
+			res.px = ball:pack_sproto_px()
+			res.py = ball:pack_sproto_py()
+			res.pz = ball:pack_sproto_pz()
+			res.dx = ball:pack_sproto_dx()
+			res.dy = ball:pack_sproto_dy()
+			res.dz = ball:pack_sproto_dz()
+			res.vel = ball:pack_sproto_vel()
+			table.insert(p.balls, res)
+		end
+		table.insert(ps, p)
 	end
 	local agent = snax.bind(handle, "agent")
 	local user = {
@@ -130,37 +141,15 @@ function response.join(handle, secret)
 	local player = rooom_player.new(user.session)
 	session_players[user.session] = player
 
-	-- return all balls
-	local head = scene._list
-	local all = {}
-	local li = head.next
-	while li do
-		snax.printf("circle.")
-		local ball = li.data
-		assert(ball)
-		local radis = ball:get_radis()
-		local length = ball:get_length()
-		local width = ball:get_width()
-		local height = ball:get_height()
-		local res = {}
-		res.errorcode = errorcode.SUCCESS
-		res.session = ball:get_session()
-		res.ballid = ball:get_id()
-		res.radis = radis
-		res.length = length
-		res.width = width
-		res.height = height
-		res.px = ball:pack_sproto_px()
-		res.py = ball:pack_sproto_py()
-		res.pz = ball:pack_sproto_pz()
-		res.dx = ball:pack_sproto_dx()
-		res.dy = ball:pack_sproto_dy()
-		res.dz = ball:pack_sproto_dz()
-		res.vel = ball:pack_sproto_vel()
-		table.insert(all, res)
-		li = li.next
+	for k,v in pairs(users) do
+		if k ~= user.session then
+			local agent = v.agent
+			log.info("room join")
+			agent.post.join({ session = user.session })
+		end
 	end
-	return user.session, all
+
+	return user.session, ps
 end
 
 function response.leave(session)
@@ -223,8 +212,9 @@ function response.born(session, ... )
 
 	for k,v in pairs(users) do
 		if k ~= session then
+			log.info("post born")
 			local agent = v.agent
-			agent.post.born({ b = res })
+			agent.post.born({ bs = {res} })
 		end
 	end
 
