@@ -111,7 +111,9 @@ $(CSERVICE_PATH)/catlogger.so: $(SERVICE_SRC_PATH)/service_catlogger.c | $(CSERV
 	# $(LUA_CLIB_PATH)/log.so \
 	# $(CSERVICE_PATH)/catlogger.so
 
-all: $(SKYNET_PATH)/skynet $(LUA_CLIB_PATH)/log.so $(LUA_CLIB_PATH)/math3d.so $(LUA_CLIB_PATH)/queue.so $(CSERVICE_PATH)/catlogger.so 
+all: $(SKYNET_PATH)/skynet $(LUA_CLIB_PATH)/log.so $(LUA_CLIB_PATH)/math3d.so $(LUA_CLIB_PATH)/queue.so \
+	$(LUA_CLIB_PATH)/rudp.so \
+	$(CSERVICE_PATH)/catlogger.so 
 
 
 .PHONY: update3rd clean cleanall

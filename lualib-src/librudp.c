@@ -1,4 +1,6 @@
 #include "rudp.h"
+#include <lua.h>
+#include <lauxlib.h>
 
 struct rudp_aux {
 	lua_State *L;
@@ -15,7 +17,7 @@ lsend(lua_State *L) {
 		luaL_error(L, "aux is NULL");
 		return 0;
 	} else {
-		rudp_send(aux->u, buffer, sz)
+		rudp_send(aux->u, buffer, sz);
 		return 0;
 	}
 }
