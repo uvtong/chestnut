@@ -96,6 +96,9 @@ $(LUA_CLIB_PATH)/queue.so: $(CLIB_SRC_PATH)/lua-queue.c | $(LUA_CLIB_PATH)
 $(LUA_CLIB_PATH)/math3d.so: $(CLIB_SRC_PATH)/libmath.c $(CLIB_SRC_PATH)/libaabb.c $(CLIB_SRC_PATH)/CCAABB.cpp | $(LUA_CLIB_PATH)
 	g++ -fpermissive -std=c++11 $(CFLAGS) $(SHARED) -I$(LUA_PATH) $^ -o $@	
 
+$(LUA_CLIB_PATH)/rudp.so: $(CLIB_SRC_PATH)/librudp.c | $(LUA_CLIB_PATH)
+	$(CC) $(CFLAGS) $(SHARED) -I$(LUA_PATH) -I./3rd/rudp/ $^ -o $@
+
 # service
 $(CSERVICE_PATH)/catlogger.so: $(SERVICE_SRC_PATH)/service_catlogger.c | $(CSERVICE_PATH)
 	$(CC) $(CFLAGS) $(SHARED) -I$(SKYNET_SRC_PATH) $^ -o $@ 

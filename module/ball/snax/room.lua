@@ -17,8 +17,8 @@ local gate
 local users = {}
 local aoi
 
+local k = 0
 local lasttick = 0
-local lastmove = 0
 
 -- room object
 local map
@@ -43,37 +43,45 @@ local function gen_ball_id(session, ... )
 	return ballid
 end
 
+-- every frame
 local function tick( ... )
 	-- body
 	while true do 
-		skynet.send(aoi, "lua", "message")
-		skynet.sleep(4)
-	end
-end
-
-local function move( ... )
-	-- body
-	while true do
-		local now = skynet.now()
-		local delta = (now - lastmove) / 100.0 -- s
-		lastmove = now
+		k = k + 1
+		local t1 = skynet.now()
+		local delta = (t1 - lasttick) / 100.0 -- s
+		lasttick = t1
 		scene:move(delta)
+
+		skynet.send(aoi, "lua", "message")
+
+		local t2 = skynet.now()
+		local data = string.pack("<III", t2, 0, 0)
+		local ball_data = scene:pack_balls()
+		local protocol = 2
+		for session,v in pairs(users) do
+			data = data .. string.pack("<III", session, protocol, k) .. ball_data
+			gate.post.post(session, data)
+		end
+
 		skynet.sleep(2)
 	end
 end
 
 function accept.update(data)
 	assert(#data >= 16)
-	local session, sz = string.unpack("<II", data, 9)
-	if sz > 0 then
-		local protocol = string.unpack("<I", data, 17)
-		if protocol == 1 then
-			local time = skynet.now()
-			data = string.pack("<I", time) .. data
-			data = data:sub(1, 16)
-			local ball_data = scene:pack_balls()
-			data = data .. string.pack("<I", 4 + #ball_data) .. string.pack("<I", protocol) .. ball_data
-		end
+	local session, protocol = string.unpack("<II", data, 9)	
+	local protocol = string.unpack("<I", data, 13)
+	if protocol == 1 then
+		-- log.info("protocol 1")
+		local time = skynet.now()
+		data = string.pack("<I", time) .. data
+	elseif protocol == 2 then
+		local time = skynet.now()
+		data = string.pack("<I", time) .. data
+		-- data = data:sub(1, 16)
+		-- local ball_data = scene:pack_balls()
+		-- data = data .. string.pack("<I", 4 + #ball_data) .. string.pack("<I", protocol) .. ball_data
 	end
 	gate.post.post(session, data)
 end
@@ -262,9 +270,7 @@ function init(id, udpserver)
 	map = scene:setup_map()
 
 	lasttick = skynet.now()
-	lastmove = skynet.now()
 	skynet.fork(tick)
-	skynet.fork(move)
 end
 
 function exit()
