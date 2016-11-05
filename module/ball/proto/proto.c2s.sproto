@@ -68,3 +68,12 @@ opcode 5 {
 
 die 6 {
 }
+
+accele 7 {
+    request {
+        code 0 : integer
+    }
+    response {
+        errorcode 0 : integer
+    }
+}
