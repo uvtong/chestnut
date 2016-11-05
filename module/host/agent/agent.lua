@@ -69,10 +69,9 @@ end
 
 function REQUEST:leave_room(args, ... )
 	-- body
+	local uid = self:get_uid()
 	local room = self:get_room()
-	-- skynet.call(room, "lua", "leave_room")
-	self:set_onroom(false)
-
+	skynet.send(".ROOM_MGR", "lua", "dequeue_agent", uid)
 	local res = { errorcode = errorcode.SUCCESS}
 	return res
 end
