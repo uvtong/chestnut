@@ -17,8 +17,8 @@ function cls:ctor(env, dbctx, set, rdb, wdb, p, ... )
 	self._fields = %s
 	self._ecol_updated = %s
 	if p then
-		for k,v in pairs(self.__head) do
-			self.__fields[k] = assert(p[k], %s)
+		for k,v in pairs(self._head) do
+			self._fields[k] = assert(p[k], %s)
 		end
 	end
 	return self

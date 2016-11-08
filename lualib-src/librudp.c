@@ -5,7 +5,7 @@
 struct rudp_aux {
 	lua_State *L;
 	struct rudp *u;
-	int session;
+	int id;
 	char buffer[MAX_PACKAGE];
 };
 
@@ -30,12 +30,13 @@ lupdate(lua_State *L) {
 	lua_getfield(L, -1, "send");
 	lua_getfield(L, -2, "recv");
 
-
 	struct rudp_package *res = rudp_update(aux->u, buffer, sz, tick);
 	while (res) {
 		lua_pushvalue(L, -2);
+		lua_pushvalue(L, 1);
+		lua_pushinteger(L, aux->id);
 		lua_pushlstring(L, res->buffer, res->sz);
-		lua_pcall(L, 1, 0, 0);		
+		lua_pcall(L, 3, 0, 0);		
 		res = res->next;
 	}
 	int n;
@@ -43,24 +44,27 @@ lupdate(lua_State *L) {
 		if (n < 0) {
 			break;
 		}
+		printf("%s\n", "rudp_recv");
 		lua_pushvalue(L, -1);
+		lua_pushvalue(L, 1);
+		lua_pushinteger(L, aux->id);
 		lua_pushlstring(L, aux->buffer, n);
-		lua_pcall(L, 1, 0, 0);
+		lua_pcall(L, 3, 0, 0);
 	}
 	return 0;
 }
 
 static int
-lset_session(lua_State *L) {
+lset_id(lua_State *L) {
 	struct rudp_aux *aux = (struct rudp_aux *)lua_touserdata(L, 1);
-	aux->session = lua_tointeger(L, 2);
+	aux->id = lua_tointeger(L, 2);
 	return 0;
 }
 
 static int
-lget_session(lua_State *L) {
+lget_id(lua_State *L) {
 	struct rudp_aux *aux = (struct rudp_aux *)lua_touserdata(L, 1);
-	lua_pushinteger(L, aux->session);
+	lua_pushinteger(L, aux->id);
 	return 1;
 }
 
@@ -105,14 +109,14 @@ lnew(lua_State *L) {
 }
 
 int
-luaopen_rudpaux(lua_State *L) {
+luaopen_rudp(lua_State *L) {
 	luaL_checkversion(L);
 	lua_newtable(L); // met
 	luaL_Reg l[] = {
 		{ "send", lsend },
 		{ "update", lupdate },
-		{ "set_session", lset_session },
-		{ "get_session", lget_session },
+		{ "set_id", lset_id },
+		{ "get_id", lget_id },
 		{ NULL, NULL },
 	};
 	luaL_newlib(L,l);

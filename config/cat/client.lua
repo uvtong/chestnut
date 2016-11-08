@@ -1,5 +1,5 @@
 package.cpath = "luaclib/?.so"
-package.path = "./../cat/?.lua;lualib/?.lua"
+package.path = "./../../module/cat/?.lua;./../../module/cat/lualib/?.lua"
 
 local socket = require "clientsocket"
 local crypt = require "crypt"

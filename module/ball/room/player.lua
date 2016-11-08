@@ -5,6 +5,8 @@ function cls:ctor(session, ... )
 	-- body
 	assert(session)
 	self._session = session
+	self._secret = nil
+	self._agent = nil
 	self._myballs = {}
 	self._myballs_sz = 0
 end
@@ -12,6 +14,26 @@ end
 function cls:get_session( ... )
 	-- body
 	return self._session
+end
+
+function cls:set_secret(v, ... )
+	-- body
+	self._secret = v
+end
+
+function cls:get_secret( ... )
+	-- body
+	return self._secret
+end
+
+function cls:set_agent(v, ... )
+	-- body
+	self._agent = v
+end
+
+function cls:get_agent( ... )
+	-- body
+	return self._agent
 end
 
 function cls:add(ball, ... )
