@@ -5,8 +5,8 @@ local sprotoloader = require "sprotoloader"
 local context = require "context"
 local log = require "log"
 local errorcode = require "errorcode"
-local assert = assert
 local gs = require "gamestate"
+local assert = assert
 
 local ctx
 local NORET = {}
@@ -61,7 +61,7 @@ function CMD:on_enter_room(agents, ... )
 		end
 		
 		local res = {}
-		res.players = players
+		res.players = ps
 		skynet.send(player:get_agent(), "lua", "enter_room", res)
 	end
 	return true
@@ -71,7 +71,7 @@ function CMD:leave_room(uid, ... )
 	-- body
 	log.info("room leave_room: %d", uid)
 	local controller = self._env:get_controller("game")
-	if controller:get_state() == gs.CLOSE then
+	-- if controller:get_state() == gs.CLOSE then
 		
 	local player = self:get_player_by_uid(uid)
 	self:remove(player)
@@ -139,7 +139,12 @@ function CMD:deal(args, ... )
 	return NORET
 end
 
-
+function CMD:start(rule, mode, scene, ... )
+	-- body
+	self:set_rule(rule)
+	self:set_mode(mode)
+	self:set_scene(scene)
+end
 
 skynet.start(function ()
 	-- body

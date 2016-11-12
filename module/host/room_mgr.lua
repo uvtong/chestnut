@@ -99,7 +99,7 @@ function CMD.enqueue_agent(source, uid, rule, mode, scene, ... )
 			local agent = dequeue_agent(q)
 			table.insert(agents, agent)
 		end
-		skynet.call(room, "lua", "enter_room", agents)
+		skynet.call(room, "lua", "on_enter_room", agents)
 	end
 	return noret
 end

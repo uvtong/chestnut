@@ -22,7 +22,41 @@ function cls:ctor( ... )
 
 	self._controllers = {}
 	self._controllers.game = gamecontroller.new(self, "game")
+
+	self._rule = nil
+	self._mode = nil
+	self._scene = nil
 	return self
+end
+
+function cls:set_rule(v, ... )
+	-- body
+	self._rule = v
+end
+
+function cls:get_rule( ... )
+	-- body
+	return self._rule
+end
+
+function cls:set_mode(v, ... )
+	-- body
+	self._mode = v
+end
+
+function cls:get_mode( ... )
+	-- body
+	return self._mode
+end
+
+function cls:set_scene(v, ... )
+	-- body
+	self._scene = v
+end
+
+function cls:get_scene( ... )
+	-- body
+	return self._scene
 end
 
 function cls:create_player(uid, agent, ... )
