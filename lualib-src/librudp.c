@@ -5,59 +5,67 @@
 struct rudp_aux {
 	lua_State *L;
 	struct rudp *u;
+	int id;
 	char buffer[MAX_PACKAGE];
 };
 
 static int
 lsend(lua_State *L) {
 	struct rudp_aux *aux = (struct rudp_aux *)lua_touserdata(L, 1);
-	const char *buffer = (const char *)lua_touserdata(L, 2);
-	int sz = lua_tointeger(L, 3);
-	if (aux == NULL) {
-		luaL_error(L, "aux is NULL");
-		return 0;
-	} else {
-		rudp_send(aux->u, buffer, sz);
-		return 0;
-	}
-}
-
-static int
-lrecv(lua_State *L) {
-	struct rudp_aux *aux = (struct rudp_aux *)lua_touserdata(L, 1);
-
-	lua_geti(L, LUA_REGISTRYINDEX, LUA_RIDX_GLOBALS);
-	lua_rawsetp(L, -1, aux);
-	lua_getfield(L, -1, "recv")
-
-	int sz = rudp_recv(aux->u, aux->buffer);
-	if (sz > 0) {
-		lua_pushvalue(L, -1);
-		lua_pushlstring(L, res->buffer, res->sz);
-		lua_pcall(L, 1, 0, 0);
-	}
-	lua_pushinteger(L, sz);
-	return 1;
+	size_t sz = 0;
+	const char *buffer = luaL_checklstring(L, 2, &sz);
+	rudp_send(aux->u, buffer, sz);
+	return 0;
 }
 
 static int
 lupdate(lua_State *L) {
 	struct rudp_aux *aux = (struct rudp_aux *)lua_touserdata(L, 1);
-	int sz = 0;
+	size_t sz = 0;
 	const char *buffer = luaL_checklstring(L, 2, &sz);
 	int tick = lua_tointeger(L, 3);
 	
 	lua_geti(L, LUA_REGISTRYINDEX, LUA_RIDX_GLOBALS);
-	lua_rawsetp(L, -1, aux);
-	lua_getfield(L, -1, "send")
+	lua_rawgetp(L, -1, aux);
+	lua_getfield(L, -1, "send");
+	lua_getfield(L, -2, "recv");
 
 	struct rudp_package *res = rudp_update(aux->u, buffer, sz, tick);
 	while (res) {
-		lua_pushvalue(L, -1);
+		lua_pushvalue(L, -2);
+		lua_pushvalue(L, 1);
+		lua_pushinteger(L, aux->id);
 		lua_pushlstring(L, res->buffer, res->sz);
-		lua_pcall(L, 1, 0, 0);		
+		lua_pcall(L, 3, 0, 0);		
 		res = res->next;
 	}
+	int n;
+	while ((n = rudp_recv(aux->u, aux->buffer))) {
+		if (n < 0) {
+			break;
+		}
+		printf("%s\n", "rudp_recv");
+		lua_pushvalue(L, -1);
+		lua_pushvalue(L, 1);
+		lua_pushinteger(L, aux->id);
+		lua_pushlstring(L, aux->buffer, n);
+		lua_pcall(L, 3, 0, 0);
+	}
+	return 0;
+}
+
+static int
+lset_id(lua_State *L) {
+	struct rudp_aux *aux = (struct rudp_aux *)lua_touserdata(L, 1);
+	aux->id = lua_tointeger(L, 2);
+	return 0;
+}
+
+static int
+lget_id(lua_State *L) {
+	struct rudp_aux *aux = (struct rudp_aux *)lua_touserdata(L, 1);
+	lua_pushinteger(L, aux->id);
+	return 1;
 }
 
 static int
@@ -74,7 +82,7 @@ ldelete(lua_State *L) {
 
 static int 
 lnew(lua_State *L) {
-	struct rudp_aux *aux = (struct aoi_aux *)lua_newuserdata(L, sizeof(*aux));
+	struct rudp_aux *aux = (struct rudp_aux *)lua_newuserdata(L, sizeof(*aux));
 	if (aux == NULL) {
 		printf("%s\n", "malloc failture.");
 		return 0;
@@ -101,13 +109,14 @@ lnew(lua_State *L) {
 }
 
 int
-luaopen_rudpaux(lua_State *L) {
+luaopen_rudp(lua_State *L) {
 	luaL_checkversion(L);
 	lua_newtable(L); // met
 	luaL_Reg l[] = {
-		{ "update", lupdate },
 		{ "send", lsend },
-		{ "recv", lrecv },
+		{ "update", lupdate },
+		{ "set_id", lset_id },
+		{ "get_id", lget_id },
 		{ NULL, NULL },
 	};
 	luaL_newlib(L,l);

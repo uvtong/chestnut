@@ -1,7 +1,6 @@
-local s = [[
 local entity = require "entity"
 
-local cls = class("%s", entity)
+local cls = class("account_entity", entity)
 
 function cls:ctor(env, dbctx, set, rdb, wdb, p, ... )
 	-- body
@@ -14,17 +13,24 @@ function cls:ctor(env, dbctx, set, rdb, wdb, p, ... )
 	self._fk        = set._fk
 	self._stm       = set._stm
 	self._col_updated = 0
-	self._fields = %s
-	self._ecol_updated = %s
+	self._fields = {
+			id = 0,
+			username = 0,
+			password = 0,
+		}
+
+	self._ecol_updated = {
+			id = 0,
+			username = 0,
+			password = 0,
+		}
+
 	if p then
 		for k,v in pairs(self._head) do
-			self._fields[k] = assert(p[k], %s)
+			self._fields[k] = assert(p[k], string.format("no exist %s", k))
 		end
 	end
 	return self
 end
 
 return cls
-]]
-
-return s

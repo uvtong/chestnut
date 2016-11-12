@@ -13,9 +13,11 @@ skynet.start(function()
 	skynet.uniqueservice("protoloader")
 	
 	local console = skynet.newservice("console")
-	skynet.newservice("debug_console",8000)
+	-- skynet.newservice("debug_console",8000)
 	
 	-- read
+	-- local game = skynet.uniqueservice("game")
+	-- skynet.name(".game", game)
 		
 	-- local lb = skynet.newservice("leaderboards", "ara_leaderboards")
 	-- skynet.name(".LB", lb)
@@ -23,7 +25,7 @@ skynet.start(function()
 	skynet.newservice("agent_mgr")
 	-- skynet.newservice("branch")
 	-- skynet.newservice("channel")
-	snax.uniqueservice("roomkeeper")
+	-- snax.uniqueservice("roomkeeper")
 
 	repeat
 		local conf = {
@@ -103,9 +105,6 @@ skynet.start(function()
 		})
 	end
 
-	local game = skynet.uniqueservice("game")
-	skynet.call(game, "lua", "start")
-	
 	log.info("ball host successful .")
 	
 	skynet.exit()

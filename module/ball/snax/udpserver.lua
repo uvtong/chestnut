@@ -2,12 +2,16 @@ local skynet = require "skynet"
 local socket = require "socket"
 local crypt = require "crypt"
 local snax = require "snax"
+local rudp = require "rudp"
 
+local tick = 1
 local udphost, udpport
 local U
 local S = {}
 local SESSION = 0
 local timeout = 10 * 60 * 100	-- 10 mins
+local D = {}
+local rudp_flag = false
 
 --[[
 	8 bytes hmac   crypt.hmac_hash(key, session .. data)
@@ -17,38 +21,15 @@ local timeout = 10 * 60 * 100	-- 10 mins
 	padding data
 ]]
 
-function response.register(service, key)
-	skynet.error("udp_servier response register", udphost, udpport)
-	SESSION = (SESSION + 1) & 0xffffffff
-	S[SESSION] = {
-		session = SESSION,
-		key = key,
-		room = snax.bind(service, "room"),
-		address = nil,
-		time = skynet.now(),
-		lastevent = nil,
-	}
-	skynet.error("client session", SESSION)
-	return SESSION
-end
-
-function response.unregister(session)
-	S[session] = nil
-end
-
-function accept.post(session, data)
-	local s = S[session]
-	if s and s.address then
-		socket.sendto(U, s.address, data)
-	else
-		snax.printf("Session is invalid %d", session)
-	end
-end
-
 local function timesync(session, localtime, from)
 	-- return globaltime .. localtime .. eventtime .. session , eventtime = 0xffffffff
-	local now = skynet.now()
-	socket.sendto(U, from, string.pack("<IIII", now, localtime, 0xffffffff, session))
+	if rudp_flag then
+		local now = skynet.now()
+		ru:send(string.pack("<IIII", now, localtime, 0xffffffff, session))
+	else
+		local now = skynet.now()
+		socket.sendto(U, from, string.pack("<IIII", now, localtime, 0xffffffff, session))
+	end
 end
 
 local function udpdispatch(str, from)
@@ -63,6 +44,7 @@ local function udpdispatch(str, from)
 				return
 			end
 			s.address = from
+			D[from] = s
 		end
 		if eventtime == 0xffffffff then
 			return timesync(session, localtime, from)
@@ -86,6 +68,55 @@ local function udpdispatch(str, from)
 	end
 end
 
+local function send(u, id, data, ... )
+	-- body
+	local s = D[id]
+	if s and (s.address == id) then
+		socket.sendto(U, s.address, data)
+	else
+		snax.printf("Session is invalid %d", session)
+	end
+end
+
+local function recv(u, from, data, ... )
+	-- body
+	snax.printf("1.recv %d, %s", from, data)
+	udpdispatch(data, from)
+end
+
+function response.register(service, key)
+	skynet.error("udp_servier response register", udphost, udpport)
+	SESSION = (SESSION + 1) & 0xffffffff
+	S[SESSION] = {
+		session = SESSION,
+		key = key,
+		room = snax.bind(service, "room"),
+		address = nil,
+		time = skynet.now(),
+		lastevent = nil,
+		u = nil,
+	}
+	skynet.error("client session", SESSION)
+	return SESSION
+end
+
+function response.unregister(session)
+	S[session] = nil
+end
+
+function accept.post(session, data)
+	local s = S[session]
+	if s and s.address then
+		if rudp_flag then
+			s.u:send(data)
+		else
+			socket.sendto(U, s.address, data)
+		end
+	else
+		snax.printf("Session is invalid %d", session)
+	end
+end
+
 local function keepalive()
 	-- trash session after no package last 10 mins (timeout)
 	while true do
@@ -106,12 +137,44 @@ local function keepalive()
 	end
 end
 
+local function update( ... )
+	-- body
+	while true do
+		tick = tick + 1
+		for session,s in pairs(S) do
+			if s.u then
+				s.u:update("", tick)
+			end
+		end
+		skynet.sleep(10);  -- 0.1s
+	end
+end
+
+local function dispatch(str, from, ... )
+	-- body
+	snax.printf(type(from))
+	local s = D[from]
+	if s then
+		if s.u then
+			s.u:update(str, tick)
+		else
+			assert(false)
+		end
+	else
+		snax.printf("dispatch 1 %s", from)
+		local u = rudp(send, recv)
+		u:set_id(tonumber(from))
+		u:update(str, tick)
+	end
+end
+
 function init(host, port, address)
 	U = socket.udp(udpdispatch, host, math.floor(port))
 	skynet.fork(keepalive)
 	skynet.error("begin to do udp_servier", host, math.floor(port))
 	udphost = host
 	udpport = port
+	-- skynet.fork(update)
 end
 
 function exit()

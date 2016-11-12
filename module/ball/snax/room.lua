@@ -7,25 +7,14 @@ local crypt = require "crypt"
 local log = require "log"
 local list = require "list"
 local room_scene = require "room.scene"
-local rooom_player = require "room.player"
+local room_player = require "room.player"
 local opcodes = require "room.opcodes"
+local context = require "room.context"
 
 -- context variable
-local max_number = 8
-local roomid
-local gate
-local users = {}
-local aoi
-
+local ctx
 local k = 0
 local lasttick = 0
-
--- room object
-local map
-local view
-local scene
-local ballid = 1
-local session_players = {}
 
 --[[
 	4 bytes localtime
@@ -33,15 +22,6 @@ local session_players = {}
 	4 bytes session
 	padding data
 ]]
-
-local function gen_ball_id(session, ... )
-	-- body
-	ballid = ballid + 1
-	if ballid <= 0 then
-		ballid = 1 
-	end
-	return ballid
-end
 
 -- every frame
 local function tick( ... )
@@ -51,18 +31,7 @@ local function tick( ... )
 		local t1 = skynet.now()
 		local delta = (t1 - lasttick) / 100.0 -- s
 		lasttick = t1
-		scene:move(delta)
-
-		skynet.send(aoi, "lua", "message")
-
-		local t2 = skynet.now()
-		local data = string.pack("<III", t2, 0, 0)
-		local ball_data = scene:pack_balls()
-		local protocol = 2
-		for session,v in pairs(users) do
-			data = data .. string.pack("<III", session, protocol, k) .. ball_data
-			gate.post.post(session, data)
-		end
+		ctx:update(delta, k)		
 
 		skynet.sleep(2)
 	end
@@ -83,32 +52,28 @@ function accept.update(data)
 		-- local ball_data = scene:pack_balls()
 		-- data = data .. string.pack("<I", 4 + #ball_data) .. string.pack("<I", protocol) .. ball_data
 	end
+	local gate = ctx:get_gate()
 	gate.post.post(session, data)
 end
 
 -- called by aoi
 function accept.aoi_message(watcher, marker, ... )
 	-- body
+	local scene = ctx:get_scene()
 	local collision, ball = scene:aoi_check_collision(watcher, marker)
 	if collision then
 		local player = ball:get_player()
 		player:remove(ball)
 		local session = player:get_session()
-		for k,v in pairs(users) do
-			local agent = v.agent
-			agent.post.die({session=session, ballid=ball:get_id()})	
-		end
+		ctx:broadcast_die({session=session, ballid=ball:get_id()})
 	end
 end
 
 function response.join(handle, secret)
-	local n = 0
-	for _ in pairs(users) do
-		n = n + 1
+	if ctx:is_maxnum() then
+		return false
 	end
-	if n >= max_number then
-		return false	-- max number of room
-	end
+	local session_players = ctx:get_players()
 	local ps = {}
 	for k,player in pairs(session_players) do
 		local p = {}
@@ -139,41 +104,41 @@ function response.join(handle, secret)
 		end
 		table.insert(ps, p)
 	end
+	local gate = ctx:get_gate()
+	local session = gate.req.register(skynet.self(), secret)
 	local agent = snax.bind(handle, "agent")
-	local user = {
-		agent = agent,
-		key = secret,
-		session = gate.req.register(skynet.self(), secret),
-	}
-	users[user.session] = user
-	local player = rooom_player.new(user.session)
-	session_players[user.session] = player
+	local player = room_player.new(session)
+	player:set_secret(secret)
+	player:set_agent(agent)
+	ctx:add(session, player)
 
-	for k,v in pairs(users) do
-		if k ~= user.session then
-			local agent = v.agent
+	for k,v in pairs(session_players) do
+		if k ~= session then
 			log.info("room join")
-			agent.post.join({ session = user.session })
+			local agent = v:get_agent()
+			agent.post.join({ session = session })
 		end
 	end
-
-	return user.session, ps
+	return session, ps
 end
 
 function response.leave(session)
+	local gate = ctx:get_gate()
+	local scene = ctx:get_scene()
+	local session_players = ctx:get_players()
 	local player = session_players[session]
 	local balls = player:get_balls()
 	for k,v in pairs(balls) do
 		scene:leave(v:get_id())
 	end
-	for k,v in pairs(users) do
+	for k,v in pairs(session_players) do
 		if k ~= session then
 			local agent = v.agent
 			agent.post.leave({ session = session })
 		end
 	end
 	gate.req.unregister(session)
-	users[session] = nil
+	ctx:remove(session)
 end
 
 function response.query(session)
@@ -186,7 +151,10 @@ end
 
 function response.born(session, ... )
 	-- body
-	local ballid = gen_ball_id()
+	local aoi = ctx:get_aoi()
+	local scene = ctx:get_scene()
+	local ballid = ctx:gen_ball_id()
+	local session_players = ctx:get_players()
 	local ball =assert(scene:setup_ball(ballid, session))
 
 	local player = assert(session_players[session])
@@ -218,10 +186,10 @@ function response.born(session, ... )
 	res.dz = ball:pack_sproto_dz()
 	res.vel = ball:pack_sproto_vel()
 
-	for k,v in pairs(users) do
+	for k,v in pairs(session_players) do
 		if k ~= session then
 			log.info("post born")
-			local agent = v.agent
+			local agent = v:get_agent()
 			agent.post.born({ bs = {res} })
 		end
 	end
@@ -258,16 +226,34 @@ function response.opcode(session, args, ... )
 	end
 end
 
+function response.start_game( ... )
+	-- body
+end
+
+function response.close_game( ... )
+	-- body
+end
+
+function response.start( ... )
+	-- body
+end
+
 function init(id, udpserver)
-	roomid = id
-	gate = snax.bind(udpserver, "udpserver")
-	aoi = skynet.newservice("aoi")
+	ctx = context.new(id) 
+	local gate = snax.bind(udpserver, "udpserver")
+	ctx:set_gate(gate)
+	local aoi = skynet.newservice("aoi")
 	local conf = {}
 	conf.handle = snax.self().handle
 	skynet.call(aoi, "lua", "start", conf)
-	scene = room_scene.new(aoi)
-	view = scene:setup_view()
-	map = scene:setup_map()
+	ctx:set_aoi(aoi)
+
+	local scene = room_scene.new(aoi)
+	local view = scene:setup_view()
+	local map = scene:setup_map()
+	ctx:set_map(map)
+	ctx:set_view(view)
+	ctx:set_scene(scene)
 
 	lasttick = skynet.now()
 	skynet.fork(tick)

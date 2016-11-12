@@ -1,7 +1,7 @@
 local skynet = require "skynet"
 require "skynet.manager"
 local snax = require "snax"
-local queue = require "queue"
+local queue = require "lqueue"
 
 local leisure_agent = queue.new(16)
 local handle_agent = {}

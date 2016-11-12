@@ -15,7 +15,7 @@ function cls:ctor(env, dbctx, set, rdb, wdb, ... )
 	self.fields = setmetatable({}, {
 		__index = function (fields, k, ... )
 			-- body
-			return self.__fields[k]
+			return self._fields[k]
 		end,
 		__newindex = function ( ... )
 			-- body
@@ -42,7 +42,11 @@ function cls:load_data_to_sd( ... )
 	local pk = self._fields[self._pk]
 	if self._head[self._pk].t == "number" then
 		local key = string.format("%s:%d", self._tname, pk)
-		sd.new(key, self._fields)
+		if self._fields then
+			sd.new(key, self._fields)
+		else
+			error "load_data_to_sd is nil"
+		end
 	elseif self.__head[self._pk].t == "string" then
 		local key = string.format("%s:%s", self._tname, pk)
 		sd.new(key, self._fields)
