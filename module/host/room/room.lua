@@ -27,7 +27,8 @@ function CMD:on_enter_room(agents, ... )
 	assert(#agents == 3)
 	for i=1,3 do
 		local agent = agents[i]
-		local player = self:create_player(agent.uid, agent.agent)
+		log.info("address %d", agent.agent)
+		local player = self:create_player(agent.uid, agent.sid, agent.agent)
 		local res = skynet.call(agent.agent, "lua", "info")	
 		player:set_name(res.name)
 	end
@@ -36,7 +37,7 @@ function CMD:on_enter_room(agents, ... )
 		local player = players[i]
 		local ps = {}
 		local p = {
-			uid = player:get_uid(),
+			sid = player:get_sid(),
 			name = player:get_name(),
 			orientation = 0,
 		}
@@ -44,7 +45,7 @@ function CMD:on_enter_room(agents, ... )
 		local last = player:get_last()
 		if last then
 			local p = {
-				uid = last:get_uid(),
+				sid = last:get_sid(),
 				name = last:get_name(),
 				orientation = 1,
 			}
@@ -53,7 +54,7 @@ function CMD:on_enter_room(agents, ... )
 		local next = player:get_next()
 		if next then
 			local p = {
-				uid = next:get_uid(),
+				sid = next:get_sid(),
 				name = next:get_name(),
 				orientation = -1
 			}
@@ -137,6 +138,12 @@ function CMD:deal(args, ... )
 	local errorcode = args.errorcode
 	assert(errorcode == errorcode.SUCCESS)
 	return NORET
+end
+
+function CMD:afk(sid, ... )
+	-- body
+	local player = self:get_player_by_uid(sid)
+	player:set_online(false)
 end
 
 function CMD:start(rule, mode, scene, ... )

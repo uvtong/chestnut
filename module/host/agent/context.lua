@@ -16,8 +16,7 @@ function cls:ctor( ... )
 	self._uid = false
 	self._subid = false
 	self._secret = false
-	self._room = false
-	self._onroom = false
+	self._room = nil
 	self._host_udbcontext = host_udbcontext.new(self, rdb, wdb)
 	return self
 end
@@ -64,16 +63,6 @@ end
 function cls:get_room( ... )
 	-- body
 	return self._room
-end
-
-function cls:set_onroom(flag, ... )
-	-- body
-	self._onroom = flag
-end
-
-function cls:get_onroom( ... )
-	-- body
-	return self._onroom
 end
 
 function cls:get_host_udbcontext( ... )

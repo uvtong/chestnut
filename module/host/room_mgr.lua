@@ -77,12 +77,13 @@ end
 
 local CMD = {}
 
-function CMD.enqueue_agent(source, uid, rule, mode, scene, ... )
+function CMD.enqueue_agent(source, uid, sid, rule, mode, scene, ... )
 	-- body
 	local rt = (scene << 24 | mode << 16 | rule << 8)
 	local agent = {
 		agent = source,
 		uid = uid,
+		sid = sid,
 		rt = rt,
 		rule = rule,
 		mode = mode,

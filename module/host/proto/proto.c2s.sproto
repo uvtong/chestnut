@@ -13,7 +13,7 @@
 .player {
     name 0 : string
     orientation 1 : integer
-    uid         2 : integer
+    sid         2 : integer
 }
 
 handshake 1 {
@@ -42,7 +42,7 @@ leave_room 3 {
 
 ready 4 {
     request {
-        uid 0 : integer
+        sid   0 : integer
         ready 1 : boolean
     }
     response {
@@ -56,7 +56,8 @@ ready 4 {
 
 mp 5 {
     request {
-        m 0 : integer
+        sid 0 : integer
+        m   1 : integer
     }
     response {
         errorcode 0 : integer
@@ -79,7 +80,7 @@ am 6 {
 
 rob 7 {
     request {
-        uid 0 : integer
+        sid 0 : integer
         rob 1 : integer
     }
     response {
@@ -94,7 +95,7 @@ rob 7 {
 
 lead 8 {
     request {
-        uid   0 : integer
+        sid   0 : integer
         lead  1 : boolean
         cards 2 : *integer
     }

@@ -6,14 +6,14 @@
 }
 
 .settlement {
-    uid 0 : integer
+    sid  0 : integer
     gold 1 : integer    
 }
 
 .player {
     name 0 : string
     orientation 1 : integer
-    uid 2 : integer
+    sid 2 : integer
 }
 
 handshake 1 {
@@ -33,7 +33,7 @@ enter_room 2 {
 
 leave_room 3 {
     request {
-        uid 0 : integer
+        sid 0 : integer
     }
     response {
         errorcode 0 : integer
@@ -42,7 +42,7 @@ leave_room 3 {
 
 ready 4 {
     request {
-        uid       0 : integer
+        sid       0 : integer
         ready     1 : boolean
         deal      2 : boolean
         cards     3 : *integer
@@ -56,8 +56,8 @@ ready 4 {
 
 mp 5 {
     request {
-        user_id 0 : integer
-        m 1 : integer
+        sid    0 : integer
+        m      1 : integer
         mcards 2 : integer
         rcards 3 : integer
         lcards 4 : integer
@@ -75,7 +75,7 @@ am 6 {
 
 rob 7 {
     request {
-        uid       0 : integer
+        sid       0 : integer
         rob       1 : integer
         your_turn 2 : integer
         countdown 3 : integer
@@ -89,9 +89,9 @@ rob 7 {
 
 lead 8 {
     request {
-        uid 0 : integer
+        sid   0 : integer
         cards 1 : *integer
-        turn 2 : boolean
+        turn  2 : boolean
         your_turn 3 : integer
         countdown 4 : integer
         settlement 5 : boolean

@@ -17,25 +17,27 @@ state.CLOSE      = 11
 
 local cls = class("player")
 
-function cls:ctor(env, uid, fd, ... )
+function cls:ctor(env, uid, sid, fd, ... )
 	-- body
-	assert(env and uid and fd)
-	self._env = env
-	self._uid = uid
-	self._agent = fd  -- agent
-	self._last = false
-	self._next = false
-	self._idx  = -1    -- players in
-	self._robot = false
-	self._name = ""
+	assert(env and uid and sid and fd)
+	self._env    = env
+	self._uid    = uid
+	self._sid    = sid
+	self._agent  = fd  -- agent
+	self._last   = false
+	self._next   = false
+	self._idx    = 0    -- players in
+	self._online = false
+	self._robot  = false
+	self._name   = ""
 
-	self._state = state.NONE
-	self._cards = {}
+	self._state  = state.NONE
+	self._cards  = {}
 	self._cards_selection = {}
 	self._cards_selection_sz = 0
 	self._deal_cards = {}
 
-	self._rob = {}
+	self._rob    = {}
 	self._isdizhu = false
 	
 	self._lastplayerleadg = nil      -- 上位同学出的牌，在场景里表现后比较
@@ -49,19 +51,28 @@ function cls:ctor(env, uid, fd, ... )
 	return self
 end
 
-function cls:set_uid(uid, ... )
-	-- body
-	self._uid = uid
-end
-
 function cls:get_uid( ... )
 	-- body
 	return self._uid
 end
 
+function cls:set_uid(value, ... )
+	-- body
+	self._uid = value
+end
+
+function cls:get_sid( ... )
+	-- body
+	return self._sid
+end
+
+function cls:set_sid(value, ... )
+	-- body
+	self._sid = value
+end
+
 function cls:set_agent(agent, ... )
 	-- body
-	assert(false)
 	self._agent = agent
 end
 
@@ -98,6 +109,16 @@ end
 function cls:get_idx( ... )
 	-- body
 	return self._idx
+end
+
+function cls:set_online(value, ... )
+	-- body
+	self._online = value
+end
+
+function cls:get_online( ... )
+	-- body
+	return self._online
 end
 
 function cls:set_robot(flag, ... )

@@ -57,21 +57,26 @@ end
 
 function REQUEST:enter_room(args, ... )
 	-- body
-	self:set_onroom(true)
+	local room = self:get_room()
+	assert(room == nil)
 	local rule = args.rule
 	local mode = args.mode
 	local scene = args.scene
 	local uid = self:get_uid()
-	skynet.send(".ROOM_MGR", "lua", "enqueue_agent", uid, rule, mode, scene)
+	local sid = self:get_subid()
+	skynet.send(".ROOM_MGR", "lua", "enqueue_agent", uid, sid, rule, mode, scene)
 	local res = { errorcode = errorcode.SUCCESS}
 	return res
 end
 
 function REQUEST:leave_room(args, ... )
 	-- body
-	local uid = self:get_uid()
 	local room = self:get_room()
-	skynet.send(".ROOM_MGR", "lua", "dequeue_agent", uid)
+	if room then
+		self:set_room(nil)
+		local uid = self:get_uid()
+		skynet.send(".ROOM_MGR", "lua", "dequeue_agent", uid)
+	end
 	local res = { errorcode = errorcode.SUCCESS}
 	return res
 end
@@ -79,13 +84,19 @@ end
 function REQUEST:ready(args, ... )
 	-- body
 	local room = self:get_room()
-	return skynet.call(room, "client", "on_ready", args)
+	if room then
+		return skynet.call(room, "client", "on_ready", args)
+	end
 end
 
 function REQUEST:mp(args, ... )
 	-- body
 	local room = self:get_room()
-	return skynet.call(room.roomid, "client", "on_mp", args)
+	if room then
+		return skynet.call(room.roomid, "client", "on_mp", args)
+	else
+		log.error("you not enter room")
+	end
 end
 
 function REQUEST:am(args, ... )
@@ -97,7 +108,11 @@ end
 function REQUEST:rob(args, ... )
 	-- body
 	local room = self:get_room()
-	return skynet.call(room, "client", "on_rob", args)
+	if room then
+		return skynet.call(room, "client", "on_rob", args)
+	else
+		log.error("you not enter room")
+	end
 end
 
 function REQUEST:lead(args, ... )
@@ -187,6 +202,20 @@ skynet.register_protocol {
 	end
 }
 
+-- begain to wait for client
+function CMD:start(source, conf)
+	local fd      = assert(conf.client)
+	local version = assert(conf.version)
+	local index   = assert(conf.index)
+	local uid     = assert(conf.uid) 
+
+	self:set_fd(fd)
+	self:set_version(version)
+	self:set_index(index)
+
+	-- skynet.call(gate, "lua", "forward", uid, skynet.self())
+	return true
+end
 
 -- called by gated
 function CMD:login(source, uid, subid, secret,... )
@@ -213,7 +242,11 @@ end
 function CMD:afk(source)
 	-- body
 	local uid = self:get_uid()
-	log.info("agent uid = %d) disconnect", uid)
+	log.info("agent (uid = %d) afk", uid)
+	local room = self:get_room()
+	if room then
+		skynet.call(room, "lua", "afk")
+	end
 	return true
 end
 
@@ -225,6 +258,7 @@ end
 -- called by room
 function CMD:enter_room(source, args, ... )
 	-- body
+	self:set_room(source)
 	self:send_request("enter_room", args)
 	return noret
 end
@@ -240,21 +274,6 @@ function CMD:ready(source, args, ... )
 	-- body
 	self:send_request("ready", args)
 	return noret
-end
-
--- begain to wait for client
-function CMD:start(source, conf)
-	local fd      = assert(conf.client)
-	local version = assert(conf.version)
-	local index   = assert(conf.index)
-	local uid     = assert(conf.uid) 
-
-	self:set_fd(fd)
-	self:set_version(version)
-	self:set_index(index)
-
-	-- skynet.call(gate, "lua", "forward", uid, skynet.self())
-	return true
 end
 
 function CMD:update_db( ... )

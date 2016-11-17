@@ -13,7 +13,7 @@ function cls:ctor( ... )
 
 	self._players = {}
 	self._uid_player = {}
-	self._agent_player = {}
+	self._sid_player = {}
 
 	self._front_cards = {}
 	self._back_cards  = {}
@@ -59,14 +59,14 @@ function cls:get_scene( ... )
 	return self._scene
 end
 
-function cls:create_player(uid, agent, ... )
+function cls:create_player(uid, sid, agent, ... )
 	-- body
 	assert(#self._players < 3)
 	if self._uid_player[uid] then
 		log.info("this player has enter")
 		return nil
 	else
-		local p = player.new(self, uid, agent)
+		local p = player.new(self, uid, sid, agent)
 		self:add(p)
 		return p
 	end
@@ -74,10 +74,11 @@ end
 
 function cls:add(player, ... )
 	-- body
-	local uid = assert(player:get_uid())
+	local uid = player:get_uid()
+	local sid = player:get_sid()
 	self._uid_player[uid] = player
-	local agent = assert(player:get_agent())
-	self._agent_player[agent] = player
+	self._sid_player[sid] = player
+
 	local sz = #self._players
 	table.insert(self._players, player)
 	if sz == 0 then
