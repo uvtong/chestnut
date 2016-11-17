@@ -78,7 +78,6 @@ local function route( id, code, url, method, header, body )
 			else
 				local rsp = false
 				for k,v in pairs(urls) do
-					skynet.error(k, v)
 					if string.match(path, k) then
 						rsp = true
 						local q = urllib.parse_query(query)

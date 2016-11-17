@@ -119,7 +119,7 @@ all: $(SKYNET_PATH)/skynet $(LUA_CLIB_PATH)/log.so $(LUA_CLIB_PATH)/math3d.so $(
 .PHONY: update3rd clean cleanall
 
 update3rd:
-	git submodule update --init
+#	git submodule update --init
 
 clean:
 

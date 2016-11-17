@@ -5,70 +5,62 @@
     version 3 : integer
 }
 
-.ball {
-    session   0 : integer
-    ballid    1 : integer
-    radis     2 : integer
-    length    3 : integer
-    width     4 : integer
-    height    5 : integer
-    px        6 : integer
-    py        7 : integer
-    pz        8 : integer
-    dx        9 : integer
-    dy        10: integer
-    dz        11: integer
-    vel       12: integer
+.battleinitdata
+{
+	userid 0 : integer
+	carid 1 : integer
 }
 
-.player {
-    session 0 : integer
-    balls   1 : *ball
-}
-
-handshake 1 {
-    response {
-    	errorcode 0 : integer
-    }
-}
-
-join 2 {
+joinroom 1 {
     request {
-        session 0 : integer
+        battleinitdataitem 0 : battleinitdata
     }
     response {
         errorcode 0 : integer
     }
 }
 
-born 3 {
+ping 2 {
+	response {
+		errorcode 0 : integer
+	}
+}
+
+buffgenerate 3 {
 	request {
-		bs 0 : *ball
+		buff_id 0 : integer
 	}
 	response {
 		errorcode 0 : integer
 	}
 }
 
-leave 4 {
-    request {
-        session 0 : integer
-        ballid  1 : *integer
-    }
-    response {
-        errorcode 0 : integer
-    }
+deletebuffgenerate 4 {
+	request {
+		buff_id 0 : integer	
+	}
+	response {
+		errorcode 0 : integer
+	}
 }
 
-opcode 5 {
+deletebuff 5 {
+	request {
+		userid 0 : integer	
+		buff_id 1 : integer
+	}
+	response {
+		errorcode 0 : integer
+	}
 }
 
-die 6 {
-    request {
-        session 0 : integer
-        ballid  1 : integer
-    }
-    response {
-        errorcode 0 : integer
-    }
+dealbuffvalue 6 {
+	request {
+		buffid 0 : integer
+		userid 1 : integer
+		value 2 : integer	
+	}
+	response {
+		errorcode 0 : integer
+	}
 }

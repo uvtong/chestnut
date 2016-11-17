@@ -226,6 +226,34 @@ function response.opcode(session, args, ... )
 	end
 end
 
+function response.movedriction( session,args,... )
+	-- body
+	local player = session_players[session]
+	if player then
+		local dir = math3d.vector3(args.x, 0, args.z)
+		player:change_dir(dir)
+	    return {errorcode = errorcode.SUCCESS}
+	else
+		return { errorcode = errorcode.FAIL }
+	end
+end
+
+function response.addspeed( session,args,... )
+	-- body
+	log.info("addspeed jieshoudaofuwuqixiaoxi ranhoufanhui ")
+	local player = session_players[session]
+	if player then
+		if args.code == opcodes.OPCODE_ADDSPEEDUP then
+			player:changge_accspeed(10)
+		elseif args.code == opcodes.OPCODE_ADDSPEEDDOWN then
+	    	player:changge_accspeed(0)
+		end
+		return {errorcode = errorcode.SUCCESS}
+	else
+		return { errorcode = errorcode.FAIL }
+	end
+end
+
 function response.start_game( ... )
 	-- body
 end
@@ -248,7 +276,7 @@ function init(id, udpserver)
 	skynet.call(aoi, "lua", "start", conf)
 	ctx:set_aoi(aoi)
 
-	local scene = room_scene.new(aoi)
+	local scene = room_scene.new(ctx, aoi)
 	local view = scene:setup_view()
 	local map = scene:setup_map()
 	ctx:set_map(map)

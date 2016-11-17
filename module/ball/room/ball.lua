@@ -1,9 +1,75 @@
 local math3d = require "math3d"
 local float = require "float"
 local assert = assert
+local sd = require "sharedata"
+
+local FightingHurt = require "room.FightingHurt"
+
+
+
+local _buffbase = require "room.BuffBase"
+local _addacceleratebuff = require "room.addacceleratebuff"
+local _addbloodbuff = require "room.addbloodbuff"
+local _adddamagebuff = require "room.adddamagebuff"
+local _minusacceleratebuff = require "room.minusacceleratebuff"
+local _minusbloodbuff = require "room.minusbloodbuff"
+local _minusdamagebuff = require "room.minusdamage"
+local _shieidbuff = require "room.shieldbuff"
+
+
 local cls = class("ball")
 
-function cls:ctor(id, session, scene, radis, length, width, height, pos, dir, vel, ... )
+
+
+function cls:addbuff( type , deltaTime )
+	if self.buff == nil then
+		if type == bufftype.addbloodbuff then
+			self.buff = addbloodbuff.new(id , type ,entity)
+		elseif type == bufftype.shieldbuff then
+			self.buff = _shieidbuff.new(id , type ,entity)
+		elseif type == bufftype.addacceleratebuff then
+			self.buff = _addacceleratebuff.new(id , type ,entity)
+		elseif type == bufftype.adddamagebuff then
+			self.buff = _adddamagebuff.new(id , type ,entity)
+		elseif type == bufftype.minusacceleratebuff then
+			self.buff = _minusacceleratebuff.new(id , type ,entity)
+		elseif type == bufftype.minusbloodbuff then
+			self.buff = minusbloodbuff.new(id , type ,entity)
+		elseif type == bufftype.minusdamagebuff then
+			self.buff = minusdamagebuff.new(id , type ,entity)
+		end
+	else
+		if self.buff.type == type then
+
+		else
+			self.buff:remove()
+			self.buff = nil
+			if type == bufftype.addbloodbuff then
+				self.buff = addbloodbuff.new(id , type ,entity)
+			elseif type == bufftype.shieldbuff then
+				self.buff = _shieidbuff.new(id , type ,entity)
+			elseif type == bufftype.addacceleratebuff then
+				self.buff = _addacceleratebuff.new(id , type ,entity)
+			elseif type == bufftype.adddamagebuff then
+				self.buff = _adddamagebuff.new(id , type ,entity)
+			elseif type == bufftype.minusacceleratebuff then
+				self.buff = _minusacceleratebuff.new(id , type ,entity)
+			elseif type == bufftype.minusbloodbuff then
+				self.buff = minusbloodbuff.new(id , type ,entity)
+			elseif type == bufftype.minusdamagebuff then
+				self.buff = minusdamagebuff.new(id , type ,entity)
+			end
+		end
+	end
+end
+
+function cls:updatebuff()
+	if self.buff ~= nil then
+		self.buff:update()
+	end
+end
+
+function cls:ctor(id, session, scene, radis, length, width, height, pos, dir, vel, accspeed,m ,thrust,resistance,... )
 	-- body
 	assert(id and scene and session)
 	self._id = id
@@ -18,11 +84,21 @@ function cls:ctor(id, session, scene, radis, length, width, height, pos, dir, ve
 	self._width = width
 	self._height = height
 	
+	local key =  string.format("%s:%d", "s_attribute", 1);
+	local row = sd.query(key)
+
+	self._hp = row.baseHP
 	self._pos = pos
 	self._dir = dir
-	self._vel = vel
+	self._vel = row.baseVel
+	self._mass = row.baseMass
+	self._thrust = 0
+	self._resistance = 0
+	self._accspeed = 0
 
 	self:cal_aabb()
+	--
+	self.buff = nil
 end
 
 function cls:cal_aabb( ... )
@@ -114,6 +190,56 @@ function cls:set_vel(value, ... )
 	self._vel = value
 end
 
+function cls:set_hp(v, ... )
+	-- body
+	self._hp = v
+end
+
+function cls:get_hp( ... )
+	-- body
+	return self._hp
+end
+
+function cls:get_accspeed( ... )
+	-- body
+	return self._accspeed
+end
+
+function cls:set_accspeed( value,... )
+	-- body
+	self._accspeed = value
+end
+
+function cls:get_mass( ... )
+	-- body
+	return self._mass
+end
+
+function cls:set_mass(value ,... )
+	-- body
+	self._mass = value
+end
+
+function cls:get_thrust( ... )
+	-- body
+	return self._thrust
+end
+
+function cls:set_thrust(value ,... )
+	-- body
+	self._thrust = value;
+end
+
+function cls:get_resistance( ... )
+	-- body
+	return self._resistance
+end
+
+function cls:set_resistance(value ,... )
+	-- body
+	self._resistance = value;
+end
+
 function cls:get_pos( ... )
 	-- body
 	return self._pos
@@ -198,5 +324,46 @@ function cls:pack_sproto_vel( ... )
 	-- body
 	return float.encode(self._vel)
 end
+
+
+
+-- send hurt data to client when is hurting with role
+function  cls:hurtToClient(currHP,hurtValue, ... )
+	-- body
+	local hurtTable = { session = self:get_session(),ballid = self:get_id(),currHp = currHp,hurtvalue = hurtvalue }
+	local agent = self._player:get_agent()
+	agent.post.hurt(hurtTable);
+end
+-- send die state to client when is die with role
+function cls:dieToClient(isdie, ... )
+	-- body
+	--local dieTable = {session = self:get_session(),ballid = self:get_id()}
+	local agent = self._player:get_agent();
+	agent.post.die({session =self:get_session(), ballid = ball:get_id()})	
+end
+function cls:sendHPBuf(value,hp, ... )
+	-- body
+	local  buff = {session =self:get_session(),ballid = self:get_id(),valueAdded=value,currBuffData = thrust,buffType = 1}
+	agent.post.SendBuff(buff);
+end
+function cls:sendDamageBuf(value,hurt, ... )
+	-- body
+	local  buff = {session =self:get_session(),ballid = self:get_id(),valueAdded=value,currBuffData = hurt,buffType = 2}
+	agent.post.SendBuff(buff);
+end
+function cls:sendInvincibleCountBuf(value,invincibleCount, ... )
+	-- body
+	local  buff = {session =self:get_session(),ballid = self:get_id(),valueAdded=value,currBuffData = invincibleCount,buffType = 3}
+	agent.post.SendBuff(buff);
+end
+
+function cls:sendAccelerateBuf(value,thrust, ... )
+	-- body
+	local  buff = {session =self:get_session(),ballid = self:get_id(),valueAdded=value,currBuffData = thrust,buffType = 4}
+	agent.post.SendBuff(buff);
+end
+
+
+
 
 return cls

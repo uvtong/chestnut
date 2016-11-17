@@ -1,10 +1,11 @@
 #include <iostream>
 
-class Actor
-{
+class Actor {
 public:
 	Actor();
 	~Actor();
 
 	void test();
+private:
+	
 };

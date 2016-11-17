@@ -48,7 +48,16 @@ function accept.born(args, ... )
 	log.info("agent born")
 	ctx:send_request("born", args)
 end
-
+function accept.addspeed(args, ... )
+	-- body
+	log.info("agent addspeed")
+	ctx:send_request("addspeed", args)
+end
+function accept.movedriction(args, ... )
+	-- body
+	log.info("agent movedriction")
+	ctx:send_request("movedriction", args)
+end
 function accept.leave(args, ... )
 	-- body
 	ctx:send_request("leave", args)
@@ -57,6 +66,15 @@ end
 function accept.die(args, ... )
 	-- body
 	ctx:send_request("die", args)
+end
+
+function accept.hurt(args, ... )
+	-- body
+	ctx.send_request("hurt",args);
+end
+function accept.SendBuff(args, ... )
+	-- body
+	ctx.send_request("buff",args);
 end
 
 function accept.start(conf, ... )
@@ -91,6 +109,13 @@ function client_request.join(msg)
 	return { session = session, host = host, port = port, players = ps }
 end
 
+function client_request.movedriction(msg, ... )
+	-- body
+	local session = ctx:get_session()
+	local room = ctx:get_room()
+	return room.req.movedriction(session, msg)
+end
+
 function client_request.born( ... )
 	-- body
 	local session = ctx:get_session()
@@ -103,6 +128,12 @@ function client_request.opcode(args, ... )
 	local session = ctx:get_session()
 	local room = ctx:get_room()
 	return room.req.opcode(session, args)
+end
+function client_request.addspeed(args, ... )
+	-- body
+	local session = ctx:get_session()
+	local room = ctx:get_room()
+	return room.req.addspeed(session, args)
 end
 
 local client_response = {}
@@ -129,16 +160,35 @@ function client_response.leave(args, ... )
 	assert(args.errorcode == errorcode.SUCCESS)
 end
 
+function client_response.movedrirection(args,... )
+	-- body
+	assert(args.errorcode == errorcode.SUCCESS)
+end
+
 function client_response.opcode(args, ... )
 	-- body
 	assert(args.errorcode == errorcode.SUCCESS)
 end
-
+function client_response.movedriction(args, ... )
+	-- body
+	assert(args.errorcode == errorcode.SUCCESS)
+end
+function client_response.addspeed(args, ... )
+	-- body
+	assert(args.errorcode == errorcode.SUCCESS)
+end
 function client_response.die(args, ... )
 	-- body
 	assert(args.errorcode == errorcode.SUCCESS)
 end
-
+function client_response.hurt(args, ... )
+	-- body
+	assert(args.errorcode == errorcode.SUCCESS)
+end
+function client_response.Buff(args, ... )
+	-- body
+	assert(args.errorcode == errorcode.SUCCESS)
+end
 local function decode_proto(msg, sz, ... )
 	-- body
 	if sz > 0 then

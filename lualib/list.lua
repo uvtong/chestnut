@@ -40,6 +40,17 @@ function _M.del(head, data, ... )
 	end
 end
 
+function _M.pop(head, ... )
+	-- body
+	if head.size > 0 then
+		local node = head.next
+		head.next = node.next
+		head.size = head.size - 1
+		return node
+	else
+	end
+end
+
 function _M.foreach(head, func, ... )
 	-- body
 	assert(head)
