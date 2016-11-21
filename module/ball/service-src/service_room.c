@@ -1,6 +1,11 @@
+#include "RoomContext.h"
+
+#ifdef __cplusplus
+extern "C" {
+#endif
+
 #include "skynet.h"
 #include "skynet_env.h"
-
 #include <stdio.h>
 #include <stdlib.h>
 #include <stdint.h>
@@ -9,6 +14,7 @@
 
 struct room {
 	struct skynet_context *ctx;
+	RoomContext room;
 };
 
 static void
@@ -41,5 +47,9 @@ room_release(struct room *inst) {
 int
 room_init(struct room *inst, struct skynet_context *ctx, const char *parm) {
 	inst->ctx = ctx;
-	skynet_
+	skynet_command(ctx, "TIMEOUT", )
 }
+
+#ifdef __cplusplus
+}
+#endif

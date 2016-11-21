@@ -11,6 +11,20 @@
 	carid 1 : integer
 }
 
+.bloodentitydata
+{
+	id 0 : integer
+	resid 1 : integer
+	x 2 : integer
+	y 3 : integer
+	z 4 : integer
+}
+
+.deletebloodentitydata
+{
+	id 0 : integer
+}
+
 joinroom 1 {
     request {
         battleinitdataitem 0 : battleinitdata
@@ -89,6 +103,33 @@ updateblood 8 {
 exitroom 9 {
 	request {
 		userid 0 : integer	
+	}
+	response {
+		errorcode 0 : integer
+	}
+}
+
+generatebloodentity 10 {
+	request {
+		bloodentitylst 0 : *bloodentitydata
+	}
+	response {
+		errorcode 0 : integer
+	}
+}
+
+deletebloodentity 11 {
+	request {
+		bloodentityLst 0 : *deletebloodentitydata
+	}
+	response {
+		errorcode 0 : integer
+	}
+}
+
+die 12 {
+	request {
+		userid 0 : integer
 	}
 	response {
 		errorcode 0 : integer

@@ -46,7 +46,7 @@ function _M.pop(head, ... )
 		local node = head.next
 		head.next = node.next
 		head.size = head.size - 1
-		return node
+		return node.data
 	else
 	end
 end

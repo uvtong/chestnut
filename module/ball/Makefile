@@ -1,5 +1,8 @@
 AOI_SRC_PATH ?= ../../3rd/aoi
+PLAY_SRC_PATH ?= ../../3rd/skynet-client/Plugins/play
 
+CSERVICE_PATH ?= cservice
+SERVICE_SRC_PATH ?= service-src
 LUA_CLIB_PATH ?= luaclib
 CLIB_SRC_PATH ?= lualib-src
 
@@ -19,9 +22,20 @@ $(LUA_CLIB_PATH)/aoiaux.so: $(CLIB_SRC_PATH)/aoi_aux.c $(AOI_SRC_PATH)/aoi.c | $
 $(LUA_CLIB_PATH)/float.so: $(CLIB_SRC_PATH)/float.c | $(LUA_CLIB_PATH)
 	gcc $(CFLAGS) $(SHARED) -I$(LUA_INC) $^ -o $@
 
+$(CSERVICE_PATH)/room.so: $(SERVICE_SRC_PATH)/service_room.c \
+	$(SERVICE_SRC_PATH)/RoomContext.cpp \
+	$(PLAY_SRC_PATH)/App.cpp
+	g++ -std=c++11 $(CFLAGS) $(SHARED) -I(PLAY_SRC_PATH) $^ -o $@
+
 .PHONY: all clean
 
-all: $(LUA_CLIB_PATH)/aoiaux.so $(LUA_CLIB_PATH)/float.so
+all: $(LUA_CLIB_PATH)/test.so \
+	$(LUA_CLIB_PATH)/aoiaux.so \
+	$(LUA_CLIB_PATH)/float.so \
+	$(CSERVICE_PATH)/room.so
 
 clean:
-	rm -rf $(LUA_CLIB_PATH)/aoiaux.so $(LUA_CLIB_PATH)/float.so
+	rm -rf $(LUA_CLIB_PATH)/test.so \
+	 $(LUA_CLIB_PATH)/aoiaux.so \
+	 $(LUA_CLIB_PATH)/float.so \
+	 $(CSERVICE_PATH)/room.so

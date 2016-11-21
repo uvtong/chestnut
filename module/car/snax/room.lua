@@ -72,6 +72,7 @@ function response.joinroom(handle, secret, uid)
 	local session = gate.req.register(skynet.self(), secret)
 	local agent = snax.bind(handle, "agent")
 	local player = ctx:get_freeplayer()
+	assert(player)
 	player:set_session(session)
 	player:set_uid(uid)
 	player:set_secret(secret)
@@ -96,10 +97,14 @@ function response.joinroom(handle, secret, uid)
 	return session, ps
 end
 
-function response.leave(session)
-	if session then
-		local session_players = ctx:get_players()
-		local player = session_players[session]
+function response.leave(args)
+	if args.userid then
+		ctx:remove(args.userid)
+		local players = ctx:get_players()
+		for k,v in pairs(players) do
+			local agent = v:get_agent()
+			agent.post.exitroom(args)
+		end
 		-- local balls = player:get_balls()
 		-- for k,v in pairs(balls) do
 		-- 	scene:leave(v:get_id())
@@ -110,9 +115,6 @@ function response.leave(session)
 		-- 		agent.post.leave({ session = session })
 		-- 	end
 		-- end
-		local gate = ctx:get_gate()
-		gate.req.unregister(session)
-		ctx:remove(session)
 	end
 end
 
@@ -228,15 +230,54 @@ function response.updateblood(args, ... )
 		local agent = v:get_agent()
 		agent.post.updateblood(args)
 	end
+	if hp <= 0 then
+		local xargs = {}
+		xargs.userid = player:get_uid()
+		local players = ctx:get_players()
+		for k,v in pairs(players) do
+			local agent = v:get_agent()
+			agent.post.die(xargs)
+		end
+		ctx:remove(player:get_uid())
+	end
+	local res = {}
+	res.errorcode = errorcode.SUCCESS
+	return res
 end
 
-function response.exitroom(args, ... )
+function response.eitbloodentity(args, ... )
 	-- body
-	ctx:remove(args.userid)
+	log.info("userid:%d, id:%d", args.userid, args.id)
+	local food_mgr = ctx:get_food_mgr()
+	local food = food_mgr:get_food(args.id)
+	food_mgr:remove(args.id)
+
+	local player = ctx:get_player(args.userid)
+	local car = player:get_car()
+	local hp1 = food:get_hp()
+	local hp2 = car:get_hp()
+	local hp = hp1 + hp2
+	car:set_hp(hp)
+	
+	local xargs = {}
+	xargs.bloodentityLst = { {id=args.id}}
 	local players = ctx:get_players()
 	for k,v in pairs(players) do
 		local agent = v:get_agent()
-		agent.req.exitroom(args)
+		agent.post.deletebloodentity(xargs)
+	end
+	local res = {}
+	res.errorcode = errorcode.SUCCESS
+	return res
+end
+
+function response.die(args, ... )
+	-- body
+	ctx:leave(args.userid)
+	local players = ctx:get_players()
+	for k,v in pairs(players) do
+		local agent = v:get_agent()
+		agent.post.die(args)
 	end
 end
 
@@ -256,4 +297,3 @@ function exit()
 		gate.req.unregister(user.session)
 	end
 end
-

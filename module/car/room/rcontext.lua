@@ -1,10 +1,11 @@
 local skynet = require "skynet"
-local gs = require "room.gamestate"
-local region_mgr = require "room.region_mgr"
 local sd = require "sharedata"
 local log = require "log"
 local list = require "list"
-local player = require "player"
+local gs = require "room.gamestate"
+local region_mgr = require "room.region_mgr"
+local food_mgr = require "room.food_mgr"
+local player = require "room.player"
 
 local type = {}
 type.NONE  = 0
@@ -32,11 +33,17 @@ function cls:ctor(id, ... )
 		local tmp = player.new()
 		list.add(self._list, tmp)
 	end
+	self._food_mgr = food_mgr.new(self, self._id)
 end
 
 function cls:get_buff_mgr( ... )
 	-- body
 	return self._buff_mgr
+end
+
+function cls:get_food_mgr( ... )
+	-- body
+	return self._food_mgr
 end
 
 function cls:get_id( ... )
@@ -63,6 +70,7 @@ end
 function cls:remove(uid, ... )
 	-- body
 	local player = self._session_players[uid]
+	assert(player)
 	list.add(self._list, player)
 	self._session_players[uid] = nil
 	self._players_sz = self._players_sz - 1
@@ -70,7 +78,12 @@ end
 
 function cls:get_player(uid, ... )
 	-- body
-	return self._session_players[uid]
+	local player = self._session_players[uid]
+	if player then
+		return player
+	else
+		log.error("player is no existen")
+	end
 end
 
 function cls:get_players( ... )
@@ -92,6 +105,7 @@ function cls:start(type, ... )
 	self._state = gs.STATE
 	self._type = type
 	self._region_mgr = region_mgr.new(self, self._id)
+	self._food_mgr:start()
 end
 
 function cls:close( ... )
@@ -99,6 +113,9 @@ function cls:close( ... )
 	self._state = gs.CLOSE
 	if self._type == type.CIRCLE then
 		self:start(self._type)
+	else
+		local gate = ctx:get_gate()
+		gate.req.unregister(session)
 	end
 end
 

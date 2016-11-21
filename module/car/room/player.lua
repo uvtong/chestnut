@@ -3,7 +3,6 @@ local cls = class("player")
 
 function cls:ctor(session, uid, ... )
 	-- body
-	assert(session and uid)
 	self._session = session
 	self._uid = uid
 	self._secret = nil

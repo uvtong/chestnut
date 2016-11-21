@@ -1,4 +1,4 @@
-package.path = "../../module/ball/lualib/?.lua;../../module/ball/lualib/models/?.lua;"..package.path
+package.path = "../../module/car/lualib/?.lua;../../module/car/lualib/models/?.lua;"..package.path
 package.cpath = "./../lua-cjson/?.so;" .. package.cpath
 local skynet = require "skynet"
 require "skynet.manager"

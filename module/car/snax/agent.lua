@@ -26,8 +26,10 @@ function response.logout()
 	snax.printf("%s is logout", uid)
 	local room = ctx:get_room()
 	if room then
-		local session = ctx:get_session()
-		room.req.leave(session)
+		local uid = ctx:get_uid()
+		local args = {}
+		args.userid = uid
+		room.req.leave(args)
 	end
 	ctx:set_session(nil)
 	ctx:set_room(nil)
@@ -37,6 +39,13 @@ end
 function response.afk(fd)
 	-- the connection is broken, but the user may back
 	snax.printf("AFK")
+	local room = ctx:get_room()
+	if room then
+		local res = room.req.leave(args)
+		ctx:set_room(nil)
+		return res
+	else
+	end
 end
 
 function accept.start(conf, ... )
@@ -69,27 +78,49 @@ end
 
 function accept.deletebuff(args, ... )
 	-- body
+	assert(args)
 	ctx:send_request("deletebuff", args)
 end
 
 function accept.dealbuffvalue(args, ... )
 	-- body
+	assert(args)
 	ctx:send_request("dealbuffvalue", args)
 end
 
 function accept.createbuff(args, ... )
 	-- body
+	assert(args)
 	ctx:send_request("createbuff", args)
 end
 
 function accept.updateblood(args, ... )
 	-- body
+	assert(args)
 	ctx:send_request("updateblood", args)
 end
 
 function accept.exitroom(args, ... )
 	-- body
+	assert(args)
 	ctx:send_request("exitroom", args)
+end
+
+function accept.generatebloodentity(args, ... )
+	-- body
+	assert(args)
+	ctx:send_request("generatebloodentity", args)
+end
+
+function accept.deletebloodentity(args, ... )
+	-- body
+	assert(args)
+	ctx:send_request("deletebloodentity", args)
+end
+
+function accept.die(args, ... )
+	-- body
+	ctx:send_request("die", args)
 end
 
 -- client request
@@ -142,10 +173,28 @@ function client_request.exitroom(args, ... )
 	-- body
 	local room = ctx:get_room()
 	if room then
-		local res = ctx.req.exitroom(args)
+		local res = room.req.leave(args)
 		ctx:set_room(nil)
 		return res
 	else
+	end
+end
+
+function client_request.eitbloodentity(args, ... )
+	-- body
+	local room = ctx:get_room()
+	if room then
+		local res = room.req.eitbloodentity(args)
+		return res
+	end
+end
+
+function client_request.die(args, ... )
+	-- body
+	local room = ctx:get_room()
+	if room then
+		local res = room.req.die(args)
+		return res
 	end
 end
 
@@ -193,6 +242,31 @@ function client_response.createbuff(args, ... )
 	assert(args.errorcode == errorcode.SUCCESS)
 end
 
+function client_response.updateblood(args, ... )
+	-- body
+	assert(args.errorcode == errorcode.SUCCESS)
+end
+
+function client_response.exitroom(args, ... )
+	-- body
+	assert(args.errorcode == errorcode.SUCCESS)
+end
+
+function client_response.generatebloodentity(args, ... )
+	-- body
+	assert(args.errorcode == errorcode.SUCCESS)
+end
+
+function client_response.deletebloodentity(args, ... )
+	-- body
+	assert(args.errorcode == errorcode.SUCCESS)
+end
+
+function client_response.die(args, ... )
+	-- body
+	assert(args.errorcode == errorcode.SUCCESS)
+end
+
 local function decode_proto(msg, sz, ... )
 	-- body
 	if sz > 0 then
@@ -208,6 +282,7 @@ local function request(name, args, response)
     local f = client_request[name]
     local ok, result = pcall(f, args)
     if ok then
+    	assert(result, name)
     	return response(result)
     else
     	log.error(result)

@@ -58,3 +58,22 @@ exitroom 5 {
 		errorcode 0 : integer
 	}
 }
+
+eitbloodentity 6 {
+	request {
+		userid 0 : integer
+		id 1 : integer
+	}
+	response {
+		errorcode 0 : integer
+	}
+}
+
+die 7 {
+	request {
+		userid 0 : integer
+	}
+	response {
+		errorcode 0 : integer
+	}
+}
