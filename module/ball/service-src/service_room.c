@@ -48,6 +48,8 @@ int
 room_init(struct room *inst, struct skynet_context *ctx, const char *parm) {
 	inst->ctx = ctx;
 	skynet_command(ctx, "TIMEOUT", )
+	skynet_callback(ctx, inst, _cb);
+	return 0;
 }
 
 #ifdef __cplusplus
