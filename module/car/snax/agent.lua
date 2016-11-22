@@ -41,6 +41,9 @@ function response.afk(fd)
 	snax.printf("AFK")
 	local room = ctx:get_room()
 	if room then
+		local uid = ctx:get_uid()
+		local args = {}
+		args.userid = uid
 		local res = room.req.leave(args)
 		ctx:set_room(nil)
 		return res

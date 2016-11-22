@@ -24,9 +24,9 @@ update() {
 
 static int
 _cb(struct skynet_context *context, void *ud, int type, int session, uint32_t source, const *msg, size_t sz) {
+	struct room *r = (struct room *)ud;
 	if (type == PTYPE_TEXT) {
-		/* code */
-
+		
 	}
 }
 
