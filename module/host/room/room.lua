@@ -1,8 +1,6 @@
 package.path = "./../../module/host/room/?.lua;./../../module/host/lualib/?.lua;../../lualib/?.lua;"..package.path
 local skynet = require "skynet"
-local sproto = require "sproto"
-local sprotoloader = require "sprotoloader"
-local context = require "context"
+local context = require "rcontext"
 local log = require "log"
 local errorcode = require "errorcode"
 local gs = require "gamestate"
@@ -11,15 +9,6 @@ local assert = assert
 local ctx
 local NORET = {}
 
-local function init( ... )
-	-- body
-	ctx = context.new()
-	local host = sprotoloader.load(1):host "package"
-	local send_request = host:attach(sprotoloader.load(2))
-	ctx:set_host(host)
-	ctx:set_send_request(send_request)
-end
-
 local CMD = {}
 
 function CMD:on_enter_room(agents, ... )
@@ -27,8 +16,9 @@ function CMD:on_enter_room(agents, ... )
 	assert(#agents == 3)
 	for i=1,3 do
 		local agent = agents[i]
-		log.info("address %d", agent.agent)
 		local player = self:create_player(agent.uid, agent.sid, agent.agent)
+		player:set_online(true)
+		player:set_robot(false)
 		local res = skynet.call(agent.agent, "lua", "info")	
 		player:set_name(res.name)
 	end
@@ -82,9 +72,9 @@ end
 
 function CMD:on_ready(args, ... )
 	-- body
-	local player = self:get_player_by_uid(args.uid)
+	local player = self:get_player_by_sid(args.sid)
 	local controller = self:get_controller("game")
-	return controller:ready(player, args.ready)
+	return controller:on_ready(player, args.ready)
 end
 
 function CMD:on_mp(args, ... )
@@ -97,19 +87,26 @@ end
 
 function CMD:on_rob(args, ... )
 	-- body
-	local uid = args.uid
-	local rob = args.rob
-	local player = self:get_player_by_uid(uid)
-	local controller = self._env:get_controller("game")
-	return controller:rob(player, rob)
+	local sid = args.sid
+	local player = self:get_player_by_sid(sid)
+	local controller = self:get_controller("game")
+	return controller:on_rob(player, args)
 end
 
 function CMD:on_lead(args, ... )
 	-- body
-	local uid = args.uid
-	local player = self:get_player_by_uid(uid)
-	local controller = self._env:get_controller("game")
+	local sid = args.sid
+	local player = self:get_player_by_sid(sid)
+	local controller = self:get_controller("game")
 	return controller:lead(player, flag, args.cards)
+end
+
+function CMD:on_dealed(args, ... )
+	-- body
+	local sid = args.sid
+	local player = self:get_player_by_sid(sid)
+	local controller = self:get_controller("game")
+	return controller:on_dealed(player, args)
 end
 
 function CMD:enter_room(args, ... )
@@ -120,6 +117,7 @@ end
 
 function CMD:ready(args, ... )
 	-- body
+	assert(args.errorcode == errorcode.SUCCESS)
 	return NORET
 end
 
@@ -130,27 +128,35 @@ end
 
 function CMD:rob(args, ... )
 	-- body
+	assert(args.errorcode == errorcode.SUCCESS)
 	return NORET
 end
 
-function CMD:deal(args, ... )
+function CMD:lead(args, ... )
 	-- body
-	local errorcode = args.errorcode
-	assert(errorcode == errorcode.SUCCESS)
+	assert(args.errorcode == errorcode.SUCCESS)
+	return NORET
+end
+
+function CMD:dealed(args, ... )
+	-- body
+	assert(args.errorcode == errorcode.SUCCESS)
 	return NORET
 end
 
 function CMD:afk(sid, ... )
 	-- body
-	local player = self:get_player_by_uid(sid)
+	local player = self:get_player_by_sid(sid)
 	player:set_online(false)
+	player:set_robot(true)
 end
 
 function CMD:start(rule, mode, scene, ... )
 	-- body
-	self:set_rule(rule)
-	self:set_mode(mode)
-	self:set_scene(scene)
+	local controller = self:get_controller("game")
+	controller:set_rule(rule)
+	controller:set_mode(mode)
+	controller:set_scene(scene)
 end
 
 skynet.start(function ()
@@ -167,5 +173,5 @@ skynet.start(function ()
 			log.error(err)
 		end
 	end)
-	init()
+	ctx = context.new()
 end)

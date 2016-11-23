@@ -9,6 +9,8 @@ function cls:ctor(session, ... )
 	self._agent = nil
 	self._myballs = {}
 	self._myballs_sz = 0
+	self._accspeed = 0
+	self.agent = nile
 end
 
 function cls:get_session( ... )
@@ -62,12 +64,31 @@ function cls:get_balls_sz( ... )
 	return self._myballs_sz
 end
 
-function cls:change_dir(dir, ... )
+function cls:get_ball( id,... )
+	-- body
+	return self._myballs[id]
+end
+
+function cls:change_dir(dir,... )
 	-- body
 	assert(dir)
 	for k,ball in pairs(self._myballs) do
-		ball:set_dir(dir)
+			ball:set_dir(dir)
 	end
+end
+function cls:changge_accspeed(accspeed, ... )
+	-- body
+	for k,ball in pairs(self._myballs) do
+			ball:set_accspeed(accspeed)
+	end
+end
+function cls:get_agent( ... )
+	-- body
+	return self.agent;
+end
+function cls:set_agent(value, ... )
+	-- body
+	self.agent = value
 end
 
 function cls:pack_sproto_balls( ... )

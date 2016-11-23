@@ -1,12 +1,12 @@
 local skynet = require "skynet"
-local host_udbcontext = require "host_udbcontext"
-local env = require "env"
+-- local udbcontext = require "udbcontext"
+local context = require "context"
 local call = skynet.call
 local assert = assert
 local rdb = ".DB"
 local wdb = ".DB"
 
-local cls = class("context", env)
+local cls = class("context", context)
 
 function cls:ctor( ... )
 	-- body
@@ -16,8 +16,9 @@ function cls:ctor( ... )
 	self._uid = false
 	self._subid = false
 	self._secret = false
-	self._room = nil
-	self._host_udbcontext = host_udbcontext.new(self, rdb, wdb)
+	self._room = false
+	self._session = false
+	-- self._host_udbcontext = host_udbcontext.new(self, rdb, wdb)
 	return self
 end
 
@@ -28,7 +29,7 @@ function cls:login(gate, uid, subid, secret)
 	self._uid = uid
 	self._subid = subid
 	self._secret = secret
-	self._host_udbcontext:load_db_to_data()
+	-- self._host_udbcontext:load_db_to_data()
 	return self._uid
 end
 
@@ -68,6 +69,16 @@ end
 function cls:get_host_udbcontext( ... )
 	-- body
 	return self._host_udbcontext
+end
+
+function cls:set_session(session, ... )
+	-- body
+	self._session = session
+end
+
+function cls:get_session( ... )
+	-- body
+	return self._session
 end
 
 return cls

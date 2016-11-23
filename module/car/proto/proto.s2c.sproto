@@ -1,0 +1,96 @@
+.package {
+	type 0 : integer
+	session 1 : integer
+    index 2 : integer
+    version 3 : integer
+}
+
+.battleinitdata
+{
+	userid 0 : integer
+	carid 1 : integer
+}
+
+joinroom 1 {
+    request {
+        battleinitdataitem 0 : battleinitdata
+    }
+    response {
+        errorcode 0 : integer
+    }
+}
+
+ping 2 {
+	response {
+		errorcode 0 : integer
+	}
+}
+
+buffgenerate 3 {
+	request {
+		buff_id 0 : integer
+	}
+	response {
+		errorcode 0 : integer
+	}
+}
+
+deletebuffgenerate 4 {
+	request {
+		buff_id 0 : integer	
+	}
+	response {
+		errorcode 0 : integer
+	}
+}
+
+deletebuff 5 {
+	request {
+		userid 0 : integer	
+		buff_id 1 : integer
+	}
+	response {
+		errorcode 0 : integer
+	}
+}
+
+dealbuffvalue 6 {
+	request {
+		buffid 0 : integer
+		userid 1 : integer
+		value 2 : integer	
+	}
+	response {
+		errorcode 0 : integer
+	}
+}
+
+createbuff 7 {
+	request {
+		userid 0 : integer
+		buffid 1 : integer
+	}
+	response {
+		errorcode 0 : integer	
+	}
+}
+
+updateblood 8 {
+	request {
+		sourceuserid 0 : integer
+		targetuserid 1 : integer
+		bloodvalue 2 : integer
+	}
+	response {
+		errorcode 0 : integer
+	}
+}
+
+exitroom 9 {
+	request {
+		userid 0 : integer	
+	}
+	response {
+		errorcode 0 : integer
+	}
+}

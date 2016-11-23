@@ -1,5 +1,6 @@
 local card = require "card"
 local group = require "group"
+local log = require "log"
 
 local state = {}
 state.NONE       = 0
@@ -17,9 +18,11 @@ state.CLOSE      = 11
 
 local cls = class("player")
 
+cls.state = state
+
 function cls:ctor(env, uid, sid, fd, ... )
 	-- body
-	assert(env and uid and sid and fd)
+	assert(env)
 	self._env    = env
 	self._uid    = uid
 	self._sid    = sid
@@ -35,7 +38,6 @@ function cls:ctor(env, uid, sid, fd, ... )
 	self._cards  = {}
 	self._cards_selection = {}
 	self._cards_selection_sz = 0
-	self._deal_cards = {}
 
 	self._rob    = {}
 	self._isdizhu = false
@@ -46,7 +48,6 @@ function cls:ctor(env, uid, sid, fd, ... )
 	self._aiflag = false
 	self._airob_cd = 0
 	self._ailead_cd = 0
-
 
 	return self
 end
@@ -180,7 +181,6 @@ end
 
 function cls:get_selection( ... )
 	-- body
-	printInfo("get_selection")
 	return self._cards_selection
 end
 
@@ -192,6 +192,26 @@ function cls:add_selection(card, ... )
 	card:set_bright(true)
 	self._cards_selection[card] = card
 	self._cards_selection_sz = self._cards_selection_sz + 1
+end
+
+function cls:remove_selection(card, ... )
+	-- body
+	assert(card and card:get_bright())
+	card:set_bright(false)
+	self._cards_selection[card] = nil
+	self._cards_selection_sz = self._cards_selection_sz - 1
+	assert(self._cards_selection_sz >= 0)
+end
+
+function cls:clear_selection( ... )
+	-- body
+	if self._cards_selection_sz > 0 then
+		for k,v in pairs(self._cards_selection) do
+			v:set_bright(false)
+		end
+		self._cards_selection = {}
+		self._cards_selection_sz = 0
+	end
 end
 
 function cls:start( ... )
@@ -208,6 +228,11 @@ function cls:close( ... )
 end
 
 -- deal 3 function.
+function cls:ready_for_deal( ... )
+	-- body
+	self._state = state.DEAL
+end
+
 function cls:insert_card(cards, c, ... )
 	-- body
 	assert(cards and c)
@@ -216,7 +241,7 @@ function cls:insert_card(cards, c, ... )
 		local idx = 1
 		table.insert(cards, c)
 		c:set_idx(idx)
-		c:set_z(idx)
+		-- c:set_z(idx)
 		c:set_master(cards)
 		return c
 	else
@@ -226,12 +251,12 @@ function cls:insert_card(cards, c, ... )
 			if c:mt_t(o) then
 				cards[i + 1] = o
 				o:set_idx(i + 1)
-				o:set_z(i + 1)
+				-- o:set_z(i + 1)
 				assert(o:get_master() == cards)
 			else
 				cards[i + 1] = c
 				c:set_idx(i + 1)
-				c:set_z(i + 1)
+				-- c:set_z(i + 1)
 				c:set_master(cards)
 				return c
 			end
@@ -239,7 +264,7 @@ function cls:insert_card(cards, c, ... )
 		-- 只有一种情况
 		cards[1] = c
 		c:set_idx(1)
-		c:set_z(1)
+		-- c:set_z(1)
 		c:set_master(cards)
 		return c
 	end
@@ -247,8 +272,8 @@ end
 
 function cls:deal(c, ... )
 	-- body
+	log.info("sid: %d, card: %d", self._sid, c:get_value())
 	assert(c)
-	table.insert(self._deal_cards, c)
 	self:insert_card(self._cards, c)
 	self:deal_cb(c)
 end
@@ -287,7 +312,7 @@ function cls:rob(flag, ... )
 		controller:take_turn_to_rob(self)
 	elseif idx == 2 then
 		local controller = self._env:get_controller("game")
-		controller:confirm_identity()
+		controller:confirm_identity(self)
 	end
 end
 
@@ -304,6 +329,8 @@ end
 -- 出牌五个函数
 function cls:ready_for_alead()
 	self._state = state.WAIT_ALEAD
+	self._cards_selection = {}
+	self._cards_selection_sz = 0
 end
 
 function cls:ready_for_plead(g)
@@ -312,6 +339,7 @@ function cls:ready_for_plead(g)
 		self:ready_for_alead()
 	else
 		self._state = state.WAIT_PLEAD
+		self._lastplayerleadg = g
 	end
 end
 
@@ -324,56 +352,37 @@ function cls:drop( ... )
 		assert(self._lastplayerleadg)
 		self._state = state.WAIT_OLEAD
 		self._controller:take_turn_to_lead(self, self._lastplayerleadg)
+	else
+		assert(false)
 	end
 end
 
 function cls:lead(cards, ... )
 	-- body
-	if self._controller:get_type() == gt.NETWORK then
-		self._cards_selection_sz = #cards
+	assert(self._cards_selection_sz == 0)
+	for i,v in ipairs(cards) do
 		for i,card in ipairs(self._cards) do
-			for i,c in ipairs(cards) do
-				if c == card:get_value() then
-					self._cards_selection[card] = card
-				end
+			if v == card:get_value() then
+				self:add_selection(card)
+				break
 			end
 		end
 	end
-	local order = self:_order_selection()
-	if #order <= 0 then
-		printInfo("no card")
-		return
-	end
-	local g = group.new(order)
 	if self._state == state.WAIT_ALEAD then
-		-- 必须上一位玩家大
-		if g:get_kind() ~= group.kind.NONE then	
-			self._state = state.WAIT_OLEAD
-			-- 出牌
+		local order = self:_order_selection()
+		self:_lead(order)
+		self:clear_selection()
+	elseif self._state == state.WAIT_PLEAD then
+		local g = group.new(self._cards_selection)
+		if g:mt(self._lastplayerleadg) then
+			local order = self:_order_selection()
 			self:_lead(order)
-			self._mylastleadg = g
-			self:lead_cb()
-			return true	
+			self:clear_selection()
 		else
-			return false
-		end
-	elseif self._state == state.WAIT_PLEAD then	
-		if g:get_kind() ~= group.kind.NONE and
-			g:get_kind() == self._lastplayerleadg:get_kind() then
-			if g:mt(self._lastplayerleadg) then
-				self._state = state.WAIT_OLEAD
-				self:_lead(order)
-				self._mylastleadg = g
-				self:lead_cb()
-				return true
-			else
-				printInfo("")
-				return false
-			end
-		else
-			return false
+			assert(false)
 		end
 	end
+	self:lead_cb()
 end
 
 function cls:lead_cb( ... )

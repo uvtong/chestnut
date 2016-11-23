@@ -7,7 +7,7 @@ local mc = require "multicast"
 local dc = require "datacenter"
 local util = require "util"
 local const = require "const"
-local context = require "context"
+local context = require "acontext"
 local log = require "log"
 local errorcode = require "errorcode"
 local assert = assert
@@ -85,7 +85,7 @@ function REQUEST:ready(args, ... )
 	-- body
 	local room = self:get_room()
 	if room then
-		return skynet.call(room, "client", "on_ready", args)
+		return skynet.call(room, "lua", "on_ready", args)
 	end
 end
 
@@ -93,7 +93,7 @@ function REQUEST:mp(args, ... )
 	-- body
 	local room = self:get_room()
 	if room then
-		return skynet.call(room.roomid, "client", "on_mp", args)
+		return skynet.call(room, "lua", "on_mp", args)
 	else
 		log.error("you not enter room")
 	end
@@ -102,14 +102,14 @@ end
 function REQUEST:am(args, ... )
 	-- body
 	local room = self:get_room()
-	return skynet.call(room.roomid, "client", "on_am", args)
+	return skynet.call(room, "lua", "on_am", args)
 end
 
 function REQUEST:rob(args, ... )
 	-- body
 	local room = self:get_room()
 	if room then
-		return skynet.call(room, "client", "on_rob", args)
+		return skynet.call(room, "lua", "on_rob", args)
 	else
 		log.error("you not enter room")
 	end
@@ -118,11 +118,19 @@ end
 function REQUEST:lead(args, ... )
 	-- body
 	local room = self:get_room()
-	return skynet.call(room, "client", "lead", args)
+	return skynet.call(room, "lua", "on_lead", args)
+end
+
+function REQUEST:dealed(args, ... )
+	-- body
+	local room = self:get_room()
+	if room then
+		return skynet.call(room, "lua", "on_dealed", args)
+	end
 end
 
 local function request(name, args, response)
-	log.info("agent request [%s]", name)
+	-- log.info("agent request [%s]", name)
     local f = REQUEST[name]
     local ok, result = pcall(f, ctx, args)
     if ok then
@@ -155,16 +163,22 @@ function RESPONSE:rob(args, ... )
 	skynet.send(room, "lua", "rob", args)
 end
 
-function RESPONSE:deal(args, ... )
+function RESPONSE:lead(args, ... )
 	-- body
 	local room = self:get_room()
-	skynet.send(room, "lua", "ready", args)
+	skynet.send(room, "lua", "lead", args)
+end
+
+function RESPONSE:dealed(args, ... )
+	-- body
+	local room = self:get_room()
+	skynet.send(room, "lua", "dealed", args)
 end
 
 local function response(session, args)
 	-- body
 	local name = ctx:get_name_by_session(session)
-	log.info("agent response [%s]", name)
+	-- log.info("agent response [%s]", name)
     local f = RESPONSE[name]
     local ok, result = pcall(f, ctx, args)
     if ok then
@@ -241,11 +255,10 @@ end
 -- others serverce disconnect
 function CMD:afk(source)
 	-- body
-	local uid = self:get_uid()
-	log.info("agent (uid = %d) afk", uid)
+	local sid = self:get_subid()
 	local room = self:get_room()
 	if room then
-		skynet.call(room, "lua", "afk")
+		skynet.call(room, "lua", "afk", sid)
 	end
 	return true
 end
@@ -273,6 +286,24 @@ end
 function CMD:ready(source, args, ... )
 	-- body
 	self:send_request("ready", args)
+	return noret
+end
+
+function CMD:dealed(source, args, ... )
+	-- body
+	self:send_request("dealed", args)
+	return noret
+end
+
+function CMD:rob(source, args, ... )
+	-- body
+	self:send_request("rob", args)
+	return noret
+end
+
+function CMD:lead(source, args, ... )
+	-- body
+	self:send_request("lead", args)
 	return noret
 end
 

@@ -100,12 +100,11 @@ cc.DEBUG         = cc.DEBUG_DEBUG
 -- end
 
 -- load basics modules
-require("class")
-require("table")
-require("string")
-require("debug")
-require("math")
-require("ctype")
-require("os")
-require("io")
+require("base.class")
+require("base.table")
+require("base.string")
+-- require("base.math")
+require("base.ctype")
+require("base.os")
+require("base.io")
 require("common")

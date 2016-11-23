@@ -111,3 +111,15 @@ lead 8 {
         ranked3    8 : settlement
     }
 }
+
+dealed 9 {
+    request {
+        sid    0 : integer
+    }
+    response {
+        errorcode 0 : integer
+        rob       1 : boolean
+        your_turn 2 : integer
+        countdown 3 : integer
+    }
+}

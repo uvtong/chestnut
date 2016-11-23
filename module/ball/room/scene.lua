@@ -5,15 +5,23 @@ local map = require "room.map"
 local view = require "room.view"
 local list = require "list"
 local log = require "log"
+-- local buffgenerate = require "room.BuffGenerate"
+local FightingHurt = require "room.FightingHurt"
 local cls = class("scene")
 
-function cls:ctor(aoi, ... )
+function cls:ctor(ctx, aoi, ... )
 	-- body
+	self._ctx = ctx
 	self._aoi = aoi
 	self._ballid_balls = {}
 
 	self._view = nil
 	self._map = nil
+
+	--self.buffgen = buffgenerate.new()
+	--self.buffgen:InitData(1000001,self._ctx)
+
+	self._fighting = FightingHurt.new(ctx, self)
 end
 
 function cls:setup_view( ... )
@@ -42,8 +50,12 @@ function cls:setup_ball(ballid, session, ... )
 	local position = math3d.vector3(x, y, z)
 	local direction = math3d.vector3(0, 0, 0)
 	local vel = 0.8
+	local accspeed = 1
+	local m = 1
+	local thrust = 1
+	local resistance  = 1
 
-	local b = ball.new(ballid, session, self, radis, length, width, height, position, direction, vel)
+	local b = ball.new(ballid, session, self, radis, length, width, height, position, direction, vel,accspeed,m,thrust,resistance)
 	self._ballid_balls[ballid] = b
 	return b
 end
@@ -65,12 +77,13 @@ function cls:move(delta, ... )
 		local pos = ball:get_pos()
 		local dir = ball:get_dir()
 		local vel = ball:get_vel()
+		local accspeed = ball:get_accspeed()
 		local radis = ball:get_radis()
 
 		local dx, dy, dz = dir:unpack()
-		local px = dx * vel * delta
-		local py = dy * vel * delta
-		local pz = dz * vel * delta
+		local px = dx * (vel * delta+(1/2*accspeed*delta*delta))
+		local py = dy * (vel * delta+(1/2*accspeed*delta*delta))
+		local pz = dz * (vel * delta+(1/2*accspeed*delta*delta))
 
 		local x, y, z = pos:unpack()
 		if (x + px) < (min_x + radis) then
@@ -91,6 +104,8 @@ function cls:move(delta, ... )
 		local x, y, z = pos:unpack()
 		-- log.info("ball %f, %f, %f", x, y, z)
 		skynet.send(self._aoi, "lua", "update", ball:get_id(), "wm", x, y, z)
+
+		--self.buffgen:checkrectandtimeover(ball)
 	end
 end
 
@@ -109,7 +124,9 @@ function cls:aoi_check_collision(watcher, marker, ... )
 		local x, y, z = center:unpack()
 		print("aabb2", x, y, z)
 
-		if aabb1:intersects(aabb2) then
+		if aabb2:intersects(aabb1) then
+			local hurt1 = w:get_hurt()
+			hurt1:UpdateHurt(m:get_id(), m:get_vel());
 			log.info("marker %d enter watcher %d", watcher, marker)
 			self._ballid_balls[watcher] = nil
 			local x, y, z = w:get_pos():unpack()

@@ -2,7 +2,7 @@ local center = require "notification_center"
 local socket = require "socket"
 local string_pack = string.pack
 
-local cls = class("env")
+local cls = class("context")
 
 function cls:ctor( ... )
 	-- body

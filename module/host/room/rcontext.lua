@@ -1,15 +1,22 @@
 local skynet = require "skynet"
-local center = require "notification_center"
 local gamecontroller = require "gamecontroller"
 local card = require "card"
-local env = require "env"
 local player = require "player"
 local log = require "log"
-local cls = class("context", env)
+local list = require "list"
+local context = require "context"
+
+local cls = class("rcontext", context)
 
 function cls:ctor( ... )
 	-- body
 	cls.super.ctor(self)
+
+	self._list = list.new()
+	for i=1,3 do
+		local tmp = player.new(self)
+		list.add(self._list, tmp)
+	end
 
 	self._players = {}
 	self._uid_player = {}
@@ -23,40 +30,7 @@ function cls:ctor( ... )
 	self._controllers = {}
 	self._controllers.game = gamecontroller.new(self, "game")
 
-	self._rule = nil
-	self._mode = nil
-	self._scene = nil
 	return self
-end
-
-function cls:set_rule(v, ... )
-	-- body
-	self._rule = v
-end
-
-function cls:get_rule( ... )
-	-- body
-	return self._rule
-end
-
-function cls:set_mode(v, ... )
-	-- body
-	self._mode = v
-end
-
-function cls:get_mode( ... )
-	-- body
-	return self._mode
-end
-
-function cls:set_scene(v, ... )
-	-- body
-	self._scene = v
-end
-
-function cls:get_scene( ... )
-	-- body
-	return self._scene
 end
 
 function cls:create_player(uid, sid, agent, ... )
@@ -66,9 +40,12 @@ function cls:create_player(uid, sid, agent, ... )
 		log.info("this player has enter")
 		return nil
 	else
-		local p = player.new(self, uid, sid, agent)
-		self:add(p)
-		return p
+		local tmp = list.pop(self._list)
+		tmp:set_uid(uid)
+		tmp:set_sid(sid)
+		tmp:set_agent(agent)
+		self:add(tmp)
+		return tmp
 	end
 end
 
@@ -133,12 +110,13 @@ end
 
 function cls:get_player_by_uid(uid, ... )
 	-- body
-	return self._uid_map[uid]
+	assert(false)
+	return self._uid_player[uid]
 end
 
-function cls:get_player_by_fd(fd, ... )
+function cls:get_player_by_sid(sid, ... )
 	-- body
-	return self._fd_player[fd]
+	return self._sid_player[sid]
 end
 
 -- only for player
