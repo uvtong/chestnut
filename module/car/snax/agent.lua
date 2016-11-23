@@ -26,13 +26,13 @@ function response.logout()
 	snax.printf("%s is logout", uid)
 	local room = ctx:get_room()
 	if room then
+		ctx:set_room(nil)	
 		local uid = ctx:get_uid()
 		local args = {}
 		args.userid = uid
 		room.req.leave(args)
 	end
 	ctx:set_session(nil)
-	ctx:set_room(nil)
 	ctx:logout()
 end
 
@@ -41,14 +41,13 @@ function response.afk(fd)
 	snax.printf("AFK")
 	local room = ctx:get_room()
 	if room then
+		ctx:set_room(nil)
 		local uid = ctx:get_uid()
 		local args = {}
 		args.userid = uid
-		local res = room.req.leave(args)
-		ctx:set_room(nil)
-		return res
-	else
+		room.req.leave(args)
 	end
+	ctx:set_session(nil)
 end
 
 function accept.start(conf, ... )
@@ -61,6 +60,11 @@ function accept.start(conf, ... )
 	ctx:set_fd(fd)
 	ctx:set_version(version)
 	ctx:set_index(index)
+end
+
+function accept.enter_room(roomid, ... )
+	-- body
+	ctx:send_request("enter_room", {roomid=roomid})
 end
 
 function accept.joinroom(args, ... )
@@ -136,6 +140,10 @@ function client_request.handshake( ... )
 	return res
 end
 
+function client_request.enter_room( ... )
+	-- body
+end
+
 function client_request.joinroom(args)
 	local secret = ctx:get_secret()
 	local handle, host, port = roomkeeper.req.apply(args.roomid)
@@ -180,6 +188,9 @@ function client_request.exitroom(args, ... )
 		ctx:set_room(nil)
 		return res
 	else
+		local res = {}
+		res.errorcode = errorcode.SUCCESS
+		return res
 	end
 end
 
@@ -285,8 +296,8 @@ local function request(name, args, response)
     local f = client_request[name]
     local ok, result = pcall(f, args)
     if ok then
-    	assert(result, name)
-    	return response(result)
+    	local res = response(result)
+    	return res
     else
     	log.error(result)
     	local ret = {}
@@ -298,7 +309,7 @@ end
 local function response(session, args)
 	-- body
 	local name = ctx:get_name_by_session(session)
-	log.info("uid %d agent response: %s", ctx:get_uid(), name)
+	-- log.info("uid %d agent response: %s", ctx:get_uid(), name)
     local f = client_response[name]
     local ok, result = pcall(f, args)
     if ok then

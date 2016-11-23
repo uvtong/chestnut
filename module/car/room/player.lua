@@ -8,6 +8,7 @@ function cls:ctor(session, uid, ... )
 	self._secret = nil
 	self._agent = nil
 	self._car = nil
+	self._ai = false
 end
 
 function cls:get_session( ... )
@@ -58,6 +59,16 @@ end
 function cls:set_car(value, ... )
 	-- body
 	self._car = value
+end
+
+function cls:get_ai( ... )
+	-- body
+	return self._ai
+end
+
+function cls:set_ai(value, ... )
+	-- body
+	self._ai = value
 end
 
 function cls:pack_sproto_balls( ... )

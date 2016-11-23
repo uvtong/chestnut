@@ -1,12 +1,12 @@
 local skynet = require "skynet"
 -- local udbcontext = require "udbcontext"
-local env = require "env"
+local context = require "context"
 local call = skynet.call
 local assert = assert
 local rdb = ".DB"
 local wdb = ".DB"
 
-local cls = class("context", env)
+local cls = class("acontext", context)
 
 function cls:ctor( ... )
 	-- body
@@ -24,7 +24,6 @@ end
 
 function cls:login(gate, uid, subid, secret)
 	assert(uid and subid and secret)
-	assert(self._uid == false)
 	self._gate = gate
 	self._uid = uid
 	self._subid = subid

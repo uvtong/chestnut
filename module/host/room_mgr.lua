@@ -10,7 +10,12 @@ local users = {}
 
 local cs1 = skynet_queue()
 local cs2 = skynet_queue()
-local cs3 = skynet_queue()
+
+local function new_room( ... )
+	-- body
+	local room = skynet.newservice("room/room")
+	return room	
+end
 
 local function init( ... )
 	-- body
@@ -20,6 +25,10 @@ local function init( ... )
 	local rt = (scene << 24 | mode << 16 | rule << 8)
 	rt_room_queue[rt] = queue()
 	rooms = queue()
+	for i=1,10 do
+		local room = new_room()
+		enqueue_room(room)
+	end
 end
 
 local function enqueue_agent(q, agent, ... )
@@ -68,8 +77,8 @@ local function dequeue_room( ... )
 		if q:size() > 0 then
 			return q:dequeue()
 		else
-			local room = skynet.newservice("room/room")
-			return room	
+			local room = new_room()
+			return room
 		end
 	end
 	return cs2(func1, rooms)
@@ -79,7 +88,6 @@ local CMD = {}
 
 function CMD.enqueue_agent(source, uid, rule, mode, scene, ... )
 	-- body
-	local rt = (scene << 24 | mode << 16 | rule << 8)
 	local agent = {
 		agent = source,
 		uid = uid,
@@ -89,6 +97,8 @@ function CMD.enqueue_agent(source, uid, rule, mode, scene, ... )
 		scene = scene,
 	}
 	users[uid] = agent
+
+	local rt = (scene << 24 | mode << 16 | rule << 8)
 	local q = assert(rt_room_queue[rt])
 	enqueue_agent(q, agent)
 	if q:size() >= 3 then
@@ -97,6 +107,7 @@ function CMD.enqueue_agent(source, uid, rule, mode, scene, ... )
 		local agents = {}
 		for i=1,3 do
 			local agent = dequeue_agent(q)
+			users[agent.uid] = nil
 			table.insert(agents, agent)
 		end
 		skynet.call(room, "lua", "enter_room", agents)
@@ -106,15 +117,23 @@ end
 
 function CMD.dequeue_agent(source, uid, ... )
 	-- body
-	local agent = users[uid]
-	local q = rt_room_queue[agent.rt]
-	del_agent(q, agent)
+	if users[uid] then
+		users[uid] = nil
+		local q = rt_room_queue[agent.rt]
+		del_agent(q, agent)
+	end
 end
 
+-- room exit
 function CMD.enqueue_room(source, room, ... )
 	-- body
 	enqueue_room(room)
 	return noret
+end
+
+function CMD.start(source, ... )
+	-- body
+	init()
 end
 
 skynet.start(function ( ... )
@@ -127,6 +146,5 @@ skynet.start(function ( ... )
 			skynet.retpack(r)
 		end
 	end)
-	init()
 	skynet.register ".ROOM_MGR"
 end)

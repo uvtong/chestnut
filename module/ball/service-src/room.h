@@ -3,6 +3,7 @@
 
 struct room_msg {
 	const char *cmd;
+	void *ud;
 };
 
 

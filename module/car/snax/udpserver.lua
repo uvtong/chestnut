@@ -3,6 +3,7 @@ local socket = require "socket"
 local crypt = require "crypt"
 local snax = require "snax"
 local rudp = require "rudp"
+local log = require "log"
 
 local tick = 1
 local udphost, udpport

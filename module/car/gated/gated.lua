@@ -31,7 +31,7 @@ function server.login_handler(source, uid, secret, ...)
 
 	-- you can use a pool to alloc new agent
 	-- local agent = skynet.newservice "agent"
-	local handle = skynet.call(".AGENT_MGR", "lua", "enter")
+	local handle = skynet.call(".AGENT_MGR", "lua", "enter", uid)
 	local agent = snax.bind(handle, "agent")
 	local u = {
 		username = username,

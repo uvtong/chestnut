@@ -8,6 +8,7 @@
 .battleinitdata {
 	userid 0 : integer
 	carid 1 : integer
+	ai 2 : boolean
 }
 
 joinroom 1 {
@@ -77,3 +78,15 @@ die 7 {
 		errorcode 0 : integer
 	}
 }
+
+enter_room 8 {
+	request {
+		type 0 : integer
+	}
+	response {
+		errorcode 0 : integer
+	}
+}
+
+
+

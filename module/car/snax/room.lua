@@ -1,4 +1,5 @@
 local skynet = require "skynet"
+local skynet_queue = require "skynet.queue"
 local snax = require "snax"
 local errorcode = require "errorcode"
 local math3d = require "math3d"
@@ -31,11 +32,24 @@ local lasttick = 0
 	padding data
 ]]
 function accept.update(data)
+	-- log.info("test")
 	assert(#data >= 16)
 	local session, protocol = string.unpack("<II", data, 9)	
 	-- local protocol = string.unpack("<I", data, 13)
 	if protocol == 1 then
-		-- log.info("protocol 1")
+		local _, uid, x, y, z = string.unpack("<IIfff", data, 17)
+		local player
+		if uid < 1000 then
+			player = ctx:get_ai(uid)
+		else
+			player = ctx:get_player(uid)
+		end
+		if player then
+			local car = player:get_car()
+			car:set_x(x)
+			car:set_y(y)
+			car:set_z(z)
+		end
 		local time = skynet.now()
 		data = string.pack("<I", time) .. data
 	elseif protocol == 2 then
@@ -56,15 +70,25 @@ function accept.update(data)
 end
 
 function response.joinroom(handle, secret, uid)
-	if ctx:is_maxnum() then
-		return false
-	end
+	-- if ctx:get_num() > ctx:get_maxnum() then
+	-- 	return false
+	-- end
 	local session_players = ctx:get_players()
 	local ps = {}
+	local nps = {}
 	for k,player in pairs(session_players) do
 		local p = {}
 		p.userid = player:get_uid()
 		p.carid = 1
+		p.ai = false
+		table.insert(ps, p)
+	end
+	local ais = ctx:get_ais()
+	for k,player in pairs(ais) do
+		local p = {}
+		p.userid = player:get_uid()
+		p.carid = 1
+		p.ai = true
 		table.insert(ps, p)
 	end
 
@@ -72,11 +96,11 @@ function response.joinroom(handle, secret, uid)
 	local session = gate.req.register(skynet.self(), secret)
 	local agent = snax.bind(handle, "agent")
 	local player = ctx:get_freeplayer()
-	assert(player)
 	player:set_session(session)
 	player:set_uid(uid)
 	player:set_secret(secret)
 	player:set_agent(agent)
+	player:set_ai(false)
 	
 	local key = string.format("%s:%d", "s_attribute", 1)
 	local row = sd.query(key)
@@ -87,11 +111,39 @@ function response.joinroom(handle, secret, uid)
 	player:set_car(car)
 	ctx:add(uid, player)
 
+	local p = {}
+	p.userid = uid
+	p.carid = 1
+	p.ai = false
+	table.insert(nps, p)
+
+	local num = ctx:get_maxnum() - ctx:get_num()
+	for i=1,num do
+		local uid = skynet.call(".AI_MGR", "lua", "enter")
+		local player = ctx:get_freeplayer()
+		player:set_session(session)
+		player:set_uid(uid)
+		player:set_ai(true)
+		local car = car.new(uid)
+		car:set_player(player)
+		car:set_hp(row.baseHP)
+
+		player:set_car(car)
+		ctx:add_ai(uid, player)
+		
+		local p = {}
+		p.userid = uid
+		p.carid = 1
+		p.ai = true
+		table.insert(nps, p)
+		table.insert(ps, p)
+	end
+
 	for k,v in pairs(session_players) do
 		if v:get_session() ~= session then
 			log.info("room joinroom %d", uid)
 			local agent = v:get_agent()
-			agent.post.joinroom({ battleinitdataitem={ userid=tonumber(uid), carid=1} })
+			agent.post.joinroom({ battleinitdataitem=nps })
 		end
 	end
 	return session, ps
@@ -99,7 +151,12 @@ end
 
 function response.leave(args)
 	if args.userid then
-		ctx:remove(args.userid)
+		local player
+		if args.userid < 1000 then
+			ctx:remove_ai(args.userid)
+		else
+			ctx:remove(args.userid)
+		end
 		local players = ctx:get_players()
 		for k,v in pairs(players) do
 			local agent = v:get_agent()
@@ -128,10 +185,15 @@ end
 
 function response.createbuff(args, ... )
 	-- body
-	log.info("userid: %d", tonumber(args.userid))
-	local id = args.buff_id
-	local player = ctx:get_player(args.userid)
+	log.info("userid: %d createbuff", tonumber(args.userid))
+	local player
+	if args.userid < 1000 then
+		player = ctx:get_ai(args.userid)
+	else
+		player = ctx:get_player(args.userid)
+	end
 	local car = player:get_car()
+	local id = args.buff_id
 	local b = nil
 	local raw = nil
 	if id == 1 then
@@ -219,7 +281,13 @@ end
 
 function response.updateblood(args, ... )
 	-- body
-	local player = ctx:get_player(args.targetuserid)
+	local player
+	if args.targetuserid < 1000 then
+		player = ctx:get_ai(args.targetuserid)
+	else
+		player = ctx:get_player(args.targetuserid)
+	end
+	assert(player)
 	local car = player:get_car()
 	local hp = car:get_hp()
 	hp = hp - args.bloodvalue
@@ -238,7 +306,44 @@ function response.updateblood(args, ... )
 			local agent = v:get_agent()
 			agent.post.die(xargs)
 		end
-		ctx:remove(player:get_uid())
+		local x = car:get_x()
+		local y = car:get_y()
+		local z = car:get_z()
+		local food_mgr = ctx:get_food_mgr()
+		food_mgr:gen_cus(math.tointeger(x), 0, math.tointeger(z))
+
+		if player:get_id() then
+			ctx:remove_ai(player:get_uid())
+		else
+			ctx:remove(player:get_uid())
+		end
+
+		local num = ctx:get_maxnum() - ctx:get_num()
+		if num > 0 then
+			local nps = {}
+			for i=1,num do
+				local uid = skynet.call(".AI_MGR", "lua", "enter")
+				local player = ctx:get_freeplayer()
+				player:set_session(session)
+				player:set_uid(uid)
+				player:set_ai(true)
+				local car = car.new(uid)
+				car:set_player(player)
+				car:set_hp(row.baseHP)
+				ctx:add_ai(player)
+				
+				local p = {}
+				p.userid = uid
+				p.carid = 1
+				p.ai = true
+				table.insert(nps, p)
+			end
+
+			for k,v in pairs(session_players) do
+				local agent = v:get_agent()
+				agent.post.joinroom({ battleinitdataitem=nps })
+			end
+		end
 	end
 	local res = {}
 	res.errorcode = errorcode.SUCCESS
@@ -252,7 +357,12 @@ function response.eitbloodentity(args, ... )
 	local food = food_mgr:get_food(args.id)
 	food_mgr:remove(args.id)
 
-	local player = ctx:get_player(args.userid)
+	local player
+	if args.userid < 1000 then
+		player = ctx:get_ai(args.userid)
+	else
+		player = ctx:get_player(args.userid)
+	end
 	local car = player:get_car()
 	local hp1 = food:get_hp()
 	local hp2 = car:get_hp()
@@ -273,17 +383,25 @@ end
 
 function response.die(args, ... )
 	-- body
-	ctx:leave(args.userid)
+	if args.userid < 1000 then
+		ctx:remove_ai(args.userid)
+	else
+		ctx:remove(args.userid)
+	end
+
 	local players = ctx:get_players()
 	for k,v in pairs(players) do
 		local agent = v:get_agent()
 		agent.post.die(args)
 	end
+	local res = {}
+	res.errorcode = errorcode.SUCCESS
+	return res
 end
 
-function response.start( ... )
+function response.start(t, ... )
 	-- body
-	ctx:start(context.type.CIRCLE)
+	ctx:start(t)
 end
 
 function init(id, udpserver)

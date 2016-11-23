@@ -69,7 +69,7 @@ $(LUA_ZSET_PATH)/skiplist.so: $(LUA_ZSET_PATH)/Makefile
 #redis
 REDIS_PATH ?= ./3rd/redis
 $(REDIS_PATH)/Makefile: update3rd
-$(REDIS_PATH)/redis: $(REDIS_PATH)/Makefile
+$(REDIS_PATH)/src/redis-server: $(REDIS_PATH)/Makefile
 	cd $(REDIS_PATH) && $(MAKE)
 clean_redis:
 	cd $(REDIS_PATH) && $(MAKE) clean
@@ -109,16 +109,16 @@ $(CSERVICE_PATH)/catlogger.so: $(SERVICE_SRC_PATH)/service_catlogger.c | $(CSERV
 
 all: $(SKYNET_PATH)/skynet \
 	$(LUA_CJSON_PATH)/cjson.so \
-	$(REDIS_PATH)/redis \
+	$(REDIS_PATH)/src/redis-server \
 	$(LUA_CLIB_PATH)/log.so \
 	$(LUA_CLIB_PATH)/math3d.so \
 	$(LUA_CLIB_PATH)/queue.so \
-	$(LUA_CLIB_PATH)/rudp.so \
+	# $(LUA_CLIB_PATH)/rudp.so \
 	$(CSERVICE_PATH)/catlogger.so 
 
 clean: clean_skynet clean_cjson clean_redis
 	rm -rf $(LUA_CLIB_PATH)/log.so \
 		$(LUA_CLIB_PATH)/math3d.so \
 		$(LUA_CLIB_PATH)/queue.so \
-		$(LUA_CLIB_PATH)/rudp.so \
+		# $(LUA_CLIB_PATH)/rudp.so \
 		$(LUA_CLIB_PATH)/catlogger.so
