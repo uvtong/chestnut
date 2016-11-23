@@ -24,7 +24,6 @@ end
 
 function cls:login(gate, uid, subid, secret)
 	assert(uid and subid and secret)
-	assert(self._uid == false)
 	self._gate = gate
 	self._uid = uid
 	self._subid = subid
@@ -38,7 +37,8 @@ function cls:logout( ... )
 	if self._gate then
 		skynet.call(self._gate, "lua", "logout", self._uid, self._subid)
 	end
-	skynet.exit()
+	skynet.call(".AGENT_MGR", "lua", "exit", self._uid)
+	-- skynet.exit()
 end
 
 function cls:get_uid( ... )

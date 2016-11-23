@@ -61,6 +61,20 @@ function cls:ctor(env, dbctx, rdb, wdb, ... )
 			uq = false,
 			t = "number",
 		},
+		gemstones = {
+			pk = false,
+			fk = false,
+			cn = "gemstones",
+			uq = false,
+			t = "string",
+		},
+		Refresh = {
+			pk = false,
+			fk = false,
+			cn = "Refresh",
+			uq = false,
+			t = "number",
+		},
 	}
 
 	self._head_ord    = {}
@@ -71,6 +85,8 @@ function cls:ctor(env, dbctx, rdb, wdb, ... )
 	self._head_ord[5] = self._head['IncidentID']
 	self._head_ord[6] = self._head['cycle']
 	self._head_ord[7] = self._head['Gametime']
+	self._head_ord[8] = self._head['gemstones']
+	self._head_ord[9] = self._head['Refresh']
 
 	self._pk          = "ID"
 	self._fk          = ""

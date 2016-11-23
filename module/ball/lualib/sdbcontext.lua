@@ -2,6 +2,7 @@ local s_buff_set = require "s_buff_set"
 local s_leveldistrictinfo_set = require "s_leveldistrictinfo_set"
 local s_level_incident_set = require "s_level_incident_set"
 local s_attribute_set = require "s_attribute_set"
+local s_gemstone_set = require "s_gemstone_set"
 local dbcontext = require "dbcontext"
 local cls = class("sdbcontext", dbcontext)
 

@@ -21,9 +21,11 @@ skynet.start(function()
 	-- skynet.name(".LB", lb)
 	
 	skynet.newservice("agent_mgr")
+	skynet.call(".AGENT_MGR", "lua", "start", 2)
 	skynet.newservice("branch")
 	-- skynet.newservice("channel")
-
+	skynet.newservice("ai_mgr")
+	skynet.call(".AI_MGR", "lua", "start")
 	skynet.newservice("room_mgr")
 	
 	repeat

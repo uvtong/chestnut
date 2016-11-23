@@ -30,6 +30,8 @@ function cls:ctor( ... )
 	self._controllers = {}
 	self._controllers.game = gamecontroller.new(self, "game")
 
+	self._type = 1  -- 0. normal 2. ai
+
 	return self
 end
 

@@ -7,18 +7,17 @@ extern "C" {
 #include <lua.h>
 #include <lauxlib.h>
 
+struct test {
+	Actor *actor;
+};
+
 static int 
-lnew_actor(lua_State *L)
-{
-	Actor *actor = new Actor();
-	lua_pushlightuserdata(L, actor);
-	return 1;
+ltest_alloc(lua_State *L) {
+	return 0;
 }
 
 static int 
-ltest(lua_State *L) {
-	 Actor *actor = (Actor *)lua_touserdata(L, 1);
-	 actor->test();
+ltest_free(lua_State *L) {
 	 return 0;
 }
 
@@ -26,8 +25,8 @@ int
 luaopen_test(lua_State *L) {
 	luaL_checkversion(L);
 	luaL_Reg l[] = {
-		{ "new_actor", lnew_actor },
-		{ "test", ltest },
+		{ "alloc", ltest_alloc },
+		{ "free", ltest_free },
 		{ NULL, NULL },
 	};
 	luaL_newlib(L,l);

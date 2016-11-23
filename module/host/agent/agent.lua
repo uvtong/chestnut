@@ -55,30 +55,40 @@ function REQUEST:handshake(args, ... )
 	return res
 end
 
-function REQUEST:enter_room(args, ... )
+function REQUEST:join(args, ... )
 	-- body
-	local room = self:get_room()
-	assert(room == nil)
+	assert(self:get_join() == false)
+	self:set_join(true)
 	local rule = args.rule
 	local mode = args.mode
 	local scene = args.scene
 	local uid = self:get_uid()
 	local sid = self:get_subid()
-	skynet.send(".ROOM_MGR", "lua", "enqueue_agent", uid, sid, rule, mode, scene)
+	skynet.send(".ROOM_MGR", "lua", "enqueue_agent", uid, rule, mode, scene)
 	local res = { errorcode = errorcode.SUCCESS}
 	return res
+end
+
+function REQUEST:leave(args, ... )
+	-- body
+	if self:get_join() then
+		local uid = self:get_uid()
+		skynet.send(".ROOM_MGR", "lua", "dequeue_agent", uid)
+	end
+end
+
+function REQUEST:enter_room(args, ... )
+	-- body
+	local room = self:get_room()
+	assert(room == nil)
 end
 
 function REQUEST:leave_room(args, ... )
 	-- body
 	local room = self:get_room()
 	if room then
-		self:set_room(nil)
-		local uid = self:get_uid()
-		skynet.send(".ROOM_MGR", "lua", "dequeue_agent", uid)
+		return skynet.call(room, "lua", "on_leave_room", args)
 	end
-	local res = { errorcode = errorcode.SUCCESS}
-	return res
 end
 
 function REQUEST:ready(args, ... )
@@ -268,10 +278,16 @@ function CMD:info(source, ... )
 	return { name="xiaomiao"}
 end
 
--- called by room
-function CMD:enter_room(source, args, ... )
+-- called by room_mgr
+function CMD:enter_room(source, id, ... )
 	-- body
-	self:set_room(source)
+	local handle = skynet.call(".ROOM_MGR", "lua", "apply", id)
+	local uid = self:get_uid()
+	local sid = self:get_subid()
+	local fd = skynet.self()
+	local agent = { uid=uid, sid=sid, agent=fd }
+	local res = skynet.call(handle, "lua", "on_enter_room", agent)
+	self:set_room(handle)
 	self:send_request("enter_room", args)
 	return noret
 end

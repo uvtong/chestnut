@@ -24,6 +24,7 @@ function cls:ctor(env, dbctx, rdb, wdb, ... )
 			fk = false,
 			cn = "time",
 			uq = false,
+			t = "number",
 		},
 		pos = {
 			pk = false,

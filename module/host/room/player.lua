@@ -29,9 +29,9 @@ function cls:ctor(env, uid, sid, fd, ... )
 	self._agent  = fd  -- agent
 	self._last   = false
 	self._next   = false
-	self._idx    = 0    -- players in
-	self._online = false
-	self._robot  = false
+	self._idx    = 0      -- players index
+	self._online = false  -- user
+	self._robot  = false  -- user
 	self._name   = ""
 
 	self._state  = state.NONE
@@ -45,7 +45,7 @@ function cls:ctor(env, uid, sid, fd, ... )
 	self._lastplayerleadg = nil      -- 上位同学出的牌，在场景里表现后比较
 	self._mylastleadg = nil          -- 自己上一次出的牌
 
-	self._aiflag = false
+	self._aiflag = false  -- ai
 	self._airob_cd = 0
 	self._ailead_cd = 0
 
@@ -212,6 +212,16 @@ function cls:clear_selection( ... )
 		self._cards_selection = {}
 		self._cards_selection_sz = 0
 	end
+end
+
+function cls:get_aiflag( ... )
+	-- body
+	return self._aiflag
+end
+
+function cls:set_aiflag(value, ... )
+	-- body
+	self._aiflag = value
 end
 
 function cls:start( ... )

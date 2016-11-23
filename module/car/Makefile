@@ -3,9 +3,15 @@ AOI_SRC_PATH ?= ../../3rd/aoi
 LUA_CLIB_PATH ?= luaclib
 CLIB_SRC_PATH ?= lualib-src
 
-LUA_INC = /usr/local/include
+LUA_INC ?= /usr/local/include
+
 SHARED := -fPIC --shared
-CFLAGS = -g -O2 -Wall
+CFLAGS := -g -O2 -Wall
+
+.PHONY: default all clean
+
+default:
+	$(MAKE) all
 
 $(LUA_CLIB_PATH):
 	mkdir $(LUA_CLIB_PATH)
@@ -18,8 +24,6 @@ $(LUA_CLIB_PATH)/aoiaux.so: $(CLIB_SRC_PATH)/aoi_aux.c $(AOI_SRC_PATH)/aoi.c | $
 
 $(LUA_CLIB_PATH)/float.so: $(CLIB_SRC_PATH)/float.c | $(LUA_CLIB_PATH)
 	gcc $(CFLAGS) $(SHARED) -I$(LUA_INC) $^ -o $@
-
-.PHONY: all clean
 
 all: $(LUA_CLIB_PATH)/aoiaux.so $(LUA_CLIB_PATH)/float.so
 

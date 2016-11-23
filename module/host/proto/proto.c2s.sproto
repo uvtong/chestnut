@@ -123,3 +123,15 @@ dealed 9 {
         countdown 3 : integer
     }
 }
+
+join 10 {
+    response {
+        errorcode 0 : integer
+    }
+}
+
+leave 11 {
+    response {
+        errorcode 0 : integer
+    }
+}

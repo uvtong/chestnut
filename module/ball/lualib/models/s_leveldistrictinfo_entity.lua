@@ -21,6 +21,8 @@ function cls:ctor(env, dbctx, set, rdb, wdb, p, ... )
 			IncidentID = 0,
 			cycle = 0,
 			Gametime = 0,
+			gemstones = 0,
+			Refresh = 0,
 		}
 
 	self._ecol_updated = {
@@ -31,6 +33,8 @@ function cls:ctor(env, dbctx, set, rdb, wdb, p, ... )
 			IncidentID = 0,
 			cycle = 0,
 			Gametime = 0,
+			gemstones = 0,
+			Refresh = 0,
 		}
 
 	if p then

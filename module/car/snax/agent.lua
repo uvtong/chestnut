@@ -26,17 +26,28 @@ function response.logout()
 	snax.printf("%s is logout", uid)
 	local room = ctx:get_room()
 	if room then
-		local session = ctx:get_session()
-		room.req.leave(session)
+		ctx:set_room(nil)	
+		local uid = ctx:get_uid()
+		local args = {}
+		args.userid = uid
+		room.req.leave(args)
 	end
 	ctx:set_session(nil)
-	ctx:set_room(nil)
 	ctx:logout()
 end
 
 function response.afk(fd)
 	-- the connection is broken, but the user may back
 	snax.printf("AFK")
+	local room = ctx:get_room()
+	if room then
+		ctx:set_room(nil)
+		local uid = ctx:get_uid()
+		local args = {}
+		args.userid = uid
+		room.req.leave(args)
+	end
+	ctx:set_session(nil)
 end
 
 function accept.start(conf, ... )
@@ -49,6 +60,11 @@ function accept.start(conf, ... )
 	ctx:set_fd(fd)
 	ctx:set_version(version)
 	ctx:set_index(index)
+end
+
+function accept.enter_room(roomid, ... )
+	-- body
+	ctx:send_request("enter_room", {roomid=roomid})
 end
 
 function accept.joinroom(args, ... )
@@ -69,27 +85,49 @@ end
 
 function accept.deletebuff(args, ... )
 	-- body
+	assert(args)
 	ctx:send_request("deletebuff", args)
 end
 
 function accept.dealbuffvalue(args, ... )
 	-- body
+	assert(args)
 	ctx:send_request("dealbuffvalue", args)
 end
 
 function accept.createbuff(args, ... )
 	-- body
+	assert(args)
 	ctx:send_request("createbuff", args)
 end
 
 function accept.updateblood(args, ... )
 	-- body
+	assert(args)
 	ctx:send_request("updateblood", args)
 end
 
 function accept.exitroom(args, ... )
 	-- body
+	assert(args)
 	ctx:send_request("exitroom", args)
+end
+
+function accept.generatebloodentity(args, ... )
+	-- body
+	assert(args)
+	ctx:send_request("generatebloodentity", args)
+end
+
+function accept.deletebloodentity(args, ... )
+	-- body
+	assert(args)
+	ctx:send_request("deletebloodentity", args)
+end
+
+function accept.die(args, ... )
+	-- body
+	ctx:send_request("die", args)
 end
 
 -- client request
@@ -100,6 +138,10 @@ function client_request.handshake( ... )
 	ctx:send_request("handshake")
 	local res = { errorcode = 1 }
 	return res
+end
+
+function client_request.enter_room( ... )
+	-- body
 end
 
 function client_request.joinroom(args)
@@ -142,10 +184,31 @@ function client_request.exitroom(args, ... )
 	-- body
 	local room = ctx:get_room()
 	if room then
-		local res = ctx.req.exitroom(args)
+		local res = room.req.leave(args)
 		ctx:set_room(nil)
 		return res
 	else
+		local res = {}
+		res.errorcode = errorcode.SUCCESS
+		return res
+	end
+end
+
+function client_request.eitbloodentity(args, ... )
+	-- body
+	local room = ctx:get_room()
+	if room then
+		local res = room.req.eitbloodentity(args)
+		return res
+	end
+end
+
+function client_request.die(args, ... )
+	-- body
+	local room = ctx:get_room()
+	if room then
+		local res = room.req.die(args)
+		return res
 	end
 end
 
@@ -193,6 +256,31 @@ function client_response.createbuff(args, ... )
 	assert(args.errorcode == errorcode.SUCCESS)
 end
 
+function client_response.updateblood(args, ... )
+	-- body
+	assert(args.errorcode == errorcode.SUCCESS)
+end
+
+function client_response.exitroom(args, ... )
+	-- body
+	assert(args.errorcode == errorcode.SUCCESS)
+end
+
+function client_response.generatebloodentity(args, ... )
+	-- body
+	assert(args.errorcode == errorcode.SUCCESS)
+end
+
+function client_response.deletebloodentity(args, ... )
+	-- body
+	assert(args.errorcode == errorcode.SUCCESS)
+end
+
+function client_response.die(args, ... )
+	-- body
+	assert(args.errorcode == errorcode.SUCCESS)
+end
+
 local function decode_proto(msg, sz, ... )
 	-- body
 	if sz > 0 then
@@ -208,7 +296,8 @@ local function request(name, args, response)
     local f = client_request[name]
     local ok, result = pcall(f, args)
     if ok then
-    	return response(result)
+    	local res = response(result)
+    	return res
     else
     	log.error(result)
     	local ret = {}
@@ -220,7 +309,7 @@ end
 local function response(session, args)
 	-- body
 	local name = ctx:get_name_by_session(session)
-	log.info("uid %d agent response: %s", ctx:get_uid(), name)
+	-- log.info("uid %d agent response: %s", ctx:get_uid(), name)
     local f = client_response[name]
     local ok, result = pcall(f, args)
     if ok then

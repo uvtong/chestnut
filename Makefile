@@ -7,6 +7,11 @@ SERVICE_SRC_PATH ?= service-src
 
 CFLAGS = -g -O2 -Wall $(MYCFLAGS)
 
+.PHONY: update3rd
+
+update3rd:
+	git submodule update --init
+
 # lua
 LUA_PATH ?= ./3rd/lua
 LUA_STATICLIB ?= $(LUA_PATH)/src/liblua.a
@@ -25,60 +30,59 @@ $(LUA_PATH)/Makefile: update3rd
 
 # crab
 CRAB_PATH ?= ./3rd/crab
+$(CRAB_PATH)/Makefile: update3rd
 $(CRAB_PATH)/crab.so: $(CRAB_PATH)/Makefile
 	cd $(CRAB_PATH) && $(MAKE)
 
-$(CRAB_PATH)/Makefile: update3rd
-
 #lsocket
 LSOCKET_PATH ?= ./3rd/lsocket
+$(LSOCKET_PATH)/Makefile: update3rd
 $(LSOCKET_PATH)/lsocket.so: $(LSOCKET_PATH)/Makefile
 	cd $(LSOCKET_PATH) && $(MAKE)
 
-$(LSOCKET_PATH)/Makefile: update3rd
-
 #lua-cjson
 LUA_CJSON_PATH ?= ./3rd/lua-cjson
+$(LUA_CJSON_PATH)/Makefile: update3rd
 $(LUA_CJSON_PATH)/cjson.so: $(LUA_CJSON_PATH)/Makefile
 	cd $(LUA_CJSON_PATH) && $(MAKE)
-
-$(LUA_CJSON_PATH)/Makefile: update3rd
+clean_cjson:
+	cd $(LUA_CJSON_PATH) && $(MAKE) clean
 
 #lua-snapshot
 LUA_SNAPSHOT_PATH ?= ./3rd/lua-snapshot
+$(LUA_SNAPSHOT_PATH)/Makefile: update3rd
 $(LUA_SNAPSHOT_PATH)/snapshot.so: $(LUA_SNAPSHOT_PATH)/Makefile
 	cd $(LUA_SNAPSHOT_PATH) && $(MAKE)
 
-$(LUA_SNAPSHOT_PATH)/Makefile: update3rd
-
 #lua-socket
 LUA_SOCKET_PATH ?= ./3rd/lua-socket
+$(LUA_SNAPSHOT_PATH)/Makefile: update3rd
 $(LUA_SOCKET_PATH)/packagesocket.so: $(LUA_SOCKET_PATH)/Makefile
 	cd $(LUA_SOCKET_PATH) && $(MAKE)
 
-$(LUA_SNAPSHOT_PATH)/Makefile: update3rd
-
 #lua-zset
 LUA_ZSET_PATH ?= ./3rd/lua-zset
+$(LUA_ZSET_PATH)/Makefile: update3rd
 $(LUA_ZSET_PATH)/skiplist.so: $(LUA_ZSET_PATH)/Makefile
 	cd $(LUA_ZSET_PATH) && $(MAKE)
 
-$(LUA_ZSET_PATH)/Makefile: update3rd
-
 #redis
 REDIS_PATH ?= ./3rd/redis
-$(REDIS_PATH)/redis: $(REDIS_PATH)/Makefile
-	cd $(REDIS_PATH) && $(MAKE)
-
 $(REDIS_PATH)/Makefile: update3rd
+$(REDIS_PATH)/src/redis-server: $(REDIS_PATH)/Makefile
+	cd $(REDIS_PATH) && $(MAKE)
+clean_redis:
+	cd $(REDIS_PATH) && $(MAKE) clean
 
 #skynet
 SKYNET_PATH ?= ./3rd/skynet
 SKYNET_SRC_PATH := ./3rd/skynet/skynet-src
-$(SKYNET_PATH)/skynet: $(SKYNET_PATH)/Makefile
-	cd $(SKYNET_PATH) && $(MAKE) $(PLAT)	
 
 $(SKYNET_PATH)/Makefile: update3rd
+$(SKYNET_PATH)/skynet: $(SKYNET_PATH)/Makefile
+	cd $(SKYNET_PATH) && $(MAKE) $(PLAT)
+clean_skynet:
+	cd $(SKYNET_PATH) && $(MAKE) clean
 
 $(LUA_CLIB_PATH):
 	mkdir $(LUA_CLIB_PATH)
@@ -103,26 +107,18 @@ $(LUA_CLIB_PATH)/rudp.so: ./3rd/rudp/rudp.c $(CLIB_SRC_PATH)/librudp.c
 $(CSERVICE_PATH)/catlogger.so: $(SERVICE_SRC_PATH)/service_catlogger.c | $(CSERVICE_PATH)
 	$(CC) $(CFLAGS) $(SHARED) -I$(SKYNET_SRC_PATH) $^ -o $@ 
 
-#all: $(LUA_STATICLIB) $(CRAB_PATH)/crab.so $(LSOCKET_PATH)/lsocket.so $(LUA_CJSON_PATH)/cjson.so \
-#	$(LUA_SNAPSHOT_PATH)/snapshot.so \
-	# $(LUA_ZSET_PATH)/skiplist.so \
-	# $(REDIS_PATH)/redis \
-	# $(SKYNET_PATH)/skynet \
-	# $(LUA_CLIB_PATH)/log.so \
-	# $(CSERVICE_PATH)/catlogger.so
-
-all: $(SKYNET_PATH)/skynet $(LUA_CLIB_PATH)/log.so $(LUA_CLIB_PATH)/math3d.so $(LUA_CLIB_PATH)/queue.so \
-	$(LUA_CLIB_PATH)/rudp.so \
+all: $(SKYNET_PATH)/skynet \
+	$(LUA_CJSON_PATH)/cjson.so \
+	$(REDIS_PATH)/src/redis-server \
+	$(LUA_CLIB_PATH)/log.so \
+	$(LUA_CLIB_PATH)/math3d.so \
+	$(LUA_CLIB_PATH)/queue.so \
+	# $(LUA_CLIB_PATH)/rudp.so \
 	$(CSERVICE_PATH)/catlogger.so 
 
-
-.PHONY: update3rd clean cleanall
-
-update3rd:
-#	git submodule update --init
-
-clean:
-
-cleanall:
-	rm -rf $(LUA_STATICLIB) $(CRAB) $(LSOCKET) $(LUA_CJSON) $(LUA_SNAPSHOT) $(LUA_SOCKET) $(LUA_ZSET) $(SKYNET)
-
+clean: clean_skynet clean_cjson clean_redis
+	rm -rf $(LUA_CLIB_PATH)/log.so \
+		$(LUA_CLIB_PATH)/math3d.so \
+		$(LUA_CLIB_PATH)/queue.so \
+		# $(LUA_CLIB_PATH)/rudp.so \
+		$(LUA_CLIB_PATH)/catlogger.so
