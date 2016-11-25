@@ -4,8 +4,6 @@ local sd = require "sharedata"
 local food = require "room.food"
 local log = require "log"
 
-
-
 local cls = class("food_mgr")
 
 function cls:ctor(ctx, id, ... )
@@ -18,6 +16,7 @@ function cls:ctor(ctx, id, ... )
 	self._genstibes = {}
 	self._refresh = nil
 	local key = string.format("%s:%d", "s_leveldistrictinfo", id)
+	print(key)
 	local row = sd.query(key)
 	local arr = string.split(row.gemstones, ";")
 	for i,v in ipairs(arr) do
@@ -40,7 +39,7 @@ end
 
 function cls:start( ... )
 	-- body
-	self:gen()
+	-- self:gen()
 end
 
 function cls:gen(auto,  ... )

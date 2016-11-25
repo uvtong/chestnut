@@ -3,7 +3,7 @@ require "skynet.manager"
 local skynet_queue = require "skynet.queue"
 local queue = require "lqueue"
 
-local cs = skynet_queue()
+local cs
 
 local id = 1
 local leisure_ai = queue.new(255)
@@ -30,6 +30,7 @@ end
 
 local function init( ... )
 	-- body
+	cs = skynet_queue()	
 	for i=1,10 do
 		local id = new_ai()
 		enqueue(id)

@@ -1,8 +1,9 @@
 local skynet = require "skynet"
 local cls = class("car")
 
-function cls:ctor(uid, ... )
+function cls:ctor(id, uid, ... )
 	-- body
+	self._id = id
 	self._uid = uid
 	self._buff = nil
 	self._hp = 0
@@ -10,6 +11,11 @@ function cls:ctor(uid, ... )
 	self._y = 0
 	self._z = 0
 	return self
+end
+
+function cls:get_id( ... )
+	-- body
+	return self._id
 end
 
 function cls:set_buff(value, ... )

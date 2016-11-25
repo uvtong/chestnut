@@ -70,7 +70,8 @@ end
 -- call by login server
 function server.kick_handler(source, uid, subid)
 	local u = users[uid]
-	if u and not u.online then
+	-- if u and not u.online then
+	if u then
 		local username = msgserver.username(uid, subid, servername)
 		assert(u.username == username)
 		skynet.error("begin to logout agent")

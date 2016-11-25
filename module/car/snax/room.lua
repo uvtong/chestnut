@@ -70,6 +70,7 @@ function accept.update(data)
 end
 
 function response.joinroom(handle, secret, uid)
+	log.info("uid: %d", uid)
 	-- if ctx:get_num() > ctx:get_maxnum() then
 	-- 	return false
 	-- end
@@ -79,16 +80,24 @@ function response.joinroom(handle, secret, uid)
 	for k,player in pairs(session_players) do
 		local p = {}
 		p.userid = player:get_uid()
-		p.carid = 1
-		p.ai = false
+		p.carid = player:get_car():get_id()
+		p.ai = player:get_ai()
+		p.name = player:get_name()
+		p.x = player:get_car():get_x()
+		p.y = player:get_car():get_y()
+		p.z = player:get_car():get_z()
 		table.insert(ps, p)
 	end
 	local ais = ctx:get_ais()
 	for k,player in pairs(ais) do
 		local p = {}
 		p.userid = player:get_uid()
-		p.carid = 1
-		p.ai = true
+		p.carid = player:get_car():get_id()
+		p.ai = player:get_ai()
+		p.name = player:get_name()
+		p.x = player:get_car():get_x()
+		p.y = player:get_car():get_y()
+		p.z = player:get_car():get_z()
 		table.insert(ps, p)
 	end
 
@@ -101,40 +110,71 @@ function response.joinroom(handle, secret, uid)
 	player:set_secret(secret)
 	player:set_agent(agent)
 	player:set_ai(false)
+	player:set_name("abc")
 	
 	local key = string.format("%s:%d", "s_attribute", 1)
 	local row = sd.query(key)
-	local car = car.new(uid)
+	local car = car.new(1, uid)
 	car:set_player(player)
 	car:set_hp(row.baseHP)
+	local q1 = ctx:get_q1()
+	if q1:size() > 0 then
+		local pos = q1:dequeue()
+		car:set_x(math.tointeger(pos[1]))
+		car:set_y(math.tointeger(pos[2]))
+		car:set_z(math.tointeger(pos[3]))
+	else
+		local q2 = ctx:get_q2()
+		local pos = q2:dequeue()
+		car:set_x(math.tointeger(pos[1]))
+		car:set_y(math.tointeger(pos[2]))
+		car:set_z(math.tointeger(pos[3]))
+	end
 
 	player:set_car(car)
 	ctx:add(uid, player)
 
 	local p = {}
 	p.userid = uid
-	p.carid = 1
-	p.ai = false
+	p.carid = car:get_id()
+	p.ai = player:get_ai()
+	p.name = player:get_name()
+	p.x = math.tointeger(player:get_car():get_x())
+	p.y = math.tointeger(player:get_car():get_y())
+	p.z = math.tointeger(player:get_car():get_z())
 	table.insert(nps, p)
 
-	local num = ctx:get_maxnum() - ctx:get_num()
+	-- create ai
+	local num = ctx:get_ainumber() - ctx:get_ai_sz()
+	log.info("ai num: %d", num)
 	for i=1,num do
-		local uid = skynet.call(".AI_MGR", "lua", "enter")
-		local player = ctx:get_freeplayer()
+		local player = ctx:alloc_ai(row.baseHP)
 		player:set_session(session)
-		player:set_uid(uid)
-		player:set_ai(true)
-		local car = car.new(uid)
-		car:set_player(player)
-		car:set_hp(row.baseHP)
-
-		player:set_car(car)
-		ctx:add_ai(uid, player)
+		ctx:add_ai(player:get_uid(), player)
+		
+		local car = player:get_car()
+		local q1 = ctx:get_q1()
+		if q1:size() > 0 then
+			local pos = q1:dequeue()
+			car:set_x(math.tointeger(pos[1]))
+			car:set_y(math.tointeger(pos[2]))
+			car:set_z(math.tointeger(pos[3]))
+		else
+			local q2 = self:get_q2()
+			local pos = q2:dequeue()
+			car:set_x(math.tointeger(pos[1]))
+			car:set_y(math.tointeger(pos[2]))
+			car:set_z(math.tointeger(pos[3]))
+		end
 		
 		local p = {}
-		p.userid = uid
-		p.carid = 1
-		p.ai = true
+		p.userid = player:get_uid()
+		p.carid = player:get_car():get_id()
+		p.ai = player:get_ai()
+		p.name = player:get_name()
+		p.x = math.tointeger(car:get_x())
+		p.y = math.tointeger(car:get_y())
+		p.z = math.tointeger(car:get_z())
 		table.insert(nps, p)
 		table.insert(ps, p)
 	end
@@ -399,19 +439,43 @@ function response.die(args, ... )
 	return res
 end
 
-function response.start(t, ... )
+function response.start(mgr, udpserver, t, total, users, ais, ... )
 	-- body
-	ctx:start(t)
+	local room_mgr = snax.bind(mgr, "roomkeeper")
+	ctx:set_room_mgr(room_mgr)
+	local gate = snax.bind(udpserver, "udpserver")
+	ctx:set_gate(gate)
+	ctx:start(t, total, users, ais)
+end
+
+function response.close( ... )
+	-- body
+	local id = ctx:get_id()
+	local room_mgr = ctx:get_room_mgr()
+	room_mgr.post.exit(id)
+
+	local gate = ctx:get_gate()
+	local players = ctx:get_players()
+	for k,player in pairs(players) do
+		local session = player:get_session()
+		gate.req.unregister(session)	
+	end
+end
+
+function accept.kill( ... )
+	-- body
+	skynet.exit()
 end
 
 function init(id, udpserver)
 	ctx = context.new(id) 
-	local gate = snax.bind(udpserver, "udpserver")
-	ctx:set_gate(gate)
+	-- local gate = snax.bind(udpserver, "udpserver")
+	-- ctx:set_gate(gate)
 end
 
 function exit()
 	for _,user in pairs(users) do
+		local gate = ctx:get_gate()
 		gate.req.unregister(user.session)
 	end
 end

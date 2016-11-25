@@ -11,6 +11,9 @@
 	carid 1 : integer
 	ai 2 : boolean
 	name 3 : string
+	x 4 : integer
+	y 5 : integer
+	z 6 : integer
 }
 
 .bloodentitydata
@@ -156,6 +159,18 @@ rank 14 {
 	request {
 		r 0 :  *battlerank
 	}
+	response {
+		errorcode 0 : integer
+	}
+}
+
+limit_start 15 {
+	response {
+		errorcode 0 : integer
+	}
+}
+
+limit_close 16 {
 	response {
 		errorcode 0 : integer
 	}

@@ -3,6 +3,7 @@ local skynet = require "skynet"
 require "skynet.manager"
 local snax = require "snax"
 local log = require "log"
+local sd = require "sharedata"
 
 skynet.start(function()
 	local logger = skynet.uniqueservice("log")
@@ -26,7 +27,8 @@ skynet.start(function()
 	skynet.call(".AI_MGR", "lua", "start")
 	-- skynet.newservice("branch")
 	-- skynet.newservice("channel")
-	snax.uniqueservice("roomkeeper")
+	local keeper = snax.uniqueservice("roomkeeper")
+	keeper.post.start()
 
 	repeat
 		local conf = {

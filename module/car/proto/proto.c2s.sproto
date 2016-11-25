@@ -9,6 +9,10 @@
 	userid 0 : integer
 	carid 1 : integer
 	ai 2 : boolean
+	name 3 : string
+	x 4 : integer
+	y 5 : integer
+	z 6 : integer
 }
 
 joinroom 1 {

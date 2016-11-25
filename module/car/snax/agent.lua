@@ -130,6 +130,11 @@ function accept.die(args, ... )
 	ctx:send_request("die", args)
 end
 
+function accept.limit_close(args, ... )
+	-- body
+	ctx:send_request("limit_close", args)
+end
+
 -- client request
 local client_request = {}
 
