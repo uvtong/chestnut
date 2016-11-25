@@ -130,6 +130,11 @@ function accept.die(args, ... )
 	ctx:send_request("die", args)
 end
 
+function accept.limit_start(args, ... )
+	-- body
+	ctx:send_request("limit_start", args)
+end
+
 function accept.limit_close(args, ... )
 	-- body
 	ctx:send_request("limit_close", args)
@@ -145,8 +150,14 @@ function client_request.handshake( ... )
 	return res
 end
 
-function client_request.enter_room( ... )
+function client_request.enter_room(args, ... )
 	-- body
+	log.info("enter_room")
+	local uid = ctx:get_uid()
+	roomkeeper.post.enter(skynet.self(), uid, args.type)
+	local res = {}
+	res.errorcode = errorcode.SUCCESS
+	return res
 end
 
 function client_request.joinroom(args)
@@ -286,6 +297,21 @@ function client_response.die(args, ... )
 	assert(args.errorcode == errorcode.SUCCESS)
 end
 
+function client_response.enter_room(args, ... )
+	-- body
+	assert(args.errorcode == errorcode.SUCCESS)
+end
+
+function client_response.limit_start(args, ... )
+	-- body
+	assert(args.errorcode == errorcode.SUCCESS)
+end
+
+function client_response.limit_close(args, ... )
+	-- body
+	assert(args.errorcode == errorcode.SUCCESS)
+end
+
 local function decode_proto(msg, sz, ... )
 	-- body
 	if sz > 0 then
@@ -297,7 +323,6 @@ local function decode_proto(msg, sz, ... )
 end
 
 local function request(name, args, response)
-	-- log.info("uid %d agent request: %s", ctx:get_uid(), name)
     local f = client_request[name]
     local ok, result = pcall(f, args)
     if ok then

@@ -8,6 +8,7 @@ function cls:ctor(id, type, hp, ... )
 	self._x = 0
 	self._y = 0
 	self._z = 0
+	self._fraction = 0
 	return self
 end
 
@@ -59,6 +60,16 @@ end
 function cls:set_z(value, ... )
 	-- body
 	self._z = value
+end
+
+function cls:get_fraction( ... )
+	-- body
+	return self._fraction
+end
+
+function cls:set_fraction(value, ... )
+	-- body
+	self._fraction = value
 end
 
 return cls

@@ -10,6 +10,10 @@ function cls:ctor(session, uid, ... )
 	self._car = nil
 	self._ai = false
 	self._name = "abc"
+	self._start = nil
+	self._kill = 0
+	self._score = 0
+	self._fuhuo = 0
 end
 
 function cls:get_session( ... )
@@ -80,6 +84,46 @@ end
 function cls:set_name(value, ... )
 	-- body
 	self._name = value
+end
+
+function cls:get_start( ... )
+	-- body
+	return self._start
+end
+
+function cls:set_start(value, ... )
+	-- body
+	self._start = value
+end
+
+function cls:get_kill( ... )
+	-- body
+	return self._kill
+end
+
+function cls:set_kill(value, ... )
+	-- body
+	self._kill = value
+end
+
+function cls:get_score( ... )
+	-- body
+	return self._score
+end
+
+function cls:set_score(value, ... )
+	-- body
+	self._score = value
+end
+
+function cls:get_fuhuo( ... )
+	-- body
+	return self._fuhuo
+end
+
+function cls:set_fuhuo(value, ... )
+	-- body
+	self._fuhuo = value
 end
 
 function cls:pack_sproto_balls( ... )
