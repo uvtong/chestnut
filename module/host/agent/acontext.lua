@@ -6,6 +6,8 @@ local assert = assert
 local rdb = ".DB"
 local wdb = ".DB"
 
+local state = {}
+
 local cls = class("acontext", context)
 
 function cls:ctor( ... )

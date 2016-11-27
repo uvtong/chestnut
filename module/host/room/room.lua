@@ -159,6 +159,15 @@ function CMD:start(rule, mode, scene, ... )
 	controller:set_scene(scene)
 end
 
+function CMD:close( ... )
+	-- body
+end
+
+function CMD:kill( ... )
+	-- body
+	skynet.exit()
+end
+
 skynet.start(function ()
 	-- body
 	skynet.dispatch("lua", function(_, source, cmd, ...)

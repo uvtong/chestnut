@@ -1,6 +1,6 @@
 local skynet = require "skynet"
 require "skynet.manager"
-local room_queue = require "room_queue"
+local waiting_queue = require "waiting_queue"
 local noret = {}
 local users = {}
 local mgr
@@ -22,7 +22,7 @@ function CMD.enqueue_agent(source, uid, sid, rule, mode, scene, ... )
 
 	local rt = (scene << 24 | mode << 16 | rule << 8)
 	mgr:enqueue_agent(rt, agent)
-	if mgr:get_queue_sz(rt) > 1 then
+	if mgr:get_agent_queue_sz(rt) > 1 then
 		local room = mgr:dequeue_room()
 		skynet.call(room, "lua", "start", rule, mode, scene)
 		if true then
@@ -65,9 +65,12 @@ end
 
 function CMD.start(source, ... )
 	-- body
-	local rt = (scene << 24 | mode << 16 | rule << 8)
-	local arr = { rt}
-	local mgr = room_queue.new(false, arr)
+end
+
+
+function CMD.kill( ... )
+	-- body
+	skynet.exit()
 end
 
 skynet.start(function ( ... )
@@ -80,5 +83,8 @@ skynet.start(function ( ... )
 			skynet.retpack(r)
 		end
 	end)
+	local rt = (scene << 24 | mode << 16 | rule << 8)
+	local arr = { rt}
+	local mgr = waiting_queue.new(false, arr)
 	skynet.register ".ROOM_MGR"
 end)

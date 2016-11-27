@@ -9,7 +9,6 @@ function cls:ctor(usnax, arr, ... )
 	assert(usnax and arr)
 	self._usnax = usnax
 	
-	
 	self._id = 0
 	self._rooms = queue()  -- freelist
 
@@ -81,6 +80,9 @@ function cls:create_room( ... )
 		room = skynet.newservice("room/room")
 	end
 	assert(room)
+	-- id, uniform id
+	-- room, normal addr, snax room
+	-- num 
 	local x = {
 		id = self._id,
 		room = room,
@@ -89,6 +91,7 @@ function cls:create_room( ... )
 	return x
 end
 
+-- manager room
 function cls:enqueue_room(room, ... )
 	-- body
 	local function func1(q, room, ... )
