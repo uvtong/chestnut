@@ -13,6 +13,7 @@
 	x 4 : integer
 	y 5 : integer
 	z 6 : integer
+	ori 7 : integer
 }
 
 joinroom 1 {

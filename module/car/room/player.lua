@@ -10,6 +10,8 @@ function cls:ctor(session, uid, ... )
 	self._car = nil
 	self._ai = false
 	self._name = "abc"
+	self._ais = {}
+	self._ai_sz = 0
 end
 
 function cls:get_session( ... )
@@ -80,6 +82,28 @@ end
 function cls:set_name(value, ... )
 	-- body
 	self._name = value
+end
+
+function cls:add_ai(player, ... )
+	-- body
+	if self._ais[player:get_uid()] then
+	else
+		self._ais[player:get_uid()] = player
+		self._ai_sz = self._ai_sz + 1
+	end
+end
+
+function cls:remove_ai(player, ... )
+	-- body
+	if self._ais[player:get_uid()] then
+		self._ais[player:get_uid()] = nil
+		self._ai_sz = self._ai_sz - 1
+	end
+end
+
+function cls:get_ais( ... )
+	-- body
+	return self._ais
 end
 
 function cls:pack_sproto_balls( ... )
