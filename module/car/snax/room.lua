@@ -141,6 +141,16 @@ function response.joinroom(handle, secret, uid)
 
 	player:set_car(car)
 	ctx:add(uid, player)
+	local leadboard = ctx:get_leadboard()
+	local function comp(p1, p2, ... )
+		-- body
+		if p1:get_score() > p2:get_score() then
+			return true
+		else
+			return false
+		end
+	end
+	leadboard:push_back(player, comp)
 
 	local p = {}
 	p.userid = uid
@@ -198,6 +208,18 @@ function response.joinroom(handle, secret, uid)
 		table.insert(nps, p)
 		table.insert(ps, p)
 		-- print(p.userid, p.carid, p.ai, p.x, p.y, p.z, p.ori)
+	end
+
+	if ctx:get_number() == ctx:get_players_sz() then
+		log.info("countdown limit_start")
+		local function countdown( ... )
+			-- body
+			for k,v in pairs(session_players) do
+				local agent = v:get_agent()
+				agent.post.limit_start()
+			end			
+		end
+		skynet.timeout(100 * 1, countdown)
 	end
 
 	for k,v in pairs(session_players) do
@@ -465,13 +487,29 @@ function response.eitbloodentity(args, ... )
 		player = ctx:get_player(args.userid)
 	end
 	local car = player:get_car()
+	-- cal hp
 	local hp1 = food:get_hp()
 	local hp2 = car:get_hp()
 	local hp = hp1 + hp2
 	car:set_hp(hp)
+	-- cal score
+	local score1 = food:set_fraction()
+	local score2 = player:get_score()
+	local score = score1 + score2
+	player:set_score(score)
+
+	local function comp(p1, p2, ... )
+		-- body
+		if p1:get_score() > p2:get_score() then
+			return true
+		else
+			return false
+		end
+	end
+	leadboard:push_back(player, comp)
 	
 	local xargs = {}
-	xargs.bloodentityLst = { {id=args.id}}
+	xargs.bloodentityLst = {{ id=args.id}}
 	local players = ctx:get_players()
 	for k,v in pairs(players) do
 		local agent = v:get_agent()

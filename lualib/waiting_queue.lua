@@ -116,6 +116,7 @@ end
 -- normal 
 function cls:add(t, room, ... )
 	-- body
+	assert(t and room)
 	if self._trooms[t][room.id] then
 	else
 		self._trooms[t][room.id] = room
@@ -150,6 +151,7 @@ end
 -- full
 function cls:add_full(t, room, ... )
 	-- body
+	assert(t and room)
 	if self._tfullrooms[t][room.id] then
 	else
 		self._tfullrooms[t][room.id] = room

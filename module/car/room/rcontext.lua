@@ -11,11 +11,12 @@ local player = require "room.player"
 local car = require "room.car"
 local pos80_80 = require "room.pos80_80"
 local queue = require "queue"
+local leadboard = require "room.leadboard"
 
-local type = {}
-type.NONE   = 0
-type.LIMIT  = 1
-type.CIRCLE = 2
+local gametype = {}
+gametype.NONE   = 0
+gametype.LIMIT  = 1
+gametype.CIRCLE = 2
 
 local cls = class("rcontext")
 
@@ -40,7 +41,7 @@ function cls:ctor(id, ... )
 	self._aics = skynet_queue()
 	
 	self._state = gs.NONE
-	self._type = type.NONE
+	self._type = gametype.NONE
 	self._times = {}
 
 	self._list = list.new()
@@ -64,6 +65,8 @@ function cls:ctor(id, ... )
 		-- self._q2:enqueue(v)
 		self._q1:enqueue(v)
 	end
+
+	self._leadboard = leadboard.new(10)
 end
 
 function cls:get_buff_mgr( ... )
@@ -119,6 +122,11 @@ end
 function cls:get_q2( ... )
 	-- body
 	return self._q2
+end
+
+function cls:get_leadboard( ... )
+	-- body
+	return self._leadboard
 end
 
 function cls:add(uid, player, ... )
@@ -238,11 +246,11 @@ function cls:get_maxnum( ... )
 	return self._max_number
 end
 
-function cls:start(type, total, num, ainum, ... )
+function cls:start(t, total, num, ainum, ... )
 	-- body
 	log.info("total:%d, num:%d, ainum:%d", total, num, ainum)
 	self._state = gs.STATE
-	self._type = type
+	self._type = t
 	self._region_mgr = region_mgr.new(self, self._sceneid)
 	self._food_mgr:start()
 	self._max_number = total
@@ -258,15 +266,17 @@ function cls:start(type, total, num, ainum, ... )
 	-- 	self:add_ai(player:get_id(), player)
 	-- end
 
-	
-	local handler = cc.handler(self, cls.close)
-	skynet.timeout(600 * 60 * 15, handler)
+
+	if self._type == gametype.CIRCLE then
+		local handler = cc.handler(self, cls.close)
+		skynet.timeout(600 * 60 * 15, handler)
+	end
 end
 
 function cls:close( ... )
 	-- body
 	self._state = gs.CLOSE
-	if self._type == type.CIRCLE then
+	if self._type == gametype.CIRCLE then
 		self:start(self._type, self._max_number, self._number, self._ainumber)
 	else
 		for k,player in pairs(self._session_players) do
@@ -300,6 +310,11 @@ function cls:get_freeplayer( ... )
 		end
 	end
 	return self._csfree(func, self._list)
+end
+
+
+function cls:( ... )
+	-- body
 end
 
 return cls

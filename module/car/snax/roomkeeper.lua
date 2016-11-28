@@ -19,47 +19,61 @@ local fen_cs
 
 local function fen(t, total, users, ais, ... )
 	-- body
+	log.info("fen begin. ais:%d", ais)
+	gate_idx = gate_idx + 1 % gate_max
+	local gate = udpgates[gate_idx]
 	local room = mgr:dequeue_room()
 	room.t = t
-	room.room.req.start(snax.self(), t, total, users, ais)
+	room.num = users
+	room.gate = gate
+	room.room.req.start(snax.self().handle, gate.udpgate.handle, t, total, users, ais)
 	for i=1,users do
 		local agent = mgr:dequeue_agent(t)
 		agent.agent.post.enter_room(room.id)
 	end
-	room.num = 30
+	
+	mgr:add_full(t, room)
 	mgr:add_use(room)
 end
 
 local function cd( ... )
 	-- body
+	log.info("abc")
 	local function func(waiting, ... )
 		-- body
 		if limit_waiting[waiting] then
+<<<<<<< HEAD
 			local num = mgr:get_queue_sz(1)
 			fen_cs(fen, 1, 30, num, 1)
+=======
+			local num = mgr:get_agent_queue_sz(1)
+			fen_cs(fen, 1, 30, num, (20 - num and (20 -num) or 0))
+>>>>>>> a29e0c4ccb76e00d1271fe64c4034d04aa8b2084
 		else
 		end
 	end
-	return func(waiting)
+	func(waiting)
 end
 
 function accept.enter(addr, uid, t, ... )
 	-- body
 	local agent = {}
 	agent.uid = uid
-	agent.agent = snax.bind(addr)
+	agent.agent = snax.bind(addr, "agent")
 	agent.t = t
 	users[uid] = agent
 	if t == 1 then -- limit
-		if mgr:get_queue_sz(t) == 0 then -- nobody
+		mgr:enqueue_agent(t, agent)
+		if mgr:get_agent_queue_sz(t) == 1 then -- nobody
+			log.info("test 0")
 			waiting = waiting + 1
 			limit_waiting[waiting] = true
-			skynet.timeout(60, cd)
-			mgr:enqueue_agent(t, agent)
-		elseif mgr:get_queue_sz(t) >= 30 then
+			skynet.timeout(600 * 1, cd)
+		elseif mgr:get_agent_queue_sz(t) >= 30 then
+			log.info("test 1")
 			fen_cs(fen, t, 30, 30, 0)
 		else
-			mgr:enqueue_agent(t, agent)
+			log.info("test 2")
 		end
 	elseif t == 2 then -- circle
 		local room
@@ -70,13 +84,18 @@ function accept.enter(addr, uid, t, ... )
 				break
 			end
 		else
+			gate_idx = gate_idx + 1 % gate_max
+			local gate = udpgates[gate_idx]
 			room = mgr:dequeue_room()
 			room.t = t
 			room.num = 0
+			room.gate = gate
+			room.room.req.start(snax.self().handle, gate.udpgate.handle, t, 30, 1, 19)
 		end
 		assert(room)
-		agent.post.enter_room(room.room)
+		agent.agent.post.enter_room(room.id)
 		room.num = room.num + 1
+		mgr:add(t, room)
 		mgr:add_use(room)
 		if room.num >= 30 then
 			mgr:remove(t, room)
@@ -117,18 +136,17 @@ function response.apply(roomid)
 			return room.r.handle, room.gate.host, room.gate.port
 		end
 	else
-		assert(false)
 		local room = mgr:get_use(roomid)
+		log.info("roomid %d, type: %d", roomid, room.t)
 		if room.gate then
 			local gate = room.gate
-			return room.room, gate.host, gate.post
+			return room.room.handle, gate.host, gate.post
 		else
 			gate_idx = gate_idx + 1 % gate_max
 			local gate = udpgates[gate_idx]
 			room.gate = gate
-			return room.room, gate.host, gate.post
+			return room.room.handle, gate.host, gate.post
 		end
-		log.info("roomid %d", roomid)
 	end
 end
 
