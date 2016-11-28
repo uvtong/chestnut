@@ -14,6 +14,7 @@
 	x 4 : integer
 	y 5 : integer
 	z 6 : integer
+	ori 7 : integer
 }
 
 .bloodentitydata
@@ -190,7 +191,16 @@ limit_close 16 {
 	}
 }
 
-cur_info 17 {
+change_ai 17 {
+	request {
+		battleinitdataitem 0 : *battleinitdata
+	}
+	response {
+		errorcode 0 : integer
+	}
+}
+
+cur_info 18 {
 	request {
 		cur_kill 0 : integer
 		cur_score 1 : integer

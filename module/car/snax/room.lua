@@ -71,9 +71,6 @@ end
 
 function response.joinroom(handle, secret, uid)
 	log.info("uid: %d", uid)
-	-- if ctx:get_num() > ctx:get_maxnum() then
-	-- 	return false
-	-- end
 	local session_players = ctx:get_players()
 	local ps = {}
 	local nps = {}
@@ -83,10 +80,12 @@ function response.joinroom(handle, secret, uid)
 		p.carid = player:get_car():get_id()
 		p.ai = player:get_ai()
 		p.name = player:get_name()
-		p.x = player:get_car():get_x()
-		p.y = player:get_car():get_y()
-		p.z = player:get_car():get_z()
+		p.x = math.tointeger(player:get_car():get_x())
+		p.y = math.tointeger(player:get_car():get_y())
+		p.z = math.tointeger(player:get_car():get_z())
+		p.ori = player:get_car():get_ori()
 		table.insert(ps, p)
+		-- print(p.userid, p.carid, p.ai, p.x, p.y, p.z, p.ori)
 	end
 	local ais = ctx:get_ais()
 	for k,player in pairs(ais) do
@@ -95,10 +94,12 @@ function response.joinroom(handle, secret, uid)
 		p.carid = player:get_car():get_id()
 		p.ai = player:get_ai()
 		p.name = player:get_name()
-		p.x = player:get_car():get_x()
-		p.y = player:get_car():get_y()
-		p.z = player:get_car():get_z()
+		p.x = math.tointeger(player:get_car():get_x())
+		p.y = math.tointeger(player:get_car():get_y())
+		p.z = math.tointeger(player:get_car():get_z())
+		p.ori = player:get_car():get_ori()
 		table.insert(ps, p)
+		-- print(p.userid, p.carid, p.ai, p.x, p.y, p.z, p.ori)
 	end
 
 	local gate = ctx:get_gate()
@@ -123,12 +124,19 @@ function response.joinroom(handle, secret, uid)
 		car:set_x(math.tointeger(pos[1]))
 		car:set_y(math.tointeger(pos[2]))
 		car:set_z(math.tointeger(pos[3]))
+		local ori = math.random(1, 360)
+		car:set_ori(ori)
+		q1:enqueue(pos)
 	else
+		assert(q2:size() > 0)
 		local q2 = ctx:get_q2()
 		local pos = q2:dequeue()
 		car:set_x(math.tointeger(pos[1]))
 		car:set_y(math.tointeger(pos[2]))
 		car:set_z(math.tointeger(pos[3]))
+		local ori = math.random(1, 360)
+		car:set_ori(ori)
+		q2:enqueue(pos)
 	end
 
 	player:set_car(car)
@@ -152,7 +160,10 @@ function response.joinroom(handle, secret, uid)
 	p.x = math.tointeger(player:get_car():get_x())
 	p.y = math.tointeger(player:get_car():get_y())
 	p.z = math.tointeger(player:get_car():get_z())
+	p.ori = car:get_ori()
 	table.insert(nps, p)
+	table.insert(ps, p)
+	-- print(p.userid, p.carid, p.ai, p.x, p.y, p.z, p.ori)
 
 	-- create ai
 	local num = ctx:get_ainumber() - ctx:get_ai_sz()
@@ -169,14 +180,22 @@ function response.joinroom(handle, secret, uid)
 			car:set_x(math.tointeger(pos[1]))
 			car:set_y(math.tointeger(pos[2]))
 			car:set_z(math.tointeger(pos[3]))
+			local ori = math.random(1, 360)
+			car:set_ori(ori)
+			q1:enqueue(pos)
 		else
 			local q2 = self:get_q2()
 			local pos = q2:dequeue()
 			car:set_x(math.tointeger(pos[1]))
 			car:set_y(math.tointeger(pos[2]))
 			car:set_z(math.tointeger(pos[3]))
+			local ori = math.random(1, 360)
+			car:set_ori(ori)
+			q2:enqueue(pos)
 		end
-		
+		local u = ctx:get_player(uid)
+		u:add_ai(player)
+
 		local p = {}
 		p.userid = player:get_uid()
 		p.carid = player:get_car():get_id()
@@ -185,8 +204,10 @@ function response.joinroom(handle, secret, uid)
 		p.x = math.tointeger(car:get_x())
 		p.y = math.tointeger(car:get_y())
 		p.z = math.tointeger(car:get_z())
+		p.ori = car:get_ori()
 		table.insert(nps, p)
 		table.insert(ps, p)
+		-- print(p.userid, p.carid, p.ai, p.x, p.y, p.z, p.ori)
 	end
 
 	if ctx:get_number() == ctx:get_players_sz() then
@@ -217,13 +238,51 @@ function response.leave(args)
 		if args.userid < 1000 then
 			ctx:remove_ai(args.userid)
 		else
+			player = ctx:get_player(args.userid)
+			assert(player)
+			local ais = player:get_ais()
+			for k,v in pairs(ais) do
+				player:remove_ai(v)
+			end
 			ctx:remove(args.userid)
+
+			-- change_ai
+			if ctx:get_players_sz() > 0 then
+				local player
+				local players = ctx:get_players()
+				for k,v in pairs(players) do
+					player = v
+					break
+				end
+				local ps = {}
+				for k,player in pairs(ais) do
+					local p = {}
+					p.userid = player:get_uid()
+					p.carid = player:get_car():get_id()
+					p.ai = player:get_ai()
+					p.name = player:get_name()
+					p.x = math.tointeger(car:get_x())
+					p.y = math.tointeger(car:get_y())
+					p.z = math.tointeger(car:get_z())
+					p.ori = car:get_ori()
+					table.insert(ps, p)
+				end
+				local agent = player:get_agent()
+				agent.post.change_ai({battleinitdataitem=ps})
+			else
+				if ctx:get_type() == 1 then
+					local id = ctx:get_id()
+					local gate = ctx:get_gate()
+					gate.post.exit(id)
+				end
+			end
 		end
 		local players = ctx:get_players()
 		for k,v in pairs(players) do
 			local agent = v:get_agent()
 			agent.post.exitroom(args)
 		end
+
 		-- local balls = player:get_balls()
 		-- for k,v in pairs(balls) do
 		-- 	scene:leave(v:get_id())
@@ -343,7 +402,11 @@ end
 
 function response.updateblood(args, ... )
 	-- body
+<<<<<<< HEAD
 
+=======
+	log.info("updateblood")
+>>>>>>> 5afe8884c1101f26b025d521ef0441dfa2f4b16e
 	local player
 	if args.targetuserid < 1000 then
 		player = ctx:get_ai(args.targetuserid)
@@ -370,6 +433,7 @@ function response.updateblood(args, ... )
 			agent.post.die(xargs)
 		end
 
+<<<<<<< HEAD
 		local attack
 		if args.sourceuserid < 1000 then
 			attack = ctx:get_ai(args.sourceuserid)
@@ -383,6 +447,8 @@ function response.updateblood(args, ... )
 		local agent = attack:get_agent()
 		agent.post.cur_info({ cur_kill=kill, cur_score=attack:get_score()})
 
+=======
+>>>>>>> 5afe8884c1101f26b025d521ef0441dfa2f4b16e
 		local x = car:get_x()
 		local y = car:get_y()
 		local z = car:get_z()

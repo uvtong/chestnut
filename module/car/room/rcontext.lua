@@ -62,7 +62,8 @@ function cls:ctor(id, ... )
 	end
 
 	for i,v in ipairs(pos80_80.b) do
-		self._q2:enqueue(v)
+		-- self._q2:enqueue(v)
+		self._q1:enqueue(v)
 	end
 
 	self._leadboard = leadboard.new(10)
@@ -162,7 +163,6 @@ function cls:get_player(uid, ... )
 	if player then
 		return player
 	else
-
 		log.error("uid: %d, player is no existen", uid)
 	end
 end

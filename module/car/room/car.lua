@@ -10,6 +10,7 @@ function cls:ctor(id, uid, ... )
 	self._x = 0
 	self._y = 0
 	self._z = 0
+	self._ori = 0
 	return self
 end
 
@@ -76,6 +77,16 @@ end
 function cls:set_z(value, ... )
 	-- body
 	self._z = value
+end
+
+function cls:get_ori( ... )
+	-- body
+	return self._ori
+end
+
+function cls:set_ori(value, ... )
+	-- body
+	self._ori = value
 end
 
 return cls

@@ -128,6 +128,9 @@ end
 function accept.die(args, ... )
 	-- body
 	ctx:send_request("die", args)
+	local uid = ctx:get_uid()
+	args.userid = uid
+	local res = room.req.leave(args)
 end
 
 function accept.limit_start(args, ... )

@@ -42,8 +42,13 @@ local function cd( ... )
 	local function func(waiting, ... )
 		-- body
 		if limit_waiting[waiting] then
+<<<<<<< HEAD
+			local num = mgr:get_queue_sz(1)
+			fen_cs(fen, 1, 30, num, 1)
+=======
 			local num = mgr:get_agent_queue_sz(1)
 			fen_cs(fen, 1, 30, num, (20 - num and (20 -num) or 0))
+>>>>>>> a29e0c4ccb76e00d1271fe64c4034d04aa8b2084
 		else
 		end
 	end
@@ -120,7 +125,7 @@ function response.apply(roomid)
 			gate_idx = gate_idx + 1 % gate_max
 			local gate = udpgates[gate_idx]
 			local r = snax.newservice("room", roomid, gate.udpgate.handle)
-			r.req.start(snax.self().handle, gate.udpgate.handle, 2, 30, 1, 19)
+			r.req.start(snax.self().handle, gate.udpgate.handle, 2, 30, 1, 1)
 			room = {}
 			room.gate = gate
 			room.r = r
