@@ -39,10 +39,10 @@ end
 
 function cls:start( ... )
 	-- body
-	-- self:gen()
+	self:gen()
 end
 
-function cls:gen(auto,  ... )
+function cls:gen( ... )
 	-- body
 	local li = {}
 	for k,v in pairs(self._genstibes) do

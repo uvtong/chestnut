@@ -1,3 +1,4 @@
+-- not active del item.
 local cls = class("leadboard")
 
 function cls:ctor(cap, ... )

@@ -206,13 +206,16 @@ end
 function cls:add_ai(id, p, ... )
 	-- body
 	assert(id and p)
-	self._ais[id] = p
-	local function func( ... )
-		-- body
-		self._ai_sz = self._ai_sz + 1
+	if self._ais[id] then
+	else
+		self._ais[id] = p
+		local function func( ... )
+			-- body
+			self._ai_sz = self._ai_sz + 1
+		end
+		self._aics(func)
+		self._leadboard:push_back(p, player.comp_score)
 	end
-	self._aics(func)
-	self._leadboard:push_back(p, player.comp_score)
 end
 
 function cls:remove_ai(id, ... )
@@ -301,6 +304,16 @@ function cls:set_state(value, ... )
 	self._state = value
 end
 
+function cls:get_type( ... )
+	-- body
+	return self._type
+end
+
+function cls:set_type(value, ... )
+	-- body
+	self._type = value
+end
+
 function cls:get_freeplayer( ... )
 	-- body
 	local function func(li, ... )
@@ -337,6 +350,11 @@ function cls:leadboard_cd( ... )
 		local agent = v:get_agent()
 		agent.post.rank({ r=arr })
 	end
+end
+
+function cls:push_leadboard(p, ... )
+	-- body
+	self._leadboard:push_back(p, player.comp_score)
 end
 
 return cls

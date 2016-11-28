@@ -42,13 +42,8 @@ local function cd( ... )
 	local function func(waiting, ... )
 		-- body
 		if limit_waiting[waiting] then
-<<<<<<< HEAD
-			local num = mgr:get_queue_sz(1)
-			fen_cs(fen, 1, 30, num, 1)
-=======
 			local num = mgr:get_agent_queue_sz(1)
 			fen_cs(fen, 1, 30, num, (20 - num and (20 -num) or 0))
->>>>>>> a29e0c4ccb76e00d1271fe64c4034d04aa8b2084
 		else
 		end
 	end
@@ -94,12 +89,13 @@ function accept.enter(addr, uid, t, ... )
 		end
 		assert(room)
 		agent.agent.post.enter_room(room.id)
-		room.num = room.num + 1
-		mgr:add(t, room)
 		mgr:add_use(room)
+
+		room.num = room.num + 1
 		if room.num >= 30 then
-			mgr:remove(t, room)
 			mgr:add_full(t, room)
+		else
+			mgr:add(t, room)
 		end
 	end
 end
@@ -137,7 +133,7 @@ function response.apply(roomid)
 		end
 	else
 		local room = mgr:get_use(roomid)
-		log.info("roomid %d, type: %d", roomid, room.t)
+		log.info("roomid %d, type: %d", room.id, room.t)
 		if room.gate then
 			local gate = room.gate
 			return room.room.handle, gate.host, gate.post
@@ -150,7 +146,7 @@ function response.apply(roomid)
 	end
 end
 
-function accept.start( ... )
+function response.start( ... )
 	-- body
 	-- room = mgr:dequeue_room()
 	-- room.gate = udpgates[1]
@@ -159,7 +155,6 @@ function accept.start( ... )
 	-- local room = snax.newservice("room", 10000, udpgates[1])
 	-- room.req.start(snax.self().handle, udpgates[1].gate, 2, 30, 1, 19)
 end
-
 -- todo : close room ?
 
 function init()

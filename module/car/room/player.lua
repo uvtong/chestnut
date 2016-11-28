@@ -10,15 +10,15 @@ function cls:ctor(session, uid, ... )
 	self._car = nil
 	self._ai = false
 	self._name = "abc"
-<<<<<<< HEAD
+
 	self._ais = {}
 	self._ai_sz = 0
-=======
+
 	self._start = nil
 	self._kill = 0
 	self._score = 0
 	self._fuhuo = 0
->>>>>>> a29e0c4ccb76e00d1271fe64c4034d04aa8b2084
+
 end
 
 function cls:get_session( ... )
@@ -91,7 +91,6 @@ function cls:set_name(value, ... )
 	self._name = value
 end
 
-<<<<<<< HEAD
 function cls:add_ai(player, ... )
 	-- body
 	if self._ais[player:get_uid()] then
@@ -112,7 +111,8 @@ end
 function cls:get_ais( ... )
 	-- body
 	return self._ais
-=======
+end
+
 function cls:get_start( ... )
 	-- body
 	return self._start
@@ -151,7 +151,6 @@ end
 function cls:set_fuhuo(value, ... )
 	-- body
 	self._fuhuo = value
->>>>>>> a29e0c4ccb76e00d1271fe64c4034d04aa8b2084
 end
 
 function cls:comp_score(other, ... )

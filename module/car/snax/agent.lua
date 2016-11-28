@@ -50,6 +50,7 @@ function response.afk(fd)
 	ctx:set_session(nil)
 end
 
+-- authed
 function accept.start(conf, ... )
 	-- body
 	local fd      = assert(conf.client)

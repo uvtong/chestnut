@@ -272,8 +272,7 @@ function response.leave(args)
 			else
 				if ctx:get_type() == 1 then
 					local id = ctx:get_id()
-					local gate = ctx:get_gate()
-					gate.post.exit(id)
+					skynet.send(".ROOM_MGR", "lua", "enqueue_room", id)
 				end
 			end
 		end
@@ -402,11 +401,6 @@ end
 
 function response.updateblood(args, ... )
 	-- body
-<<<<<<< HEAD
-
-=======
-	log.info("updateblood")
->>>>>>> 5afe8884c1101f26b025d521ef0441dfa2f4b16e
 	local player
 	if args.targetuserid < 1000 then
 		player = ctx:get_ai(args.targetuserid)
@@ -433,22 +427,22 @@ function response.updateblood(args, ... )
 			agent.post.die(xargs)
 		end
 
-<<<<<<< HEAD
+		-- attack kill num
 		local attack
 		if args.sourceuserid < 1000 then
 			attack = ctx:get_ai(args.sourceuserid)
 		else
 			attack = ctx:get_ai(args.sourceuserid)
 		end
-		local kill = attack:get_kill()
-		kill = kill + 1
-		attack:set_kill(kill)
+		if attack then
+			local kill = attack:get_kill()
+			kill = kill + 1
+			attack:set_kill(kill)
+		end
 
 		local agent = attack:get_agent()
 		agent.post.cur_info({ cur_kill=kill, cur_score=attack:get_score()})
 
-=======
->>>>>>> 5afe8884c1101f26b025d521ef0441dfa2f4b16e
 		local x = car:get_x()
 		local y = car:get_y()
 		local z = car:get_z()
@@ -517,16 +511,8 @@ function response.eitbloodentity(args, ... )
 	local score2 = player:get_score()
 	local score = score1 + score2
 	player:set_score(score)
-
-	local function comp(p1, p2, ... )
-		-- body
-		if p1:get_score() > p2:get_score() then
-			return true
-		else
-			return false
-		end
-	end
-	leadboard:push_back(player, comp)
+	ctx:push_leadboard(player)
+	
 	
 	local xargs = {}
 	xargs.bloodentityLst = {{ id=args.id}}
