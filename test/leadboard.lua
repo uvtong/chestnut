@@ -45,7 +45,7 @@ function cls:push_back(ele, comp, ... )
 			end
 		end
 	else
-		-- print("insert", ele)
+		print("insert", ele)
 		-- insert
 		nnode = {}
 		nnode.data = ele

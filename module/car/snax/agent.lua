@@ -140,6 +140,16 @@ function accept.limit_close(args, ... )
 	ctx:send_request("limit_close", args)
 end
 
+function accept.rank(args, ... )
+	-- body
+	ctx:send_request("rank", args)
+end
+
+function accept.cur_info(args, ... )
+	-- body
+	ctx:send_request("cur_info", args)
+end
+
 -- client request
 local client_request = {}
 
@@ -308,6 +318,16 @@ function client_response.limit_start(args, ... )
 end
 
 function client_response.limit_close(args, ... )
+	-- body
+	assert(args.errorcode == errorcode.SUCCESS)
+end
+
+function client_response.rank(args, ... )
+	-- body
+	assert(args.errorcode == errorcode.SUCCESS)
+end
+
+function client_response.cur_info(args, ... )
 	-- body
 	assert(args.errorcode == errorcode.SUCCESS)
 end

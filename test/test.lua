@@ -1,6 +1,46 @@
 package.cpath = "../luaclib/?.so;" .. package.cpath
 package.path = "../lualib/?.lua;" .. package.path
 
+require "init"
+
+class = cc.class
+
+local leadboard = require "leadboard"
+
+local l = leadboard.new(10)
+
+local function comp(left, right, ... )
+	-- body
+	assert(type(left) == "number")
+	assert(type(right) == "number")
+	return left > right
+end
+
+l:push_back(12, comp)
+l:push_back(122, comp)
+l:push_back(132, comp)
+l:push_back(7, comp)
+l:push_back(643, comp)
+l:push_back(98, comp)
+l:push_back(111, comp)
+l:push_back(32, comp)
+l:push_back(25, comp)
+l:push_back(94, comp)
+l:push_back(65, comp)
+l:push_back(198, comp)
+l:push_back(322, comp)
+l:push_back(56, comp)
+l:push_back(111, comp)
+l:push_back(142, comp)
+l:push_back(56, comp)
+
+local function printx(x, ... )
+	-- body
+	print(x)
+end
+
+l:foreach(printx)
+
 
 -- local math3d = require "math3d"
 
@@ -8,17 +48,17 @@ package.path = "../lualib/?.lua;" .. package.path
 -- local aabb1 = math3d.aabb(math3d.vector3(0, 0, 0), math3d.vector3(3, 3, 3))
 -- local aabb2 = math3d.aabb(math3d.vector3(1, 1, 1), math3d.vector3(4, 4, 4))
 
-local aabb1 = math3d.aabb(math3d.vector3(0, 0, 0), math3d.vector3(3, 3, 3))
--- local aabb2 = math3d.aabb(math3d.vector3(1, 1, 1), math3d.vector3(4, 4, 4))
+-- local aabb1 = math3d.aabb(math3d.vector3(0, 0, 0), math3d.vector3(3, 3, 3))
+-- -- local aabb2 = math3d.aabb(math3d.vector3(1, 1, 1), math3d.vector3(4, 4, 4))
 
-local identity = math3d.matrix()
-identity:trans(2, 2, 2)
+-- local identity = math3d.matrix()
+-- identity:trans(2, 2, 2)
 
-identity:unpack()
-local m1, m2, m3, m4, m5, m6, m7, m8, m9, m10, m11, m12, m13, m14, m15, m16 = identity:unpack()
-print(m13, m14, m15, m16)
+-- identity:unpack()
+-- local m1, m2, m3, m4, m5, m6, m7, m8, m9, m10, m11, m12, m13, m14, m15, m16 = identity:unpack()
+-- print(m13, m14, m15, m16)
 
-aabb1:transform(identity)
+-- aabb1:transform(identity)
 
 
 -- local center = math3d.vector3(0, 0, 0)
@@ -42,42 +82,40 @@ aabb1:transform(identity)
 -- else
 -- 	print(false)
 -- end
-<<<<<<< HEAD
 
-local queue = require "lqueue"
 
-local q = queue.new(3)
+-- local queue = require "lqueue"
 
-for i=1,11 do
-	queue.enqueue(q, i)
-end
+-- local q = queue.new(3)
+
+-- for i=1,11 do
+-- 	queue.enqueue(q, i)
+-- end
+
+-- -- print(queue.size(q))
+
+-- for i=1,5 do
+-- 	print(queue.dequeue(q))
+-- end
+
+-- for i=1,20 do
+-- 	queue.enqueue(q, i * 10)
+-- end
+
+-- for i=1,8 do
+-- 	print(queue.dequeue(q))
+-- end
 
 -- print(queue.size(q))
+-- print(q.__cap)
 
-for i=1,5 do
-	print(queue.dequeue(q))
-end
-
-for i=1,20 do
-	queue.enqueue(q, i * 10)
-end
-
-for i=1,8 do
-	print(queue.dequeue(q))
-end
-
-print(queue.size(q))
-print(q.__cap)
-
-local sz = queue.size(q)
-for i=1,sz do
-	print(queue.dequeue(q))
-end
+-- local sz = queue.size(q)
+-- for i=1,sz do
+-- 	print(queue.dequeue(q))
+-- end
 
 
-=======
--- local queue = require "queue"
->>>>>>> c37b56c602cf6494a73a81108dafcd8c1d59cbae
+
 -- local q = queue()
 
 -- local r

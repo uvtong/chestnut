@@ -343,6 +343,7 @@ end
 
 function response.updateblood(args, ... )
 	-- body
+
 	local player
 	if args.targetuserid < 1000 then
 		player = ctx:get_ai(args.targetuserid)
@@ -368,6 +369,20 @@ function response.updateblood(args, ... )
 			local agent = v:get_agent()
 			agent.post.die(xargs)
 		end
+
+		local attack
+		if args.sourceuserid < 1000 then
+			attack = ctx:get_ai(args.sourceuserid)
+		else
+			attack = ctx:get_ai(args.sourceuserid)
+		end
+		local kill = attack:get_kill()
+		kill = kill + 1
+		attack:set_kill(kill)
+
+		local agent = attack:get_agent()
+		agent.post.cur_info({ cur_kill=kill, cur_score=attack:get_score()})
+
 		local x = car:get_x()
 		local y = car:get_y()
 		local z = car:get_z()
@@ -432,7 +447,7 @@ function response.eitbloodentity(args, ... )
 	local hp = hp1 + hp2
 	car:set_hp(hp)
 	-- cal score
-	local score1 = food:set_fraction()
+	local score1 = food:get_fraction()
 	local score2 = player:get_score()
 	local score = score1 + score2
 	player:set_score(score)

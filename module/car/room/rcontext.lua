@@ -128,14 +128,15 @@ function cls:get_leadboard( ... )
 	return self._leadboard
 end
 
-function cls:add(uid, player, ... )
+function cls:add(uid, p, ... )
 	-- body
-	self._session_players[uid] = player
+	self._session_players[uid] = p
 	local function func( ... )
 		-- body
 		self._players_sz = self._players_sz + 1
 	end
 	self._player_cs(func)
+	self._leadboard:push_back(p, player.comp_score)
 end
 
 function cls:remove(uid, ... )
@@ -202,15 +203,16 @@ function cls:free_ai(player, ... )
 	skynet.call(".AI_MGR", "lua", "exit", player:get_id())
 end
 
-function cls:add_ai(id, player, ... )
+function cls:add_ai(id, p, ... )
 	-- body
-	assert(id and player)
-	self._ais[id] = player
+	assert(id and p)
+	self._ais[id] = p
 	local function func( ... )
 		-- body
 		self._ai_sz = self._ai_sz + 1
 	end
 	self._aics(func)
+	self._leadboard:push_back(p, player.comp_score)
 end
 
 function cls:remove_ai(id, ... )
@@ -271,6 +273,9 @@ function cls:start(t, total, num, ainum, ... )
 		local handler = cc.handler(self, cls.close)
 		skynet.timeout(600 * 60 * 15, handler)
 	end
+
+	local handler = cc.handler(self, cls.leadboard_cd) 
+	skynet.timeout(100 * 3, handler)
 end
 
 function cls:close( ... )
@@ -312,9 +317,26 @@ function cls:get_freeplayer( ... )
 	return self._csfree(func, self._list)
 end
 
-
-function cls:( ... )
+function cls:leadboard_cd( ... )
 	-- body
+	if self._state == gs.CLOSE then
+	else
+		local handler = cc.handler(self, cls.leadboard_cd) 
+		skynet.timeout(100 * 3, handler)
+	end
+	local arr = {}
+	local function tick(p, ... )
+		-- body
+		local tmp = {}
+		tmp.userid = p:get_uid()
+		tmp.socre = p:get_score()
+		table.insert(arr, tmp)
+	end
+	self._leadboard:foreach(tick)
+	for k,v in pairs(self._session_players) do
+		local agent = v:get_agent()
+		agent.post.rank({ r=arr })
+	end
 end
 
 return cls

@@ -126,6 +126,11 @@ function cls:set_fuhuo(value, ... )
 	self._fuhuo = value
 end
 
+function cls:comp_score(other, ... )
+	-- body
+	return self._score > other._score
+end
+
 function cls:pack_sproto_balls( ... )
 	-- body
 	local all = {}

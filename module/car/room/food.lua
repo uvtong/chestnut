@@ -1,6 +1,6 @@
 local cls = class("food")
 
-function cls:ctor(id, type, hp, ... )
+function cls:ctor(id, type, hp, fraction, ... )
 	-- body
 	self._id = id
 	self._type = type
