@@ -238,9 +238,8 @@ function response.movedriction( session,args,... )
 	end
 end
 
-function response.addspeed( session,args,... )
+function response.addspeed(session, args,... )
 	-- body
-	log.info("addspeed jieshoudaofuwuqixiaoxi ranhoufanhui ")
 	local player = session_players[session]
 	if player then
 		if args.code == opcodes.OPCODE_ADDSPEEDUP then

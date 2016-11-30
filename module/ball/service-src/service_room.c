@@ -42,7 +42,7 @@ _cb(struct skynet_context *context, void *ud, int type, int session, uint32_t so
 	if (type == PTYPE_TEXT) {
 		assert(sz == 4);
 		struct room_msg *message = (struct room_msg*)(msg);
-		if (strcmp(message->cmd, "abc") == 0) {
+		if (strcmp(message->cmd, "start") == 0) {
 		}
 	} else if (type == PTYPE_RESPONSE) {
 

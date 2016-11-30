@@ -37,6 +37,18 @@ function response.afk(fd)
 	snax.printf("AFK")
 end
 
+function response.start(conf, ... )
+	-- body
+	local fd      = assert(conf.client)
+	local version = assert(conf.version)
+	local index   = assert(conf.index)
+	local uid     = assert(conf.uid) 
+
+	ctx:set_fd(fd)
+	ctx:set_version(version)
+	ctx:set_index(index)
+end
+
 function accept.join(args, ... )
 	-- body
 	log.info("agent. join")
@@ -77,17 +89,7 @@ function accept.SendBuff(args, ... )
 	ctx.send_request("buff",args);
 end
 
-function accept.start(conf, ... )
-	-- body
-	local fd      = assert(conf.client)
-	local version = assert(conf.version)
-	local index   = assert(conf.index)
-	local uid     = assert(conf.uid) 
 
-	ctx:set_fd(fd)
-	ctx:set_version(version)
-	ctx:set_index(index)
-end
 
 local client_request = {}
 
