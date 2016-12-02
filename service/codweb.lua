@@ -37,6 +37,11 @@ function CMD.test(source, msg)
 	channel:publish("test", msg)
 end
 
+
+function CMD.abc( ... )
+	-- body
+end
+
 skynet.start( function () 
 	skynet.dispatch("lua" , function( _, source, command, ... )
 		local f = assert(CMD[command])

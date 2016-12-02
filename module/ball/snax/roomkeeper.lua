@@ -6,6 +6,17 @@ local udpgates = {}
 local gate_max = 1
 local gate_idx = 1
 
+function accept.enter( ... )
+	-- body
+end
+
+function accept.exit( ... )
+	-- body
+end
+
+function accept.enter_room( ... )
+	-- body
+end
 
 function response.apply(roomid)
 	local room = rooms[roomid]
@@ -32,10 +43,11 @@ function init()
 	local port = skynet.getenv "udp_port"
 	assert(host and port)
 	for i=1,gate_max do
-		local udpgate = snax.newservice("udpserver", host, port+i)
+		local xport = port + i
+		local udpgate = snax.newservice("udpserver", host, xport)
 		local gate = {
 			host=host,
-			port=port+i,
+			port=xport,
 			udpgate=udpgate,
 		}
 		udpgates[i] = gate

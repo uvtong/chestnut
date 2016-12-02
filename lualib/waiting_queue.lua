@@ -6,9 +6,8 @@ local cls = class("waiting_queue")
 
 function cls:ctor(usnax, arr, ... )
 	-- body
-	assert(usnax and arr)
+	assert(usnax ~= nil and arr)
 	self._usnax = usnax
-	
 	
 	self._id = 0
 	self._rooms = queue()  -- freelist
@@ -81,6 +80,9 @@ function cls:create_room( ... )
 		room = skynet.newservice("room/room")
 	end
 	assert(room)
+	-- id, uniform id
+	-- room, normal addr, snax room
+	-- num 
 	local x = {
 		id = self._id,
 		room = room,
@@ -89,6 +91,7 @@ function cls:create_room( ... )
 	return x
 end
 
+-- manager room
 function cls:enqueue_room(room, ... )
 	-- body
 	local function func1(q, room, ... )
@@ -186,9 +189,12 @@ end
 -- use
 function cls:add_use(room, ... )
 	-- body
-	assert(self._use[room.id] == nil)
-	self._use[room.id] = room
-	self._use_sz = self._use_sz + 1
+	-- assert(self._use[room.id] == nil)
+	if self._use[room.id] then
+	else
+		self._use[room.id] = room
+		self._use_sz = self._use_sz + 1
+	end
 end
 
 function cls:remove_use(room, ... )

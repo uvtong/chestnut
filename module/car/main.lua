@@ -28,7 +28,7 @@ skynet.start(function()
 	-- skynet.newservice("branch")
 	-- skynet.newservice("channel")
 	local keeper = snax.uniqueservice("roomkeeper")
-	keeper.post.start()
+	keeper.req.start()
 
 	repeat
 		local conf = {

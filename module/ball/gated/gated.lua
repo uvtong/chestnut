@@ -119,11 +119,9 @@ function server.start_handler(username, fd, version, idx, ... )
 		if agent then
 			skynet.error("agent:", agent.handle, idx)
 			local conf = {
-				gate = skynet.self(),
 				client = fd,
 				version = version,
 				index = idx,
-				uid = u.uid,
 			}
 			agent.post.start(conf)
 		end

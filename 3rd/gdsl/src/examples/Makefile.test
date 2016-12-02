@@ -1,0 +1,2 @@
+test: main_hash.c
+	gcc -I../ -I../../  $^ -o $@

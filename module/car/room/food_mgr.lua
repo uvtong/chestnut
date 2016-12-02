@@ -39,10 +39,10 @@ end
 
 function cls:start( ... )
 	-- body
-	-- self:gen()
+	self:gen()
 end
 
-function cls:gen(auto,  ... )
+function cls:gen( ... )
 	-- body
 	local li = {}
 	for k,v in pairs(self._genstibes) do
@@ -50,10 +50,10 @@ function cls:gen(auto,  ... )
 		local row = sd.query(key)
 		for i=1,tonumber(v) do
 			local id = self:gen_foodid()
-			local x = math.random(1, 100)
-			local y = math.random(1, 100)
-			local z = math.random(1, 100)
-			local tmp = food.new(id, tonumber(k), row.Blood)
+			local x = math.random(10, 70)
+			local y = math.random(10, 70)
+			local z = math.random(10, 70)
+			local tmp = food.new(id, tonumber(k), row.Blood, row.Fraction)
 			tmp:set_fraction(row.Fraction)
 			tmp:set_x(x)
 			tmp:set_y(y)
@@ -87,7 +87,7 @@ function cls:gen_cus(x, y, z, ... )
 	local li = {}
 	for i=1,2 do
 		local id = self:gen_foodid()
-		local tmp = food.new(id, 1, row.Blood)
+		local tmp = food.new(id, 1, row.Blood, row.Fraction)
 		tmp:set_x(x + math.random(1, 5))
 		tmp:set_y(0)
 		tmp:set_z(z + math.random(1, 5))

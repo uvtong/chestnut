@@ -71,6 +71,14 @@ function CMD.start(conf, ... )
 	return true
 end
 
+function CMD.close( ... )
+	-- body
+end
+
+function CMD.kill( ... )
+	-- body
+end
+
 skynet.start(function ( ... )
 	-- body
 	skynet.dispatch("lua", function(_,_, cmd, subcmd, ...)

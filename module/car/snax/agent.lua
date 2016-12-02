@@ -50,6 +50,7 @@ function response.afk(fd)
 	ctx:set_session(nil)
 end
 
+-- authed
 function accept.start(conf, ... )
 	-- body
 	local fd      = assert(conf.client)
@@ -128,6 +129,9 @@ end
 function accept.die(args, ... )
 	-- body
 	ctx:send_request("die", args)
+	local uid = ctx:get_uid()
+	args.userid = uid
+	local res = room.req.leave(args)
 end
 
 function accept.limit_start(args, ... )
@@ -138,6 +142,16 @@ end
 function accept.limit_close(args, ... )
 	-- body
 	ctx:send_request("limit_close", args)
+end
+
+function accept.rank(args, ... )
+	-- body
+	ctx:send_request("rank", args)
+end
+
+function accept.cur_info(args, ... )
+	-- body
+	ctx:send_request("cur_info", args)
 end
 
 -- client request
@@ -308,6 +322,16 @@ function client_response.limit_start(args, ... )
 end
 
 function client_response.limit_close(args, ... )
+	-- body
+	assert(args.errorcode == errorcode.SUCCESS)
+end
+
+function client_response.rank(args, ... )
+	-- body
+	assert(args.errorcode == errorcode.SUCCESS)
+end
+
+function client_response.cur_info(args, ... )
 	-- body
 	assert(args.errorcode == errorcode.SUCCESS)
 end

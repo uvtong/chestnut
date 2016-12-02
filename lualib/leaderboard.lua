@@ -1,6 +1,7 @@
 local skynet = require "skynet"
 local leaderboards_name = skynet.getenv("leaderboards_name")
 local lb = skynet.localname(leaderboards_name)
+
 local _M = {}
 
 function _M.push(id, k)
