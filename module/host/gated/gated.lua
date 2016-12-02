@@ -25,12 +25,13 @@ function server.login_handler(source, uid, secret, ...)
 
 	internal_id = internal_id + 1
 	local id = internal_id	-- don't use internal_id directly
+	id = skynet.call(".SID_MGR", "lua", "enter")
 	local username = msgserver.username(uid, id, servername)
 	print(uid, id, servername, username)
 
 	-- you can use a pool to alloc new agent
 	-- local agent = skynet.newservice "agent"
-	local agent = skynet.call(".AGENT_MGR", "lua", "enter")
+	local agent = skynet.call(".AGENT_MGR", "lua", "enter", uid)
 	local u = {
 		username = username,
 		agent = agent,
@@ -117,7 +118,7 @@ function server.start_handler(username, fd, version, idx, ... )
 				index = idx,
 				uid = u.uid,
 			}
-			local ok = skynet.call(agent, "lua", "start", conf)
+			local ok = skynet.call(agent, "lua", "authed", conf)
 			assert(ok)
 		end
 	end

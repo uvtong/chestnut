@@ -6,7 +6,7 @@ local cls = class("waiting_queue")
 
 function cls:ctor(usnax, arr, ... )
 	-- body
-	assert(usnax and arr)
+	assert(usnax ~= nil and arr)
 	self._usnax = usnax
 	
 	self._id = 0
