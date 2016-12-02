@@ -89,12 +89,13 @@ function accept.enter(addr, uid, t, ... )
 		end
 		assert(room)
 		agent.agent.post.enter_room(room.id)
-		room.num = room.num + 1
-		mgr:add(t, room)
 		mgr:add_use(room)
+
+		room.num = room.num + 1
 		if room.num >= 30 then
-			mgr:remove(t, room)
 			mgr:add_full(t, room)
+		else
+			mgr:add(t, room)
 		end
 	end
 end
@@ -120,7 +121,7 @@ function response.apply(roomid)
 			gate_idx = gate_idx + 1 % gate_max
 			local gate = udpgates[gate_idx]
 			local r = snax.newservice("room", roomid, gate.udpgate.handle)
-			r.req.start(snax.self().handle, gate.udpgate.handle, 2, 30, 1, 19)
+			r.req.start(snax.self().handle, gate.udpgate.handle, 2, 30, 1, 1)
 			room = {}
 			room.gate = gate
 			room.r = r
@@ -132,7 +133,7 @@ function response.apply(roomid)
 		end
 	else
 		local room = mgr:get_use(roomid)
-		log.info("roomid %d, type: %d", roomid, room.t)
+		log.info("roomid %d, type: %d", room.id, room.t)
 		if room.gate then
 			local gate = room.gate
 			return room.room.handle, gate.host, gate.post
@@ -145,7 +146,7 @@ function response.apply(roomid)
 	end
 end
 
-function accept.start( ... )
+function response.start( ... )
 	-- body
 	-- room = mgr:dequeue_room()
 	-- room.gate = udpgates[1]
@@ -154,7 +155,6 @@ function accept.start( ... )
 	-- local room = snax.newservice("room", 10000, udpgates[1])
 	-- room.req.start(snax.self().handle, udpgates[1].gate, 2, 30, 1, 19)
 end
-
 -- todo : close room ?
 
 function init()

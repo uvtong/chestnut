@@ -189,9 +189,12 @@ end
 -- use
 function cls:add_use(room, ... )
 	-- body
-	assert(self._use[room.id] == nil)
-	self._use[room.id] = room
-	self._use_sz = self._use_sz + 1
+	-- assert(self._use[room.id] == nil)
+	if self._use[room.id] then
+	else
+		self._use[room.id] = room
+		self._use_sz = self._use_sz + 1
+	end
 end
 
 function cls:remove_use(room, ... )

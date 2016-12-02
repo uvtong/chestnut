@@ -107,6 +107,9 @@ $(LUA_CLIB_PATH)/rudp.so: ./3rd/rudp/rudp.c $(CLIB_SRC_PATH)/librudp.c
 $(CSERVICE_PATH)/catlogger.so: $(SERVICE_SRC_PATH)/service_catlogger.c | $(CSERVICE_PATH)
 	$(CC) $(CFLAGS) $(SHARED) -I$(SKYNET_SRC_PATH) $^ -o $@ 
 
+$(CSERVICE_PATH)/udpgate.so: $(SERVICE_SRC_PATH)/service_udpgate.c | $(CSERVICE_PATH)
+	$(CC) $(CFLAGS) $(SHARED) -I$(SKYNET_SRC_PATH) $^ -o $@
+
 all: $(SKYNET_PATH)/skynet \
 	$(LUA_CJSON_PATH)/cjson.so \
 	$(REDIS_PATH)/src/redis-server \
@@ -114,11 +117,13 @@ all: $(SKYNET_PATH)/skynet \
 	$(LUA_CLIB_PATH)/math3d.so \
 	$(LUA_CLIB_PATH)/queue.so \
 	# $(LUA_CLIB_PATH)/rudp.so \
-	$(CSERVICE_PATH)/catlogger.so 
+	$(CSERVICE_PATH)/catlogger.so \
+	$(CSERVICE_PATH)/udpgate.so
 
 clean: clean_skynet clean_cjson clean_redis
 	rm -rf $(LUA_CLIB_PATH)/log.so \
 		$(LUA_CLIB_PATH)/math3d.so \
 		$(LUA_CLIB_PATH)/queue.so \
 		# $(LUA_CLIB_PATH)/rudp.so \
-		$(LUA_CLIB_PATH)/catlogger.so
+		$(LUA_CLIB_PATH)/catlogger.so \
+		$(CSERVICE_PATH)/udpgate.so

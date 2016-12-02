@@ -140,10 +140,10 @@ function _M.foreach(L, func, ... )
 	assert(L)
 	local node = L.head
 	while node do
-		node = node.next
 		if func then
 			func(node.data)
 		end
+		node = node.next
 	end
 end
 

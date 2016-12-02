@@ -124,7 +124,7 @@ check_eq(lua_State *L) {
 				lua_error(L);
 			}
 		} else if (t1 == LUA_TSTRING) {
-			lua_error(L);
+			lua_error(L);q->freelist = q->freelist->next;
 		} else if (t1 == LUA_TTABLE) {
 			if (lua_topointer(L, -1) == lua_topointer(L, -2)) {
 				return true;
@@ -135,7 +135,7 @@ check_eq(lua_State *L) {
 			if (lua_topointer(L, -1) == lua_topointer(L, -2)) {
 				return true;
 			} else {
-				return false;
+				return false;q->freelist = q->freelist->next;
 			}
 		} else {
 			lua_error(L);
@@ -245,12 +245,12 @@ ltest(lua_State *L) {
 }
 
 static int
-lrelease(lua_State *L) {
+lfree(lua_State *L) {
 	return 0;
 }
 
 static int 
-lnew(lua_State *L) {
+lalloc(lua_State *L) {
 	struct queue *q = (struct queue *)lua_newuserdata(L, sizeof(*q));
 	if (q == NULL) {
 		lua_error(L);
@@ -271,7 +271,7 @@ lnew(lua_State *L) {
 	lua_newtable(L); // ud meta table
 	lua_pushvalue(L, lua_upvalueindex(1));
 	lua_setfield(L, -2, "__index");
-	lua_pushcclosure(L, lrelease, 0);
+	lua_pushcclosure(L, lfree, 0);
 	lua_setfield(L, -2, "__gc");
 	lua_setmetatable(L, -2);
 	return 1;
@@ -289,6 +289,6 @@ luaopen_queue(lua_State *L) {
 		{ NULL, NULL },
 	};
 	luaL_newlib(L,l);
-	lua_pushcclosure(L, lnew, 1);
+	lua_pushcclosure(L, lalloc, 1);
 	return 1;
 }
