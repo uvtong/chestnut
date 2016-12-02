@@ -95,11 +95,17 @@ connection_array_idx(struct connection_array *inst, struct connection *c) {
 
 static int
 connection_array_alloc_co(struct connection_array *inst) {
-	if (inst->csize == inst->ccap) {
+	if (inst->csize >= inst->ccap) {
 		int cap = inst->ccap * 2;
 		struct connection *c = (struct connection *)skynet_malloc(sizeof(*c) * cap);
+		memset(c, 0, sizeof(*c) *cap);
 		memcpy(c, inst->data, inst->ccap * sizeof(struct connection));
 		inst->data = c;
+
+		for (size_t i = 0; i < inst->ccap; i++) {
+			struct connection *c = connection_array_at(inst, i);
+		}
+
 		// inst->csize
 		inst->ccap = cap;
 		inst->cfree = cap - 1;
@@ -113,6 +119,7 @@ connection_array_alloc_co(struct connection_array *inst) {
 		idx = inst->cfree;
 		c = &inst->data[idx];
 		if (c->free == 0) {  // free
+			c->free = 1;
 			inst->cfree--;
 			inst->csize++;
 			break;
@@ -120,8 +127,7 @@ connection_array_alloc_co(struct connection_array *inst) {
 			inst->cfree--;
 		}
 	} while (1);
-	assert(c->free == 0);
-	c->free = 1;
+	assert(idx >= 0 && idx < inst->ccap);
 	return idx;
 }
 
@@ -134,6 +140,7 @@ connection_array_free_co(struct connection_array *inst, int idx) {
 	inst->csize--;
 }
 
+// bst
 static struct rbtree *
 rbtree_alloc(struct connection_array *arr) {
 	assert(arr != NULL);
@@ -157,18 +164,20 @@ static void
 rbtree_rotate_left(struct rbtree *inst, int idx) {
 	assert(idx >= 0 && idx < inst->arr->ccap);
 	struct connection *c = connection_array_at(inst->arr, idx);
-	struct connection *p = connection_array_at(inst->arr, c->id_parent);
 	struct connection *r = connection_array_at(inst->arr, c->id_rnext);
-	struct connection *rl = connection_array_at(inst->arr, r->id_lnext);
+	struct connection *p = connection_array_at(inst->arr, c->id_parent);
 
 	c->id_rnext = r->id_lnext;
-	if (rl) {
+	if (r->id_lnext >= 0) {
+		struct connection *rl = connection_array_at(inst->arr, r->id_lnext);
 		rl->id_parent = idx;
 	}
 
 	c->id_parent = connection_array_idx(inst->arr, r);
-	r->id_rnext = idx;
+	r->id_lnext = idx;
+	
 	if (p) {
+		r->id_parent = connection_array_idx(inst->arr, p);
 		if (p->id_rnext == idx) {
 			p->id_rnext = connection_array_idx(inst->arr, r);
 		} else {
@@ -176,10 +185,11 @@ rbtree_rotate_left(struct rbtree *inst, int idx) {
 		}
 	} else {
 		r->id_parent = -1;
+		inst->root = connection_array_idx(inst->arr, r);
 	}
 
-	r->id_color = c->id_color;
-	c->id_color = 1;   // red
+	//r->id_color = c->id_color;
+	//c->id_color = 1;   // red
 }
 
 static void
@@ -188,18 +198,18 @@ rbtree_rotate_right(struct rbtree *inst, int idx) {
 	struct connection *c = connection_array_at(inst->arr, idx);
 	struct connection *p = connection_array_at(inst->arr, c->id_parent);
 	struct connection *l = connection_array_at(inst->arr, c->id_lnext);
-	struct connection *lr = connection_array_at(inst->arr, l->id_rnext);
-
+	
 	c->id_lnext = l->id_rnext;
-	if (lr) {
+	if (l->id_rnext >= 0) {
+		struct connection *lr = connection_array_at(inst->arr, l->id_rnext);
 		lr->id_parent = idx;
 	}
+	
 	c->id_parent = connection_array_idx(inst->arr, l);
-
 	l->id_rnext = idx;
+
 	if (p) {
 		l->id_parent = connection_array_idx(inst->arr, p);
-
 		if (p->id_rnext == idx) {
 			p->id_rnext = connection_array_idx(inst->arr, l);
 		} else {
@@ -207,10 +217,11 @@ rbtree_rotate_right(struct rbtree *inst, int idx) {
 		}
 	} else {
 		l->id_parent = -1;
+		inst->root = connection_array_idx(inst->arr, l);
 	}
 
-	l->id_color = c->id_color;
-	c->id_color = 1;  // red
+	//l->id_color = c->id_color;
+	//c->id_color = 1;  // red
 }
 
 static void
@@ -230,34 +241,35 @@ static void
 rbtree_insert_fix(struct rbtree *inst, int idx) {
 	assert(idx >= 0 && idx < inst->arr->ccap);
 	struct connection *c = connection_array_at(inst->arr, idx);
-	if (c->id_parent == -1) {    // case 1
-		c->id_color = 0;  // black;
+	if (c->id_parent == -1) {    // case 1: root == idx
+		c->id_color = 0;         // black;
+		inst->root = idx;
 		return;
 	} else {
 		struct connection *p = connection_array_at(inst->arr, c->id_parent);
-		if (p->id_color == 0) {  // case 2
+		if (p->id_color == 0) {  // case 2: parnet is black.
 			return;
 		} else {
 			// notice
-			assert(c->id_color == 1 && p->id_color == 1);
+			assert(c->id_color == 1 && p->id_color == 1 && p->id_parent >= 0);
 			struct connection *g = connection_array_at(inst->arr, p->id_parent);
 			struct connection *u = NULL;
-			if (g && g->id_lnext == c->id_parent) {
-				u = connection_array_at(inst->arr, g->id_rnext);
-			} else {
-				u = connection_array_at(inst->arr, g->id_lnext);
+			if (g->id_rnext >= 0 && g->id_lnext == c->id_parent) {
+				u = connection_array_at(inst->arr, g->id_rnext);  // uncle is r child.
+			} else if (g->id_lnext >= 0 && g->id_rnext == c->id_parent) {
+				u = connection_array_at(inst->arr, g->id_lnext);  // uncle is l child.
 			}
-			if (u && u->id_color == 1) { // case 3
+			if (u && u->id_color == 1) {  // case 3: both parent and uncle is red.
 				rbtree_flip_color(inst, p->id_parent);
 				rbtree_insert_fix(inst, p->id_parent);
 			} else { // case 4
-				if (idx == p->id_rnext && c->id_parent == g->id_lnext) {
+				if (idx == p->id_rnext && c->id_parent == g->id_lnext && (g->id_rnext == -1 || u->id_color == 0)) {
 					rbtree_rotate_left(inst, c->id_parent);
 					idx = c->id_lnext;
 					c = connection_array_at(inst->arr, idx);
 					p = connection_array_at(inst->arr, c->id_parent);
 					g = connection_array_at(inst->arr, p->id_parent);
-				} else if (idx == p->id_lnext && c->id_parent == g->id_rnext) {
+				} else if (idx == p->id_lnext && c->id_parent == g->id_rnext && (g->id_lnext == -1 || u->id_color == 0)) {
 					rbtree_rotate_right(inst, c->id_parent);
 					idx = c->id_rnext;
 					c = connection_array_at(inst->arr, idx);
@@ -294,6 +306,8 @@ rbtree_insert(struct rbtree *inst, int parent, int key, int idx, struct connecti
 		struct connection *c = rbtree_get_connection(inst, &idx);
 		assert(c != NULL && idx != -1);
 
+		printf("idx: %d\n", idx);
+
 		assert(inst->size == 0);
 		inst->root = idx;
 		inst->size++;
@@ -316,6 +330,8 @@ rbtree_insert(struct rbtree *inst, int parent, int key, int idx, struct connecti
 				struct connection *c = rbtree_get_connection(inst, &idx);
 				assert(c != NULL && idx != -1);
 
+				printf("idx: %d\n", idx);
+
 				p->id_lnext = idx;
 				inst->size++;
 
@@ -337,6 +353,8 @@ rbtree_insert(struct rbtree *inst, int parent, int key, int idx, struct connecti
 			if (p->id_rnext == -1) {
 				struct connection *c = rbtree_get_connection(inst, &idx);
 				assert(c != NULL && idx != -1);
+
+				printf("idx: %d\n", idx);
 
 				p->id_rnext = idx;
 				inst->size++;
@@ -391,10 +409,11 @@ rbtree_replace_node_in_parent(struct rbtree *inst, int idx, int nidx) {
 }
 
 static int
-rbtree_sibling(struct rbtree *inst, int idx) {
-	struct connection *c = connection_array_at(inst->arr, idx);
-	if (c->id_parent >= 0) {
-		struct connection *p = connection_array_at(inst->arr, c->id_parent);
+rbtree_sibling(struct rbtree *inst, int parent, int idx) {
+	if (parent >= 0) {
+		struct connection *p = connection_array_at(inst->arr, parent);
+		struct connection *c = connection_array_at(inst->arr, idx);
+
 		if (p->id_lnext == idx) {
 			return p->id_rnext;
 		} else {
@@ -406,68 +425,98 @@ rbtree_sibling(struct rbtree *inst, int idx) {
 }
 
 // idx n
-static bool
-rbtree_remove_fix(struct rbtree *inst, int idx) {
-	assert(idx >= 0 && idx < inst->arr->ccap);
-	struct connection *c = connection_array_at(inst->arr, idx);
-	if (c->id_parent >= 0) { // case 1
-		int s_idx = rbtree_sibling(inst, idx);
-		struct connection *s = connection_array_at(inst->arr, s_idx);
-		struct connection *p = connection_array_at(inst->arr, c->id_parent);
+static void
+rbtree_remove_fix(struct rbtree *inst, int parent, int idx) {
+	if (parent >= 0) { // case 1
+		struct connection *p = connection_array_at(inst->arr, parent);
+		struct connection *c = connection_array_at(inst->arr, idx);
 
+		int s_idx = rbtree_sibling(inst, parent, idx);
+		struct connection *s = connection_array_at(inst->arr, s_idx);
 		struct connection *sl = NULL;
 		struct connection *sr = NULL;
-		if (s->id_lnext >= 0) {
+		if (s && s->id_lnext >= 0) {
 			sl = connection_array_at(inst->arr, s->id_lnext);
 		}
-		if (s->id_rnext >= 0) {
+		if (s && s->id_rnext >= 0) {
 			sr = connection_array_at(inst->arr, s->id_rnext);
 		}
 
-		if (s->id_color == 1) {  // case 2
+		if (s && s->id_color == 1) {  // case 2: s->red
+			p->id_color = 1;
+			s->id_color = 0;
 			if (idx == p->id_rnext) {
 				rbtree_rotate_right(inst, c->id_parent);
 			} else {
 				rbtree_rotate_left(inst, c->id_parent);
 			}
-		} else if (p->id_color == 0 && s->id_color == 0 &&  // case 3
-			(s->id_lnext == -1 || sl->id_color == 0) &&
-			(s->id_rnext == -1 || sr->id_color == 0)) {
-			s->id_color = 1; // red
-			rbtree_remove_fix(inst, c->id_parent);
-		} else if (p->id_color == 1 &&   // case 4
-			s->id_color == 0 &&
-			(sl->id_color == 0 || s->id_lnext == -1) &&
-			(sr->id_color == 0 || s->id_rnext == -1)) {
-			s->id_color = 1;
-			p->id_color = 0;
-		} else if (s->id_color == 0) { // case 5
-			if (idx == p->id_lnext &&
-				(s->id_lnext == -1 || sl->id_color == 0) &&
-				(sr->id_color == 1)) {
-				s->id_color = 1;
-				sl->id_color = 0;
-				rbtree_rotate_right(inst, connection_array_idx(inst->arr, s));
-			} else if (idx == p->id_rnext) {
-				s->id_color = 1;
-				sr->id_color = 0;
-				rbtree_rotate_left(inst, connection_array_idx(inst->arr, s));
+			// after rotate
+			p = connection_array_at(inst->arr, c->id_parent);
+			s_idx = rbtree_sibling(inst, c->id_parent, idx);
+			s = connection_array_at(inst->arr, s_idx);
+			if (s && s->id_lnext >= 0) {
+				sl = connection_array_at(inst->arr, s->id_lnext);
 			}
-		} else { // case 6
-			s->id_color = p->id_color;
-			p->id_color = 0;
-			if (idx == p->id_lnext) {
-				sr->id_color = 0;
-				rbtree_rotate_left(inst, connection_array_idx(inst->arr, p));
-			} else {
-				sl->id_color = 0;
-				rbtree_rotate_right(inst, connection_array_idx(inst->arr, p));
+			if (s && s->id_rnext >= 0) {
+				sr = connection_array_at(inst->arr, s->id_rnext);
 			}
 		}
-	} else {
-		// root
+
+		// case 3
+		if (p->id_color == 0 &&
+			(s_idx == -1 || s->id_color == 0) &&
+			(s && (s->id_lnext == -1 || sl->id_color == 0)) &&
+			(s && (s->id_rnext == -1 || sr->id_color == 0))) {
+			s->id_color = 1; // red
+			rbtree_remove_fix(inst, p->id_parent, s->id_parent);
+		} else {
+			if (p->id_color == 1 &&
+				(s_idx == -1 || s->id_color == 0) &&
+				(s->id_lnext == -1 || sl->id_color == 0) &&
+				(s->id_rnext == -1 || sr->id_color == 0)) {
+				s->id_color = 1;
+				p->id_color = 0;
+			} else {
+				// case 5
+				if (s && s->id_color == 0) {
+					if (idx == p->id_lnext &&
+						(sl && sl->id_color == 1) &&
+						(s->id_rnext == -1 || sr->id_color == 0)) {
+						s->id_color = 1;
+						sl->id_color = 0;
+						rbtree_rotate_right(inst, s_idx);
+					} else if (idx == p->id_rnext &&
+						(s->id_lnext == -1 || sl->id_color == 0) &&
+						(sr && sr->id_color == 1)) {
+						s->id_color = 1;
+						sr->id_color = 0;
+						rbtree_rotate_left(inst, s_idx);
+					}
+					// after rotate
+					p = connection_array_at(inst->arr, c->id_parent);
+					s_idx = rbtree_sibling(inst, c->id_parent, idx);
+					s = connection_array_at(inst->arr, s_idx);
+					if (s && s->id_lnext >= 0) {
+						sl = connection_array_at(inst->arr, s->id_lnext);
+					}
+					if (s && s->id_rnext >= 0) {
+						sr = connection_array_at(inst->arr, s->id_rnext);
+					}
+				}
+
+				s->id_color = p->id_color;
+				p->id_color = 0;
+
+				if (idx == p->id_lnext) {
+					sr->id_color = 0;
+					rbtree_rotate_left(inst, c->id_parent);
+				} else {
+					sl->id_color = 0;
+					rbtree_rotate_right(inst, c->id_parent);
+				}
+			}
+		}
 	}
-	return true;
 }
 
 static bool
@@ -489,8 +538,12 @@ rbtree_remove(struct rbtree *inst, int idx, int key, struct connection **cc) {
 			// replace c
 			struct connection *n = connection_array_at(inst->arr, min_idx);
 			struct connection *np = connection_array_at(inst->arr, n->id_parent);
-			np->id_lnext = -1;
-
+			if (np->id_lnext == min_idx) {
+				np->id_lnext = n->id_lnext; // (-1) remove from 
+			} else {
+				np->id_rnext = n->id_lnext;
+			}
+			
 			n->id_lnext = c->id_lnext;
 			n->id_rnext = c->id_rnext;
 			n->id_parent = c->id_parent;
@@ -502,14 +555,18 @@ rbtree_remove(struct rbtree *inst, int idx, int key, struct connection **cc) {
 				p->id_rnext = min_idx;
 			}
 
-			struct connection *l = connection_array_at(inst->arr, n->id_lnext);
-			struct connection *r = connection_array_at(inst->arr, n->id_rnext);
-			l->id_parent = min_idx;
-			r->id_parent = min_idx;
+			if (n->id_lnext >= 0) {
+				struct connection *l = connection_array_at(inst->arr, n->id_lnext);
+				l->id_parent = min_idx;
+			}
+			
+			if (n->id_rnext >= 0) {
+				struct connection *r = connection_array_at(inst->arr, n->id_rnext);
+				r->id_parent = min_idx;
+			}
 
 			child = min_idx;
 			child_c = n;
-
 		} else if (c->id_lnext >= 0 && c->id_rnext == -1) {
 			rbtree_replace_node_in_parent(inst, idx, c->id_lnext);
 			child = c->id_lnext;
@@ -517,7 +574,6 @@ rbtree_remove(struct rbtree *inst, int idx, int key, struct connection **cc) {
 			// fix
 		} else if (c->id_lnext == -1 && c->id_rnext >= 0) {
 			rbtree_replace_node_in_parent(inst, idx, c->id_rnext);
-
 			child = c->id_rnext;
 			child_c = connection_array_at(inst->arr, c->id_rnext);
 		} else {
@@ -525,12 +581,12 @@ rbtree_remove(struct rbtree *inst, int idx, int key, struct connection **cc) {
 			rbtree_replace_node_in_parent(inst, idx, -1);
 		}
 
-		// 
+		// fix
 		if (c->id_color == 0) {
-			if (child_c->id_color == 1) {
-				child_c->id_color = 0;  // to be black.
+			if (child_c && child_c->id_color == 1) { // red
+				child_c->id_color = 0;          // to be black.
 			} else {
-				rbtree_remove_fix(inst, child);
+				rbtree_remove_fix(inst, c->id_parent, child); // c->black, child->black.
 			}
 		}
 
@@ -586,105 +642,111 @@ struct udpgate {
 	struct rbtree *session2v;
 };
 
-// static void
-// _ctrl(struct skynet_context *ctx, struct udpgate *ud, const void *msg, size_t sz) {
-// }
+static void
+_ctrl(struct skynet_context *ctx, struct udpgate *ud, const void *msg, size_t sz) {
+	
+}
 
-// static void
-// dispatch_socket_message(struct skynet_context *ctx, struct udpgate *ud, const struct skynet_socket_message *msg, int sz) {
-// 	switch (msg->type) {
-// 		case SKYNET_SOCKET_TYPE_DATA: {
-// 			break;
-// 		}
-// 		case SKYNET_SOCKET_TYPE_CLOSE:
-// 		case SKYNET_SOCKET_TYPE_ERROR: {
-// 			break;
-// 		}
-// 		case SKYNET_SOCKET_TYPE_WARNING: {
-// 			skynet_error(ctx, "fd (%d)", msg->id);
-// 			break;
-// 		}
-// 	}
-// }
+static void
+dispatch_socket_message(struct skynet_context *ctx, struct udpgate *ud, const struct skynet_socket_message *msg, int sz) {
+	switch (msg->type) {
+		case SKYNET_SOCKET_TYPE_DATA: {
+			break;
+		}
+		case SKYNET_SOCKET_TYPE_CLOSE:
+		case SKYNET_SOCKET_TYPE_ERROR: {
+			break;
+		}
+		case SKYNET_SOCKET_TYPE_WARNING: {
+			skynet_error(ctx, "fd (%d)", msg->id);
+			break;
+		}
+	}
+}
 
-// static int
-// _cb(struct skynet_context *ctx, void *ud, int type, int session, uint32_t source, const void *msg, size_t sz) {
-// 	switch(type) {
-// 		case PTYPE_TEXT:
-// 		_ctrl(ctx, ud, msg, sz);
-// 		break;
-// 		case PTYPE_SOCKET:
-// 		// dispatch_socket_message(ctx, ud, msg, (int)(sz - sizeof(struct skynet_socket_msssage)));
-// 		break;
-// 	}
-// 	return 0;
-// }
+static int
+_cb(struct skynet_context *ctx, void *ud, int type, int session, uint32_t source, const void *msg, size_t sz) {
+	switch(type) {
+		case PTYPE_TEXT:
+		_ctrl(ctx, ud, msg, sz);
+		break;
+		case PTYPE_SOCKET:
+		// dispatch_socket_message(ctx, ud, msg, (int)(sz - sizeof(struct skynet_socket_msssage)));
+		break;
+	}
+	return 0;
+}
 
-// struct udpgate *
-// udpgate_create() {
-// 	struct udpgate *inst = skynet_malloc(sizeof(*inst));
-// 	memset(inst, 0, sizeof(*inst));
-// 	inst->id = -1;
-// 	inst->port = -1;
-// 	inst->room = -1;
-// 	inst->arr = connection_array_alloc(16);
-// 	inst->id2v = rbtree_alloc(inst->arr);
-// 	inst->session2v = rbtree_alloc(inst->arr);
-// 	return inst;
-// }
+struct udpgate *
+udpgate_create() {
+	struct udpgate *inst = skynet_malloc(sizeof(*inst));
+	memset(inst, 0, sizeof(*inst));
+	inst->id = -1;
+	inst->port = -1;
+	inst->room = -1;
+	inst->arr = connection_array_alloc(16);
+	inst->id2v = rbtree_alloc(inst->arr);
+	inst->session2v = rbtree_alloc(inst->arr);
+	return inst;
+}
 
-// void 
-// udpgate_release(struct udpgate *inst) {
-// 	if (inst->arr != NULL) {
-// 		connection_array_free(inst->arr);
-// 	}
-// 	if (inst->id2v != NULL) {
-// 		rbtree_free(inst->id2v);
-// 	}
-// 	if (inst->session2v != NULL) {
-// 		rbtree_free(inst->session2v);
-// 	}
-// 	skynet_free(inst);
-// }
+void 
+udpgate_release(struct udpgate *inst) {
+	if (inst->arr != NULL) {
+		connection_array_free(inst->arr);
+	}
+	if (inst->id2v != NULL) {
+		rbtree_free(inst->id2v);
+	}
+	if (inst->session2v != NULL) {
+		rbtree_free(inst->session2v);
+	}
+	skynet_free(inst);
+}
 
-// int 
-// udpgate_init(struct udpgate *inst, struct skynet_context *ctx, const char *parm) {
-// 	if (parm == NULL)
-// 		return 1;
-// 	int sz = strlen(parm) + 1;
-// 	char binding[sz];
-// 	int port = 0;
-// 	int n = sscanf(parm, "%s %d", binding, &port);
-// 	if (n < 2) {
-// 		skynet_error(ctx, "Invalid gate parm %s", parm);
-// 		return 1;
-// 	}
+int 
+udpgate_init(struct udpgate *inst, struct skynet_context *ctx, const char *parm) {
+	if (parm == NULL)
+		return 1;
+	int sz = strlen(parm) + 1;
+	char binding[sz];
+	int port = 0;
+	int n = sscanf(parm, "%s %d", binding, &port);
+	if (n < 2) {
+		skynet_error(ctx, "Invalid gate parm %s", parm);
+		return 1;
+	}
 
-// 	skynet_callback(ctx, inst, _cb);
+	skynet_callback(ctx, inst, _cb);
 
-// 	inst->id = skynet_socket_udp(ctx, binding, port);
-// 	if (inst->id < 0)
-// 		return 1;
-// 	return 0;
-// }
+	inst->id = skynet_socket_udp(ctx, binding, port);
+	if (inst->id < 0)
+		return 1;
+	return 0;
+}
 
 
 static void
 test(void) {
 	struct connection_array *arr = connection_array_alloc(16);
-	struct rbtree *rbtree = rbtree_alloc(arr);
+	struct rbtree *tree = rbtree_alloc(arr);
 
 	for (int i = 0; i < 101; ++i) {
 		struct connection *c = NULL;
-		assert(rbtree_insert(rbtree, rbtree->root, i, -1, &c));
+		assert(rbtree_insert(tree, tree->root, i, -1, &c));
 	}
-	rbtree_foreach(rbtree, rbtree->root, print);
+	rbtree_foreach(tree, tree->root, print);
 
 	struct connection *c = NULL;
-	rbtree_remove(rbtree, rbtree->root, 72, &c);
+	rbtree_remove(tree, tree->root, 72, &c);
+	rbtree_remove(tree, tree->root, 14, &c);
+	rbtree_remove(tree, tree->root, 32, &c);
+	rbtree_remove(tree, tree->root, 16, &c);
+	rbtree_remove(tree, tree->root, 29, &c);
+	rbtree_remove(tree, tree->root, 56, &c);
 
 	printf("%s\n", "abc");
-	rbtree_foreach(rbtree, rbtree->root, print);
+	rbtree_foreach(tree, tree->root, print);
 }
 
 int main(void) {
