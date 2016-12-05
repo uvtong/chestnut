@@ -103,11 +103,17 @@ $(LUA_CLIB_PATH)/math3d.so: $(CLIB_SRC_PATH)/libmath.c $(CLIB_SRC_PATH)/libaabb.
 $(LUA_CLIB_PATH)/rudp.so: ./3rd/rudp/rudp.c $(CLIB_SRC_PATH)/librudp.c 
 	$(CC) $^ $(CFLAGS) $(SHARED) -I$(LUA_PATH) -I./3rd/rudp/ -o $@
 
+$(LUA_CLIB_PATH)/test.so: $(CLIB_SRC_PATH)/lua-test.c
+	$(CC) $(CFLAGS) $(SHARED) -I$(LUA_PATH) $^ -o $@
+
 # service
 $(CSERVICE_PATH)/catlogger.so: $(SERVICE_SRC_PATH)/service_catlogger.c | $(CSERVICE_PATH)
 	$(CC) $(CFLAGS) $(SHARED) -I$(SKYNET_SRC_PATH) $^ -o $@ 
 
 $(CSERVICE_PATH)/udpgate.so: $(SERVICE_SRC_PATH)/service_udpgate.c | $(CSERVICE_PATH)
+	$(CC) $(CFLAGS) $(SHARED) -I$(SKYNET_SRC_PATH) $^ -o $@
+
+$(CSERVICE_PATH)/test.so: $(SERVICE_SRC_PATH)/service_test.c | $(CSERVICE_PATH)
 	$(CC) $(CFLAGS) $(SHARED) -I$(SKYNET_SRC_PATH) $^ -o $@
 
 all: $(SKYNET_PATH)/skynet \
@@ -116,14 +122,18 @@ all: $(SKYNET_PATH)/skynet \
 	$(LUA_CLIB_PATH)/log.so \
 	$(LUA_CLIB_PATH)/math3d.so \
 	$(LUA_CLIB_PATH)/queue.so \
-	# $(LUA_CLIB_PATH)/rudp.so \
+	$(LUA_CLIB_PATH)/rudp.so \
+	$(LUA_CLIB_PATH)/test.so \
 	$(CSERVICE_PATH)/catlogger.so \
-	$(CSERVICE_PATH)/udpgate.so
+	$(CSERVICE_PATH)/udpgate.so \
+	$(CSERVICE_PATH)/test.so 
 
 clean: clean_skynet clean_cjson clean_redis
 	rm -rf $(LUA_CLIB_PATH)/log.so \
 		$(LUA_CLIB_PATH)/math3d.so \
 		$(LUA_CLIB_PATH)/queue.so \
-		# $(LUA_CLIB_PATH)/rudp.so \
+		$(LUA_CLIB_PATH)/rudp.so \
+		$(LUA_CLIB_PATH)/test.so \
 		$(LUA_CLIB_PATH)/catlogger.so \
-		$(CSERVICE_PATH)/udpgate.so
+		$(CSERVICE_PATH)/udpgate.so \
+		$(CSERVICE_PATH)/test.so

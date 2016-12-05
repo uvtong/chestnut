@@ -124,7 +124,13 @@ check_eq(lua_State *L) {
 				lua_error(L);
 			}
 		} else if (t1 == LUA_TSTRING) {
-			lua_error(L);q->freelist = q->freelist->next;
+			const char *s1 = luaL_checkstring(L, -1);
+			const char *s2 = luaL_checkstring(L, -2);
+			if (strcmp(s1, s2) == 0) {
+				return true;
+			} else {
+				return false;
+			}
 		} else if (t1 == LUA_TTABLE) {
 			if (lua_topointer(L, -1) == lua_topointer(L, -2)) {
 				return true;
@@ -135,7 +141,7 @@ check_eq(lua_State *L) {
 			if (lua_topointer(L, -1) == lua_topointer(L, -2)) {
 				return true;
 			} else {
-				return false;q->freelist = q->freelist->next;
+				return false;
 			}
 		} else {
 			lua_error(L);

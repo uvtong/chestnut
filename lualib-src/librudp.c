@@ -1,4 +1,7 @@
+// #include "skynet.h"
+
 #include "rudp.h"
+
 #include <lua.h>
 #include <lauxlib.h>
 
@@ -57,7 +60,7 @@ lupdate(lua_State *L) {
 static int
 lset_id(lua_State *L) {
 	struct rudp_aux *aux = (struct rudp_aux *)lua_touserdata(L, 1);
-	aux->id = lua_tointeger(L, 2);
+	aux->id = luaL_checkinteger(L, 2);
 	return 0;
 }
 
@@ -69,7 +72,7 @@ lget_id(lua_State *L) {
 }
 
 static int
-ldelete(lua_State *L) {
+lfree(lua_State *L) {
 	if (lua_gettop(L) >= 1) {
 		struct rudp_aux *aux = (struct rudp_aux *)lua_touserdata(L, 1);
 		rudp_delete(aux->u);
@@ -81,10 +84,10 @@ ldelete(lua_State *L) {
 }
 
 static int 
-lnew(lua_State *L) {
+lalloc(lua_State *L) {
 	struct rudp_aux *aux = (struct rudp_aux *)lua_newuserdata(L, sizeof(*aux));
 	if (aux == NULL) {
-		printf("%s\n", "malloc failture.");
+		luaL_error(L, "new udata failture.");
 		return 0;
 	} else {
 		lua_pushvalue(L, lua_upvalueindex(1));
@@ -121,8 +124,8 @@ luaopen_rudp(lua_State *L) {
 	};
 	luaL_newlib(L,l);
 	lua_setfield(L, -2, "__index");
-	lua_pushcclosure(L, ldelete, 0);
+	lua_pushcclosure(L, lfree, 0);
 	lua_setfield(L, -2, "__gc");
-	lua_pushcclosure(L, lnew, 1);
+	lua_pushcclosure(L, lalloc, 1);
 	return 1;
 }

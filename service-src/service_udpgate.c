@@ -1,6 +1,6 @@
-#include "stdafx.h"
-//#include "skynet.h"
-//#include "skynet_socket.h"
+// #include "stdafx.h"
+#include "skynet.h"
+#include "skynet_socket.h"
 
 #include <stdlib.h>
 #include <string.h>
