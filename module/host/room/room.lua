@@ -11,20 +11,49 @@ local NORET = {}
 
 local CMD = {}
 
-function CMD:on_enter_room(agents, ... )
+function CMD:start(rule, mode, scene, ai_sz, ... )
 	-- body
-	assert(#agents == 3)
-	for i=1,3 do
-		local agent = agents[i]
-		local player = self:create_player(agent.uid, agent.sid, agent.agent)
-		player:set_online(true)
-		player:set_robot(false)
-		local res = skynet.call(agent.agent, "lua", "info")	
-		player:set_name(res.name)
+	local controller = self:get_controller("game")
+	controller:set_rule(rule)
+	controller:set_mode(mode)
+	controller:set_scene(scene)
+
+	for i=1,ai_sz do
+		local uid = skynet.call(".AI_MGR", "lua", "enter")
+		local sid = skynet.call(".SID_MGR", "lua", "enter")
+		log.info("uid: %d, sid: %d", uid, sid)
+		local p = self:create_player(uid, sid)
+		p:set_aiflag(true)
+		p:set_online(false)
+		P:set_robot(false)
 	end
-	local players = self:get_players()
-	for i=1,3 do
-		local player = players[i]
+end
+
+function CMD:close( ... )
+	-- body
+end
+
+function CMD:kill( ... )
+	-- body
+	skynet.exit()
+end
+
+function CMD:afk(sid, ... )
+	-- body
+	local player = self:get_player_by_sid(sid)
+	player:set_online(false)
+	player:set_robot(true)
+end
+
+function CMD:on_enter_room(agent, ... )
+	-- body
+	local player = self:create_player(agent.uid, agent.sid, agent.agent)
+	player:set_aiflag(false)
+	player:set_online(true)
+	player:set_robot(false)
+	player:set_name(agent.name)
+	
+	for i=1,1 do
 		local ps = {}
 		local p = {
 			sid = player:get_sid(),
@@ -50,7 +79,7 @@ function CMD:on_enter_room(agents, ... )
 			}
 			table.insert(ps, p)
 		end
-		
+		assert(player:get_aiflag() == false)
 		local res = {}
 		res.players = ps
 		skynet.send(player:get_agent(), "lua", "enter_room", res)
@@ -58,7 +87,7 @@ function CMD:on_enter_room(agents, ... )
 	return true
 end
 
-function CMD:leave_room(uid, ... )
+function CMD:on_exit_room(args, ... )
 	-- body
 	log.info("room leave_room: %d", uid)
 	local controller = self._env:get_controller("game")
@@ -70,6 +99,26 @@ function CMD:leave_room(uid, ... )
 	return NORET
 end
 
+function CMD:exit_room(args, ... )
+	-- body
+	assert(args.errorcode == errorcode.SUCCESS)
+end
+
+function CMD:join(args, ... )
+	-- body
+	assert(args.errorcode == errorcode.SUCCESS)
+	return NORET
+end
+
+function CMD:on_leave(args, ... )
+	-- body
+end
+
+function CMD:leave(args, ... )
+	-- body
+	assert(args.errorcode == errorcode.SUCCESS)
+end
+
 function CMD:on_ready(args, ... )
 	-- body
 	local player = self:get_player_by_sid(args.sid)
@@ -77,12 +126,28 @@ function CMD:on_ready(args, ... )
 	return controller:on_ready(player, args.ready)
 end
 
+function CMD:ready(args, ... )
+	-- body
+	assert(args.errorcode == errorcode.SUCCESS)
+	return NORET
+end
+
 function CMD:on_mp(args, ... )
 	-- body
 end
 
+function CMD:mp(args, ... )
+	-- body
+	return NORET
+end
+
 function CMD:on_am(args, ... )
 	-- body
+end
+
+function CMD:am(args, ... )
+	-- body
+	assert(args.errorcode == errorcode.SUCCESS)
 end
 
 function CMD:on_rob(args, ... )
@@ -93,12 +158,24 @@ function CMD:on_rob(args, ... )
 	return controller:on_rob(player, args)
 end
 
+function CMD:rob(args, ... )
+	-- body
+	assert(args.errorcode == errorcode.SUCCESS)
+	return NORET
+end
+
 function CMD:on_lead(args, ... )
 	-- body
 	local sid = args.sid
 	local player = self:get_player_by_sid(sid)
 	local controller = self:get_controller("game")
 	return controller:lead(player, flag, args.cards)
+end
+
+function CMD:lead(args, ... )
+	-- body
+	assert(args.errorcode == errorcode.SUCCESS)
+	return NORET
 end
 
 function CMD:on_dealed(args, ... )
@@ -109,54 +186,10 @@ function CMD:on_dealed(args, ... )
 	return controller:on_dealed(player, args)
 end
 
-function CMD:enter_room(args, ... )
-	-- body
-	assert(args.errorcode == errorcode.SUCCESS)
-	return NORET
-end
-
-function CMD:ready(args, ... )
-	-- body
-	assert(args.errorcode == errorcode.SUCCESS)
-	return NORET
-end
-
-function CMD:mp(args, ... )
-	-- body
-	return NORET
-end
-
-function CMD:rob(args, ... )
-	-- body
-	assert(args.errorcode == errorcode.SUCCESS)
-	return NORET
-end
-
-function CMD:lead(args, ... )
-	-- body
-	assert(args.errorcode == errorcode.SUCCESS)
-	return NORET
-end
-
 function CMD:dealed(args, ... )
 	-- body
 	assert(args.errorcode == errorcode.SUCCESS)
 	return NORET
-end
-
-function CMD:afk(sid, ... )
-	-- body
-	local player = self:get_player_by_sid(sid)
-	player:set_online(false)
-	player:set_robot(true)
-end
-
-function CMD:start(rule, mode, scene, ... )
-	-- body
-	local controller = self:get_controller("game")
-	controller:set_rule(rule)
-	controller:set_mode(mode)
-	controller:set_scene(scene)
 end
 
 skynet.start(function ()

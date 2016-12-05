@@ -1,14 +1,26 @@
 local skynet = require "skynet"
 require "skynet.manager"
-local room_queue = require "room_queue"
+local waiting_queue = require "waiting_queue"
+local log = require "log"
 local noret = {}
 local users = {}
 local mgr
 
 local CMD = {}
 
-function CMD.enqueue_agent(source, uid, sid, rule, mode, scene, ... )
+function CMD.start(source, ... )
 	-- body
+end
+
+
+function CMD.kill( ... )
+	-- body
+	skynet.exit()
+end
+
+function CMD.enqueue_agent(source, uid, rule, mode, scene, ... )
+	-- body
+	log.info("enqueue_agent")
 	local agent = {
 		agent = source,
 		uid = uid,
@@ -22,10 +34,14 @@ function CMD.enqueue_agent(source, uid, sid, rule, mode, scene, ... )
 
 	local rt = (scene << 24 | mode << 16 | rule << 8)
 	mgr:enqueue_agent(rt, agent)
-	if mgr:get_queue_sz(rt) > 1 then
+	if mgr:get_agent_queue_sz(rt) >= 1 then
 		local room = mgr:dequeue_room()
-		skynet.call(room, "lua", "start", rule, mode, scene)
 		if true then
+			room.t = rt
+			room.num =  3
+			mgr:add_full(rt, room)
+			mgr:add_use(room)
+			skynet.call(room.room, "lua", "start", rule, mode, scene, 2)
 			for i=1,1 do
 				local agent = mgr:dequeue_agent(rt)
 				users[agent.uid] = nil
@@ -51,23 +67,24 @@ function CMD.dequeue_agent(source, uid, ... )
 	end
 end
 
-function CMD.apply(roomid, ... )
+function CMD.apply(source, roomid, ... )
 	-- body
-	return mgr:get_use_room().room
+	local room = mgr:get_use(roomid)
+	return room.room
 end
 
 -- room exit
-function CMD.enqueue_room(source, room, ... )
+function CMD.enqueue_room(source, roomid, ... )
 	-- body
-	enqueue_room(room)
+	local room = mgr:get_use(roomid)
+	if room.num == 3 then
+		mgr:remove_fule(room.t, room)
+		mgr:remove_use(room)
+		mgr:enqueue_room(room)
+	else
+		assert(false)
+	end
 	return noret
-end
-
-function CMD.start(source, ... )
-	-- body
-	local rt = (scene << 24 | mode << 16 | rule << 8)
-	local arr = { rt}
-	local mgr = room_queue.new(false, arr)
 end
 
 skynet.start(function ( ... )
@@ -80,5 +97,8 @@ skynet.start(function ( ... )
 			skynet.retpack(r)
 		end
 	end)
+	local rt = ( 1 << 24 | 1 << 16 | 1 << 8)
+	local arr = { rt}
+	mgr = waiting_queue.new(false, arr)
 	skynet.register ".ROOM_MGR"
 end)

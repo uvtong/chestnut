@@ -7,6 +7,9 @@ SERVICE_SRC_PATH ?= service-src
 
 CFLAGS = -g -O2 -Wall $(MYCFLAGS)
 
+default:
+	$(MAKE) all
+
 .PHONY: update3rd
 
 update3rd:

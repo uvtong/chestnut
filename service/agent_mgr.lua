@@ -45,6 +45,18 @@ end
 
 local CMD = {}
 
+function CMD.start(t, ... )
+	-- body
+	agent_service_type = t
+	init()
+	return true
+end
+
+function CMD.kill( ... )
+	-- body
+	skynet.exit()
+end
+
 function CMD.enter(uid, fd)
 	-- body
 	if users[uid] then
@@ -65,12 +77,7 @@ function CMD.exit(uid)
 	return true
 end
 
-function CMD.start(t, ... )
-	-- body
-	agent_service_type = t
-	init()
-	return true
-end
+
 
 skynet.start(function ()
 	-- body

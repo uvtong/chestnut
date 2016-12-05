@@ -4,9 +4,14 @@ local card = require "card"
 local player = require "player"
 local log = require "log"
 local list = require "list"
-local context = require "context"
 
-local cls = class("rcontext", context)
+local state = {}
+state.NONE       = 0
+state.START      = 1
+state.ENTER_ROOM = 2
+
+
+local cls = class("rcontext")
 
 function cls:ctor( ... )
 	-- body
@@ -15,7 +20,7 @@ function cls:ctor( ... )
 	self._list = list.new()
 	for i=1,3 do
 		local tmp = player.new(self)
-		list.add(self._list, tmp)
+		list.insert_tail(self._list, tmp)
 	end
 
 	self._players = {}
@@ -29,8 +34,6 @@ function cls:ctor( ... )
 
 	self._controllers = {}
 	self._controllers.game = gamecontroller.new(self, "game")
-
-	self._type = 1  -- 0. normal 2. ai
 
 	return self
 end
@@ -53,6 +56,7 @@ end
 
 function cls:add(player, ... )
 	-- body
+	log.info("rcontext add")
 	local uid = player:get_uid()
 	local sid = player:get_sid()
 	self._uid_player[uid] = player

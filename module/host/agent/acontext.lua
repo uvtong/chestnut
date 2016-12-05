@@ -6,7 +6,16 @@ local assert = assert
 local rdb = ".DB"
 local wdb = ".DB"
 
+local state = {}
+state.NONE         = 0
+state.NORMAL       = 1
+state.ENTER_ROOM   = 2
+state.ENTER_ROOMED = 3
+
+
 local cls = class("acontext", context)
+
+context.state = state
 
 function cls:ctor( ... )
 	-- body
@@ -18,28 +27,9 @@ function cls:ctor( ... )
 	self._secret = false
 	self._room = nil
 	self._host_udbcontext = host_udbcontext.new(self, rdb, wdb)
-	self._join = false
+	self._state = state.NONE
+	self._last_state = state.NONE
 	return self
-end
-
-function cls:login(gate, uid, subid, secret)
-	assert(uid and subid and secret)
-	self._gate = gate
-	self._uid = uid
-	self._subid = subid
-	self._secret = secret
-	self._host_udbcontext:load_db_to_data()
-	self._join = false
-	return self._uid
-end
-
-function cls:logout( ... )
-	-- body
-	if self._gate then
-		skynet.call(self._gate, "lua", "logout", self._uid, self._subid)
-	end
-	skynet.call(".AGENT_MGR", "lua", "exit")
-	-- skynet.exit()
 end
 
 function cls:get_uid( ... )
@@ -72,14 +62,44 @@ function cls:get_host_udbcontext( ... )
 	return self._host_udbcontext
 end
 
-function cls:get_join( ... )
+function cls:get_state( ... )
 	-- body
-	return self._join
+	return self._state
 end
 
-function cls:set_join(value, ... )
+function cls:set_state(value, ... )
 	-- body
-	self._join = value
+	self._state = value
+end
+
+function cls:get_last_state( ... )
+	-- body
+	return self._last_state
+end
+
+function cls:set_last_state(value, ... )
+	-- body
+	self._last_state = value
+end
+
+function cls:login(gate, uid, subid, secret)
+	assert(uid and subid and secret)
+	self._gate = gate
+	self._uid = uid
+	self._subid = subid
+	self._secret = secret
+	self._host_udbcontext:load_db_to_data()
+	self._join = false
+	return self._uid
+end
+
+function cls:logout( ... )
+	-- body
+	if self._gate then
+		skynet.call(self._gate, "lua", "logout", self._uid, self._subid)
+	end
+	skynet.call(".AGENT_MGR", "lua", "exit")
+	-- skynet.exit()
 end
 
 return cls
