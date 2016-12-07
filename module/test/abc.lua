@@ -1,32 +1,22 @@
 local skynet = require "skynet"
-local luapack = require "luapack"
+-- local luapack = require "luapack"
 local test = require "test"
+
+local function cb( ... )
+	-- body
+	local cmd, ud = skynet.call(".TEST", "text")
+	skynet.error(cmd, ud)
+end
 
 skynet.register_protocol {
 	name = "text",
 	id = skynet.PTYPE_TEXT,
-	unpack = function (msg, sz)
-		return luapack.unpack(msg, sz)
-	end,
+	pack = test.pack,
+	unpack = test.unpack,
 	dispatch = test.dispatch
-	dispatch = function (session, source, type, ...)
-		if type == "REQUEST" then
-			local ok, result = pcall(request, ...)
-			if ok then
-				if result then
-					ctx:send_package(result)
-				end
-			else
-				log.error(result)
-			end
-		elseif type == "RESPONSE" then
-			pcall(response, ...)
-		else
-			assert(false, result)
-		end
-	end
 }
 
 skynet.start(function ( ... )
 	-- body
+	skynet.timeout(10, cb)
 end)

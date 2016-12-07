@@ -104,10 +104,10 @@ $(LUA_CLIB_PATH)/math3d.so: $(CLIB_SRC_PATH)/libmath.c $(CLIB_SRC_PATH)/libaabb.
 	g++ -fpermissive -std=c++11 $(CFLAGS) $(SHARED) -I$(LUA_PATH) $^ -o $@	
 
 $(LUA_CLIB_PATH)/rudp.so: ./3rd/rudp/rudp.c $(CLIB_SRC_PATH)/librudp.c 
-	$(CC) $^ $(CFLAGS) $(SHARED) -I$(LUA_PATH) -I./3rd/rudp/ -o $@
+	$(CC) $(CFLAGS) $(SHARED) -I$(LUA_PATH) -I./3rd/rudp/ $^ -o $@
 
 $(LUA_CLIB_PATH)/test.so: $(CLIB_SRC_PATH)/lua-test.c
-	$(CC) $(CFLAGS) $(SHARED) -I$(LUA_PATH) $^ -o $@
+	$(CC) $(CFLAGS) $(SHARED) -I$(LUA_PATH) -I$(SERVICE_SRC_PATH) -I$(SKYNET_SRC_PATH) $^ -o $@
 
 # service
 $(CSERVICE_PATH)/catlogger.so: $(SERVICE_SRC_PATH)/service_catlogger.c | $(CSERVICE_PATH)

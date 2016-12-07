@@ -7,12 +7,12 @@ skynet.start(function()
 	skynet.call(logger, "lua", "start")
 	
 	skynet.newservice("codweb")
-	skynet.uniqueservice("protoloader")
+	-- skynet.uniqueservice("protoloader")
 	
 	local console = skynet.newservice("console")
 	skynet.newservice("debug_console",8000)
 	
-	local test = skynet.newservice("test");
+	local test = skynet.launch("test", "start");
 	local abc = skynet.newservice("abc")
 
 	-- read
