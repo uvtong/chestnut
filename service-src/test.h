@@ -1,3 +1,6 @@
+#ifndef TEST_H
+#define TEST_H
+
 #include <stdbool.h>
 
 struct test_message {
@@ -13,3 +16,5 @@ unpack(void *msg, int sz, void *ud);
 
 void
 dispatch();
+
+#endif
