@@ -30,7 +30,6 @@ lrecv(lua_State *L) {
 
 static int
 lupdate(lua_State *L) {
-
 }
 
 static int

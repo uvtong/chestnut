@@ -36,12 +36,12 @@ function cls:ctor(id, ... )
 	self._players_sz = 0
 	self._player_cs = skynet_queue()
 
-	self._ais = {}
+	self._ais   = {}
 	self._ai_sz = 0
-	self._aics = skynet_queue()
+	self._aics  = skynet_queue()
 	
 	self._state = gs.NONE
-	self._type = gametype.NONE
+	self._type  = gametype.NONE
 	self._times = {}
 
 	self._list = list.new()
@@ -129,14 +129,34 @@ function cls:get_leadboard( ... )
 	return self._leadboard
 end
 
+function cls:create_player( ... )
+	-- body
+	if list.size(self._list) > 0 then
+		local player = list.head(self._list)
+		list.remove_head(self._list)
+		return player
+	else
+		local tmp = player.new()
+		return tmp
+	end
+end
+
+function cls:release_player(p, ... )
+	-- body
+	list.insert_tail(self._list, p)
+end
+
 function cls:add(uid, p, ... )
 	-- body
-	self._session_players[uid] = p
-	local function func( ... )
+	local function func(uid, p, ... )
 		-- body
-		self._players_sz = self._players_sz + 1
+		if self._session_players[uid] then
+		else
+			self._session_players[uid] = p
+			self._players_sz = self._players_sz + 1
+		end
 	end
-	self._player_cs(func)
+	self._player_cs(func, uid, p)
 	self._leadboard:push_back(p, player.comp_score)
 end
 
@@ -180,7 +200,7 @@ end
 function cls:alloc_ai(hp, ... )
 	-- body
 	local uid = skynet.call(".AI_MGR", "lua", "enter")
-	local player = self:get_freeplayer()
+	local player = self:create_player()
 	player:set_uid(uid)
 	player:set_ai(true)
 
@@ -262,23 +282,20 @@ function cls:start(t, total, num, ainum, ... )
 	self._number = num
 	self._ainumber = ainum
 
+	self._session_players = {}
+	self._players_sz = 0
+
+
+
 	local key = string.format("%s:%d", "s_attribute", 1)
 	local row = sd.query(key)
 
-	-- local num = self._ainumber
-	-- for i=1,num do
-	-- 	local player = self:alloc_ai(row.baseHP)
-	-- 	self:add_ai(player:get_id(), player)
-	-- end
-
-
 	if self._type == gametype.CIRCLE then
-		local handler = cc.handler(self, cls.close)
+		local cb = cc.handler(self, cls.close)
 		skynet.timeout(600 * 60 * 15, handler)
 	end
-
-	local handler = cc.handler(self, cls.leadboard_cd) 
-	skynet.timeout(100 * 3, handler)
+	local cb = cc.handler(self, cls.leadboard_cd) 
+	skynet.timeout(100 * 3, cb)
 end
 
 function cls:close( ... )
@@ -312,22 +329,6 @@ end
 function cls:set_type(value, ... )
 	-- body
 	self._type = value
-end
-
-function cls:get_freeplayer( ... )
-	-- body
-	local function func(li, ... )
-		-- body
-		if list.size(li) > 0 then
-			local player = list.head(self._list)
-			list.remove_head(self._list)
-			return player
-		else
-			local tmp = player.new()
-			return tmp
-		end
-	end
-	return self._csfree(func, self._list)
 end
 
 function cls:leadboard_cd( ... )

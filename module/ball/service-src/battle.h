@@ -7,6 +7,10 @@ struct battle_message {
 	int dummy;
 };
 
+struct battle_rsp_message {
+
+};
+
 struct battle_message *
 battle_message_alloc();
 

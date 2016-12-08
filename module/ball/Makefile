@@ -69,6 +69,9 @@ $(LUA_CLIB_PATH)/float.so: $(CLIB_SRC_PATH)/float.c | $(LUA_CLIB_PATH)
 $(LUA_CLIB_PATH)/room.so: $(SERVICE_SRC_PATH)/room.c | $(LUA_CLIB_PATH)
 	gcc $(CFLAGS) $(SHARED) -I$(LUA_INC) $^ -o $@
 
+test: test.c
+	g++ -o $@ $^ -L. -lcolib -lpthread -ldl
+
 $(CSERVICE_PATH)/room.so: $(SERVICE_SRC_PATH)/service_room.c \
 	$(SERVICE_SRC_PATH)/RoomContext.cpp \
 	$(PLAY_SRC_PATH)/App.cpp \

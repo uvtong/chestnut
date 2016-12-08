@@ -6,16 +6,32 @@ extern "C" {
 #endif
 
 #include <stdint.h>
+#include <co_routine.h>
+
+typedef void * (*pfn_task_t)(void *ud);
+
+struct task_t {
+	stCoRoutine_t *co;
+	pfn_task_t     func;
+	void          *arg;
+	void          *res;
+};
 
 struct battle {
-	int dummy;
+	struct task_t *slots;
+	int            cap;
+	int            size;
+	int            free;
 };
 
 struct battle * 
 battle_alloc();
 
 void 
-battle_free(struct room *self);
+battle_free(struct battle *self);
+
+struct task_t *
+battle_create_task(struct battle *self);
 
 #ifdef __cplusplus
 }

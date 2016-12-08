@@ -186,6 +186,7 @@ end
 
 function client_request.ping( ... )
 	-- body
+	-- log.info("ping")
 	local res = { errorcode=errorcode.SUCCESS }
 	return res
 end

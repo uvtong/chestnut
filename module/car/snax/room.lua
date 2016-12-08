@@ -105,7 +105,7 @@ function response.joinroom(handle, secret, uid)
 	local gate = ctx:get_gate()
 	local session = gate.req.register(skynet.self(), secret)
 	local agent = snax.bind(handle, "agent")
-	local player = ctx:get_freeplayer()
+	local player = ctx:create_player()
 	player:set_session(session)
 	player:set_uid(uid)
 	player:set_secret(secret)
@@ -152,14 +152,14 @@ function response.joinroom(handle, secret, uid)
 	end
 	leadboard:push_back(player, comp)
 
-	local p = {}
+	local p  = {}
 	p.userid = uid
-	p.carid = car:get_id()
-	p.ai = player:get_ai()
-	p.name = player:get_name()
-	p.x = math.tointeger(player:get_car():get_x())
-	p.y = math.tointeger(player:get_car():get_y())
-	p.z = math.tointeger(player:get_car():get_z())
+	p.carid  = car:get_id()
+	p.ai     = player:get_ai()
+	p.name   = player:get_name()
+	p.x   = math.tointeger(player:get_car():get_x())
+	p.y   = math.tointeger(player:get_car():get_y())
+	p.z   = math.tointeger(player:get_car():get_z())
 	p.ori = car:get_ori()
 	table.insert(nps, p)
 	table.insert(ps, p)
@@ -196,11 +196,11 @@ function response.joinroom(handle, secret, uid)
 		local u = ctx:get_player(uid)
 		u:add_ai(player)
 
-		local p = {}
+		local p  = {}
 		p.userid = player:get_uid()
-		p.carid = player:get_car():get_id()
-		p.ai = player:get_ai()
-		p.name = player:get_name()
+		p.carid  = player:get_car():get_id()
+		p.ai     = player:get_ai()
+		p.name   = player:get_name()
 		p.x = math.tointeger(car:get_x())
 		p.y = math.tointeger(car:get_y())
 		p.z = math.tointeger(car:get_z())
@@ -211,7 +211,7 @@ function response.joinroom(handle, secret, uid)
 	end
 
 	if ctx:get_number() == ctx:get_players_sz() then
-		log.info("countdown limit_start")
+		log.info("countdown limit_start. num of players: %d", ctx:get_number())
 		local function countdown( ... )
 			-- body
 			for k,v in pairs(session_players) do
@@ -238,6 +238,7 @@ function response.leave(args)
 		if args.userid < 1000 then
 			ctx:remove_ai(args.userid)
 		else
+			-- remove player ai
 			player = ctx:get_player(args.userid)
 			assert(player)
 			local ais = player:get_ais()
@@ -246,35 +247,35 @@ function response.leave(args)
 			end
 			ctx:remove(args.userid)
 
-			-- change_ai
-			if ctx:get_players_sz() > 0 then
-				local player
-				local players = ctx:get_players()
-				for k,v in pairs(players) do
-					player = v
-					break
-				end
-				local ps = {}
-				for k,player in pairs(ais) do
-					local p = {}
-					p.userid = player:get_uid()
-					p.carid = player:get_car():get_id()
-					p.ai = player:get_ai()
-					p.name = player:get_name()
-					p.x = math.tointeger(car:get_x())
-					p.y = math.tointeger(car:get_y())
-					p.z = math.tointeger(car:get_z())
-					p.ori = car:get_ori()
-					table.insert(ps, p)
-				end
-				local agent = player:get_agent()
-				agent.post.change_ai({battleinitdataitem=ps})
-			else
-				if ctx:get_type() == 1 then
-					local id = ctx:get_id()
-					skynet.send(".ROOM_MGR", "lua", "enqueue_room", id)
-				end
-			end
+			-- -- change_ai
+			-- if ctx:get_players_sz() > 0 then
+			-- 	local player
+			-- 	local players = ctx:get_players()
+			-- 	for k,v in pairs(players) do
+			-- 		player = v
+			-- 		break
+			-- 	end
+			-- 	local ps = {}
+			-- 	for k,player in pairs(ais) do
+			-- 		local p = {}
+			-- 		p.userid = player:get_uid()
+			-- 		p.carid = player:get_car():get_id()
+			-- 		p.ai = player:get_ai()
+			-- 		p.name = player:get_name()
+			-- 		p.x = math.tointeger(car:get_x())
+			-- 		p.y = math.tointeger(car:get_y())
+			-- 		p.z = math.tointeger(car:get_z())
+			-- 		p.ori = car:get_ori()
+			-- 		table.insert(ps, p)
+			-- 	end
+			-- 	local agent = player:get_agent()
+			-- 	agent.post.change_ai({battleinitdataitem=ps})
+			-- else
+			-- 	if ctx:get_type() == 1 then
+			-- 		local id = ctx:get_id()
+			-- 		skynet.send(".ROOM_MGR", "lua", "enqueue_room", id)
+			-- 	end
+			-- end
 		end
 		local players = ctx:get_players()
 		for k,v in pairs(players) do
@@ -555,16 +556,16 @@ end
 
 function response.close( ... )
 	-- body
-	local id = ctx:get_id()
-	local room_mgr = ctx:get_room_mgr()
-	room_mgr.post.exit(id)
-
 	local gate = ctx:get_gate()
 	local players = ctx:get_players()
 	for k,player in pairs(players) do
 		local session = player:get_session()
 		gate.req.unregister(session)	
 	end
+
+	local id = ctx:get_id()
+	local room_mgr = ctx:get_room_mgr()
+	room_mgr.post.exit(id)
 end
 
 function accept.kill( ... )
@@ -579,8 +580,9 @@ function init(id, udpserver)
 end
 
 function exit()
-	for _,user in pairs(users) do
-		local gate = ctx:get_gate()
-		gate.req.unregister(user.session)
+	local gate = ctx:get_gate()
+	local players = ctx:get_players()
+	for _,p in pairs(players) do
+		gate.req.unregister(p:get_session())
 	end
 end

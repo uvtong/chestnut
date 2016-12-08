@@ -2,44 +2,76 @@ package.cpath = "../luaclib/?.so;" .. package.cpath
 package.path = "../lualib/?.lua;" .. package.path
 
 require "init"
-
 class = cc.class
 
-local leadboard = require "leadboard"
-
-local l = leadboard.new(10)
-
-local function comp(left, right, ... )
+local function f1(a, b, ... )
 	-- body
-	assert(type(left) == "number")
-	assert(type(right) == "number")
-	return left > right
+	print(a, b)
+	local x = 1
+	while true do
+		x = x + 1
+		print(x)
+		if x % 10 == 0 then
+			local res = coroutine.yield(4)
+			print(res)
+		end
+	end
 end
 
-l:push_back(12, comp)
-l:push_back(122, comp)
-l:push_back(132, comp)
-l:push_back(7, comp)
-l:push_back(643, comp)
-l:push_back(98, comp)
-l:push_back(111, comp)
-l:push_back(32, comp)
-l:push_back(25, comp)
-l:push_back(94, comp)
-l:push_back(65, comp)
-l:push_back(198, comp)
-l:push_back(322, comp)
-l:push_back(56, comp)
-l:push_back(111, comp)
-l:push_back(142, comp)
-l:push_back(56, comp)
-
-local function printx(x, ... )
+local function f2( ... )
 	-- body
-	print(x)
+	while true do
+		print("test 2")
+		coroutine.yield()
+	end
 end
 
-l:foreach(printx)
+local co1 = coroutine.create(f1)
+local co2 = coroutine.create(f2)
+
+print("begin")
+local ok, res = coroutine.resume(co1, 1, 2)
+print("res:", res)
+coroutine.resume(co2)
+coroutine.resume(co1, 3)
+coroutine.resume(co2)
+
+
+
+-- local leadboard = require "leadboard"
+-- local l = leadboard.new(10)
+
+-- local function comp(left, right, ... )
+-- 	-- body
+-- 	assert(type(left) == "number")
+-- 	assert(type(right) == "number")
+-- 	return left > right
+-- end
+
+-- l:push_back(12, comp)
+-- l:push_back(122, comp)
+-- l:push_back(132, comp)
+-- l:push_back(7, comp)
+-- l:push_back(643, comp)
+-- l:push_back(98, comp)
+-- l:push_back(111, comp)
+-- l:push_back(32, comp)
+-- l:push_back(25, comp)
+-- l:push_back(94, comp)
+-- l:push_back(65, comp)
+-- l:push_back(198, comp)
+-- l:push_back(322, comp)
+-- l:push_back(56, comp)
+-- l:push_back(111, comp)
+-- l:push_back(142, comp)
+-- l:push_back(56, comp)
+
+-- local function printx(x, ... )
+-- 	-- body
+-- 	print(x)
+-- end
+
+-- l:foreach(printx)
 
 
 -- local math3d = require "math3d"

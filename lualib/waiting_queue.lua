@@ -36,31 +36,31 @@ end
 
 function cls:enqueue_agent(t, agent, ... )
 	-- body
-	local q = self._queues[t]
 	local function func1(q, i, ... )
 		-- body
 		q:enqueue(i)
 	end
+	local q = self._queues[t]
 	return self._cs1(func1, q, agent)
 end
 
 function cls:dequeue_agent(t, ... )
 	-- body
-	local q = self._queues[t]
 	local function func1(q, ... )
 		-- body
 		return q:dequeue()
 	end
+	local q = self._queues[t]
 	return self._cs1(func1, q)
 end
 
 function cls:del_agent(t, agent, ... )
 	-- body
-	local q = self._queues[t]
 	local function func1(q, agent, ... )
 		-- body
 		return q:del(agent)
 	end
+	local q = self._queues[t]
 	return self._cs1(func1, q, agent)
 end
 
@@ -70,7 +70,7 @@ function cls:get_agent_queue_sz(t, ... )
 	return q:size()
 end
 
-function cls:create_room( ... )
+function cls:_create_room( ... )
 	-- body
 	self._id = self._id + 1
 	local room
@@ -94,9 +94,9 @@ end
 -- manager room
 function cls:enqueue_room(room, ... )
 	-- body
-	local function func1(q, room, ... )
+	local function func1(q, r, ... )
 		-- body
-		q:enqueue(room)
+		q:enqueue(r)
 	end
 	return self._cs2(func1, self._rooms, room)
 end
@@ -109,7 +109,7 @@ function cls:dequeue_room( ... )
 			local room = q:dequeue()
 			return room
 		else
-			local room = self:create_room()
+			local room = self:_create_room()
 			return room
 		end
 	end

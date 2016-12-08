@@ -41,3 +41,6 @@
 [submodule "3rd/Maria"]
 	path = 3rd/Maria
 	url = https://github.com/Mephostopilis/Maria
+[submodule "3rd/libco"]
+	path = 3rd/libco
+	url = https://code.csdn.net/Tencent/libco.git

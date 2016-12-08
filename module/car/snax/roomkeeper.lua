@@ -11,21 +11,21 @@ local gate_max = 1
 local gate_idx = 1
 local users = {}
 local mgr
-local room
 
-local waiting = 1
-local limit_waiting = {}
 local fen_cs
 
 local function fen(t, total, users, ais, ... )
 	-- body
 	log.info("fen begin. ais:%d", ais)
-	gate_idx = gate_idx + 1 % gate_max
-	local gate = udpgates[gate_idx]
+	gate_idx = gate_idx + 1
+	local idx = gate_idx % gate_max + 1
+	local gate = udpgates[idx]
+			
 	local room = mgr:dequeue_room()
-	room.t = t
-	room.num = users
+	room.t     = t
+	room.num   = users
 	room.gate = gate
+
 	room.room.req.start(snax.self().handle, gate.udpgate.handle, t, total, users, ais)
 	for i=1,users do
 		local agent = mgr:dequeue_agent(t)
@@ -36,18 +36,10 @@ local function fen(t, total, users, ais, ... )
 	mgr:add_use(room)
 end
 
-local function cd( ... )
+local function matching( ... )
 	-- body
-	log.info("abc")
-	local function func(waiting, ... )
-		-- body
-		if limit_waiting[waiting] then
-			local num = mgr:get_agent_queue_sz(1)
-			fen_cs(fen, 1, 30, num, (20 - num and (20 -num) or 0))
-		else
-		end
-	end
-	func(waiting)
+	local num = mgr:get_agent_queue_sz(1)
+	fen_cs(fen, 1, 30, num, (20 - num and (20 -num) or 0))
 end
 
 function accept.enter(addr, uid, t, ... )
@@ -61,9 +53,7 @@ function accept.enter(addr, uid, t, ... )
 		mgr:enqueue_agent(t, agent)
 		if mgr:get_agent_queue_sz(t) == 1 then -- nobody
 			log.info("test 0")
-			waiting = waiting + 1
-			limit_waiting[waiting] = true
-			skynet.timeout(600 * 1, cd)
+			skynet.timeout(600 * 10, matching)
 		elseif mgr:get_agent_queue_sz(t) >= 30 then
 			log.info("test 1")
 			fen_cs(fen, t, 30, 30, 0)
@@ -81,9 +71,9 @@ function accept.enter(addr, uid, t, ... )
 		else
 			gate_idx = gate_idx + 1 % gate_max
 			local gate = udpgates[gate_idx]
-			room = mgr:dequeue_room()
-			room.t = t
-			room.num = 0
+			room      = mgr:dequeue_room()
+			room.t    = t
+			room.num  = 0
 			room.gate = gate
 			room.room.req.start(snax.self().handle, gate.udpgate.handle, t, 30, 1, 19)
 		end
@@ -114,7 +104,6 @@ function accept.exit(id, ... )
 end
 
 function response.apply(roomid)
-	log.info("roomid %d", roomid)
 	if roomid > 5000 then
 		local room = rooms[roomid]
 		if room == nil then
@@ -134,27 +123,19 @@ function response.apply(roomid)
 	else
 		local room = mgr:get_use(roomid)
 		log.info("roomid %d, type: %d", room.id, room.t)
-		if room.gate then
-			local gate = room.gate
-			return room.room.handle, gate.host, gate.post
-		else
-			gate_idx = gate_idx + 1 % gate_max
-			local gate = udpgates[gate_idx]
-			room.gate = gate
-			return room.room.handle, gate.host, gate.post
-		end
+		assert(room.gate)
+		return room.room.handle, room.gate.host, room.gate.port
 	end
 end
 
 function response.start( ... )
 	-- body
-	-- room = mgr:dequeue_room()
-	-- room.gate = udpgates[1]
-	-- room.room.req.start(snax.self().handle, room.gate.udpgate, 2, 30, 1, 19)
-
-	-- local room = snax.newservice("room", 10000, udpgates[1])
-	-- room.req.start(snax.self().handle, udpgates[1].gate, 2, 30, 1, 19)
 end
+
+function response.kill( ... )
+	-- body
+end
+
 -- todo : close room ?
 
 function init()
@@ -176,4 +157,8 @@ function init()
 	local arr = {1, 2}
 	mgr = waiting_queue.new(true, arr)
 	fen_cs = skynet_queue()
+end
+
+function exit( ... )
+	-- body
 end
