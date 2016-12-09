@@ -25,8 +25,8 @@ text_message_free(struct text_message *self) {
 }
 
 const char *
-text_message_unpack(struct text_message *self, void *ud) {
-	ud = self->ud;
+text_message_unpack(struct text_message *self, void **ud) {
+	*ud = self->ud;
 	return self->cmd;
 }
 

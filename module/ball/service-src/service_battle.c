@@ -5,11 +5,11 @@ extern "C" {
 #include "skynet.h"
 #include "skynet_malloc.h"
 
-#include "service_battle.h"
-
 #include "battle.h"
 #include "text_message.h"
+#include "rbtree.h"
 
+#include <co_routine.h>
 
 #include <stdio.h>
 #include <stdlib.h>
@@ -18,10 +18,22 @@ extern "C" {
 #include <time.h>
 #include <assert.h>
 
-struct player {
-	uint32_t uid;
-	uint32_t sid;
-	uint32_t session;
+typedef void * (*pfn_task_t)(void *ud);
+
+struct task_t {
+	stCoRoutine_t *co;
+	pfn_task_t     func;
+	void          *arg;
+	void          *res;
+};
+
+struct battle {
+	struct task_t *slots;
+	int            cap;
+	int            size;
+	int            free;
+
+
 };
 
 static void *
@@ -85,7 +97,7 @@ battle_create_task(struct battle *self) {
 	} else {
 		if (self->free < 0) 
 			self->free = self->cap - 1;
-		struct task_t *ta = self->slots[self->free];
+		struct task_t *ta = &self->slots[self->free];
 		self->free--;
 		self->size++;
 		return ta;
@@ -100,17 +112,18 @@ battle_release_task(struct battle *self, struct task_t *ta) {
 static void *
 cmd_start(void *arg) {
 	struct battle_message *message = (struct battle_message *)arg;
+	return NULL;
 }
 
 static void
 _ctrl(struct skynet_context *ctx, void *ud, int session, uint32_t source, const void *msg, size_t sz) {
 	struct battle *inst = (struct battle *)ud;
 	struct text_message *message = (struct text_message *)msg;
-	struct battle_message *ud = NULL;
-	if (strcmp(text_message_unpack(message, ud), "START") == 0) {
+	struct battle_message *body = NULL;
+	if (strcmp(text_message_unpack(message, (void**)&body), "START") == 0) {
 		struct task_t * ta = battle_create_task(inst);
 		ta->func = cmd_start;
-		ta->arg  = battle_message;
+		ta->arg  = body;
 		co_resume(ta->co);
 		if (ta->res != NULL) {
 			struct text_message *rsp = (struct text_message *)skynet_malloc(sizeof(*rsp));
@@ -119,45 +132,41 @@ _ctrl(struct skynet_context *ctx, void *ud, int session, uint32_t source, const 
 			rsp->ud = skynet_malloc(sizeof(struct battle_rsp_message));
 			skynet_send(ctx, 0, source, PTYPE_RESPONSE, session, rsp, sizeof(*rsp));
 		}
-	} else if (strcmp(text_message_unpack(message, ud), "CLOSE") == 0) {
-	} else if (strcmp(text_message_unpack(message, ud), "KILL") == 0) {
-	} else if (strcmp(text_message_unpack(message, ud), "JOIN") == 0) {
-	} else if (strcmp(text_message_unpack(message, ud), "LEAVE") == 0) {
-	} else if (strcmp(text_message_unpack(message, ud), "OPCODE") == 0) {
-		
+	} else if (strcmp(text_message_unpack(message, (void**)&body), "CLOSE") == 0) {
+	} else if (strcmp(text_message_unpack(message, (void**)&body), "KILL") == 0) {
+	} else if (strcmp(text_message_unpack(message, (void**)&body), "JOIN") == 0) {
+	} else if (strcmp(text_message_unpack(message, (void**)&body), "LEAVE") == 0) {
+	} else if (strcmp(text_message_unpack(message, (void**)&body), "OPCODE") == 0) {	
 	}
 	skynet_free(message);
 }
 
 static int
-_cb(struct skynet_context *context, void *ud, int type, int session, uint32_t source, const void *msg, size_t sz) {
-	struct room *r = (struct room *)ud;
+_cb(struct skynet_context *ctx, void *ud, int type, int session, uint32_t source, const void *msg, size_t sz) {
 	if (type == PTYPE_TEXT) {
-		assert(sz == 4);
-		struct room_msg *message = (struct room_msg*)(msg);
-		if (strcmp(message->cmd, "start") == 0) {
-		}
+		_ctrl(ctx, ud, session, source, msg, sz);
 	} else if (type == PTYPE_RESPONSE) {
+		
 	}
 	return 0;
 }
 
-struct room *
-room_create(void) {
-	struct room *inst = room_alloc();
+struct battle *
+battle_create(void) {
+	struct battle *inst = battle_alloc();
 	memset(inst, 0, sizeof(*inst));
 	return inst;
 }
 
 void
-room_release(struct room *inst) {
-	room_free(inst);
+battle_release(struct battle *inst) {
+	battle_free(inst);
 }
 
 int
-room_init(struct room *inst, struct skynet_context *ctx, const char *parm) {
+battle_init(struct battle *inst, struct skynet_context *ctx, const char *parm) {
 	skynet_callback(ctx, inst, _cb);
-	skynet_command(ctx, "TIMEOUT", )
+	// skynet_command(ctx, "TIMEOUT", )
 	// skynet_command(ctx, "REG", ".ROOM");
 	return 0;
 }

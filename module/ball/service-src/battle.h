@@ -1,5 +1,5 @@
-#ifndef ROOM_H
-#define ROOM_H
+#ifndef BATTLE_H
+#define BATTLE_H
 
 #include <stdint.h>
 
@@ -8,13 +8,13 @@ struct battle_message {
 };
 
 struct battle_rsp_message {
-
+	int dummy;
 };
 
 struct battle_message *
 battle_message_alloc();
 
 void
-battle_message_free(struct room_message *self);
+battle_message_free(struct battle_message *self);
 
 #endif

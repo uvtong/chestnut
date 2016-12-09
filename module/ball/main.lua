@@ -107,6 +107,7 @@ skynet.start(function()
 	local game = skynet.uniqueservice("game")
 	skynet.call(game, "lua", "start")
 	
+	skynet.launch("battle", "test")
 	log.info("ball host successful .")
 	
 	skynet.exit()
