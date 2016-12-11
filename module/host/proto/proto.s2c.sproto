@@ -89,15 +89,16 @@ rob 7 {
 
 lead 8 {
     request {
-        sid   0 : integer
-        cards 1 : *integer
-        turn  2 : boolean
-        your_turn 3 : integer
-        countdown 4 : integer
-        settlement 5 : boolean
-        ranked1 6 : settlement
-        ranked2 7 : settlement
-        ranked3 8 : settlement
+        sid        0 : integer
+        lead       1 : boolean
+        cards      2 : *integer
+        turn       3 : boolean
+        your_turn  4 : integer
+        countdown  5 : integer
+        settlement 6 : boolean
+        ranked1    7 : settlement
+        ranked2    8 : settlement
+        ranked3    9 : settlement
     }
     response {
         errorcode 0 : integer
@@ -110,6 +111,16 @@ dealed 9 {
         rob       1 : boolean
         your_turn 2 : integer
         countdown 3 : integer
+    }
+    response {
+        errorcode 0 : integer
+    }
+}
+
+identity 12 {
+    request {
+        your_turn 0 : integer
+        countdown 1 : integer
     }
     response {
         errorcode 0 : integer

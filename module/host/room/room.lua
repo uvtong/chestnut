@@ -25,12 +25,14 @@ function CMD:start(rule, mode, scene, ai_sz, ... )
 		local p = self:create_player(uid, sid)
 		p:set_aiflag(true)
 		p:set_online(false)
-		P:set_robot(false)
+		p:set_robot(false)
+		self:add(p)
 	end
 end
 
 function CMD:close( ... )
 	-- body
+	self:clear()
 end
 
 function CMD:kill( ... )
@@ -45,63 +47,83 @@ function CMD:afk(sid, ... )
 	player:set_robot(true)
 end
 
-function CMD:on_enter_room(agent, ... )
+function CMD:on_join(agent, ... )
 	-- body
-	local player = self:create_player(agent.uid, agent.sid, agent.agent)
-	player:set_aiflag(false)
-	player:set_online(true)
-	player:set_robot(false)
-	player:set_name(agent.name)
+	local me = self:create_player(agent.uid, agent.sid, agent.agent)
+	me:set_aiflag(false)
+	me:set_online(true)
+	me:set_robot(false)
+	me:set_name(agent.name)
+	self:add(me)
 	
+	local ps = {}
 	for i=1,1 do
-		local ps = {}
 		local p = {
-			sid = player:get_sid(),
-			name = player:get_name(),
+			sid  = me:get_sid(),
+			name = me:get_name(),
 			orientation = 0,
 		}
 		table.insert(ps, p)
-		local last = player:get_last()
+		local last = me:get_last() -- left
 		if last then
 			local p = {
-				sid = last:get_sid(),
+				sid  = last:get_sid(),
 				name = last:get_name(),
 				orientation = 1,
 			}
 			table.insert(ps, p)
+
+			if not last:get_aiflag() and last:get_online() then
+				assert(false)
+				local args = {}
+				args.players = {}
+				local p = {
+					sid  = me:get_sid(),
+					name = me:get_name(),
+					orientation = -1,
+				}
+				table.insert(args.players, p)
+				skynet.send(last:get_agent(), "lua", "join", args)
+			end
 		end
-		local next = player:get_next()
+		local next = me:get_next() -- right
 		if next then
 			local p = {
-				sid = next:get_sid(),
+				sid  = next:get_sid(),
 				name = next:get_name(),
 				orientation = -1
 			}
 			table.insert(ps, p)
+
+			if not next:get_aiflag() and next:get_online() then
+				assert(false)
+				local args = {}
+				args.players = {}
+				local p = {
+					sid  = me:get_sid(),
+					name = me:get_name(),
+					orientation = 1,
+				}
+				table.insert(args.players, p)
+
+				skynet.send(next:get_agent(), "lua", "join", args)
+			end
 		end
-		assert(player:get_aiflag() == false)
-		local res = {}
-		res.players = ps
-		skynet.send(player:get_agent(), "lua", "enter_room", res)
 	end
-	return true
-end
 
-function CMD:on_exit_room(args, ... )
-	-- body
-	log.info("room leave_room: %d", uid)
-	local controller = self._env:get_controller("game")
-	-- if controller:get_state() == gs.CLOSE then
-		
-	local player = self:get_player_by_uid(uid)
-	self:remove(player)
-	skynet.call(".ROOM_MGR", "lua", "leave_room", uid)
-	return NORET
-end
-
-function CMD:exit_room(args, ... )
-	-- body
-	assert(args.errorcode == errorcode.SUCCESS)
+	if self:get_players_count() == 3 then
+		local players = self:get_players()
+		for i=1,3 do
+			local p = players[i]
+			p:start()
+			if p:get_aiflag() then
+				p:ready_for_ready()
+			end
+		end
+	end
+	local res = {}
+	res.players = ps
+	return res
 end
 
 function CMD:join(args, ... )
@@ -112,6 +134,14 @@ end
 
 function CMD:on_leave(args, ... )
 	-- body
+	log.info("room leave_room: %d", uid)
+	local controller = self._env:get_controller("game")
+	-- if controller:get_state() == gs.CLOSE then
+		
+	local player = self:get_player_by_uid(uid)
+	self:remove(player)
+	skynet.call(".ROOM_MGR", "lua", "leave_room", uid)
+	return NORET
 end
 
 function CMD:leave(args, ... )
@@ -168,8 +198,11 @@ function CMD:on_lead(args, ... )
 	-- body
 	local sid = args.sid
 	local player = self:get_player_by_sid(sid)
+	if not player then
+		log.info("sid: %d", sid)
+	end
 	local controller = self:get_controller("game")
-	return controller:lead(player, flag, args.cards)
+	return controller:on_lead(player, args.lead, args.cards)
 end
 
 function CMD:lead(args, ... )
@@ -187,6 +220,19 @@ function CMD:on_dealed(args, ... )
 end
 
 function CMD:dealed(args, ... )
+	-- body
+	assert(args.errorcode == errorcode.SUCCESS)
+	return NORET
+end
+
+function CMD:on_identity(args, ... )
+	-- body
+	local p = self:get_player_by_sid(args.sid)
+	local controller = self:get_controller("game")
+	return controller:on_identity(p, args)
+end
+
+function CMD:identity(args, ... )
 	-- body
 	assert(args.errorcode == errorcode.SUCCESS)
 	return NORET

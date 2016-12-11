@@ -16,6 +16,7 @@ kind.IDENTICAL3_COUPLE = 8
 kind.KINGANDQ = 9
 
 local card = require "card"
+local log = require "log"
 local assert = assert
 
 local cls = class("group")
@@ -141,6 +142,7 @@ function cls:check_kind(other, ... )
 		self._kind ~= kind.NONE then
 		return true
 	else
+		log.info("self kind: %d, other kind: %d", self._kind, other._kind)
 		return false
 	end
 end

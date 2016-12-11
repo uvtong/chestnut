@@ -10,12 +10,10 @@ state.NONE       = 0
 state.START      = 1
 state.ENTER_ROOM = 2
 
-
 local cls = class("rcontext")
 
 function cls:ctor( ... )
 	-- body
-	cls.super.ctor(self)
 
 	self._list = list.new()
 	for i=1,3 do
@@ -34,7 +32,6 @@ function cls:ctor( ... )
 
 	self._controllers = {}
 	self._controllers.game = gamecontroller.new(self, "game")
-
 	return self
 end
 
@@ -49,9 +46,13 @@ function cls:create_player(uid, sid, agent, ... )
 		tmp:set_uid(uid)
 		tmp:set_sid(sid)
 		tmp:set_agent(agent)
-		self:add(tmp)
 		return tmp
 	end
+end
+
+function cls:release_player(p, ... )
+	-- body
+	list.insert_tail(self._list, p)
 end
 
 function cls:add(player, ... )
@@ -122,15 +123,20 @@ end
 
 function cls:get_player_by_sid(sid, ... )
 	-- body
+	assert(sid)
 	return self._sid_player[sid]
 end
 
 -- only for player
 function cls:clear( ... )
 	-- body
+	for i=1,3 do
+		local tmp = self._players[i]
+		self:release_player(tmp)
+	end
 	self._players = {}
 	self._uid_player = {}
-	self._fd_player = {}
+	self._sid_player = {}
 end
 
 function cls:init_cards( ... )
@@ -204,15 +210,15 @@ end
 function cls:next_card( ... )
 	-- body
 	self._fapai_idx = self._fapai_idx + 1
-	local card = self._front_cards[self._fapai_idx]
-	return card
+	assert(self._fapai_idx > 0 and self._fapai_idx <= 54)
+	return self._front_cards[self._fapai_idx]
 end
 
 function cls:rest_of_deal( ... )
 	-- body
 	assert(#self._front_cards == 54)
 	assert(self._fapai_idx >= 0 and self._fapai_idx <= 54)
-	return 54 - self._fapai_idx
+	return (54 - self._fapai_idx)
 end
 
 function cls:get_pack_cards( ... )

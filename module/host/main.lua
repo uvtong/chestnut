@@ -5,13 +5,10 @@ local log = require "log"
 skynet.start(function()
 	local logger = skynet.uniqueservice("log")
 	skynet.call(logger, "lua", "start")
-	
-	skynet.newservice("codweb")
-	
+	skynet.uniqueservice("codweb")
 	skynet.uniqueservice("protoloader")
-	
 	local console = skynet.newservice("console")
-	-- skynet.newservice("debug_console",8000)
+	skynet.newservice("debug_console",8000)
 	
 	-- read
 	local game = skynet.uniqueservice("game")

@@ -71,25 +71,44 @@ function cls:mt(o, ... )
 	local n2 = o._num
 	if t1 == 5 then
 		return true
+	elseif t2 == 5 then
+		return false
 	elseif t1 == 4 then
 		if t2 == 5 then
 			return false
 		else
 			return true
 		end
+	elseif t2 == 4 then
+		if t1 == 5 then
+			return true
+		else
+			return false
+		end
 	elseif n1 > 0 and n2 > 0 then
-		if n1 == 2 and n2 ~= 2 then
-			return true 
+		if n1 == n2 then
+			return false
+		elseif n1 == 2 and n2 ~= 2 then
+			return true
+		elseif n2 == 2 and n1 ~= 2 then
+			return false
 		elseif n1 == 1 then
 			if n2 == 2 or n2 == 1 then
 				return false
 			else
 				return true
 			end
+		elseif n2 == 1 then
+			if n1 == 2 then
+				return true
+			else
+				return false
+			end
 		else
 			return n1 > n2
 		end
 	else
+		assert(false)
 		return false
 	end
 end
@@ -179,9 +198,9 @@ end
 
 function cls:clear( ... )
 	-- body
-	self._idx = 0
-	self._master = false
-	self._bright = false
+	self._idx = 0         -- deal 
+	self._master = false  -- deal
+	self._bright = false  -- selection
 end
 
 return cls

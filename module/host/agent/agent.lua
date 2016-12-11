@@ -80,7 +80,6 @@ end
 
 function REQUEST:join(args, ... )
 	-- body
-	
 end
 
 function REQUEST:leave(args, ... )
@@ -139,6 +138,14 @@ function REQUEST:dealed(args, ... )
 	end
 end
 
+function REQUEST:identity(args, ... )
+	-- body
+	local room = self:get_room()
+	if room then
+		return skynet.call(room, "lua", "on_identity", args)
+	end
+end
+
 local function request(name, args, response)
 	-- log.info("agent request [%s]", name)
     local f = REQUEST[name]
@@ -185,6 +192,12 @@ function RESPONSE:dealed(args, ... )
 	skynet.send(room, "lua", "dealed", args)
 end
 
+function RESPONSE:identity(args, ... )
+	-- body
+	local room = self:get_room()
+	skynet.send(room, "lua", "identity", args)
+end
+
 local function response(session, args)
 	-- body
 	local name = ctx:get_name_by_session(session)
@@ -225,8 +238,6 @@ skynet.register_protocol {
 		end
 	end
 }
-
-
 
 -- called by gated
 function CMD:login(source, uid, subid, secret,... )
@@ -285,13 +296,14 @@ end
 function CMD:enter_room(source, id, ... )
 	-- body
 	local handle = skynet.call(".ROOM_MGR", "lua", "apply", id)
+	self:set_room(handle)
+
 	local uid = self:get_uid()
 	local sid = self:get_subid()
 	local fd = skynet.self()
 	local name = "abc"
 	local agent = { uid=uid, sid=sid, agent=fd, name=name }
-	local res = skynet.call(handle, "lua", "on_enter_room", agent)
-	self:set_room(handle)
+	local res = skynet.call(handle, "lua", "on_join", agent)
 	self:send_request("join", res)
 	return noret
 end
@@ -305,6 +317,7 @@ end
 -- called by room
 function CMD:join(source, args, ... )
 	-- body
+	self:send_request("join", args)
 end
 
 function CMD:leave(source, args, ... )
@@ -313,6 +326,8 @@ end
 
 function CMD:ready(source, args, ... )
 	-- body
+	local uid = self:get_uid()
+	log.info("uid: %d", uid)
 	self:send_request("ready", args)
 	return noret
 end
@@ -332,6 +347,12 @@ end
 function CMD:lead(source, args, ... )
 	-- body
 	self:send_request("lead", args)
+	return noret
+end
+
+function CMD:identity(source, args, ... )
+	-- body
+	self:send_request("identity", args)
 	return noret
 end
 

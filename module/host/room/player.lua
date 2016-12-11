@@ -1,3 +1,4 @@
+local skynet = require "skynet"
 local card = require "card"
 local group = require "group"
 local log = require "log"
@@ -8,13 +9,16 @@ state.ENTER      = 1
 state.WAIT_START = 2
 state.READY      = 3
 state.DEAL       = 4
-state.WAIT_ROB   = 5
-state.WAIT_OROB  = 6
-state.WAIT_FAPAI = 7
-state.WAIT_ALEAD = 8
-state.WAIT_PLEAD = 9
-state.WAIT_OLEAD = 10
-state.CLOSE      = 11
+state.DEALED     = 5
+state.WAIT_ROB   = 6
+state.ROBED      = 7
+state.WAIT_OROB  = 8
+state.WAIT_CI    = 9
+state.CI         = 10
+state.WAIT_ALEAD = 11
+state.WAIT_PLEAD = 12
+state.WAIT_OLEAD = 13
+state.CLOSE      = 14
 
 local cls = class("player")
 
@@ -179,6 +183,16 @@ function cls:clear_cards( ... )
 	end
 end
 
+function cls:get_aiflag( ... )
+	-- body
+	return self._aiflag
+end
+
+function cls:set_aiflag(value, ... )
+	-- body
+	self._aiflag = value
+end
+
 function cls:get_selection( ... )
 	-- body
 	return self._cards_selection
@@ -186,7 +200,6 @@ end
 
 function cls:add_selection(card, ... )
 	-- body
-	printInfo("player add_selection")
 	assert(card)
 	assert(not card:get_bright())
 	card:set_bright(true)
@@ -214,16 +227,6 @@ function cls:clear_selection( ... )
 	end
 end
 
-function cls:get_aiflag( ... )
-	-- body
-	return self._aiflag
-end
-
-function cls:set_aiflag(value, ... )
-	-- body
-	self._aiflag = value
-end
-
 function cls:start( ... )
 	-- body
 	self._state = state.NONE
@@ -235,6 +238,16 @@ end
 
 function cls:close( ... )
 	-- body
+end
+
+function cls:ready_for_ready( ... )
+	-- body
+	log.info("ready_for_ready")
+	self._state = state.WAIT_START
+	if self._aiflag then
+		local cb = cc.handler(self, cls.ai)
+		skynet.timeout(100 * 2, cb) -- 2s
+	end
 end
 
 -- deal 3 function.
@@ -295,6 +308,16 @@ function cls:deal_cb(c)
 	controller:take_turn_to_deal(self)
 end
 
+function cls:ready_for_dealed( ... )
+	-- body
+	log.info("sid: %d dealed", self._sid)
+	self._state = state.DEALED
+	if self._aiflag then
+		local cb = cc.handler(self, cls.ai)
+		skynet.timeout(100 * 2, cb)
+	end
+end
+
 -- rob
 function cls:ready_for_rob( ... )
 	-- body
@@ -308,6 +331,10 @@ function cls:ready_for_rob( ... )
 		self._rob[idx] = false
 	end
 	assert(idx <= 2)
+	if self._aiflag then
+		local cb = cc.handler(self, cls.ai)
+		skynet.timeout(100 * 2, cb)
+	end
 end
 
 function cls:rob(flag, ... )
@@ -336,11 +363,30 @@ function cls:set_dz(flag, ... )
 	self._is_dz = flag
 end
 
+function cls:deal_dz(card, ... )
+	-- body
+	assert(card)
+	self:insert_card(self._cards, card)
+	local controller = self._env:get_controller("game")
+	controller:take_turn_to_deal_dz()
+end
+
+function cls:ready_for_identity( ... )
+	-- body
+	self._state = state.WAIT_CI
+	if self._aiflag then
+		local cb = cc.handler(self, cls.ai) 
+		skynet.timeout(100, cb)
+	end
+end
+
 -- 出牌五个函数
 function cls:ready_for_alead()
 	self._state = state.WAIT_ALEAD
-	self._cards_selection = {}
-	self._cards_selection_sz = 0
+	if self._aiflag then
+		local cb = cc.handler(self, cls.ai)
+		skynet.timeout(100 * 3, cb)
+	end
 end
 
 function cls:ready_for_plead(g)
@@ -350,6 +396,10 @@ function cls:ready_for_plead(g)
 	else
 		self._state = state.WAIT_PLEAD
 		self._lastplayerleadg = g
+		if self._aiflag then
+			local cb = cc.handler(self, cls.ai)
+			skynet.timeout(100 * 3, cb)
+		end
 	end
 end
 
@@ -359,17 +409,25 @@ function cls:drop( ... )
 		-- 不可能不要，除非你赢了
 		assert(false)
 	elseif self._state == state.WAIT_PLEAD then
-		assert(self._lastplayerleadg)
 		self._state = state.WAIT_OLEAD
-		self._controller:take_turn_to_lead(self, self._lastplayerleadg)
-	else
-		assert(false)
+		self:drop_cb()
 	end
+end
+
+function cls:drop_cb( ... )
+	-- body
+	local controller = self._env:get_controller("game")
+	controller:take_turn_to_lead(self, self._lastplayerleadg)
 end
 
 function cls:lead(cards, ... )
 	-- body
 	assert(self._cards_selection_sz == 0)
+	local num = 0
+	for k,v in pairs(self._cards_selection) do
+		num = num + 1
+	end
+	assert(num == 0)
 	for i,v in ipairs(cards) do
 		for i,card in ipairs(self._cards) do
 			if v == card:get_value() then
@@ -378,14 +436,17 @@ function cls:lead(cards, ... )
 			end
 		end
 	end
+	-- real lead
 	if self._state == state.WAIT_ALEAD then
 		local order = self:_order_selection()
+		self._mylastleadg = group.new(order)
 		self:_lead(order)
 		self:clear_selection()
 	elseif self._state == state.WAIT_PLEAD then
-		local g = group.new(self._cards_selection)
+		local order = self:_order_selection()
+		local g = group.new(order)
 		if g:mt(self._lastplayerleadg) then
-			local order = self:_order_selection()
+			self._mylastleadg = g
 			self:_lead(order)
 			self:clear_selection()
 		else
@@ -397,9 +458,10 @@ end
 
 function cls:lead_cb( ... )
 	-- body
-	if self._controller:confirm_over() then
+	local controller = self._env:get_controller("game")
+	if controller:confirm_over(self) then
 	else
-		self._controller:take_turn_to_lead(self, self._mylastleadg)
+		controller:take_turn_to_lead(self, self._mylastleadg)
 	end
 end
 
@@ -430,7 +492,6 @@ function cls:_order_selection( ... )
 	-- body
 	local order = {}
 	for k,card in pairs(self._cards_selection) do
-		printInfo("player into _order_selection")
 		assert(card:get_bright())
 		local idx = card:get_idx()
 		local sz = #order
@@ -494,6 +555,61 @@ function cls:_calc_alead( ... )
 	local card = self._cards[sz]
 	self:add_selection(card)
 	self:lead()
+end
+
+function cls:ai( ... )
+	-- body
+	assert(self._aiflag)
+	if self._state == state.WAIT_START then
+		local controller = self._env:get_controller("game") 
+		controller:on_ready(self, true)
+	elseif self._state == state.DEALED then
+		local args = {
+			sid = self._sid
+		}
+		local controller = self._env:get_controller("game") 
+		controller:on_dealed(self, args)
+	elseif self._state == state.WAIT_ROB then
+		local args = {
+			sid = self._sid,
+        	rob = 1
+		}
+		local controller = self._env:get_controller("game")
+		controller:on_rob(self, args)
+	elseif self._state == state.WAIT_CI then
+		local controller = self._env:get_controller("game")
+		controller:on_identity(self)
+	elseif self._state == state.WAIT_ALEAD then
+		local cs = {}
+		local idx = 1
+		local card = self._cards[idx]
+		table.insert(cs, card:get_value())
+
+		local controller = self._env:get_controller("game")
+		controller:on_lead(self, true, cs)
+	elseif self._state == state.WAIT_PLEAD then
+		local cs = {}
+		if self._lastplayerleadg:get_kind() == group.kind.SINGLE then
+			local cards = self._lastplayerleadg:get_cards()
+			local dst_card = cards[1]
+
+			local sz = #self._cards
+			for i=sz,1,-1 do
+				local card = self._cards[i]
+				if card:mt(dst_card) then
+					table.insert(cs, card:get_value())
+					break
+				end
+			end
+		end
+		if #cs > 0 then
+			local controller = self._env:get_controller("game")
+			controller:on_lead(self, true, cs)
+		else
+			local controller = self._env:get_controller("game")
+			controller:on_lead(self, false, cs)
+		end
+	end
 end
 
 return cls

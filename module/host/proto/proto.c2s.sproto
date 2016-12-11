@@ -100,14 +100,15 @@ lead 8 {
     }
     response {
         errorcode  0 : integer
-        cards      1 : *integer
-        turn       2 : boolean
-        your_turn  3 : integer
-        countdown  4 : integer
-        settlement 5 : boolean
-        ranked1    6 : settlement
-        ranked2    7 : settlement
-        ranked3    8 : settlement
+        lead       1 : boolean
+        cards      2 : *integer
+        turn       3 : boolean
+        your_turn  4 : integer
+        countdown  5 : integer
+        settlement 6 : boolean
+        ranked1    7 : settlement
+        ranked2    8 : settlement
+        ranked3    9 : settlement
     }
 }
 
@@ -132,5 +133,17 @@ join 10 {
 leave 11 {
     response {
         errorcode 0 : integer
+    }
+}
+
+identity 12 {
+    request {
+        sid       0 : integer
+    }
+    response {
+        errorcode 0 : integer
+        lead      1 : boolean
+        your_turn 2 : integer
+        countdown 3 : integer
     }
 }

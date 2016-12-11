@@ -12,7 +12,6 @@ function CMD.start(source, ... )
 	-- body
 end
 
-
 function CMD.kill( ... )
 	-- body
 	skynet.exit()
@@ -37,6 +36,7 @@ function CMD.enqueue_agent(source, uid, rule, mode, scene, ... )
 	if mgr:get_agent_queue_sz(rt) >= 1 then
 		local room = mgr:dequeue_room()
 		if true then
+			log.info("%d", room.id)
 			room.t = rt
 			room.num =  3
 			mgr:add_full(rt, room)
@@ -69,6 +69,7 @@ end
 
 function CMD.apply(source, roomid, ... )
 	-- body
+	log.info("%d", roomid)
 	local room = mgr:get_use(roomid)
 	return room.room
 end
