@@ -4,37 +4,57 @@ package.path = "../lualib/?.lua;" .. package.path
 require "init"
 class = cc.class
 
-local function f1(a, b, ... )
+local leadboard = require "leadboard"
+
+local function comp(_1, _2, ... )
 	-- body
-	print(a, b)
-	local x = 1
-	while true do
-		x = x + 1
-		print(x)
-		if x % 10 == 0 then
-			local res = coroutine.yield(4)
-			print(res)
-		end
+	if _1 > _2 then
+		return 1
+	elseif _1 == _2 then
+		return 0
+	else
+		return -1
 	end
 end
 
-local function f2( ... )
-	-- body
-	while true do
-		print("test 2")
-		coroutine.yield()
-	end
+local l = leadboard.new(100, comp)
+
+for i=1,100 do
+	print(l:push(i, comp))
 end
 
-local co1 = coroutine.create(f1)
-local co2 = coroutine.create(f2)
 
-print("begin")
-local ok, res = coroutine.resume(co1, 1, 2)
-print("res:", res)
-coroutine.resume(co2)
-coroutine.resume(co1, 3)
-coroutine.resume(co2)
+-- local function f1(a, b, ... )
+-- 	-- body
+-- 	print(a, b)
+-- 	local x = 1
+-- 	while true do
+-- 		x = x + 1
+-- 		print(x)
+-- 		if x % 10 == 0 then
+-- 			local res = coroutine.yield(4)
+-- 			print(res)
+-- 		end
+-- 	end
+-- end
+
+-- local function f2( ... )
+-- 	-- body
+-- 	while true do
+-- 		print("test 2")
+-- 		coroutine.yield()
+-- 	end
+-- end
+
+-- local co1 = coroutine.create(f1)
+-- local co2 = coroutine.create(f2)
+
+-- print("begin")
+-- local ok, res = coroutine.resume(co1, 1, 2)
+-- print("res:", res)
+-- coroutine.resume(co2)
+-- coroutine.resume(co1, 3)
+-- coroutine.resume(co2)
 
 
 

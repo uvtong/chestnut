@@ -1,27 +1,63 @@
 local skynet = require "skynet"
-local module_path = 1
+require "skynet.manager"
 
-local box = {}
+local sys = 1 -- sys == 1
+local users = {}
 
 local CMD = {}
 
-function CMD.send(mail, ... )
+function CMD.start( ... )
 	-- body
-	local sender = mail.sender
-	local recipient = mail.recipient
-	local head = mail.head
-	local content = mail.content
-	local mailbox = box[recipient]
-	mailbox:recive(mail)
+	return true
 end
 
-function CMD.box( ... )
+function CMD.kill( ... )
+	-- body
+end
+
+function CMD.login(uid, ... )
+	-- body
+	local u = users[uid]
+	if u then
+		if u.outbox then
+		else
+			u.outbox = {}
+		end
+	else
+		u = {
+			outbox = {}
+		}
+		users[uid] = u
+	end
+	return true
+end
+
+function CMD.send(from, to, mail, ... )
+	-- body
+	local u = users[from]
+	table.insert(u.outbox, mail)
+end
+
+function CMD.recv(to, ... )
+	-- body
+	local u = users[sys]
+	if #u.outbox > 0 then
+	end
+end
+
+function CMD.recv( ... )
 	-- body
 end
 
 skynet.start(function ( ... )
 	-- body
-	skynet.dispatch("lua", function ( ... )
+	skynet.dispatch("lua", function (_, _, cmd, subcmd, ... )
 		-- body
+		local f = CMD[cmd]
+		local r = f(subcmd, ...)
+		if r ~= nil then
+			skynet.retpack(r)
+		end
 	end)
+	skynet.register ".EMAIL"
 end)

@@ -1,6 +1,7 @@
 local skynet = require "skynet"
 local host_udbcontext = require "host_udbcontext"
 local context = require "context"
+local inbox = require "inbox"
 local call = skynet.call
 local assert = assert
 local rdb = ".DB"
@@ -29,6 +30,8 @@ function cls:ctor( ... )
 	self._host_udbcontext = host_udbcontext.new(self, rdb, wdb)
 	self._state = state.NONE
 	self._last_state = state.NONE
+
+	self._inbox = inbox.new()
 	return self
 end
 
@@ -88,8 +91,10 @@ function cls:login(gate, uid, subid, secret)
 	self._uid = uid
 	self._subid = subid
 	self._secret = secret
-	self._host_udbcontext:load_db_to_data()
+	-- self._host_udbcontext:load_db_to_data()
 	self._join = false
+
+	self._inbox:
 	return self._uid
 end
 

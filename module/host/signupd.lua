@@ -72,13 +72,13 @@ end
 
 function CMD.auth(user, password)
 	-- body
-	local sql = string.format("select * from account where user = \"%s\" and password = \"%s\"", user, password)
-	local r = query.read(".SIGNUPD_DB", "account", sql)
+	local sql = string.format("select * from account where username = \"%s\" and password = \"%s\"", user, password)
+	local r = query.select("account", sql)
 	if #r ~= 1 then
 		print("account system has error.")
 		return false, "error"
 	else
-		return true, r[1].csv_id
+		return true, r[1].id
 	end
 end
 

@@ -1,13 +1,26 @@
 local skynet = require "skynet"
 require "skynet.manager"
 local log = require "log"
+local query = require "query"
 
-local id = 1
+local server_id = 1
+local internal_id = 1
+local internal_id_mask = 0xffffff
+local id_mask = 0xffffffff
+local users = {}
 
 local cmd = {}
 
 function cmd.start( ... )
 	-- body
+	local sql = "select sid from dizhu.g_count where id = 1;"
+	local res = query.select("g_count", sql)
+	internal_id =  res[1].sid
+	local sql = "select * from uid"
+	local res = query.select("uid", sql)
+	for i,v in ipairs(res) do
+		users[v.uid] = v.sid
+	end
 	return true
 end
 
@@ -16,10 +29,21 @@ function cmd.kill( ... )
 	skynet.exit()
 end
 
-function cmd.enter( ... )
+function cmd.login(uid, ... )
 	-- body
-	id = id + 1
-	return id
+	local id = users[uid]
+	if id then
+		return id
+	else
+		internal_id = internal_id + 1 & internal_id_mask
+		local id = server_id << 24
+		id =  (id | internal_id) & id_mask
+
+		users[uid] = id
+		local sql = string.format("insert into uid values (%d, %d)", uid, id)
+		query.insert("uid", sql)
+		return id
+	end
 end
 
 skynet.start(function ( ... )

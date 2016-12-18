@@ -16,6 +16,22 @@
     sid         2 : integer
 }
 
+.mail {
+    id       0 : integer
+    from     1 : integer
+    to       2 : integer
+    title    3 : string
+    content  4 : string
+}
+
+.outbox {
+    all 0 : mail
+}
+
+.inbox {
+    all 0 : mail
+}
+
 handshake 1 {
     response {
     	errorcode 0 : integer
@@ -145,5 +161,13 @@ identity 12 {
         lead      1 : boolean
         your_turn 2 : integer
         countdown 3 : integer
+    }
+}
+
+first 13 {
+    response {
+        errorcode 0 : integer
+        outbox    1 : outbox
+        inbox     2 : inbox
     }
 }

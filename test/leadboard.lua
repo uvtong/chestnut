@@ -1,122 +1,85 @@
+-- not active del item.
 local cls = class("leadboard")
 
-function cls:ctor(cap, ... )
+function cls:ctor(cap, comp, ... )
 	-- body
-	assert(cap)
-	self._head = nil
-	self._tail = nil
+	assert(cap > 0 and comp)
+	self._comp = comp
+
+	self._map = {}
 	self._size = 0
 	self._cap = cap
-	self._map = {}
+	
 	return self
 end
 
-function cls:push_back(ele, comp, ... )
+function cls:bsearch(elem, ... )
 	-- body
-	assert(ele ~= nil and comp)
-	local nnode
-	if self._map[ele] then
-		nnode = self._map[ele]
-		if self._head == nnode then
+	local low = 1
+	local high = self._size
+	while low <= high do
+		local mid = math.tointeger((low + high) / 2)
+		if self._comp(elem, self._map[mid]) == 0 then
+			return mid
+		elseif self._comp(elem, self._comp[mid]) < 0 then
+			low = mid + 1
 		else
-			local node = nnode.pred
-			while node do
-				if comp(node.data, nnode.data) then
-					break
-				else
-					-- exchange
-					local pred = node.pred
-					local next = nnode.next
-					if pred then
-						pred.next = nnode
-					end
-					nnode.pred = pred
-
-					nnode.next = node
-					node.pred = nnode
-
-					node.next = next
-					if next then
-						next.pred = node
-					end
-					break
-				end
-				node = nnode.pred
-			end
-		end
-	else
-		print("insert", ele)
-		-- insert
-		nnode = {}
-		nnode.data = ele
-		nnode.next = nil
-		nnode.pred = nil
-		self._map[ele] = nnode
-		if self._size == 0 then
-			self._head = nnode
-			self._tail = nnode
-			self._size = self._size + 1
-		elseif self._size > 0 then
-			local f = false
-			local node = self._tail
-			while node do
-				if comp(node.data, nnode.data) then
-					f = true
-					nnode.next = node.next
-					if node.next then
-						node.next.pred = nnode
-					end
-					nnode.pred = node
-					node.next = nnode
-					self._size = self._size + 1
-					break
-				else
-					node = node.pred
-				end
-			end
-
-			if f then
-			else
-				nnode.next = self._head
-				self._head.pred = nnode
-				self._head = nnode
-				self._size = self._size + 1
-			end
-
-			node = self._tail
-			while node.next do
-				node = node.next
-			end
-			self._tail = node
-			assert(self._tail.next == nil)
-
-			node = self._head
-			while node.pred do
-				node = node.pred
-			end
-			self._head = node
-			assert(self._head.pred == nil)
-
-			assert(self._cap > 0)
-			-- print(self._cap, self._size)
-			while self._cap < self._size do
-				local node = self._tail.pred
-				node.next = nil
-				self._tail.pred = nil
-				self._tail = node
-				self._size = self._size - 1
-				self._map[node.data] = nil
-			end
+			high = mid - 1
 		end
 	end
+	return 0
+end
+
+function cls:push(elem, ... )
+	-- body
+	for i=self._cap + 1,self._size do
+		self._map[i] = nil
+		self._size = self._size - 1
+	end
+
+	local rank = 0
+	if self._size == 0 then
+		self._size = self._size + 1
+		self._map[self._size] = elem
+		rank = self._size
+		return rank
+	else
+		for i=self._size,1,-1 do
+			local node = self._map[i]
+			if self._comp(elem, node) > 0 then
+				self._map[i + 1] = node
+			else
+				self._map[i + 1] = elem
+				self._size = self._size + 1
+				rank = i + 1
+				return rank
+			end
+		end
+		self._map[1] = elem
+		self._size = self._size + 1
+		rank = 1
+		return rank
+	end
+	return rank
+end
+
+function cls:range(s, e, ... )
+	-- body
+	local res = {}
+	for i=s,e do
+		table.insert(self._map[i])
+	end
+	return res
+end
+
+function cls:nearby(rank, ... )
+	-- body
 end
 
 function cls:foreach(func, ... )
 	-- body
-	local node = self._head
-	while node do
-		func(node.data)
-		node = node.next
+	for i=1,self._size do
+		func(self._map[i])
 	end
 end
 

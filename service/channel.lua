@@ -1,4 +1,4 @@
-package.path = "./../cat/?.lua;./../lualib/?.lua;" .. package.path
+package.path = "./../../cat/?.lua;./../lualib/?.lua;" .. package.path
 package.cpath = "./../lua-cjson/?.so;"..package.cpath
 local skynet = require "skynet"
 require "skynet.manager"
@@ -327,14 +327,6 @@ local function load_public_email()
 		local t = public_emailmgr:create( v )
 		public_emailmgr:add( t )
 		table.insert(totalemail, v.csv_id)
-	end
-end
-
-local function update_db()
-	-- body
-	while true do 
-		channel:publish("update_db")
-		skynet.sleep(100 * 60)
 	end
 end
 

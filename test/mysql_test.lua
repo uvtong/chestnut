@@ -58,8 +58,6 @@ local function test2( db)
     end
 end
 
-
-
 local function test3( db)
     local i=1
     while true do

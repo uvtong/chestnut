@@ -1,47 +1,40 @@
 local skynet = require "skynet"
 
-local _M = {
-	DB_PRIORITY_1 = 1,
-	DB_PRIORITY_2 = 2,
-	DB_PRIORITY_3 = 3
-}
+local _M = {}
 
-function _M.write(wdb, table_name, sql, priority)
+function _M.select(table_name, sql)
 	-- body
-	skynet.send(wdb, "lua", "command", "write", table_name, sql, priority)
+	return skynet.call(".DB", "lua", "query", "select", table_name, sql)
 end
 
-function _M.read(rdb, table_name, sql)
+function _M.update(table_name, sql)
 	-- body
-	if type(rdb) == "string" then
-		if not string.match(rdb, "^%.[%w_]*") then
-			error(string.format("read data from %s", table_name))
-		end
-	else
-		assert(type(rdb) == "number")
-	end
-	local r = skynet.call(rdb, "lua", "command", "read", table_name, sql)
-	return r
+	skynet.send(".DB", "lua", "query", "update", table_name)
 end
 
-function _M.set(wdb, k, v)
+function _M.insert(table_name, sql, ... )
 	-- body
-	skynet.send(wdb, "lua", "command", "set", k, v)
+	skynet.send(".DB", "lua", "query", "insert", table_name, sql)
 end
 
-function _M.hset(wdb, k, kk, vv)
+function _M.get(k, sub)
 	-- body
-	skynet.send(wdb, "lua", "command", "hset", k, kk, vv)
+	return skynet.call(".DB", "lua", "query", "get", k, sub)
 end
 
-function _M.get(rdb, k, sub)
+function _M.hget(k, ... )
 	-- body
-	return skynet.call(rdb, "lua", "command", "get", k, sub)
+	return skynet.call(".DB", "lua", "query", "hget", k)
 end
 
-function _M.hget(rdb, k, ... )
+function _M.set(k, v)
 	-- body
-	return skynet.call(rdb, "lua", "command", "hget", k)
+	skynet.send(".DB", "lua", "query", "set", k, v)
+end
+
+function _M.hset(k, kk, vv)
+	-- body
+	skynet.send(".DB", "lua", "query", "hset", k, kk, vv)
 end
 
 return _M

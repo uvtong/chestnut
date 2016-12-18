@@ -23,9 +23,9 @@ function server.login_handler(source, uid, secret, ...)
 		error(string.format("%s is already login", uid))
 	end
 
-	internal_id = internal_id + 1
-	local id = internal_id	-- don't use internal_id directly
-	id = skynet.call(".SID_MGR", "lua", "enter")
+	-- internal_id = internal_id + 1
+	-- local id = internal_id	-- don't use internal_id directly
+	local id = skynet.call(".SID_MGR", "lua", "login", uid)
 	local username = msgserver.username(uid, id, servername)
 	print(uid, id, servername, username)
 

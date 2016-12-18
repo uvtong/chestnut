@@ -146,6 +146,11 @@ function REQUEST:identity(args, ... )
 	end
 end
 
+function REQUEST:first(args, ... )
+	-- body
+	-- skynet.
+end
+
 local function request(name, args, response)
 	-- log.info("agent request [%s]", name)
     local f = REQUEST[name]
@@ -244,6 +249,8 @@ function CMD:login(source, uid, subid, secret,... )
 	-- body
 	self:login(source, uid, subid, secret)
 	self:set_state(context.state.NORMAL)
+	local now = os.date("*t")
+	local res = skynet.call(".EMAIL", "lua", "recv", now)
 	return true
 end
 
