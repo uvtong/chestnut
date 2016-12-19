@@ -84,7 +84,9 @@ local function recv(u, from, data, ... )
 	udpdispatch(data, from)
 end
 
-function response.register(service, key)
+local cmd = {}
+
+function cmd.register(service, key)
 	skynet.error("udp_servier response register", udphost, udpport)
 	SESSION = (SESSION + 1) & 0xffffffff
 	S[SESSION] = {
@@ -100,11 +102,11 @@ function response.register(service, key)
 	return SESSION
 end
 
-function response.unregister(session)
+function cmd.unregister(session)
 	S[session] = nil
 end
 
-function accept.post(session, data)
+function cmd.post(session, data)
 	local s = S[session]
 	if s and s.address then
 		if rudp_flag then
@@ -168,20 +170,32 @@ local function dispatch(str, from, ... )
 	end
 end
 
-function init(host, port, address)
-	U = socket.udp(udpdispatch, host, math.floor(port))
-	skynet.fork(keepalive)
-	skynet.error("begin to do udp_servier", host, math.floor(port))
-	udphost = host
-	udpport = port
-	-- skynet.fork(update)
+function cmd.start( ... )
+	-- body
 end
 
-function exit()
+function cmd.close( ... )
+	-- body
 	if U then
 		socket.close(U)
 		U = nil
 	end
 end
+
+skynet.start(function ( ... )
+	-- body
+	skynet.dispatch("lua", function(_,_, cmd, subcmd, ...)
+		local f = CMD[cmd]
+		local r = f(subcmd, ... )
+		if r ~= nil then
+			skynet.ret(skynet.pack(r))
+		end
+	end)
+	U = socket.udp(udpdispatch, host, math.floor(port))
+	skynet.fork(keepalive)
+	skynet.error("begin to do udp_servier", host, math.floor(port))
+	udphost = host
+	udpport = port
+end)
 
 

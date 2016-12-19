@@ -1,4 +1,4 @@
-local snax = require "snax"
+local skynet = require "skynet"
 
 -- local udpgate
 local rooms = {}
@@ -6,19 +6,17 @@ local udpgates = {}
 local gate_max = 1
 local gate_idx = 1
 
-function accept.enter( ... )
+local cmd = {}
+
+function cmd.enter( ... )
 	-- body
 end
 
-function accept.exit( ... )
+function cmd.exit( ... )
 	-- body
 end
 
-function accept.enter_room( ... )
-	-- body
-end
-
-function response.apply(roomid)
+function cmd.apply(roomid)
 	local room = rooms[roomid]
 	if room == nil then
 		gate_idx = gate_idx + 1 % gate_max
@@ -36,9 +34,16 @@ end
 
 -- todo : close room ?
 
-function init()
-	local skynet = require "skynet"
--- todo: we can use a gate pool
+skynet.start(function ( ... )
+	-- body
+	skynet.dispatch("lua", function(_,_, cmd, subcmd, ...)
+		local f = CMD[cmd]
+		local r = f(subcmd, ... )
+		if r ~= nil then
+			skynet.ret(skynet.pack(r))
+		end
+	end)
+
 	local host = skynet.getenv "udp_host"
 	local port = skynet.getenv "udp_port"
 	assert(host and port)
@@ -52,5 +57,5 @@ function init()
 		}
 		udpgates[i] = gate
 	end
-	-- udpgate = snax.newservice("udpserver", "0.0.0.0", port)
-end
+end)
+

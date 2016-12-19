@@ -60,7 +60,7 @@ skynet.start(function ()
 	skynet.dispatch("lua", function(_,_, cmd, subcmd, ...)
 		local f = CMD[cmd]
 		local r = f(subcmd, ... )
-		if r then
+		if r ~= nil then
 			skynet.ret(skynet.pack(r))
 		end
 	end)

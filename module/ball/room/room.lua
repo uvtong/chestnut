@@ -232,13 +232,25 @@ end
 
 function response.close( ... )
 	-- body
+	for _,user in pairs(users) do
+		gate.req.unregister(user.session)
+	end
 end
 
 function response.kill( ... )
 	-- body
 end
 
-function init(id, udpserver)
+skynet.start(function ( ... )
+	-- body
+	skynet.dispatch("lua", function(_,_, cmd, subcmd, ...)
+		local f = CMD[cmd]
+		local r = f(subcmd, ... )
+		if r ~= nil then
+			skynet.ret(skynet.pack(r))
+		end
+	end)
+
 	ctx = context.new(id) 
 	local gate = snax.bind(udpserver, "udpserver")
 	ctx:set_gate(gate)
@@ -254,16 +266,5 @@ function init(id, udpserver)
 	ctx:set_map(map)
 	ctx:set_view(view)
 	ctx:set_scene(scene)
-
-	-- lasttick = skynet.now()
-	-- skynet.fork(tick)
-
-	skynet.launch("battle", "test")
-end
-
-function exit()
-	for _,user in pairs(users) do
-		gate.req.unregister(user.session)
-	end
-end
+end)
 
