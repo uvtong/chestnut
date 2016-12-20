@@ -1,5 +1,12 @@
+#if defined(TEST)
+#include  "./../../lua.h"
+#include "./../../lauxlib.h"
+#else
 #include <lua.h>
 #include <lauxlib.h>
+#endif // defined(TEST)
+
+#include <stdlib.h>
 #include <stdbool.h>
 
 struct item {
@@ -39,7 +46,7 @@ del_item(lua_State *L, struct queue *q, struct item *i) {
 	}
 }
 
-static int 
+static int
 lenqueue(lua_State *L) {
 	if (lua_gettop(L) < 2) {
 		lua_error(L);
@@ -55,13 +62,13 @@ lenqueue(lua_State *L) {
 
 	if (q->size > 0) {
 		q->tail->next = i;
-		q->tail = i;	
+		q->tail = i;
 		q->size++;
 	} else {
 		if (q->size == 0) {
 			q->head = i;
 			q->tail = i;
-			q->size++;	 
+			q->size++;
 		} else {
 			lua_error(L);
 		}
@@ -69,7 +76,7 @@ lenqueue(lua_State *L) {
 	return 0;
 }
 
-static int 
+static int
 ldequeue(lua_State *L) {
 	struct queue *q = (struct queue*)lua_touserdata(L, 1);
 	if (q->size > 1) {
@@ -81,8 +88,8 @@ ldequeue(lua_State *L) {
 		lua_getuservalue(L, 1);
 		lua_rawgetp(L, -1, i); // ud
 		lua_getuservalue(L, -1);
-		return 1; 
-	} else if (q->size == 1 ){
+		return 1;
+	} else if (q->size == 1) {
 		struct item *i = q->head;
 		q->head = i->next;
 		q->tail = i->next;
@@ -102,7 +109,7 @@ ldequeue(lua_State *L) {
 	return 0;
 }
 
-static bool 
+static bool
 check_eq(lua_State *L) {
 	int t1 = lua_type(L, -1);
 	int t2 = lua_type(L, -2);
@@ -152,8 +159,8 @@ check_eq(lua_State *L) {
 	return false;
 }
 
-static int 
-ldel(lua_State *L) {
+static int
+lremove(lua_State *L) {
 	if (lua_gettop(L) < 2) {
 		lua_error(L);
 	}
@@ -195,7 +202,7 @@ ldel(lua_State *L) {
 					}
 					del_item(L, q, cur);
 					lua_pushboolean(L, 1);
-					return 1;		
+					return 1;
 				}
 				lua_pop(L, 3);
 			} else {
@@ -211,7 +218,7 @@ ldel(lua_State *L) {
 	}
 }
 
-static int 
+static int
 lsize(lua_State *L) {
 	struct queue *q = (struct queue*)lua_touserdata(L, 1);
 	lua_pushinteger(L, q->size);
@@ -224,30 +231,30 @@ ltest(lua_State *L) {
 	lua_getuservalue(L, 1);
 	lua_pushnil(L);
 	while (lua_next(L, -2) != 0) {
-       /* uses 'key' (at index -2) and 'value' (at index -1) */
-       printf("%s - %s\n",
-              lua_typename(L, lua_type(L, -2)),
-              lua_typename(L, lua_type(L, -1)));
-       /* removes 'value'; keeps 'key' for next iteration */
-       lua_getuservalue(L, -1);
-       lua_getfield(L, -1, "name");
-       const char *str = lua_tostring(L, -1);
-       printf("%s\n", str);
-       lua_pop(L, 3);
-    }
-    // lua_pop(L, 1);
-    printf("%s\n", "test freelist");
-    struct item *i = q->freelist;
-    while (i) {
-    	lua_rawgetp(L, -1, i);
-    	lua_getuservalue(L, -1);
-    	lua_getfield(L, -1, "name");
-       	const char *str = lua_tostring(L, -1);
-       	printf("%s\n", str);
-       	lua_pop(L, 3);
-       	i = i->next;
-    }
-    return 0;
+		/* uses 'key' (at index -2) and 'value' (at index -1) */
+		printf("%s - %s\n",
+			lua_typename(L, lua_type(L, -2)),
+			lua_typename(L, lua_type(L, -1)));
+		/* removes 'value'; keeps 'key' for next iteration */
+		lua_getuservalue(L, -1);
+		lua_getfield(L, -1, "name");
+		const char *str = lua_tostring(L, -1);
+		printf("%s\n", str);
+		lua_pop(L, 3);
+	}
+	// lua_pop(L, 1);
+	printf("%s\n", "test freelist");
+	struct item *i = q->freelist;
+	while (i) {
+		lua_rawgetp(L, -1, i);
+		lua_getuservalue(L, -1);
+		lua_getfield(L, -1, "name");
+		const char *str = lua_tostring(L, -1);
+		printf("%s\n", str);
+		lua_pop(L, 3);
+		i = i->next;
+	}
+	return 0;
 }
 
 static int
@@ -255,7 +262,7 @@ lfree(lua_State *L) {
 	return 0;
 }
 
-static int 
+static int
 lalloc(lua_State *L) {
 	struct queue *q = (struct queue *)lua_newuserdata(L, sizeof(*q));
 	if (q == NULL) {
@@ -289,12 +296,12 @@ luaopen_queue(lua_State *L) {
 	luaL_Reg l[] = {
 		{ "enqueue", lenqueue },
 		{ "dequeue", ldequeue },
-		{ "del", ldel },
+		{ "remove", lremove },
 		{ "size", lsize },
 		{ "test", ltest },
 		{ NULL, NULL },
 	};
-	luaL_newlib(L,l);
+	luaL_newlib(L, l);
 	lua_pushcclosure(L, lalloc, 1);
 	return 1;
 }

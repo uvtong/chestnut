@@ -1,9 +1,11 @@
 #ifdef __cplusplus
 extern "C" {
 #endif
-
 #include "skynet.h"
 #include "skynet_malloc.h"
+#ifdef __cplusplus
+}
+#endif
 
 #include "battle.h"
 #include "text_message.h"
@@ -18,96 +20,21 @@ extern "C" {
 #include <time.h>
 #include <assert.h>
 
-typedef void * (*pfn_task_t)(void *ud);
 
-struct task_t {
-	stCoRoutine_t *co;
-	pfn_task_t     func;
-	void          *arg;
-	void          *res;
-};
+
+
 
 struct battle {
-	struct task_t *slots;
-	int            cap;
-	int            size;
-	int            free;
+	
 
 
 };
 
-static void *
-routine(void *arg) {
-	struct task_t *ctx = (struct task_t *)arg;
-	for (;;)
-	{
-		if (ctx->func != NULL)
-		{
-			ctx->res = ctx->func(ctx->arg);
-		}
-		co_yield(ctx->co);
-	}
-}
 
-void task_init(struct task_t *self) {
-	co_create(&self->co, NULL, routine, self);
-	self->func = NULL;
-	self->arg  = NULL;
-	self->res  = NULL;
-}
 
-void task_exit(struct task_t *self) {
-	co_release(self->co);
-}
 
-struct battle *
-battle_alloc() {
-	struct battle *inst = (struct battle *)skynet_malloc(sizeof(*inst));
-	inst->size = 0;
-	inst->cap  = 256;
-	inst->free = 255;
-	struct task_t *slots = (struct task_t *)skynet_malloc(sizeof(*slots) * inst->cap);
-	for (int i = 0; i < inst->cap; ++i)
-	{
-		struct task_t *ta = &slots[i];
-		task_init(ta);
-	}
-	inst->slots = slots;
-	return inst;
-}
 
-void 
-battle_free(struct battle *self) {
-	for (int i = 0; i < self->cap; ++i)
-	{
-		struct task_t *ta = &self->slots[i];
-		task_exit(ta);
-	}
-	skynet_free(self->slots);
-	skynet_free(self);
-}
 
-struct task_t *
-battle_create_task(struct battle *self) {
-	if (self->size == self->cap)
-	{
-		// extand
-		assert(false);
-		return NULL;
-	} else {
-		if (self->free < 0) 
-			self->free = self->cap - 1;
-		struct task_t *ta = &self->slots[self->free];
-		self->free--;
-		self->size++;
-		return ta;
-	}
-}
-
-void 
-battle_release_task(struct battle *self, struct task_t *ta) {
-	self->size--;
-}
 
 static void *
 cmd_start(void *arg) {
@@ -150,6 +77,11 @@ _cb(struct skynet_context *ctx, void *ud, int type, int session, uint32_t source
 	}
 	return 0;
 }
+
+
+#ifdef __cplusplus
+extern "C" {
+#endif
 
 struct battle *
 battle_create(void) {
