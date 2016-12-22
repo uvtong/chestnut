@@ -1,5 +1,4 @@
 package.path = "./../../lualib/?.lua;" .. package.path
-package.cpath = "./../lua-cjson/?.so;"..package.cpath
 local skynet = require "skynet"
 require "skynet.manager"
 local log = require "log"
@@ -21,6 +20,11 @@ local function comp(_1, _2, ... )
 	end
 end
 
+local function comp_u(u1, u2, ... )
+	-- body
+	return comp(u1.key, u2.key)
+end
+
 local CMD = {}
 
 function CMD.login(uid, agent, key, ... )
@@ -36,6 +40,7 @@ function CMD.login(uid, agent, key, ... )
 			key = key
 		}
 		users[uid] = u
+		ld:push(u)
 	end
 end
 
@@ -47,7 +52,8 @@ function CMD.push(uid, key)
 	else
 		assert(false)
 	end
-	return ld:push(u)
+	ld:sort()
+	return ld:bsearch(u)
 end
 
 function CMD.bsearch(uid, ... )
@@ -79,6 +85,6 @@ skynet.start(function ()
 			log.error(string.format("command %s is wrong", cmd))
 		end
 	end)
-	ld = leaderboard.new(100, comp)
+	ld = leaderboard.new(100, comp_u)
 	skynet.register ".LEADERBOARD"
 end)

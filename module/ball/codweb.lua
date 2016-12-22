@@ -9,6 +9,7 @@ local CMD = {}
 
 function CMD.start( ... )
 	-- body
+	-- db
 	repeat 
 		local conf = {
 			db_host = skynet.getenv("db_host") or "192.168.1.116",
@@ -25,10 +26,6 @@ function CMD.start( ... )
 		table.insert(servers, addr)
 	until true
 
-	local handle = skynet.uniqueservice("sid_mgr")
-	skynet.call(handle, "lua", "start")
-	table.insert(servers, handle)
-
 	-- read
 	local game = skynet.uniqueservice("game")
 	table.insert(servers, game)
@@ -37,18 +34,10 @@ function CMD.start( ... )
 	skynet.call(chat, "lua", "start")
 	table.insert(servers, chat)
 	
-	local emaild = skynet.uniqueservice("email/emaild")
-	skynet.call(emaild, "lua", "start")
-	table.insert(servers, emaild)
+	local handle = skynet.uniqueservice("sid_mgr")
+	skynet.call(handle, "lua", "start")
+	table.insert(servers, handle)
 
-	local sysemaild = skynet.uniqueservice("email/sysemaild")
-	skynet.call(sysemaild, "lua", "start")
-	table.insert(servers, sysemaild)
-
-	local lb = skynet.newservice("leaderboardd")
-	skynet.call(lb, "lua", "start")
-	table.insert(servers, lb)
-	
 	skynet.uniqueservice("agent_mgr")
 	skynet.call(".AGENT_MGR", "lua", "start", 2)
 	table.insert(servers, ".AGENT_MGR")
@@ -62,6 +51,8 @@ function CMD.start( ... )
 	local handle = skynet.uniqueservice("room_mgr")
 	skynet.call(handle, "lua", "start")
 	table.insert(servers, handle)
+
+	-- add 
 
 	local signupd = skynet.getenv("signupd")
 	if signupd  then

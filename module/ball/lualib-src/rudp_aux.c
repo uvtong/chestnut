@@ -33,7 +33,7 @@ lupdate(lua_State *L) {
 }
 
 static int
-lrelease(lua_State *L) {
+lfree(lua_State *L) {
 	if (lua_gettop(L) >= 1) {
 		struct rudp_aux *aux = (struct rudp_aux *)lua_touserdata(L, 1);
 		rudp_delete(aux->u);
@@ -45,7 +45,7 @@ lrelease(lua_State *L) {
 }
 
 static int 
-lnew(lua_State *L) {
+lalloc(lua_State *L) {
 	struct rudp_aux *aux = (struct aoi_aux *)lua_newuserdata(L, sizeof(*aux));
 	if (aux == NULL) {
 		printf("%s\n", "malloc failture.");
@@ -80,6 +80,6 @@ luaopen_rudpaux(lua_State *L) {
 	lua_setfield(L, -2, "__index");
 	lua_pushcclosure(L, lrelease, 0);
 	lua_setfield(L, -2, "__gc");
-	lua_pushcclosure(L, lnew, 1);
+	lua_pushcclosure(L, lalloc, 1);
 	return 1;
 }

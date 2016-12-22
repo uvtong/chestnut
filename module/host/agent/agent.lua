@@ -244,13 +244,20 @@ skynet.register_protocol {
 	end
 }
 
+function CMD:new(source, uid, subid, secret, ... )
+	-- body
+	self:new
+	return true
+end
+
 -- called by gated
 function CMD:login(source, uid, subid, secret,... )
 	-- body
 	self:login(source, uid, subid, secret)
 	self:set_state(context.state.NORMAL)
 	local now = os.date("*t")
-	local res = skynet.call(".EMAIL", "lua", "recv", now)
+	skynet.call(".EMAIL", "lua", "login", uid)
+	-- local res = skynet.call(".EMAIL", "lua", "recv", now)
 	return true
 end
 

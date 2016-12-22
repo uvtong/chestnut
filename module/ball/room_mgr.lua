@@ -8,6 +8,21 @@ local gate_idx = 1
 
 local cmd = {}
 
+function cmd.start( ... )
+	-- body
+	return true
+end
+
+function cmd.close( ... )
+	-- body
+	return true
+end
+
+function cmd.kill( ... )
+	-- body
+end
+
+
 function cmd.enter( ... )
 	-- body
 end
@@ -36,8 +51,8 @@ end
 
 skynet.start(function ( ... )
 	-- body
-	skynet.dispatch("lua", function(_,_, cmd, subcmd, ...)
-		local f = CMD[cmd]
+	skynet.dispatch("lua", function(_,_, command, subcmd, ...)
+		local f = cmd[command]
 		local r = f(subcmd, ... )
 		if r ~= nil then
 			skynet.ret(skynet.pack(r))
@@ -49,7 +64,8 @@ skynet.start(function ( ... )
 	assert(host and port)
 	for i=1,gate_max do
 		local xport = port + i
-		local udpgate = snax.newservice("udpserver", host, xport)
+		local udpgate = skynet.newservice("udpserver")
+		skynet.call(udpgate, "lua", "start", host, xport)
 		local gate = {
 			host=host,
 			port=xport,

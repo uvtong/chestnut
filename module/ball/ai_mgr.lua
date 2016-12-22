@@ -4,7 +4,15 @@ local skynet_queue = require "skynet.queue"
 local queue = require "lqueue"
 
 local cs = skynet_queue()
+
+local id = 1
 local leisure_ai = queue.new(255)
+
+local function new_ai( ... )
+	-- body
+	id = id + 1
+	return id
+end
 
 local function enqueue(id, ... )
 	-- body
@@ -17,6 +25,14 @@ local function dequeue( ... )
 		return queue.dequeue(leisure_ai)
 	else
 		return new_ai()
+	end
+end
+
+local function init( ... )
+	-- body
+	for i=1,10 do
+		local id = new_ai()
+		enqueue(id)
 	end
 end
 
@@ -35,20 +51,8 @@ end
 
 function CMD.start(t, ... )
 	-- body
-	local low, high = skynet.call(".SID_MGR", "lua", "ai")
-	for i=low,high do
-		enqueue(i)
-	end
+	init()
 	return true
-end
-
-function CMD.close( ... )
-	-- body
-	return true
-end
-
-function CMD.kill( ... )
-	-- body
 end
 
 skynet.start(function ()

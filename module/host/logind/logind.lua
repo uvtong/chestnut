@@ -25,7 +25,7 @@ function server.auth_handler(token)
 	server = crypt.base64decode(server)
 	password = crypt.base64decode(password)
 	-- assert(password == "password", "Invalid password")
-	local ok, uid = skynet.call(".SIGNUPD", "lua", "auth", user, password)
+	local ok, userid = skynet.call(".SIGNUPD", "lua", "auth", user, password)
 	if ok then
 		return server, uid
 	else

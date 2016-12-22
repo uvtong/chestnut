@@ -5,52 +5,19 @@ local log = require "log"
 
 local cls = class("entity")
 
-function cls:ctor(env, dbctx, set, rdb, wdb, ... )
+function cls:ctor(env, dbctx, set, ... )
 	-- body
 	self._env = env
 	self._dbctx = dbctx
 	self._set = set
-	self._rdb = rdb
-	self._wdb = wdb
-	self.fields = setmetatable({}, {
-		__index = function (fields, k, ... )
-			-- body
-			return self._fields[k]
-		end,
-		__newindex = function ( ... )
-			-- body
-			error("not support this way to fetch value.")
-		end
-		})
-	-- this value 
-	self._cache_flag = false
+	self.fields = {}
+	self.pk = nil
  	return self
 end
 
-function cls:load_data_to_stm()
-	local r = {}
-	for k,v in pairs(t) do
-		if string.match("^%w+_%w+mgr$", k) then
-			r.k = ctx.k("load_data_to_stm")
-		end
-	end 
-	return r
-end
-
-function cls:load_data_to_sd( ... )
+function cls:pk( ... )
 	-- body
-	local pk = self._fields[self._pk]
-	if self._head[self._pk].t == "number" then
-		local key = string.format("%s:%d", self._tname, pk)
-		if self._fields then
-			sd.new(key, self._fields)
-		else
-			error "load_data_to_sd is nil"
-		end
-	elseif self.__head[self._pk].t == "string" then
-		local key = string.format("%s:%s", self._tname, pk)
-		sd.new(key, self._fields)
-	end
+	return self.pk.value
 end
 
 function cls:insert_cache( ...)
@@ -158,36 +125,10 @@ function cls:update_db( ... )
 		query.write(t.__wdb, t.__tname, sql, query.DB_PRIORITY_3)
 	end 
 end
-		
-function cls:update_db_wait( ...)
-	self:update_db()
-end 	
 
 function cls:insert_db( ... )
 	-- body
 	self:update_db()
-end
-
-function cls:insert_db_wait( ... )
-	-- body
-	self:insert_db()
-end
-
-function cls:set_field(k, v, ... )
-	-- body
-	assert(k and v)
-	assert(type(k) == "string")
-
-	-- t.__ecol_updated[k] = t.__ecol_updated[k] + 1
-	-- if t.__ecol_updated[k] == 1 then
-	-- 	t.__col_updated = self.__col_updated + 1
-	-- end
-	self._fields[k] = v
-end
-
-function cls:get_field(k, ... )
-	-- body
-	return self._fields[k]
 end
 
 return cls

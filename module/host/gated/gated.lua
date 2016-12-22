@@ -19,13 +19,13 @@ local forwarding  = {}	-- agent -> connection
 -- login server disallow multi login, so login_handler never be reentry
 -- call by login server
 function server.login_handler(source, uid, secret, ...)
-	if users[uid] then
+	if users[userid] then
 		error(string.format("%s is already login", uid))
 	end
 
 	-- internal_id = internal_id + 1
 	-- local id = internal_id	-- don't use internal_id directly
-	local id = skynet.call(".SID_MGR", "lua", "login", uid)
+	local id = skynet.call(".SID_MGR", "lua", "enter")
 	local username = msgserver.username(uid, id, servername)
 	print(uid, id, servername, username)
 
@@ -40,6 +40,9 @@ function server.login_handler(source, uid, secret, ...)
 	}
 
 	-- trash subid (no used)
+	local new, uuid = skynet.call(".UID_MGR", "lua", "login", uid)
+	if new then
+		skynet.call(agent, "lua", "")
 	local ok = skynet.call(agent, "lua", "login", uid, id, secret)
 	assert(ok)
 	

@@ -1,8 +1,8 @@
 local skynet = require "skynet"
 local socket = require "socket"
 local crypt = require "crypt"
-local snax = require "snax"
-local rudp = require "rudp"
+-- local rudp = require "rudp"
+local log = require "log"
 
 local tick = 1
 local udphost, udpport
@@ -84,41 +84,6 @@ local function recv(u, from, data, ... )
 	udpdispatch(data, from)
 end
 
-local cmd = {}
-
-function cmd.register(service, key)
-	skynet.error("udp_servier response register", udphost, udpport)
-	SESSION = (SESSION + 1) & 0xffffffff
-	S[SESSION] = {
-		session = SESSION,
-		key = key,
-		room = snax.bind(service, "room"),
-		address = nil,
-		time = skynet.now(),
-		lastevent = nil,
-		u = nil,
-	}
-	skynet.error("client session", SESSION)
-	return SESSION
-end
-
-function cmd.unregister(session)
-	S[session] = nil
-end
-
-function cmd.post(session, data)
-	local s = S[session]
-	if s and s.address then
-		if rudp_flag then
-			s.u:send(data)
-		else
-			socket.sendto(U, s.address, data)
-		end
-	else
-		snax.printf("Session is invalid %d", session)
-	end
-end
-
 local function keepalive()
 	-- trash session after no package last 10 mins (timeout)
 	while true do
@@ -170,8 +135,16 @@ local function dispatch(str, from, ... )
 	end
 end
 
-function cmd.start( ... )
+local cmd = {}
+
+function cmd.start(host, port, ... )
 	-- body
+	U = socket.udp(udpdispatch, host, math.floor(port))
+	skynet.fork(keepalive)
+	skynet.error("begin to do udp_servier", host, math.floor(port))
+	udphost = host
+	udpport = port
+	return true
 end
 
 function cmd.close( ... )
@@ -180,22 +153,57 @@ function cmd.close( ... )
 		socket.close(U)
 		U = nil
 	end
+	return true
+end
+
+function cmd.kill( ... )
+	-- body
+	if U then
+		socket.close(U)
+		U = nil 
+	end
+end
+
+function cmd.register(service, key)
+	skynet.error("udp_servier response register", udphost, udpport)
+	SESSION = (SESSION + 1) & 0xffffffff
+	S[SESSION] = {
+		session = SESSION,
+		key = key,
+		room = snax.bind(service, "room"),
+		address = nil,
+		time = skynet.now(),
+		lastevent = nil,
+		u = nil,
+	}
+	skynet.error("client session", SESSION)
+	return SESSION
+end
+
+function cmd.unregister(session)
+	S[session] = nil
+end
+
+function cmd.post(session, data)
+	local s = S[session]
+	if s and s.address then
+		if rudp_flag then
+			s.u:send(data)
+		else
+			socket.sendto(U, s.address, data)
+		end
+	else
+		snax.printf("Session is invalid %d", session)
+	end
 end
 
 skynet.start(function ( ... )
 	-- body
-	skynet.dispatch("lua", function(_,_, cmd, subcmd, ...)
-		local f = CMD[cmd]
+	skynet.dispatch("lua", function(_,_, command, subcmd, ...)
+		local f = cmd[command]
 		local r = f(subcmd, ... )
 		if r ~= nil then
 			skynet.ret(skynet.pack(r))
 		end
 	end)
-	U = socket.udp(udpdispatch, host, math.floor(port))
-	skynet.fork(keepalive)
-	skynet.error("begin to do udp_servier", host, math.floor(port))
-	udphost = host
-	udpport = port
 end)
-
-

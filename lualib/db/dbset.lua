@@ -7,19 +7,15 @@ local sd_cache = {}
 
 local cls = class("dbset")
 
-function cls:ctor(env, dbctx, rdb, wdb, ... )
+function cls:ctor(env, dbctx, ... )
 	-- body
 	self._env = env
 	self._dbctx = dbctx
-	self._rdb = rdb
-	self._wdb = wdb
-	self._cache_flag = false
+	self._data = {}
+	self._count = 0
+	self._pk = {}
+	self._searchs = {}
 	return self
-end
-
-function cls:set_cache_flag(flag, ... )
-	-- body
-	self._cache_flag = flag
 end
 
 -- this function pull
@@ -110,156 +106,33 @@ function cls:load_data_to_remote(p, ... )
 	end
 end
 
-function cls:update_cache( ... )
+-- find
+function cls:find(pk, ... )
+	-- body
+	return self._pk[pk]
+end
+
+function cls:find_and(k1, k2, ... )
+	-- body
+end
+
+function cls:update_db_all( ... )
 	-- body
 	for k,v in pairs(self._data) do
-		v:set()
+		v:update_db()
 	end
 end
 
-function cls:update_cache_wait( ... )
+function cls:update_db(entity, ... )
 	-- body
+	entity:update_db()
 end
 
-function cls:update_db( ... )
+function cls:insert_db(entity, ... )
 	-- body
-	for k,v in pairs(self._data) do
-		v:update()
-	end
-end
-
-function cls:update_db_wait( ... )
-	-- body
-end
-
-function cls:update( ...)
-	-- body
-	if self._cache_flag then
-		self:update_cache()
-		self:update_db()
-	else
-		self:update_db()
-	end
-end
-
-function cls:update_wait( ... )
-	-- body
-	if self._cache_flag then
-		self:update_cache()
-		self:update_db()
-	else
-		self:update_db()
-	end
-end
-
-function cls:insert_cache( ... )
-	-- body
-end
-
-function cls:insert_db( ... )
-	-- body
-end
-
-function cls:insert( ... )
-	-- body
-	if self._cache_flag then
-		self:insert_cache()
-		self:insert_db()
-	else
-		self:insert_db()
-	end
-end
-
-function cls:create(p, ...)
-	-- body
-	return self:create_entity(p)
-end 
-	
-function cls:create_entity(p)
-	-- body
-	local entity = require("models/" .. self._entity_cls)
-	local r = entity.new(self._env, self._dbctx, self, self._rdb, self._wdb, p)
-	return r
-end
-	
-function cls.genpk(self, csv_id)
-	-- body
-	if #self.__fk == 0 then
-		return genpk_1(csv_id)
-	else
-		local user_id = self:get_user():get_csv_id()
-		return genpk_2(user_id, csv_id)
-	end
-end 
-
--- manipulat data
-function cls:add(value)
- 	-- body
- 	assert(value.__cname == self._entity_cls)
- 	local pk = value.fields[self._pk]
- 	self._data[pk] = value
- 	self._count = self._count + 1
-end 
-	
-function cls:get(pk)
-	-- body
-	if self._data then
-		return self._data[pk]
-	else
-		error "_data is empty"
-	end
-end 
-	
-function cls:delete(pk)
-	-- body
-	if self._data then
-		self._data[pk] = nil
-		self._count = self._count - 1
-	else
-		error "_data is empty"
-	end
-end 
-
-function cls:get_by_vip(csv_id, ... )
-	-- body
-	return self:get_by_csv_id(csv_id)
-end
-
-function cls:get_by_chapter(csv_id, ... )
-	-- body
-	return self:get_by_csv_id(csv_id)
-end
-
-function cls:get_by_csv_id(csv_id)
-	-- body
-	local pk = self:genpk(csv_id)
-	return self:get(pk)
-end 
-	
-function cls:delete_by_csv_id(self, csv_id)
-	local pk = self:genpk(csv_id)
-	self:delete(pk)
-end 
-	
-function cls:get_count()
-	-- body
-	return self._count
-end 
-	
-function cls:get_cap()
-	-- body
-	return self._cap
-end
-
-function cls:get_data( ... )
-	-- body
-	return self._data
-end
-
-function cls:clear()
-	-- body
-	self.__data = {}
-	self.__count = 0
+	table.insert(self._data, entity)
+	self._pk[entity:pk()] = entity
+	entity:insert_db()
 end
 
 return cls

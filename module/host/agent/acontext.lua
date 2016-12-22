@@ -1,11 +1,10 @@
 local skynet = require "skynet"
-local host_udbcontext = require "host_udbcontext"
+local dbcontext = require "dbcontext"
 local context = require "context"
 local inbox = require "inbox"
+local user = require "user"
 local call = skynet.call
 local assert = assert
-local rdb = ".DB"
-local wdb = ".DB"
 
 local state = {}
 state.NONE         = 0
@@ -22,15 +21,17 @@ function cls:ctor( ... )
 	-- body
 	cls.super.ctor(self, ...)
 	
+	self._dbcontext = dbcontext.new()
+
 	self._gate = false
 	self._uid = false
 	self._subid = false
 	self._secret = false
 	self._room = nil
-	self._host_udbcontext = host_udbcontext.new(self, rdb, wdb)
 	self._state = state.NONE
 	self._last_state = state.NONE
 
+	self._user = nil
 	self._inbox = inbox.new()
 	return self
 end
@@ -85,6 +86,16 @@ function cls:set_last_state(value, ... )
 	self._last_state = value
 end
 
+function cls:new_user(gate, uid, subid, secret, ... )
+	-- body
+	self._gate = gate
+	self._uid = uid
+	self._subid = subid
+	self._secret = secret
+
+	self._user = user.new(uid)
+end
+
 function cls:login(gate, uid, subid, secret)
 	assert(uid and subid and secret)
 	self._gate = gate
@@ -94,7 +105,7 @@ function cls:login(gate, uid, subid, secret)
 	-- self._host_udbcontext:load_db_to_data()
 	self._join = false
 
-	self._inbox:
+	-- self._inbox:
 	return self._uid
 end
 

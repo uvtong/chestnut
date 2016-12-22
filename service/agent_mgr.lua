@@ -77,8 +77,6 @@ function CMD.exit(uid)
 	return true
 end
 
-
-
 skynet.start(function ()
 	-- body
 	skynet.dispatch("lua", function(_,_, cmd, subcmd, ...)
