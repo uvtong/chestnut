@@ -98,14 +98,6 @@ function cls:load_data_to_sd()
 	sd.new(self._tname, l)
 end
 
-function cls:load_data_to_remote(p, ... )
-	-- body
-	for i,v in ipairs(p) do
-		local o = self:create_entity(v)
-		self:add(o)
-	end
-end
-
 -- find
 function cls:find(pk, ... )
 	-- body

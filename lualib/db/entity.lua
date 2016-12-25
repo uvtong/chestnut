@@ -10,16 +10,16 @@ function cls:ctor(env, dbctx, set, ... )
 	self._env = env
 	self._dbctx = dbctx
 	self._set = set
-	self.fields = {}
-	self.pk = nil
+	self._fields = {}
+	self._pk = nil
  	return self
 end
 
 function cls:pk( ... )
 	-- body
-	return self.pk.value
+	return self._pk.value
 end
-
+																																								
 function cls:insert_cache( ...)
 	local k
 	local v = json.encode(self._fields)
