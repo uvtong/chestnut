@@ -15,6 +15,7 @@ local context = require "room.context"
 local ctx
 local k = 0
 local lasttick = 0
+local CMD = {}
 
 --[[
 	4 bytes localtime
@@ -37,7 +38,7 @@ local function tick( ... )
 	end
 end
 
-function accept.update(data)
+function CMD.update(data)
 	assert(#data >= 16)
 	local session, protocol = string.unpack("<II", data, 9)	
 	local protocol = string.unpack("<I", data, 13)
@@ -57,7 +58,7 @@ function accept.update(data)
 end
 
 -- called by aoi
-function accept.aoi_message(watcher, marker, ... )
+function CMD.aoi_message(watcher, marker, ... )
 	-- body
 	local scene = ctx:get_scene()
 	local collision, ball = scene:aoi_check_collision(watcher, marker)
@@ -69,7 +70,7 @@ function accept.aoi_message(watcher, marker, ... )
 	end
 end
 
-function response.join(handle, secret)
+function CMD.join(handle, secret)
 	if ctx:is_maxnum() then
 		return false
 	end
@@ -122,7 +123,7 @@ function response.join(handle, secret)
 	return session, ps
 end
 
-function response.leave(session)
+function CMD.leave(session)
 	local gate = ctx:get_gate()
 	local scene = ctx:get_scene()
 	local session_players = ctx:get_players()
@@ -141,7 +142,7 @@ function response.leave(session)
 	ctx:remove(session)
 end
 
-function response.query(session)
+function CMD.query(session)
 	local user = users[session]
 	-- todo: we can do more
 	if user then
@@ -149,7 +150,7 @@ function response.query(session)
 	end
 end
 
-function response.born(session, ... )
+function CMD.born(session, ... )
 	-- body
 	local aoi = ctx:get_aoi()
 	local scene = ctx:get_scene()
@@ -197,7 +198,7 @@ function response.born(session, ... )
 	return { errorcode = errorcode.SUCCESS, b = res }
 end
 
-function response.opcode(session, args, ... )
+function CMD.opcode(session, args, ... )
 	-- body
 	local player = session_players[session]
 	if player then
@@ -226,19 +227,23 @@ function response.opcode(session, args, ... )
 	end
 end
 
-function response.start( ... )
+function CMD.start(gate, ... )
 	-- body
+	ctx:set_gate(gate)
+	return true
 end
 
-function response.close( ... )
+function CMD.close( ... )
 	-- body
 	for _,user in pairs(users) do
 		gate.req.unregister(user.session)
 	end
+	return true
 end
 
-function response.kill( ... )
+function CMD.kill( ... )
 	-- body
+	skynet.exit()
 end
 
 skynet.start(function ( ... )
@@ -252,19 +257,18 @@ skynet.start(function ( ... )
 	end)
 
 	ctx = context.new(id) 
-	local gate = snax.bind(udpserver, "udpserver")
-	ctx:set_gate(gate)
-	local aoi = skynet.newservice("aoi")
-	local conf = {}
-	conf.handle = snax.self().handle
-	skynet.call(aoi, "lua", "start", conf)
-	ctx:set_aoi(aoi)
+	
+	-- local aoi = skynet.newservice("aoi")
+	-- local conf = {}
+	-- conf.handle = snax.self().handle
+	-- skynet.call(aoi, "lua", "start", conf)
+	-- ctx:set_aoi(aoi)
 
-	local scene = room_scene.new(ctx, aoi)
-	local view = scene:setup_view()
-	local map = scene:setup_map()
-	ctx:set_map(map)
-	ctx:set_view(view)
-	ctx:set_scene(scene)
+	-- local scene = room_scene.new(ctx, aoi)
+	-- local view = scene:setup_view()
+	-- local map = scene:setup_map()
+	-- ctx:set_map(map)
+	-- ctx:set_view(view)
+	-- ctx:set_scene(scene)
 end)
 

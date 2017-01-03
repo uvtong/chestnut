@@ -15,13 +15,13 @@ handshake 1 {
     }
 }
 
-enter_room 1 {
+enter_room 2 {
 	response {
 		errorcode 0 : integer
 	}
 }
 
-join 2 {
+join 3 {
     request {
         roomid 0 : integer
     }
