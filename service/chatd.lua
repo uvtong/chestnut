@@ -10,6 +10,11 @@ function CMD.start( ... )
 	return true
 end
 
+function CMD.close( ... )
+	-- body
+	return true
+end
+
 function CMD.kill( ... )
 	-- body
 end

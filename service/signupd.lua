@@ -3,7 +3,7 @@ local login = require "snax.loginserver"
 local crypt = require "crypt"
 local skynet = require "skynet"
 local query = require "query"
-local x = 1
+local log = require "log"
 
 local MAX_INTEGER = 16777216
 
@@ -72,8 +72,9 @@ end
 
 function CMD.auth(user, password)
 	-- body
-	local sql = string.format("select * from account where username = \"%s\" and password = \"%s\"", user, password)
-	local r = query.select("account", sql)
+	log.info("username: %s, password: %s", user, password)
+	local sql = string.format("select * from tg_account where username = \"%s\" and password = \"%s\"", user, password)
+	local r = query.select("tg_account", sql)
 	if #r ~= 1 then
 		print("account system has error.")
 		return false, "error"

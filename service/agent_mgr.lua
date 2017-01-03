@@ -1,6 +1,5 @@
 local skynet = require "skynet"
 require "skynet.manager"
-local snax = require "snax"
 local skynet_queue = require "skynet.queue"
 local queue = require "lqueue"
 
@@ -12,13 +11,7 @@ local users = {}
 
 local function new_agent( ... )
 	-- body
-	if agent_service_type == 1 then
-		local agent = snax.newservice("agent")
-		return agent.handle
-	else
-		local agent = skynet.newservice("agent/agent")
-		return agent
-	end
+	return skynet.newservice("agent/agent")
 end
 
 local function enqueue(agent, ... )
@@ -47,8 +40,12 @@ local CMD = {}
 
 function CMD.start(t, ... )
 	-- body
-	agent_service_type = t
 	init()
+	return true
+end
+
+function CMD.close( ... )
+	-- body
 	return true
 end
 
@@ -57,8 +54,9 @@ function CMD.kill( ... )
 	skynet.exit()
 end
 
-function CMD.enter(uid, fd)
+function CMD.enter(uid, ... )
 	-- body
+	assert(uid)
 	if users[uid] then
 		return users[uid]
 	else
@@ -70,6 +68,7 @@ end
 
 function CMD.exit(uid)
 	-- body
+	assert(uid)
 	local agent = users[uid]
 	assert(agent)
 	users[uid] = nil

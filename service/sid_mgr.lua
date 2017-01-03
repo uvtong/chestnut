@@ -1,4 +1,6 @@
 local skynet = require "skynet"
+require "skynet.manager"
+local log = require "log"
 
 local internal_id = 1
 
@@ -6,10 +8,12 @@ local cmd = {}
 
 function cmd.start( ... )
 	-- body
+	return true
 end
 
 function cmd.close( ... )
 	-- body
+	return true
 end
 
 function cmd.enter( ... )

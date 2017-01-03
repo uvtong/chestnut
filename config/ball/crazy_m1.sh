@@ -4,6 +4,6 @@
 #echo $2
 #bash redis.sh
 cd ./../../3rd/skynet
-export LD_LIBRARY_PATH=./../../bin:$LD_LIBRARY_PATH 
+export LD_LIBRARY_PATH=$LD_LIBRARY_PATH:./../../bin
 ./skynet ../../config/ball/crazy_m1.config
 

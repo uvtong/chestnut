@@ -9,7 +9,7 @@ end
 
 function _M.update(table_name, sql)
 	-- body
-	skynet.send(".DB", "lua", "query", "update", table_name)
+	skynet.send(".DB", "lua", "query", "update", table_name, sql)
 end
 
 function _M.insert(table_name, sql, ... )

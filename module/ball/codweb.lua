@@ -28,6 +28,7 @@ function CMD.start( ... )
 
 	-- read
 	local game = skynet.uniqueservice("game")
+	skynet.call(game, "lua", "start")
 	table.insert(servers, game)
 
 	local chat = skynet.uniqueservice("chatd")
@@ -44,6 +45,10 @@ function CMD.start( ... )
 
 	-- skynet.newservice("branch")
 	-- skynet.newservice("channel")
+	skynet.uniqueservice("uid_mgr")
+	skynet.call(".UID_MGR", "lua", "start")
+	table.insert(servers, ".UID_MGR")
+
 	skynet.uniqueservice("ai_mgr")
 	skynet.call(".AI_MGR", "lua", "start")
 	table.insert(servers, ".AGENT_MGR")
@@ -90,6 +95,7 @@ end
 function CMD.kill( ... )
 	-- body
 	for i,v in ipairs(servers) do
+		log.info(skynet.queryservice(false, v))
 		skynet.call(v, "lua", "close")
 	end
 	-- skynet.exit()

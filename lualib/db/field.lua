@@ -1,12 +1,12 @@
-
-
 local cls = class("field")
 
 cls.data_type = {
 	char = 1,
 	integer  = 2,
-	biginteger = 3
+	biginteger = 3,
 	boolean = 4,
+	uinteger  = 5,
+	ubiginteger = 6,
 }
 
 options = {
@@ -16,18 +16,20 @@ options = {
 	unsigned    = 4
 }
 
-function cls:ctor(entity, name, column, dt, primary_key, unique, foreign_key, unsigned ... )
+function cls:ctor(entity, name, column, dt, primary_key, unique, foreign_key, unsigned, ... )
 	-- body
-	-- 1 ~ 8    options
-	-- 2 ~ 16   column
-	-- 17 ~ 24  type
+	-- 1 ~ 8    column
+	-- 2 ~ 16   type
+	-- 17 ~ 24  options
+	-- 24 ~ 32  changed
 	-- self.name = name
-	entity.fields[column] = self
+	assert(entity and name and column and dt)
+	entity._fields[column] = self
 
 	self.option = column & 0xff
-	self.option = self.option | (((1 << dt) & 0xff) << 8)
+	self.option = self.option | ((dt & 0xff) << 8)
 	if primary_key then
-		entity.pk = self
+		entity._pk = self
 		self.option = self.option | (((1 << options.primary_key) & 0xff) << 16)
 	end
 	if unique then
@@ -71,18 +73,13 @@ end
 
 function cls:dt( ... )
 	-- body
-	return (self.options >> 8) & 0xff
+	return (self.option >> 8) & 0xff
 end
 																																																																																																																																																																																																																																																																																																																																																																																																																																																																																																																																																																																																																																																																																																																																																																																																																																																																																																																																																																																																																																																																																																																																																																																																																																																																																																																																																																																																																																																																																																																																																																																																																																																																																																																																																																																																																																																																																																																																																																																																																																																																																																																																																																																																																																																																																																																																																																																																																																																																																																																																																																																																																																																																																																																																																																																																																																																																																																																																																																																																																																																																																																																																																																																																																																																																																																																																																																																																																																																																																																																																																																																																																																																																																																																																																																																																																																																																																																																																																																																																																																																																																																																																																																																																																																																																																																																																																																																																																																																																																																																																																																																																																																																																																																																																																																																																																																																																																																																																																																																																																																																																																																																																																																																																																																																																																																																																																																																																																																																																																																																																																																																																																																																																																																																																																																																																																																																																																																																																																																																																																																																																																																																																																																																																																																																																																																																																																																																																																																																																																																																																																																																																																																																																																																																																																																																																																																																																																																																																																																																																																																																																																																																																																																																																																																																																																																																																																																																																																																																																																																																																																																																																																																																																																																																																																																																																																																																																																																																																																																																																																																																																																																																																																																																																																																																																																																																																																																																																																																																																																																																																																																																																																																																																																																																																																																																																																																																																																																																																																																																																																																																																																																																																																																																																																																																																																																																																																																																																																																																																																																																																																																																																																																																																																																																																																																																																																																																																																																																																																																																																																																																																																																																																																																																																																																																																																																																																																																																																																																																																																																																																											
 function cls:set_value(value, ... )
 	-- body
-
-	self.value = value
-end
-
-function cls:increment( ... )
-	-- body								
 	self.option = (self.option | (1 << 24))
+	self.value = value
 end
 
 function cls:changed( ... )

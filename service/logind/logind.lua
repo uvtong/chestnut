@@ -1,9 +1,8 @@
-package.path = "./../../module/host/logind/?.lua;"..package.path
+package.path = "./../../service/logind/?.lua;"..package.path
 local skynet = require "skynet"
 local login = require "loginserver"
 local crypt = require "crypt"
 local log = require "log"
-
 
 local address, port = string.match(skynet.getenv("logind"), "([%d.]+)%:(%d+)")
 local server = {
@@ -25,7 +24,8 @@ function server.auth_handler(token)
 	server = crypt.base64decode(server)
 	password = crypt.base64decode(password)
 	-- assert(password == "password", "Invalid password")
-	local ok, userid = skynet.call(".SIGNUPD", "lua", "auth", user, password)
+	log.info("auth_handler %s@%s:%s", user, server, password)
+	local ok, uid = skynet.call(".SIGNUPD", "lua", "auth", user, password)
 	if ok then
 		return server, uid
 	else
@@ -35,32 +35,37 @@ function server.auth_handler(token)
 end
 
 function server.login_handler(server, uid, secret)
-	print(string.format("%s@%s is login, secret is %s", uid, server, crypt.hexencode(secret)))
+	log.info(string.format("%s@%s is login, secret is %s", uid, server, crypt.hexencode(secret)))
 	local gameserver = assert(server_list[server], "Unknown server")
 	-- only one can login, because disallow multilogin
 	local last = user_online[uid]
 	if last then
+		log.info("login_handler kick %d", last.address)
 		skynet.call(last.address, "lua", "kick", uid, last.subid)
+	else
+		log.info("login_handler no kick")
 	end
 	if user_online[uid] then
 		error(string.format("user %s is already online", uid))
 	end
-	print("gameserver is called", gameserver.address)
 	
 	local subid = skynet.call(gameserver.address, "lua", "login", uid, secret)
 	user_online[uid] = { address = gameserver.address, subid = subid , server = server}
 	local gated = gameserver.gated
-	log.info("gated: %s", gated)
 
-	return subid, gated
+	local res = string.format("%d#%d@%s", uid, subid, gated)
+	-- local res = subid
+	return res
 end
 
 local CMD = {}
 
 function CMD.register_gate(server, address, gated)
-	server_list[server] = {}
-	server_list[server].address = address
-	server_list[server].gated = gated
+	local s = {
+		address = address,
+		gated = gated,
+	}
+	server_list[server] = s
 end
 
 function CMD.logout(uid, subid)

@@ -22,6 +22,14 @@ function cls:ctor( ... )
 	return self
 end
 
+function cls:newborn(gate, uid, subid, secret, ... )
+	-- body
+	self._gate = gate
+	self._uid = uid
+	self._subid = subid
+	self._secret = secret
+end
+
 function cls:login(gate, uid, subid, secret)
 	assert(uid and subid and secret)
 	self._gate = gate
@@ -37,7 +45,7 @@ function cls:logout( ... )
 	if self._gate then
 		skynet.call(self._gate, "lua", "logout", self._uid, self._subid)
 	end
-	skynet.exit()
+	-- skynet.exit()
 end
 
 function cls:get_uid( ... )

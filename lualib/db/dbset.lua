@@ -15,6 +15,7 @@ function cls:ctor(env, dbctx, ... )
 	self._count = 0
 	self._pk = {}
 	self._searchs = {}
+	self._tname = ""
 	return self
 end
 
@@ -106,13 +107,6 @@ end
 
 function cls:find_and(k1, k2, ... )
 	-- body
-end
-
-function cls:update_db_all( ... )
-	-- body
-	for k,v in pairs(self._data) do
-		v:update_db()
-	end
 end
 
 function cls:update_db(entity, ... )

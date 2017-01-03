@@ -5,36 +5,31 @@
     version 3 : integer
 }
 
-.battleinitdata {
-	userid 0 : integer
-	carid 1 : integer
+.player {
+	
 }
 
-joinroom 1 {
+handshake 1 {
+    response {
+    	errorcode 0 : integer
+    }
+}
+
+enter_room 1 {
+	response {
+		errorcode 0 : integer
+	}
+}
+
+join 2 {
     request {
         roomid 0 : integer
     }
     response {
         errorcode 0 : integer
-		battleinitdatalst 1 : *battleinitdata
+		players 1 : *player
 		session	2 : integer
 		ip 3 : string
 		port 4 : integer
     }
-}
-
-ping 2 {
-	response {
-		errorcode 0 : integer
-	}
-}
-
-createbuff 3 {
-	request {
-		userid 0 : integer
-		buff_id 1 : integer
-	}
-	response {
-		errorcode 0 : integer
-	}
 }

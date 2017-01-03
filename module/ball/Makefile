@@ -1,17 +1,17 @@
-AOI_SRC_PATH ?= ../../3rd/aoi
-PLAY_SRC_PATH ?= ../../3rd/Maria/Plugins/play
-PHYSX_INC ?= ../../3rd/PhysX-3.3/PhysXSDK/Include
-PHYSX_LIB ?= ../../3rd/PhysX-3.3/PhysXSDK/Lib/linux32
-PHYSX_BIN ?= ../../3rd/PhysX-3.3/PhysXSDK/Bin/linux32
+AOI_SRC_PATH  := ../../3rd/aoi
+PLAY_SRC_PATH := ../../3rd/Maria/Plugins/play
+PHYSX_INC     := ../../3rd/PhysX-3.3/PhysXSDK/Include
+PHYSX_LIB     := ../../3rd/PhysX-3.3/PhysXSDK/Lib/linux32
+PHYSX_BIN     := ../../3rd/PhysX-3.3/PhysXSDK/Bin/linux32
 
-SKYNET_INC ?= ../../3rd/skynet/skynet-src
-LIBCO_INC  ?= ../../3rd/libco
-LIBCO_LIB  ?= ../../bin
+SKYNET_INC := ../../3rd/skynet/skynet-src
+LIBCO_INC  := ../../3rd/libco
+LIBCO_LIB  := ../../bin
 
-CSERVICE_PATH ?= cservice
-SERVICE_SRC_PATH ?= service-src
-LUA_CLIB_PATH ?= luaclib
-CLIB_SRC_PATH ?= lualib-src
+CSERVICE_PATH := cservice
+SERVICE_SRC_PATH := service-src
+LUA_CLIB_PATH := luaclib
+CLIB_SRC_PATH := lualib-src
 
 LUA_INC ?= /usr/local/include
 SHARED := -fPIC --shared
@@ -79,14 +79,7 @@ test: test.c
 	g++ -o $@ $^ -L. -lcolib -lpthread -ldl
 
 $(CSERVICE_PATH)/battle.so: $(SERVICE_SRC_PATH)/service_battle.c \
-	$(PLAY_SRC_PATH)/App.cpp \
-	$(PLAY_SRC_PATH)/Context.cpp \
-	$(PLAY_SRC_PATH)/Player.cpp \
-	$(PLAY_SRC_PATH)/PlayerMgr.cpp \
-	$(PLAY_SRC_PATH)/Role.cpp \
-	$(PLAY_SRC_PATH)/RoleMgr.cpp \
-	$(PLAY_SRC_PATH)/play.cpp \
-	$(PLAY_SRC_PATH)/stdafx.cpp | $(CSERVICE_PATH) 
+	$(wildcard $(PLAY_SRC_PATH)/*.cpp) | $(CSERVICE_PATH) 
 	g++ -std=c++11 $(CFLAGS) $(SHARED) $^ -o $@ $(debug_cppflags) -Wl,-Bdynamic -lcolib -lpthread -ldl \
 	-Wl,-Bstatic -lPhysX3ExtensionsDEBUG -lPhysXProfileSDKDEBUG -Wl,-Bdynamic -lPhysX3CommonDEBUG_x86 -lPhysX3CookingDEBUG_x86 -lPhysX3DEBUG_x86 -lPhysX3GpuDEBUG_x86
 

@@ -1,3 +1,4 @@
+local skynet = require "skynet"
 local center = require "notification_center"
 local socket = require "socket"
 local string_pack = string.pack
@@ -16,6 +17,11 @@ function cls:ctor( ... )
 	self._fd = false
 	self._version = false
 	self._index = false
+
+	self._gate = false
+	self._uid = false
+	self._subid = false
+	self._secret = false
 
 	return self
 end
@@ -101,6 +107,46 @@ end
 function cls:get_name_by_session(session, ... )
 	-- body
 	return self._response_session_name[session]
+end
+
+function cls:get_uid( ... )
+	-- body
+	return self._uid
+end
+
+function cls:get_subid( ... )
+	-- body
+	return self._subid
+end
+
+function cls:get_secret( ... )
+	-- body
+	return self._secret
+end
+
+function cls:newborn(gate, uid, subid, secret, ... )
+	-- body
+	self._gate = gate
+	self._uid = uid
+	self._subid = subid
+	self._secret = secret
+end
+
+function cls:login(gate, uid, subid, secret)
+	assert(gate and uid and subid and secret)
+	self._gate = gate
+	self._uid = uid
+	self._subid = subid
+	self._secret = secret
+end
+
+function cls:logout( ... )
+	-- body
+	if self._gate then
+		skynet.call(self._gate, "lua", "logout", self._uid, self._subid)
+	end
+	skynet.call(".AGENT_MGR", "lua", "exit", self._uid)
+	-- skynet.exit()
 end
 
 return cls

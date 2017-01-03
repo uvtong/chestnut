@@ -10,6 +10,12 @@ local ctx
 
 local cmd = {}
 
+function cmd.newborn(source, uid, sid, secret, ... )
+	-- body
+	ctx:newborn(source, uid, sid, secret)
+	return true
+end
+
 function cmd.login(source, uid, sid, secret)
 	-- you may use secret to make a encrypted data stream
 	roomkeeper = snax.queryservice "roomkeeper"
@@ -32,9 +38,9 @@ function cmd.logout()
 	ctx:logout()
 end
 
-function cmd.afk(fd)
+function cmd.afk()
 	-- the connection is broken, but the user may back
-	snax.printf("AFK")
+	log.info("afk")
 end
 
 function cmd.authed(conf, ... )
@@ -42,8 +48,7 @@ function cmd.authed(conf, ... )
 	local fd      = assert(conf.client)
 	local version = assert(conf.version)
 	local index   = assert(conf.index)
-	local uid     = assert(conf.uid) 
-
+	
 	ctx:set_fd(fd)
 	ctx:set_version(version)
 	ctx:set_index(index)
@@ -80,7 +85,7 @@ local client_request = {}
 
 function client_request.handshake( ... )
 	-- body
-	ctx:send_request("handshake")
+	-- ctx:send_request("handshake")
 	local res = { errorcode = 1 }
 	return res
 end
@@ -216,6 +221,12 @@ end
 
 skynet.start(function ( ... )
 	-- body
+	local host = sprotoloader.load(1):host "package"
+	local send_request = host:attach(sprotoloader.load(2))
+	ctx = context.new()
+	ctx:set_host(host)
+	ctx:set_send_request(send_request)
+	
 	skynet.register_protocol {
 		name = "client",
 		id = skynet.PTYPE_CLIENT,
@@ -225,9 +236,15 @@ skynet.start(function ( ... )
 	-- todo: dispatch client message
 	skynet.dispatch("client", dispatch_client)
 	
-	local host = sprotoloader.load(1):host "package"
-	local send_request = host:attach(sprotoloader.load(2))
-	ctx = context.new()
-	ctx:set_host(host)
-	ctx:set_send_request(send_request)
+	skynet.dispatch("lua", function (_, source, command, ...)
+		local f = cmd[command]
+		local ok, err = pcall(f, ...)
+		if ok then
+			if err ~= nil then
+				skynet.retpack(err)
+			end
+		else
+			log.error(err)
+		end
+	end)
 end)

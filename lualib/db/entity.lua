@@ -2,6 +2,7 @@ local query = require "query"
 local json = require "cjson"
 local sd = require "sharedata"
 local log = require "log"
+local field = require "db.field"
 
 local cls = class("entity")
 
@@ -51,84 +52,65 @@ function cls:update_cache( ... )
 	log.info("update cache %s, %s", self._tname, pk)
 end
 
-function cls:gen_update_sql( ... )
+function cls:update_db(tname, ... )
 	-- body
-	local columns_str = ""
-	local keys_str = "("
-	local values_str = "("
-	for k,v in pairs(t.__fields) do
-		keys_str = keys_str.."`"..k.."`"..", "
-		local head = t.__head[k]
-		if head.pk then
-			if head.t == "string" then
-				values_str = values_str..string.format("\"%s\", ", v)
-				columns_str = columns_str..string.format("`%s` = \"%s\", ", k, v)
-			elseif head.t == "number" then
-				values_str = values_str..string.format("%d, ", v)
-				columns_str = columns_str..string.format("`%s` = %d, ", k, v)
-			else
-				assert(false)
-			end
-		else
-			if true or t.__ecol_updated[k] > 0 then
-				t.__ecol_updated[k] = 0
-				if head.t == "string" then
-					values_str = values_str..string.format("\"%s\", ", v)
-					columns_str = columns_str..string.format("`%s` = \"%s\", ", k, v)
-				elseif head.t == "number" then
-					values_str = values_str..string.format("%d, ", v)
-					columns_str = columns_str..string.format("`%s` = %d, ", k, v)
-				else
-					assert(false)
-				end
+	if tname == nil then
+		tname = self._set._tname
+	end
+	local set = ""
+	for i,v in ipairs(self._fields) do
+		if v:changed() then
+			if v:dt() == field.data_type.integer then
+				set = set .. v.name .. string.format("=%d,", v.value)
+			elseif v:dt() == field.data_type.biginteger then
+				set = set .. v.name .. string.format("=%d,", v.value)
 			end
 		end
 	end
-	keys_str = string.gsub(keys_str, "(.*)%,%s$", "%1")..")"
-	values_str = string.gsub(values_str, "(.*)%,%s$", "%1")..")"
-	columns_str = string.gsub(columns_str, "(.*)%,%s$", "%1")	
-	local sql = string.format("insert into %s ", t.__tname)..keys_str.." values "..values_str.." on duplicate key update "..columns_str..";"
-	return sql
-end
-
-function cls:update_db( ... )
-	-- body
-	if false or self.__col_updated > 1 then
-		self.__col_updated = 0
-		local sql = self:gen_update_sql()
-		local wdb = self._wdb
-		query.write(wdb, self._tname, sql, query.DB_PRIORITY_3)
-	else 	
-		local tmp_sql = {}
-		local sql_first_part = string.format("call " .. "qy_insert_" .. t.__tname .. " (" )
-		-- print("sql_first_part is :", sql_first_part)
-		table.insert(tmp_sql, sql_first_part)
-		assert(t.__head_ord ~= nil)
-		local counter = 0
-		for k, v in ipairs(t.__head_ord) do
-			assert(nil ~= t.__fields[v.cn])
-			if counter > 0 then
-				table.insert(tmp_sql, ", ")
-			else
-				counter = counter + 1
-			end
-		
-			if type(t.__fields[v.cn]) == "string" then
-				table.insert(tmp_sql, string.format("'%s'",t.__fields[v.cn] ))
-			else
-				table.insert(tmp_sql, string.format("%s", t.__fields[v.cn]))
-			end
+	if set == "" then
+		return
+	else
+		set = string.sub(set, 1, #set-1)
+		local where = ""
+		if self._pk:dt() == field.data_type.integer then
+			where = string.format("%s=%d", self._pk.value)
+		elseif self._pk:dt() == field.data_type.biginteger then
+			where = string.format("%s=%d", self._pk.value)
 		end
-		table.insert(tmp_sql, ")")	
-		local sql = table.concat(tmp_sql)
-		--print(sql)
-		query.write(t.__wdb, t.__tname, sql, query.DB_PRIORITY_3)
-	end 
+		local sql = string.format("update %s set %s where %s;", tname, set, where)
+		log.info(sql)
+		query.insert(tname, sql)
+	end
 end
 
-function cls:insert_db( ... )
+function cls:insert_db(tname, ... )
 	-- body
-	self:update_db()
+	if tname == nil then
+		tname = self._set._tname
+	end
+	local keys = ""
+	local values = ""
+	for i,v in ipairs(self._fields) do
+		keys = keys .. v.name .. ","
+		if v:dt() == field.data_type.integer then
+			values = values .. string.format("%d,", v.value)
+		elseif v:dt() == field.data_type.biginteger then
+			values = values .. string.format("%d,", v.value)
+		elseif v:dt() == field.data_type.char then
+			values = values .. string.format("'%s',", v.value)
+		end
+	end
+	keys = string.sub(keys, 1, #keys-1)
+	values = string.sub(values, 1, #values-1)
+	local noexists = ""
+	if self._pk:dt() == field.data_type.integer then
+		noexists = string.format("select * from %s where %s=%d", self._pk.name, tname, self._pk.name, self._pk.value)
+	elseif self._pk:dt() == field.data_type.biginteger then
+		noexists = string.format("select * from %s where %s=%d", self._pk.name, tname, self._pk.name, self._pk.value)
+	end
+	local sql = string.format("insert into %s (%s) values (%s) where no exists(%s);", tname, keys, values, noexists)
+	log.info(sql)
+	query.insert(tname, sql)
 end
 
 return cls

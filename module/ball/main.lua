@@ -16,7 +16,7 @@ skynet.start(function()
 	local codweb = skynet.newservice("codweb")
 	skynet.call(codweb, "lua", "start")
 	
-	skynet.launch("battle", "test")
+	-- skynet.launch("battle", "test")
 	log.info("ball host successful .")
 	
 	skynet.exit()

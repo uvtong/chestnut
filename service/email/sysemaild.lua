@@ -7,7 +7,7 @@ local cmd = {}
 
 function cmd.start( ... )
 	-- body
-	sys = skynet.call(".SID_MGR", "lua", "sysemaild")
+	sys = skynet.call(".UID_MGR", "lua", "sysemaild")
 	-- skynet.call(".EMAIL", "lua", "login", sys)
 	local mail = {}
 	mail.id = 1
@@ -20,8 +20,14 @@ function cmd.start( ... )
 	return true
 end
 
+function cmd.close( ... )
+	-- body
+	return true
+end
+
 function cmd.kill( ... )
 	-- body
+	skynet.exit()
 end
 
 skynet.start(function ( ... )

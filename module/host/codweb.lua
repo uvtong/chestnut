@@ -25,6 +25,10 @@ function CMD.start( ... )
 		table.insert(servers, addr)
 	until true
 
+	local handle = skynet.uniqueservice("uid_mgr")
+	skynet.call(handle, "lua", "start")
+	table.insert(servers, handle)
+
 	local handle = skynet.uniqueservice("sid_mgr")
 	skynet.call(handle, "lua", "start")
 	table.insert(servers, handle)
@@ -45,9 +49,9 @@ function CMD.start( ... )
 	skynet.call(sysemaild, "lua", "start")
 	table.insert(servers, sysemaild)
 
-	local lb = skynet.newservice("leaderboardd")
-	skynet.call(lb, "lua", "start")
-	table.insert(servers, lb)
+	-- local lb = skynet.newservice("leaderboardd")
+	-- skynet.call(lb, "lua", "start")
+	-- table.insert(servers, lb)
 	
 	skynet.uniqueservice("agent_mgr")
 	skynet.call(".AGENT_MGR", "lua", "start", 2)
@@ -99,6 +103,11 @@ end
 function CMD.kill( ... )
 	-- body
 	for i,v in ipairs(servers) do
+		if type(v) == "number" then
+			log.info("call %s close", skynet.address(v))
+		else
+			log.info("call %s close", v)
+		end	
 		skynet.call(v, "lua", "close")
 	end
 	-- skynet.exit()

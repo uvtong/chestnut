@@ -4,6 +4,21 @@ require "skynet.manager"
 
 local CMD = {}
 
+function CMD.start( ... )
+	-- body
+	return true
+end
+
+function CMD.close( ... )
+	-- body
+	return true
+end
+
+function CMD.kill( ... )
+	-- body
+	skynet.exit()
+end
+
 skynet.start(function()
 	skynet.dispatch("lua", function(_,_, command, ...)
 		print("called", command)

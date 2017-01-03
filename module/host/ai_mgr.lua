@@ -35,8 +35,8 @@ end
 
 function CMD.start(t, ... )
 	-- body
-	local low, high = skynet.call(".SID_MGR", "lua", "ai")
-	for i=low,high do
+	local res = skynet.call(".UID_MGR", "lua", "ai")
+	for i=res.min,res.max do
 		enqueue(i)
 	end
 	return true

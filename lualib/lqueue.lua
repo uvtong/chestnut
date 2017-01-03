@@ -60,4 +60,13 @@ function _M.size(q, ... )
 	return q.__size
 end
 
+function _M.foreach(q, func, ... )
+	-- body
+	local i = q.__head
+	while i ~= q.__tail do
+		func(q.__data[i])
+		i = i + 1 <= q.__cap and i + 1 or 1
+	end
+end
+
 return _M

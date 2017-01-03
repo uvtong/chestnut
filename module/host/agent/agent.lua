@@ -148,7 +148,12 @@ end
 
 function REQUEST:first(args, ... )
 	-- body
-	-- skynet.
+	local res = {}
+	res.errorcode = errorcode.SUCCESS
+	res.gold = self._user.gold.value
+	res.diamond = self._user.diamond.value
+	res.name = self._user.name.value
+	return res 
 end
 
 local function request(name, args, response)
@@ -244,9 +249,24 @@ skynet.register_protocol {
 	end
 }
 
-function CMD:new(source, uid, subid, secret, ... )
+function CMD:start( ... )
 	-- body
-	self:new
+	return true
+end
+
+function CMD:close( ... )
+	-- body
+	return true
+end
+
+function CMD:kill( ... )
+	-- body
+	skynet.exit()
+end
+
+function CMD:newborn(source, uid, subid, secret, ... )
+	-- body
+	self:newborn(source, uid, subid, secret)
 	return true
 end
 
@@ -256,7 +276,7 @@ function CMD:login(source, uid, subid, secret,... )
 	self:login(source, uid, subid, secret)
 	self:set_state(context.state.NORMAL)
 	local now = os.date("*t")
-	skynet.call(".EMAIL", "lua", "login", uid)
+	-- skynet.call(".EMAIL", "lua", "login", uid)
 	-- local res = skynet.call(".EMAIL", "lua", "recv", now)
 	return true
 end
@@ -291,13 +311,11 @@ function CMD:authed(source, conf)
 	local fd      = assert(conf.client)
 	local version = assert(conf.version)
 	local index   = assert(conf.index)
-	local uid     = assert(conf.uid) 
 
 	self:set_fd(fd)
 	self:set_version(version)
 	self:set_index(index)
-
-	-- skynet.call(gate, "lua", "forward", uid, skynet.self())
+	
 	return true
 end
 

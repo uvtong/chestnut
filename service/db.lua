@@ -137,7 +137,7 @@ end
 function QUERY.insert(table_name, sql, ... )
 	-- body
 	if name == "master" then
-		skynet.send(write, "lua", "query", "update", table_name, sql)
+		skynet.send(write, "lua", "query", "insert", table_name, sql)
 	elseif name == "slave" then
 		local res = db:query(sql)
 		dump(res)
@@ -221,18 +221,28 @@ function CMD.close()
 	-- body
 	if name == "master" then
 		skynet.call(write, "lua", "close")
+		local function f(db, ... )
+			-- body
+			skynet.call(db, "lua", "close")
+		end
+		queue.foreach(readq, f)
 		local db = queue.dequeue(readq)
 		while db do
-			skynet.call(db, "lua", "close")
+			skynet.send(db, "lua", "kill")
 			db = queue.dequeue(readq)
 		end
+		return true
 	elseif name == "slave" then
+		disconnect_mysql()
+		disconnect_redis()
+		return true
 	end
 end
 
 function CMD.kill( ... )
 	-- body
 	if name == "master" then
+		assert(false)
 		skynet.call(write, "lua", "kill")
 		local db = queue.dequeue(readq)
 		while db do
@@ -252,7 +262,7 @@ skynet.start(function ()
 		if cmd == "query" then
 			local f = QUERY[subcmd]
 			local r = f( ... )
-			if f ~= nil then
+			if r ~= nil then
 				skynet.retpack(r)
 			end
 		else

@@ -2,10 +2,10 @@ local skynet = require "skynet"
 require "skynet.manager"
 local socket = require "socket"
 local crypt = require "crypt"
+local log = require "log"
 local table = table
 local string = string
 local assert = assert
-local error = skynet.error
 
 --[[
 
@@ -23,36 +23,37 @@ Protocol:
 	8. Server : call auth_handler(token) -> server, uid (A user defined method)
 	9. Server : call login_handler(server, uid, secret) ->subid (A user defined method)
 	10. Server->Client : 200 base64(subid)
-		
+
 Error Code:
 	400 Bad Request . challenge failed
 	401 Unauthorized . unauthorized by auth_handler
 	403 Forbidden . login_handler failed
 	406 Not Acceptable . already in login (disallow multi login)
-		
+
 Success:
 	200 base64(subid)
-]]		
-				 
+]]
+
 local socket_error = {}
 local function assert_socket(service, v, fd)
-	if v then 	 
-		return v 
-	else 		 
+	if v then
+		return v
+	else
 		skynet.error(string.format("%s failed: socket (fd = %d) closed", service, fd))
 		error(socket_error)
-	end 		 
-end 			 
-				 
+	end
+end
+
 local function write(service, fd, text)
 	assert_socket(service, socket.write(fd, text), fd)
-end 			 
-			 
+end
+
 local function launch_slave(auth_handler)
 	local function auth(fd, addr)
 		-- set socket buffer limit (8K)
 		-- If the attacker send large package, close the socket
 		socket.limit(fd, 8192)
+
 		local challenge = crypt.randomkey()
 		write("auth", fd, crypt.base64encode(challenge).."\n")
 
@@ -61,7 +62,6 @@ local function launch_slave(auth_handler)
 		if #clientkey ~= 8 then
 			error "Invalid client key"
 		end
-
 		local serverkey = crypt.randomkey()
 		write("auth", fd, crypt.base64encode(crypt.dhexchange(serverkey)).."\n")
 
@@ -100,29 +100,28 @@ local function launch_slave(auth_handler)
 		skynet.error(string.format("connect from %s (fd = %d)", addr, fd))
 		socket.start(fd)	-- may raise error here
 		local msg, len = ret_pack(pcall(auth, fd, addr))
-		skynet.error("socket (fd = %d) abandon", fd)
 		socket.abandon(fd)	-- never raise error here
 		return msg, len
 	end
 
 	skynet.dispatch("lua", function(_,_,...)
 		local ok, msg, len = pcall(auth_fd, ...)
-		if ok then 			
+		if ok then
 			skynet.ret(msg,len)
-		else 				
+		else
 			skynet.ret(skynet.pack(false, msg))
-		end 					
-	end)					
-end 						
-							
-local user_login = {}		
-							
+		end
+	end)
+end
+
+local user_login = {}
+
 local function accept(conf, s, fd, addr)
-	-- call slave auth 		
+	-- call slave auth
 	local ok, server, uid, secret = skynet.call(s, "lua",  fd, addr)
 	-- slave will accept(start) fd, so we can write to fd later
 
-	if not ok then 			
+	if not ok then
 		if ok ~= nil then
 			write("response 401", fd, "401 Unauthorized\n")
 		end
@@ -138,14 +137,13 @@ local function accept(conf, s, fd, addr)
 		user_login[uid] = true
 	end
 
-	local ok, err, gated = pcall(conf.login_handler, server, uid, secret)
+	local ok, err = pcall(conf.login_handler, server, uid, secret)
 	-- unlock login
 	user_login[uid] = nil
 
 	if ok then
 		err = err or ""
-		gated = gated or ""
-		write("response 200",fd,  "200 "..":"..crypt.base64encode(uid).."#"..crypt.base64encode(err).."@"..crypt.base64encode(gated).."\n")
+		write("response 200",fd,  "200 "..crypt.base64encode(err).."\n")
 	else
 		write("response 403",fd,  "403 Forbidden\n")
 		error(err)
@@ -182,7 +180,6 @@ local function launch_master(conf)
 				skynet.error(string.format("invalid client (fd = %d) error = %s", fd, err))
 			end
 		end
-		print("call me close_fd")
 		socket.close_fd(fd)	-- We haven't call socket.start, so use socket.close_fd rather than socket.close.
 	end)
 end

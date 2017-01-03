@@ -169,5 +169,8 @@ first 13 {
         errorcode 0 : integer
         outbox    1 : outbox
         inbox     2 : inbox
+        name      3 : string
+        gold      4 : integer
+        diamond   5 : integer
     }
 }

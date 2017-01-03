@@ -1,5 +1,5 @@
 local skynet = require "skynet"
-
+local log = require "log"
 -- local udpgate
 local rooms = {}
 local udpgates = {}
@@ -62,6 +62,8 @@ skynet.start(function ( ... )
 	local host = skynet.getenv "udp_host"
 	local port = skynet.getenv "udp_port"
 	assert(host and port)
+	log.info(host)
+	log.info(port)
 	for i=1,gate_max do
 		local xport = port + i
 		local udpgate = skynet.newservice("udpserver")

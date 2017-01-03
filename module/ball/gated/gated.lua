@@ -26,24 +26,32 @@ function server.login_handler(source, uid, secret, ...)
 
 	internal_id = internal_id + 1
 	local id = internal_id	-- don't use internal_id directly
+	local id = skynet.call(".SID_MGR", "lua", "enter")
 	local username = msgserver.username(uid, id, servername)
 	log.info("gated username: %s", username)
 
 	-- you can use a pool to alloc new agent
 	-- local agent = skynet.newservice "agent"
-	local handle = skynet.call(".AGENT_MGR", "lua", "enter")
-	local agent = snax.bind(handle, "agent")
+	local res = skynet.call(".UID_MGR", "lua", "login", uid)
+	log.info("userid: %d", res.id)
+	local agent = skynet.call(".AGENT_MGR", "lua", "enter", res.id)
 	local u = {
 		username = username,
 		agent = agent,
 		uid = uid,
 		subid = id,
 		online = false,
+		userid = res.id,
 	}
 
 	-- trash subid (no used)
-	
-	agent.req.login(skynet.self(), uid, id, secret)
+	if res.new then
+		log.info("new born")
+		skynet.call(agent, "lua", "newborn", skynet.self(), res.id, id, secret)
+	else
+		log.info("login")
+		skynet.call(agent, "lua", "login", skynet.self(), res.id, id, secret)
+	end
 
 	users[uid] = u
 	username_map[username] = u
@@ -105,7 +113,7 @@ function server.disconnect_handler(username, fd)
 	if u then
 		u.online = false
 		local agent = assert(u.agent)
-		agent.req.afk(fd)
+		skynet.call(agent, "lua", "afk")
 	end
 end
 
@@ -117,13 +125,12 @@ function server.start_handler(username, fd, version, idx, ... )
 		u.online = true
 		local agent = u.agent
 		if agent then
-			skynet.error("agent:", agent.handle, idx)
 			local conf = {
 				client = fd,
 				version = version,
 				index = idx,
 			}
-			agent.post.start(conf)
+			skynet.send(agent, "lua", "authed", conf)
 		end
 	end
 end
@@ -134,11 +141,9 @@ function server.msg_handler(username, msg, sz,... )
 	if u then
 		local agent = u.agent
 		if agent then
-			local session = skynet.genid()
-			skynet.redirect(agent.handle, skynet.self(), "client", session, msg, sz)
+			skynet.redirect(agent, skynet.self(), "client", 0, msg, sz)
 		else
-			assert(false)
-			skynet.send(agent, "lua", "start", netpack.tostring(msg, sz))
+			log.error("not find agent")
 		end
 	end
 end

@@ -1,4 +1,4 @@
-local set = require "dbset"
+local set = require "db.dbset"
 local cls = class("inbox", set)
 
 function cls:ctor( ... )

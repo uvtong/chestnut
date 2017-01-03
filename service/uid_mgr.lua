@@ -13,16 +13,15 @@ local cmd = {}
 
 function cmd.start( ... )
 	-- body
-	local sql = "select sid from dizhu.g_count where id = 1;"
-	local res = query.select("g_count", sql)
+	-- load internal_id
+	local sql = "select * from tg_count where id = 1;"
+	local res = query.select("tg_count", sql)
 	internal_id =  res[1].uid
-	local sql = "select * from uid"
+	-- load userid
+	local sql = "select * from tg_uid"
 	local res = query.select("uid", sql)
 	for i,v in ipairs(res) do
-		users[v.uid] = {
-			id = v.uid,
-			new = false
-		}
+		users[v.userid] = v.uid
 	end
 	return true
 end
@@ -37,31 +36,44 @@ function cmd.kill( ... )
 	skynet.exit()
 end
 
-function cmd.login(uid, ... )
+function cmd.login(userid, ... )
 	-- body
-	local id = users[uid]
+	assert(userid)
+	log.info("userid %d from boss", userid)
+	local id = users[userid]
 	if id then
-		return false, id
+		log.info("old user %d login", id)
+		return { new=false, id=id }
 	else
 		internal_id = internal_id + 1 & internal_id_mask
 		local id = server_id << 24
 		id =  (id | internal_id) & id_mask
+		log.info("new user %d login", id)
 
-		users[uid] = id
-		local sql = string.format("insert into uid values (%d, %d)", uid, id)
+		users[userid] = id
+		local sql = string.format("insert into tg_uid values (%d, %d)", userid, id)
 		query.insert("uid", sql)
-		return true, id
+
+		local sql = string.format("update tg_count set uid=%d where id=1", internal_id)
+		query.update("g_count", sql)
+		
+		return { new=true, id=id}
 	end
 end
 
-function cmd.sysemailid( ... )
+function cmd.query(uid, ... )
+	-- body
+	return users[uid]
+end
+
+function cmd.sysemaild( ... )
 	-- body
 	return 1
 end
 
 function cmd.ai( ... )
 	-- body
-	return 100, 1000
+	return { min=100, max=1000}
 end
 
 skynet.start(function ( ... )
@@ -71,6 +83,7 @@ skynet.start(function ( ... )
 		local ok, err = pcall(f, ...)
 		if ok then
 			if err ~= nil then
+				log.info("UID_MGR command: %s", command)
 				skynet.retpack(err)
 			end
 		else

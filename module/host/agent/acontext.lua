@@ -3,6 +3,7 @@ local dbcontext = require "dbcontext"
 local context = require "context"
 local inbox = require "inbox"
 local user = require "user"
+local log = require "log"
 local call = skynet.call
 local assert = assert
 
@@ -21,34 +22,19 @@ function cls:ctor( ... )
 	-- body
 	cls.super.ctor(self, ...)
 	
-	self._dbcontext = dbcontext.new()
-
-	self._gate = false
-	self._uid = false
-	self._subid = false
-	self._secret = false
+	
 	self._room = nil
 	self._state = state.NONE
 	self._last_state = state.NONE
 
-	self._user = nil
-	self._inbox = inbox.new()
+	self._dbcontext = dbcontext.new(self)
+
+	self._user = user.new(self, self._dbcontext, nil)
+	self._inbox = inbox.new(self, self._dbcontext, nil)
+
+	self._dbcontext:register_user(self._user)
+	self._dbcontext:register_set(self._inbox)
 	return self
-end
-
-function cls:get_uid( ... )
-	-- body
-	return self._uid
-end
-
-function cls:get_subid( ... )
-	-- body
-	return self._subid
-end
-
-function cls:get_secret( ... )
-	-- body
-	return self._secret
 end
 
 function cls:set_room(room, ... )
@@ -86,36 +72,33 @@ function cls:set_last_state(value, ... )
 	self._last_state = value
 end
 
-function cls:new_user(gate, uid, subid, secret, ... )
+function cls:newborn(gate, uid, subid, secret, ... )
 	-- body
-	self._gate = gate
-	self._uid = uid
-	self._subid = subid
-	self._secret = secret
+	cls.super.newborn(self, gate, uid, subid, secret)
+	
+	self._user:set_id(self._uid)
+	log.info(self._user.id.name)
+	self._user:set_name("nihao")
+	self._user:set_age(10)
+	self._user:set_gold(1000)
+	self._user:set_diamond(1000)
 
-	self._user = user.new(uid)
+	self._user:insert_db("tg_users")
 end
 
 function cls:login(gate, uid, subid, secret)
-	assert(uid and subid and secret)
-	self._gate = gate
-	self._uid = uid
-	self._subid = subid
-	self._secret = secret
-	-- self._host_udbcontext:load_db_to_data()
-	self._join = false
+	cls.super.login(self, gate, uid, subid, secret)
 
-	-- self._inbox:
-	return self._uid
+	self._join = false
+	
+	self._dbcontext:load_db_to_data()
+	log.info("load_db_to_data over")
 end
 
 function cls:logout( ... )
 	-- body
-	if self._gate then
-		skynet.call(self._gate, "lua", "logout", self._uid, self._subid)
-	end
-	skynet.call(".AGENT_MGR", "lua", "exit")
-	-- skynet.exit()
+	cls.super.logout(self)
+
 end
 
 return cls

@@ -177,7 +177,6 @@ function server.start(conf)
 		login = assert(conf.login_handler),
 		logout = assert(conf.logout_handler),
 		kick = assert(conf.kick_handler),
-		forward = assert(conf.forward_handler)
 	}
 
 	function handler.command(cmd, source, ...)
