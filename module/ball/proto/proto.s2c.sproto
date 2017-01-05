@@ -10,3 +10,12 @@ handshake 1 {
     	errorcode 0 : integer
     }
 }
+
+match 2 {
+	request {
+		roomid 0 : integer
+	}
+	response {
+		errorcode 0 : integer
+	}
+}

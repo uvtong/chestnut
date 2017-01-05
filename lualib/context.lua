@@ -1,6 +1,7 @@
 local skynet = require "skynet"
 local center = require "notification_center"
 local socket = require "socket"
+local log = require "log"
 local string_pack = string.pack
 
 local cls = class("context")
@@ -143,6 +144,7 @@ end
 function cls:logout( ... )
 	-- body
 	if self._gate then
+		log.info("call gate logout")
 		skynet.call(self._gate, "lua", "logout", self._uid, self._subid)
 	end
 	skynet.call(".AGENT_MGR", "lua", "exit", self._uid)

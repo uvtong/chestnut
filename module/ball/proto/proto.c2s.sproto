@@ -15,7 +15,7 @@ handshake 1 {
     }
 }
 
-enter_room 2 {
+match 2 {
 	response {
 		errorcode 0 : integer
 	}

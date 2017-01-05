@@ -1,10 +1,7 @@
 local skynet = require "skynet"
--- local udbcontext = require "udbcontext"
+local dbcontext = require "dbcontext"
+local user = require "user"
 local context = require "context"
-local call = skynet.call
-local assert = assert
-local rdb = ".DB"
-local wdb = ".DB"
 
 local cls = class("acontext", context)
 
@@ -12,55 +9,34 @@ function cls:ctor( ... )
 	-- body
 	cls.super.ctor(self, ...)
 	
-	self._gate = false
-	self._uid = false
-	self._subid = false
-	self._secret = false
 	self._room = false
 	self._session = false
-	-- self._host_udbcontext = host_udbcontext.new(self, rdb, wdb)
+	self._dbcontext = dbcontext.new(self)
+	self._user = user.new(self, self._dbcontext)
+	self._dbcontext:register_user(self._user)
 	return self
 end
 
 function cls:newborn(gate, uid, subid, secret, ... )
 	-- body
-	self._gate = gate
-	self._uid = uid
-	self._subid = subid
-	self._secret = secret
+	cls.super.newborn(self, gate, uid, subid, secret)
+	self._user:set_id(self._uid)
+	self._user:set_name("hello")
+	self._user:set_age(10)
+	self._user:set_gold(1000)
+	self._user:set_diamond(10000)
+	self._user:insert_db("tg_users")
 end
 
 function cls:login(gate, uid, subid, secret)
 	assert(uid and subid and secret)
-	self._gate = gate
-	self._uid = uid
-	self._subid = subid
-	self._secret = secret
-	-- self._host_udbcontext:load_db_to_data()
-	return self._uid
+	cls.super.login(self, gate, uid, subid, secret)
+
 end
 
 function cls:logout( ... )
 	-- body
-	if self._gate then
-		skynet.call(self._gate, "lua", "logout", self._uid, self._subid)
-	end
-	-- skynet.exit()
-end
-
-function cls:get_uid( ... )
-	-- body
-	return self._uid
-end
-
-function cls:get_subid( ... )
-	-- body
-	return self._subid
-end
-
-function cls:get_secret( ... )
-	-- body
-	return self._secret
+	cls.super.logout(self)
 end
 
 function cls:set_room(room, ... )
@@ -71,11 +47,6 @@ end
 function cls:get_room( ... )
 	-- body
 	return self._room
-end
-
-function cls:get_host_udbcontext( ... )
-	-- body
-	return self._host_udbcontext
 end
 
 function cls:set_session(session, ... )

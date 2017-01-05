@@ -128,7 +128,7 @@ all: $(SKYNET_PATH)/skynet \
 	$(LUA_CLIB_PATH)/rudp.so \
 	$(LUA_CLIB_PATH)/test.so \
 	$(CSERVICE_PATH)/catlogger.so \
-	$(CSERVICE_PATH)/udpgate.so \
+	# $(CSERVICE_PATH)/udpgate.so \
 	$(CSERVICE_PATH)/test.so 
 
 clean: clean_skynet clean_cjson clean_redis

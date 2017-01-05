@@ -86,8 +86,8 @@ $(CSERVICE_PATH)/battle.so: $(SERVICE_SRC_PATH)/service_battle.c \
 all: $(LUA_CLIB_PATH)/test.so \
 	$(LUA_CLIB_PATH)/aoiaux.so \
 	$(LUA_CLIB_PATH)/float.so \
-	$(LUA_CLIB_PATH)/battle.so \
-	$(CSERVICE_PATH)/battle.so
+	# $(LUA_CLIB_PATH)/battle.so \
+	# $(CSERVICE_PATH)/battle.so
 
 clean:
 	rm -rf $(LUA_CLIB_PATH)/test.so \

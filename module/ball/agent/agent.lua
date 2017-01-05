@@ -1,3 +1,4 @@
+package.path = "./../../module/ball/agent/?.lua;./../../module/ball/lualib/?.lua;../../lualib/?.lua;"..package.path
 local skynet = require "skynet"
 local sprotoloader = require "sprotoloader"
 local sproto = require "sproto"
@@ -18,9 +19,6 @@ end
 
 function cmd.login(source, uid, sid, secret)
 	-- you may use secret to make a encrypted data stream
-	roomkeeper = snax.queryservice "roomkeeper"
-	log.info("agent %s is login", uid)
-	
 	ctx:login(source, uid, sid, secret)
 	-- you may load user data from database
 	return true
@@ -29,13 +27,13 @@ end
 function cmd.logout()
 	-- NOTICE: The logout MAY be reentry
 	local uid = ctx:get_uid()
-	snax.printf("%s is logout", uid)
 	local room = ctx:get_room()
 	if room then
 		local session = ctx:get_session()
 		room.req.leave(session, uid)
 	end
 	ctx:logout()
+	log.info("uid: %d is logout", uid)
 end
 
 function cmd.afk()
@@ -52,6 +50,7 @@ function cmd.authed(conf, ... )
 	ctx:set_fd(fd)
 	ctx:set_version(version)
 	ctx:set_index(index)
+	return true
 end
 
 function cmd.join(args, ... )
