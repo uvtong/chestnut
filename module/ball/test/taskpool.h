@@ -24,4 +24,5 @@ void
 taskpool_suspend(struct taskpool_t *self, task_t *ta);
 
 struct task_t * taskpool_query(struct taskpool_t *self, int id);
+
 #endif

@@ -1,3 +1,5 @@
+include ./../../platform.mk
+
 AOI_SRC_PATH  := ../../3rd/aoi
 PLAY_SRC_PATH := ../../3rd/Maria/Plugins/play
 PHYSX_INC     := ../../3rd/PhysX-3.3/PhysXSDK/Include
@@ -8,15 +10,17 @@ SKYNET_INC := ../../3rd/skynet/skynet-src
 LIBCO_INC  := ../../3rd/libco
 LIBCO_LIB  := ../../bin
 
-CSERVICE_PATH := cservice
+CSERVICE_PATH    := cservice
 SERVICE_SRC_PATH := service-src
-LUA_CLIB_PATH := luaclib
-CLIB_SRC_PATH := lualib-src
+LUA_CLIB_PATH    := luaclib
+CLIB_SRC_PATH    := lualib-src
 
 LUA_INC ?= /usr/local/include
-SHARED := -fPIC --shared
-CFLAGS := -g -O2 -Wall
 
+CFLAGS := -g -O2 -Wall
+CPPFLAGES = -std=c++11 -fpermissive -Wnarrowing $(CFLAGS)
+
+.PHONY: clean
 
 # custom_cflags 
 debug_defines   := PHYSX_PROFILE_SDK
@@ -52,10 +56,6 @@ debug_common_cflags  += -g3 -gdwarf-2
 debug_cflags	:= $(debug_common_cflags)
 debug_cppflags	:= $(debug_common_cflags)
 
-.PHONY: all clean default
-
-default:
-	$(MAKE) all
 
 $(LUA_CLIB_PATH):
 	mkdir $(LUA_CLIB_PATH)
@@ -67,16 +67,18 @@ $(LUA_CLIB_PATH)/test.so: $(CLIB_SRC_PATH)/test.cpp $(CLIB_SRC_PATH)/Actor.cpp |
 	g++ -std=c++11 $(CFLAGS) $(SHARED) -I$(LUA_INC) $^ -o $@
 
 $(LUA_CLIB_PATH)/aoiaux.so: $(CLIB_SRC_PATH)/aoi_aux.c $(AOI_SRC_PATH)/aoi.c | $(LUA_CLIB_PATH)
-	gcc $(CFLAGS) $(SHARED) -I$(AOI_SRC_PATH) -I$(LUA_INC) $^ -o $@
+	$(CC) $(CFLAGS) $(SHARED) -I$(AOI_SRC_PATH) -I$(LUA_INC) $^ -o $@
 
 $(LUA_CLIB_PATH)/float.so: $(CLIB_SRC_PATH)/float.c | $(LUA_CLIB_PATH)
-	gcc $(CFLAGS) $(SHARED) -I$(LUA_INC) $^ -o $@
+	$(CC) $(CFLAGS) $(SHARED) -I$(LUA_INC) $^ -o $@
 
 $(LUA_CLIB_PATH)/battle.so: $(CLIB_SRC_PATH)/lua-battle.c | $(LUA_CLIB_PATH)
-	gcc $(CFLAGS) $(SHARED) -I$(LUA_INC) -I$(SERVICE_SRC_PATH) -I$(SKYNET_INC) $^ -o $@
+	$(CC) $(CFLAGS) $(SHARED) -I$(LUA_INC) -I$(SERVICE_SRC_PATH) -I$(SKYNET_INC) $^ -o $@
 
 test: test.c
 	g++ -o $@ $^ -L. -lcolib -lpthread -ldl
+
+
 
 $(CSERVICE_PATH)/battle.so: $(SERVICE_SRC_PATH)/service_battle.c \
 	$(wildcard $(PLAY_SRC_PATH)/*.cpp) | $(CSERVICE_PATH) 

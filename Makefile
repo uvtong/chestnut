@@ -5,15 +5,19 @@ CLIB_SRC_PATH ?= lualib-src
 CSERVICE_PATH ?= cservice
 SERVICE_SRC_PATH ?= service-src
 
-CFLAGS = -g -O2 -Wall $(MYCFLAGS)
-
-default:
-	$(MAKE) all
+CFLAGS    = -g -O2 -Wall $(MYCFLAGS)
+CPPFLAGES = -std=c++11 -fpermissive -Wnarrowing $(CFLAGS)
 
 .PHONY: update3rd
 
 update3rd:
 	git submodule update --init
+
+$(LUA_CLIB_PATH):
+	mkdir $(LUA_CLIB_PATH)
+
+$(CSERVICE_PATH):
+	mkdir $(CSERVICE_PATH)
 
 # lua
 LUA_PATH ?= ./3rd/lua
@@ -48,6 +52,8 @@ LUA_CJSON_PATH ?= ./3rd/lua-cjson
 $(LUA_CJSON_PATH)/Makefile: update3rd
 $(LUA_CJSON_PATH)/cjson.so: $(LUA_CJSON_PATH)/Makefile
 	cd $(LUA_CJSON_PATH) && $(MAKE)
+$(LUA_CLIB_PATH)/cjson.so: $(LUA_CJSON_PATH)/cjson.so
+	mv $(LUA_CJSON_PATH)/cjson.so $(LUA_CLIB_PATH)
 clean_cjson:
 	cd $(LUA_CJSON_PATH) && $(MAKE) clean
 
@@ -56,18 +62,16 @@ LUA_SNAPSHOT_PATH ?= ./3rd/lua-snapshot
 $(LUA_SNAPSHOT_PATH)/Makefile: update3rd
 $(LUA_SNAPSHOT_PATH)/snapshot.so: $(LUA_SNAPSHOT_PATH)/Makefile
 	cd $(LUA_SNAPSHOT_PATH) && $(MAKE)
-
-#lua-socket
-LUA_SOCKET_PATH ?= ./3rd/lua-socket
-$(LUA_SNAPSHOT_PATH)/Makefile: update3rd
-$(LUA_SOCKET_PATH)/packagesocket.so: $(LUA_SOCKET_PATH)/Makefile
-	cd $(LUA_SOCKET_PATH) && $(MAKE)
+$(LUA_CLIB_PATH)/snapshot.so: $(LUA_SNAPSHOT_PATH)/snapshot.so
+	mv $(LUA_SNAPSHOT_PATH)/snapshot.so $(LUA_CLIB_PATH)
 
 #lua-zset
 LUA_ZSET_PATH ?= ./3rd/lua-zset
 $(LUA_ZSET_PATH)/Makefile: update3rd
 $(LUA_ZSET_PATH)/skiplist.so: $(LUA_ZSET_PATH)/Makefile
 	cd $(LUA_ZSET_PATH) && $(MAKE)
+$(LUA_CLIB_PATH)/skiplist.so: $(LUA_ZSET_PATH)/skiplist.so
+	mv $(LUA_ZSET_PATH)/skiplist.so $(LUA_CLIB_PATH)
 
 #redis
 REDIS_PATH ?= ./3rd/redis
@@ -78,7 +82,7 @@ clean_redis:
 	cd $(REDIS_PATH) && $(MAKE) clean
 
 #skynet
-SKYNET_PATH ?= ./3rd/skynet
+SKYNET_PATH     := ./3rd/skynet
 SKYNET_SRC_PATH := ./3rd/skynet/skynet-src
 
 $(SKYNET_PATH)/Makefile: update3rd
@@ -86,12 +90,6 @@ $(SKYNET_PATH)/skynet: $(SKYNET_PATH)/Makefile
 	cd $(SKYNET_PATH) && $(MAKE) $(PLAT)
 clean_skynet:
 	cd $(SKYNET_PATH) && $(MAKE) clean
-
-$(LUA_CLIB_PATH):
-	mkdir $(LUA_CLIB_PATH)
-
-$(CSERVICE_PATH):
-	mkdir $(CSERVICE_PATH)
 
 # lualib
 $(LUA_CLIB_PATH)/log.so: $(CLIB_SRC_PATH)/lua-log.c | $(LUA_CLIB_PATH)
@@ -101,7 +99,7 @@ $(LUA_CLIB_PATH)/queue.so: $(CLIB_SRC_PATH)/lua-queue.c | $(LUA_CLIB_PATH)
 	$(CC) $(CFLAGS) $(SHARED) -I$(LUA_PATH) $^ -o $@
 
 $(LUA_CLIB_PATH)/math3d.so: $(CLIB_SRC_PATH)/libmath.c $(CLIB_SRC_PATH)/libaabb.c $(CLIB_SRC_PATH)/CCAABB.cpp | $(LUA_CLIB_PATH)
-	g++ -fpermissive -std=c++11 $(CFLAGS) $(SHARED) -I$(LUA_PATH) $^ -o $@	
+	g++ $(CPPFLAGES) $(SHARED) -I$(LUA_PATH) $^ -o $@
 
 $(LUA_CLIB_PATH)/rudp.so: ./3rd/rudp/rudp.c $(CLIB_SRC_PATH)/librudp.c 
 	$(CC) $(CFLAGS) $(SHARED) -I$(LUA_PATH) -I./3rd/rudp/ $^ -o $@
@@ -110,6 +108,11 @@ $(LUA_CLIB_PATH)/test.so: $(CLIB_SRC_PATH)/lua-test.c
 	$(CC) $(CFLAGS) $(SHARED) -I$(LUA_PATH) -I$(SERVICE_SRC_PATH) -I$(SKYNET_SRC_PATH) $^ -o $@
 
 # service
+service_defines   :=
+service_hpaths    := $(SKYNET_SRC_PATH)
+service_lpaths    := 
+service_libraries :=
+
 $(CSERVICE_PATH)/catlogger.so: $(SERVICE_SRC_PATH)/service_catlogger.c | $(CSERVICE_PATH)
 	$(CC) $(CFLAGS) $(SHARED) -I$(SKYNET_SRC_PATH) $^ -o $@ 
 

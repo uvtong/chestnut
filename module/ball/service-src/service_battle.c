@@ -10,8 +10,7 @@ extern "C" {
 #include "battle.h"
 #include "text_message.h"
 #include "rbtree.h"
-
-#include <co_routine.h>
+#include "battled.h"
 
 #include <stdio.h>
 #include <stdlib.h>
@@ -20,27 +19,9 @@ extern "C" {
 #include <time.h>
 #include <assert.h>
 
-
-
-
-
 struct battle {
-	
-
-
+	battled *d;
 };
-
-
-
-
-
-
-
-static void *
-cmd_start(void *arg) {
-	struct battle_message *message = (struct battle_message *)arg;
-	return NULL;
-}
 
 static void
 _ctrl(struct skynet_context *ctx, void *ud, int session, uint32_t source, const void *msg, size_t sz) {
@@ -85,13 +66,18 @@ extern "C" {
 
 struct battle *
 battle_create(void) {
-	struct battle *inst = battle_alloc();
+	struct battle *inst = skynet_malloc(sizeof(*inst));
 	memset(inst, 0, sizeof(*inst));
+	inst->d = new battled();
 	return inst;
 }
 
 void
 battle_release(struct battle *inst) {
+	if (inst->d != NULL)
+	{
+		delete inst->d;
+	}
 	battle_free(inst);
 }
 
