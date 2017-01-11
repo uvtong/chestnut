@@ -6,15 +6,19 @@ local float = require "float"
 local crypt = require "crypt"
 local log = require "log"
 local list = require "list"
-local room_scene = require "room.scene"
-local room_player = require "room.player"
-local opcodes = require "room.opcodes"
-local context = require "room.context"
+-- local room_scene = require "room.scene"
+-- local room_player = require "room.player"
+-- local opcodes = require "room.opcodes"
+-- local context = require "room.context"
 
 -- context variable
 local ctx
 local k = 0
 local lasttick = 0
+local gate
+local aoi
+local battle
+local users = {}
 local CMD = {}
 
 --[[
@@ -70,7 +74,23 @@ function CMD.aoi_message(watcher, marker, ... )
 	end
 end
 
-function CMD.join(handle, secret)
+function CMD.join(suid, sid, secret, agent)
+	local u = users[suid]
+	if u then
+		u.sid = sid
+		u.secret = secret
+		u.agent = agent
+	else
+		u = {
+			suid = suid,
+			sid = sid,
+			secret = secret,
+			agent = agent
+		}	
+		users[suid] = u
+	end
+
+	
 	if ctx:is_maxnum() then
 		return false
 	end
@@ -229,7 +249,7 @@ end
 
 function CMD.start(gate, ... )
 	-- body
-	ctx:set_gate(gate)
+	gate = gate
 	return true
 end
 
@@ -256,7 +276,7 @@ skynet.start(function ( ... )
 		end
 	end)
 
-	ctx = context.new(id) 
+	-- ctx = context.new(id) 
 	
 	-- local aoi = skynet.newservice("aoi")
 	-- local conf = {}

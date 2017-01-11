@@ -19,7 +19,12 @@ end
 
 function cmd.login(source, uid, sid, secret)
 	-- you may use secret to make a encrypted data stream
-	ctx:login(source, uid, sid, secret)
+	local res = skynet.call(".UID_MGR", "lua", "login", uid)
+	if res.new then
+		ctx:newborn(source, uid, sid, secret, res.id)
+	else
+		ctx:login(source, uid, sid, secret, res.id)
+	end
 	-- you may load user data from database
 	return true
 end
@@ -33,7 +38,8 @@ function cmd.logout()
 		room.req.leave(session, uid)
 	end
 	ctx:logout()
-	log.info("uid: %d is logout", uid)
+	log.info("uid: %d, suid: %d, is logout", uid, ctx:get_suid())
+	return true
 end
 
 function cmd.afk()
@@ -100,13 +106,6 @@ function client_request.join(msg)
 	return { session = session, host = host, port = port, players = ps }
 end
 
-function client_request.movedriction(msg, ... )
-	-- body
-	local session = ctx:get_session()
-	local room = ctx:get_room()
-	return room.req.movedriction(session, msg)
-end
-
 function client_request.born( ... )
 	-- body
 	local session = ctx:get_session()
@@ -119,6 +118,12 @@ function client_request.opcode(args, ... )
 	local session = ctx:get_session()
 	local room = ctx:get_room()
 	return room.req.opcode(session, args)
+end
+
+function client_request.match(args, ... )
+	-- body
+	local uid = ctx:get_uid()
+	skynet.send(".MATCH", "lua", "enter", uid, skynet.self())
 end
 
 local client_response = {}

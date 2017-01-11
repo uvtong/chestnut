@@ -1,18 +1,24 @@
 local skynet = require "skynet"
 local queue = require "queue"
-local log = require "log"
+local udpserver = require "udpserver"
 
+local gate_max = 10
 local q
 
 local cmd = {}
 
 function cmd.start( ... )
 	-- body
+	local host = skynet.getenv "udp_host"
+	local port = skynet.getenv "udp_port"
 	q = queue()
-	for i=1,10 do
-		local room = skynet.newservice("room/room")
-		q:enqueue(room)
+	for i=1,gate_max do
+		local xport = port + i
+		local udpgate = skynet.newservice("udpserver")
+		skynet.call(udpgate, "lua", "start", host, xport)
+		q:enqueue(udpgate)
 	end
+
 	return true
 end
 
@@ -23,23 +29,15 @@ end
 
 function cmd.kill( ... )
 	-- body
+	skynet.exit()
 end
 
-function cmd.enter( ... )
+function cmd:enter( ... )
 	-- body
-	if #q > 0 then
-		return q:dequeue()
-	else
-		return skynet.newservice("room/room")
-	end
+	local udpgate = q:dequeue()
+	q:enqueue(udpgate)
+	return udpgate
 end
-
-function cmd.exit(room, ... )
-	-- body
-	q:enqueue(room)
-end
-
--- todo : close room ?
 
 skynet.start(function ( ... )
 	-- body
@@ -49,6 +47,6 @@ skynet.start(function ( ... )
 		if r ~= nil then
 			skynet.ret(skynet.pack(r))
 		end
-	end)	
+	end)
+	skynet.register ".UDPSERVER_MGR"
 end)
-

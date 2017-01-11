@@ -3,33 +3,59 @@
 struct rudp_aux {
 	lua_State *L;
 	struct rudp *u;
+	buffer[MAX_PACKAGE];
 };
 
 static int
 lsend(lua_State *L) {
 	struct rudp_aux *aux = (struct rudp_aux *)lua_touserdata(L, 1);
-	const char *buffer = (const char *)lua_touserdata(L, 2);
-	int sz = lua_tointeger(L, 3);
-	if (aux == NULL) {
-		luaL_error(L, "aux is NULL");
-		return 0;
-	} else {
-		int r = rudp_send(aux->u, buffer, sz)
-		lua_pushinteger(L, r);
-		return 1;
+	size_t sz = 0
+	const char *buffer = luaL_checklstring(L, 2, &sz);
+	if (sz > 0) {
+		rudp_send(aux->u, buffer, sz);
 	}
 }
 
 static int
-lrecv(lua_State *L) {
-	struct rudp_aux *aux = (struct rudp_aux *)lua_touserdata(L, 1);
-	const char *buffer = (const char *)lua_touserdata(L, 2);
-	int sz = lua_tointeger(L, 3);
-
-}
-
-static int
 lupdate(lua_State *L) {
+	struct rudp_aux *aux = (struct rudp_aux *)lua_touserdata(L, 1);
+	luaL_checktype(L, 2, LUA_TTABLE);
+	if (lua_isnoneornil(L, 3)) {
+		lua_Integer tick = luaL_checkinteger(L, 4);
+		struct rudp_package *pack = rudp_update(aux->u, NULL, 0, tick);
+		while (pack != NULL) {
+			lua_geti(L, LUA_REGISTRYINDEX, LUA_RIDX_GLOBALS);
+			lua_rawgetp(L, -1, aux);
+			lua_getfield(L, -1, "send");
+			lua_pushvalue(L, 2);
+			lua_pushlstring(L, pack->buffer, pack->sz);
+			lua_pcall(L, 2, 0, 0);
+			pack = pack->next;
+		}
+	} else {
+		size_t sz = 0;
+		const char * str = luaL_checklstring(L, 3, &sz);
+		lua_Integer tick = luaL_checkinteger(L, 4);
+		struct rudp_package *pack = rudp_update(aux->u, str, sz, tick);
+		while (pack != NULL) {
+			lua_geti(L, LUA_REGISTRYINDEX, LUA_RIDX_GLOBALS);
+			lua_rawgetp(L, -1, aux);
+			lua_getfield(L, -1, "send");
+			lua_pushvalue(L, 2);
+			lua_pushlstring(L, pack->buffer, pack->sz);
+			lua_pcall(L, 2, 0, 0);
+			pack = pack->next;
+		}
+		while (rudp_recv(aux->u, aux->buffer) > 0) {
+			lua_geti(L, LUA_REGISTRYINDEX, LUA_RIDX_GLOBALS);
+			lua_rawgetp(L, -1, aux);
+			lua_getfield(L, -1, "recv");
+			lua_pushvalue(L, 2);
+			lua_pushlstring(L, pack->buffer, pack->sz);
+			lua_pcall(L, 2, 0, 0);
+		}
+	}
+	return 0;
 }
 
 static int
@@ -53,13 +79,18 @@ lalloc(lua_State *L) {
 	} else {
 		lua_pushvalue(L, lua_upvalueindex(1));
 		lua_setmetatable(L, -2);
-
+		
 		aux->L = L;
+
 		lua_geti(L, LUA_REGISTRYINDEX, LUA_RIDX_GLOBALS);
 		lua_newtable(L);
+		lua_pushvalue(L, 1);
+		lua_setfield(L, -2, "send");
+		lua_pushvalue(L, 2);
+		lua_setfield(L, -2, "recv");
 		lua_rawsetp(L, -2, aux);
 		lua_pop(L, 1);
-		
+
 		struct rudp *U = rudp_new(1, 5);
 		aux->u = U;
 		return 1;
@@ -73,7 +104,6 @@ luaopen_rudpaux(lua_State *L) {
 	luaL_Reg l[] = {
 		{ "update", lupdate },
 		{ "send", lsend },
-		{ "recv", lrecv },
 		{ NULL, NULL },
 	};
 	luaL_newlib(L,l);

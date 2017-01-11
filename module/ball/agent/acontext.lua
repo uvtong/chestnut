@@ -17,9 +17,9 @@ function cls:ctor( ... )
 	return self
 end
 
-function cls:newborn(gate, uid, subid, secret, ... )
+function cls:newborn(gate, uid, subid, secret, suid, ... )
 	-- body
-	cls.super.newborn(self, gate, uid, subid, secret)
+	cls.super.newborn(self, gate, uid, subid, secret, suid)
 	self._user:set_id(self._uid)
 	self._user:set_name("hello")
 	self._user:set_age(10)
@@ -28,9 +28,9 @@ function cls:newborn(gate, uid, subid, secret, ... )
 	self._user:insert_db("tg_users")
 end
 
-function cls:login(gate, uid, subid, secret)
+function cls:login(gate, uid, subid, secret, suid)
 	assert(uid and subid and secret)
-	cls.super.login(self, gate, uid, subid, secret)
+	cls.super.login(self, gate, uid, subid, secret, suid)
 
 end
 

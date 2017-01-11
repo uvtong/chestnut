@@ -19,10 +19,11 @@ function cls:ctor( ... )
 	self._version = false
 	self._index = false
 
-	self._gate = false
-	self._uid = false
-	self._subid = false
-	self._secret = false
+	self._gate   = nil
+	self._uid    = nil
+	self._subid  = nil
+	self._secret = nil
+	self._suid   = nil
 
 	return self
 end
@@ -125,20 +126,28 @@ function cls:get_secret( ... )
 	return self._secret
 end
 
-function cls:newborn(gate, uid, subid, secret, ... )
+function cls:get_suid( ... )
 	-- body
-	self._gate = gate
-	self._uid = uid
-	self._subid = subid
-	self._secret = secret
+	return self._suid
 end
 
-function cls:login(gate, uid, subid, secret)
-	assert(gate and uid and subid and secret)
+function cls:newborn(gate, uid, subid, secret, suid, ... )
+	-- body
+	assert(gate and uid and subid and secret and suid)
 	self._gate = gate
 	self._uid = uid
 	self._subid = subid
 	self._secret = secret
+	self._suid = suid
+end
+
+function cls:login(gate, uid, subid, secret, suid)
+	assert(gate and uid and subid and secret and suid)
+	self._gate = gate
+	self._uid = uid
+	self._subid = subid
+	self._secret = secret
+	self._suid = suid
 end
 
 function cls:logout( ... )

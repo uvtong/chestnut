@@ -1,17 +1,16 @@
 package.path = "../../db/?.lua;" .. package.path
-package.cpath = "./../lua-cjson/?.so;"..package.cpath
 local skynet = require "skynet"
 local mc = require "multicast"
 local mysql = require "mysql"
 local redis = require "redis"
 local util = require "util"
-local queue = require "lqueue"
+local queue = require "queue"
 local log = require "log"
 local name = ...
 
 local db
 local cache
-local readq = queue.new(16)
+local readq = queue()
 local write
 
 local function dump(obj)
@@ -113,9 +112,9 @@ local QUERY = {}
 function QUERY.select(table_name, sql)
 	-- body
 	if name == "master" then
-		local db = queue.dequeue(readq)
+		local db = readq:dequeue()
 		local res = skynet.call(db, "lua", "query", "select", table_name, sql)
-		queue.enqueue(readq, db)
+		readq:enqueue(db)
 		return res
 	elseif name == "slave" then
 		local res = db:query(sql)
@@ -147,9 +146,9 @@ end
 function QUERY.get(k, sub)
 	-- body
 	if name == "master" then
-		local db = queue.dequeue(readq)
+		local db = readq:dequeue()
 		local res = skynet.call(db, "lua", "query", "get", k, sub)
-		queue.enqueue(readq, db)
+		readq:enqueue(db)
 		return res
 	else
 		return cache:get(k)
@@ -168,9 +167,9 @@ end
 function QUERY.hget(k, kk, ... )
 	-- body
 	if name == "master" then
-		local db = queue.dequeue(readq)
+		local db = readq:dequeue()
 		local res = skynet.call(db, "lua", "query", "hget", k, kk)
-		queue.enqueue(readq, db)
+		readq:enqueue(db)
 		return res
 	elseif name == "slave" then
 		return cache:hvals(k)
@@ -196,7 +195,7 @@ function CMD.start(conf)
 		for i=1,10 do
 			local db = skynet.newservice("db", "slave")
 			skynet.call(db, "lua", "start", conf)
-			queue.enqueue(readq, db)
+			readq:enqueue(db)
 		end
 	elseif name == "slave" then
 		local db_conf = {
@@ -226,10 +225,10 @@ function CMD.close()
 			skynet.call(db, "lua", "close")
 		end
 		queue.foreach(readq, f)
-		local db = queue.dequeue(readq)
+		local db = readq:dequeue()
 		while db do
 			skynet.send(db, "lua", "kill")
-			db = queue.dequeue(readq)
+			db = readq:dequeue()
 		end
 		return true
 	elseif name == "slave" then
@@ -244,10 +243,10 @@ function CMD.kill( ... )
 	if name == "master" then
 		assert(false)
 		skynet.call(write, "lua", "kill")
-		local db = queue.dequeue(readq)
+		local db = readq:dequeue()
 		while db do
 			skynet.call(db, "lua", "kill")
-			db = queue.dequeue(readq)
+			db = readq:dequeue()
 		end
 		skynet.exit()
 		return true

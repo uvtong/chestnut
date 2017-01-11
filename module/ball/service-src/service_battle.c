@@ -27,6 +27,8 @@ static void
 _ctrl(struct skynet_context *ctx, void *ud, int session, uint32_t source, const void *msg, size_t sz) {
 	struct battle *inst = (struct battle *)ud;
 	struct text_message *message = (struct text_message *)msg;
+	void * res = inst->d->exec(message)
+
 	struct battle_message *body = NULL;
 	if (strcmp(text_message_unpack(message, (void**)&body), "START") == 0) {
 		struct task_t * ta = battle_create_task(inst);
@@ -54,7 +56,6 @@ _cb(struct skynet_context *ctx, void *ud, int type, int session, uint32_t source
 	if (type == PTYPE_TEXT) {
 		_ctrl(ctx, ud, session, source, msg, sz);
 	} else if (type == PTYPE_RESPONSE) {
-		
 	}
 	return 0;
 }

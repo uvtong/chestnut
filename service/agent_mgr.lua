@@ -1,12 +1,12 @@
 local skynet = require "skynet"
 require "skynet.manager"
 local skynet_queue = require "skynet.queue"
-local queue = require "lqueue"
+local queue = require "queue"
 
 local cs = skynet_queue()
 local agent_service_type = 1   -- 1. snax, 2. normal
 
-local leisure_agent = queue.new(255)
+local leisure_agent = queue()
 local users = {}
 
 local function new_agent( ... )
@@ -16,13 +16,13 @@ end
 
 local function enqueue(agent, ... )
 	-- body
-	queue.enqueue(leisure_agent, agent)
+	leisure_agent:enqueue(agent)
 end
 
 local function dequeue( ... )
 	-- body
-	if queue.size(leisure_agent) > 0 then
-		return queue.dequeue(leisure_agent)
+	if #leisure_agent > 0 then
+		return leisure_agent:dequeue()
 	else
 		return new_agent()
 	end

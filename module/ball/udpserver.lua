@@ -1,17 +1,17 @@
 local skynet = require "skynet"
 local socket = require "socket"
 local crypt = require "crypt"
--- local rudp = require "rudp"
+local rudp = require "rudp"
 local log = require "log"
 
-local tick = 1
 local udphost, udpport
 local U
 local S = {}
+local D = {}
+
 local SESSION = 0
 local timeout = 10 * 60 * 100	-- 10 mins
-local D = {}
-local rudp_flag = false
+
 
 --[[
 	8 bytes hmac   crypt.hmac_hash(key, session .. data)
@@ -32,10 +32,34 @@ local function timesync(session, localtime, from)
 	end
 end
 
-local function udpdispatch(str, from)
+local function send(s, data, ... )
+	-- body
+	if #data > 0 then
+		socket.sendto(U, s.address, data)
+	else
+		log.info("data length more then 0")
+	end
+end
+
+local function update(s, data, ... )
+	-- body
+	local last = s.last
+	local now = skynet.now()
+	local past = now - last
+	local tick = 0
+	if past >= 5 then -- 20 fps
+		last = last + 5
+		tick = 1
+		s.last = last
+	end
+	s.u:update(s, data, 1)
+end
+
+local function recv(s, data, ... )
+	-- body
 	local localtime, eventtime, session = string.unpack("<III", str, 9)
 	-- skynet.error("localtime:", localtime, "eventtime:", eventtime, "session:", session)
-	local s = S[session]
+	-- local s = S[session]
 	if s then
 		if s.address ~= from then
 			skynet.error("udp_servier first time")
@@ -68,22 +92,6 @@ local function udpdispatch(str, from)
 	end
 end
 
-local function send(u, id, data, ... )
-	-- body
-	local s = D[id]
-	if s and (s.address == id) then
-		socket.sendto(U, s.address, data)
-	else
-		snax.printf("Session is invalid %d", session)
-	end
-end
-
-local function recv(u, from, data, ... )
-	-- body
-	snax.printf("1.recv %d, %s", from, data)
-	udpdispatch(data, from)
-end
-
 local function keepalive()
 	-- trash session after no package last 10 mins (timeout)
 	while true do
@@ -104,14 +112,11 @@ local function keepalive()
 	end
 end
 
-local function update( ... )
+local function tick( ... )
 	-- body
 	while true do
-		tick = tick + 1
 		for session,s in pairs(S) do
-			if s.u then
-				s.u:update("", tick)
-			end
+			update(s)
 		end
 		skynet.sleep(10);  -- 0.1s
 	end
@@ -139,11 +144,12 @@ local cmd = {}
 
 function cmd.start(host, port, ... )
 	-- body
+	udphost = host
+	udpport = port
 	U = socket.udp(udpdispatch, host, math.floor(port))
 	skynet.fork(keepalive)
 	skynet.error("begin to do udp_servier", host, math.floor(port))
-	udphost = host
-	udpport = port
+	skynet.fork(tick)
 	return true
 end
 
@@ -162,6 +168,7 @@ function cmd.kill( ... )
 		socket.close(U)
 		U = nil 
 	end
+	skynet.exit()
 end
 
 function cmd.register(service, key)

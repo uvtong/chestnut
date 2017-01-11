@@ -32,26 +32,18 @@ function server.login_handler(source, uid, secret, ...)
 
 	-- you can use a pool to alloc new agent
 	-- local agent = skynet.newservice "agent"
-	local res = skynet.call(".UID_MGR", "lua", "login", uid)
-	log.info("userid: %d", res.id)
-	local agent = skynet.call(".AGENT_MGR", "lua", "enter", res.id)
+	
+	local agent = skynet.call(".AGENT_MGR", "lua", "enter", uid)
 	local u = {
 		username = username,
 		agent = agent,
 		uid = uid,
 		subid = id,
 		online = false,
-		userid = res.id,
 	}
 
 	-- trash subid (no used)
-	if res.new then
-		log.info("new born")
-		skynet.call(agent, "lua", "newborn", skynet.self(), res.id, id, secret)
-	else
-		log.info("login")
-		skynet.call(agent, "lua", "login", skynet.self(), res.id, id, secret)
-	end
+	skynet.call(agent, "lua", "login", skynet.self(), uid, id, secret)
 
 	users[uid] = u
 	username_map[username] = u

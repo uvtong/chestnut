@@ -1,12 +1,12 @@
 local skynet = require "skynet"
 require "skynet.manager"
 local skynet_queue = require "skynet.queue"
-local queue = require "lqueue"
+local queue = require "queue"
 
 local cs = skynet_queue()
 
 local id = 1
-local leisure_ai = queue.new(255)
+local leisure_ai = queue()
 
 local function new_ai( ... )
 	-- body
@@ -16,13 +16,13 @@ end
 
 local function enqueue(id, ... )
 	-- body
-	queue.enqueue(leisure_ai, id)
+	leisure_ai:enqueue(id)
 end
 
 local function dequeue( ... )
 	-- body
 	if queue.size(leisure_ai) > 0 then
-		return queue.dequeue(leisure_ai)
+		return leisure_ai:dequeue()
 	else
 		return new_ai()
 	end
