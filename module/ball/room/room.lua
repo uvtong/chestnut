@@ -6,12 +6,10 @@ local float = require "float"
 local crypt = require "crypt"
 local log = require "log"
 local list = require "list"
--- local room_scene = require "room.scene"
--- local room_player = require "room.player"
--- local opcodes = require "room.opcodes"
--- local context = require "room.context"
+
 
 -- context variable
+local id = ...
 local ctx
 local k = 0
 local lasttick = 0
@@ -74,13 +72,21 @@ function CMD.aoi_message(watcher, marker, ... )
 	end
 end
 
-function CMD.join(suid, sid, secret, agent)
-	local u = users[suid]
+function CMD.join(uid, secret, agent)
+	local u = users[uid]
 	if u then
 		u.sid = sid
 		u.secret = secret
 		u.agent = agent
 	else
+
+		local players = {}
+		for k,v in pairs(users) do
+			local tmp = {}
+			tmp.session = v.session
+			table.insert(players, tmp)
+		end
+
 		u = {
 			suid = suid,
 			sid = sid,
@@ -88,59 +94,11 @@ function CMD.join(suid, sid, secret, agent)
 			agent = agent
 		}	
 		users[suid] = u
+		local res = skynet.call(gate, "lua", "register", skynet.self(), secret)
+		u.session = res.session
+		res.players = players
+		return res
 	end
-
-	
-	if ctx:is_maxnum() then
-		return false
-	end
-	local session_players = ctx:get_players()
-	local ps = {}
-	for k,player in pairs(session_players) do
-		local p = {}
-		p.session = player:get_session()
-		p.balls = {}
-		local balls = player:get_balls()
-		for k,ball in pairs(balls) do
-			local radis = ball:get_radis()
-			local length = ball:get_length()
-			local width = ball:get_width()
-			local height = ball:get_height()
-			local res = {}
-			res.errorcode = errorcode.SUCCESS
-			res.session = ball:get_session()
-			res.ballid = ball:get_id()
-			res.radis = radis
-			res.length = length
-			res.width = width
-			res.height = height
-			res.px = ball:pack_sproto_px()
-			res.py = ball:pack_sproto_py()
-			res.pz = ball:pack_sproto_pz()
-			res.dx = ball:pack_sproto_dx()
-			res.dy = ball:pack_sproto_dy()
-			res.dz = ball:pack_sproto_dz()
-			res.vel = ball:pack_sproto_vel()
-			table.insert(p.balls, res)
-		end
-		table.insert(ps, p)
-	end
-	local gate = ctx:get_gate()
-	local session = gate.req.register(skynet.self(), secret)
-	local agent = snax.bind(handle, "agent")
-	local player = room_player.new(session)
-	player:set_secret(secret)
-	player:set_agent(agent)
-	ctx:add(session, player)
-
-	for k,v in pairs(session_players) do
-		if k ~= session then
-			log.info("room join")
-			local agent = v:get_agent()
-			agent.post.join({ session = session })
-		end
-	end
-	return session, ps
 end
 
 function CMD.leave(session)

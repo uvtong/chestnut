@@ -177,14 +177,14 @@ function cmd.register(service, key)
 	S[SESSION] = {
 		session = SESSION,
 		key = key,
-		room = snax.bind(service, "room"),
+		room = service,
 		address = nil,
 		time = skynet.now(),
 		lastevent = nil,
 		u = nil,
 	}
 	skynet.error("client session", SESSION)
-	return SESSION
+	return { host=udphost, port=udpport, session=SESSION}
 end
 
 function cmd.unregister(session)

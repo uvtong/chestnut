@@ -6,7 +6,7 @@
 }
 
 .player {
-	
+    session 0 :integer
 }
 
 handshake 1 {
@@ -29,7 +29,7 @@ join 3 {
         errorcode 0 : integer
 		players 1 : *player
 		session	2 : integer
-		ip 3 : string
+		host 3 : string
 		port 4 : integer
     }
 }

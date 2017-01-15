@@ -1,5 +1,7 @@
 local skynet = require "skynet"
+require "skynet.manager"
 local queue = require "queue"
+local log = require "log"
 
 local q = queue()
 local users = {}
@@ -43,6 +45,7 @@ function cmd.enter(uid, agent, ... )
 	if u then
 		u.online = true
 		u.logout = false
+		log.info("uid:%d enter")
 	else
 		local u = {
 			uid = uid,
@@ -51,28 +54,18 @@ function cmd.enter(uid, agent, ... )
 			logout = false
 		}
 		users[uid] = u
+		q:enqueue(u)
 	end
-	q:enqueue(u)
+	log.info("length of q: %d", #q)
 	if #q >= 1 then
-		local u = q:dequeue()
-		local room = skynet.call(".ROOM_MGR", "lua", "enter")
-		local gate = skynet.call(".UDPSERVER_MGR", "lua", "enter")
-	end
-end
 
-function cmd.apply(roomid)
-	local room = rooms[roomid]
-	if room == nil then
-		gate_idx = gate_idx + 1 % gate_max
-		local gate = udpgates[gate_idx]
-		local r = snax.newservice("room", roomid, gate.udpgate.handle)
-		room = {}
-		room.gate = gate
-		room.r = r
-		rooms[roomid] = room
-		return r.handle, gate.host, gate.port
-	else
-		return room.r.handle, room.gate.host, room.gate.port
+		local u = q:dequeue()
+		users[u.uid] = nil
+
+		local res = skynet.call(".ROOM_MGR", "lua", "enter")
+		local gate = skynet.call(".UDPSERVER_MGR", "lua", "enter")
+		skynet.call(res.addr, "lua", "start", gate)
+		skynet.send(u.agent, "lua", "match", {roomid=res.id})
 	end
 end
 

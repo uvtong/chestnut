@@ -59,6 +59,11 @@ function cmd.authed(conf, ... )
 	return true
 end
 
+function cmd.match(args, ... )
+	-- body
+	ctx:send_request("match", args)
+end
+
 function cmd.join(args, ... )
 	-- body
 	log.info("agent. join")
@@ -95,15 +100,16 @@ function client_request.handshake( ... )
 	return res
 end
 
-function client_request.join(msg)
+function client_request.join(args)
 
 	local secret = ctx:get_secret()
-	local handle, host, port = roomkeeper.req.apply(msg.room)
-	local room = snax.bind(handle , "room")
+	local room = skynet.call(".ROOM_MGR", "lua", "apply", args.roomid)
 	ctx:set_room(room)
-	local session, ps = room.req.join(skynet.self(), secret)
-	ctx:set_session(session)
-	return { session = session, host = host, port = port, players = ps }
+
+	local res = skynet.call(room, "lua", "join", skynet.self(), secret)
+	ctx:set_session(res.session)
+
+	return res
 end
 
 function client_request.born( ... )
@@ -124,6 +130,8 @@ function client_request.match(args, ... )
 	-- body
 	local uid = ctx:get_uid()
 	skynet.send(".MATCH", "lua", "enter", uid, skynet.self())
+	local res = { errorcode=errorcode.SUCCESS}
+	return res
 end
 
 local client_response = {}

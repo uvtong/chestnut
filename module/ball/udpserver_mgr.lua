@@ -1,4 +1,5 @@
 local skynet = require "skynet"
+require "skynet.manager"
 local queue = require "queue"
 local udpserver = require "udpserver"
 
@@ -18,7 +19,6 @@ function cmd.start( ... )
 		skynet.call(udpgate, "lua", "start", host, xport)
 		q:enqueue(udpgate)
 	end
-
 	return true
 end
 
