@@ -1,15 +1,13 @@
+
 #ifdef __cplusplus
 extern "C" {
 #endif
 #include "skynet.h"
 #include "skynet_malloc.h"
-#ifdef __cplusplus
-}
-#endif
 
 #include "battle.h"
 #include "text_message.h"
-#include "rbtree.h"
+
 #include "battled.h"
 
 #include <stdio.h>
