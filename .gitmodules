@@ -44,3 +44,6 @@
 [submodule "3rd/libco"]
 	path = 3rd/libco
 	url = https://github.com/Tencent/libco
+[submodule "3rd/PhysX-3.4"]
+	path = 3rd/PhysX-3.4
+	url = https://github.com/NVIDIAGameWorks/PhysX-3.4

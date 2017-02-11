@@ -5,6 +5,7 @@ function cls:ctor(id, ... )
 	-- body
 	self._id = id
 	self._aoi = nil
+	self._battle = nil
 	self._gate = nil
 	self._map = nil
 	self._view = nil
@@ -23,6 +24,16 @@ end
 function cls:get_aoi( ... )
 	-- body
 	return self._aoi
+end
+
+function cls:get_battle( ... )
+	-- body
+	return self._battle
+end
+
+function cls:set_battle(v, ... )
+	-- body
+	self._battle = v
 end
 
 function cls:set_gate(v, ... )

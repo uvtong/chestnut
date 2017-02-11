@@ -10,16 +10,16 @@ class service
 public:
 
 	service();
-	~service();
+	virtual ~service();
 
-	void * exec(const char *cmd);
+	void * exec(const char *cmd, void *arg);
 
-	void register_cmd(const char *cmd, cmd_cb cb);
+	void register_cmd(const char *cmd, std::function<void*(void*)> cb);
 	void unregister_cmd(const char *cmd);
 
-	void * cmd_start(void *arg);
-	void * cmd_close(void *arg);
-	void * cmd_kill(void *arg);
+	virtual void * cmd_start(void *arg);
+	virtual void * cmd_close(void *arg);
+	virtual void * cmd_kill(void *arg);
 
 private:
 	static uint32_t _count;

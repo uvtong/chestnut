@@ -1,26 +1,30 @@
-#include "taskpool.h"
+#include "service.h"
 #include <pthread.h>
 
 
-static uint32_t Service::_count = 0;
+uint32_t service::_count = 0;
 
 service::service() {
 	_count++;
 
-	register_cmd("start", std::bind(&service::cmd_start, this, std::_1));
-	register_cmd("close", std::bind(&service::cmd_close, this, std::_1));
-	register_cmd("kill", std::bind(&service::cmd_kill, this, std::_1));
+	// register_cmd("start", std::bind(&service::cmd_start, this, std::_1));
+	// register_cmd("close", std::bind(&service::cmd_close, this, std::_1));
+	// register_cmd("kill", std::bind(&service::cmd_kill, this, std::_1));
 }
 
 service::~service() {
 	_count--;
 }
 
-void * service::exec(const char *cmd) {
-
+void * service::exec(const char *cmd, void *arg) {
+	if (_map.find(cmd) != _map.end()) {
+		auto func = _map[cmd];
+		return func(arg);
+	}
+	return nullptr;
 }
 
-void service::register_cmd(const char *cmd, cmd_cb cb) {
+void service::register_cmd(const char *cmd, std::function<void*(void*)> cb) {
 	if (_map.find(cmd) != _map.end()) {
 		_map[cmd] = cb;
 	} else {
@@ -28,22 +32,22 @@ void service::register_cmd(const char *cmd, cmd_cb cb) {
 	}
 }
 
-void unregister_cmd(const char *cmd) {
+void service::unregister_cmd(const char *cmd) {
 	if (_map.find(cmd) != _map.end()) {
 		_map.erase(cmd);
 	}
 }
 
 void * service::cmd_start(void *arg) {
-	return 1;
+	return nullptr;
 }
 
 void * service::cmd_close(void *arg) {
-	return 1;
+	return nullptr;
 }
 
 void * service::cmd_kill(void *arg) {
-	return 1;
+	return nullptr;
 }
 
 // struct service *

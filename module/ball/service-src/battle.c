@@ -1,19 +1,18 @@
-#include "room.h"
-// #include "skynet_malloc.h"
+#include "battle_message.h"
 
-extern void send(uint32_t handle, const char *cmd);
+#include "skynet.h"
 
 #include <lua.h>
 #include <lauxlib.h>
 
-struct context {
+struct battle {
 	lua_State *L;
 	int dummy;
 };
 
 static int 
-lroom_alloc(lua_State *L) {
-	struct context *inst = lua_newuserdata(L, sizeof(*inst));
+lalloc(lua_State *L) {
+	struct battle *inst = lua_newuserdata(L, sizeof(*inst));
 	if (inst == NULL) {
 		luaL_error(L, "alloc failture.");
 		return 0;
@@ -26,34 +25,63 @@ lroom_alloc(lua_State *L) {
 }
 
 static int 
-lroom_free(lua_State *L) {
+lfree(lua_State *L) {
 	 return 0;
 }
 
 static int
-lroom_send(lua_State *L) {
+lstart(lua_State *L) {
+	return 0;
 }
 
 static int
-lroom_request(lua_State *L) {
+lclose(lua_State *L) {
+	return 0;
 }
 
 static int 
-lroom_response(lua_State *L) {
+lkill(lua_State *L) {
+	return 0;
 }
 
-int
+static int
+ljoin(lua_State *L) {
+	return 0;
+}
+
+static int
+lleave(lua_State *L) {
+	return 0;
+}
+
+static int
+lopcode(lua_State *L) {
+	return 0;
+}
+
+static int
+lupdate(lua_State *L) {
+	return 0;
+}
+
+LUAMOD_API int
 luaopen_room(lua_State *L) {
 	luaL_checkversion(L);
 	lua_newtable(L); // met
 	luaL_Reg l[] = {
-		{ "send", lroom_send },
+		{ "start", lstart },
+		{ "close", lclose },
+		{ "kill", lkill },
+		{ "join", ljoin },
+		{ "leave", lleave },
+		{ "opcode", lopcode },
+		{ "update", lupdate },
 		{ NULL, NULL },
 	};
 	luaL_newlib(L,l);
 	lua_setfield(L, -2, "__index");
-	lua_pushcclosure(L, lroom_free, 0);
+	lua_pushcclosure(L, lfree, 0);
 	lua_setfield(L, -2, "__gc");
-	lua_pushcclosure(L, lroom_alloc, 1)
+	lua_pushcclosure(L, lalloc, 1);
 	return 1;
 }

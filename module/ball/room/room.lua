@@ -1,11 +1,12 @@
 local skynet = require "skynet"
-local snax = require "snax"
+require "skynet.manager"
 local errorcode = require "errorcode"
 local math3d = require "math3d"
 local float = require "float"
 local crypt = require "crypt"
 local log = require "log"
 local list = require "list"
+local context = require "room.context"
 
 
 -- context variable
@@ -207,7 +208,8 @@ end
 
 function CMD.start(gate, ... )
 	-- body
-	gate = gate
+	ctx:set_gate(gate)
+	
 	return true
 end
 
@@ -234,19 +236,12 @@ skynet.start(function ( ... )
 		end
 	end)
 
-	-- ctx = context.new(id) 
-	
-	-- local aoi = skynet.newservice("aoi")
-	-- local conf = {}
-	-- conf.handle = snax.self().handle
-	-- skynet.call(aoi, "lua", "start", conf)
-	-- ctx:set_aoi(aoi)
+	ctx = context.new(id)
 
-	-- local scene = room_scene.new(ctx, aoi)
-	-- local view = scene:setup_view()
-	-- local map = scene:setup_map()
-	-- ctx:set_map(map)
-	-- ctx:set_view(view)
-	-- ctx:set_scene(scene)
+	local aoi = skynet.newservice("aoi")
+	local battle = skynet.launch("battle")
+
+	ctx:set_aoi(aoi)
+	ctx:set_battle(battle)
 end)
 
