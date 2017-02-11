@@ -32,12 +32,6 @@
 [submodule "3rd/rudp"]
 	path = 3rd/rudp
 	url = https://github.com/cloudwu/rudp
-[submodule "3rd/PhysX-3.3"]
-	path = 3rd/PhysX-3.3
-	url = https://github.com/Mephostopilis/PhysX-3.3
-[submodule "3rd/redis"]
-	path = 3rd/redis
-	url = https://github.com/antirez/redis/
 [submodule "3rd/Maria"]
 	path = 3rd/Maria
 	url = https://github.com/Mephostopilis/Maria
