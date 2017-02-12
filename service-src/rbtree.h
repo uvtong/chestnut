@@ -1,6 +1,11 @@
 #ifndef RBTREE_H
 #define RBTREE_H
 
+#include <stdbool.h>
+
+struct connection;
+struct connection_array;
+
 typedef void(*pfn_foreach_t)(struct connection *c);
 typedef int(*pfn_comp_t)(void *_1, void *_2);
 
@@ -15,8 +20,6 @@ struct connection {
 	void *key;
 	void *value;
 };
-
-struct connection_array;
 
 struct rbtree {
 	struct connection_array *arr;

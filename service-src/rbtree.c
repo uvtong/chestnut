@@ -1,5 +1,6 @@
-// #include "stdafx.h"
 #include "rbtree.h"
+
+#include "skynet.h"
 
 #include <stdlib.h>
 #include <stdarg.h>
@@ -7,13 +8,6 @@
 #include <assert.h>
 
 #define SIZE 11
-// #ifndef skynet_malloc
-// #define skynet_malloc malloc
-// #endif // !skynet_malloc
-
-// #ifndef skynet_free
-// #define skynet_free free
-// #endif // !skynet_free
 
 struct connection_array {
 	struct connection *data;
@@ -556,6 +550,7 @@ rbtree_remove(struct rbtree *inst, int idx, void *key, struct connection **cc) {
 		connection_array_free_co(inst->arr, idx);
 		return true;
 	}
+	return false;
 }
 
 bool

@@ -1,10 +1,6 @@
-// #include "battled.h"
-// #include "battle_message.h"
-
-#ifdef __cplusplus
-extern "C" {
-#endif
 #include "skynet.h"
+
+#include "battle_message.h"
 
 #include <stdio.h>
 #include <stdlib.h>
@@ -21,6 +17,14 @@ struct battle {
 static void
 _ctrl(struct skynet_context *ctx, void *ud, int session, uint32_t source, const void *msg, size_t sz) {
 	struct battle *inst = (struct battle *)ud;
+
+	if (strcmp(cmd(msg), "start") == 0) {
+		/* code */
+	} else if (strcmp(cmd(msg), "close") == 0) {
+	} else if (strcmp(cmd(msg), "close") == 0) {
+	} else if (strcmp(cmd(msg), "kill") == 0) {
+	} else if (strcmp(cmd(msg), "")) {
+	}
 	// void * res = inst->d->exec(cmd(msg), (void *)msg);
 	// if (res != NULL) {
 	// 	skynet_send(ctx, 0, source, PTYPE_RESPONSE, session, res, size(res));
@@ -63,7 +67,3 @@ battle_init(struct battle *inst, struct skynet_context *ctx, const char *parm) {
 	
 	return 0;
 }
-
-#ifdef __cplusplus
-}
-#endif

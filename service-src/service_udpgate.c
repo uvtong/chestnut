@@ -1,6 +1,7 @@
-// #include "stdafx.h"
 #include "skynet.h"
 #include "skynet_socket.h"
+
+#include "rbtree.h"
 
 #include <stdlib.h>
 #include <string.h>
@@ -10,15 +11,7 @@
 #include <stdbool.h>
 #include <stdio.h>
 
-
 #define SIZE 11
-#ifndef skynet_malloc
-#define skynet_malloc malloc
-#endif // !skynet_malloc
-
-#ifndef skynet_free
-#define skynet_free free
-#endif // !skynet_free
 
 struct connection_ud {
 	int id;
@@ -30,14 +23,17 @@ struct udpgate {
 	char host[128];
 	int port;
 	int room;
-	struct connection_array *arr;
 	struct rbtree *id2v;
 	struct rbtree *session2v;
 };
 
+static int
+comp(void *_1, void *_2) {
+	return 1;
+}
+
 static void
 _ctrl(struct skynet_context *ctx, struct udpgate *ud, const void *msg, size_t sz) {
-	
 }
 
 static void
@@ -77,17 +73,13 @@ udpgate_create() {
 	inst->id = -1;
 	inst->port = -1;
 	inst->room = -1;
-	inst->arr = connection_array_alloc(16);
-	inst->id2v = rbtree_alloc(inst->arr);
-	inst->session2v = rbtree_alloc(inst->arr);
+	inst->id2v = rbtree_alloc(comp);
+	inst->session2v = rbtree_alloc(comp);
 	return inst;
 }
 
 void 
 udpgate_release(struct udpgate *inst) {
-	if (inst->arr != NULL) {
-		connection_array_free(inst->arr);
-	}
 	if (inst->id2v != NULL) {
 		rbtree_free(inst->id2v);
 	}
@@ -121,25 +113,25 @@ udpgate_init(struct udpgate *inst, struct skynet_context *ctx, const char *parm)
 
 static void
 test(void) {
-	struct connection_array *arr = connection_array_alloc(16);
-	struct rbtree *tree = rbtree_alloc(arr);
+	// struct connection_array *arr = connection_array_alloc(16);
+	// struct rbtree *tree = rbtree_alloc(arr);
 
-	for (int i = 0; i < 101; ++i) {
-		struct connection *c = NULL;
-		assert(rbtree_insert(tree, tree->root, i, -1, &c));
-	}
-	rbtree_foreach(tree, tree->root, print);
+	// for (int i = 0; i < 101; ++i) {
+	// 	struct connection *c = NULL;
+	// 	assert(rbtree_insert(tree, tree->root, i, -1, &c));
+	// }
+	// rbtree_foreach(tree, tree->root, print);
 
-	struct connection *c = NULL;
-	rbtree_remove(tree, tree->root, 72, &c);
-	rbtree_remove(tree, tree->root, 14, &c);
-	rbtree_remove(tree, tree->root, 32, &c);
-	rbtree_remove(tree, tree->root, 16, &c);
-	rbtree_remove(tree, tree->root, 29, &c);
-	rbtree_remove(tree, tree->root, 56, &c);
+	// struct connection *c = NULL;
+	// rbtree_remove(tree, tree->root, 72, &c);
+	// rbtree_remove(tree, tree->root, 14, &c);
+	// rbtree_remove(tree, tree->root, 32, &c);
+	// rbtree_remove(tree, tree->root, 16, &c);
+	// rbtree_remove(tree, tree->root, 29, &c);
+	// rbtree_remove(tree, tree->root, 56, &c);
 
-	printf("%s\n", "abc");
-	rbtree_foreach(tree, tree->root, print);
+	// printf("%s\n", "abc");
+	// rbtree_foreach(tree, tree->root, print);
 }
 
 int main(void) {

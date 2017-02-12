@@ -1,7 +1,5 @@
 #include "battle_message.h"
 
-#include "skynet.h"
-
 #include <lua.h>
 #include <lauxlib.h>
 
