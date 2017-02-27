@@ -18,7 +18,8 @@ end
 
 function cmd.enter( ... )
 	-- body
-	return internal_id + 1
+	internal_id = internal_id + 1
+	return internal_id
 end
 
 skynet.start(function ( ... )

@@ -1,148 +1,103 @@
+package.path = "./../../module/mahjong/lualib/?.lua;"..package.path
 local skynet = require "skynet"
 require "skynet.manager"
-local skynet_queue = require "skynet.queue"
-local pqueue = require "priority_queue"
-local rt_room_queue = {}
-local uid_agent = {}  -- 
-
-local cs1 = skynet_queue()
-local cs2 = skynet_queue()
-local cs3 = skynet_queue()
-
-local assert = assert
-
-local function compare(a, b, ... )
-	-- body
-	return a.size > b.size
-end
-
+local waiting_queue = require "waiting_queue"
+local log = require "log"
 local noret = {}
-
-local function init( ... )
-	-- body
-	local rule = 1
-	local mode = 1
-	local scene = 1
-	local rt = (scene << 24 | mode << 16 | rule << 8)
-	rt_room_queue[rt] = pqueue.new(15, compare)
-end
-
-local function incre_room(room, ... )
-	-- body
-	assert(room)
-	local function func1(room, ... )
-		-- body
-		room.size = room.size + 1
-		assert(room.size >= 0)
-	end
-	return cs1(func1, room)
-end
-
-local function decre_room(room, ... )
-	-- body
-	assert(room)
-	local function func1(room, ... )
-		-- body
-		room.size = room.size - 1
-		assert(room.size <= 3)
-	end
-	return cs1(func1, room)
-end
-
-local function enqueue(q, room, ... )
-	-- body
-	assert(q and room)
-	local function func1(q, room, ... )
-		-- body
-		pqueue.enqueue(q, room)
-		room.in_queue = true
-	end
-	return cs2(func1, q, room)
-end
-
-local function dequeue(q, ... )
-	assert(q)
-	assert(pqueue.size(q) > 0)
-	local function func1(q, ... )
-		-- body
-		local room = pqueue.dequeue(q)
-		room.in_queue = false
-		return room
-	end
-	return cs2(func1, q)
-end
-
-local function get_room(q, ... )
-	-- body
-	assert(q)
-	local sz = pqueue.size(q)
-	if sz > 0 then
-		local room = dequeue(q)
-		assert(room)
-		return room
-	else
-		local roomid = skynet.newservice("room/room")
-		local room = { roomid=roomid, size=0, in_queue=false}
-		return room
-	end
-end
-
-local function enqueue_agent(agent, ... )
-	-- body
-	assert(agent)
-	local uid = agent.uid
-	local a = uid_agent[uid]
-	if a and a.room then
-		return a.room
-	else
-		local rule = assert(agent.rule)
-		local mode = assert(agent.mode)
-		local scene = assert(agent.scene)
-		local rt = (scene << 24 | mode << 16 | rule << 8)
-		local q = assert(rt_room_queue[rt])
-		local room = get_room(q)
-		agent.room = room
-		
-		uid_agent[uid] = agent
-
-		incre_room(room)
-
-		if room.size >= 3 then
-		else
-			enqueue(q, room)
-		end
-		return room
-	end
-end
+local users = {}
+local mgr
 
 local CMD = {}
 
-function CMD.enqueue(source, uid, rule, mode, scene, ... )
+function CMD.start(source, ... )
 	-- body
-	-- jude 
+	return true
+end
+
+function CMD.close(source, ... )
+	-- body
+	return true
+end
+
+function CMD.kill(source, ... )
+	-- body
+	skynet.exit()
+end
+
+function CMD.afk(source, uid, ... )
+	-- body
+	assert(uid)
+	local u = users[uid]
+	if u then
+		mgr:remove_agent(u)
+		users[uid] = nil
+	end
+end
+
+function CMD.enqueue_agent(source, uid, rule, mode, scene, ... )
+	-- body
+	log.info("enqueue_agent")
+	local rt = ((scene & 0xff << 16) | (mode & 0xff << 8) | (rule & 0xff))
 	local agent = {
-		source = source,
+		agent = source,
 		uid = uid,
+		sid = sid,
+		rt = rt,
 		rule = rule,
 		mode = mode,
-		scene = scene
+		scene = scene,
 	}
-	local room = assert(enqueue_agent(agent))
-	return room
+	users[uid] = agent
+	mgr:enqueue_agent(rt, agent)
+
+	if mgr:get_agent_queue_sz(rt) >= 3 then
+		log.info("room number more than 3")
+		local room = mgr:dequeue_room()
+		for i=1,3 do
+			local u = mgr:dequeue_agent(rt)
+			skynet.send(u.agent, "lua", "enter_room", room.id)
+			users[u.uid] = nil
+		end	
+	end
+	return noret
 end
 
-function CMD.dequeue(source, uid, ... )
+function CMD.dequeue_agent(source, uid, ... )
 	-- body
-	assert(false)
+	assert(uid)
+	local u = users[uid]
+	if u then
+		mgr:remove_agent(u)
+		users[uid] = nil
+	end
 end
 
--- if a player leave room, others must enqueue
-function CMD.leave_room(source, uid, ... )
+function CMD.create(source, uid, ... )
 	-- body
-	local agent = assert(uid_agent[uid])
-	local room = agent.room
-	decre_room(room)
-	return true
+	log.info("ROOM_MGR create")
+	local room = mgr:dequeue_room()
+	skynet.call(room.addr, "lua", "start", uid)
+	return assert(room.id)
+end
+
+function CMD.apply(source, roomid, ... )
+	-- body
+	log.info("roomid: %d", roomid)
+	local room = mgr:get(roomid)
+	if room then
+		return room.addr
+	else
+		return 0
+	end
+end
+
+-- room exit
+function CMD.enqueue_room(source, roomid, ... )
+	-- body
+	local room = mgr:get(roomid)
+	mgr:remove(room)
+	mgr:enqueue_room(room)
+	return noret
 end
 
 skynet.start(function ( ... )
@@ -155,6 +110,8 @@ skynet.start(function ( ... )
 			skynet.retpack(r)
 		end
 	end)
-	init()
+	local rt = ( 1 << 24 | 1 << 16 | 1 << 8)
+	local arr = { rt}
+	mgr = waiting_queue.new(false, arr)
 	skynet.register ".ROOM_MGR"
 end)

@@ -172,5 +172,15 @@ first 13 {
         name      3 : string
         gold      4 : integer
         diamond   5 : integer
+        checkin_today 6 : boolean
+        checkin_cm    7 : integer
+        checkin_cmcnt 8 : integer
+        checkin_cnt   9 : integer
+    }
+}
+
+checkindaily 14 {
+    response {
+        errorcode 0 : integer
     }
 }

@@ -1,15 +1,19 @@
 local field = require "db.field"
-local db = require "db"
-local cls = class("user", db.entity)
+local entity = require "db.entity"
+local cls = class("user", entity)
 
 function cls:ctor(env, dbctx, set, ... )
 	-- body
 	cls.super.ctor(self, env, dbctx, set)
-	self.id   = db.field.new(self, "id", 1, field.data_type.integer, true)
-	self.name = db.field.new(self, "name", 2, field.data_type.char)
-	self.age  = db.field.new(self, "age", 3, field.data_type.integer)
-	self.gold = db.field.new(self, "gold", 4, field.data_type.integer)
-	self.diamond = db.field.new(self, "diamond", 5, field.data_type.integer)
+	self.id   = field.new(self, "id", 1, field.data_type.integer, true)
+	self.name = field.new(self, "name", 2, field.data_type.char)
+	self.age  = field.new(self, "age", 3, field.data_type.integer)
+	self.gold = field.new(self, "gold", 4, field.data_type.integer)
+	self.diamond = field.new(self, "diamond", 5, field.data_type.integer)
+	self.checkin_month = field.new(self, "checkin_month", 6, field.data_type.integer)
+	self.checkin_count = field.new(self, "checkin_count", 7, field.data_type.integer)
+	self.checkin_mcount = field.new(self, "checkin_mcount", 8, field.data_type.integer)
+	self.checkin_lday = field.new(self, "checkin_lday", 9, field.data_type.integer)
 end
 
 function cls:set_id(value, ... )
@@ -35,6 +39,26 @@ end
 function cls:set_diamond(value, ... )
 	-- body
 	self.diamond:set_value(value)
+end
+
+function cls:set_checkin_month(value, ... )
+	-- body
+	self.checkin_month:set_value(value)
+end
+
+function cls:set_checkin_count(value, ... )
+	-- body
+	self.checkin_count:set_value(value)
+end
+
+function cls:set_checkin_mcount(value, ... )
+	-- body
+	self.checkin_mcount:set_value(value)
+end
+
+function cls:set_checkin_lday(value, ... )
+	-- body
+	self.checkin_lday:set_value(value)
 end
 
 return cls

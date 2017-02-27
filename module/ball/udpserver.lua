@@ -8,6 +8,8 @@ local udphost, udpport
 local U
 local S = {}
 local D = {}
+local last = 0
+local delta = 25 -- 0.025s
 
 local SESSION = 0
 local timeout = 10 * 60 * 100	-- 10 mins
@@ -23,60 +25,56 @@ local timeout = 10 * 60 * 100	-- 10 mins
 
 local function timesync(session, localtime, from)
 	-- return globaltime .. localtime .. eventtime .. session , eventtime = 0xffffffff
-	if rudp_flag then
+	local s = S[session]
+	if s and s.u then
+		log.info("udp send first handshake")
 		local now = skynet.now()
-		ru:send(string.pack("<IIII", now, localtime, 0xffffffff, session))
+		s.u:send(string.pack("<IIII", now, localtime, 0xffffffff, session))
+	end
+end
+
+local function send(u, from, data, ... )
+	-- body
+	if #data > 1 then
+		local s = D[from]
+		if s and s.address then
+			log.info("udp sendto %s, length os data %d", socket.udp_address(s.address), #data)
+			socket.sendto(U, s.address, data)
+		end
 	else
-		local now = skynet.now()
-		socket.sendto(U, from, string.pack("<IIII", now, localtime, 0xffffffff, session))
+		-- log.info("data length more then 0")
 	end
 end
 
-local function send(s, data, ... )
+local function recv(u, from, data, ... )
 	-- body
-	if #data > 0 then
-		socket.sendto(U, s.address, data)
-	else
-		log.info("data length more then 0")
-	end
-end
-
-local function update(s, data, ... )
-	-- body
-	local last = s.last
-	local now = skynet.now()
-	local past = now - last
-	local tick = 0
-	if past >= 5 then -- 20 fps
-		last = last + 5
-		tick = 1
-		s.last = last
-	end
-	s.u:update(s, data, 1)
-end
-
-local function recv(s, data, ... )
-	-- body
-	local localtime, eventtime, session = string.unpack("<III", str, 9)
-	-- skynet.error("localtime:", localtime, "eventtime:", eventtime, "session:", session)
-	-- local s = S[session]
+	log.info(type(from))
+	log.info("length of data is %d", #data)
+	local localtime, eventtime, session = string.unpack("<III", data, 9)
+	skynet.error("localtime:", localtime, "eventtime:", eventtime, "session:", session)
+	local s = S[session]
 	if s then
 		if s.address ~= from then
 			skynet.error("udp_servier first time")
-			if crypt.hmac_hash(s.key, str:sub(9)) ~= str:sub(1,8) then
-				snax.printf("Invalid signature of session %d from %s", session, socket.udp_address(from))
+			log.info(string.format("secret : %s", string.hex(s.key)))
+			
+			if crypt.hmac_hash(s.key, data:sub(9)) ~= data:sub(1,8) then
+				skynet.error("Invalid signature of session %d from %s", session, socket.udp_address(from))
 				return
 			end
+			skynet.error("test")
 			s.address = from
+			s.u = u
 			D[from] = s
 		end
 		if eventtime == 0xffffffff then
+			log.info("timesync")
 			return timesync(session, localtime, from)
 		end
 		s.time = skynet.now()
 		-- NOTICE: after 497 days, the time will rewind
 		if s.time > eventtime + timeout then
-			snax.printf("The package is delay %f sec", (s.time - eventtime)/100)
+			skynet.error("The package is delay %f sec", (s.time - eventtime)/100)
 			return
 		elseif eventtime > s.time then
 			-- drop this package, and force time sync
@@ -86,9 +84,9 @@ local function recv(s, data, ... )
 			return
 		end
 		s.lastevent = eventtime
-		s.room.post.update(str:sub(9))
+		skynet.send(s.room, "lua", "update", data:sub(9))
 	else
-		snax.printf("Invalid session %d from %s" , session, socket.udp_address(from))
+		skynet.error("Invalid session %d from %s" , session, socket.udp_address(from))
 	end
 end
 
@@ -112,6 +110,22 @@ local function keepalive()
 	end
 end
 
+local function update(s, data, ... )
+	-- body
+	local now = skynet.now()
+	local past = now - last
+	local tick = 0
+	if past >= delta then -- 20 fps
+		last = last + delta
+		tick = 1
+	end
+	if s.u then
+		if tick > 0 then
+			s.u:update(data, tick)
+		end
+	end
+end
+
 local function tick( ... )
 	-- body
 	while true do
@@ -124,19 +138,19 @@ end
 
 local function dispatch(str, from, ... )
 	-- body
-	snax.printf(type(from))
+	-- log.info("%s, %s", type(str), type(from))
 	local s = D[from]
 	if s then
 		if s.u then
-			s.u:update(str, tick)
+			update(s, str)
 		else
 			assert(false)
 		end
 	else
-		snax.printf("dispatch 1 %s", from)
+		log.info("dispatch from : %s, str: %s", socket.udp_address(from), str)
 		local u = rudp(send, recv)
-		u:set_id(tonumber(from))
-		u:update(str, tick)
+		u:set_from(from)
+		u:update(str, 1)
 	end
 end
 
@@ -146,10 +160,11 @@ function cmd.start(host, port, ... )
 	-- body
 	udphost = host
 	udpport = port
-	U = socket.udp(udpdispatch, host, math.floor(port))
+	U = socket.udp(dispatch, host, math.floor(port))
 	skynet.fork(keepalive)
-	skynet.error("begin to do udp_servier", host, math.floor(port))
+	skynet.error("begin to listen udp_servier", host, math.floor(port))
 	skynet.fork(tick)
+	last = skynet.now()
 	return true
 end
 
@@ -189,16 +204,13 @@ end
 
 function cmd.unregister(session)
 	S[session] = nil
+	return true
 end
 
 function cmd.post(session, data)
 	local s = S[session]
-	if s and s.address then
-		if rudp_flag then
-			s.u:send(data)
-		else
-			socket.sendto(U, s.address, data)
-		end
+	if s and s.address and s.u then
+		s.u:send(data)
 	else
 		snax.printf("Session is invalid %d", session)
 	end

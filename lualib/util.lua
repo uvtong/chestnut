@@ -168,4 +168,40 @@ function util.insert( table_name, columns )
 	return sql
 end
 
+function util.set_timeout(ti, f, ... )
+	-- body
+	assert(ti and f)
+	local function cb( ... )
+		-- body
+		if f then
+			f()
+		end
+	end
+	skynet.timeout(ti, f)
+	return function ( ... )
+		-- body
+		f = nil
+	end
+end
+
+function util.cm_sec()
+	-- body
+	local nt = os.date("*t")
+	local t = {}
+	t.year  = nt.year
+	t.month = nt.month
+	t.day   = 1
+	return os.time(t), nt.month
+end
+
+function util.cd_sec( ... )
+	-- body
+	local nt = os.date("*t")
+	local t = {}
+	t.year  = nt.year
+	t.month = nt.month
+	t.day   = nt.day
+	return os.time(t), nt.day
+end
+
 return util

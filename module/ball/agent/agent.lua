@@ -6,25 +6,23 @@ local context = require "agent.acontext"
 local log = require "log"
 local errorcode = require "errorcode"
 local float = require "float"
+local crypt = require "crypt"
 
 local ctx
 
 local cmd = {}
 
-function cmd.newborn(source, uid, sid, secret, ... )
-	-- body
-	ctx:newborn(source, uid, sid, secret)
-	return true
-end
-
 function cmd.login(source, uid, sid, secret)
 	-- you may use secret to make a encrypted data stream
+	log.info(string.format("secret : %s", string.hex(secret)))
 	local res = skynet.call(".UID_MGR", "lua", "login", uid)
 	if res.new then
 		ctx:newborn(source, uid, sid, secret, res.id)
 	else
 		ctx:login(source, uid, sid, secret, res.id)
 	end
+	local key = ctx:get_secret()
+	log.info(string.format("secret : %s", string.hex(key)))
 	-- you may load user data from database
 	return true
 end
@@ -35,7 +33,8 @@ function cmd.logout()
 	local room = ctx:get_room()
 	if room then
 		local session = ctx:get_session()
-		room.req.leave(session, uid)
+		local addr = skynet.call(".ROOM_MGR", "lua", "apply", room)
+		skynet.call(addr, "lua", "leave", session, uid)
 	end
 	ctx:logout()
 	log.info("uid: %d, suid: %d, is logout", uid, ctx:get_suid())
@@ -61,6 +60,7 @@ end
 
 function cmd.match(args, ... )
 	-- body
+	log.info("send match")
 	ctx:send_request("match", args)
 end
 
@@ -102,11 +102,12 @@ end
 
 function client_request.join(args)
 
+	local uid = ctx:get_uid()
 	local secret = ctx:get_secret()
 	local room = skynet.call(".ROOM_MGR", "lua", "apply", args.roomid)
-	ctx:set_room(room)
+	ctx:set_room(args.roomid)
 
-	local res = skynet.call(room, "lua", "join", skynet.self(), secret)
+	local res = skynet.call(room, "lua", "join", uid, skynet.self(), secret)
 	ctx:set_session(res.session)
 
 	return res
@@ -129,7 +130,7 @@ end
 function client_request.match(args, ... )
 	-- body
 	local uid = ctx:get_uid()
-	skynet.send(".MATCH", "lua", "enter", uid, skynet.self())
+	skynet.send(".MATCH", "lua", "enter", uid, skynet.self(), args.mode)
 	local res = { errorcode=errorcode.SUCCESS}
 	return res
 end
@@ -178,6 +179,11 @@ function client_response.Buff(args, ... )
 	assert(args.errorcode == errorcode.SUCCESS)
 end
 
+function client_response.match(args, ... )
+	-- body
+	assert(args.errorcode == errorcode.SUCCESS)
+end
+
 local function decode_proto(msg, sz, ... )
 	-- body
 	if sz > 0 then
@@ -189,7 +195,6 @@ local function decode_proto(msg, sz, ... )
 end
 
 local function request(name, args, response)
-	log.info("uid %d agent request: %s", ctx:get_uid(), name)
     local f = client_request[name]
     local ok, result = pcall(f, args)
     if ok then

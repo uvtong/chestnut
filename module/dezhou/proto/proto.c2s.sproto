@@ -1,0 +1,101 @@
+.package {
+	type 0 : integer
+	session 1 : integer
+    index 2 : integer
+    version 3 : integer
+}
+
+.settlement {
+    uid 0 : integer
+	gold 1 : integer	
+}
+
+.player {
+    name 0 : string
+    orientation 1 : integer
+    sid         2 : integer
+}
+
+.mail {
+    id       0 : integer
+    from     1 : integer
+    to       2 : integer
+    title    3 : string
+    content  4 : string
+}
+
+.outbox {
+    all 0 : mail
+}
+
+.inbox {
+    all 0 : mail
+}
+
+handshake 1 {
+    response {
+    	errorcode 0 : integer
+    }
+}
+
+match 2 {
+    request {
+        rule 0 : integer
+        mode 1 : integer
+        scene 2 : integer
+    }
+    response {
+        errorcode 0 : integer
+    }
+}
+
+cmatch 3 {
+    response {
+        errorcode 0 : integer
+    }
+}
+
+join 4 {
+    response {
+        errorcode 0 : integer
+    }
+}
+
+leave 5 {
+    response {
+        errorcode 0 : integer
+    }
+}
+
+call 6 {
+    request {
+        sid       0 : integer
+        opcode    1 : integer
+        filling   2 : integer
+    }
+    response {
+        errorcode 0 : integer
+    }
+}
+
+
+first 20 {
+    response {
+        errorcode 0 : integer
+        outbox    1 : outbox
+        inbox     2 : inbox
+        name      3 : string
+        gold      4 : integer
+        diamond   5 : integer
+        checkin_today 6 : boolean
+        checkin_cm    7 : integer
+        checkin_cmcnt 8 : integer
+        checkin_cnt   9 : integer
+    }
+}
+
+checkindaily 21 {
+    response {
+        errorcode 0 : integer
+    }
+}

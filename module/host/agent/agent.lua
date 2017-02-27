@@ -10,6 +10,7 @@ local const = require "const"
 local context = require "acontext"
 local log = require "log"
 local errorcode = require "errorcode"
+local checkindaily = require "checkindaily"
 local assert = assert
 local pcall = skynet.pcall
 local error = skynet.error
@@ -59,7 +60,9 @@ function REQUEST:enter_room(args, ... )
 	-- body
 	log.info("enter_room")
 	assert(self:get_state() == context.state.NORMAL)
+
 	self:set_state(context.state.ENTER_ROOM)
+
 	local rule = args.rule
 	local mode = args.mode
 	local scene = args.scene
@@ -149,11 +152,57 @@ end
 function REQUEST:first(args, ... )
 	-- body
 	local res = {}
+	local u = self._user
+	local suid = self:get_suid()
+	local cms, month = util.cm_sec()
+	if u.checkin_month.value == cms then
+	else
+		local set = self._checkindailymgr
+		local cid = checkindaily.new(self, self._dbcontext, set)
+		cid:set_uid(suid)
+		cid:set_month(u.checkin_month.value)
+		cid:set_count(u.checkin_mcount.value)
+		cid:insert_db()
+
+		u:set_checkin_month(cms)
+		u:set_checkin_mcount(0)
+	end
+
+	local cds, day = util.cd_sec()
+	if u.checkin_lday.value == cds then
+		res.checkin_today = true
+	end
+
+	res.checkin_cm    = month
+	res.checkin_cmcnt = u.checkin_mcount.value
+	res.checkin_cnt   = u.checkin_count % 7
+
 	res.errorcode = errorcode.SUCCESS
 	res.gold = self._user.gold.value
 	res.diamond = self._user.diamond.value
 	res.name = self._user.name.value
 	return res 
+end
+
+function REQUEST:checkindaily(args, ... )
+	-- body
+	local res = {}
+	local cds, day = util.cd_sec()
+	if u.checkin_lday.value == cds then
+		res.errorcode = errorcode.FAIL
+		return res
+	else
+		local cnt = self._user.checkin_count.value
+		cnt = cnt + 1
+		self._user:set_checkin_count(cnt)
+		self._user:update_db("tg_users", 7)
+		local mcnt = set._user.checkin_mcount.value
+		mcnt = mcnt + 1
+		self._user:set_checkin_mcount(mcnt)
+		self._user:update_db("tg_users", 8)
+	end
+	res.errorcode = errorcode.SUCCESS
+	return res
 end
 
 local function request(name, args, response)
@@ -264,16 +313,15 @@ function CMD:kill( ... )
 	skynet.exit()
 end
 
-function CMD:newborn(source, uid, subid, secret, ... )
-	-- body
-	self:newborn(source, uid, subid, secret)
-	return true
-end
-
 -- called by gated
-function CMD:login(source, uid, subid, secret,... )
+function CMD:login(source, gate, uid, subid, secret,... )
 	-- body
-	self:login(source, uid, subid, secret)
+	local res = skynet.call(".UID_MGR", "lua", "login", uid)
+	if res.new then
+		self:newborn(gate, uid, subid, secret, res.id)
+	else
+		self:login(gate, uid, subid, secret, res.id)
+	end
 	self:set_state(context.state.NORMAL)
 	local now = os.date("*t")
 	-- skynet.call(".EMAIL", "lua", "login", uid)
@@ -298,16 +346,25 @@ end
 -- others serverce disconnect
 function CMD:afk(source)
 	-- body
+	local uid = self:get_uid()
 	local sid = self:get_subid()
-	local room = self:get_room()
-	if room then
-		skynet.call(room, "lua", "afk", sid)
+
+	if self:get_state() == context.state.ENTER_ROOM then
+		skynet.call(".ROOM_MGR", "lua", "afk", uid)
 	end
+
+	if self:get_state() == context.state.ENTER_ROOMED then
+		local addr = assert(self:get_room())
+		skynet.call(addr, "lua", "afk", sid)
+	end
+
 	return true
 end
 
 -- begain to wait for client
 function CMD:authed(source, conf)
+
+	log.info("authed")
 	local fd      = assert(conf.client)
 	local version = assert(conf.version)
 	local index   = assert(conf.index)
@@ -386,11 +443,6 @@ function CMD:identity(source, args, ... )
 	-- body
 	self:send_request("identity", args)
 	return noret
-end
-
-function CMD:update_db( ... )
-	-- body
-	flush_db(const.DB_PRIORITY_3)
 end
 
 skynet.start(function()

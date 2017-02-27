@@ -1,6 +1,7 @@
 local skynet = require "skynet"
 local query = require "query"
 local field = require "db.field"
+local checkindailymgr = require "checkindailymgr"
 
 local cls = class("dbcontext")
 
@@ -23,6 +24,11 @@ function cls:register_user(u, ... )
 	self._user = u
 end
 
+function cls:get_checkindailymgr( ... )
+	-- body
+	return self._checkindailymgr
+end
+
 function cls:newborn( ... )
 	-- body
 end
@@ -35,22 +41,13 @@ end
 function cls:authed( ... )
 	-- body
 	self._online = true
-	local cb = cc.handler(self, cls.update_db)
-	skynet.timeout(100 * 60, cb)
+	-- local cb = cc.handler(self, cls.update_db)
+	-- skynet.timeout(100 * 60, cb)
 end
 
 function cls:afx( ... )
 	-- body
 	self._online = false
-end
-
-function cls:update_db( ... )
-	-- body
-	if self._online then
-		self._user:update_db()
-		local cb = cc.handler(self, cls.update_db)
-		skynet.timeout(100 * 60, cb)
-	end
 end
 
 function cls:load_db_to_data()

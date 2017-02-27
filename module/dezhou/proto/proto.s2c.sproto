@@ -1,0 +1,108 @@
+.package {
+	type 0 : integer
+	session 1 : integer
+    index 2 : integer
+    version 3 : integer
+}
+
+.settlement {
+    sid  0 : integer
+    gold 1 : integer    
+}
+
+.player {
+    name 0 : string
+    orientation 1 : integer
+    sid 2 : integer
+}
+
+handshake 1 {
+    response {
+        errorcode 0 : integer
+    }
+}
+
+match 2 {
+    request {
+        id 0 : integer
+    }
+    response {
+        errorcode 0 : integer
+    }
+}
+
+leave 3 {
+    request {
+        sid 0 : integer
+    }
+    response {
+        errorcode 0 : integer
+    }
+}
+
+take_turn 4 {
+    request {
+        sid       0 : integer
+        filling   1 : integer
+        your_turn 2 : integer
+        countdown 3 : integer
+    }
+    response {
+        errorcode 0 : integer
+    }
+}
+
+perflop 5 {
+    request {
+        bblind_note 0 : integer
+        sblind_not  1 : integer
+        your_turn   2 : integer
+        countdown   3 : integer
+        cards       4 : *integer
+    }
+    response {
+        errorcode 0 : integer
+    }
+}
+
+flop 6 {
+    request {
+        your_turn   0 : integer
+        countdown   1 : integer
+        cards       2 : *integer
+    }
+    response {
+        errorcode 0 : integer
+    }
+}
+
+turn 7 {
+    request {
+        your_turn   0 : integer
+        countdown   1 : integer
+        cards       2 : *integer
+    }
+    response {
+        errorcode 0 : integer
+    }
+}
+
+river 8 {
+    request {
+        your_turn   0 : integer
+        countdown   1 : integer
+        cards       2 : *integer
+    }
+    response {
+        errorcode 0 : integer
+    }
+}
+
+compare 9 {
+    request {
+        settlement 0 : *settlement
+    }
+    response {
+        errorcode 0 : integer
+    }
+}

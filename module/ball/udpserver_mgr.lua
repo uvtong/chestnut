@@ -32,9 +32,11 @@ function cmd.kill( ... )
 	skynet.exit()
 end
 
-function cmd:enter( ... )
+function cmd.enter( ... )
 	-- body
+	print("xxx")
 	local udpgate = q:dequeue()
+	print(udpgate)
 	q:enqueue(udpgate)
 	return udpgate
 end

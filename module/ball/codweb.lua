@@ -51,7 +51,7 @@ function CMD.start( ... )
 
 	skynet.uniqueservice("ai_mgr")
 	skynet.call(".AI_MGR", "lua", "start")
-	table.insert(servers, ".AGENT_MGR")
+	table.insert(servers, ".AI_MGR")
 
 	local handle = skynet.uniqueservice("room_mgr")
 	skynet.call(handle, "lua", "start")
@@ -102,16 +102,13 @@ end
 function CMD.kill( ... )
 	-- body
 	for i,v in ipairs(servers) do
-		log.info(skynet.queryservice(false, v))
+		-- print(v)
+		-- print(skynet.queryservice(v))
+		-- log.info(skynet.queryservice(false, v))
 		skynet.call(v, "lua", "close")
 	end
 	-- skynet.exit()
 	skynet.abort()
-end
-
-function CMD.register(addr, ... )
-	-- body
-	table.insert(servers, addr)
 end
 
 skynet.start( function () 

@@ -1,45 +1,75 @@
+local skynet = require "skynet"
 local card = require "card"
 local group = require "group"
+local log = require "log"
 
 local state = {}
-state.NONE = 0
-state.WAIT_START = 1
-state.READY = 2
-state.WAIT_ROB = 3
-state.WAIT_OROB = 4
-state.WAIT_FAPAI = 5
-state.WAIT_ALEAD = 6
-state.WAIT_PLEAD = 7
-state.WAIT_OLEAD = 8
-state.CLOSE = 9
+state.NONE       = 0
+state.ENTER      = 1
+state.WAIT_START = 2
+state.SHUFFLE    = 3
+state.WAIT_DICE  = 4
+state.DICE       = 5
+state.WAIT_DEAL  = 6
+state.DEAL       = 7
+state.WAIT_TURN  = 8
+state.TURN       = 9
 
 local cls = class("player")
 
-function cls:ctor(env, uid, fd, ... )
-	-- body
-	assert(env and uid and fd)
-	self._env = env
-	self._uid = uid
-	self._agent = fd  -- agent
-	self._last = false
-	self._next = false
-	self._idx  = -1    -- players in
-	self._ready = false
-	self._rob = {}
-	self._is_dz = false
-	self._deal_cards = {}
-	self._cards = {}
-	return self
-end
+cls.state = state
 
-function cls:set_uid(uid, ... )
+function cls:ctor(env, uid, sid, fd, ... )
 	-- body
-	self._uid = uid
+	assert(env)
+	self._env    = env
+	self._uid    = uid
+	self._sid    = sid
+	self._agent  = fd  -- agent
+	self._idx    = 0      -- players index
+	-- self._online = false  -- user in game
+	self._robot  = false  -- user
+	self._noone  = true
+	self._name   = ""
+	self._chip   = 0
+	self._bet    = 0
+
+	self._state  = state.NONE
+	self._takecardsidx = 1
+	self._takecardsend = 0
+	self._takecardscnt = 0
+	self._takecardslen = 0
+	self._takecards = {}
+
+	self._cards  = {}
+	self._leadcards = {}
+
+	self._pengcards = {}
+	self._gangcards = {}
+
+	self._holdcard = nil
+
+	return self
 end
 
 function cls:get_uid( ... )
 	-- body
 	return self._uid
+end
+
+function cls:set_uid(value, ... )
+	-- body
+	self._uid = value
+end
+
+function cls:get_sid( ... )
+	-- body
+	return self._sid
+end
+
+function cls:set_sid(value, ... )
+	-- body
+	self._sid = value
 end
 
 function cls:set_agent(agent, ... )
@@ -52,189 +82,78 @@ function cls:get_agent( ... )
 	return self._agent
 end
 
-function cls:set_last(player, ... )
-	-- body
-	self._last = player
-end
-
-function cls:get_last( ... )
-	-- body
-	return self._last
-end
-
-function cls:set_next(player, ... )
-	-- body
-	self._next = player
-end
-
-function cls:get_next( ... )
-	-- body
-	return self._next
-end
-
-function cls:set_idx(idx, ... )
-	-- body
-	self._idx = idx
-end
-
 function cls:get_idx( ... )
 	-- body
 	return self._idx
 end
 
-function cls:set_ready(flag, ... )
+function cls:set_online(value, ... )
 	-- body
-	assert(flag)
-	self._ready = flag
-
-	-- TODO
-
+	self._online = value
 end
 
-function cls:get_ready( ... )
+function cls:get_online( ... )
 	-- body
-	return self._ready
+	return self._online
 end
 
-function cls:set_rob(flag, ... )
+function cls:set_robot(flag, ... )
 	-- body
-	local sz = #self._rob
-	if sz == 2 then
-		return false
-	else
-		sz = sz	+ 1
-		self._rob[sz] = flag
-	end
+	self._robot = flag
 end
 
-function cls:get_rob( ... )
+function cls:get_robot( ... )
 	-- body
-	return self._rob
+	return self._robot
 end
 
--- deal 3 function.
-function cls:insert_card(cards, c, ... )
+function cls:get_noone( ... )
 	-- body
-	assert(cards and c)
-	assert(c:get_master() == false, c:get_master())
-	if #cards == 0 then
-		local idx = 1
-		table.insert(cards, c)
-		c:set_idx(idx)
-		c:set_z(idx)
-		c:set_master(cards)
-		return c
-	else
-		local idx = #cards
-		for i=idx,1,-1 do
-			local o = cards[i]
-			if c:mt_t(o) then
-				cards[i + 1] = o
-				o:set_idx(i + 1)
-				o:set_z(i + 1)
-				assert(o:get_master() == cards)
-			else
-				cards[i + 1] = c
-				c:set_idx(i + 1)
-				c:set_z(i + 1)
-				c:set_master(cards)
-				return c
-			end
-		end
-		-- 只有一种情况
-		cards[1] = c
-		c:set_idx(1)
-		c:set_z(1)
-		c:set_master(cards)
-		return c
-	end
+	return self._noone
 end
 
-function cls:deal(c, ... )
+function cls:set_noone(value, ... )
 	-- body
-	assert(c)
-	table.insert(self._deal_cards, c)
-	self:insert_card(self._cards, c)
-	self:deal_cb(c)
+	self._noone = value
 end
 
-function cls:deal_cb(c)
+function cls:set_name(name, ... )
 	-- body
-	assert(c)
-	local controller = self._env:get_controller("game")
-	controller:take_turn_to_deal(self)
+	self._name = name
 end
 
-function cls:send_request_deal(dz_cards, ... )
-	local cards = {}
-	for i,card in ipairs(self._deal_cards) do
-		local v = card:get_value()
-		table.insert(cards, v)
-	end
-	local args = {}
-	args.dz_cards = dz_cards
-	args.cards = cards
-	local agent = self._agent
-	skynet.send(agent, "lua", "send_request", "deal", args)
+function cls:get_name( ... )
+	-- body
+	return self._name
 end
 
-function cls:ready_for_rob( ... )
+function cls:get_chip( ... )
 	-- body
-	self._state = state.WAIT_ROB
-	local idx = #self._rob
-	if idx == 0 then
-		idx = idx + 1
-		self._rob[idx] = false
-		-- client
-		-- local cd = 10 * 100
-		-- local function complet( ... )
-		-- 	-- body
-		-- 	if self._state == state.WAIT_ROB then
-		-- 		local sz = #self._rob
-		-- 		if sz == 1 then
-		-- 			self:rob(false)
-		-- 		end
-		-- 	end
-		-- end
-		-- skynet.timeout(cd, complet)
-	elseif idx == 1 then
-		idx = idx + 1
-		self._rob[idx] = false
-	end
+	return self._chip
 end
 
-function cls:rob(flag, ... )
-	-- body
-	assert(type(flag) == "boolean")
-	assert(self._state == state.WAIT_ROB)
-	self._state = state.WAIT_OROB
-	local idx = #self._rob
-	self._rob[idx] = flag
-	if idx == 1 then
-		local controller = self._env:get_controller("game")
-		controller:take_turn_to_rob(self)
-	elseif idx == 2 then
-		local controller = self._env:get_controller("game")
-		controller:confirm_identity()
-	end
+function cls:set_chip(value) 
+	self._chip = value
 end
 
-function cls:is_dz( ... )
+function cls:get_bet( ... )
 	-- body
-	return self._is_dz
+	return self._bet
 end
 
-function cls:set_dz(flag, ... )
+function cls:set_bet(value, ... )
 	-- body
-	self._is_dz = flag
+	self._bet = value
 end
 
-function cls:lead(cards, ... )
+function cls:set_state(s, ... )
 	-- body
+	self._state = s
 end
 
-function cls:is_over( ... )
+function cls:get_state( ... )
 	-- body
+	return self._state
 end
 
 function cls:get_cards( ... )
@@ -250,6 +169,315 @@ function cls:get_cards_value( ... )
 		cards[i] = v
 	end
 	return cards
+end
+
+function cls:clear( ... )
+	-- body
+	self._cards = {}
+end
+
+function cls:insert(card, ... )
+	-- body
+	local len = #self._cards
+	for i=1,len do
+		if self._cards[i]:tof() == card:tof() then
+			if self._cards[i]:nof() <= card:nof() then
+			else
+				for j=len,i,-1 do
+					self._cards[j + 1] = self._cards[i]
+				end
+				self._cards[i] = card
+				return i
+			end
+		elseif self._cards[i]:tof() < card:tof() then
+		else
+			for j=len,i,-1 do
+				self._cards[j + 1] = self._cards[i]
+			end
+			self._cards[i] = card
+			return i
+		end
+	end
+	return 0
+end
+
+function cls:lead(c, ... )
+	-- body
+	assert(c)
+	if self._holdcard:get_value() == c then
+		local card = self._holdcard
+		table.insert(self._leadcards, self._holdcard)
+		self._holdcard = nil
+		return card
+	else
+		local card
+		local len = #self._cards
+		for i=1,len do
+			if self._cards[i]:get_value() == c then
+				card = self._cards[i]
+				table.insert(self._leadcards, self._cards[i])
+				for j=i,len-1 do
+					self._cards[i] = self._cards[i + 1]
+				end
+				assert(self._cards[len])
+				self._cards[len] = nil
+				self:insert(self._holdcard)
+				self._holdcard = nil
+				break
+			end
+		end
+		return card
+	end
+end
+
+function cls:take_card( ... )
+	-- body
+	if self._takecardscnt > 0 then
+		local card = self._takecards[self._takecardsidx]
+		self._takecards[self._takecardsidx] = nil
+		self._takecardscnt = self._takecardscnt - 1
+		if self._takecardsidx == self._takecardsend then
+			assert(self._takecardscnt == 0)
+		end
+		self._takecardsidx = self._takecardsidx + 1
+
+		if self._takecardsidx > self._takecardslen then
+			self._takecardsidx = 1
+		end
+		return card
+	end
+end
+
+function cls:check_hu(card, ... )
+	-- body
+	local i = self:insert(card)
+	assert(i ~= 0)
+	local jiang = 0
+	local len = #self._cards
+	local idx = 1
+	local a = self._cards[idx]
+	idx = idx + 1
+	while idx <= len do
+		local b = self._cards[idx]
+		if a:tof() == b:tof() then
+			if a:nof() == b:nof() then
+				jiang = jiang + 1
+				idx = idx + 1
+				if idx > len then
+					if jiang == 1 then
+						return true
+					else
+						return false
+					end
+				end
+				local c = self._cards[idx]
+				if a:tof() == c:tof() then
+					if a:nof() == c:nof() then
+						jiang = jiang - 1
+						idx = idx + 1
+						if idx > len then
+							if jiang == 1 then
+								return true
+							else
+								return false
+							end
+						end
+						local d = self._cards[idx]
+						if a:tof() == d:tof() then
+							if a:nof() == d:nof() then -- four same
+								idx = idx + 1
+								if idx > len then
+									return false
+								end
+								local e = self._cards[idx]
+								if a:tof() == e:tof() then
+									if a:nof() + 1 == e:tof() then
+										-- deep
+									else
+										return false
+									end
+								else
+									a = e
+								end
+							elseif a:nof() + 1 == d:nof() then
+								idx = idx + 1
+								if idx > len then
+									return false
+								end
+								local e = self._cards[idx]
+								if a:tof() == e:tof() then
+									if a:nof() + 2 == e:nof() then
+										jiang = jiang + 1
+										idx = idx + 1
+										if idx > len then
+											if jiang == 1 then
+												return true
+											else
+												return false
+											end
+										end
+										a = self._cards[idx]
+									else
+										return false
+									end
+								else
+									return false
+								end
+							else
+								return false
+							end
+						else
+							a = d
+						end
+					elseif a:nof() + 1 == c:nof() then
+						idx = idx + 1
+						if idx > len then
+							return false
+						end
+						local d = self._cards[idx]
+						if a:tof() == d:tof() then
+							if c:nof() == d:nof() then
+								jiang = jiang + 1
+								idx = idx + 1
+								if idx > len then
+									return false
+								end
+								local e = self._cards[idx]
+								if a:tof() == e:tof() then
+									if d:nof() == e:nof() then
+										jiang = jiang - 1
+										idx = idx + 1
+										if idx > len then
+											return false
+										end
+										a = self._cards[idx]
+									elseif d:nof() + 1 == e:nof() then
+										jiang = jiang - 1
+										idx = idx + 1
+										if idx > len then
+											return false
+										end
+										local f = self._cards[idx]
+										if a:tof() == f:tof() then
+											if e:nof() == f:nof() then
+												idx = idx + 1
+												if idx > len then
+													return false
+												end
+												a = self._cards[idx]
+											else
+												return false
+											end
+										else
+											return false
+										end
+									else
+										return false
+									end
+								else
+									return false
+								end
+							else
+								return false
+							end
+						else
+							return false
+						end
+					else
+						return false
+					end
+				else
+					idx = idx + 1
+					if idx > len then
+						return false
+					end
+					a = self._cards[idx]
+				end
+			elseif a:nof() + 1 == b:nof() then
+				idx = idx + 1
+				if idx > len then
+					return false
+				end
+				local c = self._cards[idx]
+				if a:tof() == c:tof() then
+					if b:nof() + 1 == c:nof() then
+						idx = idx + 1
+						if idx > len then
+							return false
+						end
+						a = self._cards[idx]
+					else
+						return false
+					end
+				else
+					return false
+				end
+			else
+				return false
+			end
+		else
+			return false
+		end
+	end
+	assert(jiang == 1)
+	return true
+end
+
+function cls:hu( ... )
+	-- body
+end
+
+function cls:check_gang(card, ... )
+	-- body
+	local count = 0
+	local len = #self._cards
+	for i=1,len do
+		if self._cards[i]:tof() == card:tof() then
+			if self._cards[i]:nof() == card:nof() then
+				count = count + 1
+			end
+		elseif self._cards[i]:tof() < card:tof() then
+		else
+			break
+		end
+	end
+	if count >= 3 then
+		return true
+	end
+	return false
+end
+
+function cls:gang(card, ... )
+	-- body
+	local count = 0
+	local cards = {}
+	local len = #self._cards
+	for i=1,len do
+		if self._cards[i]:get_value() == c then
+			table.insert()
+			if self._cards[i]:nof() == card:nof() then
+				cards[#cards] = self._cards[i]
+			end
+		elseif self._cards[i]:tof() < card:tof() then
+		else
+			break
+		end
+	end
+	self._gangcards[#self._gangcards + 1] = cards
+end
+
+function cls:check_peng(c, ... )
+	-- body
+end
+
+function cls:start( ... )
+	-- body
+	self._state = state.NONE
+	self._cards = {}
+end
+
+function cls:close( ... )
+	-- body
 end
 
 return cls

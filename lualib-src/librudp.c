@@ -1,14 +1,15 @@
-// #include "skynet.h"
-
 #include "rudp.h"
 
 #include <lua.h>
 #include <lauxlib.h>
 
+#include <string.h>
+#include <assert.h>
+
 struct rudp_aux {
 	lua_State *L;
 	struct rudp *u;
-	int id;
+	char from[256];
 	char buffer[MAX_PACKAGE];
 };
 
@@ -25,7 +26,11 @@ static int
 lupdate(lua_State *L) {
 	struct rudp_aux *aux = (struct rudp_aux *)lua_touserdata(L, 1);
 	size_t sz = 0;
-	const char *buffer = luaL_checklstring(L, 2, &sz);
+	const char *buffer = NULL;
+	if (lua_type(L, 2) == LUA_TNIL) {
+	} else if (lua_type(L, 2) == LUA_TSTRING) {
+		buffer = luaL_checklstring(L, 2, &sz);	
+	}
 	int tick = lua_tointeger(L, 3);
 	
 	lua_geti(L, LUA_REGISTRYINDEX, LUA_RIDX_GLOBALS);
@@ -35,11 +40,11 @@ lupdate(lua_State *L) {
 
 	struct rudp_package *res = rudp_update(aux->u, buffer, sz, tick);
 	while (res) {
-		lua_pushvalue(L, -2);
-		lua_pushvalue(L, 1);
-		lua_pushinteger(L, aux->id);
-		lua_pushlstring(L, res->buffer, res->sz);
-		lua_pcall(L, 3, 0, 0);		
+		lua_pushvalue(L, -2);  // send func
+		lua_pushvalue(L, 1);   // u
+		lua_pushstring(L, aux->from); // from
+		lua_pushlstring(L, res->buffer, res->sz); // data
+		lua_pcall(L, 3, 0, 0);
 		res = res->next;
 	}
 	int n;
@@ -47,27 +52,31 @@ lupdate(lua_State *L) {
 		if (n < 0) {
 			break;
 		}
-		printf("%s\n", "rudp_recv");
-		lua_pushvalue(L, -1);
-		lua_pushvalue(L, 1);
-		lua_pushinteger(L, aux->id);
-		lua_pushlstring(L, aux->buffer, n);
+		lua_pushvalue(L, -1);    // recv
+		lua_pushvalue(L, 1);     // u
+		lua_pushstring(L, aux->from); // from
+		lua_pushlstring(L, aux->buffer, n);  // data
 		lua_pcall(L, 3, 0, 0);
 	}
 	return 0;
 }
 
 static int
-lset_id(lua_State *L) {
+lset_from(lua_State *L) {
 	struct rudp_aux *aux = (struct rudp_aux *)lua_touserdata(L, 1);
-	aux->id = luaL_checkinteger(L, 2);
+	size_t sz = 0;
+	const char *addr = luaL_checklstring(L, 2, &sz);
+	// printf("%zu\n", sz);
+	assert(sz <= 256);
+	memset(aux->from, 0, 256);
+	memcpy(aux->from, addr, sz);
 	return 0;
 }
 
 static int
-lget_id(lua_State *L) {
+lget_from(lua_State *L) {
 	struct rudp_aux *aux = (struct rudp_aux *)lua_touserdata(L, 1);
-	lua_pushinteger(L, aux->id);
+	lua_pushstring(L, aux->from);
 	return 1;
 }
 
@@ -118,8 +127,8 @@ luaopen_rudp(lua_State *L) {
 	luaL_Reg l[] = {
 		{ "send", lsend },
 		{ "update", lupdate },
-		{ "set_id", lset_id },
-		{ "get_id", lget_id },
+		{ "set_from", lset_from },
+		{ "get_from", lget_from },
 		{ NULL, NULL },
 	};
 	luaL_newlib(L,l);

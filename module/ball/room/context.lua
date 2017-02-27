@@ -11,9 +11,11 @@ function cls:ctor(id, ... )
 	self._view = nil
 	self._scene = nil
 	self._max_number = 8
-	self._ballid = 1
-	self._session_players = {}
-	self._players_sz = 0
+	self._splayers = {}
+	self._splayers_sz = 0
+	self._uplayers = {}
+	self._uplayers_sz = 0
+	self._stime = nil
 end
 
 function cls:set_aoi(v, ... )
@@ -76,35 +78,54 @@ function cls:get_scene( ... )
 	return self._scene
 end
 
-function cls:gen_ball_id( ... )
+function cls:addsp(session, player, ... )
 	-- body
-	self._ballid = self._ballid + 1
-	if self._ballid <= 0 then
-		self._ballid = 1 
-	end
-	return self._ballid
-end
-
-function cls:add(session, player, ... )
-	-- body
-	self._session_players[session] = player
-	self._players_sz = self._players_sz + 1
+	self._splayers[session] = player
+	self._splayers_sz = self._splayers_sz + 1
 end
 
 function cls:remove(session, ... )
 	-- body
-	self._session_players[_session_players] = nil
-	self._players_sz = self._players_sz - 1
+	assert(session)
+	if self._splayers[session] then
+		self._splayers[session] = nil
+		self._splayers_sz = self._splayers_sz -1
+	end
 end
 
-function cls:get(session, ... )
+function cls:getsp(session, ... )
 	-- body
-	return self._session_players[session]
+	return self._splayers[session]
 end
 
-function cls:get_players( ... )
+function cls:getsp_sz( ... )
 	-- body
-	return self._session_players
+	return self._splayers_sz
+end
+
+function cls:addup(uid, player, ... )
+	-- body
+	self._uplayers[uid] = player
+	self._uplayers_sz = self._uplayers_sz + 1
+end
+
+function cls:removeup(uid, ... )
+	-- body
+	assert(uid)
+	if self._uplayers[uid] then
+		self._uplayers[uid] = nil
+		self._uplayers_sz = self._uplayers_sz + 1
+	end
+end
+
+function cls:getup(uid, ... )
+	-- body
+	return self._uplayers[uid]
+end
+
+function cls:getup_sz( ... )
+	-- body
+	return self._uplayers_sz
 end
 
 function cls:update(delta, k, ... )
@@ -133,6 +154,16 @@ end
 function cls:is_maxnum( ... )
 	-- body
 	return (self._players_sz >= self._max_number)
+end
+
+function cls:set_stime(v, ... )
+	-- body
+	self._stime = v
+end
+
+function cls:get_stime( ... )
+	-- body
+	return self._stime
 end
 
 return cls

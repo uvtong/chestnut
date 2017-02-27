@@ -1,3 +1,4 @@
+local skynet = require "skynet"
 local query = require "query"
 local json = require "cjson"
 local sd = require "sharedata"
@@ -13,6 +14,7 @@ function cls:ctor(env, dbctx, set, ... )
 	self._set = set
 	self._fields = {}
 	self._pk = nil
+	self._changed = {}
  	return self
 end
 
@@ -21,49 +23,68 @@ function cls:pk( ... )
 	return self._pk.value
 end
 																																								
-function cls:insert_cache( ...)
-	local k
-	local v = json.encode(self._fields)
-	local pk = self._fields[self._pk]
-	if type(pk) == "number" then
-		k = string.format("%s:%d", self._tname, pk)	
-	elseif type(pk) == "string" then
-		k = string.format("%s:%s", self._tname, pk)	
+function cls:insert_cache(tname, ...)
+	if tname == nil then
+		tname = self._set._tname
 	end
-	local wdb = self._wdb
-	query.set(wdb, k, v)
-	query.hset(wdb, self._tname, pk, pk)
-	log.info("insert cache %s, %s", self._tname, pk)
+	local suid = assert(self._env._suid)
+	if #self._changed > 0 then
+		local pk = self._fields[self._pk]
+		local key
+		for k,v in pairs(self._changed) do
+			if type(pk) == "number" then
+				key = string.format("%s:%d", tname, pk)	
+			elseif type(pk) == "string" then
+				key = string.format("%s:%s", tname, pk)
+			end
+			skynet.send("WATCHER", "lua", "hset", suid, key, v)
+		end
+		self._changed = {}
+	end
 end
 
-function cls:update_cache( ... )
+function cls:update_cache(tname, ... )
 	-- body
-	local k
-	local v = json.encode(self._fields)
-	local pk = self._fields[self._pk]
-	if type(pk) == "number" then
-		k = string.format("%s:%d", self._tname, pk)	
-	elseif type(pk) == "string" then
-		k = string.format("%s:%s", self._tname, pk)	
+	if tname == nil then
+		tname = self._set._tname
 	end
-	local wdb = self._wdb
-	query.set(wdb, k, v)
-	query.hset(wdb, self._tname, pk, pk)
-	log.info("update cache %s, %s", self._tname, pk)
+	local suid = assert(self._env._suid)
+	if #self._changed > 0 then
+		local pk = self._fields[self._pk]
+		local key
+		for k,v in pairs(self._changed) do
+			if type(pk) == "number" then
+				key = string.format("%s:%d", tname, pk)	
+			elseif type(pk) == "string" then
+				key = string.format("%s:%s", tname, pk)
+			end
+			skynet.send("WATCHER", "lua", "hset", suid, key, v)
+		end
+		self._changed = {}
+	end
 end
 
-function cls:update_db(tname, ... )
+function cls:update_db(tname, col, ... )
 	-- body
 	if tname == nil then
 		tname = self._set._tname
 	end
 	local set = ""
-	for i,v in ipairs(self._fields) do
-		if v:changed() then
-			if v:dt() == field.data_type.integer then
-				set = set .. v.name .. string.format("=%d,", v.value)
-			elseif v:dt() == field.data_type.biginteger then
-				set = set .. v.name .. string.format("=%d,", v.value)
+	if col then
+		local v = assert(self._fields[col])
+		if v:dt() == field.data_type.integer then
+			set = set .. v.name .. string.format("=%d,", v.value)
+		elseif v:dt() == field.data_type.biginteger then
+			set = set .. v.name .. string.format("=%d,", v.value)
+		end
+	else
+		for i,v in ipairs(self._fields) do
+			if v:changed() then
+				if v:dt() == field.data_type.integer then
+					set = set .. v.name .. string.format("=%d,", v.value)
+				elseif v:dt() == field.data_type.biginteger then
+					set = set .. v.name .. string.format("=%d,", v.value)
+				end
 			end
 		end
 	end
@@ -78,8 +99,7 @@ function cls:update_db(tname, ... )
 			where = string.format("%s=%d", self._pk.value)
 		end
 		local sql = string.format("update %s set %s where %s;", tname, set, where)
-		log.info(sql)
-		query.insert(tname, sql)
+		query.update(tname, sql)
 	end
 end
 
@@ -104,13 +124,25 @@ function cls:insert_db(tname, ... )
 	values = string.sub(values, 1, #values-1)
 	local noexists = ""
 	if self._pk:dt() == field.data_type.integer then
-		noexists = string.format("select * from %s where %s=%d", self._pk.name, tname, self._pk.name, self._pk.value)
+		noexists = string.format("%s=%d", self._pk.name, self._pk.value)
 	elseif self._pk:dt() == field.data_type.biginteger then
-		noexists = string.format("select * from %s where %s=%d", self._pk.name, tname, self._pk.name, self._pk.value)
+		noexists = string.format("%s=%d", self._pk.name, self._pk.value)
 	end
-	local sql = string.format("insert into %s (%s) values (%s) where no exists(%s);", tname, keys, values, noexists)
+	local sql = string.format("insert into %s (%s) values (%s) ON DUPLICATE KEY UPDATE %s;", tname, keys, values, noexists)
 	log.info(sql)
 	query.insert(tname, sql)
+end
+
+function cls:load_cache_to_data( ... )
+	-- body
+end
+
+function cls:load_db_to_data( ... )
+	-- body
+end
+
+function cls:update( ... )
+	-- body
 end
 
 return cls

@@ -12,7 +12,24 @@
 
 .player {
     name 0 : string
-    orientation 1 : integer
+    idx  1 : integer
+    sid  2 : integer
+}
+
+.mail {
+    id       0 : integer
+    from     1 : integer
+    to       2 : integer
+    title    3 : string
+    content  4 : string
+}
+
+.outbox {
+    all 0 : mail
+}
+
+.inbox {
+    all 0 : mail
 }
 
 handshake 1 {
@@ -21,77 +38,7 @@ handshake 1 {
     }
 }
 
-role_info 2 {
-}
-
-mails 3 {
-}
-
-signup 4 {
-}
-
-login 5 {
-    request {
-        account 0 : string
-        password 1 : string
-    }
-    response {
-        errorcode 0 : integer
-    }
-}
-
-role_upgrade_star 6 {
-}
-
-choose_role 7 {
-}
-
-wake 8 {
-    request {
-        role_id 0 : string
-    }
-    response {
-        errorcode 0 : integer
-    }
-}
-
-props 9 {
-}
-
-use_prop 10 {
-}
-
-achievement 11 {
-} 	 
-
-mail_read 12 {
-}
-
-mail_delete 13 {
-}
-
-mail_getreward 14 {
-} 
-
-friend_list 15 {
-}
-
-applied_list 16 {
-}
-
-otherfriend_list  17 {
-}
-
-findfriend 18 {
-}
-
-applyfriend 19 {
-}
- 
-recvfriend 20 {
-}
-
-enter_scene 21 {
+match 2 {
     request {
         rule 0 : integer
         mode 1 : integer
@@ -99,97 +46,112 @@ enter_scene 21 {
     }
     response {
         errorcode 0 : integer
-
     }
 }
 
-leave_scene 22 {
-}
-
-enter_room 23 {
-    request {
-        rule 0 : integer
-        mode 1 : integer
-        scene 2 : integer
-    }
-    response {
-        errorcode 0 : integer
-        players   1 : *player
-    }
-}
-
-leave_room 24 {
-    request {
-
-    }
+cmatch 3 {
     response {
         errorcode 0 : integer
     }
 }
 
-ready 25 {
+create 4 {
     request {
-        uid 0 : integer
-        ready 1 : boolean
+        count      0 : integer
+        rule       1 : integer
     }
     response {
         errorcode 0 : integer
-        deal      1 : boolean
-        rcards    2 : *integer
-        lcards    3 : *integer
-        dcards    4 : *integer
-        your_turn 5 : integer
-        countdown 6 : integer
+        roomid    1 : integer
+        me        2 : player
     }
 }
 
-mp 26 {
+join 5 {
     request {
-        m 0 : integer
+        roomid 0 : integer
     }
     response {
         errorcode 0 : integer
-        m 1 : integer
-        mcards 2 : *integer
-        rcards 3 : *integer
-        lcards 4 : *integer
-        dcards 5 : *integer   
+        ps        1 : *player
+        me        2 : player
+        roomid    3 : integer
     }
 }
 
-am 27 {
+leave 6 {
+    response {
+        errorcode 0 : integer
+    }
+}
+
+call 7 {
     request {
-        m 0 : integer
+        idx       0 : integer
+        opcode    1 : integer
+        card      2 : integer
     }
     response {
         errorcode 0 : integer
     }
 }
 
-rob 28 {
+shuffle 8 {
     request {
-        uid 0 : integer
-        rob 1 : integer
+        idx       0 : integer
     }
     response {
         errorcode 0 : integer
-        your_turn 1 : integer
     }
 }
 
-lead 29 {
+dice 9 {
     request {
-        uid 0 : integer
-        cards 1 : *integer
+        idx       0 : integer
     }
     response {
         errorcode 0 : integer
-        your_turn 1 : integer
-        countdown 2 : integer
-        ranked1 3 : settlement
-        ranked2 4 : settlement
-        ranked3 5 : settlement
+        d1        1 : integer
+        d2        2 : integer
     }
 }
 
+lead 10 {
+    request {
+        idx       0 : integer
+        card      1 : integer
+    } 
+    response {
+        errorcode 0 : integer
+    }
+}
 
+step 11 {
+    request {
+        idx       0 : integer
+    }
+    response {
+        errorcode 0 : integer
+    }
+}
+
+first 20 {
+    response {
+        errorcode 0 : integer
+        outbox    1 : outbox
+        inbox     2 : inbox
+        name      3 : string
+        gold      4 : integer
+        diamond   5 : integer
+        checkin_today 6 : boolean
+        checkin_cm    7 : integer
+        checkin_cmcnt 8 : integer
+        checkin_cnt   9 : integer
+    }
+}
+
+checkindaily 21 {
+    response {
+        errorcode 0 : integer
+    }
+}

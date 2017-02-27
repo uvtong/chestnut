@@ -4,6 +4,8 @@ local context = require "context"
 local inbox = require "inbox"
 local user = require "user"
 local log = require "log"
+local checkindailymgr = require "checkindailymgr"
+
 local call = skynet.call
 local assert = assert
 
@@ -22,7 +24,6 @@ function cls:ctor( ... )
 	-- body
 	cls.super.ctor(self, ...)
 	
-	
 	self._room = nil
 	self._state = state.NONE
 	self._last_state = state.NONE
@@ -31,9 +32,8 @@ function cls:ctor( ... )
 
 	self._user = user.new(self, self._dbcontext, nil)
 	self._inbox = inbox.new(self, self._dbcontext, nil)
+	self._checkindailymgr = checkindailymgr.new(self, self._dbcontext)
 
-	self._dbcontext:register_user(self._user)
-	self._dbcontext:register_set(self._inbox)
 	return self
 end
 
@@ -72,11 +72,11 @@ function cls:set_last_state(value, ... )
 	self._last_state = value
 end
 
-function cls:newborn(gate, uid, subid, secret, ... )
+function cls:newborn(gate, uid, subid, secret, suid, ... )
 	-- body
-	cls.super.newborn(self, gate, uid, subid, secret)
+	cls.super.newborn(self, gate, uid, subid, secret, suid)
 	
-	self._user:set_id(self._uid)
+	self._user:set_id(self._suid)
 	log.info(self._user.id.name)
 	self._user:set_name("nihao")
 	self._user:set_age(10)
@@ -86,8 +86,8 @@ function cls:newborn(gate, uid, subid, secret, ... )
 	self._user:insert_db("tg_users")
 end
 
-function cls:login(gate, uid, subid, secret)
-	cls.super.login(self, gate, uid, subid, secret)
+function cls:login(gate, uid, subid, secret, suid)
+	cls.super.login(self, gate, uid, subid, secret, suid)
 
 	self._join = false
 	

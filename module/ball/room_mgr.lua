@@ -3,22 +3,28 @@ require "skynet.manager"
 local queue = require "queue"
 local log = require "log"
 
-local id = 1
-local rooms = {}
+local index = 0
 local q
+local rooms = {}
+
+local function incre_room( ... )
+	-- body
+	local size = 10
+	for i=1,size do
+		local id = index + i
+		local addr = skynet.newservice("room/room", id)
+		rooms[id] = { addr=addr, id=id}
+		q:enqueue(id)
+	end
+	index = index + size
+end
 
 local cmd = {}
 
 function cmd.start( ... )
 	-- body
 	q = queue()
-	for i=1,10 do
-		id = id + 1
-		local room = skynet.newservice("room/room", id)
-		rooms[id] = room
-		q:enqueue { addr=room, id=id}
-		
-	end
+	incre_room()
 	return true
 end
 
@@ -36,21 +42,26 @@ function cmd.enter( ... )
 	if #q > 0 then
 		return q:dequeue()
 	else
-		id = id + 1
-		local room = skynet.newservice("room/room", id)
-		rooms[id] = room
-		return { addr=room, id=id}
+		incre_room()
+		return q:dequeue()
 	end
 end
 
-function cmd.exit(room, ... )
+function cmd.exit(id, ... )
 	-- body
-	q:enqueue(room)
+	q:enqueue(id)
 end
 
 function cmd.apply(id, ... )
 	-- body
-	return rooms[id]
+	assert(id)
+	local r = rooms[id]
+	if r then
+		return assert(r.addr)
+	else
+		log.error("not exist")
+		return 0
+	end
 end
 
 -- todo : close room ?

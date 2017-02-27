@@ -3,7 +3,9 @@ require "skynet.manager"
 local log = require "log"
 local query = require "query"
 
+local tname = "tg_uid"
 local server_id = 1
+local server_id_shift = 24
 local internal_id = 1
 local internal_id_mask = 0xffffff
 local id_mask = 0xffffffff
@@ -16,12 +18,18 @@ function cmd.start( ... )
 	-- load internal_id
 	local sql = "select * from tg_count where id = 1;"
 	local res = query.select("tg_count", sql)
-	internal_id =  res[1].uid
+	if #res > 0 then
+		internal_id =  res[1].uid
+	else
+		internal_id = 10001
+		local sql = string.format("insert into %s values (%d, %d)", "tg_count", 1, internal_id)
+		query.insert("tg_count", sql)
+	end
 	-- load userid
 	local sql = "select * from tg_uid"
 	local res = query.select("uid", sql)
 	for i,v in ipairs(res) do
-		users[v.userid] = v.uid
+		users[v.uid] = v.suid
 	end
 	return true
 end
@@ -33,29 +41,28 @@ end
 
 function cmd.kill( ... )
 	-- body
+	log.info("uid mgr kill")
 	skynet.exit()
 end
 
-function cmd.login(userid, ... )
+function cmd.login(uid, ... )
 	-- body
-	assert(userid)
-	log.info("userid %d from boss", userid)
-	local id = users[userid]
+	assert(uid)
+	local id = users[uid]
 	if id then
 		log.info("old user %d login", id)
 		return { new=false, id=id }
 	else
-		internal_id = internal_id + 1 & internal_id_mask
-		local id = server_id << 24
-		id =  (id | internal_id) & id_mask
+		internal_id = (internal_id + 1) & internal_id_mask
+		local id = ((server_id << server_id_shift) | internal_id) & id_mask
 		log.info("new user %d login", id)
 
-		users[userid] = id
-		local sql = string.format("insert into tg_uid values (%d, %d)", userid, id)
-		query.insert("uid", sql)
+		users[uid] = id
+		local sql = string.format("insert into %s values (%d, %d)", tname, uid, id)
+		query.insert(tname, sql)
 
 		local sql = string.format("update tg_count set uid=%d where id=1", internal_id)
-		query.update("g_count", sql)
+		query.update("tg_count", sql)
 		
 		return { new=true, id=id}
 	end

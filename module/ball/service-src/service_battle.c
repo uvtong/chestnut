@@ -11,7 +11,6 @@
 
 struct battle {
 	int dummy;
-	// battled *d;
 };
 
 static void
@@ -45,16 +44,11 @@ struct battle *
 battle_create(void) {
 	struct battle *inst = (struct battle *)skynet_malloc(sizeof(*inst));
 	memset(inst, 0, sizeof(*inst));
-	// inst->d = new battled();
 	return inst;
 }
 
 void
 battle_release(struct battle *inst) {
-	// if (inst->d != NULL)
-	// {
-	// 	delete inst->d;
-	// }
 	skynet_free(inst);
 }
 

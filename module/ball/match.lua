@@ -3,7 +3,8 @@ require "skynet.manager"
 local queue = require "queue"
 local log = require "log"
 
-local q = queue()
+local m1q = queue()
+local m2q = queue()
 local users = {}
 
 local cmd = {}
@@ -39,33 +40,56 @@ function cmd.logout(uid, ... )
 	end
 end
 
-function cmd.enter(uid, agent, ... )
+function cmd.enter(uid, agent, mode, ... )
 	-- body
+	assert(uid and agent and mode)
 	local u = users[uid]
 	if u then
 		u.online = true
-		u.logout = false
-		log.info("uid:%d enter")
+		if u.agent ~= agent then
+			u.agent = agent
+		end
+		if u.inq then
+			return 1 -- 
+		end
 	else
-		local u = {
+		u = {
 			uid = uid,
 			agent = agent,
 			online = true,
-			logout = false
+			mode = mode,
 		}
 		users[uid] = u
-		q:enqueue(u)
+		
 	end
-	log.info("length of q: %d", #q)
-	if #q >= 1 then
 
-		local u = q:dequeue()
-		users[u.uid] = nil
+	if u.inq then
+		log.info("uid :%d in queue", uid)
+		return
+	end
+	if mode == 1 then
+		m1q:enqueue(u)
+		u.inq = true
+	elseif mode == 2 then
+		m2q:enqueue(u)
+		u.inq = true
+	end
 
-		local res = skynet.call(".ROOM_MGR", "lua", "enter")
-		local gate = skynet.call(".UDPSERVER_MGR", "lua", "enter")
-		skynet.call(res.addr, "lua", "start", gate)
-		skynet.send(u.agent, "lua", "match", {roomid=res.id})
+	-- check num of person
+	if mode == 1 then
+		log.info("mode 1")
+		if #m1q >= 1 then
+			local u = m1q:dequeue()
+			u.inq = false
+			local id = skynet.call(".ROOM_MGR", "lua", "enter")
+			local addr = skynet.call(".ROOM_MGR", "lua", "apply", id)
+			local gate = skynet.call(".UDPSERVER_MGR", "lua", "enter")
+			skynet.call(addr, "lua", "start", gate, 10)
+			skynet.send(u.agent, "lua", "match", {roomid=id})
+		else
+			log.info("length of m1q is: %d", #m1q)
+		end
+	elseif mode == 2 then
 	end
 end
 

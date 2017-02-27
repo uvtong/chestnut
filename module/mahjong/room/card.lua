@@ -1,15 +1,29 @@
+local log = require "log"
 local assert = assert
+local TYPE_SHIFT = 8
+local NUM_SHIFT = 4
+local IDX_SHIFT = 0
+
 local cls = class("card")
 
-function cls:ctor(v, ... )
+cls.type = {}
+cls.type.CRAK = 1
+cls.type.BAM  = 2
+cls.type.DOT  = 3
+
+function cls:ctor(t, num, idx, ... )
 	-- body
-	assert(v)
-	self._value = v
-	local t = v >> 4 & 0x0f
-	local num = v & 0x0f
+	-- log.info("t:%d, num:%d, idx:%d", t, num, idx)
+	assert(t and num and idx)
 	self._type = t
-	self._num =  num
-	self._idx = 0
+	self._num  = num
+	self._idx  = idx
+
+	self._value = ((t & 0xff) << TYPE_SHIFT) | ((num & 0x0f) << NUM_SHIFT) | ((idx & 0x0f) << IDX_SHIFT)
+
+	-- log.info("value:%d", self._value)
+
+	self._pos = 0
 	self._master = false  -- 判断是否已经被分配
 	self._bright = false  -- 判断是否已经被选中
 
@@ -24,6 +38,11 @@ end
 function cls:nof( ... )
 	-- body
 	return self._num
+end
+
+function cls:iof( ... )
+	-- body
+	return self._idx
 end
 
 function cls:get_type( ... )
@@ -41,15 +60,20 @@ function cls:get_value( ... )
 	return self._value
 end
 
--- position
 function cls:get_idx( ... )
 	-- body
 	return self._idx
 end
 
-function cls:set_idx(idx, ... )
+-- position
+function cls:get_pos( ... )
 	-- body
-	self._idx = idx
+	return self._pos
+end
+
+function cls:set_pos(pos, ... )
+	-- body
+	self._pos = pos
 end
 
 function cls:set_master(m, ... )
@@ -62,6 +86,23 @@ function cls:get_master( ... )
 	return self._master
 end
 
+function cls:set_bright(flag, ... )
+	-- body
+	self._bright = flag
+end
+
+function cls:get_bright( ... )
+	-- body
+	return self._bright
+end
+
+function cls:clear( ... )
+	-- body
+	self._pos = 0         -- deal 
+	self._master = false  -- deal
+	self._bright = false  -- selection
+end
+
 -- 比较单牌,这里只比较数字
 function cls:mt(o, ... )
 	-- body
@@ -71,25 +112,44 @@ function cls:mt(o, ... )
 	local n2 = o._num
 	if t1 == 5 then
 		return true
+	elseif t2 == 5 then
+		return false
 	elseif t1 == 4 then
 		if t2 == 5 then
 			return false
 		else
 			return true
 		end
+	elseif t2 == 4 then
+		if t1 == 5 then
+			return true
+		else
+			return false
+		end
 	elseif n1 > 0 and n2 > 0 then
-		if n1 == 2 and n2 ~= 2 then
-			return true 
+		if n1 == n2 then
+			return false
+		elseif n1 == 2 and n2 ~= 2 then
+			return true
+		elseif n2 == 2 and n1 ~= 2 then
+			return false
 		elseif n1 == 1 then
 			if n2 == 2 or n2 == 1 then
 				return false
 			else
 				return true
 			end
+		elseif n2 == 1 then
+			if n1 == 2 then
+				return true
+			else
+				return false
+			end
 		else
 			return n1 > n2
 		end
 	else
+		assert(false)
 		return false
 	end
 end
@@ -167,21 +227,6 @@ function cls:lt_t(o, ... )
 	return not self:mt_t(o) and not self:lt_t(o)
 end
 
-function cls:set_bright(flag, ... )
-	-- body
-	self._bright = flag
-end
 
-function cls:get_bright( ... )
-	-- body
-	return self._bright
-end
-
-function cls:clear( ... )
-	-- body
-	self._idx = 0
-	self._master = false
-	self._bright = false
-end
 
 return cls

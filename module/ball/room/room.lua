@@ -7,17 +7,14 @@ local crypt = require "crypt"
 local log = require "log"
 local list = require "list"
 local context = require "room.context"
-
+local player = require "room.player"
 
 -- context variable
 local id = ...
 local ctx
 local k = 0
 local lasttick = 0
-local gate
-local aoi
-local battle
-local users = {}
+
 local CMD = {}
 
 --[[
@@ -73,52 +70,43 @@ function CMD.aoi_message(watcher, marker, ... )
 	end
 end
 
-function CMD.join(uid, secret, agent)
-	local u = users[uid]
-	if u then
-		u.sid = sid
-		u.secret = secret
-		u.agent = agent
+function CMD.join(uid, agent, secret)
+	local res = nil
+	local gate = ctx:get_gate()
+	local p = ctx:getup(uid)
+	if p then
 	else
-
-		local players = {}
-		for k,v in pairs(users) do
-			local tmp = {}
-			tmp.session = v.session
-			table.insert(players, tmp)
-		end
-
-		u = {
-			suid = suid,
-			sid = sid,
-			secret = secret,
-			agent = agent
-		}	
-		users[suid] = u
-		local res = skynet.call(gate, "lua", "register", skynet.self(), secret)
-		u.session = res.session
-		res.players = players
-		return res
+		res = skynet.call(gate, "lua", "register", skynet.self(), secret)
+		p = player.new(uid, res.session)
+		p:set_secret(secret)
+		p:set_agent(agent)
 	end
+	ctx:addsp(p:get_session(), p)
+	ctx:addup(p:get_uid(), p)
+	return res
 end
 
 function CMD.leave(session)
 	local gate = ctx:get_gate()
-	local scene = ctx:get_scene()
-	local session_players = ctx:get_players()
-	local player = session_players[session]
-	local balls = player:get_balls()
-	for k,v in pairs(balls) do
-		scene:leave(v:get_id())
-	end
-	for k,v in pairs(session_players) do
-		if k ~= session then
-			local agent = v.agent
-			agent.post.leave({ session = session })
-		end
-	end
-	gate.req.unregister(session)
-	ctx:remove(session)
+	skynet.call(gate, "lua", "unregister", session)
+
+	return true
+	
+	-- local scene = ctx:get_scene()
+	-- local session_players = ctx:get_players()
+	-- local player = session_players[session]
+	-- local balls = player:get_balls()
+	-- for k,v in pairs(balls) do
+	-- 	scene:leave(v:get_id())
+	-- end
+	-- for k,v in pairs(session_players) do
+	-- 	if k ~= session then
+	-- 		local agent = v.agent
+	-- 		agent.post.leave({ session = session })
+	-- 	end
+	-- end
+	-- gate.req.unregister(session)
+	-- ctx:remove(session)
 end
 
 function CMD.query(session)
@@ -206,9 +194,10 @@ function CMD.opcode(session, args, ... )
 	end
 end
 
-function CMD.start(gate, ... )
+function CMD.start(gate, max, ... )
 	-- body
 	ctx:set_gate(gate)
+	ctx:set_stime(skynet.now())
 	
 	return true
 end
@@ -238,10 +227,10 @@ skynet.start(function ( ... )
 
 	ctx = context.new(id)
 
-	local aoi = skynet.newservice("aoi")
+	-- local aoi = skynet.newservice("aoi")
 	local battle = skynet.launch("battle")
 
-	ctx:set_aoi(aoi)
+	-- ctx:set_aoi(aoi)
 	ctx:set_battle(battle)
 end)
 

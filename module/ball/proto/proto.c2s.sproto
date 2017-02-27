@@ -16,6 +16,9 @@ handshake 1 {
 }
 
 match 2 {
+    request {
+        mode 0 : integer
+    }
 	response {
 		errorcode 0 : integer
 	}

@@ -2,6 +2,7 @@ local skynet = require "skynet"
 require "skynet.manager"
 local skynet_queue = require "skynet.queue"
 local queue = require "queue"
+local log = require "log"
 
 local cs = skynet_queue()
 
@@ -53,6 +54,17 @@ function CMD.start(t, ... )
 	-- body
 	init()
 	return true
+end
+
+function CMD.close( ... )
+	-- body
+	return true
+end
+
+function CMD.kill( ... )
+	-- body
+	log.info("ai mgr kill")
+	skynet.exit()
 end
 
 skynet.start(function ()

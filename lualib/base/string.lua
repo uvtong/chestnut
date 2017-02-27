@@ -73,3 +73,12 @@ end
 function string.ucfirst(input)
     return string_upper(string_sub(input, 1, 1)) .. string_sub(input, 2)
 end
+
+function string.hex(input, ... )
+    -- body
+    local res = ""
+    for i=1,#input do
+        res = res .. string.format("%x", string.byte(input, i))
+    end
+    return "0x"..res
+end

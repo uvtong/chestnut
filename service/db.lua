@@ -8,6 +8,7 @@ local queue = require "queue"
 local log = require "log"
 local name = ...
 
+local dbconf
 local db
 local cache
 local readq = queue()
@@ -112,7 +113,14 @@ local QUERY = {}
 function QUERY.select(table_name, sql)
 	-- body
 	if name == "master" then
-		local db = readq:dequeue()
+		local db = nil
+		if #readq > 0 then
+			db = assert(readq:dequeue())
+		else
+			assert(false)
+			db = skynet.newservice("db", "slave")
+			skynet.call(db, "lua", "start", dbconf)
+		end
 		local res = skynet.call(db, "lua", "query", "select", table_name, sql)
 		readq:enqueue(db)
 		return res
@@ -189,6 +197,7 @@ local CMD = {}
 			
 function CMD.start(conf)
 	-- body
+	dbconf = conf
 	if name == "master" then
 		write = skynet.newservice("db", "slave")
 		skynet.call(write, "lua", "start", conf)
@@ -220,11 +229,12 @@ function CMD.close()
 	-- body
 	if name == "master" then
 		skynet.call(write, "lua", "close")
-		local function f(db, ... )
-			-- body
-			skynet.call(db, "lua", "close")
+		skynet.send(write, "lua", "kill")
+		
+		for k,v in pairs(readq) do
+			skynet.call(v, "lua", "close")
 		end
-		queue.foreach(readq, f)
+
 		local db = readq:dequeue()
 		while db do
 			skynet.send(db, "lua", "kill")

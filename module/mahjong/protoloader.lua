@@ -7,8 +7,8 @@ local sprotoloader = require "sprotoloader"
 
 skynet.start(function()
 
-	c2s_filename = "./../../module/ball/proto/proto.c2s.sproto"
-	s2c_filename = "./../../module/ball/proto/proto.s2c.sproto"
+	c2s_filename = "./../../module/mahjong/proto/proto.c2s.sproto"
+	s2c_filename = "./../../module/mahjong/proto/proto.s2c.sproto"
 
 	sprotoloader.register(c2s_filename, 1)
 	sprotoloader.register(s2c_filename, 2)
