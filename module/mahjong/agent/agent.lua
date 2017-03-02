@@ -222,6 +222,8 @@ local function room_response(name, args)
 	-- body
 	assert(name)
 	local cmd = {}
+	cmd["deal"] = true
+	cmd["ready"] = true
 	cmd["take_turn"] = true
 	cmd["peng"] = true
 	cmd["gang"] = true
@@ -229,6 +231,7 @@ local function room_response(name, args)
 	cmd["call"] = true
 	cmd["shuffle"] = true
 	cmd["dice"] = true
+	cmd["lead"] = true
 	if cmd[name] then
 		local addr = ctx:get_room()
 		skynet.send(addr, "lua", name, args)
@@ -388,6 +391,8 @@ local function room_sendrequest(name, args, ... )
 	-- body
 	assert(name)
 	local cmd = {}
+	cmd["deal"] = true
+	cmd["ready"] = true
 	cmd["take_turn"] = true
 	cmd["peng"] = true
 	cmd["gang"] = true
@@ -395,6 +400,7 @@ local function room_sendrequest(name, args, ... )
 	cmd["call"] = true
 	cmd["shuffle"] = true
 	cmd["dice"] = true
+	cmd["lead"] = true
 	if cmd[name] then
 		ctx:send_request(name, args)
 		return true
@@ -410,6 +416,9 @@ skynet.start(function()
 			if err then
 				return
 			end
+		else
+			log.error(err)
+			return
 		end
 		local f = assert(CMD[cmd])
 		local ok, err = pcall(f, ctx, source, ...) 

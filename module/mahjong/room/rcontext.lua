@@ -6,21 +6,66 @@ local list = require "list"
 local util = require "util"
 local opcode = require "opcode"
 local errorcode = require "errorcode"
+local hutype = require "hutype"
 
 local state = {}
 state.NONE       = 0
 state.START      = 1
 state.CREATE     = 2
 state.JOIN       = 3
-state.SHUFFLE    = 4
-state.DICE       = 5
-state.TURN       = 6
+state.READY      = 4
+state.SHUFFLE    = 5
+state.DICE       = 6
+state.TURN       = 7
+state.LEAD       = 8
+state.PENG       = 9
+state.BUGANG     = 10
+state.ZHIGANG    = 11
+state.ANGANG     = 12
+state.HU1        = 13
+state.HU2        = 14
+state.HU3        = 15
+state.CALL       = 16
+state.OVER       = 17
+
+local SICHUAN = 1
+local SHANXI = 2
 
 local cls = class("rcontext")
 
 function cls:ctor( ... )
 	-- body
 	self._id = 0
+	self._local = SICHUAN
+	self._maxmultiple = 8
+	self._multiple = {}
+	if self._local == SICHUAN then
+		self._multiple[hutype.PINGHU] = 1
+		self._multiple[hutype.DUIDUIHU] = 2
+		self._multiple[hutype.QINGYISE] = 4
+		self._multiple[hutype.QIDUI] = 4
+		self._multiple[hutype.JINGOUDIAO] = 4
+		self._multiple[hutype.QINGDUIDUI] = 8
+		self._multiple[hutype.LONGQIDUI] = 16 > self._maxmultiple and self._maxmultiple or 16
+		self._multiple[hutype.QINGQIDUI] = 16 > self._maxmultiple and self._maxmultiple or 16
+		self._multiple[hutype.QINGJINGOUDIAO] = 16 > self._maxmultiple and self._maxmultiple or 16
+		self._multiple[hutype.QINGLONGQIDUI] = 32 > self._maxmultiple and self._maxmultiple or 32
+		self._multiple[hutype.SHIBALUOHAN] = 64 > self._maxmultiple and self._maxmultiple or 64
+		self._multiple[hutype.QINGSHIBALUOHAN] = 128 > self._maxmultiple and self._maxmultiple or 128
+	elseif self._local == SHANXI then
+		self._multiple[hutype.PINGHU] = 1
+		self._multiple[hutype.DUIDUIHU] = 1
+		self._multiple[hutype.QINGYISE] = 1
+		self._multiple[hutype.QIDUI] = 1
+		self._multiple[hutype.JINGOUDIAO] = 1
+		self._multiple[hutype.QINGDUIDUI] = 1
+		self._multiple[hutype.LONGQIDUI] = 1
+		self._multiple[hutype.QINGQIDUI] = 1
+		self._multiple[hutype.QINGJINGOUDIAO] = 1
+		self._multiple[hutype.QINGLONGQIDUI] = 1
+		self._multiple[hutype.SHIBALUOHAN] = 1
+		self._multiple[hutype.QINGSHIBALUOHAN] = 1
+	end
 
 	self._players = {}
 	self._max = 4
@@ -37,6 +82,7 @@ function cls:ctor( ... )
 	self._online = 0
 	self._host = nil
 	
+	self._prestate = state.NONE
 	self._state = state.NONE
 	-- self._cards = {}
 
@@ -95,10 +141,6 @@ function cls:find_noone( ... )
 			return self._players[i]
 		end
 	end
-end
-
-function cls:get_players()
-	return self._players
 end
 
 function cls:get_player_by_uid(uid, ... )
@@ -189,6 +231,26 @@ function cls:start(uid, ... )
 	-- util.set_timeout(400, cb)
 end
 
+function cls:take_card( ... )
+	-- body
+	local takep = self._players[self._curtake]
+	if takep._takecardscnt > 0 then
+		local card = takep:take_card()
+		assert(card)
+		return card
+	else
+		self._curtake = self:next_takeidx()
+		if self._curtake == self._firsttake then
+			self:over()
+		else
+			takep = self._players[self._curtake]
+			local card = takep:take_card()
+			assert(card)
+			return card	
+		end
+	end
+end
+
 function cls:check_start( ... )
 	-- body
 	if self._online >= 2 then
@@ -271,6 +333,12 @@ function cls:step(idx, ... )
 	if self._state == state.JOIN then
 		local p = self._players[idx]
 		assert(not p:get_noone())
+		if self:check_state(idx, player.state.WAIT_READY) then
+			self:take_ready()
+		end
+	elseif self._state == state.READY then
+		local p = self._players[idx]
+		assert(not p:get_noone())
 		if self:check_state(idx, player.state.WAIT_START) then
 			self:take_shuffle()
 		end
@@ -290,49 +358,61 @@ function cls:step(idx, ... )
 		local p = self._players[idx]
 		assert(not p:get_noone())
 		if self:check_state(idx, player.state.WAIT_TURN) then
-			self._curidx = self._firstidx
-			self._curcard = self._players[self._curtake]:take_card()
+			self._curidx = self._firstidx -- reset curidx for turn 
+			self._curcard = self:take_card()
 			self:take_turn()
 		end
 	elseif self._state == state.LEAD then
 		local p = self._players[idx]
 		assert(not p:get_noone())
 		if self:check_state(idx, player.state.WAIT_TURN) then
-			local op = false
+			local opcodes = {}
 			for i=1,4 do
 				if i ~= idx then
-					local opcodes = {}
-					if self._players[i]:check_hu(self._lastcard)
-						table.insert(opcodes, opcode.hu)
-					end
-					if self._players[i]:check_gang(self._lastcard)
-						table.insert(opcodes, opcode.gang)
-					end
-					if self._players[i]:check_peng(self._lastcard)
-						table.insert(opcodes, opcode.peng)
-					end
-					if #opcodes > 0 then
-						self:take_call(opcodes)
-						op = true
+					local info = {
+						idx = i,
+					}
+					local hucode = self._players[i]:check_hu(self._lastcard)
+					local pengcode = self._players[i]:check_gang(self._lastcard)
+					local gangcode = self._players[i]:check_peng(self._lastcard)
+					if hucode == hucode.NONE and
+						pengcode == opcode.peng and
+						gangcode == opcode.none then
+					else
+						info.peng = pengcode
+						info.gang = gangcode 
+						info.hucode = hucode
+						table.insert(opcodes, info)
 					end
 				end
 			end
-			if not op then
-				self._curidx = self:next_idx()
-				if self._players[self._curtake]._takecardscnt > 0 then
-					self._curcard = self._players[self._curtake]:take_card()
-				else
-					if self._firsttake == self._curtake then
-						-- over
-					else
-						self._curtake = self:next_takeidx()
-					end
-					self._curcard = self._players[self._curtake]:take_card()
-				end
-				self:take_turn()
+			if #opcodes > 0 then
+				self:take_call(opcodes)
+			else
+				self:guo()
 			end
 		end
+	elseif self._state == state.PENG then
+		local p = self._players[idx]
+		assert(not p:get_noone())
+		if self:check_state(idx, player.state.WAIT_TURN) then
+			self:take_turn()
+		end
+	elseif self._state == state.GANG then
+		local p = self._players[idx]
+		assert(not p:get_noone())
+		if self:check_state(idx, player.state.WAIT_TURN) then
+			self._curcard = self:take_card()
+			self:take_turn()
+		end
 	end
+end
+
+function cls:take_ready( ... )
+	-- body
+	self._state = state.READY
+	self:clear_state(player.state.READY)
+	self:push_client("ready")
 end
 
 function cls:take_shuffle( ... )
@@ -360,7 +440,6 @@ function cls:take_shuffle( ... )
 	end
 	self._players[1]._takecardsidx = 1
 	self._players[1]._takecardslen = 28
-	self._players[1]._takecardsend = 28
 	self._players[1]._takecardscnt = 28
 	assert(#p1 == 28)
 	local p2 = {}
@@ -371,7 +450,6 @@ function cls:take_shuffle( ... )
 	end
 	self._players[2]._takecardsidx = 1
 	self._players[2]._takecardslen = 28
-	self._players[2]._takecardsend = 28
 	self._players[2]._takecardscnt = 28
 	assert(#p2 == 28)
 	local p3 = {}
@@ -382,7 +460,6 @@ function cls:take_shuffle( ... )
 	end
 	self._players[3]._takecardsidx = 1
 	self._players[3]._takecardslen = 26
-	self._players[3]._takecardsend = 26
 	self._players[3]._takecardscnt = 26
 	assert(#p3 == 26)
 	local p4 = {}
@@ -393,7 +470,6 @@ function cls:take_shuffle( ... )
 	end
 	self._players[4]._takecardsidx = 1
 	self._players[4]._takecardslen = 26
-	self._players[4]._takecardsend = 26
 	self._players[4]._takecardscnt = 26
 	assert(#p4 == 26)
 	local args = {}
@@ -423,15 +499,16 @@ function cls:take_dice( ... )
 		point = point - 4
 	end
 	assert(point > 0 and point <= 4)
+
 	self._firsttake = point
-	self._firstidx = self._host
+	self._firstidx = 1
 	self._curtake = point
-	self._curidx = self._host
+	self._curidx = 1
 
 	self._takeround = 1
 	local takep = self._players[self._curtake]
 	takep._takecardsidx = min * 2 + 1
-	takep._takecardsend = min * 2
+	takep._takefirst = true
 
 	local args = {}
 	args.first = self._firstidx
@@ -446,41 +523,24 @@ function cls:take_deal( ... )
 	self._state = state.DEAL
 	self:clear_state(player.state.DEAL)
 
-	local takep = self._players[self._curtake]
-
 	for i=1,4 do
 		for j=1,4 do
 			local p = self._players[self._curidx]
 			if i == 4 then
-				if takep._takecardscnt >= 1 then 
-					local card = takep:take_card()
-					p:insert(card)
-				else
-					assert(false)
-				end
+				local card = self:take_card()
+				assert(card)
+				p:insert(card)
 			else
-				if takep._takecardscnt >= 4 then 
-					for i=1,4 do
-						local card = takep:take_card()
-						p:insert(card)
-					end
-				else
-					assert(len == 2)
-					for i=1,len do
-						local card = takep:take_card()
-						p:insert(card)
-					end
-					takep = self._players[self:next_takeidx()]
-					assert(takep)
-					for i=1,2 do
-						local card = takep:take_card()
-						p:insert(card)
-					end
+				for i=1,4 do
+					local card = self:take_card()
+					assert(card)
+					p:insert(card)	
 				end
 			end
+			self._curidx = self:next_idx()
 		end
 	end
-
+	
 	local p1 = self._players[1]:get_cards_value()
 	local p2 = self._players[2]:get_cards_value()
 	local p3 = self._players[3]:get_cards_value()
@@ -501,22 +561,35 @@ function cls:take_turn( ... )
 	-- body
 	self._state = state.TURN
 	self:clear_state(player.state.TURN)
-	
-	local args = {}
-	args.your_turn = self._curidx
-	args.countdown = 10
-	args.card = self._curcard:get_value()
 
-	self:push_client("take_turn", args)
+	if self._state == PENG then
+		local args = {}
+		args.your_turn = self._curidx
+		args.countdown = 10
+		args.type = 0
+		args.card = self._curcard:get_value()
+
+		self:push_client("take_turn", args)
+	else
+		self._players[self._curidx]._holdcard = self._curcard
+
+		local args = {}
+		args.your_turn = self._curidx
+		args.countdown = 10
+		args.type = 1
+		args.card = self._curcard:get_value()
+
+		self:push_client("take_turn", args)
+	end
 end
 
 function cls:take_call(opcodes, ... )
 	-- body
-	self._state = state.TURN
-	self:clear_state(player.state.TURN)
+	self._state = state.CALL
+	-- self:clear_state(player.state.CALL)
 
 	local args = {}
-	args.your_turn = self._curidx
+	args.your_turn = 0
 	args.countdown = 10
 	args.opcodes = opcodes
 
@@ -526,21 +599,29 @@ end
 function cls:lead(idx, c, ... )
 	-- body
 	self._state = state.LEAD
+	self:clear_state(player.state.LEAD)
+
 	local card = self._players[idx]:lead(c)
+	assert(card:get_value() == c)
 	self._lastidx = idx
 	self._lastcard = card
+	self._curidx = idx
 	local args = {}
 	args.idx = idx
-	args.card = card:get_value()
+	args.card = c
 	self:push_client("lead", args)
 end
 
 function cls:hu(idx, c, ... )
 	-- body
-	assert(idx == self._curidx)
+	assert(self._prestate == start.HU1)
+	assert(idx ~= self._curidx)
 	assert(self._players[idx]:check_hu(self._lastcard))
+	assert(c == self._lastcard:get_value())
+
 	self._players[idx]:hu(self._lastcard)
 	self._curidx = idx
+
 	local args = {}
 	args.idx = idx
 	args.card = self._lastcard:get_value()
@@ -549,9 +630,14 @@ end
 
 function cls:peng(idx, c, ... )
 	-- body
-	assert(idx)
-	local p = assert(self._players[idx])
+	assert(idx ~= self._curidx)
+	assert(self._players[idx]:check_peng(self._lastcard))
+
+	self._state = state.PENG
+	
+	self._players[idx]:peng(self._lastcard)
 	self._curidx = idx
+
 	local args = {}
 	args.idx = idx
 	args.card = self._lastcard:get_value()
@@ -561,8 +647,10 @@ end
 
 function cls:gang(idx, c, ... )
 	-- body
-	assert(idx)
-	local p = assert(self._players[idx])
+	assert(idx ~= self._curidx)
+	assert(self._players[idx]:check_gang(self._lastcard))
+
+	self._players[idx]:gang(self._lastcard)
 	self._curidx = idx
 
 	local args = {}
@@ -574,15 +662,11 @@ end
 
 function cls:guo(idx, ... )
 	-- body
-	self._curidx = self:next_idx(self._curidx)
-	if self._players[self._curtake]._takecardscnt > 0 then
-		self,_curcard = self._players[self._curtake]:take_card()
-	else
-		self._curtake = self:next_takeidx()
-		self,_curcard = self._players[self._curtake]:take_card()
+	self._curidx = self:next_idx()
+	self._curcard = self:take_card()
+	if self._curcard then
+		self:take_turn()
 	end
-
-	self:take_turn()
 end
 
 function cls:call(idx, opcode, c, ... )
@@ -598,6 +682,24 @@ function cls:call(idx, opcode, c, ... )
 	else
 		assert(false)
 	end
+end
+
+function cls:over( ... )
+	-- body
+	self._state = state.OVER
+	self:clear_state(player.state.OVER)
+
+	local args = {}
+	local settle = {}
+	for i=1,4 do
+		local settlment = {}
+		settlment.idx = i
+		settlment.gold = 0
+		table.insert(settle, settlment)
+	end
+	args.settle = settle
+
+	self:push_client("over", args)
 end
 
 return cls

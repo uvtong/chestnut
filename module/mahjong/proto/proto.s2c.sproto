@@ -6,7 +6,7 @@
 }
 
 .settlement {
-    sid  0 : integer
+    idx  0 : integer
     gold 1 : integer    
 }
 
@@ -14,6 +14,13 @@
     name 0 : string
     idx  1 : integer
     sid  2 : integer
+}
+
+.opinfo {
+    idx  0 : integer
+    peng 1 : integer
+    gang 2 : integer
+    hu   3 : integer
 }
 
 handshake 1 {
@@ -53,8 +60,8 @@ take_turn 5 {
     request {
         your_turn 0 : integer
         countdown 1 : integer
-        x
-        card      2 : integer
+        type      2 : integer
+        card      3 : integer
     }
     response {
         errorcode 0 : integer
@@ -95,7 +102,7 @@ call 9 {
     request {
         your_turn 0 : integer
         countdown 1 : integer
-        opcodes   2 : *integer
+        opcodes   2 : *opinfo
     }
     response {
         errorcode 0 : integer
@@ -145,6 +152,21 @@ deal 13 {
         p2        3 : *integer
         p3        4 : *integer
         p4        5 : *integer
+    }
+    response {
+        errorcode 0 : integer
+    }
+}
+
+ready 14 {
+    response {
+        errorcode 0 : integer
+    }
+}
+
+over 15 {
+    request {
+        settle 0 : *settlement
     }
     response {
         errorcode 0 : integer

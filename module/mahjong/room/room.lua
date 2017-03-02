@@ -110,7 +110,7 @@ end
 
 function CMD:on_lead(args, ... )
 	-- body
-	self:lead(args.args.idx, args.card)
+	self:lead(args.idx, args.card)
 	local res = {}
 	res.errorcode = errorcode.SUCCESS
 	return res
@@ -122,6 +122,61 @@ function CMD:on_step(args, ... )
 	local res = {}
 	res.errorcode = errorcode.SUCCESS
 	return res
+end
+
+function CMD:ready(args, ... )
+	-- body
+	return NORET
+end
+
+function CMD:take_turn(args, ... )
+	-- body
+	return NORET
+end
+
+function CMD:peng(args, ... )
+	-- body
+	return NORET
+end
+
+function CMD:gang(args, ... )
+	-- body
+	return NORET
+end
+
+function CMD:hu(args, ... )
+	-- body
+	return NORET
+end
+
+function CMD:call(args, ... )
+	-- body
+	return NORET
+end
+
+function CMD:shuffle(args, ... )
+	-- body
+	return NORET
+end
+
+function CMD:dice(args, ... )
+	-- body
+	return NORET
+end
+
+function CMD:lead(args, ... )
+	-- body
+	return NORET
+end
+
+function CMD:deal(args, ... )
+	-- body
+	return NORET
+end
+
+function CMD:over(args, ... )
+	-- body
+	return NORET
 end
 
 skynet.start(function ()
