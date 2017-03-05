@@ -4,6 +4,7 @@ local group = require "group"
 local log = require "log"
 local opcode = require "opcode"
 local hutype = require "hutype"
+local util = require "util"
 
 local state = {}
 state.NONE       = 0
@@ -69,6 +70,8 @@ function cls:ctor(env, uid, sid, fd, ... )
 	self._hucards = {}
 	self._hugang = 0
 	
+	self._cancelcd = nil
+
 	return self
 end
 
@@ -682,6 +685,21 @@ function cls:peng(card, ... )
 		self._cards[i] = self._cards[i + 2]
 	end
 	table.insert(self._putcards, cards)
+end
+
+function cls:timeout(ti, ... )
+	-- body
+	self._cancelcd = util.set_timeout(ti, function ( ... )
+		-- body
+		if self._state == state.TURN then
+			self._env:lead(self._idx, self._holdcard:get_value())
+		end
+	end)
+end
+
+function cls:cancel_timeout( ... )
+	-- body
+	self._cancelcd()
 end
 
 function cls:start( ... )

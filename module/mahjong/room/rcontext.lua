@@ -598,18 +598,24 @@ end
 
 function cls:lead(idx, c, ... )
 	-- body
-	self._state = state.LEAD
-	self:clear_state(player.state.LEAD)
+	assert(self._state == state.TURN)
+	if self._players[idx]._state == player.state.TURN then
+		self._state = state.LEAD
+		self:clear_state(player.state.LEAD)
 
-	local card = self._players[idx]:lead(c)
-	assert(card:get_value() == c)
-	self._lastidx = idx
-	self._lastcard = card
-	self._curidx = idx
-	local args = {}
-	args.idx = idx
-	args.card = c
-	self:push_client("lead", args)
+		self._players[idx]:cancel_timeout()
+		local card = self._players[idx]:lead(c)
+		assert(card:get_value() == c)
+		self._lastidx = idx
+		self._lastcard = card
+		self._curidx = idx
+		local args = {}
+		args.idx = idx
+		args.card = c
+		self:push_client("lead", args)
+	else
+		log.info("player %d has leaded", idx)
+	end
 end
 
 function cls:hu(idx, c, ... )
