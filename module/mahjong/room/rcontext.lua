@@ -18,15 +18,13 @@ state.SHUFFLE    = 5
 state.DICE       = 6
 state.TURN       = 7
 state.LEAD       = 8
-state.PENG       = 9
-state.BUGANG     = 10
-state.ZHIGANG    = 11
-state.ANGANG     = 12
-state.HU1        = 13
-state.HU2        = 14
-state.HU3        = 15
-state.CALL       = 16
-state.OVER       = 17
+
+state.CALL       = 9
+state.PENG       = 10
+state.GANG       = 11
+state.HU         = 12
+
+state.OVER       = 13
 
 local SICHUAN = 1
 local SHANXI = 2
@@ -82,14 +80,13 @@ function cls:ctor( ... )
 	self._online = 0
 	self._host = nil
 	
-	self._prestate = state.NONE
 	self._state = state.NONE
-	-- self._cards = {}
-
+	
 	self._lastwin  = nil  -- last
 	
-	self._lastidx  = nil  -- last time lead from who
-	self._lastcard = nil -- last time lead
+	self._lastidx  = nil    -- last time lead from who
+	self._lastcard = nil    -- last time lead card
+	self._lastgantidx = nil -- last time gang
 
 	self._firsttake = nil
 	self._firstidx = nil
@@ -99,6 +96,9 @@ function cls:ctor( ... )
 	
 	self._takeround = 1
 
+	self._countdown = 20 -- s
+
+	self._hucount = 0
 	return self
 end
 
@@ -327,6 +327,10 @@ function cls:leave(uid, ... )
 	p:set_online(false)
 end
 
+function cls:( ... )
+	-- body
+end
+
 function cls:step(idx, ... )
 	-- body
 	assert(idx)
@@ -376,7 +380,7 @@ function cls:step(idx, ... )
 					local pengcode = self._players[i]:check_gang(self._lastcard)
 					local gangcode = self._players[i]:check_peng(self._lastcard)
 					if hucode == hucode.NONE and
-						pengcode == opcode.peng and
+						pengcode == opcode.none and
 						gangcode == opcode.none then
 					else
 						info.peng = pengcode
@@ -559,23 +563,42 @@ end
 
 function cls:take_turn( ... )
 	-- body
-	self._state = state.TURN
-	self:clear_state(player.state.TURN)
+	if self._state == state.PENG then
+		self._state = state.TURN
+		self:clear_state(player.state.TURN)
 
-	if self._state == PENG then
+		self._players[self._curidx]:timeout(self._countdown * 100)
+
 		local args = {}
 		args.your_turn = self._curidx
-		args.countdown = 10
+		args.countdown = self._countdown
+		args.type = 0
+		args.card = self._curcard:get_value()
+
+		self:push_client("take_turn", args)
+	elseif self._state == state.GANG then
+		self._state = state.TURN
+		self:clear_state(player.state.TURN)
+
+		self._players[self._curidx]:timeout(self._countdown * 100)
+
+		local args = {}
+		args.your_turn = self._curidx
+		args.countdown = self._countdown
 		args.type = 0
 		args.card = self._curcard:get_value()
 
 		self:push_client("take_turn", args)
 	else
+		self._state = state.TURN
+		self:clear_state(player.state.TURN)
+
 		self._players[self._curidx]._holdcard = self._curcard
+		self._players[self._curidx]:timeout(self._countdown * 100)
 
 		local args = {}
 		args.your_turn = self._curidx
-		args.countdown = 10
+		args.countdown = self._countdown
 		args.type = 1
 		args.card = self._curcard:get_value()
 
@@ -583,26 +606,12 @@ function cls:take_turn( ... )
 	end
 end
 
-function cls:take_call(opcodes, ... )
-	-- body
-	self._state = state.CALL
-	-- self:clear_state(player.state.CALL)
-
-	local args = {}
-	args.your_turn = 0
-	args.countdown = 10
-	args.opcodes = opcodes
-
-	self:push_client("call", args)
-end
-
 function cls:lead(idx, c, ... )
 	-- body
-	assert(self._state == state.TURN)
-	if self._players[idx]._state == player.state.TURN then
+	if self._state == state.TURN then
 		self._state = state.LEAD
-		self:clear_state(player.state.LEAD)
 
+		assert(self._players[idx]._state == player.state.TURN)
 		self._players[idx]:cancel_timeout()
 		local card = self._players[idx]:lead(c)
 		assert(card:get_value() == c)
@@ -618,60 +627,88 @@ function cls:lead(idx, c, ... )
 	end
 end
 
-function cls:hu(idx, c, ... )
+function cls:take_call(opcodes, ... )
 	-- body
-	assert(self._prestate == start.HU1)
-	assert(idx ~= self._curidx)
-	assert(self._players[idx]:check_hu(self._lastcard))
-	assert(c == self._lastcard:get_value())
-
-	self._players[idx]:hu(self._lastcard)
-	self._curidx = idx
+	self._state = state.CALL
+	self:clear_state(player.state.CALL)
 
 	local args = {}
-	args.idx = idx
-	args.card = self._lastcard:get_value()
-	self:push_client("hu", args)
+	args.your_turn = 0
+	args.countdown = self._countdown
+	args.opcodes = opcodes
+
+	self:push_client("call", args)
 end
 
 function cls:peng(idx, c, ... )
 	-- body
-	assert(idx ~= self._curidx)
-	assert(self._players[idx]:check_peng(self._lastcard))
+	assert(idx and c)
+	if self._state == state.CALL then
+		self._state = state.PENG
+		assert(idx ~= self._curidx)
+		assert(self._players[idx]:check_peng(self._lastcard))
 
-	self._state = state.PENG
-	
-	self._players[idx]:peng(self._lastcard)
-	self._curidx = idx
+		self._players[idx]:peng(self._lastcard)
+		self._curidx = idx
 
-	local args = {}
-	args.idx = idx
-	args.card = self._lastcard:get_value()
+		local args = {}
+		args.idx = idx
+		args.card = self._lastcard:get_value()
 
-	self:push_client("peng", args)
+		self:push_client("peng", args)
+	end
 end
 
 function cls:gang(idx, c, ... )
 	-- body
-	assert(idx ~= self._curidx)
-	assert(self._players[idx]:check_gang(self._lastcard))
+	assert(idx and c)
+	if self._state == state.CALL then
+		self._state = state.GANG
+		assert(idx ~= self._curidx)
+		assert(self._players[idx]:check_gang(self._lastcard))
 
-	self._players[idx]:gang(self._lastcard)
-	self._curidx = idx
+		self._players[idx]:gang(self._lastcard)
+		self._curidx = idx
 
-	local args = {}
-	args.idx = idx
-	args.card = self._lastcard:get_value()
+		local args = {}
+		args.idx = idx
+		args.card = self._lastcard:get_value()
 
-	self:push_client("gang", args)
+		self:push_client("gang", args)
+	else
+		log.info("player %d gang card %d", idx, c)
+	end
+end
+
+function cls:hu(idx, c, ... )
+	-- body
+	assert(idx and c)
+	if self._state == state.CALL then
+		self._state = state.HU
+		assert(idx ~= self._curidx)
+		assert(self._players[idx]:check_hu(self._lastcard))
+		assert(c == self._lastcard:get_value())
+
+		self._players[idx]:hu(self._lastcard)
+		self._curidx = idx
+
+		local args = {}
+		args.idx = idx
+		args.card = self._lastcard:get_value()
+		self:push_client("hu", args)
+	else
+		log.info("player %d hu card %d", idx, c)
+	end
 end
 
 function cls:guo(idx, ... )
 	-- body
-	self._curidx = self:next_idx()
-	self._curcard = self:take_card()
-	if self._curcard then
-		self:take_turn()
+	if self._state == state.CALL then
+		self._curidx = self:next_idx()
+		self._curcard = self:take_card()
+		if self._curcard then
+			self:take_turn()
+		end
 	end
 end
 

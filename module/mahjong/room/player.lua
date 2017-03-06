@@ -20,17 +20,12 @@ state.DEAL       = 9
 state.WAIT_TURN  = 10
 state.TURN       = 11
 state.LEAD       = 12
-state.WAIT_PENG  = 13
+
+state.CALL       = 13
 state.PENG       = 14
-state.WAIT_BUGANG  = 15
-state.BUGANG       = 16
-state.WAIT_ZHIGANG = 17
-state.ZHIGANG      = 18
-state.WAIT_ANGANG  = 19
-state.ANGANG     = 20
-state.WAIT_HU    = 21
-state.HU         = 22
-state.CALL       = 23
+state.GANG       = 15
+state.HU         = 16
+
 state.OVER       = 24
 
 local cls = class("player")
@@ -61,10 +56,12 @@ function cls:ctor(env, uid, sid, fd, ... )
 
 	self._cards  = {}
 	self._leadcards = {}
-
 	self._putcards = {}
-
 	self._holdcard = nil
+
+	self._pengcode = opcode.none
+	self._gangcode = opcode.none
+	self._hucode = hutype.NONE
 
 	self._canhucards = {}
 	self._hucards = {}
@@ -258,6 +255,8 @@ end
 function cls:lead(c, ... )
 	-- body
 	assert(c)
+	assert(self._state == state.TURN)
+	self._state = state.LEAD
 	if self._holdcard:get_value() == c then
 		local card = self._holdcard
 		table.insert(self._leadcards, self._holdcard)
@@ -693,8 +692,11 @@ function cls:timeout(ti, ... )
 		-- body
 		if self._state == state.TURN then
 			self._env:lead(self._idx, self._holdcard:get_value())
+		elseif self._state == state.CALL then
+			self._env:guo
 		end
 	end)
+	assert(self._cancelcd)
 end
 
 function cls:cancel_timeout( ... )
