@@ -32,6 +32,24 @@
     all 0 : mail
 }
 
+.huinfo {
+    idx  0 : integer
+    card 1 : integer
+    code 2 : integer
+    jiao 3 : integer
+    dian 4 : integer
+}
+
+.opinfo {
+    idx       0 : integer
+    countdown 1 : integer
+    type      2 : integer
+    card      3 : integer
+    peng      4 : integer
+    gang      5 : integer
+    hu        6 : huinfo
+}
+
 handshake 1 {
     response {
     	errorcode 0 : integer
@@ -87,9 +105,7 @@ leave 6 {
 
 call 7 {
     request {
-        idx       0 : integer
-        opcode    1 : integer
-        card      2 : integer
+        op        0 : opinfo
     }
     response {
         errorcode 0 : integer

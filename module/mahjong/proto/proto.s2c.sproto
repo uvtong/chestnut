@@ -16,18 +16,22 @@
     sid  2 : integer
 }
 
-.opinfo {
-    idx  0 : integer
-    peng 1 : integer
-    gang 2 : integer
-    hu   3 : integer
-}
-
 .huinfo {
     idx  0 : integer
     card 1 : integer
     code 2 : integer
     jiao 3 : integer
+    dian 4 : integer
+}
+
+.opinfo {
+    idx       0 : integer
+    countdown 1 : integer
+    type      2 : integer
+    card      3 : integer
+    peng      4 : integer
+    gang      5 : integer
+    hu        6 : huinfo
 }
 
 handshake 1 {
@@ -79,6 +83,7 @@ peng 6 {
     request {
         idx       0 : integer
         card      1 : integer
+        code      2 : integer
     }
     response {
         errorcode 0 : integer
@@ -107,9 +112,7 @@ hu 8 {
 
 call 9 {
     request {
-        your_turn 0 : integer
-        countdown 1 : integer
-        opcodes   2 : *opinfo
+        opcodes   0 : *opinfo
     }
     response {
         errorcode 0 : integer

@@ -45,7 +45,6 @@ function cls:ctor(env, uid, sid, fd, ... )
 	self._noone  = true
 	self._name   = ""
 	self._chip   = 0
-	self._bet    = 0
 
 	self._state  = state.NONE
 	self._takefirst = false
@@ -59,12 +58,13 @@ function cls:ctor(env, uid, sid, fd, ... )
 	self._putcards = {}
 	self._holdcard = nil
 
-	self._pengcode = opcode.none
-	self._gangcode = opcode.none
-	self._hucode = hutype.NONE
+	self._peng = opcode.none
+	self._gang = opcode.none
+	self._hu = hutype.NONE
 
 	self._canhucards = {}
 	self._hucards = {}
+
 	self._hugang = 0
 	
 	self._cancelcd = nil
@@ -693,7 +693,7 @@ function cls:timeout(ti, ... )
 		if self._state == state.TURN then
 			self._env:lead(self._idx, self._holdcard:get_value())
 		elseif self._state == state.CALL then
-			self._env:guo
+			self._env:timeout_call(self._idx)
 		end
 	end)
 	assert(self._cancelcd)

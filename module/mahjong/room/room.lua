@@ -86,7 +86,7 @@ end
 
 function CMD:on_call(args, ... )
 	-- body
-	self:call(args.idx, args.opcode, args.card)
+	self:call(args.op)
 	local res = {}
 	res.errorcode = errorcode.SUCCESS
 	return res
