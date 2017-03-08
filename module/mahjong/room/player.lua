@@ -533,80 +533,7 @@ function cls:check_gang(card, ... )
 	-- body
 	assert(card)
 	local res = opcode.none
-	local first = nil
-	local count = 0
-	local len = #self._cards
-	for i=1,len do
-		if first == nil then
-			first = self._cards[i]
-			count = 1
-		else
-			if self._cards[i]:eq(first) then
-				count = count + 1
-			else
-				if count == 3 then
-					if first:eq(card) then
-						res = opcode.zhigang
-					end
-				elseif count == 4 then
-					res = opcode.angang
-				end
-			end
-		end
-	end
-	if res == opcode.none then
-		if #self._cards == 13 then
-			self._state = state.TURN
-			return res
-		else
-			for i,v in ipairs(self._putcards) do
-				if #v == 3 then
-					if v[1]:eq(card) then
-						res = opcode.bugang
-						self._state = state.WAIT_BUGANG
-						return res
-					end
-				end
-			end
-		end
-	elseif res == opcode.zhigang then
-		self._state = WAIT_ZHIGANG
-		return res
-	elseif res == opcode.angang then
-		self._state = state.WAIT_ANGANG
-		return res
-	end
-	return res
-end
-
-function cls:gang(card, ... )
-	-- body
-	assert(card)
-	if self._state == state.WAIT_ZHIGANG then
-		self._state = state.ZHIGANG
-		local cards = {}
-		local len = #self._cards
-		local idx = 0
-		for i=1,len do
-			if self._cards[i]:eq(card) then
-				table.insert(cards, self._cards[i])
-				self._cards[i] = nil
-				idx = i
-			end
-			if #cards == 3 then
-				break
-			end
-		end
-		assert(#cards == 3)
-		assert(idx ~= 0)
-		for i=idx+1,len do
-			self._cards[i-3] = self._cards[i]
-		end
-		table.insert(cards, card)
-		table.insert(self._putcards, cards)
-	elseif self._state == state.WAIT_ANGANG then
-		self._state = state.ANGANG
-		local cards = {}
+	if self._env._curidx == self._idx then
 		local first = nil
 		local count = 0
 		local len = #self._cards
@@ -618,26 +545,153 @@ function cls:gang(card, ... )
 				if self._cards[i]:eq(first) then
 					count = count + 1
 				else
-					if count == 4 then
-						for j=i-3,i do
-							table.insert(cards, self._cards[j])
-							self._cards[j] = nil
+					if count == 3 then
+						if first:eq(card) then
+							self._gang = {}
+							self._gang.idx = self._idx
+							self._gang.card = card
+							self._gang.code = opcode.angang
+							res = opcode.angang
+							return res
 						end
+					elseif count == 4 then
+						self._gang = {}
+						self._gang.idx = self._idx
+						self._gang.card = first
+						self._gang.code = opcode.angang
+						res = opcode.angang
+						return res
+					else
+						first = nil
+						count = 0
 					end
 				end
 			end
 		end
-		assert(#cards == 4)
+
+		for i,v in ipairs(self._putcards) do
+			if #v == 3 then
+				if v[1]:eq(card) then
+					self._gang = {}
+					self._gang.idx = self._idx
+					self._gang.card = card
+					self._gang.code = opcode.bugang
+					res = opcode.bugang
+					return res
+				end
+			end
+		end
+		return res
+	else
+		local first = nil
+		local count = 0
+		local len = #self._cards
+		for i=1,len do
+			if first == nil then
+				first = self._cards[i]
+				count = 1
+			else
+				if self._cards[i]:eq(first) then
+					count = count + 1
+				else
+					if count == 3 then
+						if first:eq(card) then
+							self._gang = {}
+							self._gang.idx = self._idx
+							self._gang.card = card
+							self._gang.code = opcode.zhigang
+							res = opcode.angang
+							return res
+						end
+					else
+						first = nil
+						count = 0
+					end
+				end
+			end
+		end
+		return res
+	end
+end
+
+function cls:gang(info, ... )
+	-- body
+	assert(info and info.idx == self._idx)
+	if info.code == opcode.zhigang then
+		assert(info.card == self._gang.card:get_value())
+		assert(info.code == opcode.zhigang)
+		self._state = state.GANG
+
+		local cards = {}
+		local len = #self._cards
+		local idx = 0
+		for i=1,len do
+			if self._cards[i]:eq(self._gang.card) then
+				table.insert(cards, self._cards[i])
+				idx = i
+			end
+			if #cards == 3 then
+				break
+			end
+		end
+		assert(#cards == 3)
+		assert(idx ~= 0)
+		for i=idx+1,len do
+			self._cards[i-3] = self._cards[i]
+			self._cards[i] = nil
+		end
+		table.insert(cards, self._gang.card)
 		table.insert(self._putcards, cards)
-	elseif self._state == state.WAIT_BUGANG then
+	elseif info.code == opcode.angang then
+		assert(info.card == self._gang.card:get_value())
+		assert(info.code == opcode.angang)
+		self._state = state.GANG
+		local cards = {}
+		local idx = 0
+		local len = #self._cards
+		for i=1,len do
+			if self._cards[i]:eq(self._gang.card) then
+				table.insert(cards, self._cards[i])
+				idx = i
+			end
+			if #cards == 4 then
+				break
+			end
+		end
+		assert(#cards == 4)
+		for j=idx-3,len-4 do
+			self._cards[j] = self._cards[j + 4]
+			self._cards[j + 4] = nil
+		end
+		table.insert(self._putcards, cards)
+	elseif info.code == opcode.bugang then
+		assert(self._gang.code == opcode.bugang)
 		assert(#self._putcards > 0)
 		for i,v in ipairs(self._putcards) do
-			if #v == 3 and v[1]:eq(card) then
-				table.insert(v, card)
+			if #v == 3 and v[1]:eq(self._gang.card) then
+				table.insert(v, self._gang.card)
+				if self._gang.card == self._holdcard then
+					self._holdcard = nil
+				else
+					local idx = 0
+					local len = #self._cards
+					for i=1,len do
+						if self._cards[i]:eq(self._gang.card) then
+							idx = i
+							break
+						end
+					end
+					assert(idx ~= 0)
+					for j=idx,len-1 do
+						self._cards[j] = self._cards[j + 1]
+						self._cards[j + 1] = nil
+					end
+					break
+				end
 			end
 		end
 	else
-		assert(false)
+		assert(info.code == opcode.none)
 	end
 end
 
@@ -654,25 +708,33 @@ function cls:check_peng(card, ... )
 		end
 	end
 	if count == 2 then
-		self._state = state.WAIT_PENG
+		self._peng = {}
+		self._peng.idx = self._idx
+		self._peng.card = card
+		self._peng.code = opcode.peng
 		return opcode.peng
 	else
+		self._peng = {}
+		self._peng.idx = self._idx
+		self._peng.card = nil
+		self._peng.code = opcode.peng
 		return opcode.none
 	end
 end
 
-function cls:peng(card, ... )
+function cls:peng(info, ... )
 	-- body
-	assert(self._state == state.WAIT_PENG)
+	assert(info.idx == self._idx)
+	assert(self._peng.code == opcode.peng)
 	self._state = state.PENG
 	assert(#self._cards % 2 == 1, #self._cards)
 	local len = #self._cards
 	local cards = {}
 	local idx = 0
 	for i,v in ipairs(self._cards) do
-		if v:get_value() == card():get_value() then
-			idx = i
+		if v:eq(self._peng.card) then
 			table.insert(cards, v)
+			idx = i
 		end
 		if #cards == 2 then
 			break
@@ -682,6 +744,7 @@ function cls:peng(card, ... )
 	table.insert(cards, card)
 	for i=idx-1,len-2 do
 		self._cards[i] = self._cards[i + 2]
+		self._cards[i + 2] = nil
 	end
 	table.insert(self._putcards, cards)
 end
