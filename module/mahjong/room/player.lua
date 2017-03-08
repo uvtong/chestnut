@@ -5,6 +5,7 @@ local log = require "log"
 local opcode = require "opcode"
 local hutype = require "hutype"
 local util = require "util"
+local hu = require "hu"
 
 local state = {}
 state.NONE       = 0
@@ -232,23 +233,37 @@ function cls:insert(card, ... )
 		if self._cards[i]:mt(card) then
 			for j=len,i,-1 do
 				self._cards[j + 1] = self._cards[j]
+				self._cards[j + 1]:set_pos(j + 1)
 			end
 			self._cards[i] = card
+			self._cards[i]:set_pos(i)
 			return i
 		end
 	end
 	self._cards[len+1] = card
+	self._cards[len+1]:set_pos(len + 1)
 	return len + 1
 end
 
-function cls:remove_idx(i, ... )
+function cls:remove(card, ... )
+	-- body
+	self:remove_pos(card._pos)
+end
+
+function cls:remove_pos(pos, ... )
 	-- body
 	local len = #self._cards
-	if i >= 1 and i <= len then
-		for i=1,len-1 do
-			self._cards[i] = self._cards[i + 1]
+	if pos >= 1 and pos <= len then
+		if pos < len then
+			for i=pos,len-1 do
+				self._cards[i] = self._cards[i + 1]
+				self._cards[i + 1] = nil
+			end
+		else
+			self._cards[pos] = nil
 		end
-		self._cards[len] = nil
+	else
+		log.info("remove cards at pos %d is wrong.", pos)
 	end
 end
 
@@ -303,223 +318,14 @@ end
 function cls:check_hu(card, ... )
 	-- body
 	assert(card)
-	local res = hutype.NONE
-	local i = self:insert(card)
-	assert(i ~= 0)
-	local firstse = nil
-	local qing = true
-	local jiang = 0
-	local tong3 = 0
-	local lian3 = 0
-	local gang = 0
-	local len = #self._cards
-	local idx = 1
+	local pos = self:insert(card)
+	assert(pos ~= 0)
 
-	if #self._putcards > 0 then
-		firstse = self._putcards[1][1]:tof()
-		for i,v in ipairs(self._putcards) do
-			if v:tof() ~= firstse then
-				qing = false
-			end
-			if #v == 4 then
-				gang = gang + 1
-			elseif #v == 3 then
-				tong3 = tong3 + 1
-			else
-				assert(false)
-			end
-		end
-	else
-		firstse = self._cards[1]:tof()
-		for i,v in ipairs(self._cards) do
-			if v:tof() ~= firstse then
-				qing = false
-			end
-		end
-	end
+	local res = hu.check_sichuan(self._cards, self._putcards)
 
-	-- qidui si
+	self:remove_pos(pos)
 
-	local ok = true
-	local a = self._cards[idx]
-	idx = idx + 1
-	while idx <= len do
-		local b = self._cards[idx]
-		idx = idx + 1
-		if idx > len then
-			ok = false
-			break
-		end
-		if a:eq(b) then
-			jiang = jiang + 1
-			if idx > len then
-				break
-			end
-			local c = self._cards[idx]
-			idx = idx + 1
-			if a:eq(c) then
-				jiang = jiang - 1
-				tong3 = tong3 + 1
-				local d = self._cards[idx]
-				idx = idx + 1
-				if a:eq(d) then
-					tong3 = tong3 - 1
-					jiang = jiang + 2
-					gang = gang + 1
-					if idx > len then
-						break
-					end
-					local e = self._cards[idx]
-					idx = idx + 1
-					if e:tof() == a:tof() then
-						if e:nof() == a:nof() + 1 then
-							local f = self._cards[idx]
-							idx = idx + 1
-							if f:nof() == e:nof() + 1 then
-								jiang = jiang - 2
-							else
-								ok = false
-								break
-							end
-						else
-							ok = false
-							break
-						end
-					else
-						ok = false
-						break
-					end
-				elseif a:tof() == d:tof() then
-					if a:nof() + 1 == d:nof() then
-						local e = self._cards[idx]
-						idx = idx + 1
-						if idx < len then
-							ok = false
-							break
-						end
-						if e:tof() == d:tof() then
-							if e:nof() == d:nof() + 1 then
-								lian3 = lian3 + 1
-							else
-								ok = false
-								break
-							end
-						else
-							ok = false
-							break
-						end
-					else
-					end
-				else
-				end
-			elseif a:tof() == c:tof() then
-				if a:nof() + 1 == c:nof() then
-					local d = self._cards[idx]
-					idx = idx + 1
-					if c:eq(d) then
-						jiang = jiang + 1
-						local e = self._cards[idx]
-						idx = idx + 1
-						if c:eq(e) then
-							jiang = jiang - 1
-							tong3 = tong3 + 1
-							local f = self._cards[idx]
-							idx = idx + 1
-							if c:eq(f) then
-								jiang = jiang + 2
-								tong3 = tong3 - 1
-								local g = self._cards[idx]
-								idx = idx + 1
-								if c:tof() == g:tof() then
-									if c:nof() + 1 == g:nof() then
-										local h = self._cards[idx]
-										idx = idx + 1
-										if g:eq(h) then
-											jiang = jiang - 3
-											jiang = jiang + 1
-											lian3 = lian3 + 2
-										else
-											ok = false
-											break
-										end
-									else
-										ok = false
-										break
-									end
-								else
-									ok = false
-									break
-								end
-							else
-							end
-						elseif c:tof() == e:tof() then
-							if c:nof() + 1 == e:nof() then
-								if idx < len then
-									ok = false
-									break
-								end
-								local f = self._cards[idx]
-								idx = idx + 1
-								if f:eq(e) then
-								else
-									ok = false
-									break
-								end
-							else
-								ok = false
-								break
-							end
-						else
-							ok = false
-							break
-						end
-					else
-						ok = false
-						break
-					end
-				else
-					a = c
-					idx = idx - 1
-				end
-			else
-			end
-		else
-			ok = false
-			break
-		end
-	end
-
-	if ok then
-		if len == 2 and jjiang == 1 then
-			if gang == 4 and qing then
-				self._state = state.WAIT_HU
-				return hutype.QINGSHIBALUOHAN
-			elseif gang == 4 and not qing then
-				self._state = state.WAIT_HU
-				return hutype.SHIBALUOHAN
-			elseif qing then
-				self._state = state.WAIT_HU
-				return hutype.QINGJINGOUDIAO
-			else
-				return hutype.JINGOUDIAO
-			end
-		elseif len == 5 then
-			if jiang == 1 and tong3 == 1 then
-				self._state = state.WAIT_HU
-				return hutype.DUIDUIHU
-			elseif jiang == 1 and lian3 == 1 then
-				self._state = state.WAIT_HU
-				return hutype.PINGHU
-			else
-				return hutype.NONE
-			end
-		else
-			self._state = state.WAIT_HU
-			return hutype.PINGHU
-		end
-	else
-		return hutype.NONE
-	end
+	return res
 end
 
 function cls:hu(card, ... )
@@ -534,38 +340,34 @@ function cls:check_gang(card, ... )
 	assert(card)
 	local res = opcode.none
 	if self._env._curidx == self._idx then
-		local first = nil
-		local count = 0
+		local first = self._cards[1]
+		local count = 1
 		local len = #self._cards
-		for i=1,len do
-			if first == nil then
+		for i=2,len do
+			if self._cards[i]:eq(first) then
+				count = count + 1
+			elseif count == 3 then
+				if first:eq(card) then
+					self._gang = {}
+					self._gang.idx = self._idx
+					self._gang.card = card
+					self._gang.code = opcode.angang
+					res = opcode.angang
+					return res
+				else
+					first = self._cards[i]
+					count = 1
+				end
+			elseif count == 4 then
+				self._gang = {}
+				self._gang.idx = self._idx
+				self._gang.card = first
+				self._gang.code = opcode.angang
+				res = opcode.angang
+				return res
+			else
 				first = self._cards[i]
 				count = 1
-			else
-				if self._cards[i]:eq(first) then
-					count = count + 1
-				else
-					if count == 3 then
-						if first:eq(card) then
-							self._gang = {}
-							self._gang.idx = self._idx
-							self._gang.card = card
-							self._gang.code = opcode.angang
-							res = opcode.angang
-							return res
-						end
-					elseif count == 4 then
-						self._gang = {}
-						self._gang.idx = self._idx
-						self._gang.card = first
-						self._gang.code = opcode.angang
-						res = opcode.angang
-						return res
-					else
-						first = nil
-						count = 0
-					end
-				end
 			end
 		end
 

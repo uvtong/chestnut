@@ -351,7 +351,7 @@ function cls:step(idx, ... )
 		local p = self._players[idx]
 		assert(not p:get_noone())
 		if self:check_state(idx, player.state.WAIT_TURN) then
-			if self:take_ocall then
+			if self:take_ocall() then
 			else
 				self:guo()
 			end
