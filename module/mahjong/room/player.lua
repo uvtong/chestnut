@@ -252,16 +252,18 @@ end
 
 function cls:remove_pos(pos, ... )
 	-- body
+	log.info("remove pos %d", pos)
 	local len = #self._cards
 	if pos >= 1 and pos <= len then
 		if pos < len then
 			for i=pos,len-1 do
 				self._cards[i] = self._cards[i + 1]
-				self._cards[i + 1] = nil
+				self._cards[i]:set_pos(i)
 			end
 		else
-			self._cards[pos] = nil
+			assert(len == pos)
 		end
+		self._cards[len] = nil
 	else
 		log.info("remove cards at pos %d is wrong.", pos)
 	end
@@ -286,6 +288,7 @@ function cls:lead(c, ... )
 				table.insert(self._leadcards, self._cards[i])
 				for j=i,len-1 do
 					self._cards[i] = self._cards[i + 1]
+					self._cards[i]:set_pos(i)
 				end
 				assert(self._cards[len])
 				self._cards[len] = nil

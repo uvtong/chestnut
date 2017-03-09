@@ -160,6 +160,7 @@ end
 
 function cls:check_state(idx, state, ... )
 	-- body
+	log.info("check player %d state", idx)
 	self._players[idx]._state = state
 	for i=1,4 do
 		if self._players[i]._state ~= state then
@@ -556,7 +557,7 @@ function cls:take_turn( ... )
 		self._state = state.TURN
 		self:clear_state(player.state.TURN)
 
-		self._players[self._curidx]._holdcard = self._curcard
+		self._players[self._curidx]._holdcard = assert(self._curcard)
 		self._players[self._curidx]:timeout(self._countdown * 100)
 
 		local args = {}
@@ -571,6 +572,7 @@ end
 
 function cls:lead(idx, c, ... )
 	-- body
+	assert(idx and c)
 	if self._state == state.TURN then
 		self._state = state.LEAD
 
@@ -578,6 +580,8 @@ function cls:lead(idx, c, ... )
 		self._players[idx]:cancel_timeout()
 		local card = self._players[idx]:lead(c)
 		assert(card:get_value() == c)
+		log.info("player %d lead %s", idx, card:describe())
+
 		self._lastidx = idx
 		self._lastcard = card
 		self._curidx = idx
@@ -592,6 +596,7 @@ end
 
 function cls:take_mcall( ... )
 	-- body
+	log.info("player %d take my call", self._curidx)
 	local opcodes = {}
 	local hucode = self._players[self._curidx]:check_hu(self._curcard)
 	local gangcode = self._players[self._curidx]:check_gang(self._curcard)
@@ -699,7 +704,6 @@ function cls:take_ocall(opcodes, ... )
 	else
 		return false
 	end
-	return res
 end
 
 function cls:peng(penginfo, ... )
@@ -770,12 +774,14 @@ end
 
 function cls:guo( ... )
 	-- body
-	if self._state == state.CALL then
+	if self._state == state.CALL or
+		self._state == state.LEAD then
 		self._curidx = self:next_idx()
 		self._curcard = self:take_card()
 		if self._curcard then
 			if self:take_mcall() then
 			else
+				log.info("player %d take_turn", self._curidx)
 				self:take_turn()
 			end
 		else

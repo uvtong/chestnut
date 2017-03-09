@@ -78,10 +78,10 @@ local function check_put(putcards, ... )
 	local gang = 0
 	local qing = true
 	local ctype
-	local len = putcards
+	local len = #putcards
 	if len > 0 then
 		local idx = 1
-		local cards = putcards[idx]
+		local cards = assert(putcards[idx])
 		idx = idx + 1
 		ctype = cards[1]:tof()
 		if #cards == 4 then
@@ -115,6 +115,12 @@ function _M.check_sichuan(cards, putcards, ... )
 	assert(cards and putcards)
 	local res = hutype.NONE
 
+	res = check_qidui(cards)
+
+	if res ~= hutype.NONE then
+		return res
+	end
+
 	local qing = true
 
 	local jiang = 0
@@ -122,9 +128,7 @@ function _M.check_sichuan(cards, putcards, ... )
 	local lian3 = 0
 	local gang = 0
 
-	local x = 1
-
-	local len = cards
+	local len = #cards
 	local idx = 1
 	local a = cards[idx]
 	idx = idx + 1

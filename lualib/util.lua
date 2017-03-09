@@ -177,7 +177,7 @@ function util.set_timeout(ti, f, ... )
 			f()
 		end
 	end
-	skynet.timeout(ti, f)
+	skynet.timeout(ti, cb)
 	return function ( ... )
 		-- body
 		f = nil

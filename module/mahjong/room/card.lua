@@ -1,5 +1,6 @@
 local log = require "log"
 local assert = assert
+
 local TYPE_SHIFT = 8
 local NUM_SHIFT = 4
 local IDX_SHIFT = 0
@@ -106,6 +107,22 @@ end
 function cls:lt(o, ... )
 	-- body
 	return self._value < o._value
+end
+
+function cls:describe( ... )
+	-- body
+	local res = ""
+	if self._type == cls.type.CRAK then
+		res = res .. "crak "
+	elseif self._type == cls.type.BAM then
+		res = res .. "bam"
+	elseif self._type == cls.type.DOT then
+		res = res .. "dot"
+	end
+
+	res = res .. string.format("%d", self._num)
+
+	return res
 end
 
 return cls

@@ -1,19 +1,37 @@
 local skynet = require "skynet"
 require "skynet.manager"
 local log = require "log"
+local util = require "util"
 
 skynet.start(function()
 	local logger = skynet.uniqueservice("log")
 	skynet.call(logger, "lua", "start")
 	
-	skynet.newservice("codweb")
 	-- skynet.uniqueservice("protoloader")
 	
 	local console = skynet.newservice("console")
 	skynet.newservice("debug_console",8000)
 	
-	local test = skynet.launch("test", "start");
-	local abc = skynet.newservice("abc")
+	local c1 = util.set_timeout(1 * 100, function ( ... )
+		-- body
+		print(1)
+	end)
+
+	local c2 = util.set_timeout(3 * 100, function ( ... )
+		-- body
+		print(2)
+	end)
+
+
+	local c3 = util.set_timeout(4 * 100, function ( ... )
+		-- body
+		print(3)
+	end)
+
+	c2()
+	
+	-- local test = skynet.launch("test", "start");
+	-- local abc = skynet.newservice("abc")
 
 	-- read
 	-- local game = skynet.uniqueservice("game")
@@ -24,5 +42,5 @@ skynet.start(function()
 
 	log.info("test successful .")
 	
-	skynet.exit()
+	-- skynet.exit()
 end)
