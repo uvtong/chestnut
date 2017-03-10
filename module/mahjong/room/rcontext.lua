@@ -549,7 +549,7 @@ function cls:take_turn( ... )
 		local args = {}
 		args.your_turn = self._curidx
 		args.countdown = self._countdown
-		args.type = 0
+		args.type = 1
 		args.card = self._curcard:get_value()
 
 		self:push_client("take_turn", args)
@@ -578,6 +578,7 @@ function cls:lead(idx, c, ... )
 
 		assert(self._players[idx]._state == player.state.TURN)
 		self._players[idx]:cancel_timeout()
+		
 		local card = self._players[idx]:lead(c)
 		assert(card:get_value() == c)
 		log.info("player %d lead %s", idx, card:describe())
@@ -597,6 +598,7 @@ end
 function cls:take_mcall( ... )
 	-- body
 	log.info("player %d take my call", self._curidx)
+	self._callsz = 0
 	local opcodes = {}
 	local hucode = self._players[self._curidx]:check_hu(self._curcard)
 	local gangcode = self._players[self._curidx]:check_gang(self._curcard)
@@ -611,7 +613,6 @@ function cls:take_mcall( ... )
 	local opinfo = {}
 	opinfo.idx = self._curidx
 	opinfo.countdown = self._countdown
-	opinfo.type = 1  -- take
 	opinfo.card = self._curcard:get_value()
 	opinfo.peng = opcode.none
 	opinfo.gang = gangcode
@@ -629,10 +630,13 @@ function cls:take_mcall( ... )
 		can = true
 	end
 	if can then
+
+		self._callsz = self._callsz + 1
+
 		self._state = state.CALL
 		self:clear_state(player.state.CALL)
 
-		self._players[self._curidx]:timeout(self._countdown * 100)
+		self._players[self._curidx]:timeout((self._countdown + 1) * 100)
 		table.insert(opcodes, opinfo)
 		local args = {}
 		args.opcodes = opcodes
@@ -647,9 +651,11 @@ end
 function cls:take_ocall(opcodes, ... )
 	-- body
 	local opcodes = {}
+	self._callsz = 0
 	for i=1,4 do
 		if self._curidx == i then
 		else
+			assert(self._lastcard)
 			local hucode = self._players[i]:check_hu(self._lastcard)
 			local gangcode = self._players[i]:check_gang(self._lastcard)
 			local pengcode = self._players[i]:check_peng(self._lastcard)
@@ -664,14 +670,13 @@ function cls:take_ocall(opcodes, ... )
 			local opinfo = {}
 			opinfo.idx = i
 			opinfo.countdown = self._countdown
-			opinfo.type = 0  -- take
-			opinfo.card = 0
+			opinfo.card = self._lastcard:get_value()
 			opinfo.peng = pengcode
 			opinfo.gang = gangcode
 			opinfo.hu = huinfo
 
-			self._call[self._curidx] = {}
-			self._waitcall[self._curidx] = {}
+			self._call[i] = {}
+			self._waitcall[i] = {}
 			local can = false
 			if hucode ~= hutype.NONE then
 				self._call[i].hu = true
@@ -686,6 +691,7 @@ function cls:take_ocall(opcodes, ... )
 				can = true
 			end
 			if can then
+				self._callsz = self._callsz + 1
 				self._players[i]:timeout((self._countdown + 1) * 100)
 				table.insert(opcodes, opinfo)
 			end
@@ -708,13 +714,15 @@ end
 
 function cls:peng(penginfo, ... )
 	-- body
-	assert(idx and c)
+	assert(penginfo)
 	if self._state == state.CALL then
 		self._state = state.PENG
 		assert(penginfo.idx ~= self._curidx)
 
-		self._players[penginfo.idx]:peng(penginfo)
-		self._curidx = idx
+		self._curidx = penginfo.idx
+		self._players[penginfo.idx]:cancel_timeout()
+		local res = self._players[penginfo.idx]:peng(penginfo)
+		penginfo.hor = res.hor
 
 		self:push_client("peng", penginfo)
 	end
@@ -722,20 +730,27 @@ end
 
 function cls:gang(ganginfo, ... )
 	-- body
-	assert(idx and c)
+	assert(ganginfo)
 	if self._state == state.CALL then
 		self._state = state.GANG
 		assert(ganginfo.code ~= opcode.none)
+		self._players[ganginfo.idx]:cancel_timeout()
 		if ganginfo.code == opcode.bugang then
 			assert(ganginfo.idx == self._curidx)
+
 			self._players[ganginfo.idx]:gang(ganginfo)
+			self:push_client("gang", ganginfo)
 		elseif ganginfo.code == opcode.zhigang then
-			self._players[ganginfo.idx]:gang(ganginfo)
-			self._curidx = idx
+			self._curidx = ganginfo.idx
+
+			local res = self._players[ganginfo.idx]:gang(ganginfo)
+			ganginfo.hor = res.hor
+
 			self:push_client("gang", ganginfo)
 		elseif ganginfo.code == opcode.angang then
+			assert(ganginfo.idx == self._curidx)
+
 			self._players[idx]:gang(ganginfo)
-			self._curidx = idx
 			self:push_client("gang", ganginfo)
 		else
 			assert(false)
@@ -755,10 +770,12 @@ function cls:hu(hus, ... )
 			assert(v.idx ~= self._curidx)
 			if v.jiao == jiaotype.ZIMO then
 				assert(self._players[v.idx]:check_hu(self._curcard))
+				self._players[v.idx]:cancel_timeout()
 				self._players[v.idx]:hu(self._curcard)
 				self._curidx = v.idx
 			else
 				assert(self._players[v.idx]:check_hu(self._lastcard))
+				self._players[v.idx]:cancel_timeout()
 				self._players[v.idx]:hu(self._lastcard)
 				self._curidx = v.idx
 			end
@@ -793,8 +810,8 @@ end
 function cls:call(opinfo, ... )
 	-- body
 	if self._state == state.CALL then
-		local call = assert(self._call[idx])
-		local waitcall = assert(self._waitcall[idx])
+		local call = assert(self._call[opinfo.idx])
+		local waitcall = assert(self._waitcall[opinfo.idx])
 		if call.hu then
 			assert(waitcall.hu == nil)
 			assert(opinfo.hu)
@@ -825,7 +842,7 @@ function cls:call(opinfo, ... )
 				waitcall.peng = {}
 				waitcall.peng.idx = opinfo.idx
 				waitcall.peng.card = opinfo.card
-				waitcall.peng.code = opinfo.gang
+				waitcall.peng.code = opinfo.peng
 				self._callsz = self._callsz - 1
 				if self._callsz <= 0 then
 					self:peng(waitcall.peng)

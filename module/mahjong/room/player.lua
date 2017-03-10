@@ -274,7 +274,7 @@ function cls:lead(c, ... )
 	assert(c)
 	assert(self._state == state.TURN)
 	self._state = state.LEAD
-	if self._holdcard:get_value() == c then
+	if self._holdcard and self._holdcard:get_value() == c then
 		local card = self._holdcard
 		table.insert(self._leadcards, self._holdcard)
 		self._holdcard = nil
@@ -286,14 +286,12 @@ function cls:lead(c, ... )
 			if self._cards[i]:get_value() == c then
 				card = self._cards[i]
 				table.insert(self._leadcards, self._cards[i])
-				for j=i,len-1 do
-					self._cards[i] = self._cards[i + 1]
-					self._cards[i]:set_pos(i)
+				self:remove(card)
+				
+				if self._holdcard then
+					self:insert(self._holdcard)
+					self._holdcard = nil
 				end
-				assert(self._cards[len])
-				self._cards[len] = nil
-				self:insert(self._holdcard)
-				self._holdcard = nil
 				break
 			end
 		end
@@ -343,6 +341,20 @@ function cls:check_gang(card, ... )
 	assert(card)
 	local res = opcode.none
 	if self._env._curidx == self._idx then
+		for i,v in ipairs(self._putcards) do
+			if #v == 3 then
+				if v.cards[1]:eq(card) then
+					self._gang = {}
+					self._gang.idx = self._idx
+					self._gang.card = card
+					self._gang.code = opcode.bugang
+					res = opcode.bugang
+					return res
+				end
+			end
+		end
+
+		--
 		local first = self._cards[1]
 		local count = 1
 		local len = #self._cards
@@ -374,9 +386,10 @@ function cls:check_gang(card, ... )
 			end
 		end
 
-		for i,v in ipairs(self._putcards) do
-			if #v == 3 then
-				if v[1]:eq(card) then
+		--
+		for i=1,len do
+			for i,v in ipairs(self._putcards) do
+				if v.cards[1]:eq(self._cards[i]) then
 					self._gang = {}
 					self._gang.idx = self._idx
 					self._gang.card = card
@@ -384,8 +397,9 @@ function cls:check_gang(card, ... )
 					res = opcode.bugang
 					return res
 				end
-			end
+			end	
 		end
+		
 		return res
 	else
 		local first = nil
@@ -446,7 +460,11 @@ function cls:gang(info, ... )
 			self._cards[i] = nil
 		end
 		table.insert(cards, self._gang.card)
-		table.insert(self._putcards, cards)
+		local pgcards = {}
+		pgcards.cards = cards
+		pgcards.hor = math.random(0, 3)
+		table.insert(self._putcards, pgcards)
+		return pgcards
 	elseif info.code == opcode.angang then
 		assert(info.card == self._gang.card:get_value())
 		assert(info.code == opcode.angang)
@@ -468,31 +486,23 @@ function cls:gang(info, ... )
 			self._cards[j] = self._cards[j + 4]
 			self._cards[j + 4] = nil
 		end
-		table.insert(self._putcards, cards)
+		local pgcards = {}
+		pgcards.cards = cards
+		pgcards.hor = 0
+		table.insert(self._putcards, pgcards)
+		return pgcards
 	elseif info.code == opcode.bugang then
 		assert(self._gang.code == opcode.bugang)
 		assert(#self._putcards > 0)
 		for i,v in ipairs(self._putcards) do
-			if #v == 3 and v[1]:eq(self._gang.card) then
+			if #v.cards == 3 and v.cards[1]:eq(self._gang.card) then
 				table.insert(v, self._gang.card)
 				if self._gang.card == self._holdcard then
 					self._holdcard = nil
 				else
-					local idx = 0
-					local len = #self._cards
-					for i=1,len do
-						if self._cards[i]:eq(self._gang.card) then
-							idx = i
-							break
-						end
-					end
-					assert(idx ~= 0)
-					for j=idx,len-1 do
-						self._cards[j] = self._cards[j + 1]
-						self._cards[j + 1] = nil
-					end
-					break
+					self:remove(self._gang.card)
 				end
+				return v
 			end
 		end
 	else
@@ -551,7 +561,11 @@ function cls:peng(info, ... )
 		self._cards[i] = self._cards[i + 2]
 		self._cards[i + 2] = nil
 	end
-	table.insert(self._putcards, cards)
+	local pgcards = {}
+	pgcards.cards = cards
+	pgcards.hor = math.random(0, 3)
+	table.insert(self._putcards, pgcards)
+	return pgcards
 end
 
 function cls:timeout(ti, ... )
@@ -559,7 +573,11 @@ function cls:timeout(ti, ... )
 	self._cancelcd = util.set_timeout(ti, function ( ... )
 		-- body
 		if self._state == state.TURN then
-			self._env:lead(self._idx, self._holdcard:get_value())
+			if self._holdcard then
+				self._env:lead(self._idx, self._holdcard:get_value())
+			else
+				self._env:lead(self._idx, self._cards[1]:get_value())
+			end
 		elseif self._state == state.CALL then
 			self._env:timeout_call(self._idx)
 		end

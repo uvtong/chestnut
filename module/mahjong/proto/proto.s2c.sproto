@@ -27,11 +27,10 @@
 .opinfo {
     idx       0 : integer
     countdown 1 : integer
-    type      2 : integer
-    card      3 : integer
-    peng      4 : integer
-    gang      5 : integer
-    hu        6 : huinfo
+    card      2 : integer
+    peng      3 : integer
+    gang      4 : integer
+    hu        5 : huinfo
 }
 
 handshake 1 {
@@ -84,6 +83,7 @@ peng 6 {
         idx       0 : integer
         card      1 : integer
         code      2 : integer
+        hor       3 : integer
     }
     response {
         errorcode 0 : integer
@@ -95,6 +95,7 @@ gang 7 {
         idx       0 : integer
         card      1 : integer
         code      2 : integer
+        hor       3 : integer
     }
     response {
         errorcode 0 : integer
