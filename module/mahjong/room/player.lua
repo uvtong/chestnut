@@ -22,12 +22,13 @@ state.WAIT_TURN  = 10
 state.TURN       = 11
 state.LEAD       = 12
 
-state.CALL       = 13
-state.PENG       = 14
-state.GANG       = 15
-state.HU         = 16
+state.MCALL      = 13
+state.OCALL      = 14
+state.PENG       = 15
+state.GANG       = 16
+state.HU         = 17
 
-state.OVER       = 24
+state.OVER       = 18
 
 local cls = class("player")
 
@@ -59,13 +60,12 @@ function cls:ctor(env, uid, sid, fd, ... )
 	self._putcards = {}
 	self._holdcard = nil
 
-	self._peng = opcode.none
-	self._gang = opcode.none
-	self._hu = hutype.NONE
+	self._peng = {}
+	self._gang = {}
+	self._hu = {}
 
 	self._canhucards = {}
 	self._hucards = {}
-
 	self._hugang = 0
 	
 	self._cancelcd = nil
@@ -247,7 +247,7 @@ end
 
 function cls:remove(card, ... )
 	-- body
-	self:remove_pos(card._pos)
+	return self:remove_pos(card._pos)
 end
 
 function cls:remove_pos(pos, ... )
@@ -255,6 +255,7 @@ function cls:remove_pos(pos, ... )
 	log.info("remove pos %d", pos)
 	local len = #self._cards
 	if pos >= 1 and pos <= len then
+		local card = self._cards[pos]
 		if pos < len then
 			for i=pos,len-1 do
 				self._cards[i] = self._cards[i + 1]
@@ -264,6 +265,7 @@ function cls:remove_pos(pos, ... )
 			assert(len == pos)
 		end
 		self._cards[len] = nil
+		return card
 	else
 		log.info("remove cards at pos %d is wrong.", pos)
 	end
@@ -273,8 +275,9 @@ function cls:lead(c, ... )
 	-- body
 	assert(c)
 	assert(self._state == state.TURN)
+	assert(self._holdcard)
 	self._state = state.LEAD
-	if self._holdcard and self._holdcard:get_value() == c then
+	if self._holdcard:get_value() == c then
 		local card = self._holdcard
 		table.insert(self._leadcards, self._holdcard)
 		self._holdcard = nil
@@ -288,10 +291,8 @@ function cls:lead(c, ... )
 				table.insert(self._leadcards, self._cards[i])
 				self:remove(card)
 				
-				if self._holdcard then
-					self:insert(self._holdcard)
-					self._holdcard = nil
-				end
+				self:insert(self._holdcard)
+				self._holdcard = nil
 				break
 			end
 		end
@@ -316,24 +317,34 @@ function cls:take_card( ... )
 	end
 end
 
-function cls:check_hu(card, ... )
+function cls:check_hu(card, jiao, who, ... )
 	-- body
-	assert(card)
+	assert(card and jiao and who)
 	local pos = self:insert(card)
 	assert(pos ~= 0)
 
 	local res = hu.check_sichuan(self._cards, self._putcards)
+	if res ~= hutype.NONE then
+		self._hu = {}
+		self._hu.idx = self._idx
+		self._hu.card = card
+		self._hu.jiao = jiao
+		self._hu.dian = who
+	end
 
 	self:remove_pos(pos)
 
 	return res
 end
 
-function cls:hu(card, ... )
+function cls:hu(info, ... )
 	-- body
-	assert(self._state == state.WAIT_HU)
+	assert(info.idx == self._idx)
+	assert(info.card == self._hu.card:get_value())
+	assert(info.code == self._hu.code)
+	assert(info.jiao == self._hu.jiao)
 	self._state = state.HU
-	table.insert(self._hucards, card)
+	table.insert(self._hucards, card._hu.card)
 end
 
 function cls:check_gang(card, ... )
@@ -435,10 +446,10 @@ end
 
 function cls:gang(info, ... )
 	-- body
-	assert(info and info.idx == self._idx)
+	assert(info.idx == self._idx)
+	assert(info.code == self._gang.code)
+	assert(info.card == self._gang.card:get_value())
 	if info.code == opcode.zhigang then
-		assert(info.card == self._gang.card:get_value())
-		assert(info.code == opcode.zhigang)
 		self._state = state.GANG
 
 		local cards = {}
@@ -466,8 +477,6 @@ function cls:gang(info, ... )
 		table.insert(self._putcards, pgcards)
 		return pgcards
 	elseif info.code == opcode.angang then
-		assert(info.card == self._gang.card:get_value())
-		assert(info.code == opcode.angang)
 		self._state = state.GANG
 		local cards = {}
 		local idx = 0
@@ -492,7 +501,6 @@ function cls:gang(info, ... )
 		table.insert(self._putcards, pgcards)
 		return pgcards
 	elseif info.code == opcode.bugang then
-		assert(self._gang.code == opcode.bugang)
 		assert(#self._putcards > 0)
 		for i,v in ipairs(self._putcards) do
 			if #v.cards == 3 and v.cards[1]:eq(self._gang.card) then
@@ -540,7 +548,8 @@ end
 function cls:peng(info, ... )
 	-- body
 	assert(info.idx == self._idx)
-	assert(self._peng.code == opcode.peng)
+	assert(info.card == self._peng.card:get_value())
+	assert(info.code == self._peng.code)
 	self._state = state.PENG
 	assert(#self._cards % 2 == 1, #self._cards)
 	local len = #self._cards
@@ -568,17 +577,25 @@ function cls:peng(info, ... )
 	return pgcards
 end
 
+function cls:take_turn_after_peng( ... )
+	-- body
+	local len = #self._cards
+	local card = self:remove_pos(len)
+	assert(card)
+	self._holdcard = card
+	return card
+end
+
 function cls:timeout(ti, ... )
 	-- body
 	self._cancelcd = util.set_timeout(ti, function ( ... )
 		-- body
 		if self._state == state.TURN then
-			if self._holdcard then
-				self._env:lead(self._idx, self._holdcard:get_value())
-			else
-				self._env:lead(self._idx, self._cards[1]:get_value())
-			end
-		elseif self._state == state.CALL then
+			assert(self._holdcard)
+			self._env:lead(self._idx, self._holdcard:get_value())
+		elseif self._state == state.MCALL then
+			self._env:timeout_call(self._idx)
+		elseif self._state == state.OCALL then
 			self._env:timeout_call(self._idx)
 		end
 	end)
