@@ -5,9 +5,18 @@
     version 3 : integer
 }
 
+.settlementitem {
+    code 0 : integer
+    hucode 1 : integer
+    multi  2 : integer
+    points 3 : integer
+    aim    4 : integer
+}
+
 .settlement {
-    idx  0 : integer
-    gold 1 : integer    
+    idx    0 : integer
+    points 1 : integer
+    li     2 : *settlementitem  
 }
 
 .player {
@@ -178,6 +187,52 @@ ready 14 {
 over 15 {
     request {
         settle 0 : *settlement
+    }
+    response {
+        errorcode 0 : integer
+    }
+}
+
+restart 16 {
+    request {
+        idx       0 : integer
+    }
+    response {
+        errorcode 0 : integer
+    }
+}
+
+chat 17 {
+    request {
+        idx       0 : integer
+        type      1 : integer
+        textid    2 : integer
+        text      3 : string
+        sound     4 : string
+    }
+    response {
+        errorcode 0 : integer
+    }
+}
+
+take_restart 17 {
+    response { 
+        errorcode 0 : integer
+    }
+}
+
+rcard 20 {
+    request {
+        num       0 : integer
+    }
+    response {
+        errorcode 0 : integer
+    }
+}
+
+radio 21 {
+    request {
+        text      0 : string
     }
     response {
         errorcode 0 : integer

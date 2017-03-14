@@ -29,6 +29,8 @@ state.GANG       = 16
 state.HU         = 17
 
 state.OVER       = 18
+state.WAIT_RESTART = 19
+state.RESTART    = 20
 
 local cls = class("player")
 
@@ -572,7 +574,7 @@ function cls:peng(info, ... )
 	end
 	local pgcards = {}
 	pgcards.cards = cards
-	pgcards.hor = math.random(0, 3)
+	pgcards.hor = math.random(0, 2)
 	table.insert(self._putcards, pgcards)
 	return pgcards
 end

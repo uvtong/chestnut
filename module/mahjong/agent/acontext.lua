@@ -88,6 +88,9 @@ function cls:newborn(gate, uid, subid, secret, suid, ... )
 	self._user:set_checkin_mcount(0)
 	self._user:set_checkin_lday(0)
 
+	local name = skynet.call(".UNAME_MGR", "lua", "name")
+	self._user:set_name(name)
+
 	self._user:insert_db("tg_users")
 end
 

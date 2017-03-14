@@ -91,6 +91,11 @@ function CMD.apply(source, roomid, ... )
 	end
 end
 
+-- only 
+function CMD.radio(source, ... )
+	-- body
+end
+
 -- room exit
 function CMD.enqueue_room(source, roomid, ... )
 	-- body

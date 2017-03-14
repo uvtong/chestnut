@@ -124,6 +124,14 @@ function CMD:on_step(args, ... )
 	return res
 end
 
+function CMD:on_restart(args, ... )
+	-- body
+	self:restart(args.idx)
+	local res = {}
+	res.errorcode = errorcode.SUCCESS
+	return res
+end
+
 function CMD:ready(args, ... )
 	-- body
 	return NORET
@@ -175,6 +183,16 @@ function CMD:deal(args, ... )
 end
 
 function CMD:over(args, ... )
+	-- body
+	return NORET
+end
+
+function CMD:restart(args, ... )
+	-- body
+	return NORET
+end
+
+function CMD:take_restart(args, ... )
 	-- body
 	return NORET
 end

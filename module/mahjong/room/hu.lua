@@ -79,31 +79,28 @@ local function check_put(putcards, ... )
 	local qing = true
 	local ctype
 	local len = #putcards
-	if len > 0 then
-		local idx = 1
-		local cards = assert(putcards[idx])
+	assert(len > 0)
+
+	local idx = 1
+	local pg = assert(putcards[idx])
+	idx = idx + 1
+	ctype = pg.cards[1]:tof()
+	if #pg.cards == 4 then
+		gang = gang + 1
+	end
+	while idx <= len do
+		pg = putcards[idx]
 		idx = idx + 1
-		ctype = cards[1]:tof()
-		if #cards == 4 then
+		if #pg.cards == 4 then
 			gang = gang + 1
 		end
-		while idx <= len do
-			local cards = putcards[idx]
-			idx = idx + 1
-			if #cards == 4 then
-				gang = gang + 1
-			end
-			if cards[1]:tof() ~= ctype then
-				qing = false
-			end
+		if pg.cards[1]:tof() ~= ctype then
+			qing = false
 		end
-		if qing then
-			return gang, qing, ctype
-		else
-			return gang, qing
-		end
+	end
+	if qing then
+		return gang, qing, ctype
 	else
-		qing = false
 		return gang, qing
 	end
 end
@@ -469,16 +466,18 @@ function _M.check_sichuan(cards, putcards, ... )
 		end
 	end
 
-	local pgang, pqing, pctype = check_put(putcards)
-	if pqing and qing then
-		if a:tof() == pctype then
+	if #putcards > 0 then
+		local pgang, pqing, pctype = check_put(putcards)
+		if pqing and qing then
+			if a:tof() == pctype then
+			else
+				qing = false
+			end
 		else
 			qing = false
 		end
-	else
-		qing = false
+		gang = gang + pgang
 	end
-	gang = gang + pgang
 
 
 	if jiang * 2 + tong3 * 3 + lian3 * 3 == len then

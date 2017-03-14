@@ -175,6 +175,7 @@ local function room_request(name, args, ... )
 	cmd["shuffle"] = true
 	cmd["dice"] = true
 	cmd["step"] = true
+	cmd["restart"] = true
 	if cmd[name] then
 		log.info("route agent to room command: %s", name)
 		local addr = assert(ctx:get_room())
@@ -232,6 +233,9 @@ local function room_response(name, args)
 	cmd["shuffle"] = true
 	cmd["dice"] = true
 	cmd["lead"] = true
+	cmd["over"] = true
+	cmd["restart"] = true
+	cmd["take_restart"] = true
 	if cmd[name] then
 		local addr = ctx:get_room()
 		skynet.send(addr, "lua", name, args)
@@ -314,6 +318,8 @@ function CMD:login(source, gate, uid, subid, secret,... )
 		self:login(gate, uid, subid, secret, res.id)
 	end
 	self:set_state(context.state.NORMAL)
+
+	skynet.send(".ONLINE_MGR", "lua", "login", self._user.name.value)
 	local now = os.date("*t")
 	-- skynet.call(".EMAIL", "lua", "login", uid)
 	-- local res = skynet.call(".EMAIL", "lua", "recv", now)
@@ -351,6 +357,8 @@ function CMD:afk(source)
 		skynet.call(addr, "lua", "afk", sid)
 	end
 
+	skynet.send(".ONLINE_MGR", "lua", "afk", self._user.name.value)
+
 	return true
 end
 
@@ -372,6 +380,15 @@ end
 function CMD:info(source, ... )
 	-- body
 	return { name="xiaomiao"}
+end
+
+function CMD:add_rcard(source, num, ... )
+	-- body
+	local rcard = self._user.rcard.value + num
+	self._user:set_rcard(rcard)
+	local args = {}
+	args.num = rcard
+	self:send_request("rcard", args)
 end
 
 -- called by room
@@ -401,6 +418,9 @@ local function room_sendrequest(name, args, ... )
 	cmd["shuffle"] = true
 	cmd["dice"] = true
 	cmd["lead"] = true
+	cmd["over"] = true
+	cmd["restart"] = true
+	cmd["take_restart"] = true
 	if cmd[name] then
 		ctx:send_request(name, args)
 		return true

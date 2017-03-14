@@ -31,6 +31,7 @@ state.GANG       = 12
 state.HU         = 13
 
 state.OVER       = 14
+state.RESTART    = 15
 
 local cls = class("rcontext")
 
@@ -199,7 +200,7 @@ end
 function cls:next_idx( ... )
 	-- body
 	self._curidx = self._curidx + 1
-	if self._curidx > 4 then
+	if self._curidx > self._max then
 		self._curidx = 1
 	end
 	return self._curidx
@@ -208,7 +209,7 @@ end
 function cls:next_takeidx( ... )
 	-- body
 	self._curtake = self._curtake + 1
-	if self._curtake > 4 then
+	if self._curtake > self._max then
 		self._curtake = 1
 	end
 	return self._curtake
@@ -387,6 +388,13 @@ function cls:step(idx, ... )
 		if self:check_state(idx, player.state.WAIT_TURN) then
 			self:over()
 		end
+	elseif self._state == state.OVER then
+	elseif self._state == state.RESTART then
+		local p = self._players[idx]
+		assert(not p:get_noone())
+		if self:check_state(idx, player.state.WAIT_TURN) then
+			self:take_shuffle()
+		end
 	end
 end
 
@@ -545,7 +553,7 @@ function cls:take_turn( ... )
 		self._state = state.TURN
 		self:clear_state(player.state.TURN)
 
-		local card = self:take_turn_after_peng()
+		local card = self._players[self._curidx]:take_turn_after_peng()
 		self._players[self._curidx]:timeout(self._countdown * 100)
 
 		local args = {}
@@ -693,7 +701,9 @@ function cls:take_ocall( ... )
 	self._penginfo = nil
 
 	local opcodes = {}
-	for i=1,4 do
+	for j=1,4 do
+		local i = self._curidx + j
+		i = (i > 4) and (i - 4) or i
 		if self._curidx == i then
 		else
 			assert(self._lastcard)
@@ -1038,6 +1048,29 @@ function cls:take_over( ... )
 	args.settle = settle
 
 	self:push_client("over", args)
+end
+
+function cls:restart(idx, ... )
+	-- body
+	if self._state == state.OVER then
+		local p = self._players[idx]
+		assert(not p:get_noone())
+		if self:check_state(idx, player.state.WAIT_RESTART) then
+			self:take_restart()
+		else
+			local args = {}
+			args.idx = idx
+			self:push_client("restart", args)
+		end
+	end
+end
+
+function cls:take_restart( ... )
+	-- body
+	self._state = state.RESTART
+	self:clear_state(player.state.RESTART)
+
+	self:push_client("take_restart")
 end
 
 return cls

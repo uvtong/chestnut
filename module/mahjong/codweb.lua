@@ -25,6 +25,14 @@ function CMD.start( ... )
 		table.insert(servers, addr)
 	until true
 
+	local handle = skynet.uniqueservice("uname_mgr")
+	skynet.call(handle, "lua", "start")
+	table.insert(servers, handle)
+
+	local handle = skynet.uniqueservice("room_mgr")
+	skynet.call("handle", "lua", "start")
+	table.insert(servers, handle)
+
 	local handle = skynet.uniqueservice("uid_mgr")
 	skynet.call(handle, "lua", "start")
 	table.insert(servers, handle)

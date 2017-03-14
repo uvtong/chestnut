@@ -150,9 +150,19 @@ step 11 {
     }
 }
 
+restart 12 {
+    request {
+        idx       0 : integer
+    }
+    response {
+        errorcode 0 : integer
+    }
+}
+
 first 20 {
     response {
         errorcode 0 : integer
+        
         outbox    1 : outbox
         inbox     2 : inbox
         name      3 : string
@@ -169,4 +179,15 @@ checkindaily 21 {
     response {
         errorcode 0 : integer
     }
+}
+
+toast1 22 {
+    response {
+        errorcode 0 : integer
+        text      1 : string
+    }
+}
+
+toast2 23 {
+
 }
