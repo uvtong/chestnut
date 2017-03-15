@@ -32,14 +32,14 @@ function cmd.afk(suid, ... )
 	users[suid] = nil
 end
 
-function cmd.toast1( ... )
+function cmd.board( ... )
 	-- body
-	return toast1
+	return "emberfarkas"
 end
 
-function cmd.toast2( ... )
+function cmd.adver( ... )
 	-- body
-	
+	return "emberfarkas"
 end
 
 function cmd.radio(text, ... )

@@ -5,6 +5,8 @@ local inbox = require "inbox"
 local user = require "user"
 local log = require "log"
 local checkindailymgr = require "checkindailymgr"
+local errorcode = require "errorcode"
+local radiocenter = require "radiocenter"
 
 local call = skynet.call
 local assert = assert
@@ -125,6 +127,19 @@ end
 
 function cls:update( ... )
 	-- body
+end
+
+function cls:first( ... )
+	-- body
+	local res = {}
+	res.errorcode = errorcode.SUCCESS
+	res.name = self._user.name
+	res.nameid = self._user.nameid.value
+	res.rcard = self._user.rcard.value
+	res.board = radiocenter.board()
+	res.adver = radiocenter.adver()
+
+	return res
 end
 
 return cls

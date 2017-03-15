@@ -202,19 +202,6 @@ restart 16 {
     }
 }
 
-chat 17 {
-    request {
-        idx       0 : integer
-        type      1 : integer
-        textid    2 : integer
-        text      3 : string
-        sound     4 : string
-    }
-    response {
-        errorcode 0 : integer
-    }
-}
-
 take_restart 17 {
     response { 
         errorcode 0 : integer
@@ -232,7 +219,21 @@ rcard 20 {
 
 radio 21 {
     request {
-        text      0 : string
+        board     0 : string
+        adver     1 : string
+    }
+    response {
+        errorcode 0 : integer
+    }
+}
+
+chat 22 {
+    request {
+        idx       0 : integer
+        type      1 : integer
+        textid    2 : integer
+        text      3 : string
+        sound     4 : string
     }
     response {
         errorcode 0 : integer

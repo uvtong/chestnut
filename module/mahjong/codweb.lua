@@ -20,26 +20,30 @@ function CMD.start( ... )
 			cache_port = skynet.getenv("cache_port") or 6379
 		}
 		
-		local addr = skynet.newservice("db", "master")
+		local addr = skynet.uniqueservice("db", "master")
 		assert(skynet.call(addr, "lua", "start", conf))
 		table.insert(servers, addr)
 	until true
 
-	local handle = skynet.uniqueservice("uname_mgr")
-	skynet.call(handle, "lua", "start")
-	table.insert(servers, handle)
+	local uname_mgr = skynet.uniqueservice("uname_mgr")
+	skynet.call(uname_mgr, "lua", "start")
+	table.insert(servers, uname_mgr)
 
-	local handle = skynet.uniqueservice("room_mgr")
-	skynet.call("handle", "lua", "start")
-	table.insert(servers, handle)
+	local room_mgr = skynet.uniqueservice("room_mgr")
+	skynet.call(room_mgr, "lua", "start")
+	table.insert(servers, room_mgr)
 
-	local handle = skynet.uniqueservice("uid_mgr")
-	skynet.call(handle, "lua", "start")
-	table.insert(servers, handle)
+	local uid_mgr = skynet.uniqueservice("uid_mgr")
+	skynet.call(uid_mgr, "lua", "start")
+	table.insert(servers, uid_mgr)
 
-	local handle = skynet.uniqueservice("sid_mgr")
-	skynet.call(handle, "lua", "start")
-	table.insert(servers, handle)
+	local sid_mgr = skynet.uniqueservice("sid_mgr")
+	skynet.call(sid_mgr, "lua", "start")
+	table.insert(servers, sid_mgr)
+
+	local radiocenter = skynet.uniqueservice("radiocenter")
+	skynet.call(radiocenter, "lua", "start")
+	table.insert(servers, radiocenter)
 
 	-- read
 	local game = skynet.uniqueservice("game")
@@ -48,12 +52,8 @@ function CMD.start( ... )
 	local chat = skynet.uniqueservice("chatd")
 	skynet.call(chat, "lua", "start")
 	table.insert(servers, chat)
-	
-	local emaild = skynet.uniqueservice("email/emaild")
-	skynet.call(emaild, "lua", "start")
-	table.insert(servers, emaild)
 
-	local sysemaild = skynet.uniqueservice("email/sysemaild")
+	local sysemaild = skynet.uniqueservice("sysemail/sysemaild")
 	skynet.call(sysemaild, "lua", "start")
 	table.insert(servers, sysemaild)
 

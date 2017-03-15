@@ -6,18 +6,19 @@ local cls = class("user", entity)
 function cls:ctor(env, dbctx, set, ... )
 	-- body
 	cls.super.ctor(self, env, dbctx, set)
-	self.uid   = field.new(self, "uid", 1, field.data_type.integer, true)
-	self.name = field.new(self, "name", 2, field.data_type.integer)
-	self.age  = field.new(self, "age", 3, field.data_type.integer)
-	self.gold = field.new(self, "gold", 4, field.data_type.integer)
+	self.uid     = field.new(self, "uid", 1, field.data_type.integer, true)
+	self.nameid  = field.new(self, "nameid", 2, field.data_type.integer)
+	self.age     = field.new(self, "age", 3, field.data_type.integer)
+	self.gold    = field.new(self, "gold", 4, field.data_type.integer)
 	self.diamond = field.new(self, "diamond", 5, field.data_type.integer)
-	self.checkin_month = field.new(self, "checkin_month", 6, field.data_type.integer)
-	self.checkin_count = field.new(self, "checkin_count", 7, field.data_type.integer)
+	self.checkin_month  = field.new(self, "checkin_month", 6, field.data_type.integer)
+	self.checkin_count  = field.new(self, "checkin_count", 7, field.data_type.integer)
 	self.checkin_mcount = field.new(self, "checkin_mcount", 8, field.data_type.integer)
-	self.checkin_lday = field.new(self, "checkin_lday", 9, field.data_type.integer)
-	self.rcard = field.new(self, "rcard", 10, field.data_type.integer)
+	self.checkin_lday   = field.new(self, "checkin_lday", 9, field.data_type.integer)
+	self.rcard   = field.new(self, "rcard", 10, field.data_type.integer)
 
 	self.uid.value = self._env._suid
+	self.name = "nihao"
 	assert(self._pk)
 end
 
@@ -69,6 +70,11 @@ end
 function cls:set_rcard(value, ... )
 	-- body
 	self.rcard:set_value(value)
+end
+
+function cls:set_name(value, ... )
+	-- body
+	self.name = value
 end
 
 function cls:load_cache_to_data( ... )

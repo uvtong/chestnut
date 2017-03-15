@@ -113,37 +113,7 @@ end
 
 function REQUEST:first(args, ... )
 	-- body
-	local res = {}
-	local u = self._user
-	local suid = self:get_suid()
-	local cms, month = util.cm_sec()
-	if u.checkin_month.value == cms then
-	else
-		local set = self._checkindailymgr
-		local cid = checkindaily.new(self, self._dbcontext, set)
-		cid:set_uid(suid)
-		cid:set_month(u.checkin_month.value)
-		cid:set_count(u.checkin_mcount.value)
-		cid:insert_db()
-
-		u:set_checkin_month(cms)
-		u:set_checkin_mcount(0)
-	end
-
-	local cds, day = util.cd_sec()
-	if u.checkin_lday.value == cds then
-		res.checkin_today = true
-	end
-
-	res.checkin_cm    = month
-	res.checkin_cmcnt = u.checkin_mcount.value
-	res.checkin_cnt   = u.checkin_count.value > 0 and u.checkin_count.value % 7 or 0
-
-	res.errorcode = errorcode.SUCCESS
-	res.gold = self._user.gold.value
-	res.diamond = self._user.diamond.value
-	res.name = self._user.name.value
-	return res 
+	return self:first()
 end
 
 function REQUEST:checkindaily(args, ... )
