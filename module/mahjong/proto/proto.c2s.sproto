@@ -32,6 +32,14 @@
     all 0 : mail
 }
 
+.sysmail {
+    id       0 : integer
+    datetime 1 : integer
+    viewed   2 : integer
+    title    3 : string
+    content  4 : string
+}
+
 .huinfo {
     idx  0 : integer
     card 1 : integer
@@ -47,6 +55,22 @@
     peng      3 : integer
     gang      4 : integer
     hu        5 : huinfo
+}
+
+.crsc {
+    hujiaozhuanyi 0 : integer
+    zimo          1 : integer
+    dianganghua   2 : integer
+    daiyaojiu     3 : integer
+    duanyaojiu    4 : integer
+    jiangdui      5 : integer
+    tiandihu      6 : integer
+    top           7 : integer
+}
+
+.crsx {
+    huqidui       0 : integer
+    qingyise      1 : integer
 }
 
 handshake 1 {
@@ -74,8 +98,10 @@ cmatch 3 {
 
 create 4 {
     request {
-        count      0 : integer
-        rule       1 : integer
+        provice    0 : integer
+        ju         1 : integer
+        sc         2 : crsc
+        sx         3 : crsx
     }
     response {
         errorcode 0 : integer
@@ -159,6 +185,18 @@ restart 12 {
     }
 }
 
+rchat 13 {
+    request {
+        idx       0 : integer
+        type      1 : integer
+        textid    2 : integer
+        sdsteam   3 : string
+    }
+    response {
+        errorcode 0 : integer
+    }
+}
+
 first 20 {
     response {
         errorcode 0 : integer
@@ -188,4 +226,26 @@ toast2 23 {
     response {
         errorcode 0 : integer
     }
+}
+
+fetchsysmail 24 {
+    request {
+        datetime  0 : integer
+    }
+    response {
+        errorcode 0 : integer
+        noviewed  1 : integer
+        inbox     2 : *sysmail
+    }
+}
+
+fetchsysmail1 25 {
+    request {
+        datetime  0 : integer
+    }
+    response {
+        errorcode 0 : integer
+        noviewed  1 : integer
+        inbox     2 : *sysmail
+    }   
 }

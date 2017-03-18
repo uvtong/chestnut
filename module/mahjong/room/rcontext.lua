@@ -38,10 +38,10 @@ local cls = class("rcontext")
 function cls:ctor( ... )
 	-- body
 	self._id = 0
-	self._local = region.SICHUAN
-	self._maxmultiple = 8
+	self._local = region.Sichuan
 	self._overtype = overtype.XUEZHAN
-
+	self._hujiaozhuanyi = false
+	self._maxmultiple = 8
 	self._multiple = multiple(self._local, self._maxmultiple)
 	self._exist = exist(self._local)
 
@@ -215,12 +215,26 @@ function cls:next_takeidx( ... )
 	return self._curtake
 end
 
-function cls:start(uid, ... )
+function cls:start(uid, args, ... )
 	-- body
 	assert(uid)
 	self._host = uid
-	-- local cb = cc.handler(self, cls.check_start)
-	-- util.set_timeout(400, cb)
+	if args.provice == region.Sichuan then
+		self._local = region.Sichuan
+		self._overtype = overtype.XUEZHAN
+		self._maxmultiple = args.sc.top
+		self._hujiaozhuanyi = args.sc.hujiaozhuanyi
+		self._multiple = multiple(self._local, self._maxmultiple)
+		self._exist = exist(self._local)
+
+	elseif args.provice == region.Shaanxi then
+		self._local = region.Shaanxi
+		self._overtype = overtype.JIEHU
+		self._maxmultiple = -1
+		self._hujiaozhuanyi = false
+		self._multiple = multiple(self._local, self._maxmultiple)
+		self._exist = exist(self._local)
+	end
 end
 
 function cls:take_card( ... )
@@ -1071,6 +1085,13 @@ function cls:take_restart( ... )
 	self:clear_state(player.state.RESTART)
 
 	self:push_client("take_restart")
+end
+
+function cls:chat(args, ... )
+	-- body
+	if self._state >= state.READY and self._state < state.OVER then
+		self:push_client("rchat", args)
+	end
 end
 
 return cls

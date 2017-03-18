@@ -6,8 +6,5 @@ function cls:ctor( ... )
 	return self
 end
 
-function cls:( ... )
-	-- body
-end
 
 return cls

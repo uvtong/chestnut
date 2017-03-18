@@ -68,7 +68,7 @@ function REQUEST:create(args, ... )
 		agent = agent,
 		name = name
 	}
-	local id = skynet.call(".ROOM_MGR", "lua", "create", uid)
+	local id = skynet.call(".ROOM_MGR", "lua", "create", uid, args)
 	local addr = skynet.call(".ROOM_MGR", "lua", "apply", id)
 	self:set_room(addr)
 	local me = skynet.call(addr, "lua", "on_join", agent)
@@ -135,6 +135,16 @@ function REQUEST:checkindaily(args, ... )
 	end
 	res.errorcode = errorcode.SUCCESS
 	return res
+end
+
+function REQUEST:fetchsysmail(args, ... )
+	-- body
+	return self._sysinbox:fetch(args)
+end
+
+function REQUEST:fetchsysmail1(args, ... )
+	-- body
+	return self._sysinbox:fetch(args)
 end
 
 local function room_request(name, args, ... )

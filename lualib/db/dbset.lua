@@ -99,26 +99,22 @@ function cls:load_data_to_sd()
 	sd.new(self._tname, l)
 end
 
+function cls:add( ... )
+	-- body
+end
+
+function cls:remove( ... )
+	-- body
+end
+
 -- find
 function cls:find(pk, ... )
 	-- body
-	return self._pk[pk]
+	return self._data[pk]
 end
 
 function cls:find_and(k1, k2, ... )
 	-- body
-end
-
-function cls:update_db(entity, ... )
-	-- body
-	entity:update_db()
-end
-
-function cls:insert_db(entity, ... )
-	-- body
-	table.insert(self._data, entity)
-	self._pk[entity:pk()] = entity
-	entity:insert_db()
 end
 
 return cls

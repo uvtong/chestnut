@@ -33,10 +33,4 @@ function cls:set_content(value, ... )
 	self.content:set_value(value)
 end
 
-function cls:load_db_to_data( ... )
-	-- body
-	local sql = string.format("select * from tg_sysmail")
-	local res = query.select("tg_sysmail", sql)
-end
-
 return cls

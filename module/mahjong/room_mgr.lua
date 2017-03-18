@@ -72,11 +72,11 @@ function CMD.dequeue_agent(source, uid, ... )
 	end
 end
 
-function CMD.create(source, uid, ... )
+function CMD.create(source, uid, args, ... )
 	-- body
 	log.info("ROOM_MGR create")
 	local room = mgr:dequeue_room()
-	skynet.call(room.addr, "lua", "start", uid)
+	skynet.call(room.addr, "lua", "start", uid, args)
 	return assert(room.id)
 end
 

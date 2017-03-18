@@ -208,6 +208,18 @@ take_restart 17 {
     }
 }
 
+rchat 18 {
+    request {
+        idx       0 : integer
+        type      1 : integer
+        textid    2 : integer
+        sdsteam   3 : string
+    }
+    response {
+        errorcode 0 : integer
+    }
+}
+
 rcard 20 {
     request {
         num       0 : integer
@@ -227,15 +239,3 @@ radio 21 {
     }
 }
 
-chat 22 {
-    request {
-        idx       0 : integer
-        type      1 : integer
-        textid    2 : integer
-        text      3 : string
-        sound     4 : string
-    }
-    response {
-        errorcode 0 : integer
-    }
-}

@@ -1,11 +1,13 @@
 local region = require "region"
 local hutype = require "hutype"
+local jiaotype = require "jiaotype"
 
 local function multiple(lo, max, ... )
 	-- body
 	assert(lo and max)
+	local mmax = max
 	local m = {}
-	if lo == region.SICHUAN then
+	if lo == region.Sichuan then
 		m[hutype.PINGHU]          = 1
 		m[hutype.DUIDUIHU]        = 2
 		m[hutype.QINGYISE]        = 4
@@ -13,17 +15,17 @@ local function multiple(lo, max, ... )
 		m[hutype.QIDUI]           = 4
 		m[hutype.JINGOUDIAO]      = 4
 		m[hutype.QINGDUIDUI]      = 8
-		m[hutype.LONGQIDUI]       = 16 > max and max or 16
-		m[hutype.QINGQIDUI]       = 16 > max and max or 16
-		m[hutype.QINGYAOJIU]      = 16 > max and max or 16
-		m[hutype.JIANGJINGOUDIAO] = 16 > max and max or 16
-		m[hutype.QINGJINGOUDIAO]  = 16 > max and max or 16
-		m[hutype.TIANHU]          = 32 > max and max or 32
-		m[hutype.DIHU]            = 32 > max and max or 32
-		m[hutype.QINGLONGQIDUI]   = 32 > max and max or 32
-		m[hutype.SHIBALUOHAN]     = 64 > max and max or 64
-		m[hutype.QINGSHIBALUOHAN] = 256 > max and max or 128
-	elseif lo == region.SHANXI then
+		m[hutype.LONGQIDUI]       = 16 
+		m[hutype.QINGQIDUI]       = 16 
+		m[hutype.QINGYAOJIU]      = 16 
+		m[hutype.JIANGJINGOUDIAO] = 16 
+		m[hutype.QINGJINGOUDIAO]  = 16 
+		m[hutype.TIANHU]          = 32 
+		m[hutype.DIHU]            = 32 
+		m[hutype.QINGLONGQIDUI]   = 32 
+		m[hutype.SHIBALUOHAN]     = 64 
+		m[hutype.QINGSHIBALUOHAN] = 256
+	elseif lo == region.Shaanxi then
 		m[hutype.PINGHU]          = 1
 		m[hutype.DUIDUIHU]        = 1
 		m[hutype.QINGYISE]        = 1
@@ -42,7 +44,7 @@ local function multiple(lo, max, ... )
 		m[hutype.SHIBALUOHAN]     = 1
 		m[hutype.QINGSHIBALUOHAN] = 1
 	end
-	local function xx(t, ... )
+	local function xx(hu, jiao, ... )
 		-- body
 		local res = assert(m[t])
 		return res

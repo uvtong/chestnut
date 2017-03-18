@@ -14,9 +14,9 @@ local NORET = {}
 
 local CMD = {}
 
-function CMD:start(uid, rule, mode, scene, ai_sz, ... )
+function CMD:start(uid, args, ... )
 	-- body
-	self:start(uid)
+	self:start(uid, args)
 end
 
 function CMD:close( ... )
@@ -132,6 +132,14 @@ function CMD:on_restart(args, ... )
 	return res
 end
 
+function CMD:on_rchat(args, ... )
+	-- body
+	self:chat(args)
+	local res = {}
+	res.errorcode = errorcode.SUCCESS
+	return res
+end
+
 function CMD:ready(args, ... )
 	-- body
 	return NORET
@@ -193,6 +201,11 @@ function CMD:restart(args, ... )
 end
 
 function CMD:take_restart(args, ... )
+	-- body
+	return NORET
+end
+
+function CMD:rchat(args, ... )
 	-- body
 	return NORET
 end

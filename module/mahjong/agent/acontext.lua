@@ -7,6 +7,7 @@ local log = require "log"
 local checkindailymgr = require "checkindailymgr"
 local errorcode = require "errorcode"
 local radiocenter = require "radiocenter"
+local sysinbox = require "sysinbox"
 
 local call = skynet.call
 local assert = assert
@@ -35,6 +36,7 @@ function cls:ctor( ... )
 	self._user = user.new(self, self._dbcontext, nil)
 	self._inbox = inbox.new(self, self._dbcontext, nil)
 	self._checkindailymgr = checkindailymgr.new(self, self._dbcontext)
+	self._sysinbox = sysinbox.new(self, self._dbcontext)
 
 	self._cancelupdate = nil
 
@@ -92,8 +94,9 @@ function cls:newborn(gate, uid, subid, secret, suid, ... )
 
 	local name = skynet.call(".UNAME_MGR", "lua", "name")
 	self._user:set_name(name)
-
 	self._user:insert_db("tg_users")
+
+	self._sysinbox:poll()
 end
 
 function cls:login(gate, uid, subid, secret, suid)
@@ -101,32 +104,24 @@ function cls:login(gate, uid, subid, secret, suid)
 
 	self:load_db_to_data()
 	log.info("load_db_to_data over")
+
+	self._sysinbox:poll()
 end
 
 function cls:logout( ... )
 	-- body
 	cls.super.logout(self)
-	self:update()
-	if self._cancelupdate then
-		self._cancelupdate()
-	end
 end
 
 function cls:afk( ... )
 	-- body
-	self:update()
-	if self._cancelupdate then
-		self._cancelupdate()
-	end
 end
 
 function cls:load_db_to_data()
 	-- load user
 	self._user:load_db_to_data()
-end
+	self._sysinbox:load_db_to_data()
 
-function cls:update( ... )
-	-- body
 end
 
 function cls:first( ... )
