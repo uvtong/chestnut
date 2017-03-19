@@ -197,7 +197,27 @@ rchat 13 {
     }
 }
 
-first 20 {
+xuanpao 14 {
+    request {
+        idx       0 : integer
+        fen       1 : integer
+    }
+    response {
+        errorcode 0 : integer
+    }
+}
+
+xuanque 15 {
+    request {
+        idx       0 : integer
+        que        1 : integer
+    }
+    response {
+        errorcode 0 : integer
+    }
+}
+
+first 30 {
     response {
         errorcode 0 : integer
         name      1 : string
@@ -209,26 +229,26 @@ first 20 {
     }
 }
 
-checkindaily 21 {
+checkindaily 31 {
     response {
         errorcode 0 : integer
     }
 }
 
-toast1 22 {
+toast1 32 {
     response {
         errorcode 0 : integer
         text      1 : string
     }
 }
 
-toast2 23 {
+toast2 33 {
     response {
         errorcode 0 : integer
     }
 }
 
-fetchsysmail 24 {
+fetchsysmail 34 {
     request {
         datetime  0 : integer
     }
@@ -239,7 +259,7 @@ fetchsysmail 24 {
     }
 }
 
-fetchsysmail1 25 {
+fetchsysmail1 35 {
     request {
         datetime  0 : integer
     }

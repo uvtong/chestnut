@@ -12,6 +12,7 @@ local region = require "region"
 local multiple = require "multiple"
 local exist = require "existhu"
 local overtype = require "overtype"
+local cjson = require "cjson"
 
 local state = {}
 state.NONE       = 0
@@ -21,17 +22,19 @@ state.JOIN       = 3
 state.READY      = 4
 state.SHUFFLE    = 5
 state.DICE       = 6
-state.TURN       = 7
-state.LEAD       = 8
+state.XUANPAO    = 7
+state.XUANQUE    = 8
+state.TURN       = 9
+state.LEAD       = 10
 
-state.MCALL      = 9
-state.OCALL      = 10
-state.PENG       = 11
-state.GANG       = 12
-state.HU         = 13
+state.MCALL      = 11
+state.OCALL      = 12
+state.PENG       = 13
+state.GANG       = 14
+state.HU         = 15
 
-state.OVER       = 14
-state.RESTART    = 15
+state.OVER       = 16
+state.RESTART    = 17
 
 local cls = class("rcontext")
 
@@ -59,7 +62,8 @@ function cls:ctor( ... )
 
 	self._online = 0
 	self._host = nil
-	
+	self._countdown = 20 -- s
+
 	self._state = state.NONE
 	
 	self._lastwin  = nil  -- last
@@ -69,15 +73,14 @@ function cls:ctor( ... )
 	self._lastgantidx = nil -- last time gang
 
 	self._firsttake = nil
-	self._firstidx = nil
+	self._firstidx = nil    -- zhuangjia
 	self._curtake = nil
-	self._curidx = nil  -- player
+	self._curidx = nil      -- player
 	self._curcard = nil
 	
 	self._takeround = 1
-
-	self._countdown = 20 -- s
-
+	self._takeidx = 0
+	
 	self._call = {}
 	self._callsz = 0
 	self._callhu = 0
@@ -90,6 +93,8 @@ function cls:ctor( ... )
 	self._ganginfo = nil 
 	self._penginfo = nil
 
+	self._stime = 0
+	self._record = {}
 	return self
 end
 
@@ -197,6 +202,15 @@ function cls:push_client(name, args, ... )
 	end
 end
 
+function cls:record(protocol, args, ... )
+	-- body
+	local tnode = {}
+	tnode.protocol = protocol
+	tnode.pt = (skynet.now() - _stime)
+	tnode.args = args
+	table.insert(self._record, tnode)
+end
+
 function cls:next_idx( ... )
 	-- body
 	self._curidx = self._curidx + 1
@@ -243,14 +257,17 @@ function cls:take_card( ... )
 	if takep._takecardscnt > 0 then
 		local card = takep:take_card()
 		assert(card)
+		self._takeidx = self._takeidx + 1
 		return card
 	else
 		self._curtake = self:next_takeidx()
 		if self._curtake == self._firsttake then
+			assert(self._takeidx == self._cardssz)
 			self:over()
 		else
 			takep = self._players[self._curtake]
 			local card = takep:take_card()
+			self._takeidx = self._takeidx + 1
 			assert(card)
 			return card	
 		end
@@ -366,9 +383,13 @@ function cls:step(idx, ... )
 		if self:check_state(idx, player.state.WAIT_TURN) then
 			self._curidx = self._firstidx -- reset curidx for turn 
 			self._curcard = self:take_card()
-			if self:take_mcall() then
+			if self._local == region.Sichuan then
+				self:take_xuanque()
 			else
-				self:take_turn()
+				if self:take_mcall() then
+				else
+					self:take_turn()
+				end
 			end
 		end
 	elseif self._state == state.LEAD then
@@ -488,7 +509,24 @@ function cls:take_shuffle( ... )
 		args.first = assert(self._host)
 	end
 	self._firstidx = args.first
-
+	self._takeround = 1
+	self._takeidx = 0
+	
+	self._call = {}
+	self._callsz = 0
+	self._callhu = 0
+	self._callhux = 0
+	self._callgang = 0
+	self._callgangx = 0
+	self._callpeng = 0
+	self._callpengx = 0
+	self._huinfos = {}
+	self._ganginfo = nil 
+	self._penginfo = nil
+	self._stime = skynet.now()
+	self._record = {}
+	
+	self:record("shuffle", args)
 	self:push_client("shuffle", args)
 end
 
@@ -519,6 +557,13 @@ function cls:take_dice( ... )
 	args.firsttake = self._firsttake
 	args.d1 = d1
 	args.d2 = d2
+
+	tnode.protocol = "dice"
+	tnode.pt = (skynet.now() - self._stime)
+	tnode.args = args
+	table.insert(self._record, tnode)
+
+	self:record("dice", args)
 	self:push_client("dice", args)
 end
 
@@ -558,7 +603,53 @@ function cls:take_deal( ... )
 	args.p3 = p3
 	args.p4 = p4
 
+	self:record("deal", args)
 	self:push_client("deal", args)
+end
+
+function cls:take_xuanpao( ... )
+	-- body
+	self._state = state.XUANPAO
+	self:clear_state(player.state.XUANPAO)
+	self:record("take_xuanpao")
+	self:push_client("take_xuanpao")
+end
+
+function cls:xuanpao(args, ... )
+	-- body
+	assert(self._state == state.XUANPAO)
+	self._players[args.idx]:set_fen(args.fen)
+	self:record("take_xuanpao")
+	self:push_client("xuanpao", args)
+	if self:check_state(idx, player.state.WAIT_TURN) then
+		self._curidx = self._firstidx -- reset curidx for turn 
+		self._curcard = self:take_card()
+		if self:take_mcall() then
+		else
+			self:take_turn()
+		end
+	end
+end
+
+function cls:take_xuanque( ... )
+	-- body
+	self._state = state.XUANQUE
+	self:clear_state(player.state.XUANQUE)
+	local args = {}
+	args.countdown = self._countdown
+	args.your_turn = self._curidx
+	args.card = self._curcard:get_value()
+	self:record("take_xuanque", args)
+	self:push_client("take_xuanque", args)
+end
+
+function cls:xuanque(args, ... )
+	-- body
+	assert(self._state == state.XUANQUE)
+	self._players[args.idx]:set_que(args.que)
+	if self:check_state(idx, player.state.WAIT_TURN) then
+		self:take_turn()
+	end
 end
 
 function cls:take_turn( ... )
@@ -576,6 +667,7 @@ function cls:take_turn( ... )
 		args.type = 0
 		args.card = card:get_value()
 
+		self:record("take_turn", args)
 		self:push_client("take_turn", args)
 	elseif self._state == state.GANG then
 		self._state = state.TURN
@@ -589,8 +681,10 @@ function cls:take_turn( ... )
 		args.type = 1
 		args.card = self._curcard:get_value()
 
+		self:record("take_turn", args)
 		self:push_client("take_turn", args)
-	elseif self._state == state.MCALL then
+	elseif self._state == state.MCALL or
+		self._state == state.XUANQUE then
 		self._state = state.TURN
 		self:clear_state(player.state.TURN)
 
@@ -603,7 +697,8 @@ function cls:take_turn( ... )
 		args.type = 0
 		args.card = 0
 
-		self:push_client("take_turn", args)				
+		self:record("take_turn", args)
+		self:push_client("take_turn", args)
 	else
 		self._state = state.TURN
 		self:clear_state(player.state.TURN)
@@ -617,6 +712,7 @@ function cls:take_turn( ... )
 		args.type = 1
 		args.card = self._curcard:get_value()
 
+		self:record("take_turn", args)
 		self:push_client("take_turn", args)
 	end
 end
@@ -640,6 +736,8 @@ function cls:lead(idx, c, ... )
 		local args = {}
 		args.idx = idx
 		args.card = c
+
+		self:record("lead", args)
 		self:push_client("lead", args)
 	else
 		log.info("player %d has leaded", idx)
@@ -692,6 +790,7 @@ function cls:take_mcall( ... )
 		local args = {}
 		args.opcodes = opcodes
 
+		self:record("call", args)
 		self:push_client("call", args)
 		return true
 	else
@@ -775,6 +874,7 @@ function cls:take_ocall( ... )
 		local args = {}
 		args.opcodes = opcodes
 
+		self:record("call", args)
 		self:push_client("call", args)
 		return true
 	else
@@ -792,6 +892,7 @@ function cls:peng(penginfo, ... )
 		local res = self._players[penginfo.idx]:peng(penginfo)
 		penginfo.hor = res.hor
 
+		self:record("peng", penginfo)
 		self:push_client("peng", penginfo)
 	end
 end
@@ -804,13 +905,14 @@ function cls:gang(ganginfo, ... )
 		self._state = state.GANG
 
 		if ganginfo.code == opcode.bugang then
-
 			self._players[ganginfo.idx]:gang(ganginfo)
+
+			self:record("gang", ganginfo)
 			self:push_client("gang", ganginfo)
-		
 		elseif ganginfo.code == opcode.angang then
-		
 			self._players[idx]:gang(ganginfo)
+
+			self:record("gang", ganginfo)
 			self:push_client("gang", ganginfo)
 		else
 			assert(false)

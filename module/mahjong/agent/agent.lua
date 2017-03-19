@@ -156,6 +156,9 @@ local function room_request(name, args, ... )
 	cmd["dice"] = true
 	cmd["step"] = true
 	cmd["restart"] = true
+	cmd["rchat"] = true
+	cmd["xuanpao"] = true
+	cmd['xuanque'] = true
 	if cmd[name] then
 		log.info("route agent to room command: %s", name)
 		local addr = assert(ctx:get_room())
@@ -216,6 +219,8 @@ local function room_response(name, args)
 	cmd["over"] = true
 	cmd["restart"] = true
 	cmd["take_restart"] = true
+	cmd["take_xuanpao"] = true
+	cmd["take_xuanque"] = true
 	if cmd[name] then
 		local addr = ctx:get_room()
 		skynet.send(addr, "lua", name, args)
@@ -401,6 +406,8 @@ local function room_sendrequest(name, args, ... )
 	cmd["over"] = true
 	cmd["restart"] = true
 	cmd["take_restart"] = true
+	cmd["take_xuanpao"] = true
+	cmd["take_xuanque"] = true
 	if cmd[name] then
 		ctx:send_request(name, args)
 		return true

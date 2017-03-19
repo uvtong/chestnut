@@ -220,7 +220,45 @@ rchat 18 {
     }
 }
 
-rcard 20 {
+take_xuanpao 19 {
+    response {
+        errorcode 0 : integer
+    }
+}
+
+xuanpao 20 {
+    request {
+        idx       0 : integer
+        fen       1 : integer
+    } 
+    response {
+        errorcode 0 : integer
+    }
+}
+
+take_xuanque 21 {
+    request {
+        countdown 0 : integer
+        your_turn 1 : integer
+        card      2 : integer
+    }
+    response {
+        errorcode 0 : integer
+    }
+}
+
+xuanque 22 {
+    request {
+        idx       0 : integer
+        que        1 : integer
+    }
+    response {
+        errorcode 0 : integer
+    }
+}
+
+
+rcard 30 {
     request {
         num       0 : integer
     }
@@ -229,7 +267,7 @@ rcard 20 {
     }
 }
 
-radio 21 {
+radio 31 {
     request {
         board     0 : string
         adver     1 : string

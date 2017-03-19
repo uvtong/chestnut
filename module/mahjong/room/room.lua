@@ -140,6 +140,22 @@ function CMD:on_rchat(args, ... )
 	return res
 end
 
+function CMD:on_xuanpao(args, ... )
+	-- body
+	self:xuanpao(args)
+	local res = {}
+	res.errorcode = errorcode.SUCCESS
+	return res
+end
+
+function CMD:on_xuanque(args, ... )
+	-- body
+	self:xuanque(args)
+	local res = {}
+	res.errorcode = errorcode.SUCCESS
+	return res
+end
+
 function CMD:ready(args, ... )
 	-- body
 	return NORET
@@ -206,6 +222,16 @@ function CMD:take_restart(args, ... )
 end
 
 function CMD:rchat(args, ... )
+	-- body
+	return NORET
+end
+
+function CMD:take_xuanpao(args, ... )
+	-- body
+	return NORET
+end
+
+function CMD:take_xuanque(args, ... )
 	-- body
 	return NORET
 end

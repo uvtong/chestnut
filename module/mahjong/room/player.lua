@@ -16,21 +16,25 @@ state.WAIT_START = 4
 state.SHUFFLE    = 5
 state.WAIT_DICE  = 6
 state.DICE       = 7
-state.WAIT_DEAL  = 8
-state.DEAL       = 9
-state.WAIT_TURN  = 10
-state.TURN       = 11
-state.LEAD       = 12
+state.WAIT_XUANPAO = 8
+state.XUAN_PAO   = 9
+state.WAIT_XUANQUE = 10
+state.XUANQUE    = 11
+state.WAIT_DEAL  = 12
+state.DEAL       = 13
+state.WAIT_TURN  = 14
+state.TURN       = 15
+state.LEAD       = 16
 
-state.MCALL      = 13
-state.OCALL      = 14
-state.PENG       = 15
-state.GANG       = 16
-state.HU         = 17
+state.MCALL      = 17
+state.OCALL      = 18
+state.PENG       = 19
+state.GANG       = 20
+state.HU         = 21
 
-state.OVER       = 18
-state.WAIT_RESTART = 19
-state.RESTART    = 20
+state.OVER       = 22
+state.WAIT_RESTART = 23
+state.RESTART    = 24
 
 local cls = class("player")
 
@@ -48,7 +52,11 @@ function cls:ctor(env, uid, sid, fd, ... )
 	self._robot  = false  -- user
 	self._noone  = true
 	self._name   = ""
+
+	-- chip
 	self._chip   = 0
+	self._fen    = 0
+	self._que    = 0
 
 	self._state  = state.NONE
 	self._takefirst = false
@@ -159,14 +167,24 @@ function cls:set_chip(value)
 	self._chip = value
 end
 
-function cls:get_bet( ... )
+function cls:get_fen( ... )
 	-- body
-	return self._bet
+	return self._fen
 end
 
-function cls:set_bet(value, ... )
+function cls:set_fen(value, ... )
 	-- body
-	self._bet = value
+	self._fen = value
+end
+
+function cls:get_que( ... )
+	-- body
+	return self._que
+end
+
+function cls:set_que(value, ... )
+	-- body
+	self._que = value
 end
 
 function cls:set_state(s, ... )
