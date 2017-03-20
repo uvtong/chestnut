@@ -6,6 +6,7 @@ local opcode = require "opcode"
 local hutype = require "hutype"
 local util = require "util"
 local hu = require "hu"
+local region = require "region"
 
 local state = {}
 state.NONE       = 0
@@ -340,6 +341,11 @@ end
 function cls:check_hu(card, jiao, who, ... )
 	-- body
 	assert(card and jiao and who)
+	if self._env._local == region.Sichuan then
+		if card:tof() == self._que then
+			return hutype.NONE
+		end
+	end
 	local pos = self:insert(card)
 	assert(pos ~= 0)
 
@@ -370,6 +376,11 @@ end
 function cls:check_gang(card, ... )
 	-- body
 	assert(card)
+	if self._env._local == region.Sichuan then
+		if card:tof() == self._que then
+			return opcode.none
+		end
+	end
 	local res = opcode.none
 	if self._env._curidx == self._idx then
 		for i,v in ipairs(self._putcards) do
@@ -450,8 +461,12 @@ function cls:check_gang(card, ... )
 							self._gang.idx = self._idx
 							self._gang.card = card
 							self._gang.code = opcode.zhigang
-							res = opcode.angang
+							res = opcode.zhigang
+							log.info("check zhi gang")
 							return res
+						else
+							first = nil
+							count = 0	
 						end
 					else
 						first = nil
@@ -540,6 +555,11 @@ end
 
 function cls:check_peng(card, ... )
 	-- body
+	if self._env._local == region.Sichuan then
+		if card:tof() == self._que then
+			return opcode.none
+		end
+	end
 	local count = 0
 	local len = #self._cards
 	for i=1,len do
@@ -617,6 +637,11 @@ function cls:timeout(ti, ... )
 			self._env:timeout_call(self._idx)
 		elseif self._state == state.OCALL then
 			self._env:timeout_call(self._idx)
+		elseif self._state == state.XUANQUE then
+			local args = {}
+			args.idx = self._idx
+			args.que = card.type.DOT
+			self._env:timeout_xuanque(args)
 		end
 	end)
 	assert(self._cancelcd)

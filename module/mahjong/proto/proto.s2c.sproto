@@ -221,6 +221,9 @@ rchat 18 {
 }
 
 take_xuanpao 19 {
+    request {
+        countdown 0 : integer
+    }
     response {
         errorcode 0 : integer
     }

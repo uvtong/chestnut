@@ -17,10 +17,7 @@ local function check_qidui(cards, ... )
 	while idx <= len do
 		local b = cards[idx]
 		idx = idx + 1
-
 		if a:eq(b) then
-			jiang = jiang + 1
-
 			if idx <= len then
 				local c = cards[idx]
 				idx = idx + 1
@@ -29,7 +26,7 @@ local function check_qidui(cards, ... )
 						local d = cards[idx]
 						idx = idx + 1
 						if a:eq(d) then
-							jiang = jiang + 1
+							jiang = jiang + 2
 							gang = gang + 1
 							if idx <= len then
 								local e = cards[idx]
@@ -47,11 +44,15 @@ local function check_qidui(cards, ... )
 					else
 						break
 					end
-				elseif a:tof() ~= c:tof() then
-					qing = false
+				else
+					if a:tof() ~= c:tof() then
+						qing = false
+					end
+					jiang = jiang + 1
+					a = c
 				end
-				a = c
 			else
+				jiang = jiang + 1
 				break
 			end	
 		else
@@ -74,28 +75,17 @@ end
 
 local function check_put(putcards, ... )
 	-- body
-	assert(putcards)
+	assert(putcards and #putcards > 0)
 	local gang = 0
 	local qing = true
-	local ctype
-	local len = #putcards
-	assert(len > 0)
-
-	local idx = 1
-	local pg = assert(putcards[idx])
-	idx = idx + 1
-	ctype = pg.cards[1]:tof()
-	if #pg.cards == 4 then
-		gang = gang + 1
-	end
-	while idx <= len do
-		pg = putcards[idx]
-		idx = idx + 1
-		if #pg.cards == 4 then
-			gang = gang + 1
-		end
-		if pg.cards[1]:tof() ~= ctype then
+	local ctype = putcards[1].cards[1]:tof()
+	
+	for k,v in pairs(putcards) do
+		if v.cards[1]:tof() ~= ctype then
 			qing = false
+		end
+		if #v.cards == 4 then
+			gang = gang + 1
 		end
 	end
 	if qing then
@@ -134,6 +124,7 @@ function _M.check_sichuan(cards, putcards, ... )
 		idx = idx + 1
 		if b:eq(a) then
 			if idx > len then
+				jiang = jiang + 1
 				break
 			end
 			local c = cards[idx]
@@ -233,6 +224,7 @@ function _M.check_sichuan(cards, putcards, ... )
 								jiang = jiang + 1
 								if idx <= len then
 									local f = cards[idx]
+									idx = idx + 1
 									if f:tof() ~= a:tof() then
 										qing = false
 									end
@@ -249,6 +241,7 @@ function _M.check_sichuan(cards, putcards, ... )
 					else
 						tong3 = tong3 + 1
 						a = d
+						print("step 1")
 					end
 				else
 					qing = false
@@ -257,43 +250,62 @@ function _M.check_sichuan(cards, putcards, ... )
 				end
 			elseif c:tof() == a:tof() then
 				if c:nof() == a:nof() + 1 then
+					if idx > len then
+						break
+					end
 					local d = cards[idx]
 					idx = idx + 1
-					if c:eq(d) then
-						jiang = jiang + 1
+					if d:eq(c) then
+						if idx > len then
+							break
+						end
 						local e = cards[idx]
 						idx = idx + 1
-						if c:eq(e) then
-							jiang = jiang - 1
-							tong3 = tong3 + 1
+						if e:eq(d) then
+							if idx > len then
+								jiang = jiang + 1
+								tong3 = tong3 + 1
+								break
+							end
 							local f = cards[idx]
 							idx = idx + 1
-							if c:eq(f) then
-								jiang = jiang + 2
-								tong3 = tong3 - 1
+							if f:eq(e) then
+								if idx < len then
+									break
+								end
 								local g = cards[idx]
 								idx = idx + 1
-								if c:tof() == g:tof() then
-									if c:nof() + 1 == g:nof() then
+								if g:tof() == e:tof() then
+									if g:nof() == e:nof() + 1 then
+										if idx < len then
+											break
+										end
 										local h = cards[idx]
 										idx = idx + 1
-										if g:eq(h) then
-											jiang = jiang - 3
+										if h:eq(g) then
 											jiang = jiang + 1
 											lian3 = lian3 + 2
+											if idx <= len then
+												local i = cards[idx]
+												if i:tof() ~= a:tof() then
+													qing = false
+												end
+											else
+												break
+											end
 										else
-											ok = false
 											break
 										end
 									else
-										ok = false
 										break
 									end
 								else
-									ok = false
 									break
 								end
 							else
+								jiang = jiang + 1
+								tong3 = tong3 + 1
+								a = f
 							end
 						elseif c:tof() == e:tof() then
 							if c:nof() + 1 == e:nof() then
@@ -321,14 +333,13 @@ function _M.check_sichuan(cards, putcards, ... )
 						break
 					end
 				else
+					jiang = jiang + 1
 					a = c
-					idx = idx - 1
 				end
 			else
 				jiang = jiang + 1
 				qing = false
-				a = cards[idx]
-				idx = idx + 1
+				a = c
 			end
 		elseif b:tof() == a:tof() then
 			if b:nof() == a:nof() + 1 then
@@ -415,6 +426,7 @@ function _M.check_sichuan(cards, putcards, ... )
 												gang = gang + 1
 												if idx <= len then
 													local g = cards[idx]
+													idx = idx + 1
 													if g:tof() ~= a:tof() then
 														qing = false
 													end
@@ -477,6 +489,7 @@ function _M.check_sichuan(cards, putcards, ... )
 			qing = false
 		end
 		gang = gang + pgang
+		print("gang", gang)
 	end
 
 

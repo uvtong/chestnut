@@ -1,4 +1,4 @@
-local log = require "log"
+-- local log = require "log"
 local assert = assert
 
 local TYPE_SHIFT = 8

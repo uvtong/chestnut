@@ -206,7 +206,7 @@ function cls:record(protocol, args, ... )
 	-- body
 	local tnode = {}
 	tnode.protocol = protocol
-	tnode.pt = (skynet.now() - _stime)
+	tnode.pt = (skynet.now() - self._stime)
 	tnode.args = args
 	table.insert(self._record, tnode)
 end
@@ -383,6 +383,7 @@ function cls:step(idx, ... )
 		if self:check_state(idx, player.state.WAIT_TURN) then
 			self._curidx = self._firstidx -- reset curidx for turn 
 			self._curcard = self:take_card()
+			self._players[self._curidx]._holdcard = self._curcard
 			if self._local == region.Sichuan then
 				self:take_xuanque()
 			else
@@ -412,6 +413,7 @@ function cls:step(idx, ... )
 		assert(not p:get_noone())
 		if self:check_state(idx, player.state.WAIT_TURN) then
 			self._curcard = self:take_card()
+			self._players[self._curidx]._holdcard = self._curcard
 			if self:take_mcall() then
 			else
 				self:take_turn()
@@ -558,11 +560,6 @@ function cls:take_dice( ... )
 	args.d1 = d1
 	args.d2 = d2
 
-	tnode.protocol = "dice"
-	tnode.pt = (skynet.now() - self._stime)
-	tnode.args = args
-	table.insert(self._record, tnode)
-
 	self:record("dice", args)
 	self:push_client("dice", args)
 end
@@ -635,6 +632,11 @@ function cls:take_xuanque( ... )
 	-- body
 	self._state = state.XUANQUE
 	self:clear_state(player.state.XUANQUE)
+
+	for i=1,self._max do
+		self._players[i]:timeout(self._countdown * 100)
+	end
+
 	local args = {}
 	args.countdown = self._countdown
 	args.your_turn = self._curidx
@@ -646,10 +648,26 @@ end
 function cls:xuanque(args, ... )
 	-- body
 	assert(self._state == state.XUANQUE)
-	self._players[args.idx]:set_que(args.que)
-	if self:check_state(idx, player.state.WAIT_TURN) then
-		self:take_turn()
+	if self._players[args.idx]._state == player.state.XUANQUE then
+		self._players[args.idx]:cancel_timeout()
+		self._players[args.idx]:set_que(args.que)
+		self:push_client("xuanque", args)
+		if self:check_state(args.idx, player.state.WAIT_TURN) then
+			self:take_turn()
+		end
 	end
+end
+
+function cls:timeout_xuanque(args, ... )
+	-- body
+	assert(self._state == state.XUANQUE)
+	if self._players[args.idx]._state == player.state.XUANQUE then
+		self._players[args.idx]:set_que(args.que)
+		self:push_client("xuanque", args)
+		if self:check_state(args.idx, player.state.WAIT_TURN) then
+			self:take_turn()
+		end
+	end	
 end
 
 function cls:take_turn( ... )
@@ -659,6 +677,7 @@ function cls:take_turn( ... )
 		self:clear_state(player.state.TURN)
 
 		local card = self._players[self._curidx]:take_turn_after_peng()
+		assert(self._players[self._curidx]._holdcard)
 		self._players[self._curidx]:timeout(self._countdown * 100)
 
 		local args = {}
@@ -673,6 +692,7 @@ function cls:take_turn( ... )
 		self._state = state.TURN
 		self:clear_state(player.state.TURN)
 
+		assert(self._players[self._curidx]._holdcard)
 		self._players[self._curidx]:timeout(self._countdown * 100)
 
 		local args = {}
@@ -683,8 +703,7 @@ function cls:take_turn( ... )
 
 		self:record("take_turn", args)
 		self:push_client("take_turn", args)
-	elseif self._state == state.MCALL or
-		self._state == state.XUANQUE then
+	elseif self._state == state.MCALL then
 		self._state = state.TURN
 		self:clear_state(player.state.TURN)
 
@@ -699,11 +718,27 @@ function cls:take_turn( ... )
 
 		self:record("take_turn", args)
 		self:push_client("take_turn", args)
+		
+	elseif self._state == state.XUANQUE then
+		self._state = state.TURN
+		self:clear_state(player.state.TURN)
+
+		assert(self._players[self._curidx]._holdcard)
+		self._players[self._curidx]:timeout(self._countdown * 100)
+
+		local args = {}
+		args.your_turn = self._curidx
+		args.countdown = self._countdown
+		args.type = 2
+		args.card = 0
+
+		self:record("take_turn", args)
+		self:push_client("take_turn", args)
 	else
 		self._state = state.TURN
 		self:clear_state(player.state.TURN)
 
-		self._players[self._curidx]._holdcard = assert(self._curcard)
+		assert(self._players[self._curidx]._holdcard)
 		self._players[self._curidx]:timeout(self._countdown * 100)
 
 		local args = {}
@@ -968,6 +1003,7 @@ function cls:_next( ... )
 	-- body
 	self._curidx = self:next_idx()
 	self._curcard = self:take_card()
+	self._players[self._curidx]._holdcard = self._curcard
 	if self._curcard then
 		if self:take_mcall() then
 		else
