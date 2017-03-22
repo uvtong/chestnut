@@ -1,3 +1,4 @@
+-- local log = require "log"
 local hutype = require "hutype"
 
 local function check_qidui(cards, ... )
@@ -489,7 +490,6 @@ function _M.check_sichuan(cards, putcards, ... )
 			qing = false
 		end
 		gang = gang + pgang
-		print("gang", gang)
 	end
 
 
@@ -504,14 +504,46 @@ function _M.check_sichuan(cards, putcards, ... )
 			else
 				res = hutype.JINGOUDIAO
 			end
-		elseif jiang == 1 and lian3 == 0 then
-			if qing then
+		elseif len == 5 then
+			if jiang == 1 and tong3 == 1 and qing then
 				res = hutype.QINGDUIDUI
-			else
+			elseif jiang == 1 and tong3 == 1 then
 				res = hutype.DUIDUIHU
+			elseif jiang == 1 and qing then
+				res	= hutype.QINGYISE
+			elseif jiang == 1 then
+				res = hutype.PINGHU
 			end
-		else
-			res = hutype.PINGHU
+		elseif len == 8 then
+			if jiang == 1 and tong3 == 2 and qing then
+				res = hutype.QINGDUIDUI
+			elseif jiang == 1 and tong3 == 2 then
+				res = hutype.DUIDUIHU
+			elseif jiang == 1 and qing then
+				res = hutype.QINGYISE
+			elseif jiang == 1 then
+				res = hutype.PINGHU 
+			end
+		elseif len == 11 then
+			if jiang == 1 and tong3 == 3 and qing then
+				res = hutype.QINGDUIDUI
+			elseif jiang == 1 and tong3 == 3 then
+				res = hutype.DUIDUIHU
+			elseif jiang == 1 and qing then
+				res = hutype.QINGYISE
+			elseif jiang == 1 then
+				res = hutype.PINGHU
+			end
+		elseif len == 14 then
+			if jiang == 1 and tong3 == 4 and qing then
+				res = hutype.QINGDUIDUI
+			elseif jiang == 1 and tong3 == 4 then
+				res = hutype.DUIDUIHU
+			elseif jiang == 1 and qing then
+				res = hutype.QINGYISE
+			elseif jiang == 1 then
+				res = hutype.PINGHU
+			end
 		end
 	end
 	return res

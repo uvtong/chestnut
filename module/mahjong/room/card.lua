@@ -19,10 +19,9 @@ function cls:ctor(t, num, idx, ... )
 	self._type = t
 	self._num  = num
 	self._idx  = idx
-
 	self._value = ((t & 0xff) << TYPE_SHIFT) | ((num & 0x0f) << NUM_SHIFT) | ((idx & 0x0f) << IDX_SHIFT)
-
-	-- log.info("value:%d", self._value)
+	self._que  = 0
+	
 
 	self._pos = 0
 	self._master = false  -- 判断是否已经被分配
@@ -49,6 +48,20 @@ end
 function cls:get_value( ... )
 	-- body
 	return self._value
+end
+
+function cls:set_que(ctype, ... )
+	-- body
+	if self._type == ctype then
+		self._que = 1
+	else
+		self._que = 0
+	end
+end
+
+function cls:get_que( ... )
+	-- body
+	return self._que
 end
 
 -- position
@@ -84,6 +97,7 @@ end
 
 function cls:clear( ... )
 	-- body
+	self._que = 0
 	self._pos = 0         -- deal 
 	self._master = false  -- deal
 	self._bright = false  -- selection
@@ -92,7 +106,11 @@ end
 -- 比较单牌,这里只比较数字
 function cls:mt(o, ... )
 	-- body
-	return self._value > o._value
+	if self._que == o._que then
+		return self._value > o._value
+	else
+		return self._que > o._que
+	end
 end
 
 function cls:eq(o, ... )
@@ -115,12 +133,13 @@ function cls:describe( ... )
 	if self._type == cls.type.CRAK then
 		res = res .. "crak "
 	elseif self._type == cls.type.BAM then
-		res = res .. "bam"
+		res = res .. "bam "
 	elseif self._type == cls.type.DOT then
-		res = res .. "dot"
+		res = res .. "dot "
 	end
 
-	res = res .. string.format("%d", self._num)
+	res = res .. string.format("%d,", self._num)
+	res = res .. string.format("pos: %d", self._pos)
 
 	return res
 end

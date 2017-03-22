@@ -31,15 +31,17 @@
     code 2 : integer
     jiao 3 : integer
     dian 4 : integer
+    chip 5 : integer
 }
 
 .opinfo {
     idx       0 : integer
     countdown 1 : integer
     card      2 : integer
-    peng      3 : integer
-    gang      4 : integer
-    hu        5 : huinfo
+    dian      3 : integer
+    peng      4 : integer
+    gang      5 : integer
+    hu        6 : huinfo
 }
 
 handshake 1 {
@@ -102,9 +104,10 @@ peng 6 {
 gang 7 {
     request {
         idx       0 : integer
-        card      1 : integer
-        code      2 : integer
+        code      1 : integer
+        card      2 : integer
         hor       3 : integer
+        chip      4 : integer
     }
     response {
         errorcode 0 : integer

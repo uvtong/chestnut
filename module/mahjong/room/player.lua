@@ -7,6 +7,8 @@ local hutype = require "hutype"
 local util = require "util"
 local hu = require "hu"
 local region = require "region"
+local gang = require "gang"
+local jiaotype = require "jiaotype"
 
 local state = {}
 state.NONE       = 0
@@ -56,6 +58,9 @@ function cls:ctor(env, uid, sid, fd, ... )
 
 	-- chip
 	self._chip   = 0
+	self._curjuchip = 0
+	self._chipli = {}   -- { code,dian,chip}
+
 	self._fen    = 0
 	self._que    = 0
 
@@ -186,6 +191,15 @@ end
 function cls:set_que(value, ... )
 	-- body
 	self._que = value
+	log.info("player idx : %d", self._idx)
+	local len = #self._cards
+	for i=1,len do
+		self._cards[i]:set_que(self._que)
+	end
+	self:sort_cards()
+	for i=1,len do
+		log.info(self._cards[i]:describe())
+	end
 end
 
 function cls:set_state(s, ... )
@@ -218,25 +232,44 @@ function cls:clear( ... )
 	self._cards = {}
 end
 
+function cls:print_cards( ... )
+	-- body
+	local len = #self._cards
+	for i=1,len do
+		log.info(self._cards[i]:describe())
+	end
+end
+
 function cls:_quicksort(low, high, ... )
 	-- body
 	if low >= high then
 		return
 	end
 	local first = low
-	local last = high
+	local last  = high
 	local key = self._cards[first]
 	while first < last do
-		while first < last and self._cards[last]:mt(key) do
-			last = last - 1
+		while first < last do
+			if self._cards[last]:mt(key) then
+				last = last - 1
+			else
+				self._cards[first] = self._cards[last]
+				self._cards[first]:set_pos(first)
+				break
+			end
 		end
-		self._cards[first] = self._cards[last]
-		while first < last and self._cards[first]:lt(key) do
-			first = first + 1
+		while first < last do
+			if not self._cards[first]:mt(key) then
+				first = first + 1
+			else
+				self._cards[last] = self._cards[first]
+				self._cards[last]:set_pos(last)
+				break
+			end
 		end
-		self._cards[last] = self._cards[first]
 	end
 	self._cards[first] = key
+	self._cards[first]:set_pos(first)
 	self:_quicksort(low, first-1)
 	self:_quicksort(first+1, high)   
 end
@@ -292,6 +325,39 @@ function cls:remove_pos(pos, ... )
 	end
 end
 
+function cls:remove_lead(card, ... )
+	-- body
+	assert(card)
+	local len = #self._leadcards
+	assert(self._leadcards[len]:get_value() == card:get_value())
+	self._leadcards[len] = nil
+end
+
+function cls:find(c, ... )
+	-- body
+	local len = #self._cards
+	local low = 1
+	local high = len
+	while low <= high do 
+		if self._cards[low]:get_value() == c then
+			return self._cards[low]
+		end
+		if self._cards[high]:get_value() == c then
+			return self._cards[high]
+		end
+		local mid = math.tointeger((high + low) / 2)
+		if self._cards[mid]:get_value() == c then
+			return self._cards[mid]
+		end
+		if self._cards[mid]:get_value() < c then
+			low = mid + 1
+		else
+			high = mid - 1
+		end
+	end
+	return nil
+end
+
 function cls:lead(c, ... )
 	-- body
 	assert(c)
@@ -302,6 +368,7 @@ function cls:lead(c, ... )
 		local card = self._holdcard
 		table.insert(self._leadcards, self._holdcard)
 		self._holdcard = nil
+		self:print_cards()
 		return card
 	else
 		local card
@@ -317,6 +384,7 @@ function cls:lead(c, ... )
 				break
 			end
 		end
+		self:print_cards()
 		return card
 	end
 end
@@ -338,155 +406,124 @@ function cls:take_card( ... )
 	end
 end
 
-function cls:check_hu(card, jiao, who, ... )
+function cls:take_turn_card(card, ... )
 	-- body
-	assert(card and jiao and who)
+	self._holdcard = card
+end
+
+function cls:check_que( ... )
+	-- body
+	local res = true
 	if self._env._local == region.Sichuan then
-		if card:tof() == self._que then
-			return hutype.NONE
+		local se = 1
+		local ctype = self._cards[1]:tof()
+		local len = #self._cards
+		for i=2,len do
+			if self._cards[i]:tof() ~= ctype then
+				se = se + 1
+				ctype = self._cards[i]:tof()
+			end
+		end
+		if se > 2 then
+			res = false
 		end
 	end
-	local pos = self:insert(card)
-	assert(pos ~= 0)
-
-	local res = hu.check_sichuan(self._cards, self._putcards)
-	if res ~= hutype.NONE then
-		self._hu = {}
-		self._hu.idx = self._idx
-		self._hu.card = card
-		self._hu.jiao = jiao
-		self._hu.dian = who
-	end
-
-	self:remove_pos(pos)
-
 	return res
 end
 
-function cls:hu(info, ... )
+function cls:check_hu(card, jiao, who, ... )
 	-- body
+	assert(card and jiao and who)
+	self._hu = {}
+	self._hu.idx = self._idx
+	self._hu.card = card
+	self._hu.jiao = jiao
+	self._hu.dian = who
+
+	if self._env._local == region.Sichuan then
+		if card:tof() == self._que then
+			self._hu.code = hutype.NONE
+			return self._hu
+		end
+	end
+	
+	if not self:check_que() then
+		self._hu.code = hutype.NONE
+		return self._hu
+	end
+
+	local pos = self:insert(card)
+	assert(pos ~= 0)
+
+	self:print_cards()
+
+	local res = hu.check_sichuan(self._cards, self._putcards)
+	if res ~= hutype.NONE then
+		self._hu.code = res
+	else
+		self._hu.code = hutype.NONE
+	end
+	self:remove_pos(pos)
+
+	return self._hu
+end
+
+function cls:hu(info, last, lastcard, ... )
+	-- body
+	assert(info and last and lastcard)
 	assert(info.idx == self._idx)
 	assert(info.card == self._hu.card:get_value())
 	assert(info.code == self._hu.code)
 	assert(info.jiao == self._hu.jiao)
+	assert(info.dian == self._hu.dian)
 	self._state = state.HU
-	table.insert(self._hucards, card._hu.card)
+	if self._hu.jiao == jiaotype.ZIMO then
+		assert(self._holdcard == self._hu.card)
+	else
+		assert(lastcard == self._hu.card)
+		last:remove_lead(lastcard)
+	end
+	self:print_cards()
+	table.insert(self._hucards, self._hu.card)
 end
 
-function cls:check_gang(card, ... )
+function cls:check_gang(card, who, ... )
 	-- body
-	assert(card)
+	assert(card and who)
+	self._gang = {}
+	self._gang.idx = self._idx
+	self._gang.card = card
+	self._gang.dian = who
+
 	if self._env._local == region.Sichuan then
 		if card:tof() == self._que then
-			return opcode.none
+			self._gang.code = opcode.none
+			return self._gang
 		end
 	end
-	local res = opcode.none
-	if self._env._curidx == self._idx then
-		for i,v in ipairs(self._putcards) do
-			if #v == 3 then
-				if v.cards[1]:eq(card) then
-					self._gang = {}
-					self._gang.idx = self._idx
-					self._gang.card = card
-					self._gang.code = opcode.bugang
-					res = opcode.bugang
-					return res
-				end
-			end
-		end
+	
+	self:print_cards()
 
-		--
-		local first = self._cards[1]
-		local count = 1
-		local len = #self._cards
-		for i=2,len do
-			if self._cards[i]:eq(first) then
-				count = count + 1
-			elseif count == 3 then
-				if first:eq(card) then
-					self._gang = {}
-					self._gang.idx = self._idx
-					self._gang.card = card
-					self._gang.code = opcode.angang
-					res = opcode.angang
-					return res
-				else
-					first = self._cards[i]
-					count = 1
-				end
-			elseif count == 4 then
-				self._gang = {}
-				self._gang.idx = self._idx
-				self._gang.card = first
-				self._gang.code = opcode.angang
-				res = opcode.angang
-				return res
-			else
-				first = self._cards[i]
-				count = 1
-			end
-		end
-
-		--
-		for i=1,len do
-			for i,v in ipairs(self._putcards) do
-				if v.cards[1]:eq(self._cards[i]) then
-					self._gang = {}
-					self._gang.idx = self._idx
-					self._gang.card = card
-					self._gang.code = opcode.bugang
-					res = opcode.bugang
-					return res
-				end
-			end	
-		end
-		
-		return res
+	local code, xcard = gang(self._idx, self._env._curidx, card, self._cards, self._putcards)
+	if code ~= opcode.none then
+		self._gang.card = xcard
+		self._gang.code = code
 	else
-		local first = nil
-		local count = 0
-		local len = #self._cards
-		for i=1,len do
-			if first == nil then
-				first = self._cards[i]
-				count = 1
-			else
-				if self._cards[i]:eq(first) then
-					count = count + 1
-				else
-					if count == 3 then
-						if first:eq(card) then
-							self._gang = {}
-							self._gang.idx = self._idx
-							self._gang.card = card
-							self._gang.code = opcode.zhigang
-							res = opcode.zhigang
-							log.info("check zhi gang")
-							return res
-						else
-							first = nil
-							count = 0	
-						end
-					else
-						first = nil
-						count = 0
-					end
-				end
-			end
-		end
-		return res
+		self._gang.code = opcode.none
 	end
+	return self._gang
 end
 
-function cls:gang(info, ... )
+function cls:gang(info, last, lastcard, ... )
 	-- body
+	assert(info and last and lastcard)
 	assert(info.idx == self._idx)
 	assert(info.code == self._gang.code)
 	assert(info.card == self._gang.card:get_value())
 	if info.code == opcode.zhigang then
 		self._state = state.GANG
 
+		assert(lastcard == self._gang.card)
 		local cards = {}
 		local len = #self._cards
 		local idx = 0
@@ -501,45 +538,84 @@ function cls:gang(info, ... )
 		end
 		assert(#cards == 3)
 		assert(idx ~= 0)
-		for i=idx+1,len do
-			self._cards[i-3] = self._cards[i]
-			self._cards[i] = nil
+		for i,v in ipairs(cards) do
+			self:remove(v)
 		end
-		table.insert(cards, self._gang.card)
+
+		last:remove_lead(lastcard)
+		table.insert(cards, lastcard)
+		assert(#cards == 4)
+		
 		local pgcards = {}
 		pgcards.cards = cards
 		pgcards.hor = math.random(0, 3)
 		table.insert(self._putcards, pgcards)
+		self:print_cards()
 		return pgcards
 	elseif info.code == opcode.angang then
 		self._state = state.GANG
-		local cards = {}
-		local idx = 0
-		local len = #self._cards
-		for i=1,len do
-			if self._cards[i]:eq(self._gang.card) then
-				table.insert(cards, self._cards[i])
-				idx = i
+
+		if self._holdcard:eq(self._gang.card) then
+			local cards = {}
+			local idx = 0
+			local len = #self._cards
+			for i=1,len do
+				if self._cards[i]:eq(self._gang.card) then
+					table.insert(cards, self._cards[i])
+					idx = i
+				end
+				if #cards == 3 then
+					break
+				end
 			end
-			if #cards == 4 then
-				break
+			assert(#cards == 3)
+			for i,v in ipairs(cards) do
+				self:remove(v)
 			end
+			
+			table.insert(cards, self._holdcard)
+			self._holdcard = nil
+			assert(#cards == 4)
+
+			local pgcards = {}
+			pgcards.cards = cards
+			pgcards.hor = 0
+			table.insert(self._putcards, pgcards)
+			self:print_cards()
+
+			return pgcards
+		else
+			local cards = {}
+			local idx = 0
+			local len = #self._cards
+			for i=1,len do
+				if self._cards[i]:eq(self._gang.card) then
+					table.insert(cards, self._cards[i])
+					idx = i
+				end
+				if #cards == 4 then
+					break
+				end
+			end
+			assert(#cards == 4)
+			for i,v in ipairs(cards) do
+				self:remove(v)
+			end
+
+			local pgcards = {}
+			pgcards.cards = cards
+			pgcards.hor = 0
+			table.insert(self._putcards, pgcards)
+			self:print_cards()
+
+			return pgcards
 		end
-		assert(#cards == 4)
-		for j=idx-3,len-4 do
-			self._cards[j] = self._cards[j + 4]
-			self._cards[j + 4] = nil
-		end
-		local pgcards = {}
-		pgcards.cards = cards
-		pgcards.hor = 0
-		table.insert(self._putcards, pgcards)
-		return pgcards
 	elseif info.code == opcode.bugang then
 		assert(#self._putcards > 0)
+
 		for i,v in ipairs(self._putcards) do
 			if #v.cards == 3 and v.cards[1]:eq(self._gang.card) then
-				table.insert(v, self._gang.card)
+				table.insert(v.cards, self._gang.card)
 				if self._gang.card == self._holdcard then
 					self._holdcard = nil
 				else
@@ -553,13 +629,21 @@ function cls:gang(info, ... )
 	end
 end
 
-function cls:check_peng(card, ... )
+function cls:check_peng(card, who, ... )
 	-- body
+	assert(card and who)
+	self._peng = {}
+	self._peng.idx = self._idx
+	self._peng.card = card
+	self._peng.dian = who
+
 	if self._env._local == region.Sichuan then
 		if card:tof() == self._que then
-			return opcode.none
+			self._peng.code = opcode.none
+			return self._peng
 		end
 	end
+	
 	local count = 0
 	local len = #self._cards
 	for i=1,len do
@@ -570,28 +654,23 @@ function cls:check_peng(card, ... )
 			break
 		end
 	end
+	
 	if count == 2 then
-		self._peng = {}
-		self._peng.idx = self._idx
-		self._peng.card = card
 		self._peng.code = opcode.peng
-		return opcode.peng
 	else
-		self._peng = {}
-		self._peng.idx = self._idx
-		self._peng.card = nil
-		self._peng.code = opcode.peng
-		return opcode.none
+		self._peng.code = opcode.none
 	end
+	return self._peng
 end
 
-function cls:peng(info, ... )
+function cls:peng(info, last, lastcard, ... )
 	-- body
+	assert(info and last and lastcard)
 	assert(info.idx == self._idx)
 	assert(info.card == self._peng.card:get_value())
 	assert(info.code == self._peng.code)
 	self._state = state.PENG
-	assert(#self._cards % 2 == 1, #self._cards)
+	
 	local len = #self._cards
 	local cards = {}
 	local idx = 0
@@ -605,15 +684,19 @@ function cls:peng(info, ... )
 		end
 	end
 	assert(#cards == 2)
-	table.insert(cards, card)
-	for i=idx-1,len-2 do
-		self._cards[i] = self._cards[i + 2]
-		self._cards[i + 2] = nil
+	for i,v in ipairs(cards) do
+		self:remove(v)
 	end
+	
+	last:remove_lead(lastcard)
+	table.insert(cards, lastcard)
+	assert(#cards == 3)
+
 	local pgcards = {}
 	pgcards.cards = cards
 	pgcards.hor = math.random(0, 2)
 	table.insert(self._putcards, pgcards)
+	self:print_cards()
 	return pgcards
 end
 

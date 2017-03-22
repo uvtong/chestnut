@@ -51,10 +51,11 @@
 .opinfo {
     idx       0 : integer
     card      1 : integer
-    guo       2 : integer
-    peng      3 : integer
-    gang      4 : integer
-    hu        5 : huinfo
+    dian      2 : integer
+    guo       3 : integer
+    peng      4 : integer
+    gang      5 : integer
+    hu        6 : huinfo
 }
 
 .crsc {
