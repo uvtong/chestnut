@@ -242,7 +242,7 @@ function cls:next_idx( ... )
 		if self._curidx > self._max then
 			self._curidx = 1
 		end
-		while self._players[self._curidx]._state == player.state.HU then
+		while self._players[self._curidx]:hashu() do
 			self._curidx = self._curidx + 1
 			if self._curidx > self._max then
 				self._curidx = 1
@@ -834,9 +834,9 @@ function cls:take_mcall( ... )
 	self._penginfo = nil
 
 	local opcodes = {}
-	log.info("take call player %d check_hu", self._curidx)
+	log.info("take my call player %d check_hu", self._curidx)
 	local reshu   = self._players[self._curidx]:check_hu(self._curcard, jiaotype.ZIMO, self._curidx)
-	log.info("take call player %d check_gang", self._curidx)
+	log.info("take my call player %d check_gang", self._curidx)
 	local resgang = self._players[self._curidx]:check_gang(self._curcard, self._curidx)
 
 	local huinfo = {}
@@ -899,19 +899,27 @@ function cls:take_ocall( ... )
 
 
 	local opcodes = {}
-	for j=1,4 do
+	for j=1,self._max do
 		local i = self._curidx + j
-		i = (i > 4) and (i - 4) or i
+		if i > self._max then
+			i = 1
+		end
+
+		if  then
+			if self._players[i]:hashu() then
+			end
+		end
+
 		if self._curidx == i then
-		elseif self._players[i]._state == player.state.HU then
+		elseif self._overtype == overtype.XUEZHAN and self._players[i]:hashu() then
 		else
 			assert(self._lastcard)
-			log.info("take call player %d check_hu", i)
+			log.info("take other call player %d check_hu", i)
 			local reshu = self._players[i]:check_hu(self._lastcard, jiaotype.NONE, self._lastidx)
-			log.info("take call player %d check_gang", i)
+			log.info("take other call player %d check_gang", i)
 			local resgang = self._players[i]:check_gang(self._lastcard, self._curidx)
-			log.info("take call player %d check_peng", i)
-			local respeng = self._players[i]:check_peng(self._lastcard)
+			log.info("take other call player %d check_peng", i)
+			local respeng = self._players[i]:check_peng(self._lastcard, self._curidx)
 
 			local huinfo = {}
 			huinfo.idx  = reshu.idx
@@ -999,7 +1007,7 @@ function cls:gang(ganginfo, ... )
 			self:record("gang", ganginfo)
 			self:push_client("gang", ganginfo)
 		elseif ganginfo.code == opcode.angang then
-			self._players[idx]:gang(ganginfo, self._players[self._lastidx], self._lastcard)
+			self._players[ganginfo.idx]:gang(ganginfo, self._players[self._lastidx], self._lastcard)
 
 			self:record("gang", ganginfo)
 			self:push_client("gang", ganginfo)
@@ -1038,11 +1046,28 @@ function cls:hu(hus, ... )
 		args.hus = hus
 		self:push_client("hu", args)
 	elseif self._state == state.OCALL then
+
 		self._state = state.HU
 
-		for k,v in pairs(hus) do
-			self._players[v.idx]:hu(v, self._players[self._lastidx], self._lastcard)
-			self._curidx = v.idx
+		local count = 0
+		local idx = self._curidx
+		for i=1,self._max do
+			local j = idx + i
+			if j > self._max then
+				j = 1
+			end
+			for k,v in pairs(hus) do
+				if v.idx == j then
+					count = count = 1
+					log.info("player %d hu", v.idx)
+					self._players[v.idx]:hu(v, self._players[self._lastidx], self._lastcard)
+					self._curidx = v.idx
+					break
+				end
+			end
+			if count == #hus then
+				break
+			end
 		end
 
 		local args = {}
@@ -1142,10 +1167,10 @@ function cls:call(opinfo, ... )
 		self._players[opinfo.idx]:cancel_timeout()
 		if opinfo.guo == opcode.guo then
 			self:guo()
-		elseif opinfo.hu.code ~= huinfo.NONE then
+		elseif opinfo.hu.code ~= hutype.NONE then
 			local hu = {}
-			hu.idx = opinfo.idx
-			hu.card = opinfo.card
+			hu.idx  = opinfo.hu.idx
+			hu.card = opinfo.hu.card
 			hu.code = opinfo.hu.code
 			hu.jiao = opinfo.hu.jiao
 			hu.dian = opinfo.hu.dian
@@ -1167,8 +1192,8 @@ function cls:call(opinfo, ... )
 		if call.hu then
 			if opinfo.hu.code ~= hutype.NONE then -- selected
 				local hu = {}
-				hu.idx = opinfo.idx
-				hu.card = opinfo.card
+				hu.idx  = opinfo.hu.idx
+				hu.card = opinfo.hu.card
 				hu.code = opinfo.hu.code
 				hu.jiao = opinfo.hu.jiao
 				hu.dian = opinfo.hu.dian
@@ -1179,7 +1204,7 @@ function cls:call(opinfo, ... )
 		if call.gang then
 			if opinfo.gang ~= opcode.none then
 				local gang = {}
-				gang.idx = opinfo.idx
+				gang.idx  = opinfo.idx
 				gang.card = opinfo.card
 				gang.code = opinfo.gang
 				self._ganginfo = gang
@@ -1189,7 +1214,7 @@ function cls:call(opinfo, ... )
 		if call.peng then
 			if opinfo.peng ~= opcode.none then
 				local peng = {}
-				peng.idx = opinfo.idx
+				peng.idx  = opinfo.idx
 				peng.card = opinfo.card
 				peng.code = opinfo.peng
 				self._penginfo = peng

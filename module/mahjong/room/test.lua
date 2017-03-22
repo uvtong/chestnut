@@ -11,22 +11,23 @@ local gang = require "gang"
 local hu = require "hu"
 local card = require "card"
 local cards = {
-
-	card.new(card.type.CRAK, 3, 1),
+	card.new(card.type.CRAK, 1, 1),
+	card.new(card.type.CRAK, 1, 2),
 	card.new(card.type.CRAK, 4, 1),
 	card.new(card.type.CRAK, 5, 2),
-	card.new(card.type.CRAK, 5, 3),
-	card.new(card.type.CRAK, 5, 4),
+	card.new(card.type.CRAK, 6, 3),
 
+	card.new(card.type.CRAK, 6, 4),
 	card.new(card.type.CRAK, 7, 4),
 	card.new(card.type.CRAK, 8, 1),
-	card.new(card.type.CRAK, 9, 1),
 
-	card.new(card.type.DOT, 1, 1),
-	card.new(card.type.DOT, 2, 1),
-	card.new(card.type.DOT, 5, 1),
-	card.new(card.type.DOT, 5, 2),
-	card.new(card.type.DOT, 5, 3),
+	card.new(card.type.BAM, 2, 1),
+	card.new(card.type.BAM, 2, 1),
+	card.new(card.type.BAM, 2, 1),
+
+	card.new(card.type.BAM, 4, 1),
+	card.new(card.type.BAM, 5, 2),
+	card.new(card.type.BAM, 6, 3),
 }
 
 local putcards = {
@@ -37,13 +38,13 @@ local putcards = {
 	}},
 }
 
--- print(hu.check_sichuan(cards, putcards))
+print(hu.check_sichuan(cards, putcards))
 
-local code, c = gang(1, 1, card.new(card.type.CRAK, 6, 4), cards, putcards)
-print(code)
-if code ~= opcode.none then
-	print(c:get_value())
-end
+-- local code, c = gang(1, 1, card.new(card.type.CRAK, 6, 4), cards, {})
+-- print(code)
+-- if code ~= opcode.none then
+-- 	print(c:get_value())
+-- end
 
 print("-----------------------------------------------------")
 

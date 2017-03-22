@@ -68,10 +68,11 @@ local function gang(idx, curidx, card, cards, putcards, ... )
 		if #putcards > 0 then
 			for i,v in ipairs(putcards) do
 				if #v.cards == 3 then
-					for j,card in ipairs(cards) do
-						if v.cards[1]:eq(card) then
+					-- find in cards
+					for j,xcard in ipairs(cards) do
+						if v.cards[1]:eq(xcard) then
 							res = opcode.bugang
-							return res, card
+							return res, xcard
 						end
 					end
 				end

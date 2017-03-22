@@ -329,8 +329,38 @@ function _M.check_sichuan(cards, putcards, ... )
 							ok = false
 							break
 						end
+					elseif d:tof() == c:tof() then
+						if d:nof() == c:nof() + 1 then
+							if idx > len then
+								break
+							end
+							local e = cards[idx]
+							idx = idx + 1
+							if e:tof() == d:tof() then
+								if e:nof() == d:nof() + 1 then
+									jiang = jiang + 1
+									lian3 = lian3 + 1
+									if idx <= len then
+										local f = cards[idx]
+										idx = idx + 1
+										if f:tof() ~= e:tof() then
+											qing = false
+										end
+										a = f
+									else
+										
+										break
+									end
+								else
+									break
+								end
+							else
+								break
+							end
+						else
+							break
+						end
 					else
-						ok = false
 						break
 					end
 				else
@@ -449,7 +479,9 @@ function _M.check_sichuan(cards, putcards, ... )
 											break
 										end
 									else
-										break
+										lian3 = lian3 + 1
+										a = d
+										idx = idx - 1
 									end
 								else
 									break

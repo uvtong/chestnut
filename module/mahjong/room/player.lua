@@ -61,10 +61,12 @@ function cls:ctor(env, uid, sid, fd, ... )
 	self._curjuchip = 0
 	self._chipli = {}   -- { code,dian,chip}
 
+	self._state  = state.NONE
+	self._hashu  = false
+
 	self._fen    = 0
 	self._que    = 0
 
-	self._state  = state.NONE
 	self._takefirst = false
 	self._takecardsidx = 1
 	self._takecardscnt = 0
@@ -227,9 +229,39 @@ function cls:get_cards_value( ... )
 	return cards
 end
 
+function cls:hashu( ... )
+	-- body
+	return self._hashu
+end
+
 function cls:clear( ... )
 	-- body
-	self._cards = {}
+	self._state  = state.NONE
+	self._hashu  = false
+
+	self._fen    = 0
+	self._que    = 0
+
+	self._takefirst = false
+	self._takecardsidx = 1
+	self._takecardscnt = 0
+	self._takecardslen = 0
+	self._takecards = {}
+
+	self._cards  = {}
+	self._leadcards = {}
+	self._putcards = {}
+	self._holdcard = nil
+
+	self._peng = {}
+	self._gang = {}
+	self._hu = {}
+
+	self._canhucards = {}
+	self._hucards = {}
+	self._hugang = 0
+	
+	self._cancelcd = nil
 end
 
 function cls:print_cards( ... )
@@ -470,6 +502,8 @@ end
 
 function cls:hu(info, last, lastcard, ... )
 	-- body
+	log.info("info idx:%d, card:%d, code:%d, jiao:%d, dian:%d", info.idx, info.card, info.code, info.jiao, info.dian)
+	log.info("self idx:%d, card:%d, code:%d, jiao:%d, dian:%d", self._hu.idx, self._hu.card:get_value(), self._hu.code, self._hu.jiao, self._hu.dian)
 	assert(info and last and lastcard)
 	assert(info.idx == self._idx)
 	assert(info.card == self._hu.card:get_value())
@@ -477,6 +511,7 @@ function cls:hu(info, last, lastcard, ... )
 	assert(info.jiao == self._hu.jiao)
 	assert(info.dian == self._hu.dian)
 	self._state = state.HU
+	self._hashu = true
 	if self._hu.jiao == jiaotype.ZIMO then
 		assert(self._holdcard == self._hu.card)
 	else
@@ -702,6 +737,8 @@ end
 
 function cls:take_turn_after_peng( ... )
 	-- body
+	log.info("take_turn_after_peng")
+	self:print_cards()
 	local len = #self._cards
 	local card = self:remove_pos(len)
 	assert(card)
