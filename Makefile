@@ -12,7 +12,7 @@ CLIB_SRC_PATH ?= lualib-src
 CSERVICE_PATH ?= cservice
 SERVICE_SRC_PATH ?= service-src
 
-CFLAGS    = -g -O2 -Wall $(MYCFLAGS)
+CFLAGS    = -std=c99 -g -O2 -Wall $(MYCFLAGS)
 CPPFLAGES = -std=c++11 -fpermissive -Wnarrowing $(CFLAGS)
 
 .PHONY:
@@ -111,8 +111,7 @@ $(CSERVICE_PATH)/udpgate.so: $(SERVICE_SRC_PATH)/service_udpgate.c $(SERVICE_SRC
 	$(CC) $(CFLAGS) $(SHARED) -I$(SKYNET_INC) $^ -o $@
 
 
-all: $(SKYNET_PATH)/skynet \
-	$(LUA_CJSON_PATH)/cjson.so \
+all: $(LUA_CJSON_PATH)/cjson.so \
 	$(LUA_CLIB_PATH)/log.so \
 	$(LUA_CLIB_PATH)/math3d.so \
 	$(LUA_CLIB_PATH)/queue.so \
@@ -124,7 +123,7 @@ all: $(SKYNET_PATH)/skynet \
 	$(CSERVICE_PATH)/catlogger.so \
 	$(CSERVICE_PATH)/udpgate.so 
 
-clean: clean_skynet clean_cjson
+clean: clean_cjson \
 	rm -rf $(LUA_CLIB_PATH)/log.so \
 		$(LUA_CLIB_PATH)/math3d.so \
 		$(LUA_CLIB_PATH)/queue.so \

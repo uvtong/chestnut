@@ -46,7 +46,8 @@ lenqueue(lua_State *L) {
 		if (tail == 1) {
 			tail = cap + 1;
 		} else {
-			for (size_t i = 1; i < tail; i++) {
+			int i;
+			for (i = 1; i < tail; i++) {
 				lua_rawgeti(L, 1, i);
 				lua_rawseti(L, 1, cap + i);
 			}
@@ -137,7 +138,8 @@ lremove(lua_State *L) {
 
 	if (lua_type(L, 2) == LUA_TTABLE) {
 		const void *ptr = lua_topointer(L, 2);
-		for (size_t i = head; i != tail; i = NEXT_INDEX(i + 1, cap)) {
+		int i;
+		for (i = head; i != tail; i = NEXT_INDEX(i + 1, cap)) {
 			lua_rawgeti(L, 1, i);
 			if (lua_type(L, -1) == LUA_TTABLE) {
 				if (lua_topointer(L, -1) == ptr) {

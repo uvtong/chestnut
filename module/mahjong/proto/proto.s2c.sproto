@@ -263,6 +263,11 @@ xuanque 22 {
     }
 }
 
+roomover 23 {
+    response {
+        errorcode 0 : integer
+    }
+}
 
 rcard 30 {
     request {

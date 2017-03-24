@@ -67,7 +67,6 @@ function cls:ctor(env, uid, sid, fd, ... )
 	self._fen    = 0
 	self._que    = 0
 
-	self._takefirst = false
 	self._takecardsidx = 1
 	self._takecardscnt = 0
 	self._takecardslen = 0
@@ -199,9 +198,9 @@ function cls:set_que(value, ... )
 		self._cards[i]:set_que(self._que)
 	end
 	self:sort_cards()
-	for i=1,len do
-		log.info(self._cards[i]:describe())
-	end
+
+	log.info("player %d set_que", self._idx)
+	self:print_cards()
 end
 
 function cls:set_state(s, ... )
@@ -242,7 +241,6 @@ function cls:clear( ... )
 	self._fen    = 0
 	self._que    = 0
 
-	self._takefirst = false
 	self._takecardsidx = 1
 	self._takecardscnt = 0
 	self._takecardslen = 0
@@ -426,9 +424,9 @@ function cls:take_card( ... )
 	if self._takecardscnt > 0 then
 		local card = self._takecards[self._takecardsidx]
 		self._takecards[self._takecardsidx] = nil
-		self._takecardscnt = self._takecardscnt - 1
-
 		self._takecardsidx = self._takecardsidx + 1
+		self._takecardscnt = self._takecardscnt - 1
+		
 		if self._takecardsidx > self._takecardslen then
 			self._takecardsidx = 1
 			self._env:next_takeidx()
@@ -441,6 +439,7 @@ end
 function cls:take_turn_card(card, ... )
 	-- body
 	self._holdcard = card
+	self._holdcard:set_que(self._que)
 end
 
 function cls:check_que( ... )
@@ -774,12 +773,16 @@ end
 
 function cls:start( ... )
 	-- body
-	self._state = state.NONE
-	self._cards = {}
+	self:clear()
 end
 
 function cls:close( ... )
 	-- body
+end
+
+function cls:take_restart( ... )
+	-- body
+	self:clear()
 end
 
 return cls

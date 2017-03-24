@@ -137,7 +137,7 @@ function _M.check_sichuan(cards, putcards, ... )
 				end
 				local d = cards[idx]
 				idx = idx + 1
-				if d:eq(a) then
+				if d:eq(c) then
 					if idx > len then
 						break
 					end
@@ -212,25 +212,50 @@ function _M.check_sichuan(cards, putcards, ... )
 					else
 						break
 					end
-				elseif d:tof() == a:tof() then
-					if d:nof() == a:nof() + 1 then
+				elseif d:tof() == c:tof() then
+					if d:nof() == c:nof() + 1 then
 						if idx > len then
 							break
 						end
 						local e = cards[idx]
 						idx = idx + 1
-						if e:tof() == d:tof() then
+						if e:eq(d) then
+							tong3 = tong3 + 1
+							a = d
+							idx = idx - 1
+						elseif e:tof() == d:tof() then
 							if e:nof() == d:nof() + 1 then
-								lian3 = lian3 + 1
-								jiang = jiang + 1
 								if idx <= len then
 									local f = cards[idx]
 									idx = idx + 1
-									if f:tof() ~= a:tof() then
+									if f:tof() == e:tof() then
+										if f:nof() == e:nof() + 1 then
+											tong3 = tong3 + 1
+											lian3 = lian3 + 1
+											if idx <= len then
+												local g = cards[idx]
+												idx = idx + 1
+												if g:tof() ~= f:tof() then
+													qing = false
+												end
+												a = g
+											else
+												break
+											end
+										else
+											jiang = jiang + 1
+											lian3 = lian3 + 1
+											a = f
+										end
+									else
 										qing = false
+										jiang = jiang + 1
+										lian3 = lian3 + 1
+										a = f
 									end
-									a = f
 								else
+									lian3 = lian3 + 1
+									jiang = jiang + 1
 									break
 								end
 							else
@@ -242,15 +267,14 @@ function _M.check_sichuan(cards, putcards, ... )
 					else
 						tong3 = tong3 + 1
 						a = d
-						print("step 1")
 					end
 				else
 					qing = false
 					tong3 = tong3 + 1
 					a = d
 				end
-			elseif c:tof() == a:tof() then
-				if c:nof() == a:nof() + 1 then
+			elseif c:tof() == b:tof() then
+				if c:nof() == b:nof() + 1 then
 					if idx > len then
 						break
 					end
@@ -308,25 +332,32 @@ function _M.check_sichuan(cards, putcards, ... )
 								tong3 = tong3 + 1
 								a = f
 							end
-						elseif c:tof() == e:tof() then
-							if c:nof() + 1 == e:nof() then
-								if idx < len then
-									ok = false
+						elseif e:tof() == d:tof() then
+							if e:nof() == d:nof() + 1 then
+								if idx > len then
 									break
 								end
 								local f = cards[idx]
 								idx = idx + 1
 								if f:eq(e) then
+									lian3 = lian3 + 2
+									if idx > len then
+										break
+									else
+										local g = cards[idx]
+										idx = idx + 1
+										if g:tof() ~= f:tof() then
+											qing = false
+										end
+										a = g
+									end
 								else
-									ok = false
 									break
 								end
 							else
-								ok = false
 								break
 							end
 						else
-							ok = false
 							break
 						end
 					elseif d:tof() == c:tof() then
@@ -382,18 +413,22 @@ function _M.check_sichuan(cards, putcards, ... )
 				if c:eq(b) then
 					if idx <= len then
 						local d = cards[idx]
+						idx = idx + 1
 						if d:eq(c) then
 							if idx <= len then
 								local e = cards[idx]
+								idx = idx + 1
 								if e:eq(d) then
 									if idx <= len then
 										local f = cards[idx]
+										idx = idx + 1
 										if f:tof() == e:tof() then
 											if f:nof() == e:nof() + 1 then
 												tong3 = tong3 + 1
 												lian3 = lian3 + 1
 												if idx <= len then
 													local g = cards[idx]
+													idx = idx + 1
 													if g:tof() ~= a:tof() then
 														qing = false
 													end
@@ -416,10 +451,11 @@ function _M.check_sichuan(cards, putcards, ... )
 										jiang = jiang + 1
 										if idx <= len then
 											local f = cards[idx]
+											idx = idx + 1
 											if f:tof() ~= e:tof() then
 												qing = false
 											end
-											a = f 
+											a = f
 										else
 											break
 										end
@@ -432,8 +468,47 @@ function _M.check_sichuan(cards, putcards, ... )
 							else
 								break
 							end
-						else
-							break
+						elseif d:tof() == c:tof() then
+							if d:nof() == c:nof() + 1 then
+								if idx <= len then
+									local e = cards[idx]
+									idx = idx + 1
+									if e:eq(d) then
+										if idx <= len then
+											local f = cards[idx]
+											idx = idx + 1
+											if f:tof() == e:tof() then
+												if f:nof() == e:nof() + 1 then
+													print("step 1")
+													lian3 = lian3 + 2
+													if idx <= len then
+														local g = cards[idx]
+														idx = idx + 1
+														if g:tof() ~= f:tof() then
+															qing = false
+														end
+														a = g
+													else
+														break
+													end
+												else
+													break
+												end
+											else
+												break
+											end
+										else
+											break
+										end
+									else
+										break
+									end
+								else
+									break
+								end
+							else
+								break
+							end
 						end
 					else
 						break

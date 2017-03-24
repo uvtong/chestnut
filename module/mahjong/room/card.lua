@@ -22,7 +22,6 @@ function cls:ctor(t, num, idx, ... )
 	self._value = ((t & 0xff) << TYPE_SHIFT) | ((num & 0x0f) << NUM_SHIFT) | ((idx & 0x0f) << IDX_SHIFT)
 	self._que  = 0
 	
-
 	self._pos = 0
 	self._master = false  -- 判断是否已经被分配
 	self._bright = false  -- 判断是否已经被选中
