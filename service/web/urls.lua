@@ -14,4 +14,6 @@ _M['^/percudure']     = assert(view["percudure"])
 _M['^/404']           = assert(view["_404"])
 _M['^/test']          = assert(view["test"])
 
+_M['^/version/1.0.1'] = assert(view[])
+
 return _M

@@ -207,20 +207,24 @@ function CMD.start(conf)
 			readq:enqueue(db)
 		end
 	elseif name == "slave" then
-		local db_conf = {
-			host = conf.db_host,
-			port = conf.db_port or 3306,
-			database = conf.db_database or "project",
-			user = conf.db_user or "root",
-			password = conf.db_password or "yulei",
-		}
-		db = connect_mysql(db_conf)
-		local cache_conf = {
-			host = conf.cache_host,
-			port = conf.cache_port or 6379,
-			db = 0
-		}
-		cache = connect_redis(cache_conf)
+		if conf.db_host then
+			local db_conf = {
+				host = conf.db_host,
+				port = conf.db_port or 3306,
+				database = conf.db_database or "project",
+				user = conf.db_user or "root",
+				password = conf.db_password or "yulei",
+			}
+			db = connect_mysql(db_conf)
+		end
+		if conf.cache_host then
+			local cache_conf = {
+				host = conf.cache_host,
+				port = conf.cache_port or 6379,
+				db = 0
+			}
+			cache = connect_redis(cache_conf)
+		end
 	end
 	return true
 end
