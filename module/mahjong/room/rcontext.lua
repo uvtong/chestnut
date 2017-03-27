@@ -509,6 +509,15 @@ function cls:take_shuffle( ... )
 
 	self._stime = skynet.now()
 	self._record = {}
+	-- record 
+	local args = {}
+	for i=1,self._max do
+		local p = {}
+		p.idx = self._players[i]:get_idx()
+		p.uid = self._players[i]:get_uid()
+		table.insert(args, p)
+	end
+	self:record("players", args)
 
 	if self._lastwin and self._lastwin > 0 and self._lastwin <= 4 then
 		self._firstidx = self._lastwin
@@ -516,6 +525,7 @@ function cls:take_shuffle( ... )
 		self._firstidx = self:get_player_by_uid(self._host):get_idx()
 		log.info("firstidx %d", self._firstidx)
 	end
+	self._curidx = self._firstidx
 
 	for i=1,self._cardssz do
 		self._cards[i]:clear()
@@ -870,11 +880,13 @@ function cls:take_mcall( ... )
 	if opinfo.hu.code ~= hutype.NONE then
 		self._call[self._curidx].hu = true
 		self._callhu = self._callhu + 1
+		self._callhux = self._callhu
 		can = true
 	end
 	if opinfo.gang ~= opcode.none then
 		self._call[self._curidx].gang = true
 		self._callgang = self._callgang + 1
+		self._callgangx = self._callgang
 		can = true
 	end
 	if can then
@@ -1128,12 +1140,14 @@ end
 function cls:_calc_call( ... )
 	-- body
 	if self._callsz > 0 then
+	else
 		if self._callhu > 0 then -- first
 			if self._callhux <= 0 then
 				if #self._huinfos > 0 then
 					self:hu(self._huinfos)
 				else
 					if self._callgang > 0 then
+						assert(self._callgangx <= 0)
 						if self._callgangx <= 0 then
 							if self._ganginfo then
 								self:gang(self._ganginfo)
@@ -1143,6 +1157,7 @@ function cls:_calc_call( ... )
 						else
 						end
 					elseif self._callpeng > 0 then
+						assert(self._callpengx <= 0)
 						if self._callpengx <= 0 then
 							if self._penginfo then
 								self:peng(self._penginfo)
@@ -1176,8 +1191,6 @@ function cls:_calc_call( ... )
 				end
 			end
 		end	
-	else
-
 	end
 end
 
@@ -1187,6 +1200,7 @@ function cls:call(opinfo, ... )
 	self._callsz = self._callsz - 1
 	self._players[opinfo.idx]:cancel_timeout()
 	if call.hu then
+		call.hu = false
 		if opinfo.hu.code ~= hutype.NONE then -- selected
 			local hu = {}
 			hu.idx  = opinfo.hu.idx
@@ -1199,6 +1213,7 @@ function cls:call(opinfo, ... )
 		self._callhux = self._callhux - 1
 	end
 	if call.gang then
+		call.gang = false
 		if opinfo.gang ~= opcode.none then
 			local gang = {}
 			gang.idx  = opinfo.idx
@@ -1209,6 +1224,7 @@ function cls:call(opinfo, ... )
 		self._callgangx = self._callgangx - 1
 	end
 	if call.peng then
+		call.peng = false
 		if opinfo.peng ~= opcode.none then
 			local peng = {}
 			peng.idx  = opinfo.idx
@@ -1226,6 +1242,7 @@ function cls:timeout_call(idx, ... )
 	local call = assert(self._call[idx])
 	self._callsz = self._callsz - 1
 	if call.hu then -- only 1
+		call.hu = false
 		if self._players[idx]._hu.jiao == jiaotype.ZIMO then
 			local hu = {}
 			hu.idx = self._players[idx]._hu.idx
@@ -1238,9 +1255,11 @@ function cls:timeout_call(idx, ... )
 		self._callhux = self._callhux - 1
 	end
 	if call.gang then
+		call.gang = false
 		self._callgangx = self._callgangx - 1
 	end
 	if call.peng then
+		call.peng = false
 		self._callpengx = self._callpengx - 1
 	end
 	self:_calc_call()

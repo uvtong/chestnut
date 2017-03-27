@@ -270,3 +270,19 @@ fetchsysmail1 35 {
         inbox     2 : *sysmail
     }   
 }
+
+records 36 {
+    response {
+        errorcode 0 : integer
+    }
+}
+
+record 37 {
+    request {
+        id 0 : integer
+    }
+    response {
+        errorcode 0 : integer
+        r         1 : string
+    }
+}

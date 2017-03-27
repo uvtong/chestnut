@@ -13,7 +13,8 @@ CSERVICE_PATH ?= cservice
 SERVICE_SRC_PATH ?= service-src
 
 CFLAGS    = -std=c99 -g -O2 -Wall $(MYCFLAGS)
-CPPFLAGES = -std=c++11 -fpermissive -Wnarrowing $(CFLAGS)
+# CFLAGS    = -g -o2 -Wall $(MYCFLAGS)
+CPPFLAGES = -std=c++11 -g -o2 -Wall -fpermissive $(MYCFLAGS)
 
 .PHONY:
 
@@ -75,7 +76,7 @@ clean_skynet:
 
 # lualib
 $(LUA_CLIB_PATH)/log.so: $(CLIB_SRC_PATH)/lua-log.c | $(LUA_CLIB_PATH)
-	$(CC) $(CFLAGS) $(SHARED) -I$(LUA_INC) $^ -o $@ 
+	$(CC) $(CFLAGS) $(SHARED) -I$(LUA_INC) $^ -o $@ -lrt
 
 $(LUA_CLIB_PATH)/queue.so: $(CLIB_SRC_PATH)/lua-queue.c | $(LUA_CLIB_PATH)
 	$(CC) $(CFLAGS) $(SHARED) -I$(LUA_INC) $^ -o $@
@@ -111,7 +112,7 @@ $(CSERVICE_PATH)/udpgate.so: $(SERVICE_SRC_PATH)/service_udpgate.c $(SERVICE_SRC
 	$(CC) $(CFLAGS) $(SHARED) -I$(SKYNET_INC) $^ -o $@
 
 
-all: $(LUA_CJSON_PATH)/cjson.so \
+all: $(LUA_CLIB_PATH)/cjson.so \
 	$(LUA_CLIB_PATH)/log.so \
 	$(LUA_CLIB_PATH)/math3d.so \
 	$(LUA_CLIB_PATH)/queue.so \

@@ -83,7 +83,7 @@ function cls:newborn(gate, uid, subid, secret, suid, ... )
 	cls.super.newborn(self, gate, uid, subid, secret, suid)
 	
 	self._user:set_uid(self._suid)
-	self._user:set_name("nihao")
+	self._user:set_nameid(1)
 	self._user:set_age(10)
 	self._user:set_gold(1000)
 	self._user:set_diamond(1000)
@@ -93,7 +93,7 @@ function cls:newborn(gate, uid, subid, secret, suid, ... )
 	self._user:set_checkin_lday(0)
 
 	local name = skynet.call(".UNAME_MGR", "lua", "name")
-	self._user:set_name(name)
+	self._user:set_nameid(name)
 	self._user:insert_db("tg_users")
 
 	self._sysinbox:poll()

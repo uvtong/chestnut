@@ -107,7 +107,8 @@ gang 7 {
         code      1 : integer
         card      2 : integer
         hor       3 : integer
-        chip      4 : integer
+        dian      4 : integer
+        chip      5 : integer
     }
     response {
         errorcode 0 : integer

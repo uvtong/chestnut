@@ -27,7 +27,7 @@ function cls:set_uid(value, ... )
 	self.uid:set_value(value)
 end
 
-function cls:set_name(value, ... )
+function cls:set_nameid(value, ... )
 	-- body
 	self.name:set_value(value)
 end
