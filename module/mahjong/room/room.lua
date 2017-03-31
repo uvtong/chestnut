@@ -37,16 +37,15 @@ function CMD:afk(sid, ... )
 	player:set_robot(false)
 end
 
+function CMD:on_create(agent, ... )
+	-- body
+	local res = self:create(agent.uid, agent.sid, agent.agent, agent.name, agent.sex)
+	return res
+end
+
 function CMD:on_join(agent, ... )
 	-- body
-	local res = {}
-	if self:get_online() == self._max then
-		res.errorcode = errorcode.FAIL
-		return res
-	end
-
-	local res = self:join(agent.uid, agent.sid, agent.agent, agent.name)
-
+	local res = self:join(agent.uid, agent.sid, agent.agent, agent.name, agent.sex)
 	return res
 end
 
@@ -231,7 +230,32 @@ function CMD:take_xuanpao(args, ... )
 	return NORET
 end
 
+function CMD:xuanpao( ... )
+	-- body
+	return NORET
+end
+
 function CMD:take_xuanque(args, ... )
+	-- body
+	return NORET
+end
+
+function CMD:xuanque(args, ... )
+	-- body
+	return NORET
+end
+
+function CMD:settle( ... )
+	-- body
+	return NORET
+end
+
+function CMD:final_settle( ... )
+	-- body
+	return NORET
+end
+
+function CMD:roomover( ... )
 	-- body
 	return NORET
 end
@@ -241,13 +265,15 @@ skynet.start(function ()
 	skynet.dispatch("lua", function(_, source, cmd, ...)
 		log.info("room [%s] is called", cmd)
 		local f = CMD[cmd]
-		local ok, err = pcall(f, ctx, ...)
+		local msgh = function ( ... )
+			-- body
+			log.info(debug.traceback())
+		end
+		local ok, err = xpcall(f, msgh, ctx, ...)
 		if ok then
 			if err ~= NORET then
 				skynet.retpack(err)
 			end
-		else
-			log.error(err)
 		end
 	end)
 	ctx = context.new()

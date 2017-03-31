@@ -16,6 +16,7 @@ function cls:ctor(env, dbctx, set, ... )
 	self.checkin_mcount = field.new(self, "checkin_mcount", 8, field.data_type.integer)
 	self.checkin_lday   = field.new(self, "checkin_lday", 9, field.data_type.integer)
 	self.rcard   = field.new(self, "rcard", 10, field.data_type.integer)
+	self.sex     = field.new(self, "sex", 10, field.data_type.integer)
 
 	self.uid.value = self._env._suid
 	self.name = "nihao"

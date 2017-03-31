@@ -44,10 +44,28 @@ local function multiple(lo, max, ... )
 		m[hutype.SHIBALUOHAN]     = 1
 		m[hutype.QINGSHIBALUOHAN] = 1
 	end
-	local function xx(hu, jiao, ... )
+	local function xx(hu, jiao, gang, ... )
 		-- body
-		local res = assert(m[t])
-		return res
+		local hm = assert(m[hu])
+		if lo == region.Sichuan then
+			if jiao == jiaotype.DIANGANGHUA then
+				hm = hm * 2
+			elseif jiao == jiaotype.GANGSHANGPAO then
+				hm = hm * 2
+			elseif jiao == jiaotype.QIANGGANGHU then
+				hm = hm * 2
+			elseif jiao == jiaotype.ZIGANGHUA then
+				hm = hm * 2
+			elseif jiao == jiaotype.ZIMO then
+				hm = hm * 2
+			end
+			if hm == hutype.PINGHU then
+				if gang > 0 then
+					hm = hm * gang * 2
+				end
+			end
+		end
+		return hm
 	end
 	return xx
 end

@@ -6,42 +6,53 @@
 }
 
 .settlementitem {
-    code 0 : integer
-    hucode 1 : integer
-    multi  2 : integer
-    points 3 : integer
-    aim    4 : integer
+    idx       0 : integer
+    chip      1 : integer
+    left      2 : integer
+    win       3 : *integer
+    lose      4 : *integer
+    gang      5 : integer
+    hucode    6 : integer
+    hujiao    7 : integer
+    hugang    8 : integer
+    huazhu    9 : integer
+    dajiao    10 : integer
+    tuisui    11 : integer
 }
 
-.settlement {
-    idx    0 : integer
-    points 1 : integer
-    li     2 : *settlementitem  
+.settles {
+    p1 0 : *settlementitem
+    p2 1 : *settlementitem
+    p3 2 : *settlementitem
+    p4 3 : *settlementitem
 }
 
 .player {
-    name 0 : string
-    idx  1 : integer
+    idx  0 : integer
+    chip 1 : integer
     sid  2 : integer
+    sex  3 : integer
+    name 4 : string
 }
 
 .huinfo {
-    idx  0 : integer
-    card 1 : integer
-    code 2 : integer
-    jiao 3 : integer
-    dian 4 : integer
-    chip 5 : integer
+    idx       0 : integer
+    card      1 : integer
+    code      2 : integer
+    gang      3 : integer
+    jiao      4 : integer
+    dian      5 : integer
 }
 
 .opinfo {
-    idx       0 : integer
-    countdown 1 : integer
-    card      2 : integer
-    dian      3 : integer
-    peng      4 : integer
-    gang      5 : integer
-    hu        6 : huinfo
+    idx        0 : integer
+    countdown  1 : integer
+    take       2 : integer
+    card       3 : integer
+    dian       4 : integer
+    peng       5 : integer
+    gang       6 : integer
+    hu         7 : huinfo
 }
 
 handshake 1 {
@@ -92,9 +103,10 @@ take_turn 5 {
 peng 6 {
     request {
         idx       0 : integer
-        card      1 : integer
-        code      2 : integer
+        code      1 : integer
+        card      2 : integer
         hor       3 : integer
+        dian      4 : integer
     }
     response {
         errorcode 0 : integer
@@ -108,7 +120,7 @@ gang 7 {
         card      2 : integer
         hor       3 : integer
         dian      4 : integer
-        chip      5 : integer
+        settles   5 : settles
     }
     response {
         errorcode 0 : integer
@@ -118,6 +130,7 @@ gang 7 {
 hu 8 {
     request {
         hus       0 : *huinfo
+        settles   1 : settles
     }
     response {
         errorcode 0 : integer
@@ -189,9 +202,6 @@ ready 14 {
 }
 
 over 15 {
-    request {
-        settle 0 : *settlement
-    }
     response {
         errorcode 0 : integer
     }
@@ -257,14 +267,32 @@ take_xuanque 21 {
 xuanque 22 {
     request {
         idx       0 : integer
-        que        1 : integer
+        que       1 : integer
     }
     response {
         errorcode 0 : integer
     }
 }
 
-roomover 23 {
+settle 23 {
+    request {
+        settles 0 : settles
+    }
+    response {
+        errorcode 0 : integer
+    }
+}
+
+final_settle 24 {
+    request {
+        settles 0 : settles
+    } 
+    response {
+        errorcode 0 : integer
+    }
+}
+
+roomover 25 {
     response {
         errorcode 0 : integer
     }

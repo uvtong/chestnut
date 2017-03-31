@@ -11,9 +11,11 @@
 }
 
 .player {
-    name 0 : string
-    idx  1 : integer
+    idx  0 : integer
+    chip 1 : integer
     sid  2 : integer
+    sex  3 : integer
+    name 4 : string
 }
 
 .mail {
@@ -44,8 +46,9 @@
     idx  0 : integer
     card 1 : integer
     code 2 : integer
-    jiao 3 : integer
-    dian 4 : integer
+    gang 3 : integer
+    jiao 4 : integer
+    dian 5 : integer
 }
 
 .opinfo {
@@ -107,7 +110,8 @@ create 4 {
     response {
         errorcode 0 : integer
         roomid    1 : integer
-        me        2 : player
+        room_max  2 : integer
+        me        3 : player
     }
 }
 
@@ -117,9 +121,10 @@ join 5 {
     }
     response {
         errorcode 0 : integer
-        ps        1 : *player
-        me        2 : player
-        roomid    3 : integer
+        roomid    1 : integer
+        room_max  2 : integer
+        me        3 : player
+        ps        4 : *player
     }
 }
 

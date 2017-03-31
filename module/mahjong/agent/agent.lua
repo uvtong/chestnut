@@ -62,43 +62,43 @@ function REQUEST:create(args, ... )
 	local sid = self:get_subid()
 	local agent = skynet.self()
 	local name = self._user.name.value
+	local sex = self._user.sex.value
 	local agent = {
 		uid = uid,
 		sid = sid,
 		agent = agent,
-		name = name
+		name = name,
+		sex = sex
 	}
 	local id = skynet.call(".ROOM_MGR", "lua", "create", uid, args)
 	local addr = skynet.call(".ROOM_MGR", "lua", "apply", id)
 	self:set_room(addr)
-	local me = skynet.call(addr, "lua", "on_join", agent)
-	local res = {}
-	res.errorcode = errorcode.SUCCESS
-	res.roomid = id
-	res.me = me
+	local res = skynet.call(addr, "lua", "on_create", agent)
 	return res
 end
 
 function REQUEST:join(args, ... )
 	-- body
+	local res = {}
 	local uid = self:get_uid()
 	local sid = self:get_subid()
 	local agent = skynet.self()
 	local name = self._user.name.value
+	local sex = self._user.sex.value
 	local agent = {
 		uid = uid,
 		sid = sid,
 		agent = agent,
-		name = name
+		name = name,
+		sex = sex
 	}
 	local addr = skynet.call(".ROOM_MGR", "lua", "apply", args.roomid)
-	self:set_room(addr)
-	if addr ~= 0 then
-		local res = skynet.call(addr, "lua", "on_join", agent)
+	if addr == 0 then
+		res.errorcode = errorcode.NOEXiST_ROOMID
 		return res
 	else
-		local res = {}
-		res.errorcode = errorcode.FAIL
+		self:set_room(addr)
+		local res = skynet.call(addr, "lua", "on_join", agent)
 		return res
 	end
 end
@@ -218,11 +218,15 @@ local function room_response(name, args)
 	cmd["lead"] = true
 	cmd["over"] = true
 	cmd["restart"] = true
+	cmd["rchat"] = true
 	cmd["take_restart"] = true
 	cmd["take_xuanpao"] = true
 	cmd["take_xuanque"] = true
 	cmd["xuanque"] = true
 	cmd["xuanpao"] = true
+	cmd["settle"] = true
+	cmd["final_settle"] = true
+	cmd["roomover"] = true
 	if cmd[name] then
 		local addr = ctx:get_room()
 		skynet.send(addr, "lua", name, args)
@@ -408,10 +412,14 @@ local function room_sendrequest(name, args, ... )
 	cmd["over"] = true
 	cmd["restart"] = true
 	cmd["take_restart"] = true
+	cmd["rchat"] = true
 	cmd["take_xuanpao"] = true
 	cmd["take_xuanque"] = true
 	cmd["xuanque"] = true
 	cmd["xuanpao"] = true
+	cmd["settle"] = true
+	cmd["final_settle"] = true
+	cmd["roomover"] = true
 	if cmd[name] then
 		ctx:send_request(name, args)
 		return true
