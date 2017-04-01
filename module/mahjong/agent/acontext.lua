@@ -8,6 +8,7 @@ local checkindailymgr = require "checkindailymgr"
 local errorcode = require "errorcode"
 local radiocenter = require "radiocenter"
 local sysinbox = require "sysinbox"
+local recordmgr = require "recordmgr"
 
 local call = skynet.call
 local assert = assert
@@ -37,6 +38,7 @@ function cls:ctor( ... )
 	self._inbox = inbox.new(self, self._dbcontext, nil)
 	self._checkindailymgr = checkindailymgr.new(self, self._dbcontext)
 	self._sysinbox = sysinbox.new(self, self._dbcontext)
+	self._recordmgr = recordmgr.new(self, self._dbcontext)
 
 	self._cancelupdate = nil
 
@@ -121,7 +123,8 @@ function cls:load_db_to_data()
 	-- load user
 	self._user:load_db_to_data()
 	self._sysinbox:load_db_to_data()
-
+	self._recordmgr:load_db_to_data()
+	
 end
 
 function cls:first( ... )

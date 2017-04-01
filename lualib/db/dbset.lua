@@ -14,7 +14,6 @@ function cls:ctor(env, dbctx, ... )
 	self._data = {}
 	self._count = 0
 	self._pk = {}
-	self._searchs = {}
 	self._tname = ""
 	return self
 end

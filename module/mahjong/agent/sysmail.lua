@@ -9,6 +9,7 @@ function cls:ctor(env, dbctx, set, ... )
 	-- body
 	cls.super.ctor(self, env, dbctx, set)
 
+	self.id       = field.new(self, "id", 1, field.data_type.integer)
 	self.uid      = field.new(self, "uid", 2, field.data_type.integer)
 	self.mailid   = field.new(self, "mailid", 3, field.data_type.integer)
 	self.datetime = field.new(self, "datetime", 4, field.data_type.integer)
@@ -32,11 +33,23 @@ end
 
 function cls:set_viewed(value, ... )
 	-- body
-	set.viewed:set_value(value)
+	self.viewed:set_value(value)
 end
 
-function cls:update_db( ... )
+function cls:update_db(col, ... )
 	-- body
+	assert(col)
+	local set = ""
+	local v = assert(self._fields[col])
+	if v:dt() == field.data_type.integer then
+		set = set .. v.name .. string.format("=%d", v.value)
+	elseif v:dt() == field.data_type.biginteger then
+		set = set .. v.name .. string.format("=%d", v.value)
+	end
+	local where = string.format("uid=%d and mailid=%d", self.uid.value, self.mailid.value)
+	local sql = string.format("update %s set %s where %s;", self._set._tname, set, where)
+	log.info(sql)
+	query.update(self._set._tname, sql)
 end
 
 function cls:insert_db( ... )

@@ -77,6 +77,15 @@
     qingyise      1 : integer
 }
 
+.record {
+    id            0 : integer
+    datetime      1 : integer
+    player1       2 : string
+    player2       3 : string
+    player3       4 : string
+    player4       5 : string
+}
+
 handshake 1 {
     response {
     	errorcode 0 : integer
@@ -256,33 +265,41 @@ toast2 33 {
 
 fetchsysmail 34 {
     request {
-        datetime  0 : integer
+        all       0 : *integer
     }
     response {
         errorcode 0 : integer
-        noviewed  1 : integer
-        inbox     2 : *sysmail
+        inbox     1 : *sysmail
     }
 }
 
-fetchsysmail1 35 {
+syncsysmail 35 {
     request {
-        datetime  0 : integer
+        all       0 : *integer
     }
     response {
         errorcode 0 : integer
-        noviewed  1 : integer
-        inbox     2 : *sysmail
-    }   
+        inbox     1 : *sysmail
+    }
 }
 
-records 36 {
+viewedsysmail 36 {
+    request {
+        mailid    0 : integer
+    }
     response {
         errorcode 0 : integer
     }
 }
 
-record 37 {
+records 37 {
+    response {
+        errorcode 0 : integer
+        records   1 : *record
+    }
+}
+
+record 38 {
     request {
         id 0 : integer
     }

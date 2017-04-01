@@ -142,10 +142,21 @@ function REQUEST:fetchsysmail(args, ... )
 	return self._sysinbox:fetch(args)
 end
 
-function REQUEST:fetchsysmail1(args, ... )
+function REQUEST:syncsysmail(args, ... )
 	-- body
-	return self._sysinbox:fetch(args)
+	return self._sysinbox:sync(args)
 end
+
+function REQUEST:viewedsysmail(args, ... )
+	-- body
+	return self._sysinbox:viewed(args)
+end
+
+function REQUEST:records(args, ... )
+	-- body
+	return self._recordmgr:records(args)
+end
+
 
 local function room_request(name, args, ... )
 	-- body
@@ -179,11 +190,14 @@ local function request(name, args, response)
 		end
 	end
     local f = REQUEST[name]
-    local ok, result = pcall(f, ctx, args)
+    local msgh = function ( ... )
+		-- body
+		log.info(tostring(...))
+		log.info(debug.traceback())
+	end
+    local ok, result = xpcall(f, msgh, ctx, args)
     if ok then
     	return response(result)
-    else
-    	log.error(result)
     end
 end      
 
@@ -440,13 +454,16 @@ skynet.start(function()
 			return
 		end
 		local f = assert(CMD[cmd])
-		local ok, err = pcall(f, ctx, source, ...) 
+		local msgh = function ( ... )
+			-- body
+			log.info(tostring(...))
+			log.info(debug.traceback())
+		end
+		local ok, err = xpcall(f, msgh, ctx, source, ...) 
 		if ok then
 			if err ~= noret then
 				skynet.retpack(err)
 			end
-		else
-			log.error(err)
 		end
 	end)
 	-- slot 1,2 set at main.lua

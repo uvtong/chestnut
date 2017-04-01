@@ -267,6 +267,7 @@ skynet.start(function ()
 		local f = CMD[cmd]
 		local msgh = function ( ... )
 			-- body
+			log.info(tostring(...))
 			log.info(debug.traceback())
 		end
 		local ok, err = xpcall(f, msgh, ctx, ...)
