@@ -93,7 +93,7 @@ function REQUEST:join(args, ... )
 		sex = sex
 	}
 	local addr = skynet.call(".ROOM_MGR", "lua", "apply", args.roomid)
-	if addr == 0 then
+	if addr and addr == 0 then
 		res.errorcode = errorcode.NOEXiST_ROOMID
 		return res
 	else
@@ -171,9 +171,9 @@ local function room_request(name, args, ... )
 	cmd["xuanpao"] = true
 	cmd['xuanque'] = true
 	if cmd[name] then
-		log.info("route agent to room command: %s", name)
 		local addr = assert(ctx:get_room())
 		local command = "on_"..name
+		log.info("route request command %s agent to room", command)
 		if addr then
 			return skynet.call(addr, "lua", command, args)
 		end
@@ -244,6 +244,7 @@ local function room_response(name, args)
 	if cmd[name] then
 		local addr = ctx:get_room()
 		skynet.send(addr, "lua", name, args)
+		log.info("route response command %s agent to room", name)
 		return true
 	end
 	return false
@@ -387,13 +388,10 @@ function CMD:info(source, ... )
 	return { name="xiaomiao"}
 end
 
-function CMD:add_rcard(source, num, ... )
+function CMD:alter_rcard(source, num, ... )
 	-- body
 	local rcard = self._user.rcard.value + num
 	self._user:set_rcard(rcard)
-	local args = {}
-	args.num = rcard
-	self:send_request("rcard", args)
 end
 
 -- called by room
@@ -407,6 +405,18 @@ function CMD:leave(source, args, ... )
 	-- body
 	self:send_request("leave", args)
 	return noret
+end
+
+function CMD:room_over(source, ... )
+	-- body
+	self:set_room(nil)
+end
+
+function CMD:record(source, recordid, names, ... )
+	-- body
+	local r = self._recordmgr:create(recordid, names)
+	self._recordmgr:add(r)
+	r:insert_db()
 end
 
 local function room_sendrequest(name, args, ... )
@@ -443,7 +453,7 @@ end
 
 skynet.start(function()
 	skynet.dispatch("lua", function(_, source, cmd, ...)
-		log.info("agent [%s] is called", cmd)
+		log.info("agent cmd [%s] is called", cmd)
 		local ok, err = pcall(room_sendrequest, cmd, ...)
 		if ok then
 			if err then

@@ -57,6 +57,10 @@ function CMD.start( ... )
 	skynet.call(sysemaild, "lua", "start")
 	table.insert(servers, sysemaild)
 
+	local record_mgr = skynet.uniqueservice("record/record_mgr")
+	skynet.call(record_mgr, "lua", "start")
+	table.insert(servers, record_mgr)	
+
 	-- local lb = skynet.newservice("leaderboardd")
 	-- skynet.call(lb, "lua", "start")
 	-- table.insert(servers, lb)

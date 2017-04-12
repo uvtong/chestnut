@@ -20,11 +20,11 @@
     tuisui    11 : integer
 }
 
-.settles {
-    p1 0 : *settlementitem
-    p2 1 : *settlementitem
-    p3 2 : *settlementitem
-    p4 3 : *settlementitem
+.settle {
+    p1 0 : settlementitem
+    p2 1 : settlementitem
+    p3 2 : settlementitem
+    p4 3 : settlementitem
 }
 
 .player {
@@ -120,7 +120,7 @@ gang 7 {
         card      2 : integer
         hor       3 : integer
         dian      4 : integer
-        settles   5 : settles
+        settles   5 : *settle
     }
     response {
         errorcode 0 : integer
@@ -130,7 +130,7 @@ gang 7 {
 hu 8 {
     request {
         hus       0 : *huinfo
-        settles   1 : settles
+        settles   1 : *settle
     }
     response {
         errorcode 0 : integer
@@ -276,7 +276,7 @@ xuanque 22 {
 
 settle 23 {
     request {
-        settles 0 : settles
+        settles 0 : *settle
     }
     response {
         errorcode 0 : integer
@@ -285,14 +285,12 @@ settle 23 {
 
 final_settle 24 {
     request {
-        settles 0 : settles
+        p1 0 : *settlementitem
+        p2 1 : *settlementitem
+        p3 2 : *settlementitem
+        p4 3 : *settlementitem
+        over    4 : boolean
     } 
-    response {
-        errorcode 0 : integer
-    }
-}
-
-roomover 25 {
     response {
         errorcode 0 : integer
     }

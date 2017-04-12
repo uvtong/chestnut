@@ -85,7 +85,7 @@ function CMD.apply(source, roomid, ... )
 	log.info("roomid: %d", roomid)
 	local room = mgr:get(roomid)
 	if room then
-		return room.addr
+		return assert(room.addr)
 	else
 		return 0
 	end

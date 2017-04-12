@@ -161,6 +161,7 @@ local function check_sichuan(cards, putcards, ... )
 	local lian3  = 0
 	local single = 0
 	local lian2  = 0
+	local ge2 = 0
 	local gang   = 0
 
 	local len = #cards
@@ -387,7 +388,7 @@ local function check_sichuan(cards, putcards, ... )
 							local f = cards[idx]
 							idx = idx + 1
 							if f:eq(e) then
-								if idx < len then
+								if idx > len then
 									jiang = jiang + 3
 									break
 								end
@@ -501,13 +502,15 @@ local function check_sichuan(cards, putcards, ... )
 								break
 							end
 						else
-							break
+							jiang = jiang + 1
+							a = c
+							idx = idx - 1
 						end
 					else
 						qing = false
 						jiang = jiang + 1
-						single = single + 1
-						a = d
+						a = c
+						idx = idx - 1
 					end
 				else
 					jiang = jiang + 1
@@ -675,6 +678,8 @@ local function check_sichuan(cards, putcards, ... )
 										idx = idx - 1
 									end
 								else
+									lian2 = lian2 + 1
+									jiang = jiang + 1
 									break
 								end
 							else
@@ -689,19 +694,41 @@ local function check_sichuan(cards, putcards, ... )
 							break
 						end
 					else
-						break
+						lian2 = lian2 + 1
+						a = c
 					end
 				else
-					lian2 = lian2 + 1
 					qing = false
+					lian2 = lian2 + 1
+					a = c
+				end
+			elseif b:nof() == a:nof() + 2 then
+				if idx > len then
+					ge2 = ge2 + 1
+					break
+				end
+				local c = cards[idx]
+				idx = idx + 1
+				if c:eq(b) then
+				elseif c:tof() == b:tof() then
+					if c:nof() == b:nof() + 1 then
+
+					else
+						ge2 = ge2 + 1
+						a = c
+					end
+				else
+					qing = false
+					ge2 = ge2 + 1
 					a = c
 				end
 			else
-				break
+				single = single + 1
+				a = b
 			end
 		else
-			single = single + 1
 			qing = false
+			single = single + 1
 			a = b
 		end
 	end
@@ -713,6 +740,7 @@ local function check_sichuan(cards, putcards, ... )
 	res.lian3 = lian3
 	res.single = single
 	res.lian2 = lian2
+	res.ge2 = ge2
 	res.gang = gang
 	res.ctype = a:tof()
 	return res
@@ -826,9 +854,11 @@ function _M.check_sichuan_jiao(cards, putcards, ... )
 	local lian3  = args.lian3
 	local single = args.single
 	local lian2  = args.lian2
+	local ge2    = args.ge2
 	local gang   = args.gang
 	local ctype  = args.ctype
 
+	print("len", len)
 	print("qing:", qing)
 	print("jiang", jiang)
 	print("tong3", tong3)
@@ -836,9 +866,10 @@ function _M.check_sichuan_jiao(cards, putcards, ... )
 	print("single", single)
 	print("lian2", lian2)
 	print("gang", gang)
+	print("ge2", ge2)
 
 	if #putcards > 0 then
-		local putargs = check_put(putargs)
+		local putargs = check_put(putcards)
 		if putargs.qing and qing then
 			if putargs.ctype ~= ctype then
 				qing = false
@@ -852,7 +883,7 @@ function _M.check_sichuan_jiao(cards, putcards, ... )
 	local res = {}
 	res.code = hutype.NONE
 	res.gang = gang
-	assert(jiang * 2 + tong3 * 3 + lian3 * 3 + single * 1 + lian2 * 2 == len)
+	assert(jiang * 2 + tong3 * 3 + lian3 * 3 + single * 1 + lian2 * 2 + ge2 * 2 == len)
 	if len == 1 and single == 1 then
 		if qing and gang == 4 then
 			res.code = hutype.QINGSHIBALUOHAN
@@ -872,9 +903,13 @@ function _M.check_sichuan_jiao(cards, putcards, ... )
 			res.code = hutype.QINGYISE
 		elseif qing and single == 1 and lian3 == 1 then
 			res.code = hutype.QINGYISE
+		elseif qing and single == 1 and ge2 == 1 then
+			res.code = hutype.QINGYISE
 		elseif jiang == 1 and lian2 == 1 then
 			res.code = hutype.PINGHU
 		elseif single == 1 and lian3 == 1 then
+			res.code = hutype.PINGHU
+		elseif single == 1 and ge2 == 1 then
 			res.code = hutype.PINGHU
 		else
 			res.code = hutype.NONE
@@ -888,9 +923,13 @@ function _M.check_sichuan_jiao(cards, putcards, ... )
 			res.code = hutype.QINGYISE
 		elseif qing and single == 0 and jiang == 1 and lian2 == 1 then
 			res.code = hutype.QINGYISE
+		elseif qing and single == 0 and jiang == 1 and ge2 == 1 then
+			res.code = hutype.QINGYISE
 		elseif single == 1 and jiang == 0 and lian2 == 0 then
 			res.code = hutype.PINGHU
 		elseif single == 0 and jiang == 1 and lian2 == 1 then
+			res.code = hutype.PINGHU
+		elseif single == 0 and jiang == 1 and ge2 == 1 then
 			res.code = hutype.PINGHU
 		else
 			res.code = hutype.NONE
@@ -904,10 +943,14 @@ function _M.check_sichuan_jiao(cards, putcards, ... )
 			res.code = hutype.QINGYISE
 		elseif qing and single == 0 and jiang == 1 and lian2 == 1 then
 			res.code = hutype.QINGYISE
+		elseif qing and single == 0 and jiang == 1 and ge2 == 1 then
+			res.code = hutype.QINGYISE
 		elseif single == 1 and jiang == 0 and lian2 == 0 then
-			res.code = hutype.QINGYISE
+			res.code = hutype.PINGHU
 		elseif single == 0 and jiang == 1 and lian2 == 1 then
-			res.code = hutype.QINGYISE
+			res.code = hutype.PINGHU
+		elseif single == 0 and jiang == 1 and ge2 == 1 then
+			res.code = hutype.PINGHU
 		else
 			res.code = hutype.NONE
 		end
@@ -921,9 +964,11 @@ function _M.check_sichuan_jiao(cards, putcards, ... )
 		elseif qing and single == 0 and jiang == 1 and lian2 == 1 then
 			res.code = hutype.QINGYISE
 		elseif single == 1 and jiang == 0 and lian2 == 0 then
-			res.code = hutype.QINGYISE
+			res.code = hutype.PINGHU
 		elseif single == 0 and jiang == 1 and lian2 == 1 then
-			res.code = hutype.QINGYISE
+			res.code = hutype.PINGHU
+		elseif single == 0 and jiang == 1 and ge2 == 1 then
+			res.code = hutype.PINGHU			
 		else
 			res.code = hutype.NONE
 		end

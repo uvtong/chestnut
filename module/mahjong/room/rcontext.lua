@@ -44,15 +44,22 @@ local cls = class("rcontext")
 function cls:ctor( ... )
 	-- body
 	self._id = 0
+	self._host = nil
 
 	-- config
 	self._local = region.Sichuan
 	self._overtype = overtype.XUEZHAN
-	self._hujiaozhuanyi = false
 	self._maxmultiple = 8
 	self._humultiple = humultiple(self._local, self._maxmultiple)
 	self._exist = exist(self._local)
+	self._hujiaozhuanyi = false
+	self._zimo = 0
 	self._dianganghua = 0
+	self._daiyaojiu = 0
+	self._duanyaojiu = 0
+	self._jiangdui = 0
+	self._tiandihu = 0
+	self._maxju = 0
 
 	self._players = {}
 	self._max = 4
@@ -67,8 +74,7 @@ function cls:ctor( ... )
 	self._cardssz = 108
 	self:init_cards()
 
-	self._host = nil
-	self._countdown = 20 -- s
+	self._countdown = 50 -- s
 
 	self._state = state.NONE	
 	self._lastfirsthu  = 0    -- last,make next zhuangjia
@@ -214,6 +220,7 @@ function cls:check_over( ... )
 		if count >= 3 then
 			return true
 		end
+	elseif self._overtype == overtype.XUELIU then
 	end		
 	if self._takeidx == self._cardssz then
 		return true
@@ -258,8 +265,7 @@ end
 
 function cls:next_idx( ... )
 	-- body
-	if self._overtype == overtype.JIEHU or 
-		self._overtype == overtype.XUELIU then
+	if self._overtype == overtype.JIEHU then
 		self._curidx = self._curidx + 1
 		if self._curidx > self._max then
 			self._curidx = 1
@@ -277,14 +283,20 @@ function cls:next_idx( ... )
 			end
 		end
 		return self._curidx
+	elseif self._overtype == overtype.XUELIU then
+		self._curidx = self._curidx + 1
+		if self._curidx > self._max then
+			self._curidx = 1
+		end
+		return self._curidx
 	end
 end
 
 function cls:next_takeidx( ... )
 	-- body
-	self._curtake = self._curtake + 1
-	if self._curtake > self._max then
-		self._curtake = 1
+	self._curtake = self._curtake - 1
+	if self._curtake <= 0 then
+		self._curtake = self._max
 	end
 	return self._curtake
 end
@@ -295,19 +307,21 @@ function cls:start(uid, args, ... )
 	self._host = uid
 	if args.provice == region.Sichuan then
 		self._local = region.Sichuan
-		self._overtype = overtype.XUEZHAN
+		self._overtype = args.overtype
 		self._maxmultiple = args.sc.top
 		self._hujiaozhuanyi = args.sc.hujiaozhuanyi
 		self._humultiple = humultiple(self._local, self._maxmultiple)
 		self._exist = exist(self._local)
+		self._maxju = args.ju
 
 	elseif args.provice == region.Shaanxi then
 		self._local = region.Shaanxi
-		self._overtype = overtype.JIEHU
+		self._overtype = args.overtype
 		self._maxmultiple = -1
 		self._hujiaozhuanyi = false
 		self._humultiple = humultiple(self._local, self._maxmultiple)
 		self._exist = exist(self._local)
+		self._maxju = args.ju
 	end
 end
 
@@ -525,9 +539,17 @@ function cls:step(idx, ... )
 			end
 		end
 	elseif self._state == state.OVER then
-		self:take_settle()
+		local p = self._players[idx]
+		assert(not p:get_noone())
+		if self:check_state(idx, player.state.WAIT_TURN) then
+			self:take_settle()
+		end
 	elseif self._state == state.SETTLE then
-		self:take_final_settle()
+		local p = self._players[idx]
+		assert(not p:get_noone())
+		if self:check_state(idx, player.state.WAIT_TURN) then
+			self:take_final_settle()	
+		end		
 	elseif self._state == state.RESTART then
 		local p = self._players[idx]
 		assert(not p:get_noone())
@@ -552,6 +574,9 @@ function cls:take_shuffle( ... )
 	self._ju = self._ju + 1
 	if self._ju == 1 then
 		-- send agent 
+		local p = self:get_player_by_uid(self._host)
+		local addr = p:get_agent()
+		skynet.call(addr, "lua", "alter_rcard", -1)
 	end
 
 	self._stime = skynet.now()
@@ -756,6 +781,7 @@ function cls:xuanque(args, ... )
 		if self._players[args.idx]._state == player.state.XUANQUE then
 			self._players[args.idx]:cancel_timeout()
 			self._players[args.idx]:set_que(args.que)
+			self:record("xuanque", args)
 			self:push_client("xuanque", args)
 			if self:check_state(args.idx, player.state.WAIT_TURN) then
 				self:take_turn()
@@ -793,6 +819,7 @@ function cls:take_turn( ... )
 		args.type = 0
 		args.card = card:get_value()
 
+		log.info("player %d take turn, turn type:%d", self._curidx, 0)
 		-- self:record("take_turn", args)
 		self:push_client("take_turn", args)
 	elseif self._state == state.GANG then
@@ -809,6 +836,7 @@ function cls:take_turn( ... )
 		args.type = 1
 		args.card = self._curcard:get_value()
 
+		log.info("player %d take turn, turn type:%d", self._curidx, 1)
 		-- self:record("take_turn", args)
 		self:push_client("take_turn", args)
 	elseif self._state == state.MCALL then
@@ -825,6 +853,7 @@ function cls:take_turn( ... )
 		args.type = 3
 		args.card = self._curcard:get_value()
 
+		log.info("player %d take turn, turn type:%d", self._curidx, 3)
 		-- self:record("take_turn", args)
 		self:push_client("take_turn", args)
 		
@@ -842,6 +871,7 @@ function cls:take_turn( ... )
 		args.type = 2
 		args.card = 0
 
+		log.info("player %d take turn, turn type:%d", self._curidx, 2)
 		-- self:record("take_turn", args)
 		self:push_client("take_turn", args)
 	else
@@ -858,6 +888,7 @@ function cls:take_turn( ... )
 		args.type = 1
 		args.card = self._curcard:get_value()
 
+		log.info("player %d take turn, turn type:%d", self._curidx, 1)
 		-- self:record("take_turn", args)
 		self:push_client("take_turn", args)
 	end
@@ -923,7 +954,13 @@ function cls:take_mcall( ... )
 		reshu = self._players[self._curidx]:check_hu(self._curcard, jiaotype.ZIMO, self._curidx)
 	end
 	log.info("take my call player %d check_gang", self._curidx)
-	local resgang = self._players[self._curidx]:check_gang(self._curcard, self._curidx)
+
+	local resgang
+	if self._overtype == overtype.XUELIU and self._players[self._curidx]:hashu() then
+		resgang = self._players[self._curidx]:check_xueliu_gang(self._curcard, self._curidx)
+	else
+		resgang = self._players[self._curidx]:check_gang(self._curcard, self._curidx)
+	end
 
 	local huinfo = {}
 	huinfo.idx  = reshu.idx
@@ -946,12 +983,16 @@ function cls:take_mcall( ... )
 	self._call[self._curidx] = {}
 	local can = false
 	if opinfo.hu.code ~= hutype.NONE then
+		log.info("take my call player %d call hu code: %d", self._curidx, opinfo.hu.code)
+
 		self._call[self._curidx].hu = true
 		self._callhu = self._callhu + 1
 		self._callhux = self._callhu
 		can = true
 	end
 	if opinfo.gang ~= opcode.none then
+		log.info("take my call player %d call gang code: %d", self._curidx, opinfo.gang)
+
 		self._call[self._curidx].gang = true
 		self._callgang = self._callgang + 1
 		self._callgangx = self._callgang
@@ -1014,9 +1055,14 @@ function cls:take_ocall( ... )
 					reshu = self._players[i]:check_hu(self._lastcard, jiaotype.PINGFANG, self._lastidx)
 				end
 				log.info("take other call player %d check_gang", i)
-				resgang = self._players[i]:check_gang(self._lastcard, self._curidx)
-				log.info("take other call player %d check_peng", i)
-				respeng = self._players[i]:check_peng(self._lastcard, self._curidx)	
+				if self._overtype == overtype.XUELIU and self._players[i]:hashu() then
+					resgang = self._players[i]:check_xueliu_gang(self._lastcard, self._lastidx)
+				else
+					resgang = self._players[i]:check_gang(self._lastcard, self._lastidx)
+					
+					log.info("take other call player %d check_peng", i)
+					respeng = self._players[i]:check_peng(self._lastcard, self._lastidx)	
+				end
 			end
 
 			local huinfo = {}
@@ -1052,18 +1098,22 @@ function cls:take_ocall( ... )
 			self._call[i] = {}
 			local can = false
 			if opinfo.hu.code ~= hutype.NONE then
+				log.info("take other call player %d call hu code: %d", i, opinfo.hu.code)
 				self._call[i].hu = true
 				self._callhu = self._callhu + 1
 				self._callhux = self._callhux + 1
 				can = true
 			end
 			if opinfo.gang ~= opcode.none then
+				log.info("take other call player %d call gang code: %d", i, opinfo.gang)
 				self._call[i].gang = true
 				self._callgang = self._callgang + 1
 				self._callgangx = self._callgangx + 1
 				can = true
 			end
 			if opinfo.peng ~= opcode.none then
+				log.info("take other call player %d call peng code: %d", i, opinfo.peng)
+
 				self._call[i].peng = true
 				self._callpeng = self._callpeng + 1
 				self._callpengx = self._callpengx + 1
@@ -1120,7 +1170,7 @@ function cls:gang(ganginfo, ... )
 			local total = 0
 			local lose = {}
 			local win = {ganginfo.idx}
-			local settles = {}
+			local settle = {}
 			for i=1,self._max do
 				if i == ganginfo.idx then
 				elseif self._players[i]:hashu() then
@@ -1142,7 +1192,7 @@ function cls:gang(ganginfo, ... )
 					cnode.dajiao = 0
 					cnode.tuisui = 0
 
-					self:insert_settles(settles, cnode.idx, cnode)
+					self:insert_settle(settle, cnode.idx, cnode)
 					self._players[i]:record_settle(cnode)
 				end
 			end
@@ -1159,9 +1209,11 @@ function cls:gang(ganginfo, ... )
 			cnode.huazhu = 0
 			cnode.dajiao = 0
 			cnode.tuisui = 0
-			self:insert_settles(settles, cnode.idx, cnode)
+			self:insert_settle(settle, cnode.idx, cnode)
 			self._players[ganginfo.idx]:record_settle(cnode)
 
+			local settles = {}
+			table.insert(settles, settle)
 			ganginfo.settles = settles
 			self:record("gang", ganginfo)
 			self:push_client("gang", ganginfo)
@@ -1192,7 +1244,7 @@ function cls:gang(ganginfo, ... )
 					cnode.dajiao = 0
 					cnode.tuisui = 0
 
-					self:insert_settles(settles, cnode.idx, cnode)
+					self:insert_settle(settle, cnode.idx, cnode)
 					self._players[i]:record_settle(cnode)
 				end
 			end
@@ -1211,8 +1263,11 @@ function cls:gang(ganginfo, ... )
 			cnode.dajiao = 0
 			cnode.tuisui = 0
 
-			self:insert_settles(settles, cnode.idx, cnode)
+			self:insert_settle(settle, cnode.idx, cnode)
 			self._players[ganginfo.idx]:record_settle(cnode)
+
+			local settles = {}
+			table.insert(settles, settle)
 
 			ganginfo.settles = settles
 			self:record("gang", ganginfo)
@@ -1228,7 +1283,7 @@ function cls:gang(ganginfo, ... )
 			local res = self._players[ganginfo.idx]:gang(ganginfo, self._players[self._lastidx], self._lastcard)
 			ganginfo.hor = res.hor
 
-			local settles = {}
+			local settle = {}
 			local base = gangmultiple(opcode.zhigang)
 			local win = {ganginfo.idx}
 			local lose = {self._lastidx}
@@ -1246,7 +1301,7 @@ function cls:gang(ganginfo, ... )
 			wnode.dajiao = 0
 			wnode.tuisui = 0
 
-			self:insert_settles(settles, wnode.idx, wnode)
+			self:insert_settle(settle, wnode.idx, wnode)
 			self._players[ganginfo.idx]:record_settle(wnode)
 
 			local lnode = {}
@@ -1262,9 +1317,11 @@ function cls:gang(ganginfo, ... )
 			lnode.dajiao = 0
 			lnode.tuisui = 0
 			
-			self:insert_settles(settles, lnode.idx, lnode)
+			self:insert_settle(settle, lnode.idx, lnode)
 			self._players[self._lastidx]:record_settle(lnode)
 			
+			local settles = {}
+			table.insert(settles, settle)
 			ganginfo.settles = settles
 			self:record("gang", ganginfo)
 			self:push_client("gang", ganginfo)
@@ -1300,7 +1357,7 @@ function cls:hu(hus, ... )
 		self._players[self._curidx]:hu(huinfo, self._players[self._curidx], self._curcard)
 		self:check_firsthu(self._curidx)
 		
-		local settles = {}
+		local settle = {}
 		local win = {}
 		local lose = {}
 		if huinfo.jiao == jiaotype.DIANGANGHUA then
@@ -1322,7 +1379,7 @@ function cls:hu(hus, ... )
 				wnode.huazhu = 0
 				wnode.dajiao = 0
 				wnode.tuisui = 0
-				self:insert_settles(settles, wnode.idx, wnode)
+				self:insert_settle(settle, wnode.idx, wnode)
 				self._players[self._curidx]:record_settle(wnode)
 
 				local lnode = {}
@@ -1339,7 +1396,7 @@ function cls:hu(hus, ... )
 				lnode.huazhu = 0
 				lnode.dajiao = 0
 				lnode.tuisui = 0
-				self:insert_settles(settles, lnode.idx, lnode)
+				self:insert_settle(settle, lnode.idx, lnode)
 				self._players[self._lastidx]:record_settle(lnode)
 			else
 				local total = 0
@@ -1364,7 +1421,7 @@ function cls:hu(hus, ... )
 						node.huazhu = 0
 						node.dajiao = 0
 						node.tuisui = 0
-						self:insert_settles(settles, node.idx, node)
+						self:insert_settle(settle, node.idx, node)
 						self._players[i]:record_settle(node)
 					end
 				end
@@ -1382,7 +1439,7 @@ function cls:hu(hus, ... )
 				wnode.huazhu = 0
 				wnode.dajiao = 0
 				wnode.tuisui = 0
-				self:insert_settles(settles, wnode.idx, wnode)
+				self:insert_settle(settle, wnode.idx, wnode)
 				self._players[self._curidx]:record_settle(wnode)
 			end
 		elseif huinfo.jiao == jiaotype.ZIMO or
@@ -1413,7 +1470,7 @@ function cls:hu(hus, ... )
 					node.dajiao = 0
 					node.tuisui = 0
 
-					self:insert_settles(settles, node.idx, node)
+					self:insert_settle(settle, node.idx, node)
 					self._players[i]:record_settle(node)
 				end
 			end
@@ -1432,15 +1489,20 @@ function cls:hu(hus, ... )
 			wnode.dajiao = 0
 			wnode.tuisui = 0
 
-			self:insert_settles(settles, wnode.idx, wnode)
+			self:insert_settle(settle, wnode.idx, wnode)
 			self._players[self._curidx]:record_settle(wnode)
 		else
 			assert(false)
 		end
 
+		local settles = {}
+		table.insert(settles, settle)
+
 		local args = {}
 		args.hus = hus
 		args.settles = settles
+
+		self:record("hu", args)
 		self:push_client("hu", args)
 	elseif self._state == state.OCALL then
 		self._state = state.HU
@@ -1461,10 +1523,13 @@ function cls:hu(hus, ... )
 					local huinfo = self._players[v.idx]:hu(v, self._players[self._lastidx], self._lastcard)
 					if v.jiao == jiaotype.QIANGGANGHU then
 						-- tuisui
-						self._players[hujiao.dian]:tuisui_with_qianggang(settles)
+						local settle = {}
+						self._players[huinfo.dian]:tuisui_with_qianggang(settle)
+						table.insert(settles, settle)
 					end
 					local win = {huinfo.idx}
 					local lose = {huinfo.dian}
+					local settle = {}
 
 					table.insert(win, v.idx)
 					local base = self._humultiple(huinfo.code, huinfo.jiao, huinfo.gang)
@@ -1483,7 +1548,7 @@ function cls:hu(hus, ... )
 					wnode.huazhu = 0
 					wnode.dajiao = 0
 					wnode.tuisui = 0
-					self:insert_settles(settles, wnode.idx, wnode)
+					self:insert_settle(settle, wnode.idx, wnode)
 					self._players[wnode.idx]:record_settle(wnode)
 					
 					local lnode = {}
@@ -1501,9 +1566,10 @@ function cls:hu(hus, ... )
 					lnode.dajiao = 0
 					lnode.tuisui = 0
 
-					self:insert_settles(settles, lnode.idx, lnode)
+					self:insert_settle(settle, lnode.idx, lnode)
 					self._players[lnode.idx]:record_settle(lnode)
 
+					table.insert(settles, settle)			
 					break
 				end
 			end
@@ -1729,6 +1795,8 @@ function cls:take_over( ... )
 	-- body
 	self._state = state.OVER
 	self:clear_state(player.state.OVER)
+
+	self:record("over")
 	self:push_client("over")
 end
 
@@ -1750,32 +1818,41 @@ function cls:take_settle( ... )
 		local wudajiaos = {}
 		local dajiaos = {}
 		for i=1,self._max do
-			if self._players[i]:check_que() then
-				local res = self._players[i]:check_jiao()
-				res.idx = i
-				if res.code ~= hutype.NONE then
-					table.insert(dajiaos, res)
-				else
-					table.insert(wudajiaos, res)
-				end
+			if self._players[i]:hashu() then
 			else
-				table.insert(huazhus, { idx = i })
+				if self._players[i]:check_que() then
+					local res = self._players[i]:check_jiao()
+					res.idx = i
+					if res.code ~= hutype.NONE then
+						table.insert(dajiaos, res)
+					else
+						table.insert(wudajiaos, res)
+					end
+				else
+					table.insert(huazhus, { idx = i })
+				end
 			end
 		end
 		-- tuisui
 		if #huazhus > 0 then
 			for k,v in pairs(huazhus) do
-				self._players[v.idx]:tuisui(settles)
+				local settle = {}
+				self._players[v.idx]:tuisui(settle)
+				table.insert(settles, settle)
 			end
 		end
 
 		if #dajiaos == wuhu then
 		elseif #dajiaos > 0 then
+
 			for k,v in pairs(dajiaos) do
+				local settle = {}
+
 				local base = self._humultiple(v.code, jiaotype.PINGFANG, v.gang)
 				local total = 0
 				local lose = {}
 				local win = {}
+
 				table.insert(win, v.idx)
 				for k,h in pairs(wudajiaos) do
 					total = total + base
@@ -1796,7 +1873,7 @@ function cls:take_settle( ... )
 					litem.dajiao = 1
 					litem.tuisui = 0
 
-					self:insert_settles(settles, litem)
+					self:insert_settle(settle, litem.idx, litem)
 					self._players[litem.idx]:record_settle(litem)
 				end
 				for k,h in pairs(huazhus) do						
@@ -1818,7 +1895,7 @@ function cls:take_settle( ... )
 					litem.dajiao = 0
 					litem.tuisui = 0
 
-					table.insert(settles[h.idx], litem)
+					self:insert_settle(settle, litem.idx, litem)
 					self._players[h.idx]:record_settle(litem)
 				end	
 
@@ -1837,13 +1914,15 @@ function cls:take_settle( ... )
 				witem.huazhu = 0
 				witem.dajiao = 1
 				witem.tuisui = 0
-				self:insert_settles(settles, witem.idx, witem)
+				self:insert_settle(settle, witem.idx, witem)
 				self._players[v.idx]:record_settle(witem)
 			end
 		end		
 	end
 	local args = {}
 	args.settles = settles
+
+	self:record("settle", args)
 	self:push_client("settle", args)
 end
 
@@ -1852,22 +1931,37 @@ function cls:take_final_settle( ... )
 	self._state = state.FINAL_SETTLE
 	self:clear_state(player.state.FINAL_SETTLE)
 
-	local settles = {}
-	for k,v in pairs(self._players[1]._chipli) do
-		self:insert_settles(settles, 1, v)
-	end
-	for k,v in pairs(self._players[2]._chipli) do
-		self:insert_settles(settles, 2, v)
-	end
-	for k,v in pairs(self._players[3]._chipli) do
-		self:insert_settles(settles, 3, v)
-	end
-	for k,v in pairs(self._players[4]._chipli) do
-		self:insert_settles(settles, 4, v)
+	local over = false
+	if self._ju == self._maxju then
+		-- over
+		over = true
+		skynet.send(".ROOM_MGR", "lua", "enqueue_room", self._id)
+		for i=1,self._max do
+			local addr = self._players[i]:get_agent()
+			skynet.send(addr, "lua", "room_over")
+		end
 	end
 
 	local args = {}
+	args.p1 = self._players[1]._chipli
+	args.p2 = self._players[2]._chipli
+	args.p3 = self._players[3]._chipli
+	args.p4 = self._players[4]._chipli
 	args.settles = settles
+	args.over = over
+
+	self:record("final_settle", args)
+	local recordid = skynet.call(".RECORD_MGR", "lua", "register", cjson.encode(self._record))
+	self._record = {}
+	local names = {}
+	for i=1,self._max do
+		table.insert(names, self._players[i]:get_name())
+	end
+	for i=1,self._max do
+		local addr = self._players[i]:get_agent()
+		skynet.send(addr, "lua", "record", recordid, names)
+	end
+
 	self:push_client("final_settle", args)
 end
 
@@ -1921,44 +2015,22 @@ function cls:take_roomover( ... )
 	-- body
 end
 
-function cls:insert_settles(settles, idx, item, ... )
+function cls:insert_settle(settle, idx, item, ... )
 	-- body
+	assert(settle and idx and item)
 	assert(idx > 0 and idx <= self._max)
 	if idx == 1 then
-		local li
-		if settles.p1 then
-			li = settles.p1
-		else
-			li = {}
-			settles.p1 = li
-		end
-		table.insert(li, item)
+		assert(settle.p1 == nil)
+		settle.p1 = item
 	elseif idx == 2 then
-		local li
-		if settles.p2 then
-			li = settles.p2
-		else
-			li = {}
-			settles.p2 = li
-		end
-		table.insert(li, item)
+		assert(settle.p2 == nil)
+		settle.p2 = item
 	elseif idx == 3 then
-		if settles.p3 then
-			li = settles.p3
-		else
-			li = {}
-			settles.p3 = li
-		end
-		table.insert(li, item)
+		assert(settle.p3 == nil)
+		settle.p3 = item
 	elseif idx == 4 then
-		local li
-		if settles.p4 then
-			li = settles.p4
-		else
-			li = {}
-			settles.p4 = li
-		end
-		table.insert(li, item)
+		assert(settle.p4 == nil)
+		settle.p4 = item
 	else
 		assert(false)
 	end

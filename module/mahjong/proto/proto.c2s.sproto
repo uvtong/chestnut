@@ -113,8 +113,9 @@ create 4 {
     request {
         provice    0 : integer
         ju         1 : integer
-        sc         2 : crsc
-        sx         3 : crsx
+        overtype   2 : integer
+        sc         3 : crsc
+        sx         4 : crsx
     }
     response {
         errorcode 0 : integer

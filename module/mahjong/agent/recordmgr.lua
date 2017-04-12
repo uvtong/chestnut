@@ -1,10 +1,10 @@
 local skynet = require "skynet"
 local set = require "db.dbset"
 local query = require "query"
-local sysmail = require "sysmail"
-local sysmaild = require "sysmaild"
+local record = require "record"
 local errorcode = require "errorcode"
 local log = require "log"
+local util = require "util"
 
 local cls = class("sysinbox", set)
 
@@ -22,13 +22,26 @@ function cls:load_db_to_data( ... )
 	local res = query.select(self._tname, sql)
 	if #res > 0 then
 		for k,v in pairs(res) do
-			local m = sysmail.new(self._env, self._dbctx, self)
+			local m = record.new(self._env, self._dbctx, self)
 			for kk,vv in pairs(v) do
 				m[kk].value = vv
 			end
 			self:add(m)
 		end
 	end
+end
+
+function cls:create(recordid, names, ... )
+	-- body
+	local r = record.new(self._env, self._dbctx, self)
+	r.id.value = recordid
+	r.uid = self._env._suid
+	r.datetime = os.time()
+	r.player1 = names[1]
+	r.player2 = names[2]
+	r.player3 = names[3]
+	r.player4 = names[4]
+	return r
 end
 
 function cls:add(mail, ... )
@@ -54,6 +67,19 @@ function cls:records(args, ... )
 		table.insert(res.records, record)
 	end
 	return res
+end
+
+function cls:record(recordid, names, ... )
+	-- body
+	local i = record.new(self._env, self._dbctx, self)
+	i.uid.value = self._env._suid
+	i.recordid = recordid
+	i.datetime = os.time()
+	i.player1 = names[1]
+	i.player2 = names[2]
+	i.player3 = names[3]
+	i.player4 = names[4]
+	i:insert_db()
 end
 
 return cls

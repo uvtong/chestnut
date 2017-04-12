@@ -474,6 +474,8 @@ end
 
 function cls:check_jiao( ... )
 	-- body
+	log.info("player %d check jiao", self._idx)
+	self:print_cards()
 	local res = hu.check_sichuan_jiao(self._cards, self._putcards)
 	return res
 end
@@ -568,10 +570,38 @@ function cls:check_gang(card, who, ... )
 	
 	self:print_cards()
 
-	local code, xcard = gang(self._idx, self._env._curidx, card, self._cards, self._putcards)
+	local res = gang.check_gang(self._idx, who, card, self._cards, self._putcards)
 	if code ~= opcode.none then
-		self._gang.card = xcard
-		self._gang.code = code
+		self._gang.card = res.card
+		self._gang.code = res.code
+	else
+		self._gang.code = opcode.none
+	end
+	return self._gang
+end
+
+function cls:check_xueliu_gang(card, who, ... )
+	-- body
+	assert(card and who)
+	self._gang = {}
+	self._gang.idx = self._idx
+	self._gang.card = card
+	self._gang.code = opcode.none
+	self._gang.dian = who
+
+	if self._env._local == region.Sichuan then
+		if card:tof() == self._que then
+			self._gang.code = opcode.none
+			return self._gang
+		end
+	end
+	
+	self:print_cards()
+
+	local res = gang.check_xueliu_gang(self._idx, who, card, self._cards, self._putcards)
+	if code ~= opcode.none then
+		self._gang.card = res.card
+		self._gang.code = res.code
 	else
 		self._gang.code = opcode.none
 	end
@@ -850,7 +880,7 @@ function cls:record_settle(node, ... )
 	table.insert(self._chipli, node)
 end
 
-function cls:tuisui(settles, ... )
+function cls:tuisui(settle, ... )
 	-- body
 	local len = #self._chipli
 	for i=1,len do
@@ -874,7 +904,7 @@ function cls:tuisui(settles, ... )
 				item.huazhu = v.huazhu
 				item.dajiao = v.dajiao
 				item.tuisui = 1
-				self._env:insert_settles(settles, item.idx, item)
+				self._env:insert_settle(settle, item.idx, item)
 				self._env._players[v]:record_settle(item)				
 			end
 		end
@@ -895,12 +925,12 @@ function cls:tuisui(settles, ... )
 		litem.dajiao = v.dajiao
 		litem.tuisui = 1
 
-		self._env:insert_settles(settles, item.idx, item)
+		self._env:insert_settle(settle, item.idx, item)
 		self._env._players[v]:record_settle(item)
 	end
 end
 
-function cls:tuisui_with_qianggang(settles, ... )
+function cls:tuisui_with_qianggang(settle, ... )
 	-- body
 	local len = #self._chipli
 	assert(len > 0)
@@ -928,7 +958,7 @@ function cls:tuisui_with_qianggang(settles, ... )
 		item.dajiao = base_settle.dajiao
 		item.tuisui = 1
 
-		self._env:insert_settles(settles, item.idx, item)
+		self._env:insert_settle(settle, item.idx, item)
 		self._env._players[idx]:record_settle(item)
 	end
 
@@ -948,7 +978,7 @@ function cls:tuisui_with_qianggang(settles, ... )
 	item.dajiao = base_settle.dajiao
 	item.tuisui = 1
 	
-	self._env:insert_settles(settles, item.idx, item)
+	self._env:insert_settle(settle, item.idx, item)
 	self:record_settle(item)
 end
 

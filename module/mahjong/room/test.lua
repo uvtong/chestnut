@@ -11,17 +11,17 @@ local gang = require "gang"
 local hu = require "hu"
 local card = require "card"
 local cards = {
-	card.new(card.type.CRAK, 2, 2),
-	card.new(card.type.CRAK, 2, 3),
+	card.new(card.type.CRAK, 5, 2),
+	card.new(card.type.CRAK, 5, 3),
 
-	card.new(card.type.CRAK, 3, 1),
-	card.new(card.type.CRAK, 3, 2),
-
-	card.new(card.type.CRAK, 4, 1),
-	card.new(card.type.CRAK, 4, 1),
-
-	card.new(card.type.CRAK, 7, 2),
-	card.new(card.type.CRAK, 7, 3),
+	card.new(card.type.CRAK, 6, 1),
+	card.new(card.type.CRAK, 8, 2),
+	card.new(card.type.DOT, 4, 2),
+	card.new(card.type.DOT, 5, 2),
+	card.new(card.type.DOT, 6, 2),
+	card.new(card.type.DOT, 7, 2),
+	card.new(card.type.DOT, 8, 2),
+	card.new(card.type.DOT, 9, 2),
 }
 
 local putcards = {
@@ -32,7 +32,7 @@ local putcards = {
 	}},
 }
 
-print(hu.check_sichuan_hu(cards, {}).code)
+print(hu.check_sichuan_jiao(cards, {}).code)
 
 -- local code, c = gang(1, 1, card.new(card.type.CRAK, 6, 4), cards, {})
 -- print(code)

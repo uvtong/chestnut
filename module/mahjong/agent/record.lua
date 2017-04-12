@@ -25,14 +25,15 @@ function cls:insert_db( ... )
 	local keys = ""
 	local values = ""
 	for k,v in pairs(self._fields) do
-		log.info("test insert_db")
-		keys = keys .. v.name .. ","
-		if v:dt() == field.data_type.integer then
-			values = values .. string.format("%d,", v.value)
-		elseif v:dt() == field.data_type.biginteger then
-			values = values .. string.format("%d,", v.value)
-		elseif v:dt() == field.data_type.char then
-			values = values .. string.format("'%s',", v.value)
+		if v.value then
+			keys = keys .. v.name .. ","
+			if v:dt() == field.data_type.integer then
+				values = values .. string.format("%d,", v.value)
+			elseif v:dt() == field.data_type.biginteger then
+				values = values .. string.format("%d,", v.value)
+			elseif v:dt() == field.data_type.char then
+				values = values .. string.format("'%s',", v.value)
+			end
 		end
 	end
 	keys = string.sub(keys, 1, #keys-1)
