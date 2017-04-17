@@ -28,7 +28,7 @@ function server.login_handler(source, uid, secret, ...)
 	local id = internal_id	-- don't use internal_id directly
 	local id = skynet.call(".SID_MGR", "lua", "enter")
 	local username = msgserver.username(uid, id, servername)
-	log.info("gated username: %s, uid: %d", username, uid)
+	log.info("gated username: %s, uid: %s", username, uid)
 
 	-- you can use a pool to alloc new agent
 	-- local agent = skynet.newservice "agent"

@@ -5,6 +5,7 @@ local record = require "record"
 local errorcode = require "errorcode"
 local log = require "log"
 local util = require "util"
+local dbmonitor = require "dbmonitor"
 
 local cls = class("sysinbox", set)
 
@@ -16,13 +17,40 @@ function cls:ctor(env, dbctx, ... )
 	return self
 end
 
+function cls:load_cache_to_data( ... )
+ 	-- body
+ 	local keys = self._env._db:zrange(string.format("tu_record:%d", self._suid), 0, -1, 'withscores')
+ 	if keys then
+ 	else
+ 		dbmonitor.cache_select(string.format("tu_record:%d", self._suid))
+ 	end
+ 	local keys = self._env._db:zrange(string.format("tu_record:%d", self._suid), 0, -1, 'withscores')
+ 	if keys then
+ 		for k,v in pairs(keys) do
+ 			local m = record.new(self._env, self._dbctx, self)
+ 			m.id.value = v
+ 			m.uid.value = self._suid
+ 			m:load_cache_to_data()
+ 			self:add(m)
+ 		end
+ 	end
+end
+
+function cls:add(item, ... )
+	-- body
+	table.insert(self._data, mail)
+	self._count = self._count + 1
+	self._mk[item.id.value] = item
+end
+
 function cls:load_db_to_data( ... )
 	-- body
+
 	local sql = string.format("select * from %s where uid=%d", self._tname, self._env._suid)
 	local res = query.select(self._tname, sql)
 	if #res > 0 then
 		for k,v in pairs(res) do
-			local m = record.new(self._env, self._dbctx, self)
+			
 			for kk,vv in pairs(v) do
 				m[kk].value = vv
 			end

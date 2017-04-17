@@ -99,6 +99,9 @@ $(LUA_CLIB_PATH)/config.so: $(CLIB_SRC_PATH)/config/config.cpp $(CLIB_SRC_PATH)/
 $(LUA_CLIB_PATH)/udpgate.so: $(SERVICE_SRC_PATH)/lua-udpgate.c | $(LUA_CLIB_PATH)
 	$(CC) $(CFLAGS) $(SHARED) -I$(LUA_INC) -o $@ $^
 
+$(LUA_CLIB_PATH)/snowflake.so: $(CLIB_SRC_PATH)/lua-snowflake.c | $(LUA_CLIB_PATH)
+	$(CC) $(CFLAGS) $(SHARED) -I$(LUA_INC) -I$(SKYNET_INC) -o $@ $^
+
 # service
 service_defines   :=
 service_hpaths    := $(SKYNET_SRC_PATH)
@@ -122,7 +125,8 @@ all: $(LUA_CLIB_PATH)/cjson.so \
 	$(LUA_CLIB_PATH)/float.so \
 	$(LUA_CLIB_PATH)/config.so \
 	$(CSERVICE_PATH)/catlogger.so \
-	$(CSERVICE_PATH)/udpgate.so 
+	$(CSERVICE_PATH)/udpgate.so \
+	$(LUA_CLIB_PATH)/snowflake.so
 
 clean: clean_cjson \
 	rm -rf $(LUA_CLIB_PATH)/log.so \

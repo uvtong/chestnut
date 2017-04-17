@@ -309,3 +309,9 @@ record 38 {
         r         1 : string
     }
 }
+
+logout 100 {
+    response {
+        errorcode 0 : integer
+    }
+}

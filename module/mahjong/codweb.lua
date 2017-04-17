@@ -79,11 +79,12 @@ function CMD.start( ... )
 	skynet.call(handle, "lua", "start")
 	table.insert(servers, handle)
 
+	skynet.uniqueservice("https_client")
+
 	local signupd = skynet.getenv("signupd")
 	if signupd  then
-		local addr = skynet.newservice("signupd")
-		local signupd_name = skynet.getenv("signupd_name")
-		skynet.name(signupd_name, addr)
+		local addr = skynet.newservice("wx_signupd")
+		skynet.call(addr, "lua", "start")
 	end
 
 	local logind = skynet.getenv("logind")
@@ -92,6 +93,23 @@ function CMD.start( ... )
 		local addr = skynet.newservice("logind/logind")
 		skynet.name(logind_name, addr)
 	end     
+
+	-- local gated = skynet.getenv("gated")
+	-- if gated then
+	-- 	local logind_name = skynet.getenv("logind_name")
+	-- 	local server_name = skynet.getenv("gated_name")
+	-- 	local max_client = skynet.getenv("maxclient")
+	-- 	local address, port = string.match(skynet.getenv("gated"), "([%d.]+)%:(%d+)")
+	-- 	local gated = skynet.newservice("gated/gated")
+	-- 	skynet.name(".GATED", gated)
+	-- 	skynet.call(gated, "lua", "open", { 
+	-- 		address = address or "0.0.0.0",
+	-- 		port = port,
+	-- 		maxclient = tonumber(max_client),
+	-- 		servername = "sample",
+	-- 		--nodelay = true,
+	-- 	})
+	-- end
 
 	local gated = skynet.getenv("gated")
 	if gated then
@@ -105,10 +123,13 @@ function CMD.start( ... )
 			address = address or "0.0.0.0",
 			port = port,
 			maxclient = tonumber(max_client),
-			servername = server_name,
+			servername = "sample1",
 			--nodelay = true,
 		})
 	end
+
+	-- 
+
 	return true
 end
 

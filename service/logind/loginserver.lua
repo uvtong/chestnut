@@ -81,6 +81,10 @@ local function launch_slave(auth_handler)
 
 		local ok, server, uid =  pcall(auth_handler,token)
 
+		print(ok)
+		print(server)
+		print(uid)
+
 		return ok, server, uid, secret
 	end
 

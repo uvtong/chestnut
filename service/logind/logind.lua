@@ -23,14 +23,19 @@ function server.auth_handler(token)
 	user = crypt.base64decode(user)
 	server = crypt.base64decode(server)
 	password = crypt.base64decode(password)
-	-- assert(password == "password", "Invalid password")
+	assert(password == "Password", "Invalid password")
 	log.info("auth_handler %s@%s:%s", user, server, password)
-	local ok, uid = skynet.call(".SIGNUPD", "lua", "auth", user, password)
-	if ok then
-		return server, uid
+	local res
+	if server == "sample" then
+		res = skynet.call(".WX_SIGNUPD", "lua", "signup", server, user)
+	else
+		res = skynet.call(".WX_SIGNUPD", "lua", "signup", server, user)
+	end
+	if res.code == 200 then
+		return server, res.uid
 	else
 		error(uid)
-		return server, 0
+		return server, res.uid
 	end
 end
 
@@ -53,7 +58,7 @@ function server.login_handler(server, uid, secret)
 	user_online[uid] = { address = gameserver.address, subid = subid , server = server}
 	local gated = gameserver.gated
 
-	local res = string.format("%d#%d@%s", uid, subid, gated)
+	local res = string.format("%s#%d@%s", uid, subid, gated)
 	-- local res = subid
 	return res
 end

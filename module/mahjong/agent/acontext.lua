@@ -27,7 +27,8 @@ context.state = state
 function cls:ctor( ... )
 	-- body
 	cls.super.ctor(self, ...)
-	
+	self._db = nil
+	self._nickname_uid = nil
 	self._room = nil
 	self._state = state.NONE
 	self._last_state = state.NONE
@@ -43,6 +44,21 @@ function cls:ctor( ... )
 	self._cancelupdate = nil
 
 	return self
+end
+
+function cls:get_db( ... )
+	-- body
+	return self._db
+end
+
+function cls:set_db(value, ... )
+	-- body
+	self._db = value
+end
+
+function cls:get_nickname_uid( ... )
+	-- body
+	return self._nickname_uid
 end
 
 function cls:set_room(room, ... )
@@ -80,32 +96,11 @@ function cls:set_last_state(value, ... )
 	self._last_state = value
 end
 
-function cls:newborn(gate, uid, subid, secret, suid, ... )
-	-- body
-	cls.super.newborn(self, gate, uid, subid, secret, suid)
-	
-	self._user:set_uid(self._suid)
-	self._user:set_nameid(1)
-	self._user:set_age(10)
-	self._user:set_gold(1000)
-	self._user:set_diamond(1000)
-	self._user:set_checkin_month(0)
-	self._user:set_checkin_count(0)
-	self._user:set_checkin_mcount(0)
-	self._user:set_checkin_lday(0)
+function cls:login(gate, uid, subid, secret)
+	cls.super.login(self, gate, uid, subid, secret)
 
-	local name = skynet.call(".UNAME_MGR", "lua", "name")
-	self._user:set_nameid(name)
-	self._user:insert_db("tg_users")
-
-	self._sysinbox:poll()
-end
-
-function cls:login(gate, uid, subid, secret, suid)
-	cls.super.login(self, gate, uid, subid, secret, suid)
-
-	self:load_db_to_data()
-	log.info("load_db_to_data over")
+	self:load_cache_to_data()
+	log.info("load_cache_to_data over")
 
 	self._sysinbox:poll()
 end
@@ -119,12 +114,13 @@ function cls:afk( ... )
 	-- body
 end
 
-function cls:load_db_to_data()
+function cls:load_cache_to_data()
 	-- load user
-	self._user:load_db_to_data()
-	self._sysinbox:load_db_to_data()
-	self._recordmgr:load_db_to_data()
-	
+	self._suid = self._db:get(string.format("tg_uid:%s:suid", self._uid))
+	self._nickname_uid = self._db:get(string.format("tg_uid:%s:nickname_uid", self._uid))
+	self._user:load_cache_to_data()
+	self._sysinbox:load_cache_to_data()
+	self._recordmgr:load_cache_to_data()
 end
 
 function cls:first( ... )

@@ -11,6 +11,7 @@ local context = require "acontext"
 local log = require "log"
 local errorcode = require "errorcode"
 local checkindaily = require "checkindaily"
+local redis = require "redis"
 local assert = assert
 local pcall = skynet.pcall
 local error = skynet.error
@@ -21,6 +22,13 @@ local CMD       = {}
 local REQUEST   = {}
 local RESPONSE  = {}
 local SUBSCRIBE = {}
+
+
+local conf = {
+	host = "127.0.0.1" ,
+	port = 6379 ,
+	db = 0
+}
 
 local function init( ... )
 	-- body
@@ -46,6 +54,14 @@ local function subscribe()
 		end
 	}
 	c2:subscribe()
+end
+
+function REQUEST:logout( ... )
+	-- body
+	self:logout()
+	local res = {}
+	res.errorcode = errorcode.SUCCESS
+	return res
 end
 
 function REQUEST:handshake(args, ... )
@@ -316,13 +332,11 @@ end
 -- called by gated
 function CMD:login(source, gate, uid, subid, secret,... )
 	-- body
-	log.info("uid: %d", uid)
-	local res = skynet.call(".UID_MGR", "lua", "login", uid)
-	if res.new then
-		self:newborn(gate, uid, subid, secret, res.id)
-	else
-		self:login(gate, uid, subid, secret, res.id)
-	end
+	local db = redis.connect(conf)
+	self:set_db(db)
+
+	self:login(gate, uid, subid, secret)
+	
 	self:set_state(context.state.NORMAL)
 
 	skynet.send(".ONLINE_MGR", "lua", "login", self._user.name.value)
@@ -345,6 +359,9 @@ function CMD:logout(source)
 		self:set_room(nil)
 	end
 	self:logout()
+	local db = self:get_db()
+	db:disconnect()
+	
 	return true
 end
 

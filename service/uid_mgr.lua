@@ -58,7 +58,7 @@ function cmd.login(uid, ... )
 		log.info("new user %d login", id)
 
 		users[uid] = id
-		local sql = string.format("insert into %s values (%d, %d)", tname, uid, id)
+		local sql = string.format("insert into %s values (%s, %d)", tname, uid, id)
 		query.insert(tname, sql)
 
 		local sql = string.format("update tg_count set uid=%d where id=1", internal_id)

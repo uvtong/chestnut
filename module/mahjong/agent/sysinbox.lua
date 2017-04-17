@@ -16,20 +16,10 @@ function cls:ctor(env, dbctx, ... )
 	return self
 end
 
-function cls:load_db_to_data( ... )
-	-- body
-	local sql = string.format("select * from %s where uid=%d and viewed=0", self._tname, self._env._suid)
-	local res = query.select(self._tname, sql)
-	if #res > 0 then
-		for k,v in pairs(res) do
-			local m = sysmail.new(self._env, self._dbctx, self)
-			for kk,vv in pairs(v) do
-				m[kk].value = vv
-			end
-			self:add(m)
-		end
-	end
+
+function cls:load_cache_to_data( ... )
 end
+
 
 function cls:add(mail, ... )
 	-- body

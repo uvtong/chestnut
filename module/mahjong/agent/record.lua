@@ -19,6 +19,16 @@ function cls:ctor(env, dbctx, set, ... )
 	self.player4  = field.new(self, "player4", 8, field.data_type.char)
 end
 
+function cls:load_cache_to_data( ... )
+	local values = self._env._db:hgetall(string.format("tu_record:%d:%d", self.uid.value, self.id.value))
+	self.recordid.value = values.recordid
+	self.datetime.value = values.datetime
+	self.player1.value  = values.player1
+	self.player2.value  = values.player2
+	self.player3.value  = values.player3
+	self.player4.value  = values.player4
+end
+
 function cls:insert_db( ... )
 	-- body
 	tname = self._set._tname
