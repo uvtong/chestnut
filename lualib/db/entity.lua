@@ -22,8 +22,9 @@ function cls:pk( ... )
 	-- body
 	return self._pk.value
 end
-																																								
-function cls:insert_cache(tname, ...)
+
+function cls:update_cache(tname, ... )
+	-- body
 	if tname == nil then
 		tname = self._set._tname
 	end
@@ -42,9 +43,8 @@ function cls:insert_cache(tname, ...)
 		self._changed = {}
 	end
 end
-
-function cls:update_cache(tname, ... )
-	-- body
+																																								
+function cls:insert_cache(tname, ...)
 	if tname == nil then
 		tname = self._set._tname
 	end
@@ -141,8 +141,14 @@ function cls:load_db_to_data( ... )
 	-- body
 end
 
-function cls:update( ... )
+function cls:print_info( ... )
 	-- body
+	log.info("print_info begin")
+	for k,v in pairs(self._fields) do
+		log.info("key = " .. k .. " , val = " .. v.value)
+	end
+	log.info("print_info end")
+
 end
 
 return cls

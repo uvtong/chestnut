@@ -5,19 +5,22 @@ local tname = "tg_uid"
 
 local _M = {}
 
-function _M.cache_select(db, uid, ... )
+function _M.cache_select(db, ... )
 	-- body
 
-	local sql = string.format("select * from tg_uid where uid = %s", uid)
+	local sql = string.format("select * from tg_uid")
 	local res = query.select(tname, sql)
-	assert(#res > 0)
-	for k,v in pairs(res[1]) do
-		db:set(string.format("tg_uid:%s:%s", uid, k), v)
+	if #res > 0 then
+		for k,v in pairs(res[1]) do
+			db:set(string.format("tg_uid:%s:%s", uid, k), v)
+		end
 	end
+	return true
 end
 
 function _M.cache_update(db, uid, key, ... )
 	-- body
+	assert(false)
 	local val = db:get(string.format("tg_uid:%s:%s", uid, key))
 	if type(val) == "number" then
 		local sql = "update tg_uid set %s = %s where uid = %d;"

@@ -19,12 +19,12 @@ end
 
 function cls:load_cache_to_data( ... )
  	-- body
- 	local keys = self._env._db:zrange(string.format("tu_record:%d", self._suid), 0, -1, 'withscores')
+ 	local keys = self._env._db:zrange(string.format("tu_record:%d", self._env._suid), 0, -1, 'withscores')
  	if keys then
  	else
- 		dbmonitor.cache_select(string.format("tu_record:%d", self._suid))
+ 		dbmonitor.cache_select(string.format("tu_record:%d", self._env._suid))
  	end
- 	local keys = self._env._db:zrange(string.format("tu_record:%d", self._suid), 0, -1, 'withscores')
+ 	local keys = self._env._db:zrange(string.format("tu_record:%d", self._env._suid), 0, -1, 'withscores')
  	if keys then
  		for k,v in pairs(keys) do
  			local m = record.new(self._env, self._dbctx, self)

@@ -7,15 +7,14 @@ function cls:ctor(env, dbctx, set, ... )
 	-- body
 	cls.super.ctor(self, env, dbctx, set)
 	self.uid            = field.new(self, "uid", 1, field.data_type.integer, true)
-	self.rcard          = field.new(self, "rcard", 10, field.data_type.integer)
-	self.sex            = field.new(self, "sex", 10, field.data_type.integer)
-	self.nickname       = field.new(self, "nickname", 10, field.data_type.integer)
-	self.province       = field.new(self, "province", 11, field.data_type.integer)
-	self.city           = field.new(self, "city", 12, field.data_type.integer)
-	self.country        = field.new(self, "country", 13, field.data_type.integer)
-	self.headimg        = field.new(self, "headimg", 14, field.data_type.integer)
+	self.rcard          = field.new(self, "rcard", 7, field.data_type.integer)
+	self.sex            = field.new(self, "sex", 8, field.data_type.integer)
+	self.nickname       = field.new(self, "nickname", 9, field.data_type.integer)
+	self.province       = field.new(self, "province", 10, field.data_type.integer)
+	self.city           = field.new(self, "city", 11, field.data_type.integer)
+	self.country        = field.new(self, "country", 12, field.data_type.integer)
+	self.headimg        = field.new(self, "headimg", 13, field.data_type.integer)
 
-	assert(self._pk)
 end
 
 function cls:set_uid(value, ... )
@@ -76,15 +75,16 @@ end
 function cls:load_cache_to_data( ... )
 	-- body
 
-	self.uid.value     = self._suid
-	self.rcard.value   = self._db:get(string.format("tg_users:%d:rcard:", self._suid))
-	self.sex           = self._db:get(string.format("tg_users:%d:sex", self._suid))
-	self.nickname      = self._db:get(string.format("tg_users:%d:nickname", self._suid))
-	self.province      = self._db:get(string.format("tg_users:%d:province", self._suid))
-	self.city          = self._db:get(string.format("tg_users:%d:city", self._suid))
-	self.country       = self._db:get(string.format("tg_users:%d:country", self._suid))
-	self.headimg       = self._db:get(string.format("tg_users:%d:headimg", self._suid))
-	
+	self.uid.value      = self._env._suid
+	self.rcard.value    = math.tointeger(self._env._db:get(string.format("tg_users:%d:rcard", self._env._suid)))
+	self.sex.value      = math.tointeger(self._env._db:get(string.format("tg_users:%d:sex", self._env._suid)))
+	self.nickname.value = self._env._db:get(string.format("tg_users:%d:nickname", self._env._suid))
+	self.province.value = self._env._db:get(string.format("tg_users:%d:province", self._env._suid))
+	self.city.value     = self._env._db:get(string.format("tg_users:%d:city", self._env._suid))
+	self.country.value  = self._env._db:get(string.format("tg_users:%d:country", self._env._suid))
+	self.headimg.value  = self._env._db:get(string.format("tg_users:%d:headimg", self._env._suid))
+
+	self:print_info()
 end
 
 function cls:load_db_to_data( ... )

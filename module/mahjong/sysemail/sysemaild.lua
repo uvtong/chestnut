@@ -6,49 +6,48 @@ local inbox = require "inbox"
 local mail = require "mail"
 local util = require "util"
 local log = require "log"
+local sd = require "sharedata"
+local redis = require "redis"
+local const = require "const"
+local dbmonitor = require "dbmonitor"
+local zset = require "zset"
 
-local tname = "tg_count"
-local sys = 3
-local internal_id = 1
-local myin
+local conf = {
+	host = "127.0.0.1" ,
+	port = 6379 ,
+	db = 0
+}
+
+local db
+local zs = zset.new()
+local res = {}
+
+local function new_mail(title, content, ... )
+	-- body
+	assert(title and content)
+	local idx =  db:incr(string.format("tg_count:%d:uid", const.SYSMAIL_ID))
+	idx = math.tointeger(idx)
+	db:zadd(string.format("tg_sysmail"), 1, idx)
+	zs:add(1, idx)
+	dbmonitor.cache_update(string.format("tg_count:%d:uid", const.SYSMAIL_ID))
+	sd.new(string.format("tg_sysmail:%s:id", idx), math.tointeger(idx))
+	sd.new(string.format("tg_sysmail:%s:datetime", idx), os.time())
+	sd.new(string.format("tg_sysmail:%s:title", idx), title)
+	sd.new(string.format("tg_sysmail:%s:content", idx), content)
+end
 
 local cmd = {}
 
 function cmd.start( ... )
 	-- body
-	myin = inbox.new(nil, nil)
-
-	local sql = string.format("select * from %s where id = %d;", tname, sys)
-	local res = query.select("tg_count", sql)
-	if #res > 0 then
-		internal_id = res[1].uid
-	else
-		internal_id = 0
-		local sql = string.format("insert into %s values (%d, %d)", tname, sys, internal_id)
-		query.insert("tg_count", sql)
-	end
-
-	if internal_id == 0 then
-		internal_id = internal_id + 1
-		local sql = string.format("update %s set uid= %d where id = %d ", tname, internal_id, sys)
-		query.update("tg_count", sql)
-
-		local m = mail.new(nil, nil, myin)
-		m:set_id(internal_id)
-		m:set_datetime(os.time())
-		m:set_title("welcome to mahjong world")
-		m:set_content("hello world.")
-		m:insert_db()
-		myin:add(m)
-	else
-		myin:load_db_to_data()
-	end
+	local db = redis.connect(conf)
 
 	return true
 end
 
 function cmd.close( ... )
 	-- body
+	db:disconnect()
 	return true
 end
 
@@ -57,19 +56,37 @@ function cmd.kill( ... )
 	skynet.exit()
 end
 
-function cmd.poll(cnt, viewed, ... )
+function cmd.first_mail( ... )
 	-- body
-	return myin:poll(cnt, viewed)
+	new_mail("hello", "welcome mahjong world.")
+	return true
 end
 
-function cmd.get(id, ... )
+function cmd.first( ... )
 	-- body
-	local mail = myin:find(id)
-	local res = {}
-	res.id = id
-	res.title = mail.title.value
-	res.content = mail.content.value
-	return res
+	local vals = db:zrange('tg_sysmail', 0, -1)
+	for k,v in pairs(vals) do
+		zs:add(v)
+	end
+end
+
+function cmd.poll(max, ... )
+	-- body
+	local t = zs:range(1, zs:count())
+	if t[1] > max then
+		return t
+	elseif t[#t] > max then
+		local r = {}
+		for _,id in ipairs(t) do
+			if id > max then
+				table.insert(r, id)
+			end
+		end
+		return r
+	else
+		local r = skynet.response()
+		table.insert(res, r)
+	end
 end
 
 skynet.start(function ( ... )

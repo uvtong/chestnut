@@ -3,6 +3,7 @@ local query = require "query"
 local json = require "cjson"
 local sd = require "sharedata"
 local stm = require "stm"
+local zset = require "zset"
 local sd_cache = {}
 
 local cls = class("dbset")

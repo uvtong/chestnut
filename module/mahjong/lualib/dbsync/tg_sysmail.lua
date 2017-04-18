@@ -16,10 +16,11 @@ function _M.cache_select(db, ... )
 			assert(id)
 			db:zadd("tg_sysmail", 1, id)
 			for kk,vv in pairs(v) do
-				db:hset(string.format("tg_record:%d", id), kk, vv)
+				db:hset(string.format("tg_sysmail:%d", id), kk, vv)
 			end
 		end
 	end
+	return true
 end
 
 function _M.cache_update(db, left, ... )
@@ -42,13 +43,8 @@ function _M.cache_insert(db, left, ... )
 	query.insert(tname, sql)
 end
 
-function _M.cache_delete(db, uid, ... )
+function _M.cache_delete(db, ... )
 	-- body
-	local keys = db:zrange(string.format("tg_sysmail"), 0, -1, 'withscores')
-	for k,v in pairs(keys) do
-		db:del(string.format("tg_sysmail:%s", v))
-	end
-	db:del("tg_sysmail")
 end
 
 return _M

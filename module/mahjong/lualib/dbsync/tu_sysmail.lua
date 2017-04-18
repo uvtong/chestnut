@@ -5,29 +5,27 @@ local tname = "tu_sysmail"
 
 local _M = {}
 
-function _M.cache_select(db, left, ... )
+function _M.cache_select(db, uid, ... )
 	-- body
-	assert(db and left)
-	local sql = string.format("select * from tu_sysmail")
+	assert(db and uid)
+	local sql = string.format("select * from tu_sysmail where uid = %s", uid)
 	local res = query.select(tname, sql)
 	if #res > 0 then
 		for k,v in pairs(res) do
-			local id = v.id
-			assert(id)
-			db:zadd(string.format('tu_sysmail:%s', left), 1, id)
+			local id = assert(v.id)
+			db:zadd(string.format('tu_sysmail:%s', uid), 1, id)
 
 			for kk,vv in pairs(v) do
-				db:hset(string.format('tu_sysmail:%s:%s', left, id), kk, vv)
+				db:hset(string.format('tu_sysmail:%s:%s', uid, id), kk, vv)
 			end
 		end
 	end
 end
 
-function _M.cache_update(db, left, ... )
+function _M.cache_update(db, left, key, ... )
 	-- body
-	local uid, xleft = left:match("([^:]+):(.+)")
-	local id, key = xleft:match("([^:]+):(.+)")
-	local val = db:hget(string.format("tu_sysmail:%s:%s", uid, id), key)
+	assert(db and left and key)
+	local val = db:hget(string.format("tu_sysmail:%s", left), key)
 
 	local sql = "update tu_sysmail set %s = %s where id = %d;"
 	sql = string.format(sql, key, val, id)

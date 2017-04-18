@@ -336,13 +336,9 @@ function CMD:login(source, gate, uid, subid, secret,... )
 	self:set_db(db)
 
 	self:login(gate, uid, subid, secret)
-	
-	self:set_state(context.state.NORMAL)
 
-	skynet.send(".ONLINE_MGR", "lua", "login", self._user.name.value)
-	local now = os.date("*t")
-	-- skynet.call(".EMAIL", "lua", "login", uid)
-	-- local res = skynet.call(".EMAIL", "lua", "recv", now)
+	skynet.send(".ONLINE_MGR", "lua", "login", self._uid)
+	
 	return true
 end
 

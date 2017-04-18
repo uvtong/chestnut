@@ -141,7 +141,6 @@ function CMD.signup(server, code, ... )
 		end
 	else
 		local unionid = code
-		dbmonitor.cache_select(string.format("tg_uid:%s", unionid))
 		unionid = db:get(string.format("tg_uid:%s:uid", unionid))
 		if unionid then
 			local res = {}
@@ -161,8 +160,8 @@ function CMD.signup(server, code, ... )
 			local city = "x"
 			local country = "CN"
 			local headimg = "xx"
-			skynet.fork(new_unionid, unionid, suid, nickname_uid)
-			skynet.fork(new_user, suid, sex, nickname, province, city, country, headimg)
+			new_unionid(unionid, suid, nickname_uid)
+			new_user(suid, sex, nickname, province, city, country, headimg)
 
 			local res = {}
 			res.code = 200

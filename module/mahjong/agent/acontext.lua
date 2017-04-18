@@ -116,8 +116,8 @@ end
 
 function cls:load_cache_to_data()
 	-- load user
-	self._suid = self._db:get(string.format("tg_uid:%s:suid", self._uid))
-	self._nickname_uid = self._db:get(string.format("tg_uid:%s:nickname_uid", self._uid))
+	self._suid = math.tointeger(self._db:get(string.format("tg_uid:%s:suid", self._uid)))
+	self._nickname_uid = math.tointeger(self._db:get(string.format("tg_uid:%s:nickname_uid", self._uid)))
 	self._user:load_cache_to_data()
 	self._sysinbox:load_cache_to_data()
 	self._recordmgr:load_cache_to_data()
@@ -127,11 +127,11 @@ function cls:first( ... )
 	-- body
 	local res = {}
 	res.errorcode = errorcode.SUCCESS
-	res.name = self._user.name
-	res.nameid = self._user.nameid.value
-	res.rcard = self._user.rcard.value
-	res.board = radiocenter.board()
-	res.adver = radiocenter.adver()
+	res.name   = self._user.nickname.value
+	res.nameid = self._nickname_uid
+	res.rcard  = self._user.rcard.value
+	res.board  = radiocenter.board()
+	res.adver  = radiocenter.adver()
 
 	return res
 end

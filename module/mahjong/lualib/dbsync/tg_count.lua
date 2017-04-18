@@ -4,42 +4,34 @@ local log = require "log"
 
 local tname = "tg_count"
 
+local function new_item(id, ... )
+	-- body
+	assert(id)
+	local sql = "select * from tg_count where id = %d"
+	sql = string.format(sql, id)
+	log.info(sql)
+	local res = query.select(tname, sql)
+	if #res > 0 then
+		db:set(string.format("tg_count:%d:uid", id), assert(res[1].uid))
+	else
+		db:set(string.format("tg_count:%d:uid", id), 0)
+		local sql = "insert into tg_count (id, uid) values (%d, %d);"
+		query.insert(tname, sql)
+	end
+end
+
 local _M = {}
 
 function _M.cache_select(db, ... )
 	-- body
+	assert(db)
 	-- 1.
-	local sql = string.format("select * from tg_const where id = %d", const.UID_ID)
-	local res = query.select(tname, sql)
-	if #res > 0 then
-		db:set(string.format("tg_count:%d:uid", const.UID_ID), res[1].uid)
-	else
-		db:set(string.format("tg_count:%d:uid", const.UID_ID), 0)
-		local sql = "insert into tg_count (id, uid) values (%d, %d);"
-		sql = string.format(sql, const.UID_ID, 0)
-	end
+	new_item(const.UID_ID)
+	new_item(const.NAME_ID)
+	new_item(const.SYSMAIL_ID)
+	new_item(const.COUNT_RECORD_ID)
 
-	-- 2.
-	local sql = string.format("select * from tg_const where id = %d", const.NAME_ID)
-	local res = query.select(tname, sql)
-	if #res > 0 then
-		db:set(string.format("tg_count:%d:uid", const.NAME_ID), res[1].uid)
-	else
-		db:set(string.format("tg_count:%d:uid", const.NAME_ID), 0)
-		local sql = "insert into tg_count (id, uid) values (%d, %d);"
-		sql = string.format(sql, const.NAME_ID, 0)
-	end	
-
-	-- 4.
-	local sql = string.format("select * from tg_const where id = %d", const.COUNT_RECORD_ID)
-	local res = query.select(tname, sql)
-	if #res > 0 then
-		db:set(string.format("tg_count:%d:uid", const.COUNT_RECORD_ID), res[1].uid)
-	else
-		db:set(string.format("tg_count:%d:uid", const.COUNT_RECORD_ID), 0)
-		local sql = "insert into tg_count (id, uid) values (%d, %d);"
-		sql = string.format(sql, const.COUNT_RECORD_ID, 0)
-	end	
+	return true
 end
 
 function _M.cache_update(db, left, ... )
@@ -60,6 +52,10 @@ function _M.cache_insert(db, uid, ... )
 	local sql = "insert into tg_uid (uid, suid, nickname_uid) values (%s, %d, %d);"
 	sql = string.format(sql, uid, suid, nickname_uid)
 	query.insert(tname, sql)
+end
+
+function _M.cache_delete(db, ... )
+	-- body
 end
 
 return _M

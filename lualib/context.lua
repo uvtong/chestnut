@@ -131,23 +131,12 @@ function cls:get_suid( ... )
 	return self._suid
 end
 
-function cls:newborn(gate, uid, subid, secret, suid, ... )
-	-- body
-	assert(gate and uid and subid and secret and suid)
+function cls:login(gate, uid, subid, secret)
+	assert(gate and uid and subid and secret)
 	self._gate = gate
 	self._uid = uid
 	self._subid = subid
 	self._secret = secret
-	self._suid = suid
-end
-
-function cls:login(gate, uid, subid, secret, suid)
-	assert(gate and uid and subid and secret and suid)
-	self._gate = gate
-	self._uid = uid
-	self._subid = subid
-	self._secret = secret
-	self._suid = suid
 end
 
 function cls:logout( ... )

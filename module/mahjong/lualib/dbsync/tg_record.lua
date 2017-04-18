@@ -22,6 +22,7 @@ function _M.cache_select(db, ... )
 			end
 		end
 	end
+	return true
 end
 
 function _M.cache_update(db, left, ... )
@@ -42,6 +43,10 @@ function _M.cache_insert(db, left, ... )
 	sql = string.format(sql, left, vals.content, vals.datetime)
 	log.info(sql)
 	query.insert(tname, sql)
+end
+
+function _M.cache_delete(db, ... )
+	-- body
 end
 
 return _M

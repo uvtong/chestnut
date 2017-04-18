@@ -1,7 +1,9 @@
+local skynet = require "skynet"
 local field = require "db.field"
 local entity = require "db.entity"
 local query = require "query"
 local log = require "log"
+local dbmonitor = require "dbmonitor"
 
 local cls = class("sysmail", entity)
 
@@ -16,24 +18,71 @@ function cls:ctor(env, dbctx, set, ... )
 	self.viewed   = field.new(self, "viewed", 5, field.data_type.integer)
 end
 
+function cls:key( ... )
+	-- body
+	return string.format("tu_sysmail:%d:%d", self.uid.value, self.id.value)
+end
+
+function cls:set_id(value, ... )
+	-- body
+	self.id:set_value(value)
+	skynet.fork(function (key, val, ... )
+		-- body
+		self._env._db:hset(self:key(), key, val)
+		dbmonitor.cache_update(self:key(), key)
+	end, 'id', value)
+end
+
 function cls:set_uid(value, ... )
 	-- body
 	self.uid:set_value(value)
+	skynet.fork(function (key, val, ... )
+		-- body
+		self._env._db:hset(self:key(), key, val)
+		dbmonitor.cache_update(self:key(), key)
+	end, 'uid', value)
 end
 
 function cls:set_mailid(value, ... )
 	-- body
 	self.mailid:set_value(value)
+	skynet.fork(function (key, val, ... )
+		-- body
+		self._env._db:hset(self:key(), key, val)
+		dbmonitor.cache_update(self:key(), key)
+	end, 'mailid', value)
 end
 
 function cls:set_datetime(value, ... )
 	-- body
 	self.datetime:set_value(value)
+	skynet.fork(function (key, val, ... )
+		-- body
+		self._env._db:hset(self:key(), key, val)
+		dbmonitor.cache_update(self:key(), key)
+	end, 'mailid', value)
 end
 
 function cls:set_viewed(value, ... )
 	-- body
 	self.viewed:set_value(value)
+
+	skynet.fork(function (key, val, ... )
+		-- body
+		self._env._db:hset(self:key(), key, val)
+		dbmonitor.cache_update(self:key(), key)
+	end, 'viewed', value)
+end
+
+function cls:load_cache_to_data( ... )
+	-- body
+	local vals = self._env._db:hgetall(self:key())
+
+	self.mailid.value = math.tointeger(vals.mailid)
+	self.datetime.value = math.tointeger(vals.datetime)
+	self.viewed.value = math.tointeger(vals.viewed)
+
+	self:print_info()
 end
 
 function cls:update_db(col, ... )

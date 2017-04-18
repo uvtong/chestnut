@@ -5,13 +5,18 @@ local tname = "tg_users"
 
 local _M = {}
 
-function _M.cache_select(db, uid, ... )
+function _M.cache_select(db, ... )
 	-- body
-	local sql = string.format("select * from tg_users where uid = %s", uid)
+	local sql = string.format("select * from tg_users")
 	local res = query.select(tname, sql)
-	assert(#res > 0)
-	for k,v in pairs(res[1]) do
-		db:set(string.format("tg_uid:%s:%s", uid, k), v)
+	if #res > 0 then
+		for k,v in pairs(res) do
+			local uid = assert(v.uid)
+			db:zadd(string.format('tg_users'), 1, uid)
+			for kk,vv in pairs(v) do
+				db:set(string.format("tg_users:%s:%s", uid, kk), vv)
+			end
+		end
 	end
 end
 
@@ -19,8 +24,14 @@ function _M.cache_update(db, left, ... )
 	-- body
 	local uid, key = left:match("([^:]+):(.+)")
 	local val = db:get(string.format("tg_uid:%s:%s", uid, key))
-	if type(val) == "number" then
-		local sql = "update tg_uid set %s = %s where uid = %d;"
+	
+	if key == 'rcard' or
+		key == 'sex' then
+		local sql = "update tg_users set %s = %s where uid = %s;"
+		sql = string.format(sql, key, val, uid)
+		query.update(tname, sql)
+	else
+		local sql = "update tg_users set %s = '%s' where uid = %s;"
 		sql = string.format(sql, key, val, uid)
 		query.update(tname, sql)
 	end
