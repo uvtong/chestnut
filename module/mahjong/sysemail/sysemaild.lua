@@ -1,4 +1,4 @@
-package.path = "./../../module/mahjong/sysemail/?.lua;"..package.path
+package.path = "./../../module/mahjong/sysemail/?.lua;../../module/mahjong/lualib/?.lua;"..package.path
 local skynet = require "skynet"
 require "skynet.manager"
 local query = require "query"
@@ -40,8 +40,7 @@ local cmd = {}
 
 function cmd.start( ... )
 	-- body
-	local db = redis.connect(conf)
-
+	db = redis.connect(conf)
 	return true
 end
 
@@ -56,34 +55,53 @@ function cmd.kill( ... )
 	skynet.exit()
 end
 
-function cmd.first_mail( ... )
-	-- body
-	new_mail("hello", "welcome mahjong world.")
-	return true
-end
-
 function cmd.first( ... )
 	-- body
-	local vals = db:zrange('tg_sysmail', 0, -1)
-	for k,v in pairs(vals) do
-		zs:add(v)
+	local idx =  db:get(string.format("tg_count:%d:uid", const.SYSMAIL_ID))
+	idx = math.tointeger(idx)
+	if idx > 1 then
+		local keys = db:zrange('tg_sysmail', 0, -1)
+		for k,v in pairs(keys) do
+			zs:add(k, v)
+		end
+
+		for _,id in pairs(keys) do
+			local vals = db:hgetall(string.format('tg_sysmail:%s', id))
+			local t = {}
+			for i=1,#vals,2 do
+				local k = vals[i]
+				local v = vals[i + 1]
+				t[k] = v
+			end
+			sd.new(string.format('tg_sysmail:%s', id), t)
+			t = sd.query(string.format('tg_sysmail:%s', id))
+		end	
+		
+	else
+		new_mail("hello", "welcome mahjong world.")	
 	end
 end
 
 function cmd.poll(max, ... )
 	-- body
 	local t = zs:range(1, zs:count())
-	if t[1] > max then
-		return t
-	elseif t[#t] > max then
-		local r = {}
-		for _,id in ipairs(t) do
-			if id > max then
-				table.insert(r, id)
+	if zs:count() > 0 then
+		log.info("1")
+		if math.tointeger(t[1]) > max then
+			log.info("2")
+			return t
+		elseif t[#t] > max then
+			log.info("3")
+			local r = {}
+			for _,id in ipairs(t) do
+				if id > max then
+					table.insert(r, id)
+				end
 			end
+			return r
 		end
-		return r
 	else
+		log.info("4")
 		local r = skynet.response()
 		table.insert(res, r)
 	end
@@ -93,6 +111,7 @@ skynet.start(function ( ... )
 	-- body
 	skynet.dispatch("lua", function (_, _, command, subcmd, ... )
 		-- body
+		log.info("sysemaild command = %s", command)
 		local f = cmd[command]
 		local r = f(subcmd, ...)
 		if r ~= nil then

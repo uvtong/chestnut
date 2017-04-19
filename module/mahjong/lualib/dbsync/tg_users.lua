@@ -18,6 +18,7 @@ function _M.cache_select(db, ... )
 			end
 		end
 	end
+	return true
 end
 
 function _M.cache_update(db, left, ... )

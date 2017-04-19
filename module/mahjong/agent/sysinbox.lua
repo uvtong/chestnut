@@ -38,34 +38,34 @@ function cls:add(mail, ... )
 	table.insert(self._data, mail)
 	self._count = self._count + 1
 	self._mk[mail.mailid.value] = mail
-	self._mkzs:add(mail.id.value)
+	self._mkzs:add(1, string.format("%d", mail.id.value))
 end
 
 function cls:poll( ... )
 	-- body
-	local res
-	if self._count > 0 then
-		res = sysmaild.poll(self._mkzs:range(self._mkzs:count() - 1, self._mkzs:count())[1])	
-	else
-		res = sysmaild.poll(0)
-	end
+	skynet.fork(function ( ... )
+		-- body
+		local res
+		if self._count > 0 then
+			res = sysmaild.poll(self._mkzs:range(self._mkzs:count() - 1, self._mkzs:count())[1])	
+		else
+			res = sysmaild.poll(0)
+		end
 
-	log.info("sysinbox poll %d", #res)
-	for k,v in pairs(res) do
-		local i = sysmail.new(self._env, self._dbctx, self)
-		i:set_id(snowflake.next_id())
-		i:set_uid(self._env._suid)
+		log.info("sysinbox poll %d", #res)
+		for _,mailid in pairs(res) do
+			local i = sysmail.new(self._env, self._dbctx, self)
 
-		i.id.value = snowflake.next_id()
-		i.uid.value = self._env._suid
-		i.mailid.value = sd
-		m.mailid.value = v.id
-		m.datetime.value = v.datetime
-		m.viewed.value = 0
-		m:insert_db()
-		self:add(m)
-		self:insert_sl(m)
-	end
+			i.id.value = snowflake.next_id()
+			i.uid.value = self._env._suid
+			i.mailid.value = math.tointeger(mailid)
+			i.datetime.value = math.tointeger(sd.query(string.format("tg_sysmail:%s", mailid)).datetime)
+			i.viewed.value = 0
+			i:insert_cache()
+
+			self:add(i)
+		end
+	end)
 end
 
 function cls:fetch(args, ... )
@@ -80,9 +80,9 @@ function cls:fetch(args, ... )
 			mail.id = v.mailid.value
 			mail.datetime = v.datetime.value
 			mail.viewed = v.viewed.value
-			local x = sysmaild.get(v.mailid.value)
-			mail.title = x.title
-			mail.content = x.content
+			local t = sd.query(string.format("tg_sysmail:%d", v.mailid.value))
+			mail.title   = t.title
+			mail.content = t.content
 			table.insert(res.inbox, mail)
 		end
 	end

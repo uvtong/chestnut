@@ -4,7 +4,7 @@ local log = require "log"
 
 local tname = "tg_count"
 
-local function new_item(id, ... )
+local function new_item(db, id, ... )
 	-- body
 	assert(id)
 	local sql = "select * from tg_count where id = %d"
@@ -26,10 +26,10 @@ function _M.cache_select(db, ... )
 	-- body
 	assert(db)
 	-- 1.
-	new_item(const.UID_ID)
-	new_item(const.NAME_ID)
-	new_item(const.SYSMAIL_ID)
-	new_item(const.COUNT_RECORD_ID)
+	new_item(db, const.UID_ID)
+	new_item(db, const.NAME_ID)
+	new_item(db, const.SYSMAIL_ID)
+	new_item(db, const.COUNT_RECORD_ID)
 
 	return true
 end

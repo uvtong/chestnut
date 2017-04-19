@@ -5,7 +5,8 @@ local dbmonitor = require "dbmonitor"
 local sd = require "sharedata"
 local redis = require "redis"
 local log = require "log"
-local snowflak = require "snowflak"
+local snowflake = require "snowflake"
+local const = require "const"
 local noret = {}
 
 local conf = {
@@ -18,7 +19,9 @@ local CMD = {}
 
 function CMD.start( ... )
 	-- body
-	snowflak.init(0)
+	snowflake.init(1)
+	-- print(snowflake.next_id())
+	-- print(snowflake.next_id())
 	return true
 end
 
@@ -42,7 +45,8 @@ function CMD.load( ... )
 
 	local db = redis.connect(conf)
 	-- 1.0
-	local keys = db:zrang('tg_record', 0, -1)
+
+	local keys = db:zrange('tg_record', 0, -1)
 	for k,v in pairs(keys) do
 		local vals = db:hgetall(string.format('tg_record:%s', v))
 		for kk,vv in pairs(vals) do
@@ -51,19 +55,9 @@ function CMD.load( ... )
 	end
 
 	-- 2.0
-	local idx =  db:get(string.format("tg_count:%d:uid", const.SYSMAIL_ID))
-	if idx > 1 then
-		local keys = db:zrang('tg_sysmail', 0, -1)
-		for k,v in pairs(keys) do
-			local vals = db:hgetall(string.format('tg_sysmail:%s', v))
-			for kk,vv in pairs(vals) do
-				sd.new(string.format('tg_sysmail:%s:%s', v, kk), vv)
-			end
-		end		
-		skynet.call(".SYSEMAIL", "lua", "first")
-	else
-		skynet.call(".SYSEMAIL", "lua", "first_mail")
-	end
+	skynet.call(".SYSEMAIL", "lua", "first")
+
+	db:disconnect()
 	log.info("load over")
 	return true
 end

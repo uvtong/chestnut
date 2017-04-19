@@ -85,6 +85,19 @@ function cls:load_cache_to_data( ... )
 	self:print_info()
 end
 
+function cls:insert_cache( ... )
+	-- body
+	skynet.fork(function ( ... )
+		-- body
+		self._env._db:zadd(string.format('tu_sysmail:%s', self.uid.value), 1, self.id.value)
+		for k,v in pairs(self._fields) do
+			-- print(v.name, v.value)
+			self._env._db:hset(string.format('tu_sysmail:%d:%d', self.uid.value, self.id.value), v.name, v.value)
+		end
+		dbmonitor.cache_insert(string.format('tu_sysmail:%d:%d', self.uid.value, self.id.value))
+	end)
+end
+
 function cls:update_db(col, ... )
 	-- body
 	assert(col)

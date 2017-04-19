@@ -12,21 +12,30 @@ function cls:ctor(env, dbctx, set, ... )
 	self.id       = field.new(self, "id", 1, field.data_type.integer)
 	self.uid      = field.new(self, "uid", 2, field.data_type.integer)
 	self.recordid = field.new(self, "mailid", 3, field.data_type.integer)
-	self.datetime = field.new(self, "datetime", 4, field.data_type.integer)
-	self.player1  = field.new(self, "player1", 5, field.data_type.char)
-	self.player2  = field.new(self, "player2", 6, field.data_type.char)
-	self.player3  = field.new(self, "player3", 7, field.data_type.char)
-	self.player4  = field.new(self, "player4", 8, field.data_type.char)
 end
 
 function cls:load_cache_to_data( ... )
-	local values = self._env._db:hgetall(string.format("tu_record:%d:%d", self.uid.value, self.id.value))
-	self.recordid.value = values.recordid
-	self.datetime.value = values.datetime
-	self.player1.value  = values.player1
-	self.player2.value  = values.player2
-	self.player3.value  = values.player3
-	self.player4.value  = values.player4
+	local vals = self._env._db:hgetall(string.format("tu_record:%d:%d", self.uid.value, self.id.value))
+
+	local t = {}
+	for i=1,#vals,2 do
+		t[vals[i]] = vals[i+1]
+	end
+
+	self.recordid.value = math.tointeger(t.recordid)
+end
+
+function cls:insert_cache( ... )
+	-- body
+	skynet.fork(function ( ... )
+		-- body
+		self._env._db:zadd(string.format('tu_record:%s', self.uid.value), 1, self.id.value)
+		for k,v in pairs(self._fields) do
+			-- print(v.name, v.value)
+			self._env._db:hset(string.format('tu_record:%d:%d', self.uid.value, self.id.value), v.name, v.value)
+		end
+		dbmonitor.cache_insert(string.format('tu_record:%d:%d', self.uid.value, self.id.value))
+	end)
 end
 
 function cls:insert_db( ... )

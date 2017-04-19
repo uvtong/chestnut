@@ -47,6 +47,7 @@ function CMD.start( ... )
 
 	-- read
 	local game = skynet.uniqueservice("game")
+	skynet.call(game, "lua", "start")
 	table.insert(servers, game)
 
 	local chat = skynet.uniqueservice("chatd")

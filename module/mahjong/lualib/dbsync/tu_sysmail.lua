@@ -36,13 +36,16 @@ end
 
 function _M.cache_insert(db, left, ... )
 	-- body
-	local uid, xleft = left:match("([^:]+):(.+)")
-	local id, key = xleft:match("([^:]+):(.+)")
-
+	local uid, id = left:match("([^:]+):(.+)")
 	local vals = db:hgetall(string.format("tu_sysmail:%s:%s", uid, id))
 
+	local t = {}
+	for i=1,#vals,2 do
+		t[vals[i]] = vals[i+1]
+	end
+
 	local sql = "insert into tu_sysmail (id, uid, mailid, datetime, viewed) values (%s, %s, %s, %s, %s);"
-	sql = string.format(sql, id, uid, vals.mailid, vals.datetime, vals.viewed)
+	sql = string.format(sql, id, uid, t.mailid, t.datetime, t.viewed)
 	log.info(sql)
 	query.insert(tname, sql)
 end
