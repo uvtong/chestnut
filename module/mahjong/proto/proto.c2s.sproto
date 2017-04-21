@@ -139,6 +139,9 @@ join 5 {
 }
 
 leave 6 {
+    request {
+        idx 0 : integer
+    }
     response {
         errorcode 0 : integer
     }
@@ -242,6 +245,7 @@ first 30 {
         board     4 : string
         adver     5 : string
         msgnum    6 : integer
+        sex       7 : integer
     }
 }
 

@@ -100,9 +100,8 @@ end
 function CMD.enqueue_room(source, roomid, ... )
 	-- body
 	local room = mgr:get(roomid)
-	mgr:remove(room)
 	mgr:enqueue_room(room)
-	return noret
+	return true
 end
 
 skynet.start(function ( ... )

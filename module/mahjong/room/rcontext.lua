@@ -370,6 +370,10 @@ function cls:join(uid, sid, agent, name, sex, ... )
 	-- body
 	local res = {}
 	self._state = state.JOIN
+	if self._online == self._max then
+		res.errorcode = errorcode.ROOM_FULL
+		return res
+	end
 	local me = assert(self:find_noone())
 	if me then
 		me:set_uid(uid)
@@ -422,11 +426,38 @@ function cls:join(uid, sid, agent, name, sex, ... )
 	end
 end
 
-function cls:leave(uid, ... )
+function cls:leave(idx, ... )
 	-- body
-	local p = assert(self:get_player_by_uid(uid))
-	p:set_noone(true)
-	p:set_online(false)
+	if self._players[idx]:get_uid() == self._host then
+		for i=1,self._max do
+			if i == idx then
+			else
+				local args = {}
+				args.idx = idx
+				if not self._players[i]:get_noone() then
+					skynet.send(self._players[i]:get_agent(), "lua", "exit_room", args)
+				end
+			end
+			self._players[i]:set_noone(true)
+		end
+		skynet.call(".ROOM_MGR", "lua", "enqueue_room", self._id)
+	else
+		for i=1,self._max do
+			if i == idx then
+			else
+				local args = {}
+				args.idx = idx
+				if not self._players[i]:get_noone() then
+					skynet.send(self._players[i]:get_agent(), "lua", "leave", args)
+				end
+			end
+		end
+	end
+
+	local res = {}
+	res.errorcode = errorcode.SUCCESS
+	return res
+	
 end
 
 function cls:step(idx, ... )

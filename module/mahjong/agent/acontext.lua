@@ -132,6 +132,7 @@ function cls:first( ... )
 	res.rcard  = self._user.rcard.value
 	res.board  = radiocenter.board()
 	res.adver  = radiocenter.adver()
+	res.sex    = self._user.sex.value
 
 	return res
 end

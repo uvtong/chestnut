@@ -32,7 +32,7 @@ local function new_user(uid, sex, nickname, province, city, country, headimg )
 	db:set(string.format("tg_users:%d:checkin_count", uid), 0)
 	db:set(string.format("tg_users:%d:checkin_mcount", uid), 0)
 	db:set(string.format("tg_users:%d:checkin_lday", uid), 0)
-	db:set(string.format("tg_users:%d:rcard", uid), 0)
+	db:set(string.format("tg_users:%d:rcard", uid), 8)
 	db:set(string.format("tg_users:%d:sex", uid), sex)
 	db:set(string.format("tg_users:%d:nickname", uid), nickname)
 	db:set(string.format("tg_users:%d:province", uid), province)
@@ -155,6 +155,13 @@ function CMD.signup(server, code, ... )
 			dbmonitor.cache_update(string.format("tg_count:%d:uid", const.NAME_ID))						
 
 			local sex = 1
+			local r = math.random(1, 10)
+			if r > 5 then
+				sex = 1
+			else
+				sex = 2
+			end
+			
 			local nickname = "hell"
 			local province = 'SC'
 			local city = "x"

@@ -24,10 +24,10 @@ end
 function cls:load_cache_to_data( ... )
 	local keys = self._env._db:zrange(string.format('tu_sysmail:%d', self._env._suid), 0, -1)
 	if keys then
-		for k,v in pairs(keys) do
+		for _,id in pairs(keys) do
 			local i = sysmail.new(self._env, self._dbctx, self)
-			i.id = math.tointeger(v)
-			i.uid = self._env._suid
+			i.id.value = math.tointeger(id)
+			i.uid.value = self._env._suid
 			i:load_cache_to_data()
 		end
 	end
@@ -95,37 +95,25 @@ function cls:sync(args, ... )
 	local res = {}
 	res.errorcode = errorcode.SUCCESS
 	res.inbox = {}
-	if #args.all == self._count then
-		return res
-	else
-		for i,v in ipairs(self._data) do
-			local mailid = v.mailid.value
-			local finded = false
-			for ii,vv in ipairs(args.all) do
-				if vv == mailid then
-					finded = true
-				end
-			end
-			if not finded then
-				local mail = {}
-				mail.id = v.mailid.value
-				mail.datetime = v.datetime.value
-				mail.viewed = v.viewed.value
-				local x = sysmaild.get(v.mailid.value)
-				mail.title = x.title
-				mail.content = x.content
-				table.insert(res.inbox, mail)
-			end
+	for k,v in pairs(self._data) do
+		if v.viewed.value == 0 then
+			local mail = {}
+			mail.id = v.mailid.value
+			mail.datetime = v.datetime.value
+			mail.viewed = v.viewed.value
+			local t = sd.query(string.format("tg_sysmail:%d", v.mailid.value))
+			mail.title   = t.title
+			mail.content = t.content
+			table.insert(res.inbox, mail)
 		end
-		return res
 	end
+	return res
 end
 
 function cls:viewed(args, ... )
 	-- body
 	local mail = self._mk[args.mailid]
 	mail:set_viewed(1)
-	mail:update_db(mail.viewed:column())
 	local res = {}
 	res.errorcode = errorcode.SUCCESS
 	return res

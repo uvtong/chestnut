@@ -77,7 +77,7 @@ function REQUEST:create(args, ... )
 	local uid = self:get_uid()
 	local sid = self:get_subid()
 	local agent = skynet.self()
-	local name = self._user.name.value
+	local name = self._user.nickname.value
 	local sex = self._user.sex.value
 	local agent = {
 		uid = uid,
@@ -99,7 +99,7 @@ function REQUEST:join(args, ... )
 	local uid = self:get_uid()
 	local sid = self:get_subid()
 	local agent = skynet.self()
-	local name = self._user.name.value
+	local name = self._user.nickname.value
 	local sex = self._user.sex.value
 	local agent = {
 		uid = uid,
@@ -109,7 +109,8 @@ function REQUEST:join(args, ... )
 		sex = sex
 	}
 	local addr = skynet.call(".ROOM_MGR", "lua", "apply", args.roomid)
-	if addr and addr == 0 then
+	assert(addr)
+	if addr == 0 then
 		res.errorcode = errorcode.NOEXiST_ROOMID
 		return res
 	else
@@ -121,9 +122,15 @@ end
 
 function REQUEST:leave(args, ... )
 	-- body
-	if self:get_join() then
-		local uid = self:get_uid()
-		skynet.send(".ROOM_MGR", "lua", "dequeue_agent", uid)
+	local addr = self:get_room()
+	if addr then
+		local res = skynet.call(addr, "lua", "on_leave", args)
+		self:set_room(nil)
+		return res
+	else
+		local res = {}
+		res.errorcode = errorcode.NOEXiST_ROOMID
+		return res
 	end
 end
 
@@ -367,16 +374,12 @@ function CMD:afk(source)
 	local uid = self:get_uid()
 	local sid = self:get_subid()
 
-	if self:get_state() == context.state.ENTER_ROOM then
-		skynet.call(".ROOM_MGR", "lua", "afk", uid)
+	local addr = self:get_room()
+	if addr then
+		skynet.call(addr, "lua", "afk", uid)
 	end
 
-	if self:get_state() == context.state.ENTER_ROOMED then
-		local addr = assert(self:get_room())
-		skynet.call(addr, "lua", "afk", sid)
-	end
-
-	skynet.send(".ONLINE_MGR", "lua", "afk", self._user.name.value)
+	skynet.call(".ONLINE_MGR", "lua", "afk", self._uid)
 
 	return true
 end

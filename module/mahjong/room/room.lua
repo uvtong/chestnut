@@ -29,12 +29,15 @@ function CMD:kill( ... )
 	skynet.exit()
 end
 
-function CMD:afk(sid, ... )
+function CMD:afk(uid, ... )
 	-- body
-	local player = self:get_player_by_sid(sid)
-	player:set_onone(true)
-	player:set_online(false)
-	player:set_robot(false)
+	local player = self:get_player_by_uid(uid)
+	if player then
+		player:set_noone(true)
+		player:set_robot(false)
+		self:decre_online()
+	end
+	return true
 end
 
 function CMD:on_create(agent, ... )
@@ -57,25 +60,7 @@ end
 
 function CMD:on_leave(args, ... )
 	-- body
-	log.info("uid %d leave room", args.uid)
-	local player = self:get_player_by_uid(args.uid)
-	player:set_noone(true)
-
-	local p = {
-		name = player:get_name(),
-		idx = player:get_idx(),
-		sid = player:get_sid()
-	}
-	local args = {}
-	args.p = p
-	for k,v in pairs(self._players) do
-		if not v._noone and v ~= player then
-			skynet.send(v._agent, "lua", "leave", args)
-		end
-	end
-	local res = {}
-	res.errorcode = errorcode.SUCCESS
-	return res
+	return self:leave(args.idx)
 end
 
 function CMD:leave(args, ... )

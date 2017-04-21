@@ -26,41 +26,21 @@ end
 function cls:set_id(value, ... )
 	-- body
 	self.id:set_value(value)
-	skynet.fork(function (key, val, ... )
-		-- body
-		self._env._db:hset(self:key(), key, val)
-		dbmonitor.cache_update(self:key(), key)
-	end, 'id', value)
 end
 
 function cls:set_uid(value, ... )
 	-- body
 	self.uid:set_value(value)
-	skynet.fork(function (key, val, ... )
-		-- body
-		self._env._db:hset(self:key(), key, val)
-		dbmonitor.cache_update(self:key(), key)
-	end, 'uid', value)
 end
 
 function cls:set_mailid(value, ... )
 	-- body
 	self.mailid:set_value(value)
-	skynet.fork(function (key, val, ... )
-		-- body
-		self._env._db:hset(self:key(), key, val)
-		dbmonitor.cache_update(self:key(), key)
-	end, 'mailid', value)
 end
 
 function cls:set_datetime(value, ... )
 	-- body
 	self.datetime:set_value(value)
-	skynet.fork(function (key, val, ... )
-		-- body
-		self._env._db:hset(self:key(), key, val)
-		dbmonitor.cache_update(self:key(), key)
-	end, 'mailid', value)
 end
 
 function cls:set_viewed(value, ... )
@@ -78,9 +58,14 @@ function cls:load_cache_to_data( ... )
 	-- body
 	local vals = self._env._db:hgetall(self:key())
 
-	self.mailid.value = math.tointeger(vals.mailid)
-	self.datetime.value = math.tointeger(vals.datetime)
-	self.viewed.value = math.tointeger(vals.viewed)
+	local t = {}
+	for i=1,#vals,2 do
+		t[vals[i]] = vals[i+1]
+	end
+
+	self.mailid.value   = math.tointeger(t.mailid)
+	self.datetime.value = math.tointeger(t.datetime)
+	self.viewed.value   = math.tointeger(t.viewed)
 
 	self:print_info()
 end
@@ -96,49 +81,6 @@ function cls:insert_cache( ... )
 		end
 		dbmonitor.cache_insert(string.format('tu_sysmail:%d:%d', self.uid.value, self.id.value))
 	end)
-end
-
-function cls:update_db(col, ... )
-	-- body
-	assert(col)
-	local set = ""
-	local v = assert(self._fields[col])
-	if v:dt() == field.data_type.integer then
-		set = set .. v.name .. string.format("=%d", v.value)
-	elseif v:dt() == field.data_type.biginteger then
-		set = set .. v.name .. string.format("=%d", v.value)
-	end
-	local where = string.format("uid=%d and mailid=%d", self.uid.value, self.mailid.value)
-	local sql = string.format("update %s set %s where %s;", self._set._tname, set, where)
-	log.info(sql)
-	query.update(self._set._tname, sql)
-end
-
-function cls:insert_db( ... )
-	-- body
-	tname = self._set._tname
-	local keys = ""
-	local values = ""
-	for k,v in pairs(self._fields) do
-		log.info("test insert_db")
-		keys = keys .. v.name .. ","
-		if v:dt() == field.data_type.integer then
-			values = values .. string.format("%d,", v.value)
-		elseif v:dt() == field.data_type.biginteger then
-			values = values .. string.format("%d,", v.value)
-		elseif v:dt() == field.data_type.char then
-			values = values .. string.format("'%s',", v.value)
-		end
-	end
-	keys = string.sub(keys, 1, #keys-1)
-	values = string.sub(values, 1, #values-1)
-
-	local noexists = ""
-	noexists = noexists .. string.format("%s=%d", self.uid.name, self.uid.value)
-	noexists = noexists .. " and " .. string.format("%s=%d", self.mailid.name, self.mailid.value)
-
-	local sql = string.format("insert into %s (%s) values (%s) ON DUPLICATE KEY UPDATE %s;", tname, keys, values, noexists)
-	query.insert(tname, sql)
 end
 
 return cls

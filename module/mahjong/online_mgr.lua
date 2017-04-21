@@ -31,7 +31,7 @@ end
 function cmd.afk(name, ... )
 	-- body
 	users[name] = nil
-	return noret
+	return true
 end
 
 function cmd.add_rcard(name, num, ... )

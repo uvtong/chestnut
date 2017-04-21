@@ -24,10 +24,13 @@ end
 
 function _M.cache_update(db, left, key, ... )
 	-- body
+	print(left)
+	print(key)
 	assert(db and left and key)
+	local uid, id = left:match("([^:]+):(.+)")
 	local val = db:hget(string.format("tu_sysmail:%s", left), key)
 
-	local sql = "update tu_sysmail set %s = %s where id = %d;"
+	local sql = "update tu_sysmail set %s = %s where id = %s;"
 	sql = string.format(sql, key, val, id)
 	log.info(sql)
 	query.update(tname, sql)

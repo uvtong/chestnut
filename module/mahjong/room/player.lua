@@ -124,15 +124,15 @@ function cls:get_idx( ... )
 	return self._idx
 end
 
-function cls:set_online(value, ... )
-	-- body
-	self._online = value
-end
+-- function cls:set_online(value, ... )
+-- 	-- body
+-- 	self._online = value
+-- end
 
-function cls:get_online( ... )
-	-- body
-	return self._online
-end
+-- function cls:get_online( ... )
+-- 	-- body
+-- 	return self._online
+-- end
 
 function cls:set_robot(flag, ... )
 	-- body

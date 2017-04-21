@@ -81,7 +81,7 @@ join 3 {
 
 leave 4 {
     request {
-        p         0 : player
+        idx       0 : integer
     }
     response {
         errorcode 0 : integer
@@ -315,3 +315,8 @@ radio 31 {
     }
 }
 
+exit_room 100 {
+    response {
+        errorcode 0 : integer
+    }
+}
