@@ -76,28 +76,15 @@ function cls:load_cache_to_data( ... )
 	-- body
 
 	self.uid.value      = self._env._suid
-	self.rcard.value    = math.tointeger(self._env._db:get(string.format("tg_users:%d:rcard", self._env._suid)))
-	self.sex.value      = math.tointeger(self._env._db:get(string.format("tg_users:%d:sex", self._env._suid)))
-	self.nickname.value = self._env._db:get(string.format("tg_users:%d:nickname", self._env._suid))
-	self.province.value = self._env._db:get(string.format("tg_users:%d:province", self._env._suid))
-	self.city.value     = self._env._db:get(string.format("tg_users:%d:city", self._env._suid))
-	self.country.value  = self._env._db:get(string.format("tg_users:%d:country", self._env._suid))
-	self.headimg.value  = self._env._db:get(string.format("tg_users:%d:headimg", self._env._suid))
+	self.rcard.value    = math.tointeger(self._env._db:get(string.format("tg_user:%d:rcard", self._env._uid)))
+	self.sex.value      = math.tointeger(self._env._db:get(string.format("tg_user:%d:sex", self._env._uid)))
+	self.nickname.value = self._env._db:get(string.format("tg_user:%d:nickname", self._env._uid))
+	self.province.value = self._env._db:get(string.format("tg_user:%d:province", self._env._uid))
+	self.city.value     = self._env._db:get(string.format("tg_user:%d:city", self._env._uid))
+	self.country.value  = self._env._db:get(string.format("tg_user:%d:country", self._env._uid))
+	self.headimg.value  = self._env._db:get(string.format("tg_user:%d:headimg", self._env._uid))
 
-	self:print_info()
-end
-
-function cls:load_db_to_data( ... )
-	-- body
-	local sql = string.format("select * from tg_users where uid = %d", self._env._suid)
-	local res = query.select("tg_users", sql)
-	if #res > 0 then
-		for k,v in pairs(res[1]) do
-			if self[k] then
-				self[k].value = v
-			end	
-		end
-	end
+	-- self:print_info()
 end
 
 function cls:update( ... )

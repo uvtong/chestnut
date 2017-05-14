@@ -22,12 +22,12 @@ function cls:ctor(env, dbctx, ... )
 end
 
 function cls:load_cache_to_data( ... )
-	local keys = self._env._db:zrange(string.format('tu_sysmail:%d', self._env._suid), 0, -1)
+	local keys = self._env._db:zrange(string.format('tb_user_sysmail:%d', self._env._uid), 0, -1)
 	if keys then
 		for _,id in pairs(keys) do
 			local i = sysmail.new(self._env, self._dbctx, self)
 			i.id.value = math.tointeger(id)
-			i.uid.value = self._env._suid
+			i.uid.value = self._env._uid
 			i:load_cache_to_data()
 		end
 	end
@@ -59,7 +59,6 @@ function cls:poll( ... )
 			i.id.value = snowflake.next_id()
 			i.uid.value = self._env._suid
 			i.mailid.value = math.tointeger(mailid)
-			i.datetime.value = math.tointeger(sd.query(string.format("tg_sysmail:%s", mailid)).datetime)
 			i.viewed.value = 0
 			i:insert_cache()
 

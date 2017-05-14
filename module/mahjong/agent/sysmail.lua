@@ -14,7 +14,6 @@ function cls:ctor(env, dbctx, set, ... )
 	self.id       = field.new(self, "id", 1, field.data_type.integer)
 	self.uid      = field.new(self, "uid", 2, field.data_type.integer)
 	self.mailid   = field.new(self, "mailid", 3, field.data_type.integer)
-	self.datetime = field.new(self, "datetime", 4, field.data_type.integer)
 	self.viewed   = field.new(self, "viewed", 5, field.data_type.integer)
 end
 
@@ -64,7 +63,6 @@ function cls:load_cache_to_data( ... )
 	end
 
 	self.mailid.value   = math.tointeger(t.mailid)
-	self.datetime.value = math.tointeger(t.datetime)
 	self.viewed.value   = math.tointeger(t.viewed)
 
 	self:print_info()
@@ -74,12 +72,12 @@ function cls:insert_cache( ... )
 	-- body
 	skynet.fork(function ( ... )
 		-- body
-		self._env._db:zadd(string.format('tu_sysmail:%s', self.uid.value), 1, self.id.value)
+		self._env._db:zadd(string.format('tb_user_sysmail:%s', self.uid.value), 1, self.id.value)
 		for k,v in pairs(self._fields) do
 			-- print(v.name, v.value)
-			self._env._db:hset(string.format('tu_sysmail:%d:%d', self.uid.value, self.id.value), v.name, v.value)
+			self._env._db:hset(string.format('tb_user_sysmail:%d:%d', self.uid.value, self.id.value), v.name, v.value)
 		end
-		dbmonitor.cache_insert(string.format('tu_sysmail:%d:%d', self.uid.value, self.id.value))
+		dbmonitor.cache_insert(string.format('tb_user_sysmail:%d:%d', self.uid.value, self.id.value))
 	end)
 end
 

@@ -1,22 +1,22 @@
 local query = require "query"
 local log = require "log"
 
-local tname = "tu_sysmail"
+local tname = "tb_user_sysmail"
 
 local _M = {}
 
 function _M.cache_select(db, uid, ... )
 	-- body
 	assert(db and uid)
-	local sql = string.format("select * from tu_sysmail where uid = %s", uid)
+	local sql = string.format("select * from %s where uid = %s", tname, uid)
 	local res = query.select(tname, sql)
 	if #res > 0 then
-		for k,v in pairs(res) do
-			local id = assert(v.id)
-			db:zadd(string.format('tu_sysmail:%s', uid), 1, id)
+		for _,row in pairs(res) do
+			local id = assert(row.id)
+			db:zadd(string.format('%s:%s', tname, uid), 1, id)
 
 			for kk,vv in pairs(v) do
-				db:hset(string.format('tu_sysmail:%s:%s', uid, id), kk, vv)
+				db:hset(string.format('%s:%s:%s', tname, uid, id), kk, vv)
 			end
 		end
 	end
@@ -28,13 +28,11 @@ function _M.cache_update(db, left, key, ... )
 	print(key)
 	assert(db and left and key)
 	local uid, id = left:match("([^:]+):(.+)")
-	local val = db:hget(string.format("tu_sysmail:%s", left), key)
+	local val = db:hget(string.format("%s:%s", tname, left), key)
 
-	local sql = "update tu_sysmail set %s = %s where id = %s;"
-	sql = string.format(sql, key, val, id)
+	local sql = string.format("update %s set %s = %s where id = %s;", tname, key, val, id)
 	log.info(sql)
 	query.update(tname, sql)
-
 end
 
 function _M.cache_insert(db, left, ... )
@@ -47,15 +45,15 @@ function _M.cache_insert(db, left, ... )
 		t[vals[i]] = vals[i+1]
 	end
 
-	local sql = "insert into tu_sysmail (id, uid, mailid, datetime, viewed) values (%s, %s, %s, %s, %s);"
-	sql = string.format(sql, id, uid, t.mailid, t.datetime, t.viewed)
+	local sql = "insert into %s (id, uid, mailid, viewed) values (%s, %s, %s, %s);"
+	sql = string.format(sql, tname, id, uid, t.mailid, t.viewed)
 	log.info(sql)
 	query.insert(tname, sql)
 end
 
 function _M.cache_delete(db, uid, ... )
 	-- body
-	local keys = db:zrang(string.format("tu_sysmail:%s", uid), 0, -1)
+	local keys = db:zrang(string.format("%s:%s", tname, uid), 0, -1)
 	for k,v in pairs(keys) do
 		db:del(string.format("tu_sysmail:%s:%s", uid, v))
 	end

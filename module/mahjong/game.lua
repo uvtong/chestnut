@@ -37,27 +37,17 @@ end
 
 function CMD.load( ... )
 	-- body
-	dbmonitor.cache_select('tg_count')
-	dbmonitor.cache_select('tg_record')
-	dbmonitor.cache_select('tg_sysmail')
-	dbmonitor.cache_select('tg_uid')
-	dbmonitor.cache_select('tg_users')
-
-	local db = redis.connect(conf)
-	-- 1.0
-
-	local keys = db:zrange('tg_record', 0, -1)
-	for k,v in pairs(keys) do
-		local vals = db:hgetall(string.format('tg_record:%s', v))
-		for kk,vv in pairs(vals) do
-			sd.new(string.format('tg_record:%s:%s', v, kk), vv)
-		end
-	end
+	dbmonitor.cache_select('tb_count')
+	dbmonitor.cache_select('tb_nameid')
+	dbmonitor.cache_select('tb_openid')
+	dbmonitor.cache_select('tb_record')
+	dbmonitor.cache_select('tb_sysmail')
+	dbmonitor.cache_select('tb_user')
 
 	-- 2.0
-	skynet.call(".SYSEMAIL", "lua", "first")
+	skynet.call(".SYSEMAIL", "lua", "load")
+	skynet.call(".RECORD_MGR", "lua", "load")
 
-	db:disconnect()
 	log.info("load over")
 	return true
 end

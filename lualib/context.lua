@@ -23,7 +23,6 @@ function cls:ctor( ... )
 	self._uid    = nil
 	self._subid  = nil
 	self._secret = nil
-	self._suid   = nil
 
 	return self
 end

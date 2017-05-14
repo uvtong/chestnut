@@ -3,6 +3,7 @@ local skynet = require "skynet"
 require "skynet.manager"
 local waiting_queue = require "waiting_queue"
 local log = require "log"
+local errorcode = require "errorcode"
 local noret = {}
 local users = {}
 local mgr
@@ -72,12 +73,29 @@ function CMD.dequeue_agent(source, uid, ... )
 	end
 end
 
-function CMD.create(source, uid, args, ... )
+function CMD.create(source, uid, agent, args, ... )
 	-- body
 	log.info("ROOM_MGR create")
-	local room = mgr:dequeue_room()
-	skynet.call(room.addr, "lua", "start", uid, args)
-	return assert(room.id)
+	local u = users[uid]
+	if u then
+		skynet.call(u.room.addr, "lua", "close")
+		mgr:enqueue_room(u.room)
+
+		local room = mgr:dequeue_room()
+		local res = skynet.call(room.addr, "lua", "start", uid, args)
+		u.room = room
+		u.agent = agent
+
+		return res
+	else
+		local room = mgr:dequeue_room()
+		local res = skynet.call(room.addr, "lua", "start", uid, args)
+		u = {}
+		u.room = room
+		u.agent = agent		
+		users[uid] = u
+		return res
+	end
 end
 
 function CMD.apply(source, roomid, ... )

@@ -16,12 +16,13 @@ local CMD = {}
 
 function CMD:start(uid, args, ... )
 	-- body
-	self:start(uid, args)
+	return self:start(uid, args)
 end
 
 function CMD:close( ... )
 	-- body
-	self:clear()
+	-- will be kill
+	return self:close()
 end
 
 function CMD:kill( ... )
@@ -29,21 +30,16 @@ function CMD:kill( ... )
 	skynet.exit()
 end
 
-function CMD:afk(uid, ... )
+function CMD:authed(uid, ... )
 	-- body
-	local player = self:get_player_by_uid(uid)
-	if player then
-		player:set_noone(true)
-		player:set_robot(false)
-		self:decre_online()
-	end
+	self:authed(uid)
 	return true
 end
 
-function CMD:on_create(agent, ... )
+function CMD:afk(uid, ... )
 	-- body
-	local res = self:create(agent.uid, agent.sid, agent.agent, agent.name, agent.sex)
-	return res
+	self:afk(uid)
+	return true
 end
 
 function CMD:on_join(agent, ... )

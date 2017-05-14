@@ -45,6 +45,7 @@ function cls:ctor( ... )
 	-- body
 	self._id = 0
 	self._host = nil
+	self._open = false
 
 	-- config
 	self._local = region.Sichuan
@@ -62,19 +63,20 @@ function cls:ctor( ... )
 	self._maxju = 0
 
 	self._players = {}
-	self._max = 4
-	for i=1, self._max do
+	for i=1,4 do
 		local tmp = player.new(self)
 		tmp._idx = i
-		table.insert(self._players, tmp)
+		self._players[i] = tmp
 	end
+	self._max = 4
+	self._joined = 0
 	self._online = 0
 
 	self._cards = {}
 	self._cardssz = 108
 	self:init_cards()
 
-	self._countdown = 50 -- s
+	self._countdown = 20 -- s
 
 	self._state = state.NONE	
 	self._lastfirsthu  = 0    -- last,make next zhuangjia
@@ -140,12 +142,21 @@ function cls:decre_online( ... )
 	end
 end
 
+function cls:clear( ... )
+	-- body
+	for i=1,4 do
+		self._players[i]:set_noone(true)
+		self._players[i]:set_online(false)
+	end
+	self._joined = 0
+	self._online = 0
+end
+
 function cls:find_noone( ... )
 	-- body
-	if self._online > self._max then
+	if self._joined >= self._max then
 		return false
 	end
-	assert(self._online >= 0)
 	for i=1,self._max do
 		if self._players[i]._noone then
 			return self._players[i]
@@ -240,8 +251,17 @@ function cls:push_client(name, args, ... )
 	-- body
 	for i=1,self._max do
 		local p = self._players[i]
-		if not p._noone then
+		assert(p:get_noone() == false)
+		if p:get_online() then
 			skynet.send(p._agent, "lua", name, args)
+		else
+			while true do
+				skynet.sleep(100 * 2) -- 10s
+				if p:get_online() then
+					skynet.send(p._agent, "lua", name, args)
+					break
+				end		
+			end
 		end
 	end
 end
@@ -301,10 +321,26 @@ function cls:next_takeidx( ... )
 	return self._curtake
 end
 
+
+
+function cls:take_card( ... )
+	-- body
+	local takep = self._players[self._curtake]
+	if takep._takecardscnt > 0 then
+		local card = takep:take_card()
+		assert(card)
+		self._takeidx = self._takeidx + 1
+		return card
+	else
+		assert(self._curtake == self._firsttake)
+	end
+end
+
 function cls:start(uid, args, ... )
 	-- body
 	assert(uid)
 	self._host = uid
+	self._open = true
 	if args.provice == region.Sichuan then
 		self._local = region.Sichuan
 		self._overtype = args.overtype
@@ -323,25 +359,64 @@ function cls:start(uid, args, ... )
 		self._exist = exist(self._local)
 		self._maxju = args.ju
 	end
+	self:clear()
+	local res = {}
+	res.errorcode = errorcode.SUCCESS
+	res.roomid = self._id
+	res.room_max = self._max
+	return res
 end
 
-function cls:take_card( ... )
+function cls:close( ... )
 	-- body
-	local takep = self._players[self._curtake]
-	if takep._takecardscnt > 0 then
-		local card = takep:take_card()
-		assert(card)
-		self._takeidx = self._takeidx + 1
-		return card
-	else
-		assert(self._curtake == self._firsttake)
+	self._open = false
+	return true
+end
+
+function cls:authed(uid, ... )
+	-- body
+	local p = self:get_player_by_uid(uid)
+	assert(p)
+	p:set_online(true)
+	self:incre_online()
+
+	for i=1,self._max do
+		if i == p:get_idx() then
+		else
+			local args = {}
+			args.idx = i
+			self:push_client_idx(i, "afk", args)
+		end
 	end
 end
 
-function cls:create(uid, sid, agent, name, sex, ... )
+function cls:afk(uid, ... )
 	-- body
-	self._state = state.CREATE
-	assert(self._online == 0)
+	local p = self:get_player_by_uid(uid)
+	assert(p)
+	p:set_online(false)
+	self:decre_online()
+
+	for i=1,self._max do
+		if i == p:get_idx() then
+		else
+			local args = {}
+			args.idx = i
+			self:push_client_idx(i, "afk", args)
+		end
+	end
+
+	return true
+end
+
+function cls:join(uid, sid, agent, name, sex, ... )
+	-- body
+	local res = {}
+	self._state = state.JOIN
+	if self._joined >= self._max then
+		res.errorcode = errorcode.ROOM_FULL
+		return res
+	end
 	local me = assert(self:find_noone())
 	me:set_uid(uid)
 	me:set_sid(sid)
@@ -349,6 +424,8 @@ function cls:create(uid, sid, agent, name, sex, ... )
 	me:set_name(name)
 	me:set_sex(sex)
 	me:set_noone(false)
+	me:set_online(true)
+	self._joined = self._joined + 1
 	self:incre_online()
 
 	local p = {
@@ -358,76 +435,40 @@ function cls:create(uid, sid, agent, name, sex, ... )
 		sex = me:get_sex(),
 		name = me:get_name(),
 	}
-	local res = {}
+
+	local args = {}
+	args.p = p
+	for k,v in pairs(self._players) do
+		if not v._noone and v ~= me then
+			self:push_client_idx(v:get_idx(), "join", args)
+		end
+	end
+
 	res.errorcode = errorcode.SUCCESS
 	res.roomid = self._id
 	res.room_max = self._max
 	res.me = p
+	local ps = {}
+	for i,v in ipairs(self._players) do
+		if not v:get_noone() and v:get_uid() ~= uid then
+			local p = {
+				idx  = v:get_idx(),
+				chip = v:get_chip(),
+				sid  = v:get_sid(),
+				sex  = v:get_sex(),
+				name = v:get_name(),
+			}
+			table.insert(ps, p)
+		end
+	end
+	res.ps = ps
 	return res
-end
-
-function cls:join(uid, sid, agent, name, sex, ... )
-	-- body
-	local res = {}
-	self._state = state.JOIN
-	if self._online == self._max then
-		res.errorcode = errorcode.ROOM_FULL
-		return res
-	end
-	local me = assert(self:find_noone())
-	if me then
-		me:set_uid(uid)
-		me:set_sid(sid)
-		me:set_agent(agent)
-		me:set_name(name)
-		me:set_sex(sex)
-		me:set_noone(false)
-		self:incre_online()
-
-		local p = {
-			idx = me:get_idx(),
-			chip = me:get_chip(),
-			sid = me:get_sid(),
-			sex = me:get_sex(),
-			name = me:get_name(),
-		}
-
-		local args = {}
-		args.p = p
-		for k,v in pairs(self._players) do
-			if not v._noone and v ~= me then
-				self:push_client_idx(v:get_idx(), "join", args)
-			end
-		end
-
-		res.errorcode = errorcode.SUCCESS
-		res.roomid = self._id
-		res.room_max = self._max
-		res.me = p
-		local ps = {}
-		for i,v in ipairs(self._players) do
-			if not v:get_noone() and v:get_uid() ~= uid then
-				local p = {
-					idx  = v:get_idx(),
-					chip = v:get_chip(),
-					sid  = v:get_sid(),
-					sex  = v:get_sex(),
-					name = v:get_name(),
-				}
-				table.insert(ps, p)
-			end
-		end
-		res.ps = ps
-		return res
-	else
-		local res = {}
-		res.errorcode = errorcode.ROOM_FULL
-		return res
-	end
 end
 
 function cls:leave(idx, ... )
 	-- body
+	local p = self._players[idx]
+	assert(p)
 	if self._players[idx]:get_uid() == self._host then
 		for i=1,self._max do
 			if i == idx then
@@ -447,18 +488,24 @@ function cls:leave(idx, ... )
 			else
 				local args = {}
 				args.idx = idx
-				if not self._players[i]:get_noone() then
-					skynet.send(self._players[i]:get_agent(), "lua", "leave", args)
+				if self._players[i]:get_online() then
+					self:push_client_idx(i, "leave", args)
 				end
 			end
 		end
+		p:set_noone(true)
+		p:set_online(false)
+		self._joined = self._joined - 1
+		self:decre_online()
+
 	end
 
 	local res = {}
 	res.errorcode = errorcode.SUCCESS
 	return res
-	
 end
+
+
 
 function cls:step(idx, ... )
 	-- body

@@ -11,8 +11,9 @@ local redis = require "redis"
 local queue = require "queue"
 local dbmonitor = require "dbmonitor"
 local const = require "const"
+local crypt = require "crypt"
 
-local appid = "wx3207f9d59a3e3144"
+local appid  = "wx3207f9d59a3e3144"
 local secret = "d4b630461cbb9ebb342a8794471095cd"
 local db
 
@@ -22,35 +23,165 @@ local conf = {
 	db = 0
 }
 
-local function new_user(uid, sex, nickname, province, city, country, headimg )
+local server_id = 1
+local server_id_shift = 24
+local internal_id = 1
+local internal_id_mask = 0xffffff
+local id_mask = 0xffffffff
+
+local function gen_uid(id, ... )
 	-- body
-	assert(uid and sex and nickname and province and city and country and headimg)
-	db:set(string.format("tg_users:%d:uid", uid), uid)
-	db:set(string.format("tg_users:%d:gold", uid), 0)
-	db:set(string.format("tg_users:%d:diamond", uid), 0)
-	db:set(string.format("tg_users:%d:checkin_month", uid), 0)
-	db:set(string.format("tg_users:%d:checkin_count", uid), 0)
-	db:set(string.format("tg_users:%d:checkin_mcount", uid), 0)
-	db:set(string.format("tg_users:%d:checkin_lday", uid), 0)
-	db:set(string.format("tg_users:%d:rcard", uid), 8)
-	db:set(string.format("tg_users:%d:sex", uid), sex)
-	db:set(string.format("tg_users:%d:nickname", uid), nickname)
-	db:set(string.format("tg_users:%d:province", uid), province)
-	db:set(string.format("tg_users:%d:city", uid), city)
-	db:set(string.format("tg_users:%d:country", uid), country)
-	db:set(string.format("tg_users:%d:headimg", uid), headimg)
-	
-	dbmonitor.cache_insert(string.format("tg_users:%d", uid))
+	local uid = db:incr(string.format("tb_count:%d:uid", const.UID_ID))
+	uid = ((server_id << server_id_shift) | uid)
+	dbmonitor.cache_update(string.format("tb_count:%d:uid", const.UID_ID))
+	return uid
 end
 
-local function new_unionid(unionid, suid, nickname_uid, ... )
+local function gen_nameid(id, ... )
 	-- body
-	assert(unionid and suid and nickname_uid)
-	db:set(string.format("tg_uid:%s:uid", unionid), unionid)
-	db:set(string.format("tg_uid:%s:suid", unionid), suid)
-	db:set(string.format("tg_uid:%s:nickname_uid", unionid), nickname_uid)
+	local nameid = ""
+	local id = db:incr(string.format("tb_count:%d:uid", const.NAME_ID))
+	id = ((server_id << server_id_shift) | id)
+	local hex = "0123456789abcdef"
+	for i=1,8 do
+		local idx = (id >> ((8 - i) * 4)) & 0xf
+		nameid = nameid .. hex:sub(idx, idx)
+	end
+	dbmonitor.cache_update(string.format("tb_count:%d:uid", const.NAME_ID))
+	return nameid
+end
 
-	dbmonitor.cache_insert(string.format("tg_uid:%s", unionid))
+local function new_user(uid, sex, nickname, province, city, country, headimg, openid, nameid)
+	-- body
+	assert(uid and sex and nickname and province and city and country and headimg)
+	db:set(string.format("tb_user:%d:uid", uid), uid)
+	db:set(string.format("tb_user:%d:gold", uid), 0)
+	db:set(string.format("tb_user:%d:diamond", uid), 0)
+	db:set(string.format("tb_user:%d:checkin_month", uid), 0)
+	db:set(string.format("tb_user:%d:checkin_count", uid), 0)
+	db:set(string.format("tb_user:%d:checkin_mcount", uid), 0)
+	db:set(string.format("tb_user:%d:checkin_lday", uid), 0)
+	db:set(string.format("tb_user:%d:rcard", uid), 8)
+	db:set(string.format("tb_user:%d:sex", uid), sex)
+	db:set(string.format("tb_user:%d:nickname", uid), nickname)
+	db:set(string.format("tb_user:%d:province", uid), province)
+	db:set(string.format("tb_user:%d:city", uid), city)
+	db:set(string.format("tb_user:%d:country", uid), country)
+	db:set(string.format("tb_user:%d:headimg", uid), headimg)
+	db:set(string.format("tb_user:%d:openid", uid), openid)
+	db:set(string.format("tb_user:%d:nameid", uid), nameid)
+	
+	dbmonitor.cache_insert(string.format("tb_users:%d", uid))
+end
+
+local function new_unionid(unionid, uid, ... )
+	-- body
+	assert(unionid and uid)
+	db:set(string.format("tg_openid:%s:openid", unionid), unionid)
+	db:set(string.format("tg_openid:%s:uid", unionid), uid)
+	--
+	dbmonitor.cache_insert(string.format("tb_openid:%s", unionid))
+end
+
+local function new_nameid(nameid, uid, ... )
+	-- body
+	assert(nameid and uid)
+	db:set(string.format("tb_nameid:%s:nameid", nameid), nameid)
+	db:set(string.format("tb_nameid:%s:uid", nameid), uid)
+	-- 
+	dbmonitor.cache_insert(string.format("tb_nameid:%s", nameid))
+end
+
+local function auth_win_myself(code, ... )
+	-- body
+	local unionid = code
+	local uid = db:get(string.format("tb_openid:%s:uid", unionid))
+	if uid and math.tointeger(uid) > 0 then
+		return uid
+	else
+		local uid = gen_uid()
+		local nameid = gen_nameid()
+		assert(uid and nameid)
+
+		local sex = 1
+		local r = math.random(1, 10)
+		if r > 5 then
+			sex = 1
+		else
+			sex = 2
+		end
+		
+		local nickname = "hell"
+		local province = 'Beijing'
+		local city     = "Beijing"
+		local country  = "CN"
+		local headimg  = "xx"
+		new_unionid(unionid, uid)
+		new_nameid(nameid, uid)
+		new_user(uid, sex, nickname, province, city, country, headimg, unionid, uid)
+
+		return uid
+	end
+end
+
+local function auth_android_wx(code, ... )
+	-- body
+	httpc.dns()
+	httpc.timeout = 1000 -- set timeout 1 second
+	local respheader = {}
+	local url = "/sns/oauth2/access_token?appid=%s&secret=%s&code=%s&grant_type=authorization_code"
+	url = string.format(url, appid, secret, code)
+	
+	local ok, body, code = skynet.call(".https_client", "lua", "get", "api.weixin.qq.com", url)
+	if not ok then
+		local res = {}
+		res.code = 201
+		res.uid  = 0
+		return res
+	end
+		
+	local res = json.decode(body)
+	local access_token  = res["access_token"]
+	local expires_in    = res["expires_in"]
+	local refresh_token = res["refresh_token"]
+	local openid        = res["openid"]
+	local scope         = res["scope"]
+	local unionid       = res["unionid"]
+	log.info("access_token = " .. access_token)
+	log.info("openid = " .. openid)
+
+	local uid = db:get(string.format("tb_openid:%s:uid", unionid))
+	if uid and uid > 0 then
+		return uid
+	else
+		url = "https://api.weixin.qq.com/sns/userinfo?access_token=%s&openid=%s"
+		url = string.format(url, access_token, openid)
+		local ok, body, code = skynet.call(".https_client", "lua", "get", "api.weixin.qq.com", url)
+		if not ok then
+			error("access api.weixin.qq.com wrong")
+		end
+
+		local res = json.decode(body)
+		local nickname   = res["nickname"]
+		local sex        = res["sex"]
+		local province   = res["province"]
+		local city       = res["city"]
+		local country    = res["country"]
+		local headimgurl = res["headimgurl"]
+		url = string.sub(headimgurl, 19)
+		log.info(url)
+		local statuscode, body = httpc.get("wx.qlogo.cn", url, respheader)
+		local headimg = crypt.base64encode(body)
+
+		local uid = gen_uid()
+		local nameid = gen_nameid()
+
+		new_unionid(unionid, uid)
+		new_nameid(nameid, uid)
+		new_user(uid, sex, nickname, province, city, country, headimg, unionid, uid)
+
+		return uid
+	end
 end
 
 local CMD = {}
@@ -75,104 +206,27 @@ end
 function CMD.signup(server, code, ... )
 	-- body
 	if server == "sample" then
-		httpc.dns()
-		httpc.timeout = 1000 -- set timeout 1 second
-		local respheader = {}
-		local url = "/sns/oauth2/access_token?appid=%s&secret=%s&code=%s&grant_type=authorization_code"
-		url = string.format(url, appid, secret, code)
-		
-		local ok, body, code = skynet.call(".https_client", "lua", "get", "api.weixin.qq.com", url)
-		if not ok then
-			local res = {}
-			res.code = 201
-			res.uid  = 0
-			return res
-		end
-			
-		local res = json.decode(body)
-		local access_token = res["access_token"]
-		local expires_in   = res["expires_in"]
-		local refresh_token = res["refresh_token"]
-		local openid = res["openid"]
-		local scope = res["scope"]
-		local unionid = res["unionid"]
-		log.info("access_token = " .. access_token)
-		log.info("openid = " .. openid)
-		local res = query.select("tg_uid", string.format("seclect * from tg_uid where uid = '%s'", unionid))
-		if #res > 0 then
+		local ok, err = pcall(auth_android_wx, code)
+		if ok then
 			local res = {}
 			res.code = 200
-			res.uid  = unionid
+			res.uid = err
 			return res
 		else
-			url = "https://api.weixin.qq.com/sns/userinfo?access_token=%s&openid=%s"
-			url = string.format(url, access_token, openid)
-			local ok, body, code = skynet.call(".https_client", "lua", "get", "api.weixin.qq.com", url)
-			if not ok then
-				local res = {}
-				res.code = 202
-				res.uid  = 0
-				return res
-			end
-			log.info(body)
-			local res = json.decode(body)
-			local nickname = res["nickname"]
-			local sex = res["sex"]
-			local province = res["province"]
-			local city = res["city"]
-			local country = res["country"]
-			local headimgurl = res["headimgurl"]
-			url = string.sub(headimgurl, 19)
-			log.info(url)
-			local statuscode, body = httpc.get("wx.qlogo.cn", url, respheader)
-			local headimg = body
-
-			local res = skynet.call(".UID_MGR", "lua", "login", unionid)
-			assert(res.new)
-			local nickname_uid = skynet.call(".UNAME_MGR", "lua", "name")
-			
-			skynet.fork(new_unionid, unionid, suid, nickname)
-			skynet.fork(new_user, uid, sex, nickname, province, city, country, headimg)
-
 			local res = {}
-			res.code = 200
-			res.uid  = unionid
+			res.code = 501
 			return res
 		end
 	else
-		local unionid = code
-		unionid = db:get(string.format("tg_uid:%s:uid", unionid))
-		if unionid then
+		local ok, err = pcall(auth_win_myself, code)
+		if ok then
 			local res = {}
 			res.code = 200
-			res.uid  = unionid
+			res.uid = err
 			return res
 		else
-			unionid = code
-			local suid = db:incr(string.format("tg_count:%d:uid", const.UID_ID))
-			local nickname_uid = db:incr(string.format("tg_count:%d:uid", const.NAME_ID))
-			dbmonitor.cache_update(string.format("tg_count:%d:uid", const.UID_ID))
-			dbmonitor.cache_update(string.format("tg_count:%d:uid", const.NAME_ID))						
-
-			local sex = 1
-			local r = math.random(1, 10)
-			if r > 5 then
-				sex = 1
-			else
-				sex = 2
-			end
-			
-			local nickname = "hell"
-			local province = 'SC'
-			local city = "x"
-			local country = "CN"
-			local headimg = "xx"
-			new_unionid(unionid, suid, nickname_uid)
-			new_user(suid, sex, nickname, province, city, country, headimg)
-
 			local res = {}
-			res.code = 200
-			res.uid  = unionid
+			res.code = 501
 			return res
 		end
 	end

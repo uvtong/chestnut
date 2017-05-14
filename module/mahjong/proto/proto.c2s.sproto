@@ -121,7 +121,6 @@ create 4 {
         errorcode 0 : integer
         roomid    1 : integer
         room_max  2 : integer
-        me        3 : player
     }
 }
 
@@ -147,96 +146,7 @@ leave 6 {
     }
 }
 
-call 7 {
-    request {
-        op        0 : opinfo
-    }
-    response {
-        errorcode 0 : integer
-    }
-}
-
-shuffle 8 {
-    request {
-        idx       0 : integer
-    }
-    response {
-        errorcode 0 : integer
-    }
-}
-
-dice 9 {
-    request {
-        idx       0 : integer
-    }
-    response {
-        errorcode 0 : integer
-        d1        1 : integer
-        d2        2 : integer
-    }
-}
-
-lead 10 {
-    request {
-        idx       0 : integer
-        card      1 : integer
-    } 
-    response {
-        errorcode 0 : integer
-    }
-}
-
-step 11 {
-    request {
-        idx       0 : integer
-    }
-    response {
-        errorcode 0 : integer
-    }
-}
-
-restart 12 {
-    request {
-        idx       0 : integer
-    }
-    response {
-        errorcode 0 : integer
-    }
-}
-
-rchat 13 {
-    request {
-        idx       0 : integer
-        type      1 : integer
-        textid    2 : integer
-        sdsteam   3 : string
-    }
-    response {
-        errorcode 0 : integer
-    }
-}
-
-xuanpao 14 {
-    request {
-        idx       0 : integer
-        fen       1 : integer
-    }
-    response {
-        errorcode 0 : integer
-    }
-}
-
-xuanque 15 {
-    request {
-        idx       0 : integer
-        que        1 : integer
-    }
-    response {
-        errorcode 0 : integer
-    }
-}
-
-first 30 {
+first 7 {
     response {
         errorcode 0 : integer
         name      1 : string
@@ -249,26 +159,26 @@ first 30 {
     }
 }
 
-checkindaily 31 {
+checkindaily 8 {
     response {
         errorcode 0 : integer
     }
 }
 
-toast1 32 {
+toast1 9 {
     response {
         errorcode 0 : integer
         text      1 : string
     }
 }
 
-toast2 33 {
+toast2 10 {
     response {
         errorcode 0 : integer
     }
 }
 
-fetchsysmail 34 {
+fetchsysmail 12 {
     request {
         all       0 : *integer
     }
@@ -278,7 +188,7 @@ fetchsysmail 34 {
     }
 }
 
-syncsysmail 35 {
+syncsysmail 13 {
     request {
         all       0 : *integer
     }
@@ -288,7 +198,7 @@ syncsysmail 35 {
     }
 }
 
-viewedsysmail 36 {
+viewedsysmail 14 {
     request {
         mailid    0 : integer
     }
@@ -297,14 +207,14 @@ viewedsysmail 36 {
     }
 }
 
-records 37 {
+records 15 {
     response {
         errorcode 0 : integer
         records   1 : *record
     }
 }
 
-record 38 {
+record 16 {
     request {
         id 0 : integer
     }
@@ -314,8 +224,117 @@ record 38 {
     }
 }
 
-logout 100 {
+logout 17 {
     response {
         errorcode 0 : integer
     }
 }
+
+test 18 {
+    request {
+        id 0 : integer
+    }
+    response {
+        errorcode 0 : integer
+    }
+}
+
+avatar 19 {
+    response {
+        errorcode 0 : integer
+        nickname 1 : string
+        nameid 2 : string
+        rcard 3 : integer
+    }
+}
+
+call 501 {
+    request {
+        op        0 : opinfo
+    }
+    response {
+        errorcode 0 : integer
+    }
+}
+
+shuffle 502 {
+    request {
+        idx       0 : integer
+    }
+    response {
+        errorcode 0 : integer
+    }
+}
+
+dice 503 {
+    request {
+        idx       0 : integer
+    }
+    response {
+        errorcode 0 : integer
+        d1        1 : integer
+        d2        2 : integer
+    }
+}
+
+lead 504 {
+    request {
+        idx       0 : integer
+        card      1 : integer
+    } 
+    response {
+        errorcode 0 : integer
+    }
+}
+
+step 505 {
+    request {
+        idx       0 : integer
+    }
+    response {
+        errorcode 0 : integer
+    }
+}
+
+restart 506 {
+    request {
+        idx       0 : integer
+    }
+    response {
+        errorcode 0 : integer
+    }
+}
+
+rchat 507 {
+    request {
+        idx       0 : integer
+        type      1 : integer
+        textid    2 : integer
+        sdsteam   3 : string
+    }
+    response {
+        errorcode 0 : integer
+    }
+}
+
+xuanpao 508 {
+    request {
+        idx       0 : integer
+        fen       1 : integer
+    }
+    response {
+        errorcode 0 : integer
+    }
+}
+
+xuanque 509 {
+    request {
+        idx       0 : integer
+        que        1 : integer
+    }
+    response {
+        errorcode 0 : integer
+    }
+}
+
+

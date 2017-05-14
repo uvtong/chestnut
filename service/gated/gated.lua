@@ -5,6 +5,7 @@ local snax = require "snax"
 local crypt = require "crypt"
 local netpack = require "netpack"
 local log = require "log"
+local errorcode = require "errorcode"
 
 
 local loginservice = ".LOGIND"
@@ -26,7 +27,6 @@ function server.login_handler(source, uid, secret, ...)
 
 	internal_id = internal_id + 1
 	local id = internal_id	-- don't use internal_id directly
-	local id = skynet.call(".SID_MGR", "lua", "enter")
 	local username = msgserver.username(uid, id, servername)
 	log.info("gated username: %s, uid: %s", username, uid)
 
@@ -43,15 +43,19 @@ function server.login_handler(source, uid, secret, ...)
 	}
 
 	-- trash subid (no used)
-	skynet.call(agent, "lua", "login", skynet.self(), uid, id, secret)
+	local err = skynet.call(agent, "lua", "login", skynet.self(), uid, id, secret)
+	if err == errorcode.SUCCESS then
 
-	users[uid] = u
-	username_map[username] = u
+		users[uid] = u
+		username_map[username] = u
 
-	msgserver.login(username, secret)
+		msgserver.login(username, secret)
 
-	-- you should return unique subid
-	return id
+		-- you should return unique subid
+		return id
+	else
+		return 0
+	end
 end
 
 -- call by agent

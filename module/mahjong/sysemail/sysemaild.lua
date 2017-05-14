@@ -25,15 +25,24 @@ local res = {}
 local function new_mail(title, content, ... )
 	-- body
 	assert(title and content)
-	local idx =  db:incr(string.format("tg_count:%d:uid", const.SYSMAIL_ID))
+	local idx =  db:incr(string.format("tb_count:%d:uid", const.SYSMAIL_ID))
+	dbmonitor.cache_update(string.format("tb_count:%d:uid", const.SYSMAIL_ID))
+
 	idx = math.tointeger(idx)
-	db:zadd(string.format("tg_sysmail"), 1, idx)
+	local now = os.time()
+	sd.new(string.format("tb_sysmail:%d:id", idx), idx)
+	sd.new(string.format("tb_sysmail:%d:datetime", idx), now)
+	sd.new(string.format("tb_sysmail:%d:title", idx), title)
+	sd.new(string.format("tb_sysmail:%d:content", idx), content)
+
 	zs:add(1, idx)
-	dbmonitor.cache_update(string.format("tg_count:%d:uid", const.SYSMAIL_ID))
-	sd.new(string.format("tg_sysmail:%s:id", idx), math.tointeger(idx))
-	sd.new(string.format("tg_sysmail:%s:datetime", idx), os.time())
-	sd.new(string.format("tg_sysmail:%s:title", idx), title)
-	sd.new(string.format("tg_sysmail:%s:content", idx), content)
+	db:zadd(string.format("tb_sysmail"), 1, idx)
+	db:hset(string.format("tb_sysmail:%d:id", idx), idx)
+	db:hset(string.format("tb_sysmail:%d:datetime", idx), now)
+	db:hset(string.format("tb_sysmail:%d:title", idx), title)
+	db:hset(string.format("tb_sysmail:%d:content", idx), content)
+	
+	dbmonitor.cache_insert(string.format("tb_sysmail:%d", idx))
 end
 
 local cmd = {}
@@ -55,31 +64,32 @@ function cmd.kill( ... )
 	skynet.exit()
 end
 
-function cmd.first( ... )
+function cmd.load( ... )
 	-- body
-	local idx =  db:get(string.format("tg_count:%d:uid", const.SYSMAIL_ID))
+	local idx =  db:get(string.format("tb_count:%d:uid", const.SYSMAIL_ID))
 	idx = math.tointeger(idx)
 	if idx > 1 then
-		local keys = db:zrange('tg_sysmail', 0, -1)
+		local keys = db:zrange('tb_sysmail', 0, -1)
 		for k,v in pairs(keys) do
 			zs:add(k, v)
 		end
 
 		for _,id in pairs(keys) do
-			local vals = db:hgetall(string.format('tg_sysmail:%s', id))
+			local vals = db:hgetall(string.format('tb_sysmail:%s', id))
 			local t = {}
 			for i=1,#vals,2 do
 				local k = vals[i]
 				local v = vals[i + 1]
 				t[k] = v
 			end
-			sd.new(string.format('tg_sysmail:%s', id), t)
-			t = sd.query(string.format('tg_sysmail:%s', id))
+			sd.new(string.format('tb_sysmail:%s', id), t)
+			t = sd.query(string.format('tb_sysmail:%s', id))
 		end	
 		
 	else
 		new_mail("hello", "welcome mahjong world.")	
 	end
+	return true
 end
 
 function cmd.poll(max, ... )

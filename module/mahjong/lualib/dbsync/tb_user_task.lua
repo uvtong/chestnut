@@ -1,14 +1,14 @@
 local query = require "query"
 local log = require "log"
 
-local tname = "tu_achievement"
+local tname = "tb_user_achievement"
 
 local _M = {}
 
 function _M.cache_select(db, uid, ... )
 	-- body
 
-	local sql = string.format("select * from tu_achievement")
+	local sql = string.format("select * from %s where uid=%d", tname, uid)
 	local res = query.select(tname, sql)
 	if #res > 0 then
 		for k,v in pairs(res) do

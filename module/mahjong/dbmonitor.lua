@@ -4,17 +4,21 @@ require "skynet.manager"
 local log = require "log"
 local redis = require "redis"
 local query = require "query"
-local tg_count = require "dbsync.tg_count"
-local tg_record = require "dbsync.tg_record"
-local tg_sysmail = require "dbsync.tg_sysmail"
-local tg_uid = require "dbsync.tg_uid"
-local tg_users = require "dbsync.tg_users"
-local tu_achievement = require "dbsync.tu_achievement"
-local tu_count = require "dbsync.tu_count"
-local tu_inbox = require "dbsync.tu_inbox"
-local tu_record = require "dbsync.tu_record"
-local tu_sysmail = require "dbsync.tu_sysmail"
-local tu_task = require "dbsync.tu_task"
+local util = require "util"
+local const = require "const"
+local tb_count = require "dbsync.tb_count"
+local tb_nameid = require "dbsync.tb_nameid"
+local tb_openid = require "dbsync.tb_openid"
+local tb_record = require "dbsync.tb_record"
+local tb_sysmail = require "dbsync.tb_sysmail"
+local tb_user = require "dbsync.tb_user"
+local tb_user_achievement = require "dbsync.tb_user_achievement"
+local tb_user_checkindaily = require "dbsync.tb_user_checkindaily"
+local tb_user_inbox = require "dbsync.tb_user_inbox"
+local tb_user_record = require "dbsync.tb_user_record"
+local tb_user_sysmail = require "dbsync.tb_user_sysmail"
+local tb_user_task = require "dbsync.tb_user_task"
+local users = {}
 
 local conf = {
 	host = "127.0.0.1" ,
@@ -53,46 +57,44 @@ function CMD.cache_select(key, ... )
 	if tname == nil then
 		tname = key
 	end
-	if tname == 'tg_count' then
-		return tg_count.cache_select(db, left)
-	elseif tname == 'tg_record' then
-		return tg_record.cache_select(db, left)
-	elseif tname == 'tg_sysmail' then
-		return tg_sysmail.cache_select(db, left)
-	elseif tname == 'tg_uid' then
-		return tg_uid.cache_select(db, left)
-	elseif tname == 'tg_users' then
-		return tg_users.cache_select(db, left)
-	elseif tname == 'tu_achievement' then
-		return tu_achievement.cache_select(db, left)
-	elseif tname == 'tu_checkindaily' then
-		return tu_checkindaily.cache_select(db, left)
-	elseif tname == 'tu_count' then
-		return tu_count.cache_select(db, left)
-	elseif tname == 'tu_inbox' then
+	if tname == 'tb_count' then
+		return tb_count.cache_select(db, left)
+	elseif tname == 'tb_nameid' then
+		return tb_nameid.cache_select(db, left)
+	elseif tname == 'tb_openid' then
+		return tb_openid.cache_select(db, left)
+	elseif tname == 'tb_record' then
+		return tb_record.cache_select(db, left)
+	elseif tname == 'tb_sysmail' then
+		return tb_sysmail.cache_select(db, left)
+	elseif tname == 'tb_user' then
+		return tb_user.cache_select(db, left)
+	elseif tname == 'tb_user_achievement' then
+		return tb_user_achievement.cache_select(db, left)
+	elseif tname == 'tb_user_checkindaily' then
+		return tb_user_checkindaily.cache_select(db, left)
+	elseif tname == 'tb_user_inbox' then
 		return tu_inbox.cache_select(db, left)
-	elseif tname == 'tu_record' then
-		return tg_record.cache_select(db, left)
-	elseif tname == 'tu_sysmail' then
-		return tu_sysmail.cache_select(db, left)
-	elseif tname == 'tu_task' then
-		return tu_task.cache_select(db, left)
+	elseif tname == 'tb_user_record' then
+		return tb_user_record.cache_select(db, left)
+	elseif tname == 'tb_user_sysmail' then
+		return tb_user_sysmail.cache_select(db, left)
+	elseif tname == 'tb_user_task' then
+		return tb_user_task.cache_select(db, left)
 	end
 end
 
 function CMD.cache_update(key, ... )
 	-- body
 	local tname, left = key:match("([^:]+):(.+)")
-	if tname == 'tg_count' then
-		tg_count.cache_update(db, left, ...)
-	elseif tname == 'tg_record' then
-		tg_record.cache_update(db, left, ...)
-	elseif tname == 'tg_sysmail' then
-		tg_sysmail.cache_update(db, left, ...)
-	elseif tname == 'tg_uid' then
-		tg_uid.cache_update(db, left, ...)
-	elseif tname == "tg_users" then
-		tg_users.cache_update(db, left, ...)
+	if tname == 'tb_count' then
+		tb_count.cache_update(db, left, ...)
+	elseif tname == 'tb_record' then
+		tb_record.cache_update(db, left, ...)
+	elseif tname == 'tb_sysmail' then
+		tb_sysmail.cache_update(db, left, ...)
+	elseif tname == "tg_user" then
+		tb_user.cache_update(db, left, ...)
 	elseif tname == 'tu_record' then
 		tu_record.cache_update(db, left, ...)
 	elseif tname == 'tu_sysmail' then
@@ -122,6 +124,32 @@ function CMD.cache_insert(key, ... )
 	elseif tname == 'tu_task' then
 		tu_task.cache_insert(db, left)
 	end
+end
+
+function CMD.login(uid, ... )
+	-- body
+	local cancel = users[uid]
+	if cancel then
+		cancel()
+	end
+end
+
+function CMD.logout(uid, ... )
+	-- body
+	local cancel = util.set_timeout(const.AGENT_TIMEOUT, function ( ... )
+		-- body
+		tb_user_achievement.cache_delete(db, uid)
+		tb_user_checkindaily.cache_delete(db, uid)
+		tb_user_inbox.cache_delete(db, uid)
+		tb_user_record.cache_delete(db, uid)
+		tb_user_sysmail.cache_delete(db, uid)
+	end)
+	users[uid] = cancel
+end
+
+function CMD.afx(uid, ... )
+	-- body
+
 end
 
 skynet.start(function ( ... )

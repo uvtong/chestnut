@@ -17,6 +17,7 @@ local pcall = skynet.pcall
 local error = skynet.error
 local noret = {}
 
+local reload    = 1
 local ctx       = false
 local CMD       = {}
 local REQUEST   = {}
@@ -75,21 +76,7 @@ end
 function REQUEST:create(args, ... )
 	-- body
 	local uid = self:get_uid()
-	local sid = self:get_subid()
-	local agent = skynet.self()
-	local name = self._user.nickname.value
-	local sex = self._user.sex.value
-	local agent = {
-		uid = uid,
-		sid = sid,
-		agent = agent,
-		name = name,
-		sex = sex
-	}
-	local id = skynet.call(".ROOM_MGR", "lua", "create", uid, args)
-	local addr = skynet.call(".ROOM_MGR", "lua", "apply", id)
-	self:set_room(addr)
-	local res = skynet.call(addr, "lua", "on_create", agent)
+	local res = skynet.call(".ROOM_MGR", "lua", "create", uid, skynet.self(), args)
 	return res
 end
 
@@ -320,8 +307,9 @@ skynet.register_protocol {
 	end
 }
 
-function CMD:start( ... )
+function CMD:start(r, ... )
 	-- body
+	reload = r
 	return true
 end
 
@@ -342,18 +330,25 @@ function CMD:login(source, gate, uid, subid, secret,... )
 	local db = redis.connect(conf)
 	self:set_db(db)
 
-	self:login(gate, uid, subid, secret)
+	if reload then
+		local ok, err = xpcall(self.login, debug.msgh, self, gate, uid, subid, secret)
+		if not ok then
+			skynet.call(".AGENT_MGR", "lua", "exit_at_once", uid)
+			return errorcode.LOGIN_AGENT_ERR
+		end
+	end
 
-	skynet.send(".ONLINE_MGR", "lua", "login", self._uid)
+	skynet.send(".ONLINE_MGR", "lua", "login", uid)
 	
-	return true
+	log.info("login over")
+	return errorcode.SUCCESS
 end
 
 -- prohibit mult landing
 function CMD:logout(source)
 	-- body
 	local uid = self:get_uid()
-	log.info("user %d logout", uid)
+	log.info("user %s logout", uid)
 	local room = self:get_room()
 	if room then
 		local args = {}
@@ -362,6 +357,7 @@ function CMD:logout(source)
 		self:set_room(nil)
 	end
 	self:logout()
+
 	local db = self:get_db()
 	db:disconnect()
 	
@@ -396,6 +392,11 @@ function CMD:authed(source, conf)
 	self:set_version(version)
 	self:set_index(index)
 	
+	local addr = self:get_room()
+	if addr then
+		skynet.call(addr, "lua", "authed", self:get_uid())
+	end
+
 	return true
 end
 
@@ -480,12 +481,7 @@ skynet.start(function()
 			return
 		end
 		local f = assert(CMD[cmd])
-		local msgh = function ( ... )
-			-- body
-			log.info(tostring(...))
-			log.info(debug.traceback())
-		end
-		local ok, err = xpcall(f, msgh, ctx, source, ...) 
+		local ok, err = xpcall(f, debug.msgh, ctx, source, ...) 
 		if ok then
 			if err ~= noret then
 				skynet.retpack(err)

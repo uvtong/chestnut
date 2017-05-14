@@ -2,50 +2,32 @@ package.path = "./../../module/mahjong/lualib/?.lua;./../../module/mahjong/recor
 local skynet = require "skynet"
 require "skynet.manager"
 local const = require "const"
-local recordmgr = require "recordmgr"
 local log = require "log"
-local query = require "query"
-assert(const)
-assert(query)
+local sd = require "sharedata"
+local redis = require "redis"
+local const = require "const"
+local dbmonitor = require "dbmonitor"
+local zset = require "zset"
 
 local noret = {}
-local internal_id = 1
-local mgr
 
-local function init_internal_id( ... )
-	-- body
-	local sql = string.format("select * from tg_count where id = %d;", const.COUNT_RECORD_ID)
-	local res = query.select("tg_count", sql)
-	if #res > 0 then
-		internal_id = res[1].uid
-	else
-		internal_id = 0
-		local sql = string.format("insert into tg_count values (%d, %d)", const.COUNT_RECORD_ID, internal_id)
-		query.insert("tg_count", sql)
-	end
-end
-
-local function update_internal_id( ... )
-	-- body
-	local sql = string.format("update tg_count set uid=%d where id=%d", internal_id, const.COUNT_RECORD_ID)
-	log.info(sql)
-	query.update("tg_count", sql)
-end
+local conf = {
+	host = "127.0.0.1" ,
+	port = 6379 ,
+	db = 0
+}
 
 local CMD = {}
 
 function CMD.start( ... )
 	-- body
-	init_internal_id()
-
-	mgr = recordmgr.new()
-	mgr:load_db_to_data()
-
+	db = redis.connect(conf)
 	return true
 end
 
 function CMD.close( ... )
 	-- body
+	db:disconnect()
 	return true
 end
 
@@ -54,11 +36,36 @@ function CMD.kill( ... )
 	skynet.exit()
 end
 
+function CMD.load( ... )
+	-- body
+	local idx =  db:get(string.format("tb_count:%d:uid", const.RECORD_ID))
+	idx = math.tointeger(idx)
+	if idx > 1 then
+		local keys = db:zrange('tb_record', 0, -1)
+		for k,v in pairs(keys) do
+			zs:add(k, v)
+		end
+
+		for _,id in pairs(keys) do
+			local vals = db:hgetall(string.format('tb_record:%s', id))
+			local t = {}
+			for i=1,#vals,2 do
+				local k = vals[i]
+				local v = vals[i + 1]
+				t[k] = v
+			end
+			sd.new(string.format('tb_record:%s', id), t)
+			-- t = sd.query(string.format('tg_sysmail:%s', id))
+		end	
+	end
+end
+
 function CMD.register(content, ... )
 	-- body
-	internal_id = internal_id + 1
-	update_internal_id()
+	local id =  db:incr(string.format("tb_count:%d:uid", const.RECORD_ID))
+	dbmonitor.cache_update(string.format("tb_count:%d:uid", const.RECORD_ID))
 
+	-- sd.new
 	local r = mgr:create(internal_id)
 	mgr:add(r)
 	r:insert_db()

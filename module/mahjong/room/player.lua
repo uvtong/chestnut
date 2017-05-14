@@ -55,9 +55,9 @@ function cls:ctor(env, uid, sid, fd, ... )
 	self._name   = ""
 	self._sex    = 0      -- 0 nv
 
-	self._robot  = false  -- user
 	self._noone  = true
-	-- self._online = false  -- user in game
+	self._online = false  -- user in game
+	self._robot  = false  -- user
 
 	self._idx    = 0      -- players index
 	self._chip   = 1000
@@ -124,15 +124,15 @@ function cls:get_idx( ... )
 	return self._idx
 end
 
--- function cls:set_online(value, ... )
--- 	-- body
--- 	self._online = value
--- end
+function cls:set_online(value, ... )
+	-- body
+	self._online = value
+end
 
--- function cls:get_online( ... )
--- 	-- body
--- 	return self._online
--- end
+function cls:get_online( ... )
+	-- body
+	return self._online
+end
 
 function cls:set_robot(flag, ... )
 	-- body

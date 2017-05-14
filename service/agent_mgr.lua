@@ -2,16 +2,17 @@ local skynet = require "skynet"
 require "skynet.manager"
 local skynet_queue = require "skynet.queue"
 local queue = require "queue"
+local errorcode = require "errorcode"
 
 local cs = skynet_queue()
-local agent_service_type = 1   -- 1. snax, 2. normal
 
 local leisure_agent = queue()
 local users = {}
 
 local function new_agent( ... )
 	-- body
-	return skynet.newservice("agent/agent")
+	local addr = skynet.newservice("agent/agent")
+	return addr
 end
 
 local function enqueue(agent, ... )
@@ -28,19 +29,14 @@ local function dequeue( ... )
 	end
 end
 
-local function init( ... )
+local CMD = {}
+
+function CMD.start(t, ... )
 	-- body
 	for i=1,10 do
 		local agent = new_agent()
 		enqueue(agent)
 	end
-end
-
-local CMD = {}
-
-function CMD.start(t, ... )
-	-- body
-	init()
 	return true
 end
 
@@ -57,23 +53,40 @@ end
 function CMD.enter(uid, ... )
 	-- body
 	assert(uid)
-	if users[uid] then
-		return users[uid]
+	local addr = users[uid]
+	if addr then
+		skynet.call(addr, "lua", "start", false)
 	else
-		local agent = cs(dequeue)
-		users[uid] = agent
-		return agent
+		local addr = cs(dequeue)
+		skynet.call(addr, "lua", "start", true)
+		users[uid] = addr
+		return addr
 	end
 end
 
 function CMD.exit(uid)
 	-- body
 	assert(uid)
-	local agent = users[uid]
-	assert(agent)
+	local addr = users[uid]
+	assert(addr)
+	skynet.timeout(100 * 60 * 60 * 24 * 5, function ( ... )
+		-- body
+		local addr = users[uid]
+		assert(addr)
+		users[uid] = nil
+		cs(enqueue, addr)	
+	end)
+	return errorcode.SUCCESS
+end
+
+function CMD.exit_at_once(uid, ... )
+	-- body
+	assert(uid)
+	local addr = users[uid]
+	assert(addr)
 	users[uid] = nil
-	cs(enqueue, agent)
-	return true
+	cs(enqueue, addr)
+	return errorcode.SUCCESS
 end
 
 skynet.start(function ()

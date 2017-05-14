@@ -107,4 +107,5 @@ require("base.string")
 require("base.ctype")
 require("base.os")
 require("base.io")
+require "base.debug"
 require("common")
