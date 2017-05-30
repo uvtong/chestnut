@@ -25,6 +25,14 @@ function CMD.kill(source, ... )
 	skynet.exit()
 end
 
+function CMD.login(uid, agent, ... )
+	-- body
+end
+
+function CMD.logout(uid, ... )
+	-- body
+end
+
 function CMD.afk(source, uid, ... )
 	-- body
 	assert(uid)

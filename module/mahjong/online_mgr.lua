@@ -22,10 +22,14 @@ function cmd.kill( ... )
 	skynet.exit()
 end
 
-function cmd.login(name, agent, ... )
+function cmd.login(uid, agent, ... )
 	-- body
-	users[name] = agent
+	users[uid] = agent
 	return noret
+end
+
+function cmd.logout(uid, ... )
+	-- body
 end
 
 function cmd.afk(name, ... )
