@@ -35,3 +35,6 @@
 [submodule "3rd/libco"]
 	path = 3rd/libco
 	url = https://github.com/Tencent/libco
+[submodule "3rd/skynet_ssl"]
+	path = 3rd/skynet_ssl
+	url = https://github.com/emberfarkas/skynet_ssl

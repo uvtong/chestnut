@@ -61,16 +61,10 @@ $(LUA_SNAPSHOT_PATH)/snapshot.so: $(LUA_SNAPSHOT_PATH)/Makefile
 $(LUA_CLIB_PATH)/snapshot.so: $(LUA_SNAPSHOT_PATH)/snapshot.so
 	cp $(LUA_SNAPSHOT_PATH)/snapshot.so $(LUA_CLIB_PATH)
 
-#lua-zset
-LUA_ZSET_PATH ?= ./3rd/lua-zset
-$(LUA_ZSET_PATH)/Makefile:
-	git submodule update --init
-$(LUA_ZSET_PATH)/skiplist.so: $(LUA_ZSET_PATH)/Makefile
-	cd $(LUA_ZSET_PATH) && $(MAKE)
-$(LUA_CLIB_PATH)/skiplist.so: $(LUA_ZSET_PATH)/skiplist.so | $(LUA_CLIB_PATH)
-	mv $(LUA_ZSET_PATH)/skiplist.so $(LUA_CLIB_PATH)
-
 # lualib
+$(LUA_CLIB_PATH)/skiplist.so: $(CLIB_SRC_PATH)/skiplist.c $(CLIB_SRC_PATH)/lua-skiplist.c | $(LUA_CLIB_PATH)
+	$(CC) $(CFLAGS) $(SHARED) -I$(LUA_INC) $^ -o $@
+
 $(LUA_CLIB_PATH)/log.so: $(CLIB_SRC_PATH)/lua-log.c | $(LUA_CLIB_PATH)
 	$(CC) $(CFLAGS) $(SHARED) -I$(LUA_INC) $^ -o $@ -lrt
 
@@ -89,7 +83,7 @@ $(LUA_CLIB_PATH)/aoiaux.so: ./3rd/aoi/aoi.c $(CLIB_SRC_PATH)/aoi_aux.c | $(LUA_C
 $(LUA_CLIB_PATH)/float.so: $(CLIB_SRC_PATH)/float.c | $(LUA_CLIB_PATH)
 	$(CC) $(CFLAGS) $(SHARED) -I$(LUA_INC) -o $@ $^
 
-$(LUA_CLIB_PATH)/config.so: $(CLIB_SRC_PATH)/config/config.cpp $(CLIB_SRC_PATH)/config/csv.cpp $(CLIB_SRC_PATH)/config/strhtable.cpp $(CLIB_SRC_PATH)/config/value_t.cpp | $(LUA_CLIB_PATH)
+$(LUA_CLIB_PATH)/config.so: $(wildcard $(CLIB_SRC_PATH)/config/*.cpp) | $(LUA_CLIB_PATH)
 	g++ $(CPPFLAGES) $(SHARED) -I$(LUA_INC) -o $@ $^
 
 $(LUA_CLIB_PATH)/udpgate.so: $(SERVICE_SRC_PATH)/lua-udpgate.c | $(LUA_CLIB_PATH)
@@ -98,9 +92,8 @@ $(LUA_CLIB_PATH)/udpgate.so: $(SERVICE_SRC_PATH)/lua-udpgate.c | $(LUA_CLIB_PATH
 $(LUA_CLIB_PATH)/snowflake.so: $(CLIB_SRC_PATH)/lua-snowflake.c | $(LUA_CLIB_PATH)
 	$(CC) $(CFLAGS) $(SHARED) -I$(LUA_INC) -I$(SKYNET_INC) -o $@ $^
 
-$(LUA_CLIB_PATH)/ssldriver.so: $(wildcard ./3rd/skynet_ssl/*.c)
-	$(CC) $(CFLAGS) $(SHARED) -I$(LUA_INC) -I./3rd/skynet_ssl -o $@ $^
-
+$(LUA_CLIB_PATH)/ssock.so: $(wildcard ./3rd/skynet_ssl/*.c)
+	$(CC) $(CFLAGS) $(SHARED) -I$(LUA_INC) -I3rd/skynet_ssl -Iinclude -Wl,--whole-archive ./clib/*.a -Wl,--no-whole-archive -o $@ $^ -lrt ./clib/libcrypto.a ./clib/libssl.a  ./clib/libidn.a ./clib/libz.a
 #skynet
 $(SKYNET_PATH)/Makefile:
 	git submodule update --init && git submodule sync && git submodule update
@@ -133,7 +126,7 @@ all: $(LUA_CLIB_PATH)/cjson.so \
 	$(LUA_CLIB_PATH)/float.so \
 	$(LUA_CLIB_PATH)/config.so \
 	$(LUA_CLIB_PATH)/snowflake.so \
-	$(LUA_CLIB_PATH)/ssldriver.so
+	$(LUA_CLIB_PATH)/ssock.so
 
 clean: clean_cjson \
 	rm -rf $(LUA_CLIB_PATH)/log.so \
@@ -145,4 +138,4 @@ clean: clean_cjson \
 		$(LUA_CLIB_PATH)/float.so \
 		$(LUA_CLIB_PATH)/config.so \
 		$(LUA_CLIB_PATH)/snowflake.so \ 
-		$(LUA_CLIB_PATH)/ssldriver.so
+		$(LUA_CLIB_PATH)/ssock.so
