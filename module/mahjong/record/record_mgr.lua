@@ -1,10 +1,10 @@
 package.path = "./../../module/mahjong/lualib/?.lua;./../../module/mahjong/record/?.lua;"..package.path
 local skynet = require "skynet"
 require "skynet.manager"
+local sd = require "skynet.sharedata"
+local redis = require "skynet.db.redis"
 local const = require "const"
 local log = require "log"
-local sd = require "sharedata"
-local redis = require "redis"
 local const = require "const"
 local dbmonitor = require "dbmonitor"
 local zset = require "zset"

@@ -1,6 +1,6 @@
 local skynet = require "skynet"
 require "skynet.manager"
-local mc = require "multicast"
+local mc = require "skynet.multicast"
 local log = require "log"
 
 local servers = {}
@@ -79,8 +79,6 @@ function CMD.start( ... )
 	local handle = skynet.uniqueservice("room_mgr")
 	skynet.call(handle, "lua", "start")
 	table.insert(servers, handle)
-
-	skynet.uniqueservice("https_client")
 
 	local signupd = skynet.getenv("signupd")
 	if signupd  then

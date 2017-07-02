@@ -14,6 +14,7 @@ local exist = require "existhu"
 local overtype = require "overtype"
 local cjson = require "cjson"
 local gangmultiple = require "gangmultiple"
+local context = require "context"
 
 local state = {}
 state.NONE       = 0
@@ -39,7 +40,7 @@ state.SETTLE     = 17
 state.FINAL_SETTLE = 18
 state.RESTART    = 19
 
-local cls = class("rcontext")
+local cls = class("rcontext", context)
 
 function cls:ctor( ... )
 	-- body

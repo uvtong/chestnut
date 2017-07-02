@@ -1,7 +1,8 @@
 package.path = "./../../service/logind/?.lua;"..package.path
+
+local login = require "snax.loginserver"
+local crypt = require "skynet.crypt"
 local skynet = require "skynet"
-local login = require "loginserver"
-local crypt = require "crypt"
 local log = require "log"
 
 local address, port = string.match(skynet.getenv("logind"), "([%d.]+)%:(%d+)")

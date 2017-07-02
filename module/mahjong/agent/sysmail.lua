@@ -37,11 +37,6 @@ function cls:set_mailid(value, ... )
 	self.mailid:set_value(value)
 end
 
-function cls:set_datetime(value, ... )
-	-- body
-	self.datetime:set_value(value)
-end
-
 function cls:set_viewed(value, ... )
 	-- body
 	self.viewed:set_value(value)

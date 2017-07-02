@@ -7,239 +7,71 @@ local gs = require "gamestate"
 local util = require "util"
 local opcode = require "opcode"
 local assert = assert
+local REQUEST = require "request"
+local RESPONSE = require "response"
+local CMD = require "cmd"
 
 local id = tonumber(...)
 local ctx
 local NORET = {}
 
-local CMD = {}
-
-function CMD:start(uid, args, ... )
-	-- body
-	return self:start(uid, args)
+local function request(name, args, response, msg, sz)
+	-- log.info("agent request [%s]", name)
+    local f = REQUEST[name]
+    local msgh = function ( ... )
+		-- body
+		log.info(tostring(...))
+		log.info(debug.traceback())
+	end
+    local ok, result = xpcall(f, msgh, ctx, args, msg, sz)
+    if ok then
+    	return response(result)
+    end
 end
 
-function CMD:close( ... )
+local function response(session, args, msg, sz)
 	-- body
-	-- will be kill
-	return self:close()
+	local name = ctx:get_name_by_session(session)
+	-- log.info("agent response [%s]", name)
+	local ok, result = pcall(room_response, name, args)
+	if ok then
+		if result then
+			return
+		end
+	end
+    local f = RESPONSE[name]
+    local ok, result = pcall(f, ctx, args)
+    if ok then
+    else
+    	log.error(result)
+    end
 end
 
-function CMD:kill( ... )
-	-- body
-	skynet.exit()
-end
-
-function CMD:authed(uid, ... )
-	-- body
-	self:authed(uid)
-	return true
-end
-
-function CMD:afk(uid, ... )
-	-- body
-	self:afk(uid)
-	return true
-end
-
-function CMD:on_join(agent, ... )
-	-- body
-	local res = self:join(agent.uid, agent.sid, agent.agent, agent.name, agent.sex)
-	return res
-end
-
-function CMD:join(args, ... )
-	-- body
-	assert(args.errorcode == errorcode.SUCCESS)
-	return NORET
-end
-
-function CMD:on_leave(args, ... )
-	-- body
-	return self:leave(args.idx)
-end
-
-function CMD:leave(args, ... )
-	-- body
-	assert(args.errorcode == errorcode.SUCCESS)
-end
-
-function CMD:on_call(args, ... )
-	-- body
-	self:call(args.op)
-	local res = {}
-	res.errorcode = errorcode.SUCCESS
-	return res
-end
-
-function CMD:on_shuffle(args, ... )
-	-- body
-	self:shuffle(args.idx)
-	local res = {}
-	res.errorcode = errorcode.SUCCESS
-	return res
-end
-
-function CMD:on_dice(args, ... )
-	-- body
-	self:dice(args.idx)
-	local res = {}
-	res.errorcode = errorcode.SUCCESS
-	return res
-end
-
-function CMD:on_lead(args, ... )
-	-- body
-	self:lead(args.idx, args.card)
-	local res = {}
-	res.errorcode = errorcode.SUCCESS
-	return res
-end
-
-function CMD:on_step(args, ... )
-	-- body
-	self:step(args.idx)
-	local res = {}
-	res.errorcode = errorcode.SUCCESS
-	return res
-end
-
-function CMD:on_restart(args, ... )
-	-- body
-	self:restart(args.idx)
-	local res = {}
-	res.errorcode = errorcode.SUCCESS
-	return res
-end
-
-function CMD:on_rchat(args, ... )
-	-- body
-	self:chat(args)
-	local res = {}
-	res.errorcode = errorcode.SUCCESS
-	return res
-end
-
-function CMD:on_xuanpao(args, ... )
-	-- body
-	self:xuanpao(args)
-	local res = {}
-	res.errorcode = errorcode.SUCCESS
-	return res
-end
-
-function CMD:on_xuanque(args, ... )
-	-- body
-	self:xuanque(args)
-	local res = {}
-	res.errorcode = errorcode.SUCCESS
-	return res
-end
-
-function CMD:ready(args, ... )
-	-- body
-	return NORET
-end
-
-function CMD:take_turn(args, ... )
-	-- body
-	return NORET
-end
-
-function CMD:peng(args, ... )
-	-- body
-	return NORET
-end
-
-function CMD:gang(args, ... )
-	-- body
-	return NORET
-end
-
-function CMD:hu(args, ... )
-	-- body
-	return NORET
-end
-
-function CMD:call(args, ... )
-	-- body
-	return NORET
-end
-
-function CMD:shuffle(args, ... )
-	-- body
-	return NORET
-end
-
-function CMD:dice(args, ... )
-	-- body
-	return NORET
-end
-
-function CMD:lead(args, ... )
-	-- body
-	return NORET
-end
-
-function CMD:deal(args, ... )
-	-- body
-	return NORET
-end
-
-function CMD:over(args, ... )
-	-- body
-	return NORET
-end
-
-function CMD:restart(args, ... )
-	-- body
-	return NORET
-end
-
-function CMD:take_restart(args, ... )
-	-- body
-	return NORET
-end
-
-function CMD:rchat(args, ... )
-	-- body
-	return NORET
-end
-
-function CMD:take_xuanpao(args, ... )
-	-- body
-	return NORET
-end
-
-function CMD:xuanpao( ... )
-	-- body
-	return NORET
-end
-
-function CMD:take_xuanque(args, ... )
-	-- body
-	return NORET
-end
-
-function CMD:xuanque(args, ... )
-	-- body
-	return NORET
-end
-
-function CMD:settle( ... )
-	-- body
-	return NORET
-end
-
-function CMD:final_settle( ... )
-	-- body
-	return NORET
-end
-
-function CMD:roomover( ... )
-	-- body
-	return NORET
-end
+skynet.register_protocol {
+	name = "client",
+	id = skynet.PTYPE_CLIENT,
+	unpack = function (msg, sz)
+		local host = ctx:get_host()
+		return host:dispatch(msg, sz)
+	end,
+	dispatch = function (session, source, type, ...)	
+		if type == "REQUEST" then
+			local ok, result = pcall(request, ...)
+			if ok then
+				if result then
+					skynet.rawsend(source, "")
+					-- ctx:send_package(result)
+				end
+			else
+				log.error(result)
+			end
+		elseif type == "RESPONSE" then
+			pcall(response, ...)
+		else
+			assert(false, result)
+		end
+	end
+}
 
 skynet.start(function ()
 	-- body

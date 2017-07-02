@@ -1,8 +1,7 @@
 local skynet = require "skynet"
+local sd = require "skynet.sharedata"
 local query = require "query"
 local json = require "cjson"
-local sd = require "sharedata"
-local stm = require "stm"
 local zset = require "zset"
 local sd_cache = {}
 

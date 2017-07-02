@@ -1,9 +1,7 @@
 package.path = "./../../service/gated/?.lua;" .. package.path
-local skynet = require "skynet"
 local msgserver = require "msgserver"
-local snax = require "snax"
-local crypt = require "crypt"
-local netpack = require "netpack"
+local crypt = require "skynet.crypt"
+local skynet = require "skynet"
 local log = require "log"
 local errorcode = require "errorcode"
 
@@ -42,6 +40,7 @@ function server.login_handler(source, uid, secret, ...)
 		online = false,
 	}
 
+	print(uid, id, secret)
 	-- trash subid (no used)
 	local err = skynet.call(agent, "lua", "login", skynet.self(), uid, id, secret)
 	if err == errorcode.SUCCESS then
@@ -90,8 +89,7 @@ function server.disconnect_handler(username, fd)
 	local u = username_map[username]
 	if u then
 		u.online = false
-		local agent = assert(u.agent)
-		skynet.call(agent, "lua", "afk")
+		skynet.call(u.agent, "lua", "afk")
 	end
 end
 
@@ -129,8 +127,8 @@ end
 
 -- call by self (when recv a request from client)
 function server.request_handler(username, msg)
-	-- local u = username_map[username]
-	-- return skynet.unpack(skynet.rawcall(u.agent, "client", msg))
+	local u = username_map[username]
+	return skynet.tostring(skynet.rawcall(u.agent, "client", msg))
 end
 
 -- call by self (when gate open)

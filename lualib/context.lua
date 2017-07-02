@@ -1,8 +1,11 @@
 local skynet = require "skynet"
+local socket = require "skynet.socket"
+local sproto = require "sproto"
+local sprotoloader = require "sprotoloader"
 local center = require "notification_center"
-local socket = require "socket"
 local log = require "log"
 local string_pack = string.pack
+local max = 2 ^ 16 - 1
 
 local cls = class("context")
 
@@ -10,8 +13,11 @@ function cls:ctor( ... )
 	-- body
 	self._center = center.new(self)
 
-	self._host = false
-	self._send_request = false
+	local host = sprotoloader.load(1):host "package"
+	local send_request = host:attach(sprotoloader.load(2))
+
+	self._host = host
+	self._send_request = send_request
 	self._response_session = 0
 	self._response_session_name = {}
 	
@@ -27,19 +33,9 @@ function cls:ctor( ... )
 	return self
 end
 
-function cls:set_host(h, ... )
-	-- body
-	self._host = h
-end
-
 function cls:get_host( ... )
 	-- body
 	return self._host
-end
-
-function cls:set_send_request(r, ... )
-	-- body
-	self._send_request = r
 end
 
 function cls:get_send_request( ... )
@@ -94,15 +90,25 @@ end
 
 function cls:send_request(name, args, ... )
 	-- body
-	assert(name)
-	if type(args) == "boolean" then
-		assert(false)
-	end
-	local max = 1000000
+	assert(name and args)
+	
+	self:send_request_id(self._fd, name, args)
+end
+
+function cls:send_package_id(id, pack, ... )
+	-- body
+	local package = string_pack(">s2", pack)
+	socket.write(id, package)
+end
+
+function cls:send_request_id(id, name, args, ... )
+	-- body
+	assert(name and args)
+	
 	self._response_session = self._response_session + 1 % max
 	self._response_session_name[self._response_session] = name
 	local request = self._send_request(name, args, self._response_session)
-	self:send_package(request)
+	self:send_package_id(id, request)
 end
 
 function cls:get_name_by_session(session, ... )

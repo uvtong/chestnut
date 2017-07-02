@@ -1,8 +1,8 @@
 package.path = "../../db/?.lua;" .. package.path
 local skynet = require "skynet"
-local mc = require "multicast"
-local mysql = require "mysql"
-local redis = require "redis"
+local mc = require "skynet.multicast"
+local mysql = require "skynet.db.mysql"
+local redis = require "skynet.db.redis"
 local util = require "util"
 local queue = require "queue"
 local log = require "log"

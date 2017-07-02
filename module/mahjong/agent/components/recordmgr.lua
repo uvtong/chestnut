@@ -1,37 +1,35 @@
 local skynet = require "skynet"
-local set = require "db.dbset"
 local query = require "query"
-local record = require "record"
 local errorcode = require "errorcode"
 local log = require "log"
 local util = require "util"
 local dbmonitor = require "dbmonitor"
+local component = require "component"
 
-local cls = class("sysinbox", set)
+local cls = class("sysinbox", component)
 
-function cls:ctor(env, dbctx, ... )
+function cls:ctor(env, entity, name, ... )
 	-- body
-	cls.super.ctor(self, env, dbctx)
-	self._tname = "tu_record"
+	cls.super.ctor(self, env, entity, name)
+	self._tname = "tb_user_record"
 	self._mk = {}
 	return self
 end
 
 function cls:load_cache_to_data( ... )
  	-- body
- 	local keys = self._env._db:zrange(string.format("tu_record:%d", self._env._uid), 0, -1)
+ 	local uid = self._entity:get_uid()
+ 	local keys = self._env._db:zrange(string.format("%s:%d", self._tname, uid), 0, -1)
  	if keys then
  	else
- 		dbmonitor.cache_select(string.format("tu_record:%d", self._env._uid))
+ 		dbmonitor.cache_select(string.format("%s:%d", self._tname, uid))
  	end
- 	local keys = self._env._db:zrange(string.format("tu_record:%d", self._env._uid), 0, -1)
+ 	local keys = self._env._db:zrange(string.format("%s:%d", self._tname, uid), 0, -1)
  	if keys then
- 		for k,v in pairs(keys) do
- 			local m = record.new(self._env, self._dbctx, self)
- 			m.id.value = v
- 			m.uid.value = self._uid
- 			m:load_cache_to_data()
- 			self:add(m)
+ 		for _,id in pairs(keys) do
+ 			local key = string.format("%s:%d:%d", self._tname, uid, id)
+			local vals = self._env._db:hgetall(key)
+			self._mk[math.tointeger(vals.id)] = vals
  		end
  	end
 end
@@ -84,14 +82,14 @@ function cls:records(args, ... )
 	local res = {}
 	res.errorcode = errorcode.SUCCESS
 	res.records = {}
-	for i,v in ipairs(self._data) do
+	for i,v in ipairs(self._mk) do
 		local record = {}
-		record.id = v.recordid.value
-		record.datetime = v.datetime.value
-		record.player1 = v.player1.value
-		record.player2 = v.player2.value
-		record.player3 = v.player3.value
-		record.player4 = v.player4.value
+		record.id       = v.recordid
+		record.datetime = v.datetime
+		record.player1  = v.player1
+		record.player2  = v.player2
+		record.player3  = v.player3
+		record.player4  = v.player4
 		table.insert(res.records, record)
 	end
 	return res

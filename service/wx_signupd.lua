@@ -1,18 +1,19 @@
 package.path = "./../../module/mahjong/lualib/?.lua;../../lualib/?.lua;"..package.path
 local skynet = require "skynet"
 require "skynet.manager"
+local crypt = require "skynet.crypt"
+local redis = require "skynet.db.redis"
 local log = require "log"
 local query = require "query"
-local httpc = require "http.httpc"
-local httpsc = require "httpsc"
+local httpsc = require "https.httpc"
 local json = require "cjson"
 local log = require "log"
-local redis = require "redis"
 local queue = require "queue"
 local dbmonitor = require "dbmonitor"
 local const = require "const"
-local crypt = require "crypt"
 
+local server_win = { ["sample1"] = true }
+local server_adr = { ["sample"]  = true }
 local appid  = "wx3207f9d59a3e3144"
 local secret = "d4b630461cbb9ebb342a8794471095cd"
 local db
@@ -205,7 +206,7 @@ end
 
 function CMD.signup(server, code, ... )
 	-- body
-	if server == "sample" then
+	if server_adr[server] then
 		local ok, err = pcall(auth_android_wx, code)
 		if ok then
 			local res = {}
@@ -217,7 +218,7 @@ function CMD.signup(server, code, ... )
 			res.code = 501
 			return res
 		end
-	else
+	elseif server_win[server] then
 		local ok, err = pcall(auth_win_myself, code)
 		if ok then
 			local res = {}

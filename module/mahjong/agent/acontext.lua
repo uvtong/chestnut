@@ -1,14 +1,10 @@
 local skynet = require "skynet"
-local dbcontext = require "dbcontext"
 local context = require "context"
 local inbox = require "inbox"
-local user = require "user"
 local log = require "log"
-local checkindailymgr = require "checkindailymgr"
 local errorcode = require "errorcode"
 local radiocenter = require "radiocenter"
-local sysinbox = require "sysinbox"
-local recordmgr = require "recordmgr"
+local entity = require "entity"
 
 local call = skynet.call
 local assert = assert
@@ -30,19 +26,8 @@ function cls:ctor( ... )
 	self._db = nil
 	self._nickname_uid = nil
 	self._room = nil
-	self._state = state.NONE
-	self._last_state = state.NONE
-
-	self._dbcontext = dbcontext.new(self)
-
-	self._user = user.new(self, self._dbcontext, nil)
-	self._inbox = inbox.new(self, self._dbcontext, nil)
-	self._checkindailymgr = checkindailymgr.new(self, self._dbcontext)
-	self._sysinbox = sysinbox.new(self, self._dbcontext)
-	self._recordmgr = recordmgr.new(self, self._dbcontext)
-
-	self._cancelupdate = nil
-
+	
+	self._entity = entity.new(self, self._uid)
 	return self
 end
 
@@ -71,11 +56,6 @@ function cls:get_room( ... )
 	return self._room
 end
 
-function cls:get_host_udbcontext( ... )
-	-- body
-	return self._host_udbcontext
-end
-
 function cls:get_state( ... )
 	-- body
 	return self._state
@@ -97,12 +77,17 @@ function cls:set_last_state(value, ... )
 end
 
 function cls:login(gate, uid, subid, secret)
+
 	cls.super.login(self, gate, uid, subid, secret)
 
+	self._entity:set_uid(uid)
+	
 	self:load_cache_to_data()
 	log.info("load_cache_to_data over")
 
-	self._sysinbox:poll()
+	local entity = self:get_entity()
+	local sysinbox = entity:get_component("sysinbox")
+	sysinbox:poll()
 end
 
 function cls:logout( ... )
@@ -116,25 +101,12 @@ end
 
 function cls:load_cache_to_data()
 	-- load user
-	self._suid = math.tointeger(self._db:get(string.format("tg_uid:%s:suid", self._uid)))
-	self._nickname_uid = math.tointeger(self._db:get(string.format("tg_uid:%s:nickname_uid", self._uid)))
-	self._user:load_cache_to_data()
-	self._sysinbox:load_cache_to_data()
-	self._recordmgr:load_cache_to_data()
+	self._entity:load_cache_to_data()
 end
 
-function cls:first( ... )
+function cls:get_entity( ... )
 	-- body
-	local res = {}
-	res.errorcode = errorcode.SUCCESS
-	res.name   = self._user.nickname.value
-	res.nameid = self._nickname_uid
-	res.rcard  = self._user.rcard.value
-	res.board  = radiocenter.board()
-	res.adver  = radiocenter.adver()
-	res.sex    = self._user.sex.value
-
-	return res
+	return self._entity
 end
 
 return cls
