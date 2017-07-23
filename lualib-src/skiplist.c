@@ -11,6 +11,10 @@
 
 #include "skiplist.h"
 
+#if defined(_MSC_VER) && !defined(random)
+#define random rand
+#endif
+
 
 skiplistNode *slCreateNode(int level, double score, slobj *obj) {
     skiplistNode *n = malloc(sizeof(*n) + level * sizeof(struct skiplistLevel));

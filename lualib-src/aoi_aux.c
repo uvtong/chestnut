@@ -1,3 +1,5 @@
+#define LUA_LIB
+
 #include "aoi.h"
 
 #include <lua.h>
@@ -139,7 +141,7 @@ ltest(lua_State *L) {
 	return 0;
 }
 
-int
+LUAMOD_API int
 luaopen_aoiaux(lua_State *L) {
 	luaL_checkversion(L);
 	lua_newtable(L); // met

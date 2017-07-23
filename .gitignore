@@ -49,3 +49,6 @@
 
 /module/host/luaclib
 /module/host/cservice
+
+build/vs2017/.vs
+build/vs2017/intermediate

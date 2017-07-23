@@ -1,11 +1,17 @@
-#include <stdint.h>
-#include <pthread.h>
-#include <time.h>
-#include <sys/time.h>
-#include "spinlock.h"
+#define LUA_LIB
 
 #include <lua.h>
 #include <lauxlib.h>
+
+#include <stdint.h>
+#include <time.h>
+#ifdef _MSC_VER
+#include <Windows.h>
+#else
+#include <sys/time.h>
+#endif // _MSC_VER
+#include <spinlock.h>
+
 
 #define MAX_INDEX_VAL       0x0fff
 #define MAX_WORKID_VAL      0x03ff
@@ -14,21 +20,28 @@
 #define __atomic_read(var)        __sync_fetch_and_add(&(var), 0)
 #define __atomic_set(var, val)    __sync_lock_test_and_set(&(var), (val))
 
-typedef struct _t_ctx {
+typedef struct ctx {
     int64_t last_timestamp;
-    int32_t work_id;
+    int16_t work_id;
     int16_t index;
+	volatile int inited;
+	struct spinlock lock;
 } ctx_t;
 
-static volatile int g_inited = 0;
-static ctx_t g_ctx = { 0, 0, 0 };
-static struct spinlock sync_policy = { 0 };
+static ctx_t *TI = NULL;
+
 
 static int64_t
 get_timestamp() {
+#ifdef _MSC_VER
+	SYSTEMTIME st;
+	GetLocalTime(&st);
+	return st.wMilliseconds;
+#else
 	struct timeval tv;
 	gettimeofday(&tv, 0);
 	return tv.tv_sec * 1000 + tv.tv_usec / 1000;
+#endif // _MSC_VER
 }
 
 static void
@@ -36,47 +49,44 @@ wait_next_msec() {
     int64_t current_timestamp = 0;
     do {
         current_timestamp = get_timestamp();
-    } while (g_ctx.last_timestamp >= current_timestamp);
-    g_ctx.last_timestamp = current_timestamp;
-    g_ctx.index = 0;
+    } while (TI->last_timestamp >= current_timestamp);
+	TI->last_timestamp = current_timestamp;
+	TI->index = 0;
 }
 
 static uint64_t
 next_id() {
-    if (!__atomic_read(g_inited)) {
-        return -1;
-    }
-    spinlock_lock(&sync_policy);
+	SPIN_LOCK(TI);
+	if (TI->inited != 1) {
+		return -1;
+	}
     int64_t current_timestamp = get_timestamp();
-    if (current_timestamp == g_ctx.last_timestamp) {
-        if (g_ctx.index < MAX_INDEX_VAL) {
-            ++g_ctx.index;
+    if (current_timestamp == TI->last_timestamp) {
+        if (TI->index < MAX_INDEX_VAL) {
+            ++TI->index;
         } else {
             wait_next_msec();
         }
     } else {
-        g_ctx.last_timestamp = current_timestamp;
-        g_ctx.index = 0;
+		TI->last_timestamp = current_timestamp;
+		TI->index = 0;
     }
     int64_t nextid = (int64_t)(
-        ((g_ctx.last_timestamp & MAX_TIMESTAMP_VAL) << 22) | 
-        ((g_ctx.work_id & MAX_WORKID_VAL) << 12) | 
-        (g_ctx.index & MAX_INDEX_VAL)
+        ((TI->last_timestamp & MAX_TIMESTAMP_VAL) << 22) | 
+        ((TI->work_id & MAX_WORKID_VAL) << 12) | 
+        (TI->index & MAX_INDEX_VAL)
     );
-    spinlock_unlock(&sync_policy);
+	SPIN_UNLOCK(TI);
     return nextid;
 }
 
 static int
 init(uint16_t work_id) {
-    if (__atomic_read(g_inited)) {
-        return 0;
-    }
-    spinlock_lock(&sync_policy);
-    g_ctx.work_id = work_id;
-    g_ctx.index = 0;
-    __atomic_set(g_inited, 1);
-    spinlock_unlock(&sync_policy);
+	SPIN_INIT(TI);
+	TI->last_timestamp = get_timestamp();
+	TI->work_id = work_id;
+	TI->index = 0;
+	TI->inited = 1;
     return 0;
 }
 
@@ -98,13 +108,13 @@ linit(lua_State* l) {
 }
 
 static int
-lnextid(lua_State* l) {
+lnextid(lua_State* L) {
     int64_t id = next_id();
-    lua_pushinteger(l, (lua_Integer)id);
+    lua_pushinteger(L, (lua_Integer)id);
     return 1;
 }
 
-int
+LUAMOD_API int
 luaopen_snowflake(lua_State* l) {
     luaL_checkversion(l);
     luaL_Reg lib[] = {
