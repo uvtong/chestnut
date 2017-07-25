@@ -3,8 +3,6 @@ require "skynet.manager"
 local log = require "log"
 
 skynet.start(function()
-	local logger = skynet.uniqueservice("log")
-	skynet.call(logger, "lua", "start")
 	
 	skynet.uniqueservice("protoloader")
 	

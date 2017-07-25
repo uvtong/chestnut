@@ -149,11 +149,6 @@
   <ItemGroup>
     <ClInclude Include="..\..\..\..\lualib-src\aoi.h" />
   </ItemGroup>
-  <ItemGroup>
-    <ProjectReference Include="..\..\3rd\liblua\liblua.vcxproj">
-      <Project>{ddb458fc-21ee-4b59-8280-9a954857c0d1}</Project>
-    </ProjectReference>
-  </ItemGroup>
   <Import Project="$(VCTargetsPath)\Microsoft.Cpp.targets" />
   <ImportGroup Label="ExtensionTargets">
   </ImportGroup>

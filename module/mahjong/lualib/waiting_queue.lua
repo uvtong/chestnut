@@ -1,7 +1,8 @@
 local skynet = require "skynet"
 local skynet_queue = require "skynet.queue"
+local log = require "skynet.log"
 local queue = require "queue"
-local log = require "log"
+
 
 local cls = class("waiting_queue")
 
