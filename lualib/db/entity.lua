@@ -1,8 +1,8 @@
 local skynet = require "skynet"
 local sd = require "skynet.sharedata"
+local log = require "skynet.log"
 local query = require "query"
 local json = require "cjson"
-local log = require "log"
 local field = require "db.field"
 
 local cls = class("entity")

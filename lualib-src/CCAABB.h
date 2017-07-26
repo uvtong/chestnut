@@ -28,6 +28,11 @@
 #include "math3d.h"
 #include <cstdlib>
 
+#ifdef _MSC_VER
+typedef int ssize_t;
+#endif // _MSC_VER
+
+
 /**
  * @addtogroup _3d
  * @{

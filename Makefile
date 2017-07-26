@@ -27,61 +27,33 @@ $(CSERVICE_PATH):
 update3rd:
 	git submodule update --init
 
-# crab
-CRAB_PATH ?= ./3rd/crab
-$(CRAB_PATH)/Makefile:
-	git submodule update --init && git submodule sync && git submodule update	
-$(CRAB_PATH)/crab.so: $(CRAB_PATH)/Makefile
-	cd $(CRAB_PATH) && $(MAKE)
-
-#lsocket
-LSOCKET_PATH ?= ./3rd/lsocket
-$(LSOCKET_PATH)/Makefile:
-	git submodule update --init && git submodule sync && git submodule update
-$(LSOCKET_PATH)/lsocket.so: $(LSOCKET_PATH)/Makefile
-	cd $(LSOCKET_PATH) && $(MAKE)
-
-#lua-cjson
-LUA_CJSON_PATH ?= ./3rd/lua-cjson
-$(LUA_CJSON_PATH)/Makefile:
-	git submodule update --init
-$(LUA_CJSON_PATH)/cjson.so: $(LUA_CJSON_PATH)/Makefile
-	cd $(LUA_CJSON_PATH) && $(MAKE)
-$(LUA_CLIB_PATH)/cjson.so: $(LUA_CJSON_PATH)/cjson.so | $(LUA_CLIB_PATH)
-	cp $(LUA_CJSON_PATH)/cjson.so $(LUA_CLIB_PATH)
-clean_cjson:
-	cd $(LUA_CJSON_PATH) && $(MAKE) clean
-
 #lua-snapshot
-LUA_SNAPSHOT_PATH ?= ./3rd/lua-snapshot
-$(LUA_SNAPSHOT_PATH)/Makefile:
-	git submodule update --init && git submodule sync && git submodule update
-$(LUA_SNAPSHOT_PATH)/snapshot.so: $(LUA_SNAPSHOT_PATH)/Makefile
-	cd $(LUA_SNAPSHOT_PATH) && $(MAKE)
-$(LUA_CLIB_PATH)/snapshot.so: $(LUA_SNAPSHOT_PATH)/snapshot.so
-	cp $(LUA_SNAPSHOT_PATH)/snapshot.so $(LUA_CLIB_PATH)
+
 
 # lualib
-$(LUA_CLIB_PATH)/skiplist.so: $(CLIB_SRC_PATH)/skiplist.c $(CLIB_SRC_PATH)/lua-skiplist.c | $(LUA_CLIB_PATH)
-	$(CC) $(CFLAGS) $(SHARED) -I$(LUA_INC) $^ -o $@
+$(LUA_CLIB_PATH)/aoiaux.so: $(CLIB_SRC_PATH)/aoi.c $(CLIB_SRC_PATH)/aoi_aux.c | $(LUA_CLIB_PATH)
+	$(CC) $(CFLAGS) $(SHARED) -I$(LUA_INC) -I$(CLIB_SRC_PATH) -o $@ $^
 
-$(LUA_CLIB_PATH)/log.so: $(CLIB_SRC_PATH)/lua-log.c | $(LUA_CLIB_PATH)
-	$(CC) $(CFLAGS) $(SHARED) -I$(LUA_INC) $^ -o $@ -lrt
+$(LUA_CLIB_PATH)/cjson.so: $(wildcard $(CLIB_SRC_PATH)/cjson/*.c) | $(LUA_CLIB_PATH)
+	$(CC) $(CFLAGS) $(SHARED) -I$(LUA_INC) -I$(CLIB_SRC_PATH)/cjson $^ -o $@
+
+$(LUA_CLIB_PATH)/crab.so: $(wildcard $(CLIB_SRC_PATH)/crab/*.c) | $(LUA_CLIB_PATH)
+	$(CC) $(CFLAGS) $(SHARED) -I$(LUA_INC) -I$(CLIB_SRC_PATH)/crab $^ -o $@
+
+$(LUA_CLIB_PATH)/float.so: $(CLIB_SRC_PATH)/float.c | $(LUA_CLIB_PATH)
+	$(CC) $(CFLAGS) $(SHARED) -I$(LUA_INC) -o $@ $^
+
+$(LUA_CLIB_PATH)/math3d.so: $(CLIB_SRC_PATH)/libmath.cc $(CLIB_SRC_PATH)/libaabb.cc $(CLIB_SRC_PATH)/CCAABB.cc | $(LUA_CLIB_PATH)
+	g++ $(CPPFLAGES) $(SHARED) -I$(LUA_INC) $^ -o $@
 
 $(LUA_CLIB_PATH)/queue.so: $(CLIB_SRC_PATH)/lua-queue.c | $(LUA_CLIB_PATH)
 	$(CC) $(CFLAGS) $(SHARED) -I$(LUA_INC) $^ -o $@
 
-$(LUA_CLIB_PATH)/math3d.so: $(CLIB_SRC_PATH)/libmath.c $(CLIB_SRC_PATH)/libaabb.c $(CLIB_SRC_PATH)/CCAABB.cpp | $(LUA_CLIB_PATH)
-	g++ $(CPPFLAGES) $(SHARED) -I$(LUA_INC) $^ -o $@
+$(LUA_CLIB_PATH)/rudp.so: $(CLIB_SRC_PATH)/rudp.c $(CLIB_SRC_PATH)/librudp.c | $(LUA_CLIB_PATH)
+	$(CC) $(CFLAGS) $(SHARED) -I$(LUA_INC) -I$(LUA_CLIB_PATH) $^ -o $@
 
-$(LUA_CLIB_PATH)/rudp.so: ./3rd/rudp/rudp.c $(CLIB_SRC_PATH)/librudp.c 
-	$(CC) $(CFLAGS) $(SHARED) -I$(LUA_INC) -I./3rd/rudp/ $^ -o $@
-
-$(LUA_CLIB_PATH)/aoiaux.so: ./3rd/aoi/aoi.c $(CLIB_SRC_PATH)/aoi_aux.c | $(LUA_CLIB_PATH)
-	$(CC) $(CFLAGS) $(SHARED) -I$(LUA_INC) -I./3rd/aoi -o $@ $^
-
-$(LUA_CLIB_PATH)/float.so: $(CLIB_SRC_PATH)/float.c | $(LUA_CLIB_PATH)
-	$(CC) $(CFLAGS) $(SHARED) -I$(LUA_INC) -o $@ $^
+$(LUA_CLIB_PATH)/skiplist.so: $(CLIB_SRC_PATH)/skiplist.c $(CLIB_SRC_PATH)/lua-skiplist.c | $(LUA_CLIB_PATH)
+	$(CC) $(CFLAGS) $(SHARED) -I$(LUA_INC) $^ -o $@
 
 $(LUA_CLIB_PATH)/config.so: $(wildcard $(CLIB_SRC_PATH)/config/*.cpp) | $(LUA_CLIB_PATH)
 	g++ $(CPPFLAGES) $(SHARED) -I$(LUA_INC) -o $@ $^
@@ -89,11 +61,15 @@ $(LUA_CLIB_PATH)/config.so: $(wildcard $(CLIB_SRC_PATH)/config/*.cpp) | $(LUA_CL
 $(LUA_CLIB_PATH)/udpgate.so: $(SERVICE_SRC_PATH)/lua-udpgate.c | $(LUA_CLIB_PATH)
 	$(CC) $(CFLAGS) $(SHARED) -I$(LUA_INC) -o $@ $^
 
+$(LUA_CLIB_PATH)/snapshot.so: $(LUA_SNAPSHOT_PATH)/snapshot.c
+	$(CC) $(CFLAGS) $(SHARED) -I$(LUA_INC) -o $@ $^
+
 $(LUA_CLIB_PATH)/snowflake.so: $(CLIB_SRC_PATH)/lua-snowflake.c | $(LUA_CLIB_PATH)
 	$(CC) $(CFLAGS) $(SHARED) -I$(LUA_INC) -I$(SKYNET_INC) -o $@ $^
 
-$(LUA_CLIB_PATH)/ssock.so: $(wildcard ./3rd/skynet_ssl/*.c)
+$(LUA_CLIB_PATH)/ssock.so: $(wildcard $(CLIB_SRC_PATH)/ssock/*.c)
 	$(CC) $(CFLAGS) $(SHARED) -I$(LUA_INC) -I3rd/skynet_ssl -Iinclude -Wl,--whole-archive ./clib/*.a -Wl,--no-whole-archive -o $@ $^ -lrt ./clib/libcrypto.a ./clib/libssl.a  ./clib/libidn.a ./clib/libz.a
+
 #skynet
 $(SKYNET_PATH)/Makefile:
 	git submodule update --init && git submodule sync && git submodule update

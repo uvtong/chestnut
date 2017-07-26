@@ -1,3 +1,5 @@
+#define LUA_LIB
+
 #include "CCAABB.h"
 
 #ifdef __cplusplus
@@ -154,7 +156,7 @@ laabb_updateMinMax(lua_State *L) {
 	lua_len(L, 2);
 	lua_Integer len = lua_tointeger(L, -1);
 	lua_pop(L, 1);
-	struct vector3 point[len];
+	/*struct vector3 point[len];
 	int idx = 0;
 	while (lua_next(L, 2) != 0) {
 		struct vector3 *v = (struct vector3 *)lua_touserdata(L, -1);
@@ -164,7 +166,7 @@ laabb_updateMinMax(lua_State *L) {
 		lua_pop(L, 1);
 		idx++;
 	}
-	aabb->updateMinMax(point, len);
+	aabb->updateMinMax(point, len);*/
 	return 0;
 }
 
@@ -177,8 +179,8 @@ laabb_transform(lua_State *L) {
 	return 0;
 }
 
-void 
-aabb(lua_State *L) {
+LUAMOD_API int 
+luaopen_math3d_aabb(lua_State *L) {
 	luaL_Reg l[] = {
 		{ "getCenter", laabb_getCenter },
 		{ "getCorners", laabb_getCorners },
@@ -210,6 +212,8 @@ aabb(lua_State *L) {
 	lua_setfield(L, -2, "__gc");
 
 	lua_pushcclosure(L, laabb_new, 1);
+
+	return 1;
 }
 
 #ifdef __cplusplus

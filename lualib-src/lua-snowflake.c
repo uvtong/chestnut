@@ -82,6 +82,8 @@ next_id() {
 
 static int
 init(uint16_t work_id) {
+	TI = (ctx_t *)malloc(sizeof( *TI));
+	memset(TI, 0, sizeof(*TI));
 	SPIN_INIT(TI);
 	TI->last_timestamp = get_timestamp();
 	TI->work_id = work_id;

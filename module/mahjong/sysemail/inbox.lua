@@ -1,7 +1,8 @@
+local log = require "skynet.log"
 local set = require "db.dbset"
 local query = require "query"
 local mail = require "mail"
-local log = require "log"
+
 
 local cls = class("inbox", set)
 

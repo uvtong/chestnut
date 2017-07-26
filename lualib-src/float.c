@@ -1,3 +1,5 @@
+#define LUA_LIB
+
 #include <lua.h>
 #include <lauxlib.h>
 #include <stdint.h>
@@ -11,8 +13,11 @@ union float_number {
 
 static bool 
 check_support() {
-    assert(sizeof(int64_t) == sizeof(double)); /*double must be 64bit*/
-    assert(0x3ff0000000000000 == ((union float_number){1.0}).i); /*check little-endian and IEEE 754*/
+#ifdef _MSC_VER
+#else
+	assert(sizeof(int64_t) == sizeof(double)); /*double must be 64bit*/
+	assert(0x3ff0000000000000 == ((union float_number) { 1.0 }).i); /*check little-endian and IEEE 754*/
+#endif // _MSC_VER
     return true;
 }
 
@@ -36,7 +41,7 @@ lua_decode_float(lua_State* L) {
     return 1;
 }
 
-int
+LUAMOD_API int
 luaopen_float(lua_State *L) {
 	luaL_checkversion(L);
 	luaL_Reg l[] = {
