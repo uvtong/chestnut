@@ -1,6 +1,6 @@
 local skynet = require "skynet"
 require "skynet.manager"
-local log = require "log"
+local log = require "skynet.log"
 
 local internal_id = 1
 

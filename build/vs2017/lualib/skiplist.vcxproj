@@ -23,7 +23,7 @@
     <ProjectGuid>{8CA29D99-621E-48DB-AE75-857474C77BE3}</ProjectGuid>
     <Keyword>Win32Proj</Keyword>
     <RootNamespace>skiplist</RootNamespace>
-    <WindowsTargetPlatformVersion>8.1</WindowsTargetPlatformVersion>
+    <WindowsTargetPlatformVersion>10.0.15063.0</WindowsTargetPlatformVersion>
   </PropertyGroup>
   <Import Project="$(VCTargetsPath)\Microsoft.Cpp.Default.props" />
   <PropertyGroup Condition="'$(Configuration)|$(Platform)'=='Debug|Win32'" Label="Configuration">
@@ -145,8 +145,8 @@
     </Link>
   </ItemDefinitionGroup>
   <ItemGroup>
-    <ProjectReference Include="..\3rd\liblua.vcxproj">
-      <Project>{ddb458fc-21ee-4b59-8280-9a954857c0d1}</Project>
+    <ProjectReference Include="..\..\..\3rd\skynet\build\vs2017\3rd\lua53.vcxproj">
+      <Project>{2ff46585-569f-4371-85ee-55e41fd38e8b}</Project>
     </ProjectReference>
   </ItemGroup>
   <ItemGroup>

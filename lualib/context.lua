@@ -1,9 +1,9 @@
 local skynet = require "skynet"
 local socket = require "skynet.socket"
+local log = require "skynet.log"
 local sproto = require "sproto"
 local sprotoloader = require "sprotoloader"
 local center = require "notification_center"
-local log = require "log"
 local string_pack = string.pack
 local max = 2 ^ 16 - 1
 

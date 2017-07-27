@@ -23,7 +23,7 @@
     <ProjectGuid>{AED6B2F3-21E0-487E-99CF-699BB5AE66DA}</ProjectGuid>
     <Keyword>Win32Proj</Keyword>
     <RootNamespace>snowflake</RootNamespace>
-    <WindowsTargetPlatformVersion>8.1</WindowsTargetPlatformVersion>
+    <WindowsTargetPlatformVersion>10.0.15063.0</WindowsTargetPlatformVersion>
   </PropertyGroup>
   <Import Project="$(VCTargetsPath)\Microsoft.Cpp.Default.props" />
   <PropertyGroup Condition="'$(Configuration)|$(Platform)'=='Debug|Win32'" Label="Configuration">
@@ -144,6 +144,11 @@
   </ItemDefinitionGroup>
   <ItemGroup>
     <ClCompile Include="..\..\..\lualib-src\lua-snowflake.c" />
+  </ItemGroup>
+  <ItemGroup>
+    <ProjectReference Include="..\..\..\3rd\skynet\build\vs2017\3rd\lua53.vcxproj">
+      <Project>{2ff46585-569f-4371-85ee-55e41fd38e8b}</Project>
+    </ProjectReference>
   </ItemGroup>
   <Import Project="$(VCTargetsPath)\Microsoft.Cpp.targets" />
   <ImportGroup Label="ExtensionTargets">

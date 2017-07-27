@@ -1,7 +1,7 @@
 local skynet = require "skynet"
+local log = require "skynet.log"
 local card = require "card"
 local group = require "group"
-local log = require "log"
 local opcode = require "opcode"
 local hutype = require "hutype"
 local util = require "util"

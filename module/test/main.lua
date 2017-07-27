@@ -1,11 +1,11 @@
 local skynet = require "skynet"
 require "skynet.manager"
-local log = require "log"
+local log = require "skynet.log"
 local util = require "util"
 
 skynet.start(function()
-	local logger = skynet.uniqueservice("log")
-	skynet.call(logger, "lua", "start")
+	-- local logger = skynet.uniqueservice("log")
+	-- skynet.call(logger, "lua", "start")
 	
 	-- skynet.uniqueservice("protoloader")
 	
@@ -40,7 +40,7 @@ skynet.start(function()
 	-- local lb = skynet.newservice("leaderboards", "ara_leaderboards")
 	-- skynet.name(".LB", lb)
 
-	log.info("test successful .")
+	-- log.info("test successful .")
 	
 	-- skynet.exit()
 end)

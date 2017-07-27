@@ -1,8 +1,8 @@
 package.path = "./../../module/mahjong/lualib/?.lua;"..package.path
 local skynet = require "skynet"
 require "skynet.manager"
+local log = require "skynet.log"
 local waiting_queue = require "waiting_queue"
-local log = require "log"
 local errorcode = require "errorcode"
 local noret = {}
 local users = {}

@@ -1,7 +1,7 @@
 local skynet = require "skynet"
+local log = require "skynet.log"
 local card = require "card"
 local player = require "player"
-local log = require "log"
 local list = require "list"
 local util = require "util"
 local errorcode = require "errorcode"

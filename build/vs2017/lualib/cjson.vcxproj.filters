@@ -15,15 +15,27 @@
     </Filter>
   </ItemGroup>
   <ItemGroup>
-    <ClCompile Include="..\..\..\lualib-src\aoi.c">
+    <ClCompile Include="..\..\..\lualib-src\cjson\dtoa.c">
       <Filter>Source Files</Filter>
     </ClCompile>
-    <ClCompile Include="..\..\..\lualib-src\aoi_aux.c">
+    <ClCompile Include="..\..\..\lualib-src\cjson\lua_cjson.c">
+      <Filter>Source Files</Filter>
+    </ClCompile>
+    <ClCompile Include="..\..\..\lualib-src\cjson\strbuf.c">
+      <Filter>Source Files</Filter>
+    </ClCompile>
+    <ClCompile Include="..\..\..\lualib-src\cjson\g_fmt.c">
       <Filter>Source Files</Filter>
     </ClCompile>
   </ItemGroup>
   <ItemGroup>
-    <ClInclude Include="..\..\..\lualib-src\aoi.h">
+    <ClInclude Include="..\..\..\lualib-src\cjson\dtoa_config.h">
+      <Filter>Header Files</Filter>
+    </ClInclude>
+    <ClInclude Include="..\..\..\lualib-src\cjson\strbuf.h">
+      <Filter>Header Files</Filter>
+    </ClInclude>
+    <ClInclude Include="..\..\..\lualib-src\cjson\fpconv.h">
       <Filter>Header Files</Filter>
     </ClInclude>
   </ItemGroup>

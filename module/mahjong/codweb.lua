@@ -1,7 +1,7 @@
 local skynet = require "skynet"
 require "skynet.manager"
 local mc = require "skynet.multicast"
-local log = require "log"
+local log = require "skynet.log"
 
 local servers = {}
 

@@ -1,3 +1,7 @@
+local log = require "skynet.log"
+local card = require "card"
+local assert = assert
+
 local kind = {}
 kind.NONE   = 0
 kind.SINGLE = 1
@@ -14,10 +18,6 @@ kind.IDENTICAL3_SINGLE = 7
 kind.IDENTICAL3_COUPLE = 8
 
 kind.KINGANDQ = 9
-
-local card = require "card"
-local log = require "log"
-local assert = assert
 
 local cls = class("group")
 

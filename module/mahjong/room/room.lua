@@ -1,7 +1,7 @@
 package.path = "./../../module/mahjong/room/?.lua;./../../module/mahjong/lualib/?.lua;../../lualib/?.lua;"..package.path
 local skynet = require "skynet"
+local log = require "skynet.log"
 local context = require "rcontext"
-local log = require "log"
 local errorcode = require "errorcode"
 local gs = require "gamestate"
 local util = require "util"
