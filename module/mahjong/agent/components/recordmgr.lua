@@ -1,7 +1,7 @@
 local skynet = require "skynet"
+local log = require "skynet.log"
 local query = require "query"
 local errorcode = require "errorcode"
-local log = require "log"
 local util = require "util"
 local dbmonitor = require "dbmonitor"
 local component = require "component"

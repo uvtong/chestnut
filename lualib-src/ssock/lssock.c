@@ -1,3 +1,5 @@
+#define LUA_LIB
+
 #include "lssock.h"
 #include "ssock.h"
 

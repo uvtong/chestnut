@@ -1,6 +1,6 @@
 local skynet = require "skynet"
 local redis = require "skynet.db.redis"
-local log = require "log"
+local log = require "skynet.log"
 local errorcode = require "errorcode"
 local util = require "util"
 local const = require "const"

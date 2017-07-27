@@ -1,7 +1,7 @@
 local skynet = require "skynet"
+local log = require "skynet.log"
 local context = require "context"
 local inbox = require "inbox"
-local log = require "log"
 local errorcode = require "errorcode"
 local radiocenter = require "radiocenter"
 local entity = require "entity"

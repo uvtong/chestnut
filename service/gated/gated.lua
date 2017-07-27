@@ -2,7 +2,7 @@ package.path = "./../../service/gated/?.lua;" .. package.path
 local msgserver = require "msgserver"
 local crypt = require "skynet.crypt"
 local skynet = require "skynet"
-local log = require "log"
+local log = require "skynet.log"
 local errorcode = require "errorcode"
 
 

@@ -42,6 +42,9 @@
 # tar
 *.tar.gz
 *.gz
+*.exp
+*.ilk
+*.pdb
 
 #module
 /module/ball/luaclib
