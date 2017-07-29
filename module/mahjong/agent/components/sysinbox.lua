@@ -8,11 +8,13 @@ local snowflake = require "snowflake"
 local zset = require "zset"
 local component = require "component"
 
-local cls = class("sysinbox", component)
+local CLS_NAME = "sysinbox"
 
-function cls:ctor(env, entity, name, ... )
+local cls = class(CLS_NAME, component)
+
+function cls:ctor(entity, ... )
 	-- body
-	cls.super.ctor(self, env, entity, name)
+	cls.super.ctor(self, entity, CLS_NAME)
 	self._tname = "tb_user_sysmail"
 	self._mk = {}
 	self._mkzs = zset.new()

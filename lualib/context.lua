@@ -82,33 +82,33 @@ function cls:post_notification_name(name, object, ... )
 	self._center:post_notification_name(name, object, ...)
 end
 
-function cls:send_package(pack, ... )
-	-- body
-	local package = string_pack(">s2", pack)
-	socket.write(self._fd, package)
-end
-
-function cls:send_request(name, args, ... )
-	-- body
-	assert(name and args)
-	
-	self:send_request_id(self._fd, name, args)
-end
-
 function cls:send_package_id(id, pack, ... )
 	-- body
 	local package = string_pack(">s2", pack)
 	socket.write(id, package)
 end
 
+function cls:send_package(pack, ... )
+	-- body
+	assert(self._fd)
+	local package = string_pack(">s2", pack)
+	socket.write(self._fd, package)
+end
+
 function cls:send_request_id(id, name, args, ... )
 	-- body
-	assert(name and args)
+	assert(name)
 	
 	self._response_session = self._response_session + 1 % max
 	self._response_session_name[self._response_session] = name
 	local request = self._send_request(name, args, self._response_session)
 	self:send_package_id(id, request)
+end
+
+function cls:send_request(name, args, ... )
+	-- body
+	assert(name)
+	self:send_request_id(self._fd, name, args)
 end
 
 function cls:get_name_by_session(session, ... )

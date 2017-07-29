@@ -1,11 +1,9 @@
 local skynet = require "skynet"
-local log = require "log"
+local log = require "skynet.log"
 
 local servers = {}
 
 skynet.start(function()
-	local logger = skynet.uniqueservice("log")
-	skynet.call(logger, "lua", "start")
 	
 	-- skynet.uniqueservice("protoloader")
 	local console = skynet.newservice("console")

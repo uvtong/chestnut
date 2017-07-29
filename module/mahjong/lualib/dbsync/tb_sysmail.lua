@@ -1,6 +1,6 @@
 local query = require "query"
 local const = require "const"
-local log = require "log"
+local log = require "skynet.log"
 
 local tname = "tb_sysmail"
 

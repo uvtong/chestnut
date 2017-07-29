@@ -264,8 +264,10 @@ function server.start(conf)
 		socketdriver.send(fd, netpack.pack(result))
 
 		if close then
+			log.info("close")
 			gateserver.closeclient(fd)
 		else
+			log.info("do_start")
 			do_start(fd)	
 		end
 	end

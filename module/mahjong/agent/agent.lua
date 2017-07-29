@@ -44,7 +44,9 @@ local function request(name, args, response, msg, sz)
     local f = REQUEST[name]
     local ok, result = xpcall(f, debug.msgh, ctx, args, msg, sz)
     if ok then
-    	return response(result)
+    	if result then
+    		return response(result)
+    	end
     end
 end
 

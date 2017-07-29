@@ -6,10 +6,11 @@ local recordmgr = require "components.recordmgr"
 
 local cls = class("entity")
 
-function cls:ctor(env, uid, ... )
+function cls:ctor(env, uid, subid, ... )
 	-- body
 	self._env = env
 	self._uid = uid
+	self._subid = subid
 	self._components = {}
 	self:register_component()
 end
@@ -21,9 +22,9 @@ end
 
 function cls:register_component( ... )
 	-- body
-	user.new(self._env, self, "user")
-	sysinbox.new(self._env, self, "sysinbox")
-	recordmgr.new(self._env, self, "recordmgr")
+	user.new(self)
+	sysinbox.new(self)
+	recordmgr.new(self)
 end
 
 function cls:load_cache_to_data( ... )
@@ -41,6 +42,16 @@ end
 function cls:get_uid( ... )
 	-- body
 	return self._uid
+end
+
+function cls:set_subid(subid, ... )
+	-- body
+	self._subid = subid
+end
+
+function cls:get_subid( ... )
+	-- body
+	return self._subid
 end
 
 return cls

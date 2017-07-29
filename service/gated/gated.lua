@@ -106,6 +106,7 @@ function server.start_handler(username, fd, version, idx, ... )
 				version = version,
 				index = idx,
 			}
+			log.info("start_handler")
 			skynet.call(agent, "lua", "authed", conf)
 		end
 	end

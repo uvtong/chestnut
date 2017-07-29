@@ -46,7 +46,7 @@ function CMD:login(source, gate, uid, subid, secret,... )
 		end
 	end
 
-	skynet.send(".ONLINE_MGR", "lua", "login", uid)
+	local ok = skynet.call(".ONLINE_MGR", "lua", "login", uid, subid, skynet.self())
 	
 	log.info("login over")
 	return errorcode.SUCCESS
@@ -56,6 +56,8 @@ end
 function CMD:logout(source)
 	-- body
 	local uid = self:get_uid()
+	local subid = self:get_subid()
+
 	log.info("user %s logout", uid)
 	local room = self:get_room()
 	if room then
@@ -64,6 +66,9 @@ function CMD:logout(source)
 		skynet.call(room, "lua", "on_leave", args)
 		self:set_room(nil)
 	end
+	local ok = skynet.call(".ONLINE_MGR", "lua", "logout", uid, subid)
+	assert(ok)
+
 	self:logout()
 
 	local db = self:get_db()
@@ -98,11 +103,18 @@ function CMD:authed(source, conf)
 	self:set_fd(fd)
 	self:set_version(version)
 	self:set_index(index)
+
+	local uid = self:get_uid()
+	local subid = self:get_subid()
 	
 	local addr = self:get_room()
 	if addr then
-		skynet.call(addr, "lua", "authed", self:get_uid())
+		local ok = skynet.call(addr, "lua", "authed", uid, subid, fd)
+		assert(ok)
 	end
+
+	local ok = skynet.call(".ONLINE_MGR", "lua", "authed", uid, subid, fd)
+	assert(ok)
 
 	return true
 end

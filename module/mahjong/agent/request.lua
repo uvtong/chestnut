@@ -1,3 +1,6 @@
+local skynet = require "skynet"
+local errorcode = require "errorcode"
+
 local REQUEST = {}
 
 function REQUEST:handshake(args, ... )
@@ -68,6 +71,7 @@ function REQUEST:first(args, ... )
 	-- body
 	local entity = self:get_entity()
 	local user = entity:get_component("user")
+	assert(user)
 	return user:first()
 end
 
@@ -94,12 +98,12 @@ end
 
 function REQUEST:toast1(args, msg, sz, ... )
 	-- body
-	skynet.rawsend(".ONLINE_MGR", "client", msg, sz)
+	return skynet.call(".ONLINE_MGR", "lua", "toast1", args)
 end
 
 function REQUEST:toast2(args, msg, sz, ... )
 	-- body
-	skynet.rawsend(".ONLINE_MGR", "client", msg, sz)
+	return skynet.call(".ONLINE_MGR", "lua", "toast2", args)
 end
 
 function REQUEST:fetchsysmail(args, ... )

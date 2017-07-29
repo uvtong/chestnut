@@ -1,6 +1,7 @@
+local log = require "skynet.log"
 local query = require "query"
 local const = require "const"
-local log = require "log"
+
 
 local tname = "tb_count"
 

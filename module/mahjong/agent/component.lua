@@ -1,10 +1,10 @@
 local cls = class("component")
 
-function cls:ctor(env, entity, name, ... )
+function cls:ctor(e, name, ... )
 	-- body
-	assert(env and entity and name)
-	self._env    = env
-	self._entity = entity
+	assert(e and name)
+	self._env    = e._env
+	self._entity = e
 	self._name   = name
 	self._entity._components[name] = self
 	return self

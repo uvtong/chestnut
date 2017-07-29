@@ -1,5 +1,5 @@
 local query = require "query"
-local log = require "log"
+local log = require "skynet.log"
 
 local tname = "tu_achievement"
 

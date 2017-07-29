@@ -3,9 +3,10 @@ local skynet = require "skynet"
 local mc = require "skynet.multicast"
 local mysql = require "skynet.db.mysql"
 local redis = require "skynet.db.redis"
+local log = require "skynet.log"
 local util = require "util"
 local queue = require "queue"
-local log = require "log"
+
 local name = ...
 
 local dbconf

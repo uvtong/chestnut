@@ -3,7 +3,9 @@ require "skynet.manager"
 local log = require "skynet.log"
 local query = require "query"
 local context = require "context"
+local errorcode = require "errorcode"
 
+local ctx = context.new()
 local noret = {}
 local users = {}
 local subusers = {}
@@ -25,15 +27,18 @@ function cmd.kill( ... )
 	skynet.exit()
 end
 
-function cmd.login(uid, subid, agent, fd, ... )
+function cmd.login(uid, subid, agent, ... )
 	-- body
+	assert(uid and subid and agent)
 	local u = {}
 	u.uid = uid
+	u.subid = subid
 	u.agent = agent
-	u.fd = fd
 
 	users[uid] = u
-	return noret
+	subusers[subid] = u
+
+	return true
 end
 
 function cmd.logout(uid, subid, ... )
@@ -44,20 +49,22 @@ function cmd.logout(uid, subid, ... )
 	subusers[subid] = nil	
 end
 
-function cmd.authed(uid, subid, ... )
+function cmd.authed(uid, subid, fd, ... )
 	-- body
+	assert(uid and subid and fd)
 	local u = users[uid]
-	u.subid = subid
-	subusers[subid] = u
+	assert(u.subid == subid, string.format("u.subid = %d, subid = %d", u.subid, subid))
+	u.fd = fd
+
+	return true
 end
 
 function cmd.afk(uid, subid, ... )
 	-- body
 	local u = users[uid]
 	assert(u.subid == subid)
-	assert(subusers[subid] == u)
-	u.subid = nil
-	subusers[subid] = nil
+	u.fd = nil
+	
 	return true
 end
 
@@ -88,61 +95,21 @@ function cmd.add_rcard(name, num, ... )
 	end
 end
 
-local REQUEST = {}
-
-function REQUEST.toast1(args, ... )
+function cmd.toast1(args, ... )
 	-- body
-
+	local res = {}
+	res.errorcode = errorcode.SUCCESS
+	res.text = "hello toast1"
+	return res
 end
 
-local function request(name, args, response, msg, sz)
-	log.info("ONLINE_MGR request [%s]", name)
-	local u = users[args.uid]
-    local f = REQUEST[name]
-    local ok, result = xpcall(f, debug.msgh, ctx, args, msg, sz)
-    if ok then
-    	return response(result), u.fd
-    end
-end
-
-local function response(session, args, msg, sz)
+function cmd.toast2(args, ... )
 	-- body
-	local name = ctx:get_name_by_session(session)
-	-- log.info("agent response [%s]", name)
-    local f = RESPONSE[name]
-    local ok, result = pcall(f, ctx, args)
-    if ok then
-    else
-    	log.error(result)
-    end
+	local res = {}
+	res.errorcode = errorcode.SUCCESS
+	res.text = "hello toast2"
+	return res
 end
-
-skynet.register_protocol {
-	name = "client",
-	id = skynet.PTYPE_CLIENT,
-	unpack = function (msg, sz)
-		if sz > 0 then
-			local host = ctx:get_host()
-			return host:dispatch(msg, sz)
-		else 
-			assert(false)
-		end
-	end,
-	dispatch = function (session, source, type, ...)	
-		if type == "REQUEST" then
-			local ok, result, id = xpcall(request, debug.msgh, ...)
-			if ok then
-				if result then
-					ctx:send_package_id(result, id)
-				end
-			end
-		elseif type == "RESPONSE" then
-			pcall(response, ...)
-		else
-			assert(false, result)
-		end
-	end
-}
 
 skynet.start(function ( ... )
 	-- body

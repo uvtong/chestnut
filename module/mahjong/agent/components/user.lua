@@ -1,14 +1,15 @@
-local field = require "db.field"
-local entity = require "db.entity"
+local log = require "skynet.log"
 local query = require "query"
 local errorcode = require "errorcode"
 local component = require "component"
 
-local cls = class("user", component)
+local CLS_NAME = "user"
 
-function cls:ctor(env, entity, name, ... )
+local cls = class(CLS_NAME, component)
+
+function cls:ctor(entity, ... )
 	-- body
-	cls.super.ctor(self, env, entity, name)
+	cls.super.ctor(self, entity, CLS_NAME)
 
 	self._tname = "tb_user"
 	self._mk    = {}
@@ -72,7 +73,6 @@ end
 
 function cls:load_cache_to_data( ... )
 	-- body
-
 	local r = {}
 	local uid           = self._env._uid
 
@@ -100,6 +100,10 @@ function cls:first( ... )
 	res.rcard  = r.rcard
 	res.sex    = r.sex
 
+	log.info("name = %s", res.name)
+	log.info("nameid = %s", res.nameid)
+	log.info("rcard = %d", res.rcard)
+	log.info("sex = %d", res.sex)
 	return res
 end
 
