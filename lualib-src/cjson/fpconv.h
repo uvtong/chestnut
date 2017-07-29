@@ -6,7 +6,7 @@
  * -1.7976931348623e+308 */
 # define FPCONV_G_FMT_BUFSIZE   32
 
-#if _MSC_VER
+#ifdef _MSC_VER
 #define USE_INTERNAL_FPCONV
 #define inline __inline
 #endif // _MSC_VER
