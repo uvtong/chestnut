@@ -92,7 +92,13 @@ handshake 1 {
     }
 }
 
-match 2 {
+logout 2 {
+    response {
+        errorcode 0 : integer
+    }
+}
+
+match 3 {
     request {
         rule 0 : integer
         mode 1 : integer
@@ -103,13 +109,13 @@ match 2 {
     }
 }
 
-cmatch 3 {
+cmatch 4 {
     response {
         errorcode 0 : integer
     }
 }
 
-create 4 {
+create 101 {
     request {
         provice    0 : integer
         ju         1 : integer
@@ -124,7 +130,7 @@ create 4 {
     }
 }
 
-join 5 {
+join 102 {
     request {
         roomid 0 : integer
     }
@@ -137,7 +143,7 @@ join 5 {
     }
 }
 
-leave 6 {
+leave 103 {
     request {
         idx 0 : integer
     }
@@ -146,7 +152,7 @@ leave 6 {
     }
 }
 
-first 7 {
+first 104 {
     response {
         errorcode 0 : integer
         name      1 : string
@@ -159,26 +165,26 @@ first 7 {
     }
 }
 
-checkindaily 8 {
+checkindaily 105 {
     response {
         errorcode 0 : integer
     }
 }
 
-toast1 9 {
+toast1 106 {
     response {
         errorcode 0 : integer
         text      1 : string
     }
 }
 
-toast2 10 {
+toast2 107 {
     response {
         errorcode 0 : integer
     }
 }
 
-fetchsysmail 12 {
+fetchsysmail 108 {
     request {
         all       0 : *integer
     }
@@ -188,7 +194,7 @@ fetchsysmail 12 {
     }
 }
 
-syncsysmail 13 {
+syncsysmail 109 {
     request {
         all       0 : *integer
     }
@@ -198,7 +204,7 @@ syncsysmail 13 {
     }
 }
 
-viewedsysmail 14 {
+viewedsysmail 110 {
     request {
         mailid    0 : integer
     }
@@ -207,14 +213,14 @@ viewedsysmail 14 {
     }
 }
 
-records 15 {
+records 111 {
     response {
         errorcode 0 : integer
         records   1 : *record
     }
 }
 
-record 16 {
+record 112 {
     request {
         id 0 : integer
     }
@@ -224,22 +230,7 @@ record 16 {
     }
 }
 
-logout 17 {
-    response {
-        errorcode 0 : integer
-    }
-}
-
-test 18 {
-    request {
-        id 0 : integer
-    }
-    response {
-        errorcode 0 : integer
-    }
-}
-
-avatar 19 {
+avatar 113 {
     response {
         errorcode 0 : integer
         nickname 1 : string

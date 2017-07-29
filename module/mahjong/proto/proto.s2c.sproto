@@ -61,7 +61,38 @@ handshake 1 {
     }
 }
 
-match 2 {
+logout 2 {
+    request {
+        subid 0 : integer
+    }
+    response {
+        errorcode 0 : integer
+    }
+}
+
+authed 3 {
+    request {
+        uid 0 : integer
+        subid 1 : integer
+        idx 2 : integer
+    }
+    response {
+        errorcode 0 : integer
+    }
+}
+
+afk 4 {
+    request {
+        uid 0 : integer
+        subid 1 : integer
+        idx 2 : integer
+    }
+    response {
+        errorcode 0 : integer
+    }
+}
+
+match 5 {
     request {
         id 0 : integer
     }
@@ -70,25 +101,7 @@ match 2 {
     }
 }
 
-afk 25 {
-    request {
-        idx 0 : integer
-    }
-    response {
-        errorcode 0 : integer
-    }
-}
-
-authed 26 {
-    request {
-        idx 0 : integer
-    }
-    response {
-        errorcode 0 : integer
-    }
-}
-
-rcard 30 {
+rcard 101 {
     request {
         num       0 : integer
     }
@@ -97,7 +110,7 @@ rcard 30 {
     }
 }
 
-radio 31 {
+radio 102 {
     request {
         board     0 : string
         adver     1 : string
@@ -107,14 +120,7 @@ radio 31 {
     }
 }
 
-exit_room 100 {
-    response {
-        errorcode 0 : integer
-    }
-}
-
-
-join 3 {
+join 401 {
     request {
         p         0 : player
     }
@@ -123,7 +129,7 @@ join 3 {
     }
 }
 
-leave 4 {
+leave 402 {
     request {
         idx       0 : integer
     }
