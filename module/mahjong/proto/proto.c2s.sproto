@@ -172,6 +172,10 @@ checkindaily 105 {
 }
 
 toast1 106 {
+    request {
+        uid       0 : integer
+        subid     1 : integer
+    }
     response {
         errorcode 0 : integer
         text      1 : string
@@ -179,8 +183,13 @@ toast1 106 {
 }
 
 toast2 107 {
+    request {
+        uid       0 : integer
+        subid     1 : integer
+    }
     response {
         errorcode 0 : integer
+        text      1 : string
     }
 }
 

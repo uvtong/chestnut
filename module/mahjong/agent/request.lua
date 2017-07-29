@@ -1,16 +1,16 @@
 local REQUEST = {}
 
-function REQUEST:logout( ... )
+function REQUEST:handshake(args, ... )
 	-- body
-	self:logout()
+	self:send_request("handshake")
 	local res = {}
 	res.errorcode = errorcode.SUCCESS
 	return res
 end
 
-function REQUEST:handshake(args, ... )
+function REQUEST:logout( ... )
 	-- body
-	self:send_request("handshake")
+	self:logout()
 	local res = {}
 	res.errorcode = errorcode.SUCCESS
 	return res
@@ -90,6 +90,16 @@ function REQUEST:checkindaily(args, ... )
 	end
 	res.errorcode = errorcode.SUCCESS
 	return res
+end
+
+function REQUEST:toast1(args, msg, sz, ... )
+	-- body
+	skynet.rawsend(".ONLINE_MGR", "client", msg, sz)
+end
+
+function REQUEST:toast2(args, msg, sz, ... )
+	-- body
+	skynet.rawsend(".ONLINE_MGR", "client", msg, sz)
 end
 
 function REQUEST:fetchsysmail(args, ... )

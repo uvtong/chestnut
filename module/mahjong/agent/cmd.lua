@@ -83,8 +83,7 @@ function CMD:afk(source)
 		skynet.call(addr, "lua", "afk", uid)
 	end
 
-	skynet.call(".ONLINE_MGR", "lua", "afk", self._uid)
-
+	skynet.call(".ONLINE_MGR", "lua", "afk", uid, sid)
 	return true
 end
 
