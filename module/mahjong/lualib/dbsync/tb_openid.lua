@@ -1,7 +1,7 @@
 local query = require "query"
 local log = require "skynet.log"
 
-local tname = "tg_openid"
+local tname = "tb_openid"
 
 local _M = {}
 
@@ -27,6 +27,8 @@ end
 
 function _M.cache_insert(db, openid, ... )
 	-- body
+	assert(db and openid)
+	log.info(string.format("openid = %s", openid))
 	local uid = db:get(string.format("%s:%s:uid", tname, openid))
 	local sql = "insert into %s (openid, uid) values ('%s', %d);"
 	sql = string.format(sql, tname, openid, uid)

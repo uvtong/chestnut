@@ -33,7 +33,6 @@ local CMD = {}
 function CMD.start( ... )
 	-- body
 	db = redis.connect(conf)
-
 	skynet.call('game', 'lua', 'load')
 	
 	return true
@@ -57,6 +56,7 @@ function CMD.cache_select(key, ... )
 	if tname == nil then
 		tname = key
 	end
+	log.info(string.format("tname = %s", tname))
 	if tname == 'tb_count' then
 		return tb_count.cache_select(db, left)
 	elseif tname == 'tb_nameid' then
@@ -87,6 +87,7 @@ end
 function CMD.cache_update(key, ... )
 	-- body
 	local tname, left = key:match("([^:]+):(.+)")
+	log.info(string.format("update tname = %s", tname))
 	if tname == 'tb_count' then
 		tb_count.cache_update(db, left, ...)
 	elseif tname == 'tb_record' then
@@ -102,28 +103,35 @@ function CMD.cache_update(key, ... )
 	elseif tname == 'tu_task' then
 		tu_task.cache_update(db, left, ...)
 	end
+	return noret
 end
 
 function CMD.cache_insert(key, ... )
 	-- body
 	local tname, left = key:match("([^:]+):(.+)")
+	log.info(string.format("insert tname = %s", tname))
 	if tname == 'tg_count' then
-		tg_count.cache_insert(db, left)
-	elseif tname == 'tg_record' then
-		tg_record.cache_insert(db, left)
-	elseif tname == 'tg_sysmail' then
-		tg_sysmail.cache_insert(db, left)
-	elseif tname == 'tg_uid' then
-		tg_uid.cache_insert(db, left)
-	elseif tname == "tg_users" then
-		tg_users.cache_insert(db, left)
+		tb_count.cache_insert(db, left)
+	elseif tname == 'tb_nameid' then
+		tb_nameid.cache_insert(db, left)
+	elseif tname == 'tb_openid' then
+		tb_openid.cache_insert(db, left)
+	elseif tname == 'tb_record' then
+		tb_record.cache_insert(db, left)
+	elseif tname == 'tb_sysmail' then
+		tb_sysmail.cache_insert(db, left)
+	elseif tname == 'tb_uid' then
+		tb_uid.cache_insert(db, left)
+	elseif tname == "tb_users" then
+		tb_users.cache_insert(db, left)
 	elseif tname == 'tu_record' then
-		tu_record.cache_insert(db, left)
+		tb_user_record.cache_insert(db, left)
 	elseif tname == 'tu_sysmail' then
-		tu_sysmail.cache_insert(db, left)
+		tb_user_sysmail.cache_insert(db, left)
 	elseif tname == 'tu_task' then
-		tu_task.cache_insert(db, left)
+		tb_user_task.cache_insert(db, left)
 	end
+	return noret
 end
 
 function CMD.login(uid, ... )
@@ -149,7 +157,6 @@ end
 
 function CMD.afx(uid, ... )
 	-- body
-
 end
 
 skynet.start(function ( ... )

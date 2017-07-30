@@ -40,6 +40,7 @@ function _M.cache_update(db, left, ... )
 	local val = db:get(string.format("%s:%s:%s", tname, id, key))
 	local sql = "update %s set %s = %s where id = %d;"
 	sql = string.format(sql, tname, key, math.tointeger(val), id)
+	assert(sql ~= '')
 	log.info(sql)
 	query.update(tname, sql)
 end

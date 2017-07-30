@@ -32,22 +32,24 @@ local id_mask = 0xffffffff
 local function gen_uid(id, ... )
 	-- body
 	local uid = db:incr(string.format("tb_count:%d:uid", const.UID_ID))
-	uid = ((server_id << server_id_shift) | uid)
 	dbmonitor.cache_update(string.format("tb_count:%d:uid", const.UID_ID))
+
+	uid = ((server_id << server_id_shift) | uid)
 	return uid
 end
 
 local function gen_nameid(id, ... )
 	-- body
-	local nameid = ""
 	local id = db:incr(string.format("tb_count:%d:uid", const.NAME_ID))
+	dbmonitor.cache_update(string.format("tb_count:%d:uid", const.NAME_ID))
+
+	local nameid = ""
 	id = ((server_id << server_id_shift) | id)
 	local hex = "0123456789abcdef"
 	for i=1,8 do
 		local idx = (id >> ((8 - i) * 4)) & 0xf
 		nameid = nameid .. hex:sub(idx, idx)
 	end
-	dbmonitor.cache_update(string.format("tb_count:%d:uid", const.NAME_ID))
 	return nameid
 end
 
@@ -77,9 +79,9 @@ end
 local function new_unionid(unionid, uid, ... )
 	-- body
 	assert(unionid and uid)
-	db:set(string.format("tg_openid:%s:openid", unionid), unionid)
-	db:set(string.format("tg_openid:%s:uid", unionid), uid)
-	--
+	db:set(string.format("tb_openid:%s:openid", unionid), unionid)
+	db:set(string.format("tb_openid:%s:uid", unionid), uid)
+
 	dbmonitor.cache_insert(string.format("tb_openid:%s", unionid))
 end
 
@@ -102,6 +104,7 @@ local function auth_win_myself(code, ... )
 		local uid = gen_uid()
 		local nameid = gen_nameid()
 		assert(uid and nameid)
+		log.info(string.format("uid = %d, nameid = %s", uid, nameid))
 
 		local sex = 1
 		local r = math.random(1, 10)
