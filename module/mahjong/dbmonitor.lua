@@ -110,7 +110,7 @@ function CMD.cache_insert(key, ... )
 	-- body
 	local tname, left = key:match("([^:]+):(.+)")
 	log.info(string.format("insert tname = %s", tname))
-	if tname == 'tg_count' then
+	if tname == 'tb_count' then
 		tb_count.cache_insert(db, left)
 	elseif tname == 'tb_nameid' then
 		tb_nameid.cache_insert(db, left)
@@ -120,10 +120,8 @@ function CMD.cache_insert(key, ... )
 		tb_record.cache_insert(db, left)
 	elseif tname == 'tb_sysmail' then
 		tb_sysmail.cache_insert(db, left)
-	elseif tname == 'tb_uid' then
-		tb_uid.cache_insert(db, left)
-	elseif tname == "tb_users" then
-		tb_users.cache_insert(db, left)
+	elseif tname == 'tb_user' then
+		tb_user.cache_insert(db, left)
 	elseif tname == 'tu_record' then
 		tb_user_record.cache_insert(db, left)
 	elseif tname == 'tu_sysmail' then
