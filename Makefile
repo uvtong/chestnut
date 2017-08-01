@@ -31,7 +31,7 @@ update3rd:
 LUA_CLIB = aoiaux cjson crab \
 	   float math3d queue \
 	   rudp skiplist config \
-	   udpgate snapshot ssock \
+	   udpgate snapshot snowflake ssock \
 	   \
 
 # lualib
