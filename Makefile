@@ -97,4 +97,5 @@ $(CSERVICE_PATH)/udpgate.so: $(SERVICE_SRC_PATH)/service_udpgate.c $(SERVICE_SRC
 all: \
 	$(foreach v, $(LUA_CLIB), $(LUA_CLIB_PATH)/$(v).so)
 
-clean: $(LUA_CLIB_PATH)/*.so
+clean: 
+	rm -rf $(LUA_CLIB_PATH)/*.so

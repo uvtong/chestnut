@@ -1,5 +1,5 @@
 local skynet = require "skynet"
-local logger = require "skynet.xlog.core"
+--local logger = require "skynet.xlog.core"
 local debug = debug
 local string_format = string.format
 local skynet_error = skynet.error
