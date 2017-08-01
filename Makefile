@@ -31,7 +31,7 @@ update3rd:
 LUA_CLIB = aoiaux cjson crab \
 	   float math3d queue \
 	   rudp skiplist config \
-	   udpgate snapshot ssock \
+	   udpgate snapshot snowflake ssock \
 	   \
 
 # lualib
@@ -97,4 +97,5 @@ $(CSERVICE_PATH)/udpgate.so: $(SERVICE_SRC_PATH)/service_udpgate.c $(SERVICE_SRC
 all: \
 	$(foreach v, $(LUA_CLIB), $(LUA_CLIB_PATH)/$(v).so)
 
-clean: $(LUA_CLIB_PATH)/*.so
+clean: 
+	rm -rf $(LUA_CLIB_PATH)/*.so
