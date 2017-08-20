@@ -190,7 +190,12 @@ end
 
 function cls:push_client(name, args, ... )
 	-- body
-
+	for _,v in pairs(self._playeres) do
+		local agent = v:get_agent()
+		skynet.send(agent, "lua", name, args)
+	end
 end
+
+
 
 return cls
