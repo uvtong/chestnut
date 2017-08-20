@@ -5,8 +5,8 @@ local map = require "room.map"
 local view = require "room.view"
 local list = require "list"
 local log = require "log"
--- local buffgenerate = require "room.BuffGenerate"
-local FightingHurt = require "room.FightingHurt"
+
+
 local cls = class("scene")
 
 function cls:ctor(ctx, aoi, ... )

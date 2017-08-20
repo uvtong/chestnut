@@ -1,0 +1,348 @@
+.package {
+	type 0 : integer
+	session 1 : integer
+    index 2 : integer
+    version 3 : integer
+}
+
+.settlementitem {
+    idx       0 : integer
+    chip      1 : integer
+    left      2 : integer
+    win       3 : *integer
+    lose      4 : *integer
+    gang      5 : integer
+    hucode    6 : integer
+    hujiao    7 : integer
+    hugang    8 : integer
+    huazhu    9 : integer
+    dajiao    10 : integer
+    tuisui    11 : integer
+}
+
+.settle {
+    p1 0 : settlementitem
+    p2 1 : settlementitem
+    p3 2 : settlementitem
+    p4 3 : settlementitem
+}
+
+.player {
+    idx  0 : integer
+    chip 1 : integer
+    sid  2 : integer
+    sex  3 : integer
+    name 4 : string
+}
+
+.huinfo {
+    idx       0 : integer
+    card      1 : integer
+    code      2 : integer
+    gang      3 : integer
+    jiao      4 : integer
+    dian      5 : integer
+}
+
+.opinfo {
+    idx        0 : integer
+    countdown  1 : integer
+    take       2 : integer
+    card       3 : integer
+    dian       4 : integer
+    peng       5 : integer
+    gang       6 : integer
+    hu         7 : huinfo
+}
+
+handshake 1 {
+    response {
+        errorcode 0 : integer
+    }
+}
+
+logout 2 {
+    request {
+        subid 0 : integer
+    }
+    response {
+        errorcode 0 : integer
+    }
+}
+
+authed 3 {
+    request {
+        uid 0 : integer
+        subid 1 : integer
+        idx 2 : integer
+    }
+    response {
+        errorcode 0 : integer
+    }
+}
+
+afk 4 {
+    request {
+        uid 0 : integer
+        subid 1 : integer
+        idx 2 : integer
+    }
+    response {
+        errorcode 0 : integer
+    }
+}
+
+match 5 {
+    request {
+        id 0 : integer
+    }
+    response {
+        errorcode 0 : integer
+    }
+}
+
+rcard 101 {
+    request {
+        num       0 : integer
+    }
+    response {
+        errorcode 0 : integer
+    }
+}
+
+radio 102 {
+    request {
+        board     0 : string
+        adver     1 : string
+    }
+    response {
+        errorcode 0 : integer
+    }
+}
+
+join 401 {
+    request {
+        p         0 : player
+    }
+    response {
+        errorcode 0 : integer
+    }
+}
+
+leave 402 {
+    request {
+        idx       0 : integer
+    }
+    response {
+        errorcode 0 : integer
+    }
+}
+
+take_turn 500 {
+    request {
+        your_turn 0 : integer
+        countdown 1 : integer
+        type      2 : integer
+        card      3 : integer
+    }
+    response {
+        errorcode 0 : integer
+    }
+}
+
+peng 501 {
+    request {
+        idx       0 : integer
+        code      1 : integer
+        card      2 : integer
+        hor       3 : integer
+        dian      4 : integer
+    }
+    response {
+        errorcode 0 : integer
+    }
+}
+
+gang 502 {
+    request {
+        idx       0 : integer
+        code      1 : integer
+        card      2 : integer
+        hor       3 : integer
+        dian      4 : integer
+        settles   5 : *settle
+    }
+    response {
+        errorcode 0 : integer
+    }
+}
+
+hu 503 {
+    request {
+        hus       0 : *huinfo
+        settles   1 : *settle
+    }
+    response {
+        errorcode 0 : integer
+    }
+}
+
+call 504 {
+    request {
+        opcodes   0 : *opinfo
+    }
+    response {
+        errorcode 0 : integer
+    }
+}
+
+shuffle 505 {
+    request {
+        first     0 : integer
+        p1        1 : *integer
+        p2        2 : *integer
+        p3        3 : *integer
+        p4        4 : *integer
+    }
+    response {
+        errorcode 0 : integer
+    }
+}
+
+dice 506 {
+    request {
+        first     0 : integer
+        firsttake 1 : integer
+        d1        2 : integer
+        d2        3 : integer
+    }
+    response {
+        errorcode 0 : integer
+    }
+}
+
+lead 507 {
+    request {
+        idx       0 : integer
+        card      1 : integer
+    } 
+    response {
+        errorcode 0 : integer
+    }
+}
+
+deal 508 {
+    request {
+        firstidx  0 : integer
+        firsttake 1 : integer
+        p1        2 : *integer
+        p2        3 : *integer
+        p3        4 : *integer
+        p4        5 : *integer
+    }
+    response {
+        errorcode 0 : integer
+    }
+}
+
+ready 509 {
+    response {
+        errorcode 0 : integer
+    }
+}
+
+over 510 {
+    response {
+        errorcode 0 : integer
+    }
+}
+
+restart 511 {
+    request {
+        idx       0 : integer
+    }
+    response {
+        errorcode 0 : integer
+    }
+}
+
+take_restart 512 {
+    response { 
+        errorcode 0 : integer
+    }
+}
+
+rchat 513 {
+    request {
+        idx       0 : integer
+        type      1 : integer
+        textid    2 : integer
+        sdsteam   3 : string
+    }
+    response {
+        errorcode 0 : integer
+    }
+}
+
+take_xuanpao 514 {
+    request {
+        countdown 0 : integer
+    }
+    response {
+        errorcode 0 : integer
+    }
+}
+
+xuanpao 515 {
+    request {
+        idx       0 : integer
+        fen       1 : integer
+    } 
+    response {
+        errorcode 0 : integer
+    }
+}
+
+take_xuanque 516 {
+    request {
+        countdown 0 : integer
+        your_turn 1 : integer
+        card      2 : integer
+    }
+    response {
+        errorcode 0 : integer
+    }
+}
+
+xuanque 517 {
+    request {
+        idx       0 : integer
+        que       1 : integer
+    }
+    response {
+        errorcode 0 : integer
+    }
+}
+
+settle 518 {
+    request {
+        settles 0 : *settle
+    }
+    response {
+        errorcode 0 : integer
+    }
+}
+
+final_settle 519 {
+    request {
+        p1 0 : *settlementitem
+        p2 1 : *settlementitem
+        p3 2 : *settlementitem
+        p4 3 : *settlementitem
+        over    4 : boolean
+    } 
+    response {
+        errorcode 0 : integer
+    }
+}
+

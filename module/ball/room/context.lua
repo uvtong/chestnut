@@ -1,4 +1,6 @@
 local skynet = require "skynet"
+local context = require "context"
+
 local cls = class("context")
 
 function cls:ctor(id, ... )
@@ -11,10 +13,13 @@ function cls:ctor(id, ... )
 	self._view = nil
 	self._scene = nil
 	self._max_number = 8
-	self._splayers = {}
-	self._splayers_sz = 0
+	self._sub_players = {}
+	self._sub_players_sz = 0
 	self._uplayers = {}
 	self._uplayers_sz = 0
+	self._players = {}
+	self._players_sz = 0
+
 	self._stime = nil
 end
 
@@ -164,6 +169,28 @@ end
 function cls:get_stime( ... )
 	-- body
 	return self._stime
+end
+
+function cls:start(gate, max, mapid, ... )
+	-- body
+	self._gate = gate
+	self._max_number = max
+	-- load map id
+
+	return true
+end
+
+function cls:close( ... )
+	-- body
+	for _,user in pairs(users) do
+		gate.req.unregister(user.session)
+	end
+	return true
+end
+
+function cls:push_client(name, args, ... )
+	-- body
+
 end
 
 return cls

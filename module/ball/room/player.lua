@@ -1,12 +1,15 @@
 local log = require "log"
+local entity = require "entity"
+
 local cls = class("player")
 
-function cls:ctor(uid, session, ... )
+function cls:ctor(uid, subid, session, ... )
 	-- body
 	assert(uid and session)
 	self._uid = uid
+	self._subid = subid
 	self._session = session
-	self._secret = nil
+	self._idx = idx
 	self._agent = nil
 end
 
