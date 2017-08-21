@@ -1,3 +1,5 @@
+#define LUA_LIB
+
 #ifdef __cplusplus
 extern "C" {
 #endif
@@ -790,11 +792,8 @@ lrayAABB(lua_State *L) {
 	return 1;
 }
 
-void
-aabb(lua_State *L);
-
 // luaopen_ejoy3d_math3d(lua_State *L) {
-int
+LUAMOD_API int
 luaopen_math3d(lua_State *L) {
 	luaL_checkversion(L);
 	lua_newtable(L);

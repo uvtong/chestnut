@@ -108,4 +108,6 @@ require("base.ctype")
 require("base.os")
 require("base.io")
 require "base.debug"
-require("common")
+require("base.common")
+
+class = cc.class

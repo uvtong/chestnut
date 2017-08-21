@@ -1,267 +1,106 @@
-package.path = "./../../module/ball/agent/?.lua;./../../module/ball/lualib/?.lua;../../lualib/?.lua;"..package.path
 local skynet = require "skynet"
-local sprotoloader = require "sprotoloader"
-local sproto = require "sproto"
-local context = require "agent.acontext"
-local log = require "log"
+local netpack = require "skynet.netpack"
+local mc = require "skynet.multicast"
+local dc = require "skynet.datacenter"
+local redis = require "skynet.db.redis"
+local log = require "skynet.log"
+local util = require "util"
+local const = require "const"
 local errorcode = require "errorcode"
-local float = require "float"
-local crypt = require "crypt"
 
-local ctx
+local context = require "agent.acontext"
+local CMD = require "agent.cmd"
+local REQUEST = require "agent.request"
+local RESPONSE = require "agent.response"
 
-local cmd = {}
+local assert = assert
+local pcall = skynet.pcall
+local error = skynet.error
 
-function cmd.login(source, uid, sid, secret)
-	-- you may use secret to make a encrypted data stream
-	log.info(string.format("secret : %s", string.hex(secret)))
-	local res = skynet.call(".UID_MGR", "lua", "login", uid)
-	if res.new then
-		ctx:newborn(source, uid, sid, secret, res.id)
-	else
-		ctx:login(source, uid, sid, secret, res.id)
-	end
-	local key = ctx:get_secret()
-	log.info(string.format("secret : %s", string.hex(key)))
-	-- you may load user data from database
-	return true
-end
+local noret = {}
 
-function cmd.logout()
-	-- NOTICE: The logout MAY be reentry
-	local uid = ctx:get_uid()
-	local room = ctx:get_room()
-	if room then
-		local session = ctx:get_session()
-		local addr = skynet.call(".ROOM_MGR", "lua", "apply", room)
-		skynet.call(addr, "lua", "leave", session, uid)
-	end
-	ctx:logout()
-	log.info("uid: %d, suid: %d, is logout", uid, ctx:get_suid())
-	return true
-end
+local ctx       = false
+local SUBSCRIBE = {}
 
-function cmd.afk()
-	-- the connection is broken, but the user may back
-	log.info("afk")
-end
 
-function cmd.authed(conf, ... )
+local function subscribe()
 	-- body
-	local fd      = assert(conf.client)
-	local version = assert(conf.version)
-	local index   = assert(conf.index)
-	
-	ctx:set_fd(fd)
-	ctx:set_version(version)
-	ctx:set_index(index)
-	return true
+	local u = env:get_user()
+	local addr = skynet.self()
+	local uid = u:get_uid()
+	local c = skynet.call(".channel", "lua", "agent_start", uid, addr)
+	local c2 = mc.new {
+		channel = c,
+		dispatch = function ( channel, source, cmd, args, ... )
+			-- body
+			local f = SUBSCRIBE[cmd]
+			f(env, args)
+		end
+	}
+	c2:subscribe()
 end
 
-function cmd.match(args, ... )
-	-- body
-	log.info("send match")
-	ctx:send_request("match", args)
-end
-
-function cmd.join(args, ... )
-	-- body
-	log.info("agent. join")
-	ctx:send_request("join", args)
-end
-
-function cmd.born(args, ... )
-	-- body
-	log.info("agent born")
-	ctx:send_request("born", args)
-end
-
-function cmd.leave(args, ... )
-	-- body
-	ctx:send_request("leave", args)
-end
-
-function cmd.die(args, ... )
-	-- body
-	ctx:send_request("die", args)
-end
-
-function cmd.hurt(args, ... )
-	-- body
-	ctx.send_request("hurt",args);
-end
-
-local client_request = {}
-
-function client_request.handshake( ... )
-	-- body
-	-- ctx:send_request("handshake")
-	local res = { errorcode = 1 }
-	return res
-end
-
-function client_request.join(args)
-
-	local uid = ctx:get_uid()
-	local secret = ctx:get_secret()
-	local room = skynet.call(".ROOM_MGR", "lua", "apply", args.roomid)
-	ctx:set_room(args.roomid)
-
-	local res = skynet.call(room, "lua", "join", uid, skynet.self(), secret)
-	ctx:set_session(res.session)
-
-	return res
-end
-
-function client_request.born( ... )
-	-- body
-	local session = ctx:get_session()
-	local room = ctx:get_room()
-	return room.req.born(session)
-end
-
-function client_request.opcode(args, ... )
-	-- body
-	local session = ctx:get_session()
-	local room = ctx:get_room()
-	return room.req.opcode(session, args)
-end
-
-function client_request.match(args, ... )
-	-- body
-	local uid = ctx:get_uid()
-	skynet.send(".MATCH", "lua", "enter", uid, skynet.self(), args.mode)
-	local res = { errorcode=errorcode.SUCCESS}
-	return res
-end
-
-local client_response = {}
-
-function client_response.handshake(args, ... )
-	-- body
-	if args.errorcode == errorcode.SUCCESS then
-		-- log.info("handshake SUCCESS")
-	end
-end
-
-function client_response.join(args, ... )
-	-- body
-	assert(args.errorcode == errorcode.SUCCESS)
-end
-
-function client_response.born(args, ... )
-	-- body
-	assert(args.errorcode == errorcode.SUCCESS)
-end
-
-function client_response.leave(args, ... )
-	-- body
-	assert(args.errorcode == errorcode.SUCCESS)
-end
-
-function client_response.opcode(args, ... )
-	-- body
-	assert(args.errorcode == errorcode.SUCCESS)
-end
-
-function client_response.die(args, ... )
-	-- body
-	assert(args.errorcode == errorcode.SUCCESS)
-end
-
-function client_response.hurt(args, ... )
-	-- body
-	assert(args.errorcode == errorcode.SUCCESS)
-end
-
-function client_response.Buff(args, ... )
-	-- body
-	assert(args.errorcode == errorcode.SUCCESS)
-end
-
-function client_response.match(args, ... )
-	-- body
-	assert(args.errorcode == errorcode.SUCCESS)
-end
-
-local function decode_proto(msg, sz, ... )
-	-- body
-	if sz > 0 then
-		local host = ctx:get_host()
-		return host:dispatch(msg, sz)
-	elseif sz == 0 then
-		return "HANDSHAKE"
-	end
-end
-
-local function request(name, args, response)
-    local f = client_request[name]
-    local ok, result = pcall(f, args)
+local function request(name, args, response, msg, sz)
+	log.info("agent request [%s]", name)
+    local f = REQUEST[name]
+    local ok, result = xpcall(f, debug.msgh, ctx, args, msg, sz)
     if ok then
-    	return response(result)
-    else
-    	log.error(result)
-    	local ret = {}
-    	ret.errorcode = errorcode.FAIL
-    	return response(ret)
+    	if result then
+    		return response(result)
+    	end
     end
-end      
+end
 
-local function response(session, args)
+local function response(session, args, msg, sz)
 	-- body
 	local name = ctx:get_name_by_session(session)
-	log.info("uid %d agent response: %s", ctx:get_uid(), name)
-    local f = client_response[name]
-    local ok, result = pcall(f, args)
+	-- log.info("agent response [%s]", name)
+    local f = RESPONSE[name]
+    local ok, result = pcall(f, ctx, args)
     if ok then
     else
     	log.error(result)
     end
 end
 
-local function dispatch_client(_,_, type, ... )
-	if type == "REQUEST" then
-		local ok, result = pcall(request, ...)
-		if ok then
-			if result then
-				ctx:send_package(result)
-			end	
-		else
-			log.error(result)
+skynet.register_protocol {
+	name = "client",
+	id = skynet.PTYPE_CLIENT,
+	unpack = function (msg, sz)
+		if sz > 0 then
+			local host = ctx:get_host()
+			return host:dispatch(msg, sz)
+		else 
+			assert(false)
 		end
-	elseif type == "RESPONSE" then
-		pcall(response, ...)
-	elseif type == "HANDSHAKE" then
-		-- log.info("handshake")
+	end,
+	dispatch = function (session, source, type, ...)	
+		if type == "REQUEST" then
+			local ok, result = xpcall(request, debug.msgh, ...)
+			if ok then
+				if result then
+					ctx:send_package(result)
+				end
+			end
+		elseif type == "RESPONSE" then
+			pcall(response, ...)
+		else
+			assert(false, result)
+		end
 	end
-end
+}
 
-skynet.start(function ( ... )
-	-- body
-	local host = sprotoloader.load(1):host "package"
-	local send_request = host:attach(sprotoloader.load(2))
-	ctx = context.new()
-	ctx:set_host(host)
-	ctx:set_send_request(send_request)
-	
-	skynet.register_protocol {
-		name = "client",
-		id = skynet.PTYPE_CLIENT,
-		unpack = decode_proto,
-	}
-
-	-- todo: dispatch client message
-	skynet.dispatch("client", dispatch_client)
-	
-	skynet.dispatch("lua", function (_, source, command, ...)
-		local f = cmd[command]
-		local ok, err = pcall(f, ...)
+skynet.start(function()
+	skynet.dispatch("lua", function(_, source, cmd, ...)
+		log.info("agent cmd [%s] is called", cmd)
+		local f = assert(CMD[cmd])
+		local ok, err = xpcall(f, debug.msgh, ctx, source, ...) 
 		if ok then
-			if err ~= nil then
+			if err ~= noret then
 				skynet.retpack(err)
 			end
-		else
-			log.error(err)
 		end
 	end)
+	-- slot 1,2 set at main.lua
+	ctx = context.new()
 end)

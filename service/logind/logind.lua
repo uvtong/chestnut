@@ -6,11 +6,12 @@ local skynet = require "skynet"
 local log = require "skynet.log"
 
 local address, port = string.match(skynet.getenv("logind"), "([%d.]+)%:(%d+)")
+local name = skynet.getenv "logind_name"
 local server = {
 	host = address or "127.0.0.1",
 	port = tonumber(port) or 8002,
 	multilogin = false,	-- disallow multilogin
-	name = ".LOGIND",
+	name = name,
 	instance = 8,
 }
 

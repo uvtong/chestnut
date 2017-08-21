@@ -1,9 +1,9 @@
-package.path = "./../../service/host/lualib/?.lua;" .. package.path
 local login = require "snax.loginserver"
-local crypt = require "crypt"
 local skynet = require "skynet"
+local crypt = require "skynet.crypt"
+local log = require "skynet.log"
 local query = require "query"
-local log = require "log"
+
 
 local MAX_INTEGER = 16777216
 

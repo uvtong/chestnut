@@ -1,62 +1,78 @@
 local skynet = require "skynet"
-local dbcontext = require "dbcontext"
-local user = require "user"
+local log = require "skynet.log"
 local context = require "context"
+local errorcode = require "errorcode"
+
+local assert = assert
+local pcall = skynet.pcall
 
 local cls = class("acontext", context)
 
 function cls:ctor( ... )
 	-- body
 	cls.super.ctor(self, ...)
-	
-	self._room = false
-	self._session = false
-	self._dbcontext = dbcontext.new(self)
-	self._user = user.new(self, self._dbcontext)
-	self._dbcontext:register_user(self._user)
+	self._db = nil
+	self._modules = {}
 	return self
 end
 
-function cls:newborn(gate, uid, subid, secret, suid, ... )
+function cls:get_db( ... )
 	-- body
-	cls.super.newborn(self, gate, uid, subid, secret, suid)
-	self._user:set_id(self._uid)
-	self._user:set_name("hello")
-	self._user:set_age(10)
-	self._user:set_gold(1000)
-	self._user:set_diamond(10000)
-	self._user:insert_db("tg_users")
+	return self._db
 end
 
-function cls:login(gate, uid, subid, secret, suid)
-	assert(uid and subid and secret)
-	cls.super.login(self, gate, uid, subid, secret, suid)
+function cls:set_db(value, ... )
+	-- body
+	self._db = value
+	for _,M in pairs(self._modules) do
+		M:set_db(value)
+	end
+end
 
+function cls:login(gate, uid, subid, secret)
+
+	cls.super.login(self, gate, uid, subid, secret)
+
+	for _,M in pairs(self._modules) do
+		M:login()
+	end
+	
+	self:load_cache_to_data()
 end
 
 function cls:logout( ... )
 	-- body
 	cls.super.logout(self)
+
+	for _,M in pairs(self._modules) do
+		M:logout()
+	end
 end
 
-function cls:set_room(room, ... )
+function cls:authed( ... )
 	-- body
-	self._room = room
+	for _,M in pairs(self._modules) do
+		M:authed()
+	end
 end
 
-function cls:get_room( ... )
+function cls:afk( ... )
 	-- body
-	return self._room
+	for _,M in pairs(self._modules) do
+		M:afk()
+	end
 end
 
-function cls:set_session(session, ... )
-	-- body
-	self._session = session
+function cls:load_cache_to_data()
+	-- load user
+	for _,M in pairs(self._modules) do
+		M:load_cache_to_data()
+	end
 end
 
-function cls:get_session( ... )
+function cls:register_module(name, m, ... )
 	-- body
-	return self._session
+	self._modules[name] = m
 end
 
 return cls

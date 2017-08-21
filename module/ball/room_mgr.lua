@@ -1,7 +1,9 @@
 local skynet = require "skynet"
 require "skynet.manager"
+local log = require "skynet.log"
+
 local queue = require "queue"
-local log = require "log"
+
 
 local index = 0
 local q

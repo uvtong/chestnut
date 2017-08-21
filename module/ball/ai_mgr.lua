@@ -1,8 +1,9 @@
 local skynet = require "skynet"
 require "skynet.manager"
 local skynet_queue = require "skynet.queue"
+local log = require "skynet.log"
 local queue = require "queue"
-local log = require "log"
+
 
 local cs = skynet_queue()
 

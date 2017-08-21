@@ -1,5 +1,6 @@
-local log = require "log"
-local entity = require "entity"
+local skynet = require "skynet"
+local log = require "skynet.log"
+local entity = require "room.entity"
 
 local cls = class("player")
 

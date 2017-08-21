@@ -9,7 +9,6 @@
 #./skynet ../../config/mahjong/crazy_s1.config
 
 cd ../../../3rd/skynet
-./skynet ../../config/mahjong/win/crazy_m1.config
-./skynet ../../config/mahjong/win/crazy_s3.config
-#./skynet ../../config/mahjong/crazy_s4_re.config
+./skynet ../../config/ball/crazy_m1.config
+./skynet ../../config/ball/crazy_s3.config
 

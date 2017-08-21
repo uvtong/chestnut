@@ -1,11 +1,12 @@
 local skynet = require "skynet"
+local log = require "skynet.log"
+
+local list = require "list"
 local math3d = require "math3d"
+
 local ball = require "room.ball"
 local map = require "room.map"
 local view = require "room.view"
-local list = require "list"
-local log = require "log"
-
 
 local cls = class("scene")
 

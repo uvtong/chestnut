@@ -1,10 +1,12 @@
 local skynet = require "skynet"
 require "skynet.manager"
+local crypt = require "skynet.crypt"
+local log = require "skynet.log"
+
 local errorcode = require "errorcode"
 local math3d = require "math3d"
 local float = require "float"
-local crypt = require "crypt"
-local log = require "log"
+
 local list = require "list"
 local context = require "room.context"
 local player = require "room.player"
@@ -30,9 +32,9 @@ skynet.start(function ( ... )
 	ctx = context.new(id)
 
 	-- local aoi = skynet.newservice("aoi")
-	local battle = skynet.launch("battle")
+	-- local battle = skynet.launch("battle")
 
 	-- ctx:set_aoi(aoi)
-	ctx:set_battle(battle)
+	-- ctx:set_battle(battle)
 end)
 

@@ -1,3 +1,5 @@
+#define LUA_LIB
+
 #include "rudp.h"
 
 #include <lua.h>
@@ -120,7 +122,7 @@ lalloc(lua_State *L) {
 	}
 }
 
-int
+LUAMOD_API int
 luaopen_rudp(lua_State *L) {
 	luaL_checkversion(L);
 	lua_newtable(L); // met

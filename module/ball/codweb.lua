@@ -1,7 +1,7 @@
 local skynet = require "skynet"
 require "skynet.manager"
-local mc = require "multicast"
-local log = require "log"
+local mc = require "skynet.multicast"
+local log = require "skynet.log"
 
 local servers = {}
 
@@ -69,15 +69,11 @@ function CMD.start( ... )
 	local signupd = skynet.getenv("signupd")
 	if signupd  then
 		local addr = skynet.newservice("signupd")
-		local signupd_name = skynet.getenv("signupd_name")
-		skynet.name(signupd_name, addr)
 	end
 
 	local logind = skynet.getenv("logind")
 	if logind then
-		local logind_name = skynet.getenv("logind_name")
 		local addr = skynet.newservice("logind/logind")
-		skynet.name(logind_name, addr)
 	end     
 
 	local gated = skynet.getenv("gated")
