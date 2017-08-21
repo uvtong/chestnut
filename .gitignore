@@ -55,4 +55,14 @@
 
 build/vs2017/.vs
 build/vs2017/intermediate
+
 !build/vs2017/pthreadVC2.lib
+!3rd/Redis-x64-3.2.100/EventLog.dll
+!3rd/Redis-x64-3.2.100/redis-benchmark.exe
+!3rd/Redis-x64-3.2.100/redis-benchmark.pdb
+!3rd/Redis-x64-3.2.100/redis-check-aof.exe
+!3rd/Redis-x64-3.2.100/redis-check-aof.pdb
+!3rd/Redis-x64-3.2.100/redis-cli.exe
+!3rd/Redis-x64-3.2.100/redis-cli.pdb
+!3rd/Redis-x64-3.2.100/redis-server.exe
+!3rd/Redis-x64-3.2.100/redis-server.pdb
