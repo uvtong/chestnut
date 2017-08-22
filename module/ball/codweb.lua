@@ -66,11 +66,9 @@ function CMD.start( ... )
 	table.insert(servers, udpmgr)
 
 	-- add 
-	local signupd = skynet.getenv("signupd")
-	if signupd  then
-		local addr = skynet.newservice("signupd")
-	end
-
+	local signupd = skynet.newservice("signupd")
+	skynet.call(signupd, "lua", "start")
+	
 	local logind = skynet.getenv("logind")
 	if logind then
 		local addr = skynet.newservice("logind/logind")

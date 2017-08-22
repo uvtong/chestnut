@@ -1,5 +1,6 @@
 local query = require "query"
 local log = require "skynet.log"
+local util = require "util"
 
 local tname = "tb_user"
 
@@ -25,7 +26,7 @@ end
 function _M.cache_update(db, left, ... )
 	-- body
 	local uid, key = left:match("([^:]+):(.+)")
-	local val = db:get(string.format("tg_uid:%s:%s", uid, key))
+	local val = db:get(string.format("tb_uid:%s:%s", uid, key))
 	
 	if key == 'rcard' or
 		key == 'sex' then
@@ -41,22 +42,14 @@ end
 
 function _M.cache_insert(db, uid, ... )
 	-- body
-	local gold           = db:get(string.format("%s:%d:gold", tname, uid))
-	local diamond        = db:get(string.format("%s:%d:diamond", tname, uid))
-	local checkin_month  = db:get(string.format("%s:%d:checkin_month", tname, uid))
-	local checkin_count  = db:get(string.format("%s:%d:checkin_count", tname, uid))
-	local checkin_mcount = db:get(string.format("%s:%d:checkin_mcount", tname, uid))
-	local checkin_lday   = db:get(string.format("%s:%d:checkin_lday", tname, uid))
-	local rcard          = db:get(string.format("%s:%d:rcard", tname, uid))
-	local sex            = db:get(string.format("%s:%d:sex", tname, uid))
-	local nickname       = db:get(string.format("%s:%d:nickname", tname, uid))
-	local province       = db:get(string.format("%s:%d:province", tname, uid))
-	local city           = db:get(string.format("%s:%d:city", tname, uid))
-	local country        = db:get(string.format("%s:%d:country", tname, uid))
-	local headimg        = db:get(string.format("%s:%d:headimg", tname, uid))
+	log.info("tb_user uid = %s", uid)
+	local cmd = string.format("%s:%s", tname, uid)
+	log.info("cmd = %s", cmd)
+	local hval = db:hgetall(cmd)
+	local h = util.redis_hval(hval)
 
-	local sql = "insert into %s (uid, gold, diamond, checkin_month, checkin_count, checkin_mcount, checkin_lday, rcard, sex, nickname, province, city, country, headimg) values (%d, %d, %d, %d, %d, %d, %d, %d, %d, '%s', '%s', '%s', '%s', '%s')"
-	sql = string.format(sql, tname, uid, gold, diamond, checkin_month, checkin_count, checkin_mcount, checkin_lday, rcard, sex, nickname, province, city, country, headimg)
+	local sql = "insert into %s (uid, nickname, sex) values (%s, '%s', %s)"
+	sql = string.format(sql, tname, h.uid, h.nickname, h.sex)
 	log.info(sql)
 	query.insert(tname, sql)
 end

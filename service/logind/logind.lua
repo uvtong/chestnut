@@ -6,12 +6,13 @@ local skynet = require "skynet"
 local log = require "skynet.log"
 
 local address, port = string.match(skynet.getenv("logind"), "([%d.]+)%:(%d+)")
-local name = skynet.getenv "logind_name"
+local logind_name = skynet.getenv "logind_name"
+local signupd_name = skynet.getenv "signupd_name"
 local server = {
 	host = address or "127.0.0.1",
 	port = tonumber(port) or 8002,
 	multilogin = false,	-- disallow multilogin
-	name = name,
+	name = logind_name,
 	instance = 8,
 }
 
@@ -27,7 +28,7 @@ function server.auth_handler(token)
 	password = crypt.base64decode(password)
 	assert(password == "Password", "Invalid password")
 	log.info("auth_handler %s@%s:%s", user, server, password)
-	local res = skynet.call(".WX_SIGNUPD", "lua", "signup", server, user)
+	local res = skynet.call("." .. signupd_name, "lua", "signup", server, user)
 	if res.code == 200 then
 		return server, res.uid
 	else

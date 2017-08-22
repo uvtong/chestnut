@@ -12,10 +12,10 @@ local function new_item(db, id, ... )
 	log.info(sql)
 	local res = query.select(tname, sql)
 	if #res > 0 then
-		db:set(string.format("%s:%d:uid", tname, id), assert(res[1].uid))
+		db:set(string.format("%s:%d:count", tname, id), assert(res[1].count))
 	else
-		db:set(string.format("%s:%d:uid", tname, id), 0)
-		local sql = string.format("insert into %s (id, uid) values (%d, %d);", tname, id, 0)
+		db:set(string.format("%s:%d:count", tname, id), 1000)
+		local sql = string.format("insert into %s (id, count) values (%d, %d);", tname, id, 1000)
 		query.insert(tname, sql)
 	end
 end
@@ -27,9 +27,9 @@ function _M.cache_select(db, ... )
 	assert(db)
 	-- 1.
 	new_item(db, const.UID_ID)
-	new_item(db, const.NAME_ID)
-	new_item(db, const.SYSMAIL_ID)
-	new_item(db, const.RECORD_ID)
+	-- new_item(db, const.NAME_ID)
+	-- new_item(db, const.SYSMAIL_ID)
+	-- new_item(db, const.RECORD_ID)
 
 	return true
 end

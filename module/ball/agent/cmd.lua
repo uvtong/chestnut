@@ -9,19 +9,11 @@ local assert = assert
 local pcall = skynet.pcall
 local error = skynet.error
 
-local reload
-
-local conf = {
-	host = "127.0.0.1" ,
-	port = 6379 ,
-	db = 0
-}
-
 local CMD = {}
 
 function CMD:start(r, ... )
 	-- body
-	reload = r
+	self:set_reload(r)
 	return true
 end
 
@@ -39,43 +31,18 @@ end
 -- called by gated
 function CMD:login(gate, uid, subid, secret,... )
 	-- body
-	local db = redis.connect(conf)
-	self:set_db(db)
-
-	if reload then
-		local ok, err = xpcall(self.login, debug.msgh, self, gate, uid, subid, secret)
-		if not ok then
-			skynet.call(".AGENT_MGR", "lua", "exit_at_once", uid)
-			return errorcode.LOGIN_AGENT_ERR
-		end
+	local ok, err = xpcall(self.login, debug.msgh, self, gate, uid, subid, secret)
+	if not ok then
+		skynet.call(".AGENT_MGR", "lua", "exit_at_once", uid)
+		return errorcode.LOGIN_AGENT_ERR
 	end
-
-	self:login()
-	
 	return errorcode.SUCCESS
 end
 
 -- prohibit mult landing
 function CMD:logout()
 	-- body
-	local uid = self:get_uid()
-	local subid = self:get_subid()
-
-	log.info("user %s logout", uid)
-	local room = self:get_room()
-	if room then
-		local args = {}
-		args.uid = uid
-		skynet.call(room, "lua", "on_leave", args)
-		self:set_room(nil)
-	end
-	local ok = skynet.call(".ONLINE_MGR", "lua", "logout", uid, subid)
-	assert(ok)
-
 	self:logout()
-
-	local db = self:get_db()
-	db:disconnect()
 	
 	return true
 end

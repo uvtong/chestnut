@@ -1,91 +1,241 @@
-local login = require "snax.loginserver"
 local skynet = require "skynet"
+require "skynet.manager"
 local crypt = require "skynet.crypt"
+local redis = require "skynet.db.redis"
 local log = require "skynet.log"
 local query = require "query"
+local json = require "cjson"
+local queue = require "queue"
+local dbmonitor = require "dbmonitor"
+local const = require "const"
 
+local signupd_name = skynet.getenv "signupd_name"
+local server_win = { ["sample1"] = true }
+local server_adr = { ["sample"]  = true }
+local appid  = "wx3207f9d59a3e3144"
+local secret = "d4b630461cbb9ebb342a8794471095cd"
+local db
 
-local MAX_INTEGER = 16777216
-
-local address, port = string.match(skynet.getenv("signupd"), "([%d.]+)%:(%d+)")
-local server = {
-	host = address or "127.0.0.1",
-	port = port or 8001,
-	multilogin = false,	-- disallow multilogin
-	name = "signup_master",
+local conf = {
+	host = "127.0.0.1" ,
+	port = 6379 ,
+	db = 0
 }
 
-local server_list = {}
-local user_online = {}
-local user_login = {}
+local server_id = 1
+local server_id_shift = 24
+local internal_id = 1
+local internal_id_mask = 0xffffff
+local id_mask = 0xffffffff
 
-function server.auth_handler(token)
-	-- the token is base64(user)@base64(server):base64(password)
-	local user, server, password = token:match("([^@]+)@([^:]+):(.+)")
-	user = crypt.base64decode(user)
-	server = crypt.base64decode(server)
-	password = crypt.base64decode(password)
-	-- judge is exits
-	
-	local sql = string.format("select * from account where user = \"%s\"", user)
-	local r = query.read(".SIGNUPD_DB", "account", sql)
+local function gen_uid(id, ... )
+	-- body
+	local uid = db:incr(string.format("tb_count:%d:count", const.UID_ID))
+	dbmonitor.cache_update(string.format("tb_count:%d:count", const.UID_ID))
 
-	if #r >= 1 then
-		error("has account")
+	uid = ((server_id << server_id_shift) | uid)
+	return uid
+end
+
+local function gen_nameid(id, ... )
+	-- body
+	local id = db:incr(string.format("tb_count:%d:uid", const.NAME_ID))
+	dbmonitor.cache_update(string.format("tb_count:%d:uid", const.NAME_ID))
+
+	local nameid = ""
+	id = ((server_id << server_id_shift) | id)
+	local hex = "0123456789abcdef"
+	for i=1,8 do
+		local idx = (id >> ((8 - i) * 4)) & 0xf
+		nameid = nameid .. hex:sub(idx, idx)
+	end
+	return nameid
+end
+
+local function new_user(uid, sex, nickname)
+	-- body
+	assert(uid and sex and nickname)
+	db:hset(string.format("tb_user:%d", uid), "uid", uid)
+	db:hset(string.format("tb_user:%d", uid), "sex", sex)
+	db:hset(string.format("tb_user:%d", uid), "nickname", nickname)
+
+	log.info("uid = %s", db:hget(string.format("tb_user:%d", uid), "uid"))
+	log.info("sex = %s", db:hget(string.format("tb_user:%d", uid), "sex"))
+	log.info("nickname = %s", db:hget(string.format("tb_user:%d", uid), "nickname"))
+
+	dbmonitor.cache_insert(string.format("tb_user:%d", uid))
+end
+
+local function new_unionid(unionid, uid, ... )
+	-- body
+	assert(unionid and uid)
+	db:set(string.format("tb_openid:%s:openid", unionid), unionid)
+	db:set(string.format("tb_openid:%s:uid", unionid), uid)
+
+	dbmonitor.cache_insert(string.format("tb_openid:%s", unionid))
+end
+
+local function new_nameid(nameid, uid, ... )
+	-- body
+	assert(nameid and uid)
+	db:set(string.format("tb_nameid:%s:nameid", nameid), nameid)
+	db:set(string.format("tb_nameid:%s:uid", nameid), uid)
+	-- 
+	dbmonitor.cache_insert(string.format("tb_nameid:%s", nameid))
+end
+
+local function auth_win_myself(code, ... )
+	-- body
+	local unionid = code
+	local uid = db:get(string.format("tb_openid:%s:uid", unionid))
+	if uid and math.tointeger(uid) > 0 then
+		return uid
 	else
-		local sql = string.format("select * from uid where id = %d", 1)
-		local r = query.read(".SIGNUPD_DB", "uid", sql)
-		assert(#r == 1)
-		id = r[1].entropy + 1
-		sql = string.format("update uid set entropy = %d where id = %d", id, 1)
-		query.write(".SIGNUPD_DB", "uid", sql)
-		sql = string.format("insert into account (`id`, `user`, `password`, `signuptime`, `csv_id`) values ( %d, \"%s\", \"%s\", %d, %d)", id, user, password, os.time(), id)
-		query.write(".SIGNUPD_DB", "account", sql)
-		--skynet.send(".signup_db", "lua", "command", "insert_sql", "account", sql, 1)
-		return server, id
+		local uid = gen_uid()
+		-- local nameid = gen_nameid()
+		-- assert(uid and nameid)
+		log.info("uid = %d", uid)
+
+		local sex = 1
+		local r = math.random(1, 10)
+		if r > 5 then
+			sex = 1
+		else
+			sex = 2
+		end
+		
+		local nickname = "hell"
+		local province = 'Beijing'
+		local city     = "Beijing"
+		local country  = "CN"
+		local headimg  = "xx"
+		new_unionid(unionid, uid)
+		-- new_nameid(nameid, uid)
+		new_user(uid, sex, nickname)
+
+		return uid
 	end
 end
 
-function server.login_handler(server, uid, secret)
-	print(string.format("%s@%s is login, secret is %s", uid, server, crypt.hexencode(secret)))
-	-- local gameserver = assert(server_list[server], "Unknown server")
-	-- -- only one can login, because disallow multilogin
-	-- local last = user_online[uid]
-	-- if last then
-	-- 	skynet.call(last.address, "lua", "kick", uid, last.subid)
-	-- end
-	-- if user_online[uid] then
-	-- 	error(string.format("user %s is already online", uid))
-	-- end
+local function auth_android_wx(code, ... )
+	-- body
+	httpc.dns()
+	httpc.timeout = 1000 -- set timeout 1 second
+	local respheader = {}
+	local url = "/sns/oauth2/access_token?appid=%s&secret=%s&code=%s&grant_type=authorization_code"
+	url = string.format(url, appid, secret, code)
+	
+	local ok, body, code = skynet.call(".https_client", "lua", "get", "api.weixin.qq.com", url)
+	if not ok then
+		local res = {}
+		res.code = 201
+		res.uid  = 0
+		return res
+	end
+		
+	local res = json.decode(body)
+	local access_token  = res["access_token"]
+	local expires_in    = res["expires_in"]
+	local refresh_token = res["refresh_token"]
+	local openid        = res["openid"]
+	local scope         = res["scope"]
+	local unionid       = res["unionid"]
+	log.info("access_token = " .. access_token)
+	log.info("openid = " .. openid)
 
-	-- local subid = tostring(skynet.call(gameserver, "lua", "login", uid, secret))
-	-- user_online[uid] = { address = gameserver, subid = subid , server = server}
-	-- return subid
-	return uid
+	local uid = db:get(string.format("tb_openid:%s:uid", unionid))
+	if uid and uid > 0 then
+		return uid
+	else
+		url = "https://api.weixin.qq.com/sns/userinfo?access_token=%s&openid=%s"
+		url = string.format(url, access_token, openid)
+		local ok, body, code = skynet.call(".https_client", "lua", "get", "api.weixin.qq.com", url)
+		if not ok then
+			error("access api.weixin.qq.com wrong")
+		end
+
+		local res = json.decode(body)
+		local nickname   = res["nickname"]
+		local sex        = res["sex"]
+		local province   = res["province"]
+		local city       = res["city"]
+		local country    = res["country"]
+		local headimgurl = res["headimgurl"]
+		url = string.sub(headimgurl, 19)
+		log.info(url)
+		local statuscode, body = httpc.get("wx.qlogo.cn", url, respheader)
+		local headimg = crypt.base64encode(body)
+
+		local uid = gen_uid()
+		local nameid = gen_nameid()
+
+		new_unionid(unionid, uid)
+		new_nameid(nameid, uid)
+		new_user(uid, sex, nickname, province, city, country, headimg, unionid, uid)
+
+		return uid
+	end
 end
 
 local CMD = {}
 
-function CMD.register_gate(server, address)
-	server_list[server] = address
+function CMD.start( ... )
+	-- body
+	db = redis.connect(conf)
+	return true
 end
 
-function CMD.auth(user, password)
+function CMD.close( ... )
 	-- body
-	log.info("username: %s, password: %s", user, password)
-	local sql = string.format("select * from tg_account where username = \"%s\" and password = \"%s\"", user, password)
-	local r = query.select("tg_account", sql)
-	if #r ~= 1 then
-		print("account system has error.")
-		return false, "error"
-	else
-		return true, r[1].id
+	db:disconnect()
+	return true
+end
+
+function CMD.kill( ... )
+	-- body
+	skynet.exit()
+end
+
+function CMD.signup(server, code, ... )
+	-- body
+	log.info("server: %s", server)
+	if server_adr[server] then
+		local ok, err = pcall(auth_android_wx, code)
+		if ok then
+			local res = {}
+			res.code = 200
+			res.uid = err
+			return res
+		else
+			local res = {}
+			res.code = 501
+			return res
+		end
+	elseif server_win[server] then
+		local ok, err = pcall(auth_win_myself, code)
+		if ok then
+			local res = {}
+			res.code = 200
+			res.uid = err
+			return res
+		else
+			log.info("err: %s", err)
+			local res = {}
+			res.code = 501
+			return res
+		end
 	end
 end
 
-function server.command_handler(command, ...)
-	local f = assert(CMD[command])
-	return f(...)
-end
-
-login(server)
+skynet.start(function ( ... )
+	-- body
+	skynet.dispatch("lua", function (_, source, command, ... )
+		-- body
+		local f = assert(CMD[command])
+		local r = f( ... )
+		if r ~= noret then
+			skynet.retpack(r)
+		end
+	end)
+	skynet.register("." .. signupd_name)
+end)

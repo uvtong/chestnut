@@ -15,9 +15,6 @@ local RESPONSE = require "agent.response"
 
 local assert = assert
 local pcall = skynet.pcall
-local error = skynet.error
-
-local noret = {}
 
 local ctx       = false
 local SUBSCRIBE = {}
@@ -94,9 +91,9 @@ skynet.start(function()
 	skynet.dispatch("lua", function(_, source, cmd, ...)
 		log.info("agent cmd [%s] is called", cmd)
 		local f = assert(CMD[cmd])
-		local ok, err = xpcall(f, debug.msgh, ctx, source, ...) 
+		local ok, err = xpcall(f, debug.msgh, ctx, ...) 
 		if ok then
-			if err ~= noret then
+			if err ~= errorcode.NORET then
 				skynet.retpack(err)
 			end
 		end

@@ -1,4 +1,3 @@
-package.path = "./../../module/mahjong/lualib/?.lua;../../lualib/?.lua;"..package.path
 local skynet = require "skynet"
 require "skynet.manager"
 local crypt = require "skynet.crypt"

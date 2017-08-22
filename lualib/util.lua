@@ -204,4 +204,18 @@ function util.cd_sec( ... )
 	return os.time(t), nt.day
 end
 
+function util.redis_hval(hval, ... )
+	-- body
+	local h = {}
+	local key
+	for i,v in ipairs(hval) do
+		if i % 2 == 1 then
+			key = v
+		else
+			h[key] = v
+		end
+	end
+	return h
+end
+
 return util
